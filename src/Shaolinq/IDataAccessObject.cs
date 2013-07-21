@@ -61,7 +61,7 @@ namespace Shaolinq
 
 		/// <summary>
 		/// Gets the object state of the object (mostly used for persistence).
-		/// </summary>
+		/// </summary>S
 		ObjectState ObjectState { get; }
 
 		/// <summary>
@@ -78,28 +78,31 @@ namespace Shaolinq
 		/// <summary>
 		/// Returns true if the object has an auto-incrementing key
 		/// </summary>
-		bool HasAutoIncrementKeyValue
-		{
-			get;
-		}
+		bool HasAutoIncrementKeyValue { get; }
 
 		/// <summary>
 		/// Returns True if the current object defines a primary key that is an autoincrement key.
 		/// </summary>
-		bool DefinesAutoIncrementKey
-		{
-			get;
-		}
+		bool DefinesAutoIncrementKey { get; }
 
+		/// <summary>
+		/// Converts this object to another type using name/convention mapping
+		/// </summary>
 		U TranslateTo<U>();
 
-		bool IsTransient
-		{
-			get;
-		}
+		/// <summary>
+		/// Returns true if the current object doesn't belong to any transaction (is freeform)
+		/// </summary>
+		bool IsTransient { get; }
 
+		/// <summary>
+		/// Makes this object as not belonging to any transaction (it will not be commited)
+		/// </summary>
 		void SetTransient(bool transient);
 
+		/// <summary>
+		/// Deletes the object.
+		/// </summary>
 		void Delete();
 
 		/// <summary>
@@ -112,7 +115,16 @@ namespace Shaolinq
 		/// </summary>
 		void SetIsDeleted(bool value);
 
+		/// <summary>
+		/// Makes the object as write-only (reads can only be made to primary key properties and properties that have been
+		/// changed within the context of the current transaction)
+		/// </summary>
 		void SetIsWriteOnly(bool isWriteOnly);
+
+		/// <summary>
+		/// Sets the primary key(s)
+		/// </summary>
+		void SetPrimaryKeys(PropertyInfoAndValue[] primaryKeys);
 
 		/// <summary>
 		/// Sets the associated model of this object.

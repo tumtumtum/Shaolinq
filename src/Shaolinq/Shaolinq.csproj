@@ -86,9 +86,10 @@
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
-    <Compile Include="ConstructorInfoFastRef.cs" />
+    <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
     <Compile Include="DataAccessObjectsQueryableExtensions.cs" />
+    <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="PersistenceMode.cs" />
     <Compile Include="DataAccessModelAttribute.cs" />
     <Compile Include="DataAccessObjectProjectionContext.cs" />
@@ -160,7 +161,7 @@
     <Compile Include="Persistence\Sql\Linq\RelatedDomainObjectProjector.cs" />
     <Compile Include="Persistence\Sql\Linq\SelectFirstType.cs" />
     <Compile Include="Persistence\Sql\Linq\SqlJoinType.cs" />
-    <Compile Include="MethodInfoFastRef.cs" />
+    <Compile Include="TypeBuilding\MethodInfoFastRef.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\FunctionCoalescer.cs" />
     <Compile Include="Persistence\Sql\DefaultStringEnumSqlDataType.cs" />
     <Compile Include="Persistence\Sql\DefaultStringSqlDataType.cs" />
@@ -258,6 +259,7 @@
     <Compile Include="Persistence\TypeDescriptor.cs" />
     <Compile Include="Persistence\TypeDescriptorProvider.cs" />
     <Compile Include="Persistence\TypeRelationshipInfo.cs" />
+    <Compile Include="TypeBuilding\PropertyMethodType.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="WriteOnlyDomainObjectException.cs" />

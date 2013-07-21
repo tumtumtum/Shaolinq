@@ -130,6 +130,14 @@ namespace Shaolinq.Persistence
 			}
 		}
 
+		public bool IsPropertyThatIsCreatedOnTheServerSide
+		{
+			get
+			{
+				return this.IsAutoIncrement && this.PropertyType.IsIntegerType();
+			}
+		}
+
 		public bool IsPrimaryKey
 		{
 			get;

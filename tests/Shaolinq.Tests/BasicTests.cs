@@ -8,6 +8,27 @@ using log4net.Config;
 
 namespace Shaolinq.Tests
 {
+	public interface Interface1
+	{
+		void Foo();
+	}
+
+	public class A
+		: Interface1
+	{
+		void Interface1.Foo()
+		{
+		}
+	}
+
+	public class B
+		: A, Interface1 
+	{
+		void Interface1.Foo()
+		{	
+		}
+	}
+
 	[TestFixture]
 	public class BasicTests
 	{
@@ -44,6 +65,11 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Foo()
+		{
+		}
+
+		[Test]
 		public void Test_Create_Object_And_Related_Object_Then_Query()
 		{
 			Guid studentId;
@@ -63,8 +89,6 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(school, student.School);
 				Assert.AreEqual(student.FirstName + " " + student.LastName, student.FullName);
 
-				scope.Flush(model);
-
 				studentId = student.Id;
 				
 				scope.Complete();
@@ -75,8 +99,12 @@ namespace Shaolinq.Tests
 				var student = this.model.ReferenceToDataAccessObject<Student>(studentId);
 
 				Assert.IsTrue(student.IsWriteOnly);
-				
+
 				Assert.Catch(typeof(WriteOnlyDataAccessObjectException), () => Console.WriteLine(student.FirstName));
+
+				this.model.Students.First(c => c.Id == studentId);
+
+				Assert.AreEqual("Bruce", student.FirstName);
 
 				scope.Complete();				
 			}
@@ -86,6 +114,14 @@ namespace Shaolinq.Tests
 			Assert.AreEqual(1, students.Count);
 
 			var storedStudent = students.First();
+
+			Assert.AreEqual("Bruce Lee", storedStudent.FullName);
+
+			students = model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Where(c => c.FirstName == "Bruce" && c.LastName.StartsWith("L")).ToList();
+
+			Assert.AreEqual(1, students.Count);
+
+			storedStudent = students.First();
 
 			Assert.AreEqual("Bruce Lee", storedStudent.FullName);
 		}

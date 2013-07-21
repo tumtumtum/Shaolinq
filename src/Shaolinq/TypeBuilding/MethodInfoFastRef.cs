@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Platform;
 
-namespace Shaolinq
+namespace Shaolinq.TypeBuilding
 {
 	public static class MethodInfoFastRef
 	{

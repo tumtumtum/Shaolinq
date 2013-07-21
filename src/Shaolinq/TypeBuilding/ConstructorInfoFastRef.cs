@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Shaolinq
+namespace Shaolinq.TypeBuilding
 {
 	public class ConstructorInfoFastRef
 	{

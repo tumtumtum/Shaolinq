@@ -86,7 +86,52 @@ namespace Shaolinq
 			((IDataAccessObject)this).SetIsDeleted(true);
 		}
 
-		#region Reflection Emitted Properties and Methods
+		bool IDataAccessObject.HasCompositeKey
+		{
+			get
+			{
+				return ((IDataAccessObject)this).NumberOfPrimaryKeys > 1;
+			}
+		}
+
+		private bool isTransient;
+
+		bool IDataAccessObject.IsTransient
+		{
+			get
+			{
+				return this.isTransient;
+			}
+		}
+
+		void IDataAccessObject.SetTransient(bool transient)
+		{
+			this.isTransient = transient;
+		}
+
+		void IDataAccessObject.SetDataAccessModel(BaseDataAccessModel dataAccessModel)
+		{
+			if (this.DataAccessModel != null)
+			{
+				throw new InvalidOperationException("DataAccessModel already set");
+			}
+
+			this.DataAccessModel = dataAccessModel;
+		}
+
+		[ReflectionEmitted]
+		public abstract bool HasPropertyChanged(string propertyName);
+
+		[ReflectionEmitted]
+		public abstract PropertyInfoAndValue[] GetPrimaryKeys();
+
+		[ReflectionEmitted]
+		public abstract List<PropertyInfoAndValue> GetChangedProperties();
+
+		[ReflectionEmitted]
+		public abstract List<PropertyInfoAndValue> GetAllProperties();
+
+		#region Reflection emitted explicit interface implementations
 
 		[ReflectionEmitted]
 		Type IDataAccessObject.KeyType
@@ -151,53 +196,10 @@ namespace Shaolinq
 			}
 		}
 
-		bool IDataAccessObject.HasCompositeKey
-		{
-			get
-			{
-				return ((IDataAccessObject)this).NumberOfPrimaryKeys > 1;
-			}
-		}
-
 		[ReflectionEmitted]
-		public abstract bool HasPropertyChanged(string propertyName);
-
-		[ReflectionEmitted]
-		public abstract PropertyInfoAndValue[] GetPrimaryKeys();
-
-		[ReflectionEmitted]
-		public abstract List<PropertyInfoAndValue> GetChangedProperties();
-
-		[ReflectionEmitted]
-		public abstract List<PropertyInfoAndValue> GetAllProperties();
-
-		#endregion
-
-		#region Hidden Explicitly Implemented IDataAccessObject members
-
-		private bool isTransient;
-
-		bool IDataAccessObject.IsTransient
+		void IDataAccessObject.SetPrimaryKeys(PropertyInfoAndValue[] primaryKeys)
 		{
-    		get
-    		{
-				return this.isTransient;
-    		}
-		}
-
-		void IDataAccessObject.SetTransient(bool transient)
-		{
-			this.isTransient = transient;
-		}
-
-		void IDataAccessObject.SetDataAccessModel(BaseDataAccessModel dataAccessModel)
-		{
-			if (this.DataAccessModel != null)
-			{
-				throw new InvalidOperationException("DataAccessModel already set");
-			}
-
-			this.DataAccessModel = dataAccessModel;
+			throw new NotImplementedException();
 		}
 
 		[ReflectionEmitted]

@@ -12,19 +12,16 @@ namespace Shaolinq.TypeBuilding
 {
 	public class DataAccessObjectTypeBuilder
 	{
-		protected enum PropertyMethodType
-		{
-			Get,
-			Set
-		}
+		internal static readonly string ForceSetPrefix = "ForceSet";
+		internal static readonly string ObjectDataFieldName = "data";
+		internal static readonly string HasChangedSuffix = "Changed";
 
-		public const string ForceSetPrefix = "ForceSet"; 
-		public const string ObjectDataFieldName = "data";
-		public const string HasChangedSuffix = "Changed";
-
+		private readonly Type baseType;
 		private TypeBuilder typeBuilder;
 		private FieldInfo dataObjectField;
+		private ILGenerator cctorGenerator;
 		private FieldInfo isWriteOnlyField;
+		private FieldBuilder partialObjectStateField;
 		private TypeBuilder dataObjectTypeTypeBuilder;
 		private readonly TypeDescriptor typeDescriptor;
 		private FieldInfo dataObjectChangedInDataObject;
@@ -39,8 +36,6 @@ namespace Shaolinq.TypeBuilding
 
 		public ModuleBuilder ModuleBuilder { get; private set; }
 		public AssemblyBuildContext AssemblyBuildContext { get; private set; }
-
-		private readonly Type baseType;
 
 		public DataAccessObjectTypeBuilder(AssemblyBuildContext assemblyBuildContext, ModuleBuilder moduleBuilder, Type baseType)
 		{
@@ -60,10 +55,6 @@ namespace Shaolinq.TypeBuilding
 		{
 			return TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(type);
 		}
-
-		#region BuildType
-
-		private ILGenerator cctorGenerator;
 
 		public void BuildFirstPhase(int pass)
 		{
@@ -112,8 +103,8 @@ namespace Shaolinq.TypeBuilding
 				dataObjectChangedInDataObject = dataObjectTypeTypeBuilder.DefineField("HasObjectChanged", typeof(bool), FieldAttributes.Public);
 			}
         
-			// First thing we need to do is create the value type that will hold all types
-			Type type = baseType;
+			// First thing we need to do is create type that will hold all property values
+			var type = baseType;
 
 			// Methods that are "override abstract" need to only be visited once
 			var alreadyImplementedProperties = new HashSet<string>();
@@ -135,7 +126,7 @@ namespace Shaolinq.TypeBuilding
 
 					if (persistedMemberAttribute != null && !propertyInfo.PropertyType.IsDataAccessObjectType())
 					{
-						PropertyDescriptor propertyDescriptor = GetTypeDescriptor(this.baseType).GetPropertyDescriptorByPropertyName(propertyInfo.Name);
+						var propertyDescriptor = GetTypeDescriptor(this.baseType).GetPropertyDescriptorByPropertyName(propertyInfo.Name);
 
 						if (propertyInfo.GetGetMethod() == null)
 						{
@@ -249,77 +240,32 @@ namespace Shaolinq.TypeBuilding
 
 		private void ImplementDataAccessObjectMethods()
 		{
-			// Build the "HasObjectChanged" property
-			BuildHasObjectChangedProperty();
-
-			// Build the "KeyType" property
-			BuildKeyTypeProperty();
-
-			// Build the "NumerOfPrimaryKeys" property
-			BuildNumberOfPrimaryKeysProperty();
-
-			// Build the "CompositeKeyTypes" property
-			BuildCompositeKeyTypesProperty();
-
-			// Build the "GetPrimaryKeys" method
-			BuildGetPrimaryKeys();
-
-			// Build the "ResetModified" method
-			BuildResetModified();
-
-			// Build the "GetAllProperties" method
-			BuildGetAllPropertiesMethod();
-
-			// Build the "ComputeIdRelatedComputedTextProperties" method
-			BuildComputeIdRelatedComputedTextProperties();
-
-			// Build the "GetChangedProperties" method
-			BuildGetChangedPropertiesMethod();
-
-			// Build the "ObjectState" property
-			BuildObjectStateProperty();
-
-			// Build the "DefinedAutoIncrementKey" property
-			BuildDefinesAutoIncrementKeyProperty();
-
-			// Build the "SwapData" method
-			BuildSwapDataMethod();
-
-			// Build the "HasPropertyChanged" method
-			BuildHasPropertyChangedMethod();
-
-			// Build the "SetIsNew" method
-			BuildSetIsNewMethod();
-
-			// Build the "SetIsWriteOnly" method
-			BuildSetIsWriteOnly();
-
-
-			BuildIsWriteOnly();
-
-			// Build the "SetIsDeleted" method
-			BuildSetIsDeletedMethod();
-
-			// Build the "GetHashCode" method
-			BuildGetHashCodeMethod();
-
-			// Build the "Equals" method
-			BuildEqualsMethod();
-
-			// Build the "Equals" method
-			BuildHasAutoIncrementKeyValueProperty();
-
-			// Build the "SetAutoIncrementValue" method
-			BuildSetAutoIncrementKeyValueMethod();
+			this.BuildHasObjectChangedProperty();
+			this.BuildKeyTypeProperty();
+			this.BuildNumberOfPrimaryKeysProperty();
+			this.BuildCompositeKeyTypesProperty();
+			this.BuildGetPrimaryKeysMethod();
+			this.BuildSetPrimaryKeysMethod();
+			this.BuildResetModified();
+			this.BuildGetAllPropertiesMethod();
+			this.BuildComputeIdRelatedComputedTextProperties();
+			this.BuildGetChangedPropertiesMethod();
+			this.BuildObjectStateProperty();
+			this.BuildDefinesAutoIncrementKeyProperty();
+			this.BuildSwapDataMethod();
+			this.BuildHasPropertyChangedMethod();
+			this.BuildSetIsNewMethod();
+			this.BuildSetIsWriteOnlyMethod();
+			this.BuildIsWriteOnlyProperty();
+			this.BuildSetIsDeletedMethod();
+			this.BuildGetHashCodeMethod();
+			this.BuildEqualsMethod();
+			this.BuildHasAutoIncrementKeyValueProperty();
+			this.BuildSetAutoIncrementKeyValueMethod();
 
 			typeBuilder.CreateType();
 		}
 
-		#endregion
-
-		/// <summary>
-		/// Builds the "RelatedObject" property
-		/// </summary>
 		private void BuildRelatedObjectProperty(PropertyInfo propertyInfo, EntityRelationshipType relationshipType, int pass)
 		{
 			PropertyBuilder propertyBuilder;
@@ -348,11 +294,6 @@ namespace Shaolinq.TypeBuilding
 			BuildPersistedProperty(propertyInfo, propertyBuilder, pass);
 		}
 
-		#region RelatedDataAccessObjects Properties
-
-		/// <summary>
-		/// Builds the "RelatedDataAccessObjects" property
-		/// </summary>
 		private void BuildRelatedDataAccessObjectsProperty(PropertyInfo propertyInfo, int pass)
 		{
 			PropertyBuilder propertyBuilder;
@@ -379,10 +320,6 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		/// <summary>
-		/// Builds the get property method for all relationship properties.
-		/// </summary>
-		/// <returns></returns>
 		protected virtual MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, ConstructorInfo constructorInfo, string persistenceContextName, EntityRelationshipType relationshipType, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
@@ -444,10 +381,6 @@ namespace Shaolinq.TypeBuilding
 
 			return methodBuilder;
 		}
-
-		#endregion
-
-		#region Persisted Properties
 
 		public static PropertyInfo GetPropertyInfo(Type type, string name)
 		{
@@ -533,17 +466,10 @@ namespace Shaolinq.TypeBuilding
 				}
 
 				ilGenerator.Emit(OpCodes.Ldarg_0);
-
-
 				ilGenerator.Emit(OpCodes.Ldstr, formatString);
 				ilGenerator.Emit(OpCodes.Ldloc, arrayLocal);
-				ilGenerator.Emit(OpCodes.Call, typeof(String).GetMethod("Format",  new[]
-				                                                                  {
-				                                                                  	typeof(string), typeof(object[])
-				                                                                  }));
-
+				ilGenerator.Emit(OpCodes.Call, typeof(String).GetMethod("Format",  new[]{ typeof(string), typeof(object[]) }));
 				ilGenerator.Emit(OpCodes.Call, propertyBuilders[propertyInfo.Name].GetSetMethod());
-
 				ilGenerator.Emit(OpCodes.Ret);
 			}
 		}
@@ -581,7 +507,6 @@ namespace Shaolinq.TypeBuilding
 						propertyBuilders[name] = relatedIdPropertyBuilder;
                         
 						// Create PropertyInfo cache
-
 						var propertyInfoField = typeBuilder.DefineField("$$PropertyInfo_" + propertyInfo.Name + propertyDescriptor.PropertyName, typeof(PropertyInfo), FieldAttributes.Public | FieldAttributes.Static);
 						cctorGenerator.Emit(OpCodes.Ldtoken, propertyTypeTypeDescriptor.Type);
 						cctorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
@@ -673,7 +598,7 @@ namespace Shaolinq.TypeBuilding
 			return left.Equals(right);
 		}
 
-		private void EmitCompareEquals(ILGenerator generator, Type operandType)
+		private static void EmitCompareEquals(ILGenerator generator, Type operandType)
 		{
 			if (operandType.IsPrimitive)
 			{	
@@ -713,7 +638,6 @@ namespace Shaolinq.TypeBuilding
 		/// <param name="propertyInfo">The property whose get or set method to build</param>
 		/// <param name="currentFieldInDataObject">The field inside the dataobject that stores the property's value</param>
 		/// <param name="valueChangedFieldInDataObject">The field inside the dataobject that stores whether the property has changed</param>
-		/// <returns></returns>
 		protected virtual MethodBuilder BuildPropertyMethod(PropertyMethodType propertyMethodType, string propertyName, PropertyInfo propertyInfo, PropertyBuilder propertyBuilder, FieldInfo currentFieldInDataObject, FieldInfo valueChangedFieldInDataObject, PropertyInfo relationshipProperty, bool isForiegnProperty)
 		{
 			if (propertyName == null)
@@ -1077,7 +1001,7 @@ namespace Shaolinq.TypeBuilding
 
 							privateGenerator = generator;
 						}
-						else if (currentPropertyDescriptor.IsAutoIncrement && currentPropertyDescriptor.PropertyType.IsIntegerType())
+						else if (currentPropertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
 						{
 							var skip = generator.DefineLabel();
 
@@ -1099,6 +1023,8 @@ namespace Shaolinq.TypeBuilding
 							generator.MarkLabel(skip);
 
 							generator.Emit(OpCodes.Ret);
+
+							propertyBuilders[ForceSetPrefix + propertyInfo.Name] = propertyBuilder2;
 						}
 						else if (currentPropertyDescriptor.IsPrimaryKey && !currentPropertyDescriptor.IsAutoIncrement)
 						{
@@ -1129,6 +1055,8 @@ namespace Shaolinq.TypeBuilding
 							EmitUpdatedComputedPropertes(propertyBuilder.Name, generator);
 
 							generator.Emit(OpCodes.Ret);
+
+							propertyBuilders[ForceSetPrefix + propertyInfo.Name] = propertyBuilder2;
 						}
 						else
 						{
@@ -1230,10 +1158,6 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		#endregion
-		
-		#region HasPropertyChanged method
-
 		private static readonly Type DictionaryType = typeof(Dictionary<string, int>);
 		private static readonly ConstructorInfo DictionaryConstructor = typeof(Dictionary<string, int>).GetConstructor(new[] { typeof(int) });
 		private static readonly MethodInfo DictionaryAddMethod = typeof(Dictionary<string, int>).GetMethod("Add", new[] { typeof(string), typeof(int) });
@@ -1244,11 +1168,7 @@ namespace Shaolinq.TypeBuilding
 		/// </summary>
 		protected virtual void BuildHasPropertyChangedMethod()
 		{
-			var methodInfo = typeBuilder.BaseType.GetMethod("HasPropertyChanged");
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig| (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
-
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("HasPropertyChanged");
 
 			var jumpTableList = new List<Label>();
 			var retLabel = generator.DefineLabel();
@@ -1311,7 +1231,7 @@ namespace Shaolinq.TypeBuilding
 
 			var local = generator.DeclareLocal(typeof(bool));
 
-			for (int i = 0; i < jumpTable.Length; i++)
+			for (var i = 0; i < jumpTable.Length; i++)
 			{
 				var property = properties[i];
 				
@@ -1395,25 +1315,57 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region GetPrimaryKeys property
-
-		/// <summary>
-		/// Builds the DataAccessObject.GetPrimaryKeys method.
-		/// </summary>
-		protected virtual void BuildGetPrimaryKeys()
+		protected virtual void BuildSetPrimaryKeysMethod()
 		{
-			var methodInfo = typeBuilder.BaseType.GetMethod("GetPrimaryKeys");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPrimaryKeys");
 
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
-			methodAttributes |= (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
+			var i = 0;
 
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
+			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties)
+			{
+				generator.Emit(OpCodes.Ldarg_0);
 
-			var generator = methodBuilder.GetILGenerator();
+				// Load array value
+				generator.Emit(OpCodes.Ldarg_1);
+				generator.Emit(OpCodes.Ldc_I4, i);
+				generator.Emit(OpCodes.Ldelema, typeof(PropertyInfoAndValue));
+
+				generator.Emit(OpCodes.Ldobj, typeof(PropertyInfoAndValue));
+
+				// Get the "value" field
+				generator.Emit(OpCodes.Ldfld, FieldInfoFastRef.PropertyInfoAndValueValueField);
+
+				var propertyName = propertyDescriptor.PropertyName;
+
+				if (propertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
+				{
+					propertyName = ForceSetPrefix + propertyDescriptor.PropertyName;
+				}
+
+
+				if (propertyDescriptor.PropertyType.IsValueType)
+				{
+					generator.Emit(OpCodes.Unbox_Any, propertyDescriptor.PropertyType);
+				}
+				else
+				{
+					generator.Emit(OpCodes.Castclass, propertyDescriptor.PropertyType);
+				}
+
+				// Call set_PrimaryField method
+				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyName].GetSetMethod());
+
+				i++;
+			}
+
+			generator.Emit(OpCodes.Ret);
+		}
+
+		protected virtual void BuildGetPrimaryKeysMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPrimaryKeys");
+
 			var count = typeDescriptor.PrimaryKeyProperties.Count();
-
 			var arrayLocal = generator.DeclareLocal(typeof(PropertyInfoAndValue[]));
 			
 			generator.Emit(OpCodes.Ldc_I4, count);
@@ -1468,43 +1420,17 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region NumberOfPrimaryKeys Property
-
-		/// <summary>
-		/// Builds the "NumberOfPrimaryKeys" property.
-		/// </summary>
 		protected virtual void BuildNumberOfPrimaryKeysProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_NumberOfPrimaryKeys", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(int), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).Name + ".NumberOfPrimaryKeys", PropertyAttributes.None, typeof(int), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_NumberOfPrimaryKeys", BindingFlags.Instance | BindingFlags.Public));
-
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfPrimaryKeys");
 
 			generator.Emit(OpCodes.Ldc_I4, typeDescriptor.PrimaryKeyCount);
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region CompositeKeyTypes Property
-
-		/// <summary>
-		/// Builds the "CompositeKeyTypes" property.
-		/// </summary>
 		protected virtual void BuildCompositeKeyTypesProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_CompositeKeyTypes", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(Type[]), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).Name + ".CompositeKeyTypes", PropertyAttributes.None, typeof(Type[]), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_CompositeKeyTypes", BindingFlags.Instance | BindingFlags.Public));
-
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("CompositeKeyTypes");
 
 			if (typeDescriptor.PrimaryKeyCount == 0)
 			{
@@ -1545,22 +1471,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region KeyType Property
-
-		/// <summary>
-		/// Builds the "KeyType" property.
-		/// </summary>
 		protected virtual void BuildKeyTypeProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_KeyType", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(Type), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).Name + ".KeyType", PropertyAttributes.None, typeof(Type), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_KeyType", BindingFlags.Instance | BindingFlags.Public));
-
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("KeyType");
 
 			if (typeDescriptor.PrimaryKeyCount == 0)
 			{
@@ -1579,22 +1492,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region HasBeenChanged Property
-
-		/// <summary>
-		/// Builds the "HasObjectChanged" property.
-		/// </summary>
 		protected virtual void BuildHasObjectChangedProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_HasObjectChanged", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(bool), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).Name + ".HasObjectChanged", PropertyAttributes.None, typeof(bool), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_HasObjectChanged", BindingFlags.Instance | BindingFlags.Public));
-            
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("HasObjectChanged");
             
 			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties)
 			{
@@ -1657,11 +1557,6 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-       
-		/// <summary>
-		/// Builds the "GetHashCode" method.
-		/// </summary>
 		protected virtual void BuildGetHashCodeMethod()
 		{
 			var methodInfo = typeBuilder.BaseType.GetMethod("GetHashCode", Type.EmptyTypes);
@@ -1674,6 +1569,7 @@ namespace Shaolinq.TypeBuilding
 
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
+
 			var generator = methodBuilder.GetILGenerator();
 
 			var retval = generator.DeclareLocal(typeof(int));
@@ -1720,20 +1616,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		/// <summary>
-		/// Builds the "SetAutoIncrementKeyValue" method.
-		/// </summary>
 		protected virtual void BuildSetAutoIncrementKeyValueMethod()
 		{
-			var methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + ".SetAutoIncrementKeyValue", BindingFlags.Instance | BindingFlags.NonPublic);
-			var methodAttributes = MethodAttributes.Final | MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.VtableLayoutMask;
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
-			var generator = methodBuilder.GetILGenerator();
-
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("SetAutoIncrementKeyValue"));
-
-			var local = generator.DeclareLocal(this.typeBuilder);
-			var returnLabel = generator.DefineLabel();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetAutoIncrementKeyValue");
 
 			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement))
 			{
@@ -1779,10 +1664,6 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Throw);
 		}
 
-
-		/// <summary>
-		/// Builds the "ResetModified" method.
-		/// </summary>
 		protected virtual void BuildEqualsMethod()
 		{
 			var methodInfo = typeBuilder.BaseType.GetMethod("Equals", new [] { typeof(object) });
@@ -1795,6 +1676,7 @@ namespace Shaolinq.TypeBuilding
 
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
+
 			var generator = methodBuilder.GetILGenerator();
 
 			var local = generator.DeclareLocal(this.typeBuilder);
@@ -1869,18 +1751,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-
-		/// <summary>
-		/// Builds the "SwapData" method.
-		/// </summary>
 		protected virtual void BuildSwapDataMethod()
 		{
-			var methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + ".SwapData", BindingFlags.Instance | BindingFlags.NonPublic);
-			var methodAttributes = MethodAttributes.Final | MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.VtableLayoutMask;
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
-			var generator = methodBuilder.GetILGenerator();
-
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("SwapData"));
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SwapData");
 
 			// Load "this"
 			generator.Emit(OpCodes.Ldarg_0);
@@ -1892,12 +1765,8 @@ namespace Shaolinq.TypeBuilding
 
 			// this.data = arg.data
 			generator.Emit(OpCodes.Stfld, dataObjectField);
-
 			generator.Emit(OpCodes.Ret);
 		}
-
-
-		#region ResetModified Property
 
 		private Type GetBaseType(TypeBuilder builder)
 		{
@@ -1915,13 +1784,7 @@ namespace Shaolinq.TypeBuilding
 		/// </summary>
 		protected virtual void BuildResetModified()
 		{
-			var methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + ".ResetModified", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-
-			var methodAttributes = MethodAttributes.Final | MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.VtableLayoutMask;
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
-			var generator = methodBuilder.GetILGenerator();
-
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("ResetModified"));
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("ResetModified");
 
 			var local = generator.DeclareLocal(typeof(bool));
             
@@ -1990,26 +1853,14 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region GetChangedProperties Property
-
-		private FieldBuilder partialObjectStateField; 
-
 		private static readonly ConstructorInfo PropertyInfoAndValueConstructor = typeof(PropertyInfoAndValue).GetConstructor(new[] { typeof(PropertyInfo), typeof(object), typeof(string), typeof(string), typeof(bool), typeof(int) });
 		private static readonly MethodInfo PropertyInfoAndValueListAddMethod = typeof(List<PropertyInfoAndValue>).GetMethod("Add");
-		private static readonly MethodInfo PropertyInfoAndValueListToArray = typeof(List<PropertyInfoAndValue>).GetMethod("TranslateToArrayMethod");
 		private static readonly ConstructorInfo PropertyInfoAndValueListCtor = typeof(List<PropertyInfoAndValue>).GetConstructor(new [] { typeof(int) });
 		
-		/// <summary>
-		/// Builds the "SetIsNew" method.
-		/// </summary>
 		protected virtual void BuildSetIsNewMethod()
 		{
-			var methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + ".SetIsNew", BindingFlags.Instance | BindingFlags.NonPublic);
-			var methodAttributes = MethodAttributes.Final | MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.VtableLayoutMask;
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsNew");
+
 			var label = generator.DefineLabel();
 
 			generator.Emit(OpCodes.Ldarg_1);
@@ -2025,36 +1876,22 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldc_I4, (int)0);
 			generator.Emit(OpCodes.Stfld, partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
-
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("SetIsNew", BindingFlags.Instance | BindingFlags.Public));
 		}
 
-		protected virtual void BuildSetIsWriteOnly()
+		protected virtual void BuildSetIsWriteOnlyMethod()
 		{
-			var methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + ".SetIsWriteOnly", BindingFlags.Instance | BindingFlags.NonPublic);
-			var methodAttributes = MethodAttributes.Final | MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.VtableLayoutMask;
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
-			var generator = methodBuilder.GetILGenerator();
-			var label = generator.DefineLabel();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsWriteOnly");
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Stfld, isWriteOnlyField);
 			generator.Emit(OpCodes.Ret);
-
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("SetIsWriteOnly", BindingFlags.Instance | BindingFlags.Public));
 		}
 
-		protected virtual void BuildIsWriteOnly()
+		protected virtual void BuildIsWriteOnlyProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_IsWriteOnly", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(bool), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).Name + ".IsWriteOnly", PropertyAttributes.None, typeof(bool), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_IsWriteOnly", BindingFlags.Instance | BindingFlags.Public));
-
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("IsWriteOnly");
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -2062,15 +1899,10 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		/// <summary>
-		/// Builds the "SetIsDeleted" method.
-		/// </summary>
 		protected virtual void BuildSetIsDeletedMethod()
 		{
-			var methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + ".SetIsDeleted", BindingFlags.Instance | BindingFlags.NonPublic);
-			var methodAttributes = MethodAttributes.Final | MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.VtableLayoutMask;
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsDeleted");
+
 			var label = generator.DefineLabel();
 
 			generator.Emit(OpCodes.Ldarg_1);
@@ -2086,20 +1918,12 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldc_I4, (int)0);
 			generator.Emit(OpCodes.Stfld, partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
-
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("SetIsDeleted", BindingFlags.Instance | BindingFlags.Public));
 		}
 
-		/// <summary>
-		/// Builds the "ComputeIdRelatedComputedTextProperties" method.
-		/// </summary>
 		protected virtual void BuildComputeIdRelatedComputedTextProperties()
 		{
 			var count = 0; 
-			var methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + ".ComputeIdRelatedComputedTextProperties", BindingFlags.Instance | BindingFlags.NonPublic);
-			var methodAttributes = MethodAttributes.Final | MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Virtual | MethodAttributes.VtableLayoutMask;
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, null);
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("ComputeIdRelatedComputedTextProperties");
 			
 			foreach (var propertyDescriptor in typeDescriptor.ComputedTextProperties)
 			{
@@ -2113,21 +1937,13 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			generator.Emit(count > 0 ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-
 			generator.Emit(OpCodes.Ret);
-
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("ComputeIdRelatedComputedTextProperties", BindingFlags.Instance | BindingFlags.Public));
 		}
 
-		/// <summary>
-		/// Builds the "GetAllProperties" method.
-		/// </summary>
 		protected virtual void BuildGetAllPropertiesMethod()
 		{
-			var methodInfo = typeBuilder.BaseType.GetMethod("GetAllProperties");
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetAllProperties");
+
 			var listLocal = generator.DeclareLocal(typeof(List<PropertyInfoAndValue>));
 
 			var count = this.typeDescriptor.PersistedProperties.Count;
@@ -2240,15 +2056,10 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		/// <summary>
-		/// Builds the "GetChangedProperties" method.
-		/// </summary>
 		protected virtual void BuildGetChangedPropertiesMethod()
 		{
-			var methodInfo = typeBuilder.BaseType.GetMethod("GetChangedProperties");
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedProperties");
+
 			var listLocal = generator.DeclareLocal(typeof(List<PropertyInfoAndValue>));
 
 			var count = this.typeDescriptor.PersistedProperties.Count;
@@ -2460,9 +2271,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Callvirt, ShoalinqDictionary.GetChangedProperty(keyType, valueType).GetGetMethod());
 					generator.Emit(OpCodes.Brtrue, label2);
 				}
-				//
-				//
-
+				
 				generator.MarkLabel(label3);
 
 				generator.Emit(OpCodes.Ldarg_0);
@@ -2498,19 +2307,10 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region HasAutoIncrementKeyValue  Property
-
 		protected virtual void BuildHasAutoIncrementKeyValueProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_HasAutoIncrementKeyValue", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(bool), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).Name + ".HasAutoIncrementKeyValue", PropertyAttributes.None, typeof(bool), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_HasAutoIncrementKeyValue", BindingFlags.Instance | BindingFlags.Public));
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("HasAutoIncrementKeyValue");
 
-			var generator = methodBuilder.GetILGenerator();
 			var returnLabel = generator.DefineLabel();
 
 			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c=>c.IsAutoIncrement))
@@ -2576,21 +2376,11 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region BuildDefinesAutoIncrementKeyProperty
-
 		protected virtual void BuildDefinesAutoIncrementKeyProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_DefinesAutoIncrementKey", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(bool), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).Name + ".DefinesAutoIncrementKey", PropertyAttributes.None, typeof(bool), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_DefinesAutoIncrementKey", BindingFlags.Instance | BindingFlags.Public));
-            
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("DefinesAutoIncrementKey");
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement))
+			if (this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement).Any())
 			{
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Ret);
@@ -2602,22 +2392,10 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
-
-		#region BuildObjectStateProperty
-
-		/// <summary>
-		/// Builds the "ObjectState" property.
-		/// </summary>
 		protected virtual void BuildObjectStateProperty()
 		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Final;
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).Name + ".get_ObjectState", methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(ObjectState), Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).FullName + ".ObjectState", PropertyAttributes.None, typeof(ObjectState), null, null, null, null, null);
-			propertyBuilder.SetSetMethod(methodBuilder);
-            typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_ObjectState", BindingFlags.Instance | BindingFlags.Public));
-            
-			var generator = methodBuilder.GetILGenerator();
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("ObjectState");
+
 			var label = generator.DefineLabel();
 			var notDeletedLabel = generator.DefineLabel();
 			var local = generator.DeclareLocal(typeof(ObjectState));
@@ -2648,12 +2426,14 @@ namespace Shaolinq.TypeBuilding
 
 			// Go through foriegn keys properties and change local to include missing foreign
 			// key flag if necessary
+
 			foreach (var propertyDescriptor in this.typeDescriptor.RelatedProperties.Filter(c => c.IsBackReferenceProperty))
 			{
 				var innerLabel1 = generator.DefineLabel();
 				var fieldInfo = this.valueFields[propertyDescriptor.PropertyName];
 
 				// if (this.PropertyValue == null) { break }
+
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
@@ -2716,6 +2496,48 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		#endregion
+		private ILGenerator CreateGeneratorForReflectionEmittedPropertyGetter(string propertyName)
+		{
+			const MethodAttributes methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Final;
+
+			var propertyInfo = typeof(IDataAccessObject).GetProperty(propertyName);
+
+			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).FullName + ".get_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, Type.EmptyTypes);
+			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).FullName + "." + propertyName, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
+
+			propertyBuilder.SetGetMethod(methodBuilder);
+
+			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_" + propertyName, BindingFlags.Instance | BindingFlags.Public));
+
+			return methodBuilder.GetILGenerator();
+		}
+
+		private ILGenerator CreateGeneratorForReflectionEmittedMethod(string methodName)
+		{
+			MethodAttributes methodAttributes;
+			var explicitInterfaceImplementation = false;
+			var methodInfo = typeBuilder.BaseType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
+			
+			if (methodInfo == null)
+			{
+				explicitInterfaceImplementation = true;
+				methodInfo = GetBaseType(typeBuilder).GetMethod(typeof(IDataAccessObject).FullName + "." + methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+
+				methodAttributes = methodInfo.Attributes | MethodAttributes.NewSlot;
+			}
+			else
+			{
+				methodAttributes = methodInfo.Attributes &  ~(MethodAttributes.Abstract | MethodAttributes.NewSlot);
+			}
+
+			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
+
+			if (explicitInterfaceImplementation)
+			{
+				typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod(methodName));
+			}
+
+			return methodBuilder.GetILGenerator();
+		}
 	}
 }

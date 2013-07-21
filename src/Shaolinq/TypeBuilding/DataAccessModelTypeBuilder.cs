@@ -23,7 +23,6 @@ namespace Shaolinq.TypeBuilding
 			typeBuilder = this.ModuleBuilder.DefineType(baseType.FullName, TypeAttributes.Class | TypeAttributes.Public, baseType);
 			
 			// Build constructor for DataAccessModel
-
 			var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
 			var ctorGenerator = constructorBuilder.GetILGenerator();
 			ctorGenerator.Emit(OpCodes.Ldarg_0);
@@ -114,7 +113,6 @@ namespace Shaolinq.TypeBuilding
 		protected virtual MethodBuilder BuildPropertyMethod(string methodType, PropertyInfo propertyInfo, FieldBuilder backingField)
 		{
 			MethodInfo method;
-
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 			methodAttributes |= (propertyInfo.GetGetMethod().Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 		

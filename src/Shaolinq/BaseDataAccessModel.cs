@@ -422,7 +422,9 @@ namespace Shaolinq
 						valueExpression = Expression.PropertyOrField(Expression.Convert(parameter, objectType), property.PropertyName);
 					}
 
-					var newExpression = Expression.New(constructor, Expression.Constant(property.PropertyInfo), Expression.Convert(valueExpression, typeof(object)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
+					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
+
+					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo), Expression.Convert(Expression.Convert(valueExpression, property.PropertyType), typeof(object)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
 
 					initializers.Add(newExpression);
 				}
@@ -450,6 +452,9 @@ namespace Shaolinq
 				retval.SetIsNew(false);
 				retval.SetIsWriteOnly(true);
 				retval.SetDataAccessModel(this);
+				retval.SetPrimaryKeys(propertyInfoAndValues);
+
+				this.GetCurrentDataContext(false).CacheObject(retval, false);
 
 				return retval;
 			}
