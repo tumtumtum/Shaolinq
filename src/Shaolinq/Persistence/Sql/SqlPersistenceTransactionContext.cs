@@ -455,6 +455,8 @@ namespace Shaolinq.Persistence.Sql
 
 							if (value == null)
 							{
+								i++;
+
 								continue;
 							}
 							else if (value.GetType() == propertyType)
