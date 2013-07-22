@@ -1434,7 +1434,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				if (unaryExpression.Operand.NodeType == ExpressionType.Call)
 				{
-					if (((MethodCallExpression)unaryExpression.Operand).Method == typeof(StringExtensions).GetMethod("IsLike",BindingFlags.Static | BindingFlags.Public))
+					if (((MethodCallExpression)unaryExpression.Operand).Method == typeof(ShaolinqStringExtensions).GetMethod("IsLike",BindingFlags.Static | BindingFlags.Public))
 					{
 						var methodCallExpression = (MethodCallExpression)unaryExpression.Operand;
 

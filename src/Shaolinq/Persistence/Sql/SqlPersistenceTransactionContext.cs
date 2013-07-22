@@ -399,6 +399,10 @@ namespace Shaolinq.Persistence.Sql
 
 					dataAccessObject.ComputeIdRelatedComputedTextProperties();
 
+					// BuildInsertCommand will call dataAccessObject.GetChangedProperties()
+					// which will include automatically update any foreign key properties
+					// that need to be set on this object
+
 					var command = BuildInsertCommand(typeDescriptor, dataAccessObject);
 
 					if (Logger.IsDebugEnabled)
@@ -426,9 +430,44 @@ namespace Shaolinq.Persistence.Sql
 						throw;
 					}
                     
-					if (dataAccessObject.DefinesAutoIncrementKey && dataAccessObject.KeyType.IsIntegerType())
+					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush
+
+					if (dataAccessObject.DefinesAnyAutoIncrementIntegerProperties)
 					{
-						dataAccessObject.SetAutoIncrementKeyValue(this.GetLastInsertKey(typeDescriptor));
+						bool isSingularPrimaryKeyValue = false;
+						var propertyInfos = dataAccessObject.GetIntegerAutoIncrementPropertyInfos();
+
+						if (propertyInfos.Length == 1 && dataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys == 1)
+						{
+							isSingularPrimaryKeyValue = true;
+						}
+
+						var i = 0;
+						var values = new object[propertyInfos.Length];
+
+						foreach (var propertyInfo in propertyInfos)
+						{
+							var tableName = typeDescriptor.GetPersistedName(dataAccessObject.DataAccessModel);
+							var columnName = typeDescriptor.GetPropertyDescriptorByPropertyName(propertyInfo.Name).PersistedName;
+
+							var propertyType = propertyInfo.PropertyType.NonNullableType();
+							var value = this.GetLastInsertedAutoIncrementValue(tableName, columnName, isSingularPrimaryKeyValue);
+
+							if (value == null)
+							{
+								continue;
+							}
+							else if (value.GetType() == propertyType)
+							{
+								values[i++] = value;
+							}
+							else
+							{
+								values[i++] = Convert.ChangeType(value, propertyType);
+							}
+						}
+
+						dataAccessObject.SetIntegerAutoIncrementValues(values);
 
 						if (dataAccessObject.ComputeIdRelatedComputedTextProperties())
 						{
@@ -454,7 +493,7 @@ namespace Shaolinq.Persistence.Sql
 			return new InsertResults(listToFixup, listToRetry);
 		}
 
-		protected abstract object GetLastInsertKey(TypeDescriptor typeDescriptor);
+		protected abstract object GetLastInsertedAutoIncrementValue(string tableName, string columnName, bool isSingularPrimaryKeyValue); 
 
 		protected void AppendParameter(IDbCommand command, StringBuilder commandText, Type type, object value)
 		{

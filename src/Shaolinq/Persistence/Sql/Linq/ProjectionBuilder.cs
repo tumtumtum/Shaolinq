@@ -86,7 +86,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(currentNewExpressionType);
 					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
 
-					if (propertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
+					if (propertyDescriptor.IsAutoIncrement || propertyDescriptor.IsPrimaryKey)
 					{
 						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(currentNewExpressionType);
 						var propertyInfo = concreteType.GetProperty(DataAccessObjectTypeBuilder.ForceSetPrefix + assignment.Member.Name);

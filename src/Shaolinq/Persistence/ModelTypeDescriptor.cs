@@ -52,7 +52,12 @@ namespace Shaolinq.Persistence
 				var provider = TypeDescriptorProvider.GetProvider(genericType.Assembly);
 
 				var typeDescriptor = provider.GetTypeDescriptor(genericType);
-				
+
+				if (typeDescriptor == null)
+				{
+					throw new InvalidDataAccessObjectModelDefinition(string.Format("DataAccessObject type '{0}' is missing [DataAccessObject] attribute", genericType.Name));
+				}
+
 				this.typeDescriptors[typeDescriptor.Type] = typeDescriptor;
 
 				var persistenceContextAttribute = propertyPersistenceContextAttribute ?? typeDescriptor.PersistenceContextAttribute;

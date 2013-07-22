@@ -71,18 +71,18 @@ namespace Shaolinq.Persistence
 
 				if (typeof(BaseDataAccessModel).IsAssignableFrom(type) && dataAccessModelAttribute == null)
 				{
-					throw new InvalidDataAccessObjectModelDefinition("The BaseDataAccessModel type '{0}' is missing a DataAccessModelAttribute", type.Name);
+					throw new InvalidDataAccessObjectModelDefinition("The BaseDataAccessModel type '{0}' is missing a [DataAccessModel] attribute", type.Name);
 				}
 
 				var baseType = type;
 
 				while (baseType != null)
 				{
-					var dataAccessObjectAttribute = baseType.GetFirstCustomAttribute<DataAccessObjectAttribute>(true);
+					var dataAccessObjectAttribute = baseType.GetFirstCustomAttribute<DataAccessObjectAttribute>(false);
 
 					if (dataAccessModelAttribute != null && dataAccessObjectAttribute != null)
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The type '{0}' cannot be decorated with both a DataAccessModelAttribute and a DataAccessObjectAttribute", baseType.Name);
+						throw new InvalidDataAccessObjectModelDefinition("The type '{0}' cannot be decorated with both a [DataAccessModel] attribute and a DataAccessObjectAttribute", baseType.Name);
 					}
 
 					if (dataAccessObjectAttribute != null)
@@ -91,13 +91,17 @@ namespace Shaolinq.Persistence
 						{
 							if (!typeof(IDataAccessObject).IsAssignableFrom(baseType))
 							{
-								throw new InvalidDataAccessObjectModelDefinition("The type {0} is decorated with a DataAccessObject attribute but does not inherit from DataAccessObject<OBJECT_TYPE>", baseType.Name);
+								throw new InvalidDataAccessObjectModelDefinition("The type {0} is decorated with a [DataAccessObject] attribute but does not extend DataAccessObject<T>", baseType.Name);
 							}
 
 							var typeDescriptor = new TypeDescriptor(baseType);
 
 							typeDescriptorsByType[baseType] = typeDescriptor;
 						}
+					}
+					else if (typeof(IDataAccessObject).IsAssignableFrom(baseType))
+					{
+						throw new InvalidDataAccessObjectModelDefinition("The type {0} extends DataAccessObject<T> but is not explicitly decorated with the [DataAccessObject] attribute");
 					}
 
 					baseType = baseType.BaseType;
@@ -112,9 +116,6 @@ namespace Shaolinq.Persistence
 				{
 					if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(propertyDescriptor.PropertyType))
 					{
-						TypeDescriptor relatedTypeDescriptor;
-						TypeRelationshipInfo typeRelationshipInfo;
-
 						var currentType = propertyDescriptor.PropertyType;
 
 						while (!currentType.IsGenericType || (currentType.IsGenericType && currentType.GetGenericTypeDefinition() != typeof(RelatedDataAccessObjects<>)))
@@ -124,8 +125,8 @@ namespace Shaolinq.Persistence
 
 						var relatedType = currentType.GetGenericArguments()[0];
 
-						relatedTypeDescriptor = typeDescriptorsByType[relatedType];
-						typeRelationshipInfo = typeDescriptor.GetRelationshipInfo(relatedTypeDescriptor);
+						var relatedTypeDescriptor = this.typeDescriptorsByType[relatedType];
+						var typeRelationshipInfo = typeDescriptor.GetRelationshipInfo(relatedTypeDescriptor);
 
 						if (typeRelationshipInfo != null)
 						{

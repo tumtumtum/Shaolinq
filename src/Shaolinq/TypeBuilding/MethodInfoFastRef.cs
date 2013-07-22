@@ -8,7 +8,9 @@ namespace Shaolinq.TypeBuilding
 	public static class MethodInfoFastRef
 	{
 		public static readonly MethodInfo QueryableWhereMethod;
-		public static readonly MethodInfo StringExtensionsIsLikeMethodInfo = typeof(StringExtensions).GetMethod("IsLike", BindingFlags.Static | BindingFlags.Public);
+		public static readonly MethodInfo GuidEqualsMethod = typeof(Guid).GetMethod("Equals", new Type[] { typeof(Guid) });
+		public static readonly MethodInfo GuidNewGuid = typeof(Guid).GetMethod("NewGuid", BindingFlags.Public | BindingFlags.Static);
+		public static readonly MethodInfo StringExtensionsIsLikeMethodInfo = typeof(ShaolinqStringExtensions).GetMethod("IsLike", BindingFlags.Static | BindingFlags.Public);
 		public static readonly MethodInfo StringSubstring= typeof(String).GetMethod("Substring", BindingFlags.Static | BindingFlags.Public);
 		public static readonly MethodInfo ObjectToStringMethod = typeof(object).GetMethod("ToString", BindingFlags.Instance | BindingFlags.Public, null, Type.EmptyTypes, null);
 		public static readonly MethodInfo EnumToObjectMethod = typeof(Enum).GetMethod("ToObject", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(Type), typeof(int) }, null);

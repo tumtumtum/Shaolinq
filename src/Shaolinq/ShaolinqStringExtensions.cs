@@ -1,10 +1,7 @@
 ﻿namespace Shaolinq
 {
-	public static class StringExtensions
+	public static class ShaolinqStringExtensions
 	{
-		/// <summary>
-		/// Used to support the SQL "Like" operation
-		/// </summary>
 		public static bool IsLike(this string stringValue, string value)
 		{
 			return stringValue.Contains(value);

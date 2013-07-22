@@ -245,7 +245,7 @@
     <Compile Include="ReusableQueryProvider.cs" />
     <Compile Include="ShoalinqDictionary.cs" />
     <Compile Include="ShaolinqList.cs" />
-    <Compile Include="StringExtensions.cs" />
+    <Compile Include="ShaolinqStringExtensions.cs" />
     <Compile Include="TransactionContext.cs" />
     <Compile Include="TransactionScopeExtensions.cs" />
     <Compile Include="TypeBuilding\AssemblyBuildContext.cs" />

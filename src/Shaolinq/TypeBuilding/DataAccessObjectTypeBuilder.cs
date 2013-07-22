@@ -243,6 +243,8 @@ namespace Shaolinq.TypeBuilding
 			this.BuildHasObjectChangedProperty();
 			this.BuildKeyTypeProperty();
 			this.BuildNumberOfPrimaryKeysProperty();
+			this.BuildNumberOfIntegerAutoIncrementPrimaryKeysProperty();
+			this.BuildSetIntegerAutoIncrementValues();
 			this.BuildCompositeKeyTypesProperty();
 			this.BuildGetPrimaryKeysMethod();
 			this.BuildSetPrimaryKeysMethod();
@@ -251,7 +253,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildComputeIdRelatedComputedTextProperties();
 			this.BuildGetChangedPropertiesMethod();
 			this.BuildObjectStateProperty();
-			this.BuildDefinesAutoIncrementKeyProperty();
+			this.BuildDefinesAnyAutoIncrementIntegerProperties();
 			this.BuildSwapDataMethod();
 			this.BuildHasPropertyChangedMethod();
 			this.BuildSetIsNewMethod();
@@ -260,10 +262,83 @@ namespace Shaolinq.TypeBuilding
 			this.BuildSetIsDeletedMethod();
 			this.BuildGetHashCodeMethod();
 			this.BuildEqualsMethod();
-			this.BuildHasAutoIncrementKeyValueProperty();
+			this.BuildIsMissingAnyAutoIncrementIntegerPrimaryKeyValues();
 			this.BuildSetAutoIncrementKeyValueMethod();
+			this.BuildGetIntegerAutoIncrementPropertyInfosMethod();
 
 			typeBuilder.CreateType();
+		}
+
+		protected virtual void BuildSetIntegerAutoIncrementValues()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIntegerAutoIncrementValues");
+
+			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()).ToList();
+
+			var i = 0;
+
+			foreach (var propertyDescriptor in integerAutoIncrementProperties)
+			{
+				var propertyType = propertyDescriptor.PropertyType;
+				
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldarg_1);
+				generator.Emit(OpCodes.Ldc_I4, i);
+				generator.Emit(OpCodes.Ldelem, typeof(object));
+
+				if (propertyType.IsValueType)
+				{
+					generator.Emit(OpCodes.Unbox_Any, propertyType);
+				}
+
+				var prefix = "";
+
+				if (propertyDescriptor.IsPrimaryKey)
+				{
+					prefix = ForceSetPrefix;
+				}
+
+				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[prefix + propertyDescriptor.PropertyName].GetSetMethod());
+
+				i++;
+			}
+
+			generator.Emit(OpCodes.Ret);
+		}
+
+		private void BuildGetIntegerAutoIncrementPropertyInfosMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetIntegerAutoIncrementPropertyInfos");
+
+			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()).ToList();
+
+			var arrayLocal = generator.DeclareLocal(typeof(PropertyInfo[]));
+
+			generator.Emit(OpCodes.Ldc_I4, integerAutoIncrementProperties.Count);
+			generator.Emit(OpCodes.Newarr, typeof(PropertyInfo));
+			generator.Emit(OpCodes.Stloc, arrayLocal);
+
+			var i = 0;
+
+			foreach (var propertyDescriptor in integerAutoIncrementProperties)
+			{
+				var fieldInfo = valueFields[propertyDescriptor.PropertyName];
+
+				// Load array reference and index
+				generator.Emit(OpCodes.Ldloc, arrayLocal);
+				generator.Emit(OpCodes.Ldc_I4, i);
+
+				// Load PropertyInfo
+				generator.Emit(OpCodes.Ldsfld, this.propertyInfoFields[propertyDescriptor.PropertyInfo.Name]);
+
+				// Store in array
+				generator.Emit(OpCodes.Stelem, typeof(PropertyInfo));
+
+				i++;
+			}
+
+			generator.Emit(OpCodes.Ldloc, arrayLocal);
+			generator.Emit(OpCodes.Ret);
 		}
 
 		private void BuildRelatedObjectProperty(PropertyInfo propertyInfo, EntityRelationshipType relationshipType, int pass)
@@ -525,8 +600,8 @@ namespace Shaolinq.TypeBuilding
 
 					if (pass == 2)
 					{
-						relatedIdPropertyBuilder.SetGetMethod(BuildPropertyMethod(PropertyMethodType.Get, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true));
 						relatedIdPropertyBuilder.SetSetMethod(BuildPropertyMethod(PropertyMethodType.Set, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true));
+						relatedIdPropertyBuilder.SetGetMethod(BuildPropertyMethod(PropertyMethodType.Get, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true));
 					}
 				}
 			}
@@ -578,8 +653,8 @@ namespace Shaolinq.TypeBuilding
 
 			if (pass == 2)
 			{
-				propertyBuilder.SetGetMethod(BuildPropertyMethod(PropertyMethodType.Get, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false));
 				propertyBuilder.SetSetMethod(BuildPropertyMethod(PropertyMethodType.Set, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false));
+				propertyBuilder.SetGetMethod(BuildPropertyMethod(PropertyMethodType.Get, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false));
 			}
 		}
 
@@ -799,6 +874,38 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Callvirt, setComputedValueMethods[propertyInfo.Name]);
 					}
 
+					// If (PrimaryKey && AutoIncrement)
+
+					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey && currentPropertyDescriptor.IsAutoIncrement)
+					{
+						// If it's a Guid and not set then create a new Guid
+
+						if (currentPropertyDescriptor.PropertyType.NonNullableType() == typeof(Guid))
+						{
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldfld, dataObjectField);
+							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
+							generator.Emit(OpCodes.Brtrue, loadAndReturnLabel);
+
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
+							generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+						}
+						else
+						{
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldfld, dataObjectField);
+							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
+							generator.Emit(OpCodes.Brtrue, loadAndReturnLabel);
+
+							// Not allowed to access primary key property if it's not set (not yet set by DB)
+
+							generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
+							generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
+							generator.Emit(OpCodes.Throw);
+						}
+					}
+
 					generator.MarkLabel(loadAndReturnLabel);
 
 					// Load value and return
@@ -812,8 +919,7 @@ namespace Shaolinq.TypeBuilding
 					ILGenerator privateGenerator;
 					var continueLabel = generator.DefineLabel();
 					
-					// Handle null cases
-                    // Skip setting if value is the same as the previous value
+					// Skip setting if value is the same as the previous value
 
 					if ((propertyBuilder.PropertyType.IsPrimitive
 						|| propertyBuilder.PropertyType == typeof(string)
@@ -850,9 +956,7 @@ namespace Shaolinq.TypeBuilding
 							
 							foreach (var referencedPropertyDescriptor in referencedTypeBuilder.typeDescriptor.PrimaryKeyProperties)
 							{
-								var referencedValueField =
-									this.relatedIdFields[
-										currentPropertyDescriptor.PersistedShortName + referencedPropertyDescriptor.PersistedShortName];
+								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PersistedShortName + referencedPropertyDescriptor.PersistedShortName];
 								var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
 								var referencedObjectValueField = referencedTypeBuilder.valueFields[referencedPropertyDescriptor.PropertyName];
 
@@ -883,6 +987,16 @@ namespace Shaolinq.TypeBuilding
 								if (!propertyInfo.PropertyType.IsValueType)
 								{
 									generator.Emit(OpCodes.Ldarg_1);
+									generator.Emit(OpCodes.Brfalse, innerLabel);
+								}
+
+								if (referencedPropertyDescriptor.IsAutoIncrement && referencedPropertyDescriptor.PropertyType.NonNullableType() != typeof(Guid))
+								{
+									// Don't access value.data.Id unless it's set (it's ok if it's a Guid cause they are created on first access)
+
+									generator.Emit(OpCodes.Ldarg_1);
+									generator.Emit(OpCodes.Ldfld, referencedObjectDataField);
+									generator.Emit(OpCodes.Ldfld, referencedTypeBuilder.valueIsSetFields[referencedPropertyDescriptor.PropertyName]);
 									generator.Emit(OpCodes.Brfalse, innerLabel);
 								}
 
@@ -1001,62 +1115,44 @@ namespace Shaolinq.TypeBuilding
 
 							privateGenerator = generator;
 						}
-						else if (currentPropertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
+						else if (currentPropertyDescriptor.IsAutoIncrement || currentPropertyDescriptor.IsPrimaryKey)
 						{
-							var skip = generator.DefineLabel();
+							var skip1 = generator.DefineLabel();
+							var skip2 = generator.DefineLabel();
 
 							var propertyBuilder2 = typeBuilder.DefineProperty(ForceSetPrefix + propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
+							var privateSetMethodBuilder = typeBuilder.DefineMethod("set_" + ForceSetPrefix + propertyInfo.Name, methodAttributes, returnType, parameters);
+
+							propertyBuilder2.SetSetMethod(privateSetMethodBuilder);
+							privateGenerator = privateSetMethodBuilder.GetILGenerator();
+							propertyBuilders[ForceSetPrefix + propertyInfo.Name] = propertyBuilder2;
 
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("IsTransient").GetGetMethod());
-							generator.Emit(OpCodes.Brtrue, skip);
+							generator.Emit(OpCodes.Brfalse, skip1);
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldarg_1);
+							generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+							generator.Emit(OpCodes.Ret);
+
+							generator.MarkLabel(skip1);
+
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldfld, dataObjectField);
+							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
+							generator.Emit(OpCodes.Brtrue, skip2);
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldarg_1);
+							generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+							generator.Emit(OpCodes.Ret);
+
+							generator.MarkLabel(skip2);
 
 							generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 							generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
 							generator.Emit(OpCodes.Throw);
 
-							var privateSetMethodBuilder = typeBuilder.DefineMethod("set_" + ForceSetPrefix + propertyInfo.Name, methodAttributes, returnType, parameters);
-
-							propertyBuilder2.SetSetMethod(privateSetMethodBuilder);
-							privateGenerator = privateSetMethodBuilder.GetILGenerator();
-
-							generator.MarkLabel(skip);
-
 							generator.Emit(OpCodes.Ret);
-
-							propertyBuilders[ForceSetPrefix + propertyInfo.Name] = propertyBuilder2;
-						}
-						else if (currentPropertyDescriptor.IsPrimaryKey && !currentPropertyDescriptor.IsAutoIncrement)
-						{
-							var label2 = generator.DefineLabel();
-
-							var propertyBuilder2 = typeBuilder.DefineProperty(ForceSetPrefix + propertyName, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
-
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalHasAutoIncrementKeyValueProperty.GetGetMethod());
-							generator.Emit(OpCodes.Brfalse, label2);
-
-							generator.Emit(OpCodes.Ldstr, propertyName);
-							generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
-							generator.Emit(OpCodes.Throw);
-
-							generator.MarkLabel(label2);
-
-							var privateSetMethodBuilder = typeBuilder.DefineMethod("set_" + ForceSetPrefix + propertyName, methodAttributes, returnType, parameters);
-
-							propertyBuilder2.SetSetMethod(privateSetMethodBuilder);
-
-							privateGenerator = privateSetMethodBuilder.GetILGenerator();
-
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Callvirt, privateSetMethodBuilder);
-
-							EmitUpdatedComputedPropertes(propertyBuilder.Name, generator);
-
-							generator.Emit(OpCodes.Ret);
-
-							propertyBuilders[ForceSetPrefix + propertyInfo.Name] = propertyBuilder2;
 						}
 						else
 						{
@@ -1109,12 +1205,24 @@ namespace Shaolinq.TypeBuilding
 					if (propertyInfo.PropertyType.IsDataAccessObjectType())
 					{
 						var innerTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyBuilder.PropertyType);
-						
+						var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[propertyBuilder.PropertyType];
+
 						foreach (var propertyDescriptor in innerTypeDescriptor.PrimaryKeyProperties)
 						{
 							var name = propertyInfo.Name + propertyDescriptor.PersistedShortName;
-
 							var relatedIdField = relatedIdFields[name];
+
+							if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.NonNullableType() != typeof(Guid))
+							{
+								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PersistedShortName + propertyDescriptor.PersistedShortName];
+								var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
+								var referencedObjectValueIsSetField = referencedTypeBuilder.valueIsSetFields[propertyDescriptor.PropertyName];
+
+								privateGenerator.Emit(OpCodes.Ldarg_1);
+								privateGenerator.Emit(OpCodes.Ldfld, referencedObjectDataField);
+								privateGenerator.Emit(OpCodes.Ldfld, referencedObjectValueIsSetField);
+								privateGenerator.Emit(OpCodes.Brfalse, computeLabel);
+							}
 
 							privateGenerator.Emit(OpCodes.Ldarg_0);
 							privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -1420,6 +1528,14 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		protected virtual void BuildNumberOfIntegerAutoIncrementPrimaryKeysProperty()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfIntegerAutoIncrementPrimaryKeys");
+
+			generator.Emit(OpCodes.Ldc_I4, typeDescriptor.PrimaryKeyProperties.Count(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()));
+			generator.Emit(OpCodes.Ret);
+		}
+
 		protected virtual void BuildNumberOfPrimaryKeysProperty()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfPrimaryKeys");
@@ -1651,6 +1767,12 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Stfld, valueChangedFields[propertyDescriptor.PropertyName]);
 
+				// this.IsSet = true
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, dataObjectField);
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyDescriptor.PropertyName]);
+
 				EmitUpdatedComputedPropertes(propertyDescriptor.PropertyName, generator);
 
 
@@ -1810,8 +1932,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, dataObjectField);
 					generator.Emit(OpCodes.Ldfld, fieldInfo);
-					generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalHasAutoIncrementKeyValueProperty.GetGetMethod());
-					generator.Emit(OpCodes.Brtrue, label);
+					generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalIsMissingAnyAutoIncrementIntegerPrimaryKeyValues.GetGetMethod());
+					generator.Emit(OpCodes.Brfalse, label);
 
 					// local = true
 					generator.Emit(OpCodes.Ldc_I4_1);
@@ -2307,51 +2429,43 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildHasAutoIncrementKeyValueProperty()
+		protected virtual void BuildIsMissingAnyAutoIncrementIntegerPrimaryKeyValues()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("HasAutoIncrementKeyValue");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("IsMissingAnyAutoIncrementIntegerPrimaryKeyValues");
 
-			var returnLabel = generator.DefineLabel();
-
-			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c=>c.IsAutoIncrement))
+			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()))
 			{
 				var valueField = valueFields[propertyDescriptor.PropertyName];
 
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
-				generator.Emit(OpCodes.Ldfld, valueField);
-
+				
 				if (propertyDescriptor.PropertyType.IsValueType)
 				{
 					switch (Type.GetTypeCode(propertyDescriptor.PropertyType))
 					{
 						case TypeCode.Int32:
+							generator.Emit(OpCodes.Ldfld, valueField);
 							generator.Emit(OpCodes.Ldc_I4_0);
 							generator.Emit(OpCodes.Ceq);
 							break;
 						case TypeCode.Byte:
 						case TypeCode.Int16:
+							generator.Emit(OpCodes.Ldfld, valueField);
 							generator.Emit(OpCodes.Ldc_I4_S, 0);
 							generator.Emit(OpCodes.Ceq);
 							break;
 						case TypeCode.Int64:
+							generator.Emit(OpCodes.Ldfld, valueField);
 							generator.Emit(OpCodes.Ldc_I8, 0L);
 							generator.Emit(OpCodes.Ceq);
 							break;
 						default:
 							if (propertyDescriptor.PropertyType == typeof(Guid))
 							{
-								var fieldValue = generator.DeclareLocal(propertyDescriptor.PropertyType);
-								var defaultValue = generator.DeclareLocal(propertyDescriptor.PropertyType);
-
-								generator.Emit(OpCodes.Stloc, fieldValue);
-
-								generator.Emit(OpCodes.Ldloca, defaultValue);
-								generator.Emit(OpCodes.Initobj, propertyDescriptor.PropertyType);
-
-								generator.Emit(OpCodes.Ldloca, fieldValue);
-								generator.Emit(OpCodes.Ldloc, defaultValue);
-								generator.Emit(OpCodes.Call, typeof(Guid).GetMethod("Equals", new Type[] {typeof(Guid)}));
+								generator.Emit(OpCodes.Ldflda, valueField);
+								generator.Emit(OpCodes.Ldsfld, FieldInfoFastRef.GuidEmptyGuid);
+								generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidEqualsMethod);
 							}
 							else
 							{
@@ -2362,25 +2476,29 @@ namespace Shaolinq.TypeBuilding
 				}
 				else
 				{
+					generator.Emit(OpCodes.Ldfld, valueField);
 					generator.Emit(OpCodes.Ldnull);
 					generator.Emit(OpCodes.Ceq);
 				}
-				
-				generator.Emit(OpCodes.Brtrue, returnLabel);
+
+				var label = generator.DefineLabel();
+
+				generator.Emit(OpCodes.Brfalse, label);
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Ret);
+
+				generator.MarkLabel(label);
 			}
 
-			generator.MarkLabel(returnLabel);
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildDefinesAutoIncrementKeyProperty()
+		protected virtual void BuildDefinesAnyAutoIncrementIntegerProperties()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("DefinesAutoIncrementKey");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("DefinesAnyAutoIncrementIntegerProperties");
 
-			if (this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement).Any())
+			if (this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()).Any())
 			{
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Ret);
@@ -2443,8 +2561,8 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
-				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalHasAutoIncrementKeyValueProperty.GetGetMethod());
-				generator.Emit(OpCodes.Brtrue, innerLabel1);
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalIsMissingAnyAutoIncrementIntegerPrimaryKeyValues.GetGetMethod());
+				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
 				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.MissingForeignKeys);
@@ -2477,8 +2595,8 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
-				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalHasAutoIncrementKeyValueProperty.GetGetMethod());
-				generator.Emit(OpCodes.Brtrue, innerLabel1);
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalIsMissingAnyAutoIncrementIntegerPrimaryKeyValues.GetGetMethod());
+				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
 				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.MissingUnconstrainedForeignKeys);

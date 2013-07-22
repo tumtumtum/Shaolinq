@@ -54,18 +54,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataAccessModel\Basic\ObjectWithGuidNonAutoIncrementPrimaryKey.cs" />
-    <Compile Include="DataAccessModel\Basic\ObjectWithGuidAutoIncrementPrimaryKey.cs" />
-    <Compile Include="DataAccessModel\Basic\ObjectWithLongAutoIncrementPrimaryKey.cs" />
-    <Compile Include="DataAccessModel\Basic\ObjectWithLongIncrementPrimaryKey.cs" />
-    <Compile Include="DataAccessModel\KungFuSchool\Belt.cs" />
-    <Compile Include="DataAccessModel\KungFuSchool\Instructor.cs" />
-    <Compile Include="DataAccessModel\KungFuSchool\KungFuSchoolDataModel.cs" />
-    <Compile Include="DataAccessModel\KungFuSchool\Person.cs" />
-    <Compile Include="DataAccessModel\KungFuSchool\Product.cs" />
-    <Compile Include="DataAccessModel\KungFuSchool\School.cs" />
-    <Compile Include="DataAccessModel\KungFuSchool\Student.cs" />
-    <Compile Include="BasicTests.cs" />
+    <Compile Include="BaseTests.cs" />
+    <Compile Include="DataAccessModel\Test\Address.cs" />
+    <Compile Include="DataAccessModel\Test\TestDataAccessModel.cs" />
+    <Compile Include="DataAccessModel\Test\ObjectWithGuidNonAutoIncrementPrimaryKey.cs" />
+    <Compile Include="DataAccessModel\Test\ObjectWithGuidAutoIncrementPrimaryKey.cs" />
+    <Compile Include="DataAccessModel\Test\ObjectWithLongAutoIncrementPrimaryKey.cs" />
+    <Compile Include="DataAccessModel\Test\ObjectWithLongNonAutoIncrementPrimaryKey.cs" />
+    <Compile Include="DataAccessModel\Test\Belt.cs" />
+    <Compile Include="DataAccessModel\Test\Instructor.cs" />
+    <Compile Include="DataAccessModel\Test\Person.cs" />
+    <Compile Include="DataAccessModel\Test\Product.cs" />
+    <Compile Include="DataAccessModel\Test\School.cs" />
+    <Compile Include="DataAccessModel\Test\Student.cs" />
+    <Compile Include="LinqTests.cs" />
+    <Compile Include="PrimaryKeyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

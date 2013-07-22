@@ -34,8 +34,13 @@ namespace Shaolinq.Persistence.Sql.MySql
 		{
 		}
 
-		protected override object GetLastInsertKey(TypeDescriptor typeDescriptor)
+		protected override object GetLastInsertedAutoIncrementValue(string tableName, string columnName, bool isSingularPrimaryKeyValue)
 		{
+			if (!isSingularPrimaryKeyValue)
+			{
+				throw new NotSupportedException();
+			}
+
 			var command = this.DbConnection.CreateCommand();
 			
 			command.CommandText = "select last_insert_id()";

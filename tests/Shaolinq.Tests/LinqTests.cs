@@ -2,71 +2,30 @@
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
-using Shaolinq.Persistence.Sql.Sqlite;
-using Shaolinq.Tests.DataAccessModel.KungFuSchool;
-using log4net.Config;
+using Shaolinq.Tests.DataAccessModel.Test;
 
 namespace Shaolinq.Tests
 {
-	public interface Interface1
+	[TestFixture("Sqlite")]
+	public class LinqTests
+		: BaseTests
 	{
-		void Foo();
-	}
-
-	public class A
-		: Interface1
-	{
-		void Interface1.Foo()
-		{
-		}
-	}
-
-	public class B
-		: A, Interface1 
-	{
-		void Interface1.Foo()
+		public LinqTests(string providerName)
+			: base(providerName)
 		{	
 		}
-	}
 
-	[TestFixture]
-	public class BasicTests
-	{
-		protected KungFuSchoolDataAccessModel model;
-
-		[SetUp]
-		public virtual void SetUp()
+		public void Foo(int? x)
 		{
-			XmlConfigurator.Configure();
-
-			var configuration = new DataAccessModelConfiguration()
-			{
-				PersistenceContexts = new PersistenceContextInfo[]
-				{
-					new SqlitePersistenceContextInfo()
-					{
-						ContextName = "KungFuSchool",
-						DatabaseName = "KungFuSchool",
-						DatabaseConnectionInfos = new SqliteDatabaseConnectionInfo[]
-						{
-							new SqliteDatabaseConnectionInfo()
-							{
-								PersistenceMode = PersistenceMode.ReadWrite,
-								FileName = "KungFuSchool.db"
-							}
-						}
-					}
-				}
-			};
-
-			model = BaseDataAccessModel.BuildDataAccessModel<KungFuSchoolDataAccessModel>(configuration);
-
-			model.CreateDatabases(true);
+			
 		}
 
 		[Test]
 		public void Foo()
 		{
+			object obj = 1;
+
+			this.Foo((int?)obj);
 		}
 
 		[Test]
@@ -79,9 +38,9 @@ namespace Shaolinq.Tests
 				var school = model.Schools.NewDataAccessObject();
 
 				school.Name = "The Shaolinq School of Kung Fu";
-				
+
 				var student = school.Students.NewDataAccessObject();
-				
+
 				student.Birthdate = new DateTime(1940, 11, 27);
 				student.FirstName = "Bruce";
 				student.LastName = "Lee";
@@ -90,7 +49,7 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(student.FirstName + " " + student.LastName, student.FullName);
 
 				studentId = student.Id;
-				
+
 				scope.Complete();
 			}
 
@@ -102,11 +61,14 @@ namespace Shaolinq.Tests
 
 				Assert.Catch(typeof(WriteOnlyDataAccessObjectException), () => Console.WriteLine(student.FirstName));
 
-				this.model.Students.First(c => c.Id == studentId);
+				var sameStudent = this.model.Students.First(c => c.Id == studentId);
 
+				// First name is available now because loading the object inflats the existing instance
+
+				Assert.AreSame(student, sameStudent);
 				Assert.AreEqual("Bruce", student.FirstName);
 
-				scope.Complete();				
+				scope.Complete();
 			}
 
 			var students = model.Students.Where(c => c.FirstName == "Bruce").ToList();
@@ -116,6 +78,11 @@ namespace Shaolinq.Tests
 			var storedStudent = students.First();
 
 			Assert.AreEqual("Bruce Lee", storedStudent.FullName);
+
+			Assert.AreEqual(1, model.Schools.Count());
+			Assert.IsNotNull(model.Schools.First(c => c.Name.IsLike("%Shaolinq%")));
+			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Id);
+			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Count());
 
 			students = model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Where(c => c.FirstName == "Bruce" && c.LastName.StartsWith("L")).ToList();
 

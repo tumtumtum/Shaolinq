@@ -100,17 +100,20 @@ namespace Shaolinq.Persistence.Sql.DevartPostgres
 			}
 		}
 
-		protected override object GetLastInsertKey(TypeDescriptor typeDescriptor)
+		protected override object GetLastInsertedAutoIncrementValue(string tableName, string columnName, bool isSingularPrimaryKeyValue)
 		{
+			if (!isSingularPrimaryKeyValue)
+			{
+				throw new NotSupportedException();
+			}
+
 			var command = this.DbConnection.CreateCommand();
 
-			command.CommandText = String.Concat("SELECT currval('\"", typeDescriptor.GetPersistedName(this.DataAccessModel), "_", typeDescriptor.PrimaryKeyProperties.First().PersistedName ,"_seq\"')");
+			command.CommandText = String.Concat("SELECT currval('\"", tableName, "_", columnName, "_seq\"')");
 
 			try
 			{
-				var x = command.ExecuteScalar();
-
-				return x;
+				return command.ExecuteScalar();
 			}
 			catch (Exception e)
 			{

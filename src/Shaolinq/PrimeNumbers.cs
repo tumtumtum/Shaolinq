@@ -1,6 +1,6 @@
 ﻿namespace Shaolinq
 {
-	public sealed class PrimeNumbers
+	internal sealed class PrimeNumbers
 	{
 		public const int Prime2 = 1;
 		public const int Prime3 = 3;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shaolinq.Tests.DataAccessModel.KungFuSchool
+namespace Shaolinq.Tests.DataAccessModel.Test
 {
 	[DataAccessObject(Abstract = true)]
 	public abstract class Person

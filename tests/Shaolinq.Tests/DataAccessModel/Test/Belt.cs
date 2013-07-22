@@ -1,4 +1,4 @@
-﻿namespace Shaolinq.Tests.DataAccessModel.KungFuSchool
+﻿namespace Shaolinq.Tests.DataAccessModel.Test
 {
 	public enum Belt
 	{

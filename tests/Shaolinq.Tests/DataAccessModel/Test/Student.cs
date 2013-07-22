@@ -1,7 +1,4 @@
-﻿using System;
-using Platform.Validation;
-
-namespace Shaolinq.Tests.DataAccessModel.KungFuSchool
+﻿namespace Shaolinq.Tests.DataAccessModel.Test
 {
 	[DataAccessObject]
 	public abstract class Student
@@ -9,8 +6,14 @@ namespace Shaolinq.Tests.DataAccessModel.KungFuSchool
 	{
 		[PersistedMember]
 		public abstract Belt Belt { get; set; }
-		
+
 		[BackReference]
 		public abstract School School { get; set; }
+
+		[PersistedMember]
+		public abstract Student BestFriend { get; set; }
+
+		[PersistedMember]
+		public abstract Address Address { get; set; }
 	}
 }

@@ -480,11 +480,6 @@ namespace Shaolinq
 			retval.SetIsNew(true);
 			retval.SetDataAccessModel(this);
 
-			if (retval.NumberOfPrimaryKeys == 1 && retval.DefinesAutoIncrementKey && (retval.KeyType == typeof(Guid) || retval.KeyType == typeof(Guid?)))
-			{
-				retval.SetAutoIncrementKeyValue(Guid.NewGuid());
-			}
-
 			if (!transient)
 			{
 				this.GetCurrentDataContext(false).CacheObject(retval, false);
@@ -504,11 +499,6 @@ namespace Shaolinq
 
 			retval.SetIsNew(true);
 			retval.SetDataAccessModel(this);
-
-			if (retval.NumberOfPrimaryKeys == 1 && retval.DefinesAutoIncrementKey && (retval.KeyType == typeof(Guid) || retval.KeyType == typeof(Guid?)))
-			{
-				retval.SetAutoIncrementKeyValue(Guid.NewGuid());
-			}
 
 			if (!transient)
 			{

@@ -189,7 +189,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				return false;
 			}
 
-			return methodCallExpression.Method.DeclaringType == typeof(StringExtensions)
+			return methodCallExpression.Method.DeclaringType == typeof(ShaolinqStringExtensions)
 			       && methodCallExpression.Method.Name == "IsLike";
 		}
 

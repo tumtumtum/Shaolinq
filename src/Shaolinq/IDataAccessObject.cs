@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -49,6 +50,8 @@ namespace Shaolinq
 		/// </summary>
 		int NumberOfPrimaryKeys { get; }
 
+		int NumberOfIntegerAutoIncrementPrimaryKeys { get; }
+
 		/// <summary>
 		/// Returns True if the object has a composite primary key
 		/// </summary>
@@ -78,12 +81,19 @@ namespace Shaolinq
 		/// <summary>
 		/// Returns true if the object has an auto-incrementing key
 		/// </summary>
-		bool HasAutoIncrementKeyValue { get; }
+		//bool HasAutoIncrementKeyValue { get; }
 
 		/// <summary>
 		/// Returns True if the current object defines a primary key that is an autoincrement key.
 		/// </summary>
-		bool DefinesAutoIncrementKey { get; }
+		//bool DefinesAutoIncrementKey { get; }
+
+		bool DefinesAnyAutoIncrementIntegerProperties { get; }
+
+		/// <summary>
+		/// Returns True if the object is missing any auto increment integer primary keys
+		/// </summary>
+		bool IsMissingAnyAutoIncrementIntegerPrimaryKeyValues { get; }
 
 		/// <summary>
 		/// Converts this object to another type using name/convention mapping
@@ -145,7 +155,11 @@ namespace Shaolinq
 		/// Returns true if the property with the given name has been changed since the object was loaded or created.
 		/// </summary>
 		bool HasPropertyChanged(string propertyName);
-        
+
+		PropertyInfo[] GetIntegerAutoIncrementPropertyInfos();
+
+		void SetIntegerAutoIncrementValues(object[] values);
+
 		/// <summary>
 		/// Gets an array of the primary keys and their values.
 		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="PropertyInfoAndValue"/>

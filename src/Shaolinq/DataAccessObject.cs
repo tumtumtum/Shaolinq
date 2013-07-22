@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -152,7 +153,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.DefinesAutoIncrementKey
+		bool IDataAccessObject.DefinesAnyAutoIncrementIntegerProperties
 		{
 			get
 			{
@@ -170,7 +171,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.HasAutoIncrementKeyValue
+		bool IDataAccessObject.IsMissingAnyAutoIncrementIntegerPrimaryKeyValues 
 		{
 			get
 			{
@@ -194,6 +195,15 @@ namespace Shaolinq
 			{
 				throw new NotImplementedException();
 			}
+		}
+
+		[ReflectionEmitted]
+		int IDataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}	
 		}
 
 		[ReflectionEmitted]
@@ -249,6 +259,18 @@ namespace Shaolinq
 
 		[ReflectionEmitted]
 		bool IDataAccessObject.ComputeIdRelatedComputedTextProperties()
+		{
+			throw new NotImplementedException();
+		}
+
+		[ReflectionEmitted]
+		PropertyInfo[] IDataAccessObject.GetIntegerAutoIncrementPropertyInfos()
+		{
+			throw new NotImplementedException();
+		}
+
+		[ReflectionEmitted]
+		void IDataAccessObject.SetIntegerAutoIncrementValues(object[] values)
 		{
 			throw new NotImplementedException();
 		}
