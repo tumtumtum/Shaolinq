@@ -20,10 +20,7 @@ namespace Shaolinq.Tests
 			{
 				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.NewDataAccessObject();
 
-				// Should be able to set a GUID value
-				obj.Id = Guid.NewGuid();
-
-				// Should not be able to set GUID value twice
+				// Should not be able to set a GUID value
 				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj.Id = Guid.NewGuid());
 
 				scope.Complete();

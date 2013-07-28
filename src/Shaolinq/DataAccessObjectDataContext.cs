@@ -357,12 +357,10 @@ namespace Shaolinq
 
 							if (subcache.TryGetValue(key, out outValue))
 							{
-								if (!outValue.IsWriteOnly)
-								{
-									outValue.SwapData(value);
+									outValue.SwapData(value, true);
+									outValue.SetIsDeflatedReference(false);
 
 									return (DataAccessObject<T>)outValue;
-								}
 							}
 						}
 
@@ -376,7 +374,7 @@ namespace Shaolinq
 
 								if (subList.TryGetValue(key, out resurrected))
 								{
-									resurrected.SwapData(value);
+									resurrected.SwapData(value, false);
 
 									subList.Remove(key);
 									subcache[key] = value;
@@ -408,7 +406,7 @@ namespace Shaolinq
 
 							if (subcache.TryGetValue(id, out outValue))
 							{
-								outValue.SwapData(value);
+								outValue.SwapData(value, true);
 
 								return (DataAccessObject<T>)outValue;
 							}
@@ -426,7 +424,7 @@ namespace Shaolinq
 								{
 									if (!forImport)
 									{
-										resurrected.SwapData(value);
+										resurrected.SwapData(value, false);
 
 										subList.Remove(id);
 										subcache[id] = value;

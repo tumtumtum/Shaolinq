@@ -10,7 +10,7 @@ namespace Shaolinq
 		public string persistedName;
 		public bool isSynthetic;
 		public readonly int propertyNameHashCode;
-		public PropertyInfo propertyInfo;
+		public readonly PropertyInfo propertyInfo;
 
 		public PropertyInfoAndValue(PropertyInfo propertyInfo, object value, string propertyName, string persistedName, bool isSynthetic, int propertyNameHashCode)
 		{

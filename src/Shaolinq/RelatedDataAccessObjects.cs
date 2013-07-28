@@ -26,9 +26,9 @@ namespace Shaolinq
 		public EntityRelationshipType RelationshipType { get; private set; }
 		public Action<IDataAccessObject, IDataAccessObject> InitializeDataAccessObject { get; private set; }
 		
-		public virtual void Initialize(IDataAccessObject relatedDataAccessObject, BaseDataAccessModel dataAccessModel, string persistenceContextName, EntityRelationshipType relationshipType, string propertyName)
+		public virtual void Initialize(IDataAccessObject relatedDataAccessObject, BaseDataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
 		{
-			base.Initialize(dataAccessModel, persistenceContextName, null);
+			base.Initialize(dataAccessModel, null);
 
 			this.PropertyName = propertyName;
 			this.RelatedDataAccessObject = relatedDataAccessObject;
@@ -133,33 +133,19 @@ namespace Shaolinq
 				}
 			}
 		}
-
-		private class InitializeActionsStorage
-		{
-			public readonly Dictionary<Pair<Type, Type>, Action<IDataAccessObject, IDataAccessObject>> initializeActions = new Dictionary<Pair<Type, Type>, Action<IDataAccessObject, IDataAccessObject>>();	
-		}
 		
 		private void BuildInitializeRelatedMethod()
 		{
 			var key = new Pair<Type, Type>(this.RelatedDataAccessObject.GetType(), typeof(T));
-			var initializeActionsStorage = this.DataAccessModel.GetDataAccessModelStorage<InitializeActionsStorage>(typeof(InitializeActionsStorage));
+			var initializeActionsStorage = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
 
-			if (initializeActionsStorage == null)
+			Action<IDataAccessObject, IDataAccessObject> initializeDataAccessObject;
+
+			if (initializeActionsStorage.initializeActions.TryGetValue(key, out initializeDataAccessObject))
 			{
-				initializeActionsStorage = new RelatedDataAccessObjects<T>.InitializeActionsStorage();
+				this.InitializeDataAccessObject = initializeDataAccessObject;
 
-				this.DataAccessModel.SetDataAccessModelStorage<InitializeActionsStorage>("InitializeActions", initializeActionsStorage);
-			}
-			else
-			{
-				Action<IDataAccessObject, IDataAccessObject> initializeDataAccessObject;
-
-				if (initializeActionsStorage.initializeActions.TryGetValue(key, out initializeDataAccessObject))
-				{
-					this.InitializeDataAccessObject = initializeDataAccessObject;
-
-					return;
-				}
+				return;
 			}
 
 			switch (this.RelationshipType)

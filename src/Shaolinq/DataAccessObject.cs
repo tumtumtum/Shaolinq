@@ -15,22 +15,27 @@ namespace Shaolinq
 		[PersistedMember(Name = "$(TYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)")]
 		public abstract T Id { get; set; }
 
-		public virtual bool IsWriteOnly
+		public virtual bool IsDeflatedReference
 		{
 			get
 			{
-				return ((IDataAccessObject)this).IsWriteOnly;
+				return ((IDataAccessObject)this).IsDeflatedReference;
 			}
 		}
 
-		public virtual DataAccessObject<T> UpgradeToReadWrite()
+		public virtual void Inflate()
 		{
-			if (!((IDataAccessObject)this).IsWriteOnly)
+			if (!((IDataAccessObject)this).IsDeflatedReference)
 			{
-				return this;
+				return;
 			}
 
-			throw new NotImplementedException();
+			var inflated = this.DataAccessModel.Inflate((IDataAccessObject)this);
+
+			// SwapData should not be necessary inside a transaction 
+			((IDataAccessObject)this).SwapData(inflated, true);
+
+			((IDataAccessObject)this).SetIsDeflatedReference(false);
 		}
 
 		public virtual BaseDataAccessModel DataAccessModel { get; private set; }
@@ -213,7 +218,16 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.IsWriteOnly
+		object IDataAccessObject.DataObject
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		[ReflectionEmitted]
+		bool IDataAccessObject.IsDeflatedReference
 		{
 			get
 			{
@@ -228,7 +242,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		void IDataAccessObject.SwapData(IDataAccessObject source)
+		void IDataAccessObject.SwapData(IDataAccessObject source, bool transferChangedProperties)
 		{
 			throw new NotImplementedException();
 		}
@@ -246,7 +260,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		void IDataAccessObject.SetIsWriteOnly(bool value)
+		void IDataAccessObject.SetIsDeflatedReference(bool value)
 		{
 			throw new NotImplementedException();
 		}

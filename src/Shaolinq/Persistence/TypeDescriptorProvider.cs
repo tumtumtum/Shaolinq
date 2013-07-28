@@ -101,7 +101,7 @@ namespace Shaolinq.Persistence
 					}
 					else if (typeof(IDataAccessObject).IsAssignableFrom(baseType))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The type {0} extends DataAccessObject<T> but is not explicitly decorated with the [DataAccessObject] attribute");
+						throw new InvalidDataAccessObjectModelDefinition("The type {0} extends DataAccessObject<T> but is not explicitly decorated with the [DataAccessObject] attribute", baseType.Name);
 					}
 
 					baseType = baseType.BaseType;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,6 +13,7 @@ namespace Shaolinq.TypeBuilding
 		: BaseTypeBuilder
 	{
 		private TypeBuilder typeBuilder;
+		private FieldBuilder dictionaryFieldBuilder;
 
 		public DataAccessModelTypeBuilder(AssemblyBuildContext assemblyBuildContext, ModuleBuilder moduleBuilder)
 			: base(assemblyBuildContext, moduleBuilder)
@@ -34,9 +36,15 @@ namespace Shaolinq.TypeBuilding
 			methodAttributes |= methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family);
 
 			var initialiseMethodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
-
 			var initialiseGenerator = initialiseMethodBuilder.GetILGenerator();
-            
+			
+			dictionaryFieldBuilder = typeBuilder.DefineField("m$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
+
+			initialiseGenerator.Emit(OpCodes.Ldarg_0);
+			initialiseGenerator.Emit(OpCodes.Ldc_I4, baseType.GetProperties().Count());
+			initialiseGenerator.Emit(OpCodes.Newobj, dictionaryFieldBuilder.FieldType.GetConstructor(new Type[] { typeof(int) }));
+			initialiseGenerator.Emit(OpCodes.Stfld, dictionaryFieldBuilder);
+
 			foreach (var propertyInfo in baseType.GetProperties())
 			{
 				var queryableAttribute = propertyInfo.GetFirstCustomAttribute<DataAccessObjectsAttribute>(true);
@@ -83,9 +91,17 @@ namespace Shaolinq.TypeBuilding
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
-					initialiseGenerator.Emit(OpCodes.Ldstr, persistenceContextAttribute.GetPersistenceContextName(type));
 					initialiseGenerator.Emit(OpCodes.Ldnull);
-					initialiseGenerator.Emit(OpCodes.Callvirt, propertyInfo.PropertyType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(BaseDataAccessModel), typeof(string), typeof(Expression) }, null));
+					initialiseGenerator.Emit(OpCodes.Callvirt, propertyInfo.PropertyType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(BaseDataAccessModel), typeof(Expression) }, null));
+
+					// Add to dictionary
+					initialiseGenerator.Emit(OpCodes.Ldarg_0);
+					initialiseGenerator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
+					initialiseGenerator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType);
+					initialiseGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+					initialiseGenerator.Emit(OpCodes.Ldarg_0);
+					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
+					initialiseGenerator.Emit(OpCodes.Callvirt, dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
                     
 					var propertyBuilder = typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
 
@@ -106,8 +122,70 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			initialiseGenerator.Emit(OpCodes.Ret);
+
+			BuildGetDataAccessObjectsMethod();
          
 			return typeBuilder.CreateType();
+		}
+
+		protected virtual void BuildGetDataAccessObjectsMethod()
+		{
+			var method = typeBuilder.BaseType.GetMethod("GetDataAccessObjects");
+			var methodAttributes = (method.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot)) | MethodAttributes.Virtual;
+			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
+			var genericParameters = methodBuilder.DefineGenericParameters(new string[] { "T" });
+
+			genericParameters[0].SetInterfaceConstraints(typeof(IDataAccessObject));
+
+			var generator = methodBuilder.GetILGenerator();
+
+			var label = generator.DefineLabel();
+			var local = generator.DeclareLocal(typeof(IQueryable));
+			var typedLocal = generator.DeclareLocal(methodBuilder.ReturnType);
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
+			generator.Emit(OpCodes.Ldtoken, genericParameters[0]);
+			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+			generator.Emit(OpCodes.Ldloca, local);
+			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("TryGetValue", new Type[] { typeof(Type), typeof(IQueryable).MakeByRefType() }));
+			generator.Emit(OpCodes.Brfalse, label);
+			
+			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Castclass, methodBuilder.ReturnType);
+			generator.Emit(OpCodes.Ret);
+
+			generator.MarkLabel(label);
+
+			var constructorPrep = typeof(DataAccessObjects<>).GetConstructor(new Type[0]);
+			var constructor = TypeBuilder.GetConstructor(typeof(DataAccessObjects<>).MakeGenericType(genericParameters[0]), constructorPrep);
+
+			// Create new queryable
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Newobj, constructor);
+			generator.Emit(OpCodes.Stloc, typedLocal);
+
+			// Call Initialize method
+			generator.Emit(OpCodes.Ldloc, typedLocal);
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldnull);
+
+			var methodPrep = typeof(DataAccessObjectsQueryable<>).GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(BaseDataAccessModel), typeof(Expression) }, null);
+			var initializeMethod =TypeBuilder.GetMethod(typeof(DataAccessObjectsQueryable<>).MakeGenericType(genericParameters[0]), methodPrep);
+
+			generator.Emit(OpCodes.Callvirt, initializeMethod);
+
+			// Store in dictionary
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
+			generator.Emit(OpCodes.Ldtoken, genericParameters[0]);
+			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+			generator.Emit(OpCodes.Ldloc, typedLocal);
+			generator.Emit(OpCodes.Callvirt, dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
+
+			generator.Emit(OpCodes.Ldloc, typedLocal);
+			generator.Emit(OpCodes.Castclass, methodBuilder.ReturnType);
+			generator.Emit(OpCodes.Ret);
 		}
 
 		protected virtual MethodBuilder BuildPropertyMethod(string methodType, PropertyInfo propertyInfo, FieldBuilder backingField)

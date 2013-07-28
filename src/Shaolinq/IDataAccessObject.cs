@@ -23,7 +23,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Returns true if the current object has only been partially loaded and can't be read.
 		/// </summary>
-		bool IsWriteOnly { get; }
+		bool IsDeflatedReference { get; }
 
 		/// <summary>
 		/// Returns true if the current object has not yet been persisted or flushed.
@@ -129,7 +129,7 @@ namespace Shaolinq
 		/// Makes the object as write-only (reads can only be made to primary key properties and properties that have been
 		/// changed within the context of the current transaction)
 		/// </summary>
-		void SetIsWriteOnly(bool isWriteOnly);
+		void SetIsDeflatedReference(bool value);
 
 		/// <summary>
 		/// Sets the primary key(s)
@@ -144,7 +144,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Sets the underlying data container of the current data access object with the one in the given domain object.
 		/// </summary>
-		void SwapData(IDataAccessObject source);
+		void SwapData(IDataAccessObject source, bool transferChangedProperties);
 
 		/// <summary>
 		/// Sets the AutoIncrement key value of this object.
@@ -155,6 +155,8 @@ namespace Shaolinq
 		/// Returns true if the property with the given name has been changed since the object was loaded or created.
 		/// </summary>
 		bool HasPropertyChanged(string propertyName);
+
+		object DataObject { get; }
 
 		PropertyInfo[] GetIntegerAutoIncrementPropertyInfos();
 
@@ -183,5 +185,7 @@ namespace Shaolinq
 		/// Gets a list of all the properties on this object
 		/// </summary>
 		bool ComputeIdRelatedComputedTextProperties();
+
+		void Inflate();
 	}
 }

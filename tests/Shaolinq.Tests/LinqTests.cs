@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
@@ -15,27 +16,14 @@ namespace Shaolinq.Tests
 		{	
 		}
 
-		public void Foo(int? x)
-		{
-			
-		}
-
-		[Test]
-		public void Foo()
-		{
-			object obj = 1;
-
-			this.Foo((int?)obj);
-		}
-
 		[Test]
 		public void Test_Create_Object_And_Related_Object_Then_Query()
 		{
-			Guid studentId;
-
 			using (var scope = new TransactionScope())
 			{
 				var school = model.Schools.NewDataAccessObject();
+
+				Console.Write(model.GetPersistenceContext(school.GetType()).PersistenceStoreName);
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -48,28 +36,19 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(school, student.School);
 				Assert.AreEqual(student.FirstName + " " + student.LastName, student.FullName);
 
-				studentId = student.Id;
+				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(school.Id));
+
+				scope.Flush(model);
+
+				Assert.AreEqual(1, school.Id);
+				Assert.AreEqual(1, student.School.Id);
 
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
-			{
-				var student = this.model.ReferenceToDataAccessObject<Student>(studentId);
+			Assert.AreEqual(1, model.Students.FirstOrDefault().School.Id);
 
-				Assert.IsTrue(student.IsWriteOnly);
-
-				Assert.Catch(typeof(WriteOnlyDataAccessObjectException), () => Console.WriteLine(student.FirstName));
-
-				var sameStudent = this.model.Students.First(c => c.Id == studentId);
-
-				// First name is available now because loading the object inflats the existing instance
-
-				Assert.AreSame(student, sameStudent);
-				Assert.AreEqual("Bruce", student.FirstName);
-
-				scope.Complete();
-			}
+			Assert.AreEqual(1, model.Schools.FirstOrDefault().Id);
 
 			var students = model.Students.Where(c => c.FirstName == "Bruce").ToList();
 

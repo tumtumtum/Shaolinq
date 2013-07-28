@@ -30,7 +30,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Used to support the framework.  Do not call this method directly.
 		/// </summary>
-		public virtual void Initialize(BaseDataAccessModel dataAccessModel, string persistenceContextName, Expression expression)
+		public virtual void Initialize(BaseDataAccessModel dataAccessModel, Expression expression)
 		{
 			if (this.DataAccessModel != null || this.PersistenceContext != null)
 			{

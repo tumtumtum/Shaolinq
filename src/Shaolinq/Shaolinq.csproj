@@ -86,6 +86,9 @@
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
+    <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
+    <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
+    <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
     <Compile Include="DataAccessObjectsQueryableExtensions.cs" />

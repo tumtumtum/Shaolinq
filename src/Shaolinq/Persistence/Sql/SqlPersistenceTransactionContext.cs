@@ -49,19 +49,19 @@ namespace Shaolinq.Persistence.Sql
 
 			public bool Equals(CommandKey x, CommandKey y)
 			{
-				if (x.DataAccessObjectType != y.DataAccessObjectType)
+				if (x.dataAccessObjectType != y.dataAccessObjectType)
 				{
 					return false;
 				}
 
-				if (x.ChangedProperties.Count != y.ChangedProperties.Count)
+				if (x.changedProperties.Count != y.changedProperties.Count)
 				{
 					return false;
 				}
 
-				for (int i = 0, n = x.ChangedProperties.Count; i < n; i++)
+				for (int i = 0, n = x.changedProperties.Count; i < n; i++)
 				{
-					if (!Object.ReferenceEquals(x.ChangedProperties[i].persistedName, y.ChangedProperties[i].persistedName))
+					if (!Object.ReferenceEquals(x.changedProperties[i].persistedName, y.changedProperties[i].persistedName))
 					{
 						return false;
 					}
@@ -72,16 +72,16 @@ namespace Shaolinq.Persistence.Sql
 
 			public int GetHashCode(CommandKey obj)
 			{
-				var count = obj.ChangedProperties.Count;
-				var retval = obj.DataAccessObjectType.GetHashCode() ^ count;
+				var count = obj.changedProperties.Count;
+				var retval = obj.dataAccessObjectType.GetHashCode() ^ count;
 
 				if (count > 0)
 				{
-					retval ^= obj.ChangedProperties[0].propertyNameHashCode;
+					retval ^= obj.changedProperties[0].propertyNameHashCode;
 
 					if (count > 1)
 					{
-						retval ^= obj.ChangedProperties[count - 1].propertyNameHashCode;
+						retval ^= obj.changedProperties[count - 1].propertyNameHashCode;
 					}
 				}
 
@@ -91,13 +91,13 @@ namespace Shaolinq.Persistence.Sql
 
 		protected struct CommandKey
 		{
-			public Type DataAccessObjectType;
-			public List<PropertyInfoAndValue> ChangedProperties;
+			public readonly Type dataAccessObjectType;
+			public readonly List<PropertyInfoAndValue> changedProperties;
 
 			public CommandKey(Type dataAccessObjectType, List<PropertyInfoAndValue> changedProperties)
 			{
-				this.DataAccessObjectType = dataAccessObjectType;
-				this.ChangedProperties = changedProperties;
+				this.dataAccessObjectType = dataAccessObjectType;
+				this.changedProperties = changedProperties;
 			}
 		}
 
@@ -429,9 +429,9 @@ namespace Shaolinq.Persistence.Sql
 
 						throw;
 					}
-                    
-					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush
 
+					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foriegn keys
+					
 					if (dataAccessObject.DefinesAnyAutoIncrementIntegerProperties)
 					{
 						bool isSingularPrimaryKeyValue = false;
@@ -456,8 +456,6 @@ namespace Shaolinq.Persistence.Sql
 							if (value == null)
 							{
 								i++;
-
-								continue;
 							}
 							else if (value.GetType() == propertyType)
 							{
@@ -552,7 +550,6 @@ namespace Shaolinq.Persistence.Sql
 		{
 			IDbCommand command;
 			CommandValue commandValue;
-			var commandKey = new CommandKey();
 			var updatedProperties = dataAccessObject.GetChangedProperties();
 			var primaryKeys = dataAccessObject.GetPrimaryKeys();
 
@@ -561,8 +558,7 @@ namespace Shaolinq.Persistence.Sql
 				return null;
 			}
 
-			commandKey.DataAccessObjectType = dataAccessObject.GetType();
-			commandKey.ChangedProperties = updatedProperties;
+			var commandKey = new CommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.UpdateCache.TryGetValue(commandKey, out commandValue))
 			{
@@ -573,7 +569,7 @@ namespace Shaolinq.Persistence.Sql
 				return command;
 			}
 
-			var commandText = new StringBuilder();
+			var commandText = new StringBuilder(256 + (updatedProperties.Count * 32));
 
 			command = CreateCommand();
 
@@ -581,7 +577,7 @@ namespace Shaolinq.Persistence.Sql
 			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel)).Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
 			commandText.Append(" SET ");
 
-			for (int i = 0; i < updatedProperties.Count; i++)
+			for (var i = 0; i < updatedProperties.Count; i++)
 			{
 				commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
 				commandText.Append(updatedProperties[i].persistedName);
@@ -597,9 +593,9 @@ namespace Shaolinq.Persistence.Sql
 
 			commandText.Append(" WHERE ");
 
-			int j = updatedProperties.Count;
+			var j = updatedProperties.Count;
 			
-			for (int k = 0; k < primaryKeys.Length; k++)
+			for (var k = 0; k < primaryKeys.Length; k++)
 			{
 				commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
 				commandText.Append(primaryKeys[k].persistedName);
@@ -624,7 +620,6 @@ namespace Shaolinq.Persistence.Sql
 		{
 			IDbCommand command;
 			CommandValue commandValue;
-			var commandKey = new CommandKey();
 			var updatedProperties = dataAccessObject.GetChangedProperties();
 
 			if (updatedProperties.Count == 0)
@@ -635,8 +630,7 @@ namespace Shaolinq.Persistence.Sql
 				return command;
 			}
 
-			commandKey.DataAccessObjectType = dataAccessObject.GetType();
-			commandKey.ChangedProperties = updatedProperties;
+			var commandKey = new CommandKey(dataAccessObject.GetType(), updatedProperties);
             
 			if (this.InsertCache.TryGetValue(commandKey, out commandValue))
 			{
