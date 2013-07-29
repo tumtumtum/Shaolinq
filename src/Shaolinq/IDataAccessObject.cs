@@ -186,6 +186,10 @@ namespace Shaolinq
 		/// </summary>
 		bool ComputeIdRelatedComputedTextProperties();
 
+		/// <summary>
+		/// Inflates the current object if the object is currently deflated.  A deflated object only contains
+		/// primary keys and no other property values. Inflation usually requires a database query.
+		/// </summary>
 		void Inflate();
 	}
 }

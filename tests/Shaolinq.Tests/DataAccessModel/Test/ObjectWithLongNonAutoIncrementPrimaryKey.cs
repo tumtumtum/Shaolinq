@@ -6,5 +6,8 @@
 	{
 		[AutoIncrement(false)]
 		public abstract override long Id { get; set; }
+
+		[PersistedMember]
+		public abstract string Name { get; set; }
 	}
 }

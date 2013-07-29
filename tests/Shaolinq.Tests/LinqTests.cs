@@ -13,7 +13,13 @@ namespace Shaolinq.Tests
 	{
 		public LinqTests(string providerName)
 			: base(providerName)
-		{	
+		{
+			this.CreateObjects();
+		}
+
+		private void CreateObjects()
+		{
+			
 		}
 
 		[Test]

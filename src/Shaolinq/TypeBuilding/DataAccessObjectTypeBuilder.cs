@@ -1262,14 +1262,17 @@ namespace Shaolinq.TypeBuilding
 
 							generator.MarkLabel(skip1);
 
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
-							generator.Emit(OpCodes.Brtrue, skip2);
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
-							generator.Emit(OpCodes.Ret);
+							if (!currentPropertyDescriptor.IsAutoIncrement)
+							{
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldfld, dataObjectField);
+								generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
+								generator.Emit(OpCodes.Brtrue, skip2);
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldarg_1);
+								generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+								generator.Emit(OpCodes.Ret);
+							}
 
 							generator.MarkLabel(skip2);
 

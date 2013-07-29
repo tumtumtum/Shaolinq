@@ -36,6 +36,9 @@ namespace Shaolinq.Tests
 		{
 			return this.CreateSqliteConfiguration(contextName, databaseName);
 		}
+		
+		private readonly string providerName;
+		private readonly DataAccessModelConfiguration configuration;
 
 		public BaseTests(string providerName)
 		{
@@ -43,16 +46,18 @@ namespace Shaolinq.Tests
 
 			try
 			{
-				var configuration = this.CreateConfiguration(providerName, "Test", this.GetType().Name);
-
+				configuration = this.CreateConfiguration(providerName, "Test", this.GetType().Name);
 				model = BaseDataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
-
 				model.CreateDatabases(true);
+
+				this.providerName = providerName;
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
 				Console.WriteLine(e.StackTrace);
+
+				throw;
 			}
 		}
 	}

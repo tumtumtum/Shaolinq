@@ -1,4 +1,6 @@
-﻿namespace Shaolinq.Tests.DataAccessModel.Test
+﻿using Platform.Validation;
+
+namespace Shaolinq.Tests.DataAccessModel.Test
 {
 	[DataAccessObject]
 	public abstract class Student
@@ -9,6 +11,9 @@
 
 		[BackReference]
 		public abstract School School { get; set; }
+
+		[BackReference, ValueRequired(false)]
+		public abstract Fraternity Fraternity { get; set; }
 
 		[PersistedMember]
 		public abstract Student BestFriend { get; set; }

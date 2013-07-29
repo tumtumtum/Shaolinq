@@ -4,5 +4,7 @@
 	public abstract class ObjectWithLongAutoIncrementPrimaryKey
 		: DataAccessObject<long>
 	{
+		[PersistedMember]
+		public abstract string Name { get; set; }
 	}
 }

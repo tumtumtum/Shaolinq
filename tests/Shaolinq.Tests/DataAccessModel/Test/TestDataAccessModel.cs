@@ -17,6 +17,9 @@
 		public abstract DataAccessObjects<Instructor> Instructors { get; }
 
 		[DataAccessObjects]
+		public abstract DataAccessObjects<Fraternity> Fraternity { get; }
+
+		[DataAccessObjects]
 		public abstract DataAccessObjects<ObjectWithGuidAutoIncrementPrimaryKey> ObjectWithGuidAutoIncrementPrimaryKeys { get; }
 
 		[DataAccessObjects]

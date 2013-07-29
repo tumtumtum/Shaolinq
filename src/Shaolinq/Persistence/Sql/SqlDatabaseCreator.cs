@@ -206,7 +206,7 @@ namespace Shaolinq.Persistence.Sql
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
 					var relatedPropertyTypeDescriptor = this.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.RelatedProperty.PropertyType);
-
+					
 					var valueRequired = true;
 					var valueRequiredAttribute = typeRelationshipInfo.RelatedProperty.PropertyInfo.GetFirstCustomAttribute<ValueRequiredAttribute>(false);
 

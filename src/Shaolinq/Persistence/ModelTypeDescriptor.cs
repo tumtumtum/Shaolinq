@@ -101,7 +101,14 @@ namespace Shaolinq.Persistence
 
 		public TypeDescriptor GetQueryableTypeDescriptor(Type type)
 		{
-			return this.typeDescriptors[type];
+			TypeDescriptor retval;
+
+			if (!this.typeDescriptors.TryGetValue(type, out retval))
+			{
+				throw new InvalidDataAccessObjectModelDefinition(string.Format("{0} is missing a [DataAccessObjects] property for the type: {1}", this.Type.Name, type.Name));	
+			}
+
+			return retval;
 		}
 
 		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(BaseDataAccessModel model, Predicate<TypeDescriptor> accept)
