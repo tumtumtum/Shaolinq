@@ -256,6 +256,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildHasObjectChangedProperty();
 			this.BuildDataObjectProperty();
 			this.BuildKeyTypeProperty();
+			this.BuildPrimaryKeyIsCommitReadyProperty();
 			this.BuildNumberOfPrimaryKeysProperty();
 			this.BuildNumberOfIntegerAutoIncrementPrimaryKeysProperty();
 			this.BuildSetIntegerAutoIncrementValues();
@@ -281,6 +282,71 @@ namespace Shaolinq.TypeBuilding
 			this.BuildGetIntegerAutoIncrementPropertyInfosMethod();
 
 			typeBuilder.CreateType();
+		}
+
+		protected virtual void BuildPrimaryKeyIsCommitReadyProperty()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("PrimaryKeyIsCommitReady");
+
+			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Where(c => !c.IsAutoIncrement))
+			{
+				var nextLabel = generator.DefineLabel();
+
+				if (propertyDescriptor.PropertyType.IsValueType)
+				{
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());
+
+					if (propertyDescriptor.PropertyType == typeof(short))
+					{
+						generator.Emit(OpCodes.Ldc_I4_0);
+					}
+					else if (propertyDescriptor.PropertyType == typeof(int))
+					{
+						generator.Emit(OpCodes.Ldc_I4_0);
+					}
+					else if (propertyDescriptor.PropertyType == typeof(long))
+					{
+						generator.Emit(OpCodes.Ldc_I8, 0L);
+					}
+					else if (propertyDescriptor.PropertyType == typeof(Guid))
+					{
+						generator.Emit(OpCodes.Ldsfld, FieldInfoFastRef.GuidEmptyGuid);
+					}
+					else
+					{
+						var local = generator.DeclareLocal(propertyDescriptor.PropertyType);
+
+						generator.Emit(OpCodes.Ldloca, local);
+						generator.Emit(OpCodes.Initobj, local.LocalType);
+
+						generator.Emit(OpCodes.Ldloc, local);
+					}
+
+					EmitCompareEquals(generator, propertyDescriptor.PropertyType);
+					generator.Emit(OpCodes.Brfalse, nextLabel);
+
+					generator.Emit(OpCodes.Ldc_I4_0);
+					generator.Emit(OpCodes.Ret);
+				}
+				else
+				{
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());	
+					generator.Emit(OpCodes.Ldnull);
+					generator.Emit(OpCodes.Ceq);
+					generator.Emit(OpCodes.Brfalse, nextLabel);
+
+					generator.Emit(OpCodes.Ldc_I4_0);
+					generator.Emit(OpCodes.Ret);
+				}
+
+				generator.MarkLabel(nextLabel);
+			}
+
+			generator.Emit(OpCodes.Ldc_I4_1);
+			generator.Emit(OpCodes.Ret);
+	
 		}
 
 		protected virtual void BuildSetIntegerAutoIncrementValues()

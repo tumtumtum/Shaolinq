@@ -111,6 +111,29 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.First(c => c.Id == schoolId);
+
+				var student = model.Students.First(c => c.School == school);
+
+				Assert.AreEqual(studentId, student.Id);
+
+				Assert.AreEqual(1, model.Students.Count(c => c.School == school));
+
+				Assert.AreEqual(1, school.Students.Count());
+
+				var anotherSchool = model.Schools.NewDataAccessObject();
+				var anotherStudent = anotherSchool.Students.NewDataAccessObject();
+
+				scope.Flush(model);
+
+				Assert.AreEqual(2, model.Students.Count());
+				Assert.AreEqual(1, school.Students.Count());
+
+				scope.Complete();
+			}
 		}
 	}
 }

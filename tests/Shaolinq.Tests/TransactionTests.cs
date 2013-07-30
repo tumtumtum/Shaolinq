@@ -39,6 +39,8 @@ namespace Shaolinq.Tests
 				var student = model.Students.First(c => c.FirstName == "Bruce");
 
 				Assert.AreEqual("Bruce Lee", student.FullName);
+
+				scope.Complete();
 			}
 		}
 

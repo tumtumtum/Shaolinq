@@ -191,5 +191,12 @@ namespace Shaolinq
 		/// primary keys and no other property values. Inflation usually requires a database query.
 		/// </summary>
 		void Inflate();
+
+		/// <summary>
+		/// Returns True if the primary keys are ready to be submitted to the underlying RDBMS.
+		/// A primary key is ready if all of its component properties are either user-set or 
+		/// AutoIncrement properties that will be set by the underlying RDBMS.
+		/// </summary>
+		bool PrimaryKeyIsCommitReady { get; }
 	}
 }

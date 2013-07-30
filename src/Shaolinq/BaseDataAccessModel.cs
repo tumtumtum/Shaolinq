@@ -347,12 +347,12 @@ namespace Shaolinq
 					}
 					else
 					{
-						valueExpression = Expression.PropertyOrField(Expression.Convert(parameter, objectType), property.PropertyName);
+						valueExpression = Expression.Convert(Expression.PropertyOrField(Expression.Convert(parameter, objectType), property.PropertyName), typeof(object));
 					}
 
 					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
 
-					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo), Expression.Convert(Expression.Convert(valueExpression, property.PropertyType), typeof(object)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
+					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo), Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
 
 					initializers.Add(newExpression);
 				}

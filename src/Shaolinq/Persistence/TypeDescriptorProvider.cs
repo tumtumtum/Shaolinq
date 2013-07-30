@@ -75,7 +75,7 @@ namespace Shaolinq.Persistence
 				}
 
 				var baseType = type;
-
+				
 				while (baseType != null)
 				{
 					var dataAccessObjectAttribute = baseType.GetFirstCustomAttribute<DataAccessObjectAttribute>(false);
@@ -95,6 +95,11 @@ namespace Shaolinq.Persistence
 							}
 
 							var typeDescriptor = new TypeDescriptor(baseType);
+
+							if (typeDescriptor.PrimaryKeyProperties.Count(c => c.PropertyType.IsNullableType()) > 0)
+							{
+								throw new InvalidDataAccessObjectModelDefinition("The type {0} illegally defines a nullable primary key", baseType.Name);
+							}
 
 							typeDescriptorsByType[baseType] = typeDescriptor;
 						}

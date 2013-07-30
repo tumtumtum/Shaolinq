@@ -38,6 +38,20 @@ namespace Shaolinq
 			((IDataAccessObject)this).SetIsDeflatedReference(false);
 		}
 
+		protected void RemoveFromCache()
+		{	
+		}
+
+		protected bool CanHaveNewPrimaryKey(PropertyInfoAndValue[] primaryKey)
+		{
+			if (this.DataAccessModel.GetCurrentDataContext(false).GetObject(this.DataAccessModel.GetPersistenceContext(this.GetType()), this.GetType(), primaryKey) != null)
+			{
+				return false;
+			}
+
+			return true;
+		}
+
 		public virtual BaseDataAccessModel DataAccessModel { get; private set; }
 
 		TypeDescriptor IDataAccessObject.TypeDescriptor
@@ -287,6 +301,15 @@ namespace Shaolinq
 		void IDataAccessObject.SetIntegerAutoIncrementValues(object[] values)
 		{
 			throw new NotImplementedException();
+		}
+
+		[ReflectionEmitted]
+		bool IDataAccessObject.PrimaryKeyIsCommitReady
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
 		}
 
 		#endregion

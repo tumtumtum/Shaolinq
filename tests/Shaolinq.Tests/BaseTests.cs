@@ -9,6 +9,16 @@ namespace Shaolinq.Tests
 	{
 		protected TestDataAccessModel model;
 
+		public void Foo()
+		{
+			short x = 10;
+
+			Console.WriteLine(x);
+		}
+
+		public void Bar(bool v)
+		{}
+
 		protected DataAccessModelConfiguration CreateSqliteConfiguration(string contextName, string databaseName)
 		{
 			return new DataAccessModelConfiguration()

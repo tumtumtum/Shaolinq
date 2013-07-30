@@ -18,6 +18,24 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Get_Deflated_Reference_From_Object_With_Non_AutoIncrementing_PrimaryKey()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+
+				obj.Id = 1077;
+
+				var obj2 =  model.GetReferenceByPrimaryKey<ObjectWithLongNonAutoIncrementPrimaryKey>(1077);
+
+				Assert.AreEqual(obj.Id, obj2.Id);
+				Assert.AreSame(obj, obj2);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Create_Student_Then_Access_Best_Friend()
 		{
 			using (var scope = new TransactionScope())
