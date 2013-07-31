@@ -58,6 +58,8 @@ namespace Shaolinq.Tests
 			{
 				var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.NewDataAccessObject();
 
+				obj1.Id = Guid.NewGuid();
+
 				scope.Complete();
 			}
 		}
@@ -138,21 +140,38 @@ namespace Shaolinq.Tests
 		{
 			var name = new StackTrace().GetFrame(0).GetMethod().Name;
 
-			using (var scope = new TransactionScope())
+			Assert.Throws<TransactionAbortedException>(() =>
 			{
-				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+				using (var scope = new TransactionScope())
+				{
+					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
 
-				obj.Name = name;
+					obj.Name = name;
 
-				scope.Complete();
-			}
-
-			using (var scope = new TransactionScope())
-			{
-				Assert.AreEqual(1,  this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Count(c => c.Name == name));
-				Assert.AreEqual(0, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.FirstOrDefault(c => c.Name == name).Id);
-			}
+					scope.Complete();
+				}
+			});
 		}
+
+		[Test]
+		public void Test_Create_Object_With_Long_Non_AutoIncrement_PrimaryKey_And_Dont_Set_PrimaryKey_With_Default_Value()
+		{
+			var name = new StackTrace().GetFrame(0).GetMethod().Name;
+
+			Assert.Throws<TransactionAbortedException>(() =>
+			{
+				using (var scope = new TransactionScope())
+				{
+					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+
+					obj.Id = 0;
+					obj.Name = name;
+
+					scope.Complete();
+				}
+			});
+		}
+
 
 		[Test]
 		public void Test_Create_Object_With_Long_Non_AutoIncrement_PrimaryKey_And_Set_PrimaryKey()

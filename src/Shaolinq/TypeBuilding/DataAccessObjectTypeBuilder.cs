@@ -950,25 +950,6 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyInfo.Name]);
 						generator.Emit(OpCodes.Brtrue, labelfrp);
 						
-						/*
-						generator.BeginExceptionBlock();
-
-						// local = this.PropertyRelationshipHelperProperty.First()
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Callvirt, relationshipProperty.GetGetMethod());
-						generator.Emit(OpCodes.Call, MethodInfoFastRef.EnumerableFirstMethod.MakeGenericMethod(propertyInfo.PropertyType));
-						generator.Emit(OpCodes.Stloc, local);
-
-						generator.BeginCatchBlock(typeof(InvalidOperationException));
-
-						// SequenceEmptyException
-
-						generator.Emit(OpCodes.Ldnull);
-						generator.Emit(OpCodes.Stloc, local);
-						
-						generator.EndExceptionBlock();
-						*/
-
 						var propertyTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyInfo.PropertyType);
 
 						var innerLabel = generator.DefineLabel();
@@ -1069,32 +1050,16 @@ namespace Shaolinq.TypeBuilding
 
 					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey && currentPropertyDescriptor.IsAutoIncrement)
 					{
-						// If it's a Guid and not set then create a new Guid
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Ldfld, dataObjectField);
+						generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
+						generator.Emit(OpCodes.Brtrue, loadAndReturnLabel);
 
-						if (currentPropertyDescriptor.PropertyType.NonNullableType() == typeof(Guid))
-						{
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
-							generator.Emit(OpCodes.Brtrue, loadAndReturnLabel);
+						// Not allowed to access primary key property if it's not set (not yet set by DB)
 
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
-							generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
-						}
-						else
-						{
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
-							generator.Emit(OpCodes.Brtrue, loadAndReturnLabel);
-
-							// Not allowed to access primary key property if it's not set (not yet set by DB)
-
-							generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
-							generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
-							generator.Emit(OpCodes.Throw);
-						}
+						generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
+						generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
+						generator.Emit(OpCodes.Throw);
 					}
 
 					generator.MarkLabel(loadAndReturnLabel);
@@ -1330,6 +1295,8 @@ namespace Shaolinq.TypeBuilding
 
 							if (!currentPropertyDescriptor.IsAutoIncrement)
 							{
+								var skipCachingObjectLabel = generator.DefineLabel();
+
 								generator.Emit(OpCodes.Ldarg_0);
 								generator.Emit(OpCodes.Ldfld, dataObjectField);
 								generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
@@ -1337,6 +1304,23 @@ namespace Shaolinq.TypeBuilding
 								generator.Emit(OpCodes.Ldarg_0);
 								generator.Emit(OpCodes.Ldarg_1);
 								generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("PrimaryKeyIsCommitReady").GetGetMethod());
+								generator.Emit(OpCodes.Brfalse, skipCachingObjectLabel);
+
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Callvirt, typeDescriptor.Type.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
+
+								generator.Emit(OpCodes.Ldc_I4_0);
+								generator.Emit(OpCodes.Callvirt, typeof(BaseDataAccessModel).GetMethod("GetCurrentDataContext", BindingFlags.Public | BindingFlags.Instance));
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldc_I4_0);
+								generator.Emit(OpCodes.Callvirt, typeof(DataAccessObjectDataContext).GetMethod("CacheObject", BindingFlags.Public | BindingFlags.Instance));
+								generator.Emit(OpCodes.Pop);
+
+								generator.MarkLabel(skipCachingObjectLabel);
+
 								generator.Emit(OpCodes.Ret);
 							}
 

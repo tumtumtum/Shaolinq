@@ -86,6 +86,8 @@
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
+    <Compile Include="IdentityEqualityComparer.cs" />
+    <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
     <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Sql;
@@ -87,6 +89,14 @@ namespace Shaolinq
 				}
 			}
 
+			public void AssertObjectsAreReadyForCommit()
+			{
+				foreach (var objectsByIdCache in objectsByIdCacheByPersistenceContext.Values)
+				{
+					objectsByIdCache.AssertObjectsAreReadyForCommit();
+				}
+			}
+
 			public void Deleted(DataAccessObject<T> value)
 			{
 				ObjectsByIdCache<T> objectsById;
@@ -99,17 +109,6 @@ namespace Shaolinq
 				}
 
 				objectsById.Deleted(value);
-			}
-
-			private void Foo(Expression<Func<object>> compositePrimaryKey)
-			{
-			}
-
-			public DataAccessObject<T> GetById(T id)
-			{
-				Foo(() => new { Id = "hi"});
-
-				return null;
 			}
 
 			public DataAccessObject<T> Get(PersistenceContext persistenceContext, Type type, PropertyInfoAndValue[] primaryKey)
@@ -159,21 +158,41 @@ namespace Shaolinq
 
 		private class ObjectsByIdCache<T>
 		{
-			internal readonly Dictionary<Type, HashSet<IDataAccessObject>> objectsNoId;
-			internal readonly Dictionary<Type, Dictionary<T, IDataAccessObject>> objectsByIdCache; 
+			internal readonly Dictionary<Type, HashSet<IDataAccessObject>> newObjects;
+			internal readonly Dictionary<Type, Dictionary<T, IDataAccessObject>> objectsByIdCache;
+			internal readonly Dictionary<Type, HashSet<IDataAccessObject>> objectsNotReadyForCommit;
 			internal Dictionary<Type, Dictionary<T, IDataAccessObject>> objectsDeleted;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, IDataAccessObject>> objectsDeletedComposite;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, IDataAccessObject>> objectsByIdCacheComposite;
 			
 			public ObjectsByIdCache()
 			{
-				objectsNoId = new Dictionary<Type, HashSet<IDataAccessObject>>(PrimeNumbers.Prime67);
+				newObjects = new Dictionary<Type, HashSet<IDataAccessObject>>(PrimeNumbers.Prime67);
 				objectsByIdCache = new Dictionary<Type, Dictionary<T, IDataAccessObject>>(PrimeNumbers.Prime67);
+				objectsNotReadyForCommit = new Dictionary<Type, HashSet<IDataAccessObject>>(PrimeNumbers.Prime67);
+			}
+
+			public void AssertObjectsAreReadyForCommit()
+			{
+				if (objectsNotReadyForCommit.Count == 0)
+				{
+					return;
+				}
+
+				foreach (var kvp in objectsNotReadyForCommit)
+				{
+					if (kvp.Value.Count > 0)
+					{
+						var obj = kvp.Value.First();
+
+						throw new MissingOrInvalidPrimaryKeyException(string.Format("The object {0} is missing a primary key", obj.ToString()));
+					}
+				}
 			}
 
 			public void UpdateNewToUpdated()
 			{
-				foreach (var list in objectsNoId.Values)
+				foreach (var list in newObjects.Values)
 				{
 					foreach (DataAccessObject<T> value in list)
 					{
@@ -192,12 +211,15 @@ namespace Shaolinq
 				{
 					HashSet<IDataAccessObject> subcache;
 
-					if (!objectsNoId.TryGetValue(type, out subcache))
+					if (newObjects.TryGetValue(type, out subcache))
 					{
-						return;
+						subcache.Remove(value);
 					}
 
-					subcache.Remove(value);
+					if (objectsNotReadyForCommit.TryGetValue(type, out subcache))
+					{
+						subcache.Remove(value);
+					}
 				}
 				else
 				{
@@ -311,141 +333,168 @@ namespace Shaolinq
 
 			public DataAccessObject<T> Cache(DataAccessObject<T> value, bool forImport)
 			{
+				var dataAccessObject = (IDataAccessObject)value;
+
 				var type = value.GetType();
 
-				if (((IDataAccessObject)value).IsNew)
+				if (dataAccessObject.IsNew)
 				{
 					HashSet<IDataAccessObject> subcache;
 
-					if (!this.objectsNoId.TryGetValue(type, out subcache))
+					if (dataAccessObject.PrimaryKeyIsCommitReady)
 					{
-						subcache = new HashSet<IDataAccessObject>(EqualityComparerUtils.ToEqualityComparer<IDataAccessObject>(Object.ReferenceEquals));
+						if (!this.newObjects.TryGetValue(type, out subcache))
+						{
+							subcache = new HashSet<IDataAccessObject>(IdentityEqualityComparer<IDataAccessObject>.Default);
 
-						this.objectsNoId[type] = subcache;
+							this.newObjects[type] = subcache;
+						}
+
+						if (!subcache.Contains(value))
+						{
+							subcache.Add(value);
+						}
+
+						if (this.objectsNotReadyForCommit.TryGetValue(type, out subcache))
+						{
+							subcache.Remove(value);
+						}
+						
+						if (dataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys > 0)
+						{
+							return value;
+						}
 					}
-                    
-					if (!subcache.Contains(value))
+					else
 					{
-						subcache.Add(value);
+						if (!this.objectsNotReadyForCommit.TryGetValue(type, out subcache))
+						{
+							subcache = new HashSet<IDataAccessObject>(IdentityEqualityComparer<IDataAccessObject>.Default);
+
+							this.objectsNotReadyForCommit[type] = subcache;
+						}
+
+						if (!subcache.Contains(value))
+						{
+							subcache.Add(value);
+						}
+
+						return value;
+					}
+				}
+				
+				if (dataAccessObject.NumberOfPrimaryKeys > 1)
+				{
+					Dictionary<CompositePrimaryKey, IDataAccessObject> subcache;
+
+					var key = new CompositePrimaryKey(value.GetPrimaryKeys());
+
+					if (this.objectsByIdCacheComposite == null)
+					{
+						this.objectsByIdCacheComposite = new Dictionary<Type, Dictionary<CompositePrimaryKey, IDataAccessObject>>(PrimeNumbers.Prime127);
 					}
 
+					if (!this.objectsByIdCacheComposite.TryGetValue(type, out subcache))
+					{
+						subcache = new Dictionary<CompositePrimaryKey, IDataAccessObject>(PrimeNumbers.Prime127, CompositePrimaryKeyComparer.Default);
+
+						this.objectsByIdCacheComposite[type] = subcache;
+					}
+
+					if (!forImport)
+					{
+						IDataAccessObject outValue;
+
+						if (subcache.TryGetValue(key, out outValue))
+						{
+								outValue.SwapData(value, true);
+								outValue.SetIsDeflatedReference(false);
+
+								return (DataAccessObject<T>)outValue;
+						}
+					}
+
+					if (this.objectsDeletedComposite != null)
+					{
+						Dictionary<CompositePrimaryKey, IDataAccessObject> subList;
+
+						if (this.objectsDeletedComposite.TryGetValue(type, out subList))
+						{
+							IDataAccessObject resurrected;
+
+							if (subList.TryGetValue(key, out resurrected))
+							{
+								resurrected.SwapData(value, false);
+
+								subList.Remove(key);
+								subcache[key] = value;
+
+								return (DataAccessObject<T>)resurrected;
+							}
+						}
+					}
+
+					subcache[key] = value;
+                        
 					return value;
 				}
 				else
 				{
-					if (((IDataAccessObject)value).NumberOfPrimaryKeys > 1)
+					var id = value.Id;
+					Dictionary<T, IDataAccessObject> subcache;
+
+					if (!this.objectsByIdCache.TryGetValue(type, out subcache))
 					{
-						Dictionary<CompositePrimaryKey, IDataAccessObject> subcache;
+						subcache = new Dictionary<T, IDataAccessObject>(PrimeNumbers.Prime127);
 
-						var key = new CompositePrimaryKey(value.GetPrimaryKeys());
+						this.objectsByIdCache[type] = subcache;
+					}
 
-						if (this.objectsByIdCacheComposite == null)
+					if (!forImport)
+					{
+						IDataAccessObject outValue;
+
+						if (subcache.TryGetValue(id, out outValue))
 						{
-							this.objectsByIdCacheComposite = new Dictionary<Type, Dictionary<CompositePrimaryKey, IDataAccessObject>>(PrimeNumbers.Prime127);
+							outValue.SwapData(value, true);
+
+							return (DataAccessObject<T>)outValue;
 						}
+					}
 
-						if (!this.objectsByIdCacheComposite.TryGetValue(type, out subcache))
+					if (this.objectsDeleted != null)
+					{
+						Dictionary<T, IDataAccessObject> subList;
+
+						if (this.objectsDeleted.TryGetValue(type, out subList))
 						{
-							subcache = new Dictionary<CompositePrimaryKey, IDataAccessObject>(PrimeNumbers.Prime127, CompositePrimaryKeyComparer.Default);
+							IDataAccessObject resurrected;
 
-							this.objectsByIdCacheComposite[type] = subcache;
-						}
-
-						if (!forImport)
-						{
-							IDataAccessObject outValue;
-
-							if (subcache.TryGetValue(key, out outValue))
+							if (subList.TryGetValue(id, out resurrected))
 							{
-									outValue.SwapData(value, true);
-									outValue.SetIsDeflatedReference(false);
-
-									return (DataAccessObject<T>)outValue;
-							}
-						}
-
-						if (this.objectsDeletedComposite != null)
-						{
-							Dictionary<CompositePrimaryKey, IDataAccessObject> subList;
-
-							if (this.objectsDeletedComposite.TryGetValue(type, out subList))
-							{
-								IDataAccessObject resurrected;
-
-								if (subList.TryGetValue(key, out resurrected))
+								if (!forImport)
 								{
 									resurrected.SwapData(value, false);
 
-									subList.Remove(key);
-									subcache[key] = value;
+									subList.Remove(id);
+									subcache[id] = value;
 
 									return (DataAccessObject<T>)resurrected;
 								}
-							}
-						}
-
-						subcache[key] = value;
-                        
-						return value;
-					}
-					else
-					{
-						var id = value.Id;
-						Dictionary<T, IDataAccessObject> subcache;
-
-						if (!this.objectsByIdCache.TryGetValue(type, out subcache))
-						{
-							subcache = new Dictionary<T, IDataAccessObject>(PrimeNumbers.Prime127);
-
-							this.objectsByIdCache[type] = subcache;
-						}
-
-						if (!forImport)
-						{
-							IDataAccessObject outValue;
-
-							if (subcache.TryGetValue(id, out outValue))
-							{
-								outValue.SwapData(value, true);
-
-								return (DataAccessObject<T>)outValue;
-							}
-						}
-
-						if (this.objectsDeleted != null)
-						{
-							Dictionary<T, IDataAccessObject> subList;
-
-							if (this.objectsDeleted.TryGetValue(type, out subList))
-							{
-								IDataAccessObject resurrected;
-
-								if (subList.TryGetValue(id, out resurrected))
+								else
 								{
-									if (!forImport)
-									{
-										resurrected.SwapData(value, false);
+									subList.Remove(id);
+									subcache[id] = value;
 
-										subList.Remove(id);
-										subcache[id] = value;
-
-										return (DataAccessObject<T>)resurrected;
-									}
-									else
-									{
-										subList.Remove(id);
-										subcache[id] = value;
-
-										return value;
-									}
+									return value;
 								}
 							}
 						}
-
-						subcache[value.Id] = value;
-
-						return value;
 					}
+
+					subcache[value.Id] = value;
+
+					return value;
 				}
 			}
 		}
@@ -662,6 +711,26 @@ namespace Shaolinq
 		{
 			var acquisitions = new HashSet<PersistenceTransactionContextAcquisition>();
 			
+			if (this.cacheByInt != null)
+			{
+				this.cacheByInt.AssertObjectsAreReadyForCommit();
+			}
+
+			if (this.cacheByLong != null)
+			{
+				this.cacheByLong.AssertObjectsAreReadyForCommit();
+			}
+
+			if (this.cacheByGuid != null)
+			{
+				this.cacheByGuid.AssertObjectsAreReadyForCommit();
+			}
+
+			if (this.cacheByString != null)
+			{
+				this.cacheByString.AssertObjectsAreReadyForCommit();
+			}
+
 			try
 			{
 				CommitNew(acquisitions, transactionContext);
@@ -831,7 +900,7 @@ namespace Shaolinq
 
 				var persistenceTransactionContext = acquisition.PersistenceTransactionContext;
 
-				foreach (var j in i.Value.objectsNoId)
+				foreach (var j in i.Value.newObjects)
 				{
 					var key = new TypeAndTcx(j.Key, persistenceTransactionContext);
 
