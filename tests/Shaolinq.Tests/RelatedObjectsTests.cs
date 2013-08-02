@@ -25,8 +25,8 @@ namespace Shaolinq.Tests
 				{
 					var student = model.Students.NewDataAccessObject();
 
-					student.FirstName = "Bruce";
-					student.LastName = "Lee";
+					student.Firstname = "Bruce";
+					student.Lastname = "Lee";
 
 					scope.Complete();
 				}
@@ -47,8 +47,8 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.NewDataAccessObject();
 
-				student.FirstName = "Bruce";
-				student.LastName = "Lee";
+				student.Firstname = "Bruce";
+				student.Lastname = "Lee";
 
 				Assert.AreSame(school, student.School);
 
@@ -86,8 +86,8 @@ namespace Shaolinq.Tests
 
 				var student = model.Students.NewDataAccessObject();
 
-				student.FirstName = "Bruce";
-				student.LastName = "Lee";
+				student.Firstname = "Bruce";
+				student.Lastname = "Lee";
 
 				student.School = school;
 
@@ -134,6 +134,62 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+		}
+
+		[Test]
+		public void Test_Create_Object_And_Related_Object_Then_Query()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.NewDataAccessObject();
+
+				Console.Write(model.GetPersistenceContext(school.GetType()).PersistenceStoreName);
+
+				school.Name = "The Shaolinq School of Kung Fu";
+
+				var student = school.Students.NewDataAccessObject();
+
+				student.Birthdate = new DateTime(1940, 11, 27);
+				student.Firstname = "Bruce";
+				student.Lastname = "Lee";
+
+				Assert.AreEqual(school, student.School);
+				Assert.AreEqual(student.Firstname + " " + student.Lastname, student.Fullname);
+
+				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(school.Id));
+
+				scope.Flush(model);
+
+				Assert.AreEqual(1, school.Id);
+				Assert.AreEqual(1, student.School.Id);
+
+				scope.Complete();
+			}
+
+			Assert.AreEqual(1, model.Students.FirstOrDefault().School.Id);
+
+			Assert.AreEqual(1, model.Schools.FirstOrDefault().Id);
+
+			var students = model.Students.Where(c => c.Firstname == "Bruce").ToList();
+
+			Assert.AreEqual(1, students.Count);
+
+			var storedStudent = students.First();
+
+			Assert.AreEqual("Bruce Lee", storedStudent.Fullname);
+
+			Assert.AreEqual(1, model.Schools.Count());
+			Assert.IsNotNull(model.Schools.First(c => c.Name.IsLike("%Shaolinq%")));
+			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Id);
+			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Count());
+
+			students = model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Where(c => c.Firstname == "Bruce" && c.Lastname.StartsWith("L")).ToList();
+
+			Assert.AreEqual(1, students.Count);
+
+			storedStudent = students.First();
+
+			Assert.AreEqual("Bruce Lee", storedStudent.Fullname);
 		}
 	}
 }

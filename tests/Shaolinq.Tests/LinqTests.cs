@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
-using Shaolinq.Tests.DataAccessModel.Test;
 
 namespace Shaolinq.Tests
 {
@@ -19,63 +17,277 @@ namespace Shaolinq.Tests
 
 		private void CreateObjects()
 		{
-			
-		}
-
-		[Test]
-		public void Test_Create_Object_And_Related_Object_Then_Query()
-		{
 			using (var scope = new TransactionScope())
 			{
 				var school = model.Schools.NewDataAccessObject();
-
-				Console.Write(model.GetPersistenceContext(school.GetType()).PersistenceStoreName);
-
-				school.Name = "The Shaolinq School of Kung Fu";
+				
+				school.Name = "School";
 
 				var student = school.Students.NewDataAccessObject();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
-				student.FirstName = "Bruce";
-				student.LastName = "Lee";
-
-				Assert.AreEqual(school, student.School);
-				Assert.AreEqual(student.FirstName + " " + student.LastName, student.FullName);
-
-				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(school.Id));
-
-				scope.Flush(model);
-
-				Assert.AreEqual(1, school.Id);
-				Assert.AreEqual(1, student.School.Id);
+				student.Firstname = "Tum";
+				student.Lastname = "Nguyen";
+				student.Height = 177;
 
 				scope.Complete();
 			}
+		}
 
-			Assert.AreEqual(1, model.Students.FirstOrDefault().School.Id);
+		[Test]
+		public void Test_Query_First1()
+		{
+			var student = model.Students.First();
+		}
 
-			Assert.AreEqual(1, model.Schools.FirstOrDefault().Id);
+		[Test]
+		public void Test_Query_First2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student1 = model.Students.Where(c => c.Firstname == "Tum").First();
+				var student2 = this.model.Students.First(c => c.Firstname == "Tum");
 
-			var students = model.Students.Where(c => c.FirstName == "Bruce").ToList();
+				Assert.AreSame(student1, student2);
 
-			Assert.AreEqual(1, students.Count);
+				scope.Complete();
+			}
+		}
 
-			var storedStudent = students.First();
+		[Test]
+		[ExpectedException(typeof(InvalidOperationException))]
+		public void Test_Query_First3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student1 = this.model.Students.First(c => c.Firstname == "iewiorueo");
 
-			Assert.AreEqual("Bruce Lee", storedStudent.FullName);
+				scope.Complete();
+			}
+		}
 
-			Assert.AreEqual(1, model.Schools.Count());
-			Assert.IsNotNull(model.Schools.First(c => c.Name.IsLike("%Shaolinq%")));
-			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Id);
-			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Count());
+		[Test]
+		public void Test_Query_FirstOrDefault1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student1 = this.model.Students.FirstOrDefault(c => c.Firstname == "iewiorueo");
 
-			students = model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Where(c => c.FirstName == "Bruce" && c.LastName.StartsWith("L")).ToList();
+				Assert.IsNull(student1);
 
-			Assert.AreEqual(1, students.Count);
+				scope.Complete();
+			}
+		}
 
-			storedStudent = students.First();
+		[Test]
+		public void Test_Query_FirstOrDefault2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student1 = this.model.Students.FirstOrDefault(c => c.Firstname == "Tum");
 
-			Assert.AreEqual("Bruce Lee", storedStudent.FullName);
+				Assert.IsNotNull(student1);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Where1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+				              where student.Firstname == "Tum" && student.Lastname == "Nguyen"
+							  select student;
+
+				Assert.AreEqual(1, students.Count());
+				Assert.IsNotNull(students.FirstOrDefault());
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Where2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+							   where (student.Firstname == "A" && student.Lastname == "B")
+									|| student.Fullname == "Tum Nguyen"
+							   select student;
+
+				Assert.AreEqual(1, students.Count());
+				Assert.IsNotNull(students.FirstOrDefault());
+			}
+		}
+
+
+		[Test]
+		public void Test_Query_With_Where3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+							   where student.Firstname == "A" && (student.Lastname == "B" || student.Fullname == "Tum Nguyen")
+							   select student;
+
+				Assert.AreEqual(0, students.Count());
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Greater_Than1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+						  where student.Firstname == "Tum" && student.Height > 170
+						  select student;
+
+				Assert.AreEqual(1, students.Count());
+				Assert.IsNotNull(students.FirstOrDefault());
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Greater_Than2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+							   where student.Firstname == "Tum" && student.Height > 177
+							   select student;
+
+				Assert.AreEqual(0, students.Count());
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Less_Than1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+							   where student.Firstname == "Tum" && student.Height < 178
+							   select student;
+
+				Assert.AreEqual(1, students.Count());
+				Assert.IsNotNull(students.FirstOrDefault());
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Less_Than2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+							   where student.Firstname == "Tum" && student.Height < 177
+							   select student;
+
+				Assert.AreEqual(0, students.Count());
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Less_Than3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+							   where student.Firstname == "Tum" && student.Height < 177.001
+							   select student;
+
+				Assert.AreEqual(1, students.Count());
+				Assert.IsNotNull(students.FirstOrDefault());
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Less_Than4()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = from student in this.model.Students
+							   where student.Firstname == "Tum" && student.Height < 174.999
+							   select student;
+
+				Assert.AreEqual(0, students.Count());
+			}
+		}
+
+		[Test]
+		public void Test_Query_Aggregate_Sum1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var totalHeight = model.Students.Sum(c => c.Height);
+
+				Assert.That(totalHeight, Is.GreaterThanOrEqualTo(177));
+			}
+		}
+
+		[Test]
+		public void Test_Query_Aggregate_Sum2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var totalHeight = model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height);
+
+				Assert.AreEqual(177, totalHeight);
+			}
+		}
+
+		[Test]
+		public void Test_Query_Aggregate_Sum_With_Complex_Aggregate_Computation()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var totalHeight = model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height * 2);
+
+				Assert.AreEqual(354, totalHeight);
+			}
+		}
+
+		[Test]
+		public void Test_Query_Aggregate_Sum_With_Group()
+		{
+			var sum = (from student in this.model.Students
+						group student by student.Id
+									into g
+									select g.Sum(x => x.Height)).FirstOrDefault();
+
+			Assert.AreEqual(177, sum);
+		}
+
+		[Test]
+		public void Test_Query_GroupBy()
+		{
+			var students = (from student in this.model.Students
+							group student by student.Id
+								into g
+								select new
+								{
+									g.Key,
+									Count = g.Count()
+								}).ToList();
+		}
+
+		[Test]
+		public void Test_Query_GroupBy_Multiple_Values()
+		{
+			var students = (from student in this.model.Students
+			                group student by new
+			                {
+				                student.Id,
+				                student.Firstname
+			                }
+			                into g
+			                select new
+			                {
+				                g.Key.Id,
+				                g.Key.Firstname,
+				                Count = g.Count()
+			                }).ToList();
 		}
 	}
 }

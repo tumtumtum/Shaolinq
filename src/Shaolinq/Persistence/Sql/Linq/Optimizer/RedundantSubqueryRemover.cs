@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 		{
 			expression = new RedundantSubqueryRemover().Visit(expression);
 			expression = SubqueryMerger.Merge(expression);
-			expression = AggregateSubqueryMerger.Merge(expression);
+			// expression = AggregateSubqueryMerger.Merge(expression);
 
 			return expression;
 		}
@@ -208,7 +208,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 					return false;
 				}
 
-				if (fromSelect.Distinct && !selHasNameMapProjection || selHasGroupBy || selHasAggregates || (selHasOrderBy && !isTopLevel))
+				if (fromSelect.Distinct && !selHasNameMapProjection || selHasGroupBy || (selHasAggregates && !isTopLevel)  || (selHasOrderBy && !isTopLevel))
 				{
 					return false;
 				}

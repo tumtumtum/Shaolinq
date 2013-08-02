@@ -768,7 +768,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				this.AppendNewLine(Indentation.Same);
 				commandText.Append("GROUP BY ");
 
-				for (int i = 0, n = selectExpression.GroupBy.Count; i < n; i++)
+				for (var i = 0; i < selectExpression.GroupBy.Count; i++)
 				{
 					if (i > 0)
 					{

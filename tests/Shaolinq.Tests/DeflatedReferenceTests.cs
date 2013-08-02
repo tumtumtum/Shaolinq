@@ -47,13 +47,13 @@ namespace Shaolinq.Tests
 				var student = school.Students.NewDataAccessObject();
 
 				student.Birthdate = new DateTime(1940, 11, 27);
-				student.FirstName = "Bruce";
-				student.LastName = "Lee";
+				student.Firstname = "Bruce";
+				student.Lastname = "Lee";
 
 				var friend = school.Students.NewDataAccessObject();
 				
-				friend.FirstName = "Chuck";
-				friend.LastName = "Norris";
+				friend.Firstname = "Chuck";
+				friend.Lastname = "Norris";
 
 				student.BestFriend = friend;
 
@@ -64,10 +64,10 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.Students.First(c => c.FirstName == "Bruce");
+				var student = this.model.Students.First(c => c.Firstname == "Bruce");
 
 				Assert.IsTrue(student.BestFriend.IsDeflatedReference);
-				Assert.AreEqual("Chuck", student.BestFriend.FirstName);
+				Assert.AreEqual("Chuck", student.BestFriend.Firstname);
 				Assert.IsFalse(student.BestFriend.IsDeflatedReference);
 
 				scope.Complete();
@@ -88,8 +88,8 @@ namespace Shaolinq.Tests
 				var student = school.Students.NewDataAccessObject();
 
 				student.Birthdate = new DateTime(1940, 11, 27);
-				student.FirstName = "Bruce";
-				student.LastName = "Lee";
+				student.Firstname = "Bruce";
+				student.Lastname = "Lee";
 
 				scope.Flush(model);
 
@@ -104,11 +104,11 @@ namespace Shaolinq.Tests
 
 				Assert.IsTrue(student.IsDeflatedReference);
 
-				Assert.AreEqual("Bruce", student.FirstName);
+				Assert.AreEqual("Bruce", student.Firstname);
 
 				Assert.IsFalse(student.IsDeflatedReference);
 
-				Assert.AreEqual("Bruce", student.FirstName);
+				Assert.AreEqual("Bruce", student.Firstname);
 
 				scope.Complete();
 			}
@@ -119,11 +119,11 @@ namespace Shaolinq.Tests
 
 				Assert.IsTrue(student.IsDeflatedReference);
 
-				Assert.AreEqual("Bruce", student.FirstName);
+				Assert.AreEqual("Bruce", student.Firstname);
 
 				Assert.IsFalse(student.IsDeflatedReference);
 
-				Assert.AreEqual("Bruce", student.FirstName);
+				Assert.AreEqual("Bruce", student.Firstname);
 
 				scope.Complete();
 			}
@@ -140,7 +140,7 @@ namespace Shaolinq.Tests
 				Assert.IsFalse(student.IsDeflatedReference);
 
 				Assert.AreSame(student, sameStudent);
-				Assert.AreEqual("Bruce", student.FirstName);
+				Assert.AreEqual("Bruce", student.Firstname);
 
 				scope.Complete();
 			}
@@ -155,7 +155,7 @@ namespace Shaolinq.Tests
 
 				Assert.IsFalse(student.IsDeflatedReference);
 
-				Assert.AreEqual("Bruce", student.FirstName);
+				Assert.AreEqual("Bruce", student.Firstname);
 
 				scope.Complete();
 			}

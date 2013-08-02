@@ -1338,13 +1338,16 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case ExpressionType.MemberInit:
 					var min = (MemberInitExpression)source;
 
-					for (int i = 0, n = min.Bindings.Count; i < n; i++)
+					if (min.Bindings != null)
 					{
-						var assign = min.Bindings[i] as MemberAssignment;
-
-						if (assign != null && MembersMatch(assign.Member, memberExpression.Member))
+						for (int i = 0, n = min.Bindings.Count; i < n; i++)
 						{
-							return assign.Expression;
+							var assign = min.Bindings[i] as MemberAssignment;
+
+							if (assign != null && MembersMatch(assign.Member, memberExpression.Member))
+							{
+								return assign.Expression;
+							}
 						}
 					}
 
@@ -1352,15 +1355,17 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case ExpressionType.New:
 					var newExpression = (NewExpression)source;
 
-					for (int i = 0, n = newExpression.Members.Count; i < n; i++)
+					if (newExpression.Members != null)
 					{
-						if (MembersMatch(newExpression.Members[i], memberExpression.Member))
+						for (int i = 0, n = newExpression.Members.Count; i < n; i++)
 						{
-							return newExpression.Arguments[i];
+							if (MembersMatch(newExpression.Members[i], memberExpression.Member))
+							{
+								return newExpression.Arguments[i];
+							}
 						}
 					}
-
-					break;
+				break;
 				case ExpressionType.Constant:
 
 					if (memberExpression.Type.IsDataAccessObjectType())

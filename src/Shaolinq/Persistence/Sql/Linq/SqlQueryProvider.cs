@@ -70,6 +70,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		public static Expression Optimize(BaseDataAccessModel dataAccessModel, Expression expression)
 		{
+			expression = GroupByCollator.Collate(expression);
 			expression = AggregateRewriter.Rewrite(expression);
 			expression = UnusedColumnRemover.Remove(expression);
 			expression = RedundantColumnRemover.Remove(expression);

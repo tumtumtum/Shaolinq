@@ -760,11 +760,8 @@ namespace Shaolinq.TypeBuilding
 						relatedIdPropertyBuilder = propertyBuilders[name];
 					}
 
-					if (pass == 2)
-					{
-						relatedIdPropertyBuilder.SetSetMethod(BuildPropertyMethod(PropertyMethodType.Set, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true));
-						relatedIdPropertyBuilder.SetGetMethod(BuildPropertyMethod(PropertyMethodType.Get, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true));
-					}
+					BuildPropertyMethod(PropertyMethodType.Set, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true, pass);
+					BuildPropertyMethod(PropertyMethodType.Get, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true, pass);
 				}
 			}
 
@@ -813,11 +810,8 @@ namespace Shaolinq.TypeBuilding
 				this.propertyInfoFields[propertyInfo.Name] = propertyInfoField;
 			}
 
-			if (pass == 2)
-			{
-				propertyBuilder.SetSetMethod(BuildPropertyMethod(PropertyMethodType.Set, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false));
-				propertyBuilder.SetGetMethod(BuildPropertyMethod(PropertyMethodType.Get, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false));
-			}
+			BuildPropertyMethod(PropertyMethodType.Set, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false, pass);
+			BuildPropertyMethod(PropertyMethodType.Get, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false, pass);
 		}
 
 		public static readonly MethodInfo GenericStaticAreEqualMethod = typeof(DataAccessObjectTypeBuilder).GetMethod("AreEqual");
@@ -875,7 +869,7 @@ namespace Shaolinq.TypeBuilding
 		/// <param name="propertyInfo">The property whose get or set method to build</param>
 		/// <param name="currentFieldInDataObject">The field inside the dataobject that stores the property's value</param>
 		/// <param name="valueChangedFieldInDataObject">The field inside the dataobject that stores whether the property has changed</param>
-		protected virtual MethodBuilder BuildPropertyMethod(PropertyMethodType propertyMethodType, string propertyName, PropertyInfo propertyInfo, PropertyBuilder propertyBuilder, FieldInfo currentFieldInDataObject, FieldInfo valueChangedFieldInDataObject, PropertyInfo relationshipProperty, bool isForiegnProperty)
+		protected virtual void BuildPropertyMethod(PropertyMethodType propertyMethodType, string propertyName, PropertyInfo propertyInfo, PropertyBuilder propertyBuilder, FieldInfo currentFieldInDataObject, FieldInfo valueChangedFieldInDataObject, PropertyInfo relationshipProperty, bool isForiegnProperty, int pass)
 		{
 			if (propertyName == null)
 			{
@@ -884,6 +878,7 @@ namespace Shaolinq.TypeBuilding
 
 			Type returnType;
 			Type[] parameters;
+			MethodBuilder methodBuilder;
 
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyInfo.GetGetMethod().Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 
@@ -900,8 +895,38 @@ namespace Shaolinq.TypeBuilding
 				default:
 					throw new NotSupportedException(propertyMethodType.ToString());
 			}
-            
-			var methodBuilder = typeBuilder.DefineMethod(propertyMethodType.ToString().ToLower() + "_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, returnType, parameters);
+
+			if (pass == 1)
+			{
+				methodBuilder = typeBuilder.DefineMethod(propertyMethodType.ToString().ToLower() + "_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, returnType, parameters);
+
+				switch (propertyMethodType)
+				{
+					case PropertyMethodType.Get:
+						propertyBuilder.SetGetMethod(methodBuilder);
+						return;
+					case PropertyMethodType.Set:
+						propertyBuilder.SetSetMethod(methodBuilder);
+						return;
+				}
+
+				return;
+			}
+			else
+			{
+				switch (propertyMethodType)
+				{
+					case PropertyMethodType.Get:
+						methodBuilder = (MethodBuilder)propertyBuilder.GetGetMethod();
+						break;
+					case PropertyMethodType.Set:
+						methodBuilder = (MethodBuilder)propertyBuilder.GetSetMethod();
+						break;
+					default:
+						return;
+				}
+			}
+
 			var generator = methodBuilder.GetILGenerator();
 			var label = generator.DefineLabel();
 			var currentPropertyDescriptor = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName);
@@ -1452,8 +1477,6 @@ namespace Shaolinq.TypeBuilding
 
 					break;
 			}
-
-			return methodBuilder;
 		}
 
 		private void EmitUpdatedComputedPropertes(string propertyName, ILGenerator generator)

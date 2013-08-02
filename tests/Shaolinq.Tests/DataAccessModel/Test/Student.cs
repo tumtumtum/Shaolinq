@@ -7,7 +7,7 @@ namespace Shaolinq.Tests.DataAccessModel.Test
 		: Person
 	{
 		[PersistedMember]
-		public abstract Belt Belt { get; set; }
+		public abstract Sex Sex { get; set; }
 
 		[BackReference]
 		public abstract School School { get; set; }

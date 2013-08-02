@@ -8,5 +8,8 @@ namespace Shaolinq.Tests.DataAccessModel.Test
 	{
 		[PersistedMember]
 		public abstract double Price { get; set; }
+
+		[PersistedMember]
+		public abstract TimeSpan ShelfLife { get; set; }
 	}
 }

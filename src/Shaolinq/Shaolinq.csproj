@@ -90,6 +90,7 @@
     <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
     <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
+    <Compile Include="Persistence\Sql\Linq\GroupByCollator.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />

@@ -27,8 +27,8 @@ namespace Shaolinq.Tests
 
 				var student = model.Students.NewDataAccessObject();
 
-				student.FirstName = "Bruce";
-				student.LastName = "Lee";
+				student.Firstname = "Bruce";
+				student.Lastname = "Lee";
 				student.School = school;
 
 				scope.Complete();
@@ -36,9 +36,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First(c => c.FirstName == "Bruce");
+				var student = model.Students.First(c => c.Firstname == "Bruce");
 
-				Assert.AreEqual("Bruce Lee", student.FullName);
+				Assert.AreEqual("Bruce Lee", student.Fullname);
 
 				scope.Complete();
 			}
@@ -51,12 +51,12 @@ namespace Shaolinq.Tests
 			{
 				var student = model.Students.NewDataAccessObject();
 
-				student.FirstName = "StudentThatShouldNotExist";
+				student.Firstname = "StudentThatShouldNotExist";
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				Assert.Catch<InvalidOperationException>(() => model.Students.First(c => c.FirstName == "StudentThatShouldNotExist"));
+				Assert.Catch<InvalidOperationException>(() => model.Students.First(c => c.Firstname == "StudentThatShouldNotExist"));
 			}
 		}
 	}

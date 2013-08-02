@@ -5,6 +5,12 @@
 		: BaseDataAccessModel
 	{
 		[DataAccessObjects]
+		public abstract DataAccessObjects<Club> Club { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Paper> Papers { get; }
+		
+		[DataAccessObjects]
 		public abstract DataAccessObjects<School> Schools { get; }
 
 		[DataAccessObjects]
@@ -14,7 +20,10 @@
 		public abstract DataAccessObjects<Student> Students { get; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Instructor> Instructors { get; }
+		public abstract DataAccessObjects<Lecture> Lectures { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Lecturer> Lecturers { get; }
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Fraternity> Fraternity { get; }

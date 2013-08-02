@@ -56,14 +56,17 @@
   <ItemGroup>
     <Compile Include="BaseTests.cs" />
     <Compile Include="DataAccessModel\Test\Address.cs" />
+    <Compile Include="DataAccessModel\Test\Club.cs" />
     <Compile Include="DataAccessModel\Test\Fraternity.cs" />
+    <Compile Include="DataAccessModel\Test\Lecture.cs" />
+    <Compile Include="DataAccessModel\Test\Paper.cs" />
     <Compile Include="DataAccessModel\Test\TestDataAccessModel.cs" />
     <Compile Include="DataAccessModel\Test\ObjectWithGuidNonAutoIncrementPrimaryKey.cs" />
     <Compile Include="DataAccessModel\Test\ObjectWithGuidAutoIncrementPrimaryKey.cs" />
     <Compile Include="DataAccessModel\Test\ObjectWithLongAutoIncrementPrimaryKey.cs" />
     <Compile Include="DataAccessModel\Test\ObjectWithLongNonAutoIncrementPrimaryKey.cs" />
-    <Compile Include="DataAccessModel\Test\Belt.cs" />
-    <Compile Include="DataAccessModel\Test\Instructor.cs" />
+    <Compile Include="DataAccessModel\Test\Sex.cs" />
+    <Compile Include="DataAccessModel\Test\Lecturer.cs" />
     <Compile Include="DataAccessModel\Test\Person.cs" />
     <Compile Include="DataAccessModel\Test\Product.cs" />
     <Compile Include="DataAccessModel\Test\School.cs" />
