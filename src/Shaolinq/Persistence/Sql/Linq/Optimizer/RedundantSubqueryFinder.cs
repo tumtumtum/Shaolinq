@@ -59,9 +59,9 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 
 			var fromColumnNames = new HashSet<string>(fromSelect.Columns.Convert(x => x.Name));
 
-			for (int i = 0; i < select.Columns.Count; i++)
+			foreach (var t in @select.Columns)
 			{
-				var columnExpression = select.Columns[i].Expression as SqlColumnExpression;
+				var columnExpression = t.Expression as SqlColumnExpression;
 
 				if (columnExpression == null || !fromColumnNames.Contains(columnExpression.Name))
 				{

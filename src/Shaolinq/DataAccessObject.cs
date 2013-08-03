@@ -286,7 +286,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.ComputeIdRelatedComputedTextProperties()
+		bool IDataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties()
 		{
 			throw new NotImplementedException();
 		}

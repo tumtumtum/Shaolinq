@@ -57,6 +57,11 @@ namespace Shaolinq
 		{
 			return this.NewDataAccessObject();
 		}
+
+		public virtual T ReferenceTo(object primaryKey)
+		{
+			return this.DataAccessModel.GetReferenceByPrimaryKey<T>(primaryKey);
+		}
         
 		private static class PropertyInfoCache<TTT>
 		{

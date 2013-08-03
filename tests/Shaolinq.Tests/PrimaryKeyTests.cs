@@ -200,20 +200,76 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Create_Object_With_Long_Non_AutoIncrement_PrimaryKey_And_Dont_Set_PrimaryKey_Multiple()
+		public void Test_Create_Object_With_Composite_Primary_Keys()
 		{
-			Assert.Catch<TransactionAbortedException>(() =>
+			var secondaryKey = new StackTrace().GetFrame(0).GetMethod().Name;
+
+			using (var scope = new TransactionScope())
 			{
-				using (var scope = new TransactionScope())
+				var obj1 = this.model.ObjectWithCompositePrimaryKeys.NewDataAccessObject();
+
+				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(obj1.Id));
+				
+				obj1.Id = 1;
+				obj1.SecondaryKey = secondaryKey;
+				obj1.Name = "Obj1";
+
+				var obj2 = this.model.ObjectWithCompositePrimaryKeys.NewDataAccessObject();
+				obj2.Id = 2;
+				obj2.SecondaryKey = secondaryKey;
+				obj2.Name = "Obj2";
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Single(c => c.SecondaryKey == secondaryKey && c.Id == 1);
+
+				Assert.AreEqual(1, obj1.Id);
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var obj = this.model.ObjectWithCompositePrimaryKeys.ReferenceTo(new
 				{
-					var obj1 = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
-					var obj2 = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+					Id = 1,
+					SecondaryKey = secondaryKey
+				});
 
-					// Both objects will have same primary key (Guid.Empty)
+				Assert.IsTrue(obj.IsDeflatedReference);
 
-					scope.Complete();
-				}
-			});
+				Assert.AreEqual("Obj1", obj.Name);
+
+				Assert.IsFalse(obj.IsDeflatedReference);
+
+				scope.Complete();
+			}
+
+
+			using (var scope = new TransactionScope())
+			{
+				var obj1 = this.model.ObjectWithCompositePrimaryKeys.ReferenceTo(new
+				{
+					Id = 1,
+					SecondaryKey = secondaryKey
+				});
+
+				Assert.IsTrue(obj1.IsDeflatedReference);
+
+				var objs = this.model.ObjectWithCompositePrimaryKeys.Where(c => c == obj1 && c.Name != "");
+
+				Assert.AreEqual(1, objs.Count());
+				Assert.AreEqual(1, objs.Single().Id);
+
+				objs = this.model.ObjectWithCompositePrimaryKeys.Where(c => c.SecondaryKey == secondaryKey);
+
+				Assert.That(objs.Count(), Is.GreaterThan(1));
+
+				scope.Complete();
+			}
 		}
 	}
 }

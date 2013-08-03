@@ -59,6 +59,7 @@
     <Compile Include="DataAccessModel\Test\Club.cs" />
     <Compile Include="DataAccessModel\Test\Fraternity.cs" />
     <Compile Include="DataAccessModel\Test\Lecture.cs" />
+    <Compile Include="DataAccessModel\Test\ObjectWithCompositePrimaryKey.cs" />
     <Compile Include="DataAccessModel\Test\Paper.cs" />
     <Compile Include="DataAccessModel\Test\TestDataAccessModel.cs" />
     <Compile Include="DataAccessModel\Test\ObjectWithGuidNonAutoIncrementPrimaryKey.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="DataAccessModel\Test\Student.cs" />
     <Compile Include="DeflatedReferenceTests.cs" />
     <Compile Include="LinqTests.cs" />
+    <Compile Include="ConcurrencyTests.cs" />
     <Compile Include="PrimaryKeyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RelatedObjectsTests.cs" />

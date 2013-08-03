@@ -176,6 +176,13 @@ namespace Shaolinq.Persistence.Sql.Linq
 					return methodCallExpression;
 				}
 			}
+			else if (methodCallExpression.Method.DeclaringType .GetGenericTypeDefinition() == typeof(Nullable<>)
+				&& methodCallExpression.Method.Name == "GetValueOrDefault")
+			{
+				Visit(methodCallExpression.Object);
+
+				return methodCallExpression;
+			}
 
 			throw new NotSupportedException(String.Format("The method '{0}' is not supported", methodCallExpression.Method.Name));
 		}
@@ -288,18 +295,40 @@ namespace Shaolinq.Persistence.Sql.Linq
 					{
 						Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
 						newArgument = RedundantFunctionCallRemover.Remove(newArgument);
-						var list = new List<Expression>();
-						list.Add(arguments[0]);
-						list.Add(newArgument);
+						
+						var list = new List<Expression>
+						{
+							arguments[0],
+							newArgument
+						};
+
+						return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
+					}
+				case SqlFunction.ContainsString:
+					{
+						Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
+						newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), newArgument);
+						newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+						
+						var list = new List<Expression>
+						{
+							arguments[0],
+							newArgument
+						};
+
 						return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
 					}
 				case SqlFunction.EndsWith:
 					{
 						Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
 						newArgument = RedundantFunctionCallRemover.Remove(newArgument);
-						var list = new List<Expression>();
-						list.Add(arguments[0]);
-						list.Add(newArgument);
+						
+						var list = new List<Expression>
+						{
+							arguments[0],
+							newArgument
+						};
+
 						return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
 					}
 				default:

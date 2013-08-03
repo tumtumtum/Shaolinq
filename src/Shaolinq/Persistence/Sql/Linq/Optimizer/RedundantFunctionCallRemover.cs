@@ -35,8 +35,8 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 		{
 			if (functionCallExpression.Function == SqlFunction.In)
 			{
-				var value = functionCallExpression.Arguments[1] as ConstantExpression;
-				var placeholderValue = functionCallExpression.Arguments[1] as SqlConstantPlaceholderExpression;
+				var value = this.Visit(functionCallExpression.Arguments[1]) as ConstantExpression;
+				var placeholderValue = this.Visit(functionCallExpression.Arguments[1]) as SqlConstantPlaceholderExpression;
 				
 				if (placeholderValue != null)
 				{
@@ -104,11 +104,12 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 			}
 			else if (functionCallExpression.Function == SqlFunction.Concat)
 			{
-				bool ok = true;
-				
+				var ok = true;
+				List<Expression> arguments = null;
+
 				foreach (var arg in functionCallExpression.Arguments)
 				{
-					var constantExpression = arg as ConstantExpression;
+					var constantExpression = this.Visit(arg) as ConstantExpression;
 
 					if (constantExpression == null)
 					{
@@ -116,23 +117,30 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 
 						break;
 					}
+					else
+					{
+						if (arguments == null)
+						{
+							arguments = new List<Expression>();
+						}
+
+						arguments.Add(constantExpression);
+					}
 				}
 
 				if (ok)
 				{
 					string result;
-					var args = functionCallExpression.Arguments;
-
 					switch (functionCallExpression.Arguments.Count)
 					{
 						case 2:
-							result = String.Concat((string)((ConstantExpression)args[0]).Value, (string)((ConstantExpression)args[1]).Value);
+							result = String.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value);
 							break;
 						case 3:
-							result = String.Concat((string)((ConstantExpression)args[0]).Value, (string)((ConstantExpression)args[1]).Value, (string)((ConstantExpression)args[2]).Value);
+							result = String.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value);
 							break;
 						case 4:
-							result = String.Concat((string)((ConstantExpression)args[0]).Value, (string)((ConstantExpression)args[1]).Value, (string)((ConstantExpression)args[2]).Value, (string)((ConstantExpression)args[3]).Value);
+							result = String.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value, (string)((ConstantExpression)arguments[3]).Value);
 							break;
 						default:
 							var builder = new StringBuilder();

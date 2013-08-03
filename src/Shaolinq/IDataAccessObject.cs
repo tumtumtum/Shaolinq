@@ -181,10 +181,7 @@ namespace Shaolinq
 		/// </summary>
 		List<PropertyInfoAndValue> GetAllProperties();
 
-		/// <summary>
-		/// Gets a list of all the properties on this object
-		/// </summary>
-		bool ComputeIdRelatedComputedTextProperties();
+		bool ComputeServerGeneratedIdDependentComputedTextProperties();
 
 		/// <summary>
 		/// Inflates the current object if the object is currently deflated.  A deflated object only contains

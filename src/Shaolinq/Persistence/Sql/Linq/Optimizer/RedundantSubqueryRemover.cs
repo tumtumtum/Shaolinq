@@ -58,8 +58,6 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 		private class SubqueryMerger
 			: SqlExpressionVisitor
 		{
-			bool isTopLevel = true;
-			
 			private SubqueryMerger()
 			{
 			}
@@ -71,16 +69,12 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 
 			protected override Expression VisitSelect(SqlSelectExpression select)
 			{
-				bool wasTopLevel = isTopLevel;
-				
-				isTopLevel = false;
-
 				select = (SqlSelectExpression)base.VisitSelect(select);
 
 				// Attempt to merge subqueries that would have been removed by the above
 				// logic except for the existence of a where clause
 
-				while (CanMergeWithFrom(select, wasTopLevel))
+				while (CanMergeWithFrom(select))
 				{
 					var fromSelect = GetLeftMostSelect(select.From);
 
@@ -88,7 +82,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 					select = SubqueryRemover.Remove(select, fromSelect);
 
 					// merge where expressions 
-					Expression where = select.Where;
+					var where = select.Where;
 
 					if (fromSelect.Where != null)
 					{
@@ -138,7 +132,9 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 
 			private static bool IsColumnProjection(SqlSelectExpression select)
 			{
-				for (int i = 0, n = select.Columns.Count; i < n; i++)
+				var count = select.Columns.Count;
+
+				for (var i = 0; i < count; i++)
 				{
 					var columnDeclaration = select.Columns[i];
 
@@ -151,7 +147,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 				return true;
 			}
 
-			private static bool CanMergeWithFrom(SqlSelectExpression select, bool isTopLevel)
+			private static bool CanMergeWithFrom(SqlSelectExpression select)
 			{
 				var fromSelect = GetLeftMostSelect(select.From);
 
@@ -166,6 +162,8 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 				}
 
 				var selHasNameMapProjection = RedundantSubqueryFinder.IsNameMapProjection(select);
+				var selHasSkip = select.Skip != null; 
+				var selHasWhere = select.Where != null;
 				var selHasOrderBy = select.OrderBy != null && select.OrderBy.Count > 0;
 				var selHasGroupBy = select.GroupBy != null && select.GroupBy.Count > 0;
 				var selHasAggregates = HasAggregateChecker.HasAggregates(select);
@@ -184,7 +182,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 					return false;
 				}
 
-				// Cannot move forward OuterBy if outer has GroupBy
+				// Cannot move forward OrderBy if outer has GroupBy
 				if (frmHasOrderBy && (selHasGroupBy || selHasAggregates || select.Distinct))
 				{
 					return false;
@@ -197,18 +195,19 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 				}
 
 				// Cannot move forward a take if outer has take or skip or distinct
-				if (fromSelect.Take != null && (select.Take != null || select.Skip != null || select.Distinct || selHasAggregates || selHasGroupBy))
+				if (fromSelect.Take != null && (select.Take != null || selHasSkip  || select.Distinct || selHasAggregates || selHasGroupBy))
 				{
 					return false;
 				}
 
-				// Cannot move forward a skip if outer has skip or distinct
-				if (fromSelect.Skip != null && (select.Skip != null || select.Distinct || selHasAggregates || selHasGroupBy))
+				// Cannot move forward a skip if outer has skip or distinct or aggregates with accompanying groupby or where
+				if (fromSelect.Skip != null && ((selHasWhere || selHasGroupBy) && (select.Skip != null || select.Distinct || selHasAggregates)))
 				{
 					return false;
 				}
 
-				if (fromSelect.Distinct && !selHasNameMapProjection || selHasGroupBy || (selHasAggregates && !isTopLevel)  || (selHasOrderBy && !isTopLevel))
+				// Cannot merge a distinct if the outer has a distinct or aggregates with accompanying groupby or where
+				if (fromSelect.Distinct && (!selHasNameMapProjection || (((selHasWhere || selHasGroupBy) && (selHasAggregates  || selHasOrderBy)))))
 				{
 					return false;
 				}

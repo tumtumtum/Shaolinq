@@ -95,8 +95,8 @@ namespace Shaolinq.TypeBuilding
             
 			var assemblyName = new AssemblyName(assembly.GetName().Name + ".Concrete");
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name + "Generated", assemblyName.Name + "Generated.dll");
-
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + ".dll");
+			
 			var assemblyBuildContext = new AssemblyBuildContext
 			{
 				SourceAssembly = assembly,
@@ -105,8 +105,7 @@ namespace Shaolinq.TypeBuilding
 
 			var builder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
 			
-			foreach (var type in assembly.GetTypes()
-				.Filter(typeof(BaseDataAccessModel).IsAssignableFrom))
+			foreach (var type in assembly.GetTypes().Filter(typeof(BaseDataAccessModel).IsAssignableFrom))
 			{
 				builder.BuildType(type);
 			}

@@ -696,6 +696,19 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				switch (methodCallExpression.Method.Name)
 				{
+					case "Contains":
+					{
+						var operand0 = Visit(methodCallExpression.Object);
+
+						if (methodCallExpression.Arguments.Count == 1)
+						{
+							var operand1 = Visit(methodCallExpression.Arguments[0]);
+
+							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.ContainsString, operand0, operand1);
+						}
+
+						break;
+					}
 					case "StartsWith":
 					{
 						var operand0 = Visit(methodCallExpression.Object);

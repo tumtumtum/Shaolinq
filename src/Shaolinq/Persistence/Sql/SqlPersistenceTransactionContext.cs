@@ -397,7 +397,7 @@ namespace Shaolinq.Persistence.Sql
 
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
-					dataAccessObject.ComputeIdRelatedComputedTextProperties();
+					dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties();
 
 					// BuildInsertCommand will call dataAccessObject.GetChangedProperties()
 					// which will include automatically update any foreign key properties
@@ -469,7 +469,7 @@ namespace Shaolinq.Persistence.Sql
 
 						dataAccessObject.SetIntegerAutoIncrementValues(values);
 
-						if (dataAccessObject.ComputeIdRelatedComputedTextProperties())
+						if (dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
 							Update(type, new IDataAccessObject[] { dataAccessObject });
 						}

@@ -8,8 +8,6 @@ namespace Shaolinq
 	public class PersistedMemberAttribute
 		: Attribute
 	{
-		private static readonly Regex Regex = new Regex(@"\$\([a-zA-Z]+\)", RegexOptions.Compiled); 
-		
 		public string Name { get; set; }
 		public string ShortName { get; set; }
 
@@ -30,20 +28,20 @@ namespace Shaolinq
 				return memberInfo.Name;
 			}
 
-			var s = Regex.Replace(autoNamePattern, match =>
-            {
-				switch (match.Groups[0].Value)
-                {
-                	case "$(TYPENAME)":
+			return VariableSubstitutor.Substitute(autoNamePattern, (value) =>
+			{
+				switch (value)
+				{
+					case "$(TYPENAME)":
 						return memberInfo.ReflectedType.Name;
+					case "$(TYPENAME_LOWER)":
+						return memberInfo.ReflectedType.Name.ToLower();
 					case "$(PROPERTYNAME)":
 						return memberInfo.Name;
 					default:
-                		throw new NotSupportedException(match.Groups[0].Value);
-                }
-            });
-
-			return s;
+						throw new NotSupportedException(value);
+				}
+			});
 		}
 	}
 }

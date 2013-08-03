@@ -34,12 +34,5 @@ namespace Shaolinq
 
 			return from Match match in matches select match.Groups[1].Value;
 		}
-
-		public IEnumerable<PropertyDescriptor> GetPropertyReferencesAsPropertyDescriptors(TypeDescriptor parentType)
-		{
-			var matches = FormatRegex.Matches(this.Format);
-
-			return from Match match in matches select parentType.GetPropertyDescriptorByPropertyName(match.Groups[1].Value);
-		}
 	}
 }

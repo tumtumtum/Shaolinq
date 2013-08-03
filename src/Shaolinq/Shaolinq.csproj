@@ -86,6 +86,7 @@
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
+    <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="IdentityEqualityComparer.cs" />
     <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
     <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
@@ -268,6 +269,7 @@
     <Compile Include="TypeBuilding\PropertyMethodType.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="TypeExtensions.cs" />
+    <Compile Include="VariableSubstitutor.cs" />
     <Compile Include="WriteOnlyDomainObjectException.cs" />
     <Compile Include="XmlSerializationExtensions.cs" />
   </ItemGroup>

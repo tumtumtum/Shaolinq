@@ -86,6 +86,8 @@
 
 		EndsWith,
 
+		ContainsString,
+
 		/// <summary>
 		/// Removes spaces from the start and end of a string
 		/// </summary>

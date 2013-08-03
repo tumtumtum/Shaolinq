@@ -241,6 +241,8 @@ namespace Shaolinq.TypeBuilding
 					constructorGenerator.Emit(OpCodes.Ldarg_0);
 					constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
 					constructorGenerator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyDescriptor.PropertyName].GetSetMethod());
+
+					EmitUpdatedComputedPropertes(propertyDescriptor.PropertyName, constructorGenerator);
 				}
 			
 				// Create type
@@ -265,7 +267,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildSetPrimaryKeysMethod();
 			this.BuildResetModified();
 			this.BuildGetAllPropertiesMethod();
-			this.BuildComputeIdRelatedComputedTextProperties();
+			this.BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod();
 			this.BuildGetChangedPropertiesMethod();
 			this.BuildObjectStateProperty();
 			this.BuildDefinesAnyAutoIncrementIntegerProperties();
@@ -295,7 +297,10 @@ namespace Shaolinq.TypeBuilding
 				if (propertyDescriptor.PropertyType.IsValueType)
 				{
 					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());
+					//generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueFields[propertyDescriptor.PropertyName]);
+					
 
 					if (propertyDescriptor.PropertyType == typeof(short))
 					{
@@ -332,7 +337,9 @@ namespace Shaolinq.TypeBuilding
 				else
 				{
 					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());	
+					///generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());	
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueFields[propertyDescriptor.PropertyName]);
 					generator.Emit(OpCodes.Ldnull);
 					generator.Emit(OpCodes.Ceq);
 					generator.Emit(OpCodes.Brfalse, nextLabel);
@@ -649,34 +656,42 @@ namespace Shaolinq.TypeBuilding
 			if (pass == 2)
 			{
 				var propertiesToLoad = new List<PropertyInfo>();
-
-
 				var ilGenerator = methodBuilder.GetILGenerator();
 
-				var matches = ComputedTextMemberAttribute.FormatRegex.Matches(attribute.Format);
+				var formatString = VariableSubstitutor.Substitute(attribute.Format, value =>
+				{
+					switch (value)
+					{
+						case "$(TYPENAME)":
+							return typeDescriptor.Type.Name;
+						case "$(TYPENAME_LOWER)":
+							return typeDescriptor.Type.Name.ToLower();
+						default:
+							return value;
+					}
+				});
 
-				var formatString = ComputedTextMemberAttribute.FormatRegex.Replace
+				formatString = ComputedTextMemberAttribute.FormatRegex.Replace
 				(
-					attribute.Format, c =>
-					                  {
-											PropertyInfo pi;
-											PropertyBuilder pb; 
-											var name = c.Groups[1].Value;
+					formatString, c =>
+					{
+						PropertyInfo pi;
+						PropertyBuilder pb; 
+						var name = c.Groups[1].Value;
 
+						if (!propertyBuilders.TryGetValue(name, out pb))
+						{
+							pi = this.baseType.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Instance);
+						}
+						else
+						{
+							pi = pb;
+						}
 
-											if (!propertyBuilders.TryGetValue(name, out pb))
-											{
-												pi = this.baseType.GetProperty(name);
-											}
-											else
-											{
-												pi = pb;
-											}
+					propertiesToLoad.Add(pi);
 
-					                  	propertiesToLoad.Add(pi);
-
-					                  		return "{" + (propertiesToLoad.Count - 1) + "}";
-					                  }
+					    return "{" + (propertiesToLoad.Count - 1) + "}";
+					}
 				);
 
 				var arrayLocal = ilGenerator.DeclareLocal(typeof(Object[]));
@@ -692,7 +707,7 @@ namespace Shaolinq.TypeBuilding
 					ilGenerator.Emit(OpCodes.Ldloc, arrayLocal);
 					ilGenerator.Emit(OpCodes.Ldc_I4, i);
 					ilGenerator.Emit(OpCodes.Ldarg_0);
-					ilGenerator.Emit(OpCodes.Callvirt, componentPropertyInfo.GetGetMethod());
+					ilGenerator.Emit(OpCodes.Callvirt, componentPropertyInfo.GetGetMethod(true));
 					if (componentPropertyInfo.PropertyType.IsValueType)
 					{
 						ilGenerator.Emit(OpCodes.Box, componentPropertyInfo.PropertyType);
@@ -1073,7 +1088,7 @@ namespace Shaolinq.TypeBuilding
 
 					// If (PrimaryKey && AutoIncrement)
 
-					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey && currentPropertyDescriptor.IsAutoIncrement)
+					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey)// && currentPropertyDescriptor.IsAutoIncrement)
 					{
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -1314,6 +1329,9 @@ namespace Shaolinq.TypeBuilding
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Ldarg_1);
 							generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetMethod("ComputeServerGeneratedIdDependentComputedTextProperties"));
+							generator.Emit(OpCodes.Pop);
 							generator.Emit(OpCodes.Ret);
 
 							generator.MarkLabel(skip1);
@@ -1329,6 +1347,9 @@ namespace Shaolinq.TypeBuilding
 								generator.Emit(OpCodes.Ldarg_0);
 								generator.Emit(OpCodes.Ldarg_1);
 								generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetMethod("ComputeServerGeneratedIdDependentComputedTextProperties"));
+								generator.Emit(OpCodes.Pop);
 
 								generator.Emit(OpCodes.Ldarg_0);
 								generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("PrimaryKeyIsCommitReady").GetGetMethod());
@@ -1413,6 +1434,7 @@ namespace Shaolinq.TypeBuilding
 
 						foreach (var propertyDescriptor in innerTypeDescriptor.PrimaryKeyProperties)
 						{
+							var setToNullLabel = privateGenerator.DefineLabel();
 							var nextPropertyLabel = privateGenerator.DefineLabel();
 							var name = propertyInfo.Name + propertyDescriptor.PersistedShortName;
 							var relatedIdField = relatedIdFields[name];
@@ -1426,7 +1448,7 @@ namespace Shaolinq.TypeBuilding
 								privateGenerator.Emit(OpCodes.Ldarg_1);
 								privateGenerator.Emit(OpCodes.Ldfld, referencedObjectDataField);
 								privateGenerator.Emit(OpCodes.Ldfld, referencedObjectValueIsSetField);
-								privateGenerator.Emit(OpCodes.Brfalse, nextPropertyLabel);
+								privateGenerator.Emit(OpCodes.Brfalse, setToNullLabel);
 							}
 
 							privateGenerator.Emit(OpCodes.Ldarg_0);
@@ -1434,6 +1456,12 @@ namespace Shaolinq.TypeBuilding
 							privateGenerator.Emit(OpCodes.Callvirt, propertyDescriptor.PropertyInfo.GetGetMethod());
 							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
 							privateGenerator.Emit(OpCodes.Br, nextPropertyLabel);
+
+							privateGenerator.MarkLabel(setToNullLabel);
+							
+							privateGenerator.Emit(OpCodes.Ldarg_0);
+							this.GenerateNullOrDefault(privateGenerator, propertyDescriptor.PropertyType);
+							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
 
 							privateGenerator.MarkLabel(nextPropertyLabel);
 						}
@@ -1452,18 +1480,7 @@ namespace Shaolinq.TypeBuilding
 						{
 							privateGenerator.Emit(OpCodes.Ldarg_0);
 
-							if (propertyDescriptor.PropertyType.IsValueType)
-							{
-								var valueLocal = privateGenerator.DeclareLocal(propertyDescriptor.PropertyType);
-
-								privateGenerator.Emit(OpCodes.Ldloca, valueLocal);
-								privateGenerator.Emit(OpCodes.Initobj, valueLocal.LocalType);
-								privateGenerator.Emit(OpCodes.Ldloc, valueLocal);
-							}
-							else
-							{
-								privateGenerator.Emit(OpCodes.Ldnull);
-							}
+							this.GenerateNullOrDefault(privateGenerator, propertyDescriptor.PropertyType);
 
 							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
 						}
@@ -1479,24 +1496,19 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		private void EmitUpdatedComputedPropertes(string propertyName, ILGenerator generator)
+		private void GenerateNullOrDefault(ILGenerator generator, Type type)
 		{
-			var propertyNames = new List<string>();
-
-			foreach (var propertyDescriptor in typeDescriptor.ComputedTextProperties)
+			if (type.IsValueType)
 			{
-				if (Enumerable.Contains(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences(), propertyName))
-				{
-					propertyNames.Add(propertyDescriptor.PropertyName);
-				}
+				var valueLocal = generator.DeclareLocal(type);
+
+				generator.Emit(OpCodes.Ldloca, valueLocal);
+				generator.Emit(OpCodes.Initobj, valueLocal.LocalType);
+				generator.Emit(OpCodes.Ldloc, valueLocal);
 			}
-
-			foreach (var name in propertyNames)
+			else
 			{
-				var methodInfo = setComputedValueMethods[name];
-
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Call, methodInfo);
+				generator.Emit(OpCodes.Ldnull);
 			}
 		}
 
@@ -2329,20 +2341,80 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildComputeIdRelatedComputedTextProperties()
+		private IEnumerable<string> GetPropertyNamesAndDependentPropertyNames(IEnumerable<string> propertyNames)
 		{
-			var count = 0; 
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("ComputeIdRelatedComputedTextProperties");
+			foreach (var propertyName in propertyNames)
+			{
+				yield return propertyName;
+
+				var propertyInfo = this.baseType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+				if (propertyInfo == null)
+				{
+					continue;
+				}
+
+				foreach (DependsOnPropertyAttribute attribute in propertyInfo.GetCustomAttributes(typeof(DependsOnPropertyAttribute), true))
+				{
+					yield return attribute.PropertyName;
+				}
+			}
+		}
+
+		private void EmitUpdatedComputedPropertes(string propertyName2, ILGenerator generator)
+		{
+			var propertyNames = new List<string>();
+
+			foreach (var propertyDescriptor in typeDescriptor.ComputedTextProperties)
+			{
+				foreach (var referencedPropertyName in GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences()))
+				{
+					if (referencedPropertyName == propertyName2)
+					{
+						propertyNames.Add(propertyDescriptor.PropertyName);
+
+						break;
+					}
+				}
+			}
+
+			foreach (var name in propertyNames)
+			{
+				var methodInfo = setComputedValueMethods[name];
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Call, methodInfo);
+			}
+		}
+
+		protected virtual void BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod()
+		{
+			var count = 0;
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("ComputeServerGeneratedIdDependentComputedTextProperties");
 			
 			foreach (var propertyDescriptor in typeDescriptor.ComputedTextProperties)
 			{
-				if (Enumerable.Contains(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences(), "Id"))
+				var computedTextDependsOnAutoIncrementId = false;
+
+				foreach (var propertyName in GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences()))
+				{
+					var referencedPropertyDescriptor = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName);
+
+					if (referencedPropertyDescriptor != null && referencedPropertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
+					{
+						computedTextDependsOnAutoIncrementId = true;
+
+						break;
+					}
+				}
+			
+				if (computedTextDependsOnAutoIncrementId)
 				{
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Callvirt, setComputedValueMethods[propertyDescriptor.PropertyName]);
-				}
 
-				count++;
+					count++;
+				}
 			}
 
 			generator.Emit(count > 0 ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);

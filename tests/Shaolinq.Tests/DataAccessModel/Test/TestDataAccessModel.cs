@@ -29,6 +29,9 @@
 		public abstract DataAccessObjects<Fraternity> Fraternity { get; }
 
 		[DataAccessObjects]
+		public abstract DataAccessObjects<ObjectWithCompositePrimaryKey> ObjectWithCompositePrimaryKeys { get; }
+
+		[DataAccessObjects]
 		public abstract DataAccessObjects<ObjectWithGuidAutoIncrementPrimaryKey> ObjectWithGuidAutoIncrementPrimaryKeys { get; }
 
 		[DataAccessObjects]
