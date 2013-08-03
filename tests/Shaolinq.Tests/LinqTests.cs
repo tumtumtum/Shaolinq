@@ -58,7 +58,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Get_Advanced_Computed_Property()
+		public virtual void Test_Get_Advanced_Computed_Property_With_AutoIncrement_Guid()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -66,6 +66,18 @@ namespace Shaolinq.Tests
 				var student = model.Students.FirstOrDefault(c => c.Urn == "urn:student:" + tum.Id.ToString("N"));
 
 				Assert.AreSame(tum, student);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Get_Advanced_Computed_Property_With_AutoIncrement_Long()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school1 = model.Schools.First();
+				var school2 = model.Schools.First(c => c.Urn == "urn:school:" + school1.Id);
+
+				Assert.AreSame(school1, school2);
 			}
 		}
 
