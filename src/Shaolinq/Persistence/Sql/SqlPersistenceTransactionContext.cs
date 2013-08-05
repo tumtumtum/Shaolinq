@@ -320,7 +320,7 @@ namespace Shaolinq.Persistence.Sql
 			}
 		}
 
-		public override void Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
+		public override int Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
@@ -345,9 +345,11 @@ namespace Shaolinq.Persistence.Sql
 						Logger.Debug(FormatCommand(command));
 					}
 
+					int retval;
+
 					try
 					{
-						command.ExecuteScalar();
+						retval = command.ExecuteNonQuery();
 					}
 					catch (Exception e)
 					{
@@ -365,9 +367,18 @@ namespace Shaolinq.Persistence.Sql
 						throw;
 					}
 
+					if (retval == 0 && dataAccessObject.IsDeflatedReference)
+					{
+						throw new InvalidDataAccessObjectReferenceException();
+					}
+
 					dataAccessObject.ResetModified();
+
+					return retval;
 				}
 			}
+
+			return 0;
 		}
 
 		public override InsertResults Insert(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
@@ -692,17 +703,8 @@ namespace Shaolinq.Persistence.Sql
 			return command;
 		}
 
-		protected abstract Dictionary<CommandKey, CommandValue> InsertCache
-		{
-			get;
-			set;
-		}
-
-		protected abstract Dictionary<CommandKey, CommandValue> UpdateCache
-		{
-			get;
-			set;
-		}
+		protected abstract Dictionary<CommandKey, CommandValue> InsertCache { get; set; }
+		protected abstract Dictionary<CommandKey, CommandValue> UpdateCache { get; set; }
 
 		protected virtual void CacheInsertCommand(CommandKey commandKey, CommandValue commandValue)
 		{

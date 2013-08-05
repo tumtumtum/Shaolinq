@@ -12,7 +12,7 @@ namespace Shaolinq
 
 		public abstract void Delete(SqlDeleteExpression deleteExpression);
 		public abstract void Delete(Type type, IEnumerable<IDataAccessObject> dataAccessObjects);
-		public abstract void Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects);
+		public abstract int Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects);
 		public abstract InsertResults Insert(Type type, IEnumerable<IDataAccessObject> dataAccessObjects);
 		
 		public virtual void Commit()

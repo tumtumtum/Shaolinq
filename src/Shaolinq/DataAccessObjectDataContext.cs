@@ -424,7 +424,8 @@ namespace Shaolinq
 
 							if (subList.TryGetValue(key, out resurrected))
 							{
-								resurrected.SwapData(value, false);
+								resurrected.SwapData(value, true);
+								resurrected.Delete();
 
 								subList.Remove(key);
 								subcache[key] = value;
@@ -474,7 +475,7 @@ namespace Shaolinq
 							{
 								if (!forImport)
 								{
-									resurrected.SwapData(value, false);
+									resurrected.SwapData(value, true);
 
 									subList.Remove(id);
 									subcache[id] = value;
@@ -843,7 +844,7 @@ namespace Shaolinq
 		}
 
 		private static void CommitUpdated<T>(CacheByPersistenceContext<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
-	{
+		{
 			// Insert new objects from cache
 			foreach (var i in cache)
 			{

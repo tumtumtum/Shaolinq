@@ -82,6 +82,27 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Select_With_Ternary_Operator()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var x = 1;
+				var y = 2;
+
+				var school = this.model.Schools.FirstOrDefault(c => x == y ? c.Id == 1 : c.Id == 2);
+
+				Assert.AreEqual(2, school.Id);
+
+				x = 1;
+				y = 1;
+
+				school = this.model.Schools.FirstOrDefault(c => x * 2 == y + y ? c.Id == 1 : c.Id == 2);
+
+				Assert.AreEqual(1, school.Id);
+			}
+		}
+
+		[Test]
 		public virtual void Test_Select_With_Scope()
 		{
 			using (var scope = new TransactionScope())

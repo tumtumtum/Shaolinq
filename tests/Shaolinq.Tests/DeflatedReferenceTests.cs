@@ -16,6 +16,50 @@ namespace Shaolinq.Tests
 			: base(providerName)
 		{	
 		}
+		
+		[Test]
+		public void Test_Use_Deflated_Reference_To_Update_Object_Without_First_Reading()
+		{
+			long schoolId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.NewDataAccessObject();
+
+				scope.Flush(model);
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.ReferenceTo(schoolId);
+
+				school.Name = "The Temple";
+
+				scope.Complete();
+			}
+		}
+
+		[Test, ExpectedException(typeof(TransactionAbortedException))]
+		public void Test_Use_Deflated_Reference_To_Update_Non_Existant_Object_Without_First_Reading()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.ReferenceTo(89327493);
+
+				school.Name = "The Temple";
+
+				Assert.Catch<InvalidDataAccessObjectReferenceException>(() =>
+				{
+					scope.Flush(model);
+				});
+
+				scope.Complete();
+			}
+		}
 
 		[Test]
 		public void Test_Get_Deflated_Reference_From_Object_With_Non_AutoIncrementing_PrimaryKey()
@@ -162,7 +206,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.FirstOrDefault();
+				var student = model.Students.First();
 
 				Assert.AreEqual(1, student.School.Id);
 				Assert.IsTrue(student.School.IsDeflatedReference);
