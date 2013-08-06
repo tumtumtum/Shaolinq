@@ -86,13 +86,15 @@
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
+    <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="IdentityEqualityComparer.cs" />
+    <Compile Include="MissingDataAccessObjectException.cs" />
     <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
     <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="PersistenceTransactionContextWrapper.cs" />
-    <Compile Include="InvalidDataAccessObjectReferenceException.cs" />
+    <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="Persistence\Sql\Linq\GroupByCollator.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />

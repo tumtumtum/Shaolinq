@@ -1114,6 +1114,19 @@ namespace Shaolinq.TypeBuilding
 				case PropertyMethodType.Set:
 					ILGenerator privateGenerator;
 					var continueLabel = generator.DefineLabel();
+					var notDeletedLabel = generator.DefineLabel();
+
+					// Throw if object has been deleted
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, partialObjectStateField);
+					generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Deleted);
+					generator.Emit(OpCodes.Ceq);
+					generator.Emit(OpCodes.Brfalse, notDeletedLabel);
+					generator.Emit(OpCodes.Newobj, typeof(DeletedDataAccessObjectException).GetConstructor(new Type[0]));
+					generator.Emit(OpCodes.Throw);
+
+					generator.MarkLabel(notDeletedLabel);
 					
 					// Skip setting if value is the same as the previous value
 

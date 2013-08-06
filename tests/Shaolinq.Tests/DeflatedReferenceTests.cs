@@ -18,6 +18,74 @@ namespace Shaolinq.Tests
 		}
 		
 		[Test]
+		public void Test_Use_Deflated_Reference_To_Update_Object_That_Was_Deleted1()
+		{
+			long schoolId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.NewDataAccessObject();
+
+				scope.Flush(model);
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				model.Schools.DeleteImmediately(c => c.Id == schoolId);
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.ReferenceTo(schoolId);
+
+				school.Name = "The Temple";
+
+				Assert.Catch<MissingDataAccessObjectException>(() =>
+				{
+					scope.Flush(model);
+				});
+			}
+		}
+
+		[Test]
+		public void Test_Use_Deflated_Reference_To_Update_Object_That_Was_Deleted2()
+		{
+			long schoolId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.NewDataAccessObject();
+
+				scope.Flush(model);
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.ReferenceTo(schoolId);
+
+				school.Delete();
+
+				Assert.Catch<DeletedDataAccessObjectException>(() =>
+				{
+					school.Name = "The Temple";
+				});
+
+				scope.Flush(model);
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Use_Deflated_Reference_To_Update_Object_Without_First_Reading()
 		{
 			long schoolId;
@@ -52,7 +120,7 @@ namespace Shaolinq.Tests
 
 				school.Name = "The Temple";
 
-				Assert.Catch<InvalidDataAccessObjectReferenceException>(() =>
+				Assert.Catch<InvalidDataAccessObjectAccessException>(() =>
 				{
 					scope.Flush(model);
 				});

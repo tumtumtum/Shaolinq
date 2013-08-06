@@ -23,6 +23,14 @@ namespace Shaolinq
 			}
 		}
 
+		public virtual bool IsDeleted
+		{
+			get
+			{
+				return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0;
+			}
+		}
+		
 		public virtual void Inflate()
 		{
 			if (!((IDataAccessObject)this).IsDeflatedReference)
@@ -86,14 +94,6 @@ namespace Shaolinq
 			}
 		}
 
-		bool IDataAccessObject.IsDeleted
-		{
-			get
-			{
-				return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0;
-			}
-		}
-		
 		public virtual U TranslateTo<U>()
 		{
 			return this.DataAccessModel.TranslateTo<U>(this);

@@ -73,6 +73,7 @@
     <Compile Include="DataAccessModel\Test\School.cs" />
     <Compile Include="DataAccessModel\Test\Student.cs" />
     <Compile Include="DeflatedReferenceTests.cs" />
+    <Compile Include="DeleteTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="ConcurrencyTests.cs" />
     <Compile Include="PrimaryKeyTests.cs" />

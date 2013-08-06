@@ -367,9 +367,9 @@ namespace Shaolinq.Persistence.Sql
 						throw;
 					}
 
-					if (retval == 0 && dataAccessObject.IsDeflatedReference)
+					if (retval == 0)
 					{
-						throw new InvalidDataAccessObjectReferenceException();
+						throw new MissingDataAccessObjectException();
 					}
 
 					dataAccessObject.ResetModified();

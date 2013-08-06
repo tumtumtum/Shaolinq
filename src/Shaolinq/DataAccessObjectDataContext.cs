@@ -407,10 +407,17 @@ namespace Shaolinq
 
 						if (subcache.TryGetValue(key, out outValue))
 						{
-								outValue.SwapData(value, true);
-								outValue.SetIsDeflatedReference(false);
+							var deleted = outValue.IsDeleted;
+							
+							outValue.SwapData(value, true);
+							outValue.SetIsDeflatedReference(value.IsDeflatedReference);
 
-								return (DataAccessObject<T>)outValue;
+							if (deleted)
+							{
+								outValue.SetIsDeleted(true);
+							}
+
+							return (DataAccessObject<T>)outValue;
 						}
 					}
 
@@ -420,17 +427,31 @@ namespace Shaolinq
 
 						if (this.objectsDeletedComposite.TryGetValue(type, out subList))
 						{
-							IDataAccessObject resurrected;
+							IDataAccessObject existingDeleted;
 
-							if (subList.TryGetValue(key, out resurrected))
+							if (subList.TryGetValue(key, out existingDeleted))
 							{
-								resurrected.SwapData(value, true);
-								resurrected.Delete();
+								if (!forImport)
+								{
+									existingDeleted.SwapData(value, true);
+									existingDeleted.SetIsDeleted(true);
 
-								subList.Remove(key);
-								subcache[key] = value;
+									return (DataAccessObject<T>)existingDeleted;
+								}
+								else
+								{
+									if (value.IsDeleted)
+									{
+										subList[key] = value;
+									}
+									else
+									{
+										subList.Remove(key);
+										subcache[key] = value;
+									}
 
-								return (DataAccessObject<T>)resurrected;
+									return value;
+								}
 							}
 						}
 					}
@@ -457,7 +478,15 @@ namespace Shaolinq
 
 						if (subcache.TryGetValue(id, out outValue))
 						{
+							var deleted = outValue.IsDeleted;
+
 							outValue.SwapData(value, true);
+							outValue.SetIsDeflatedReference(value.IsDeflatedReference);
+
+							if (deleted)
+							{
+								outValue.SetIsDeleted(true);
+							}
 
 							return (DataAccessObject<T>)outValue;
 						}
@@ -469,23 +498,28 @@ namespace Shaolinq
 
 						if (this.objectsDeleted.TryGetValue(type, out subList))
 						{
-							IDataAccessObject resurrected;
+							IDataAccessObject existingDeleted;
 
-							if (subList.TryGetValue(id, out resurrected))
+							if (subList.TryGetValue(id, out existingDeleted))
 							{
 								if (!forImport)
 								{
-									resurrected.SwapData(value, true);
+									existingDeleted.SwapData(value, true);
+									existingDeleted.SetIsDeleted(true);
 
-									subList.Remove(id);
-									subcache[id] = value;
-
-									return (DataAccessObject<T>)resurrected;
+									return (DataAccessObject<T>)existingDeleted;
 								}
 								else
 								{
-									subList.Remove(id);
-									subcache[id] = value;
+									if (value.IsDeleted)
+									{
+										subList[id] = value;
+									}
+									else
+									{
+										subList.Remove(id);
+										subcache[id] = value;
+									}
 
 									return value;
 								}
