@@ -9,7 +9,15 @@
 		{
 			get
 			{
-				return false;
+				return true;
+			}
+		}
+
+		public override string DeferrableText
+		{
+			get
+			{
+				return "DEFERRABLE INITIALLY DEFERRED";
 			}
 		}
 

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.DataAccessModel.Test;
@@ -16,7 +14,7 @@ namespace Shaolinq.Tests
 			: base(providerName)
 		{	
 		}
-		
+
 		[Test]
 		public void Test_Use_Deflated_Reference_To_Update_Object_That_Was_Deleted1()
 		{

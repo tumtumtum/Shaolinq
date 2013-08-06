@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Transactions;
 using Platform;
@@ -12,7 +13,7 @@ namespace Shaolinq.Persistence.Sql
 	public abstract class SqlDatabaseCreator
 		: PersistenceStoreCreator
 	{
-		private static readonly ILog Log = LogManager.GetLogger(typeof (SqlDatabaseCreator).Name);
+		private static readonly ILog Log = LogManager.GetLogger(typeof(SqlDatabaseCreator).Name);
 
 		#region CreateDatabaseContext
 
@@ -61,7 +62,7 @@ namespace Shaolinq.Persistence.Sql
 					}
 				}
 			}
-            
+
 			public void AddManyToManyTable(string name)
 			{
 				this.ManyToManyTablesCreated[name] = name;
@@ -75,31 +76,15 @@ namespace Shaolinq.Persistence.Sql
 
 		#endregion
 
-		public BaseDataAccessModel Model
-		{
-			get;
-			private set;
-		}
+		public BaseDataAccessModel Model { get; private set; }
 
-		protected SqlPersistenceContext SqlPersistenceContext
-		{
-			get;
-			private set;
-		}
+		protected SqlPersistenceContext SqlPersistenceContext { get; private set; }
 
-		public DataAccessModelPersistenceContextInfo PersistenceContextInfo
-		{
-			get;
-			private set;
-		}
+		public DataAccessModelPersistenceContextInfo PersistenceContextInfo { get; private set; }
 
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
-		
-		public ModelTypeDescriptor ModelTypeDescriptor
-		{
-			get;
-			private set;
-		}
+
+		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 
 		private SqlSchemaWriter schemaWriter;
 
@@ -117,7 +102,7 @@ namespace Shaolinq.Persistence.Sql
 		public override bool CreatePersistenceStorage(bool overwrite)
 		{
 			var createDatabaseContext = new CreateDatabaseContext();
-            
+
 			if (!this.SqlPersistenceContext.CreateDatabase(overwrite))
 			{
 				return false;
@@ -178,7 +163,7 @@ namespace Shaolinq.Persistence.Sql
 				}
 			}
 		}
-        
+
 		/// <summary>
 		/// Gets an enumeration of sql command strings for creating a table from a type.
 		/// </summary>
@@ -196,7 +181,7 @@ namespace Shaolinq.Persistence.Sql
 			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties)
 			{
 				this.schemaWriter.WriteColumnDefinition(builder, propertyDescriptor, null, false);
-				
+
 				builder.AppendLine(",");
 				snip = Environment.NewLine.Length + 1;
 			}
@@ -206,7 +191,7 @@ namespace Shaolinq.Persistence.Sql
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
 					var relatedPropertyTypeDescriptor = this.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.RelatedProperty.PropertyType);
-					
+
 					var valueRequired = true;
 					var valueRequiredAttribute = typeRelationshipInfo.RelatedProperty.PropertyInfo.GetFirstCustomAttribute<ValueRequiredAttribute>(false);
 
@@ -224,7 +209,7 @@ namespace Shaolinq.Persistence.Sql
 					snip = Environment.NewLine.Length + 1;
 				}
 			}
-            
+
 			builder.Length -= snip;
 
 			// Primary Key
@@ -232,11 +217,38 @@ namespace Shaolinq.Persistence.Sql
 			if (typeDescriptor.PrimaryKeyCount > 1)
 			{
 				string primaryKeys = typeDescriptor.PrimaryKeyProperties
-					.Convert<PropertyDescriptor, string>(x => this.SqlPersistenceContext.SqlDialect.NameQuoteChar + x.PersistedName + this.SqlPersistenceContext.SqlDialect.NameQuoteChar)
-					.JoinToString(", ");
+				                                   .Convert<PropertyDescriptor, string>(x => this.SqlPersistenceContext.SqlDialect.NameQuoteChar + x.PersistedName + this.SqlPersistenceContext.SqlDialect.NameQuoteChar)
+				                                   .JoinToString(", ");
 
 				builder.AppendLine(",");
 				builder.AppendFormat("PRIMARY KEY ({0})", primaryKeys);
+			}
+
+			if (this.SqlPersistenceContext.SqlDialect.SupportsConstraints)
+			{
+				foreach (var propertyDescriptor in typeDescriptor.PersistedProperties.Where(c => c.PropertyType.IsDataAccessObjectType()))
+				{
+					var propertyTypeDescriptor = this.Model.GetTypeDescriptor(propertyDescriptor.PropertyType);
+
+					var names = propertyTypeDescriptor.PrimaryKeyProperties.Select(relatedPropertyDescriptor => propertyDescriptor.PersistedName + relatedPropertyDescriptor.PersistedShortName).ToList();
+					var foreignKeyNames = names.JoinToString(", "); 
+					names = propertyTypeDescriptor.PrimaryKeyProperties.Select(relatedPropertyDescriptor => relatedPropertyDescriptor.PersistedName).ToList();
+					var primaryKeyNames = names.JoinToString(", ");
+
+					var s = string.Format
+					(
+						"FOREIGN KEY ({3}{0}{3}) REFERENCES {3}{1}{3}({3}{2}{3}) ON DELETE SET {5} {4}",
+						foreignKeyNames,
+						propertyTypeDescriptor.GetPersistedName(this.Model),
+						primaryKeyNames,
+						this.SqlPersistenceContext.SqlDialect.NameQuoteChar,
+						this.SqlPersistenceContext.SqlDialect.DeferrableText,
+						(!propertyTypeDescriptor.Type.IsValueType || Nullable.GetUnderlyingType(propertyTypeDescriptor.Type) != null) ? "NULL" : "DEFAULT"
+					);
+
+					builder.AppendLine(",");
+					builder.Append(s);
+				}
 			}
 
 			// Foreign key references
@@ -252,15 +264,16 @@ namespace Shaolinq.Persistence.Sql
 					.RelatedTypeTypeDescriptor.PrimaryKeyProperties
 					.Convert<PropertyDescriptor, string>(x => x.PersistedName)
 					.JoinToString(", ");
-                
+
 				foreignKeys = typeRelationshipInfo
 					.RelatedTypeTypeDescriptor.PrimaryKeyProperties
 					.Convert<PropertyDescriptor, string>(
-					x => typeRelationshipInfo.RelatedProperty.PersistedName + x.PersistedShortName)
+						x => typeRelationshipInfo.RelatedProperty.PersistedName + x.PersistedShortName)
 					.JoinToString(", ");
 
 				if (this.SqlPersistenceContext.SqlDialect.SupportsConstraints)
 				{
+					/*
 					var ammendment =
 						string.Format
 							(
@@ -275,14 +288,29 @@ namespace Shaolinq.Persistence.Sql
 							);
 
 					createDatabaseContext.AddAmmendment(ammendment);
+
+					builder.AppendLine(ammendment);*/
+
+					var s = string.Format
+						(
+							"FOREIGN KEY ({3}{0}{3}) REFERENCES {3}{1}{3}({3}{2}{3}) {4}",
+							foreignKeys,
+							typeRelationshipInfo.RelatedTypeTypeDescriptor.GetPersistedName(this.Model),
+							relatedPrimaryKeys,
+							this.SqlPersistenceContext.SqlDialect.NameQuoteChar,
+							this.SqlPersistenceContext.SqlDialect.DeferrableText
+						);
+
+					builder.AppendLine(",");
+					builder.Append(s);
 				}
 			}
 
 			builder.AppendLine();
 			builder.AppendLine(");");
-			
+
 			yield return builder.ToString();
-            
+
 			builder.Length = 0;
 
 			// Append table for many-to-many relationships if it has not already been created

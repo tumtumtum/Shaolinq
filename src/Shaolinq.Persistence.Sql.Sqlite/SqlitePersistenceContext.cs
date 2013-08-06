@@ -38,7 +38,7 @@ namespace Shaolinq.Persistence.Sql.Sqlite
 			: base(fileName, SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance)
 		{
 			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
-			connectionString = "Data Source=" + this.PersistenceStoreName;
+			connectionString = "Data Source=" + this.PersistenceStoreName + ";foreign keys=True";
 		}
 
 		private SqliteSqlPersistenceTransactionContext inMemoryContext;

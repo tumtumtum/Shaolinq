@@ -5,6 +5,9 @@
 		: BaseDataAccessModel
 	{
 		[DataAccessObjects]
+		public abstract DataAccessObjects<Address> Address { get; }
+
+		[DataAccessObjects]
 		public abstract DataAccessObjects<Club> Club { get; }
 
 		[DataAccessObjects]
