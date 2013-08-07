@@ -7,6 +7,9 @@ namespace Shaolinq.Tests.DataAccessModel.Test
 		: DataAccessObject<Guid>
 	{
 		[PersistedMember]
+		public abstract string Name { get; set; }
+
+		[PersistedMember]
 		public abstract double Price { get; set; }
 
 		[PersistedMember]

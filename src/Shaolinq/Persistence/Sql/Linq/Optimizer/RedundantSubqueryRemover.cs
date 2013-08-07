@@ -207,7 +207,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 				}
 
 				// Cannot merge a distinct if the outer has a distinct or aggregates with accompanying groupby or where
-				if (fromSelect.Distinct && (!selHasNameMapProjection || (((selHasWhere || selHasGroupBy) && (selHasAggregates  || selHasOrderBy)))))
+				if (fromSelect.Distinct && (!selHasNameMapProjection || (((selHasWhere || selHasGroupBy) && (selHasAggregates || selHasOrderBy)))))
 				{
 					return false;
 				}

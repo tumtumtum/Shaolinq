@@ -365,6 +365,60 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Query_With_GroupBy_Max_And_Average_And_Sum()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var product1 = this.model.Products.NewDataAccessObject();
+
+				product1.Name = "Uniform";
+				product1.Price = 150;
+
+				var product2 = this.model.Products.NewDataAccessObject();
+
+				product2.Name = "Belt";
+				product2.Price = 22;
+
+				var product3 = this.model.Products.NewDataAccessObject();
+
+				product3.Name = "Belt";
+				product3.Price = 56;
+
+				scope.Flush(model);
+
+				var results =
+					from product in this.model.Products
+					group product by product.Name
+						into g
+						select new
+						{
+							Name = g.Key,
+							Min = g.Min(p => p.Price),
+							Max = g.Max(p => p.Price),
+							Average = g.Average(p => p.Price),
+							Sum = g.Sum(p => p.Price)
+						};
+
+				var resultsArray = results.OrderBy(c => c.Name).ToArray();
+
+				Assert.AreEqual(2, resultsArray.Length);
+				Assert.AreEqual("Belt", resultsArray[0].Name);
+				Assert.AreEqual((product2.Price + product3.Price) / 2, resultsArray[0].Average);
+				Assert.AreEqual((product2.Price + product3.Price), resultsArray[0].Sum);
+				Assert.AreEqual(Math.Min(product2.Price, product3.Price), resultsArray[0].Min);
+				Assert.AreEqual(Math.Max(product2.Price, product3.Price), resultsArray[0].Max);
+
+				Assert.AreEqual("Uniform", resultsArray[1].Name);
+				Assert.AreEqual(product1.Price, resultsArray[1].Average);
+				Assert.AreEqual(product1.Price, resultsArray[1].Sum);
+				Assert.AreEqual(product1.Price, resultsArray[1].Min);
+				Assert.AreEqual(product1.Price, resultsArray[1].Max);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Query_Aggregate_Sum1()
 		{
 			using (var scope = new TransactionScope())
