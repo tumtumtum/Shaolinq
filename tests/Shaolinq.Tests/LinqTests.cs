@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.DataAccessModel.Test;
 
 namespace Shaolinq.Tests
 {
@@ -27,6 +29,7 @@ namespace Shaolinq.Tests
 
 				tum.Firstname = "Tum";
 				tum.Lastname = "Nguyen";
+				tum.Sex = Sex.Male;
 				tum.Height = 177;
 				tum.FavouriteNumber = 36;
 				tum.Birthdate = new DateTime(1979, 12, 24, 04, 00, 00);
@@ -37,6 +40,7 @@ namespace Shaolinq.Tests
 				mars.Lastname = "Nguyen";
 				mars.Nickname = "The Cat";
 				mars.Height = 20;
+				mars.Sex = Sex.Female;
 				mars.BestFriend = tum;
 				mars.Birthdate = new DateTime(2003, 11, 2);
 				mars.FavouriteNumber = 1;
@@ -54,6 +58,23 @@ namespace Shaolinq.Tests
 				chuck.FavouriteNumber = 8;
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Enum_List_Contains()
+		{
+			var list = new List<Sex>
+			{
+				Sex.Male,
+				Sex.Female
+			};
+
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => list.Contains(c.Sex));
+
+				Assert.That(count, Is.GreaterThan(0));
 			}
 		}
 
@@ -157,6 +178,14 @@ namespace Shaolinq.Tests
 		public void Test_Query_First1()
 		{
 			var student = model.Students.First();
+		}
+
+		[Test]
+		public void Test_Query_Check_Has_Changed()
+		{
+			var student = model.Students.First();
+
+			Assert.IsFalse(((IDataAccessObject)student).HasObjectChanged);
 		}
 
 		[Test]

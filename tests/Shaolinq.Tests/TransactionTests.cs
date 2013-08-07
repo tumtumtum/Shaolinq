@@ -49,9 +49,31 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.NewDataAccessObject();
+				var school = this.model.Schools.NewDataAccessObject();
+				var student = school.Students.NewDataAccessObject();
 
 				student.Firstname = "StudentThatShouldNotExist";
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				Assert.Catch<InvalidOperationException>(() => model.Students.First(c => c.Firstname == "StudentThatShouldNotExist"));
+			}
+		}
+
+		[Test]
+		public void Test_Create_Object_And_Flush_Then_Abort()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.NewDataAccessObject();
+				var student = school.Students.NewDataAccessObject();
+
+				student.Firstname = "StudentThatShouldNotExist";
+
+				scope.Flush(model);
+
+				Assert.IsNotNull(model.Students.FirstOrDefault(c => c.Firstname == "StudentThatShouldNotExist"));
 			}
 
 			using (var scope = new TransactionScope())

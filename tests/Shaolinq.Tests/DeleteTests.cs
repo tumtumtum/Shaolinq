@@ -56,8 +56,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
-		
-
+	
 		[Test]
 		public void Test_Object_Deleted_Flushed_Still_Deleted()
 		{

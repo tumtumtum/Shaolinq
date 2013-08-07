@@ -1,4 +1,5 @@
 ﻿using System;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.DataAccessModel.Test
 {
@@ -8,6 +9,9 @@ namespace Shaolinq.Tests.DataAccessModel.Test
 	{
 		[PersistedMember]
 		public abstract string Firstname { get; set; }
+
+		[Unique, PersistedMember, SizeConstraint(MaximumLength = 64)]
+		public abstract string Email { get; set; }
 
 		[PersistedMember]
 		public abstract string Lastname { get; set; }

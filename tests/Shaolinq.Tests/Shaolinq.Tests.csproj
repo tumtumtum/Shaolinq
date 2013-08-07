@@ -79,6 +79,7 @@
     <Compile Include="PrimaryKeyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RelatedObjectsTests.cs" />
+    <Compile Include="TestConstraints.cs" />
     <Compile Include="TransactionTests.cs" />
   </ItemGroup>
   <ItemGroup>

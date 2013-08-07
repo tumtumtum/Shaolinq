@@ -16,6 +16,63 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Set_Related_Parent_Using_Deflated_Reference()
+		{
+			long schoolId;
+			Guid studentId;
+			const string schoolName = "American Kung Fu School";
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.NewDataAccessObject();
+
+				school.Name = schoolName;
+
+				scope.Flush(model);
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.NewDataAccessObject();
+
+				student.School = this.model.Schools.ReferenceTo(schoolId);
+
+				scope.Flush(model);
+
+				studentId = student.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.Id == studentId);
+
+				Assert.AreEqual(schoolId, student.School.Id);
+				Assert.AreEqual(schoolName, student.School.Name);
+
+				scope.Complete();
+			}
+		}
+
+		[Test, ExpectedException(typeof(TransactionAbortedException))]
+		public void Test_Set_Related_Parent_Using_Invalid_Deflated_Reference()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.NewDataAccessObject();
+
+				student.School = this.model.Schools.ReferenceTo(8972394);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Use_Deflated_Reference_To_Update_Object_That_Was_Deleted1()
 		{
 			long schoolId;

@@ -17,6 +17,32 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Query_With_Related_Object_PrimaryKey()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.Where(c => c.School.Id > 0).ToList();
+
+				Assert.That(students.Count, Is.GreaterThan(0));
+
+				scope.Complete();
+			}
+		}
+
+		[Test, Ignore("Not supported yet")]
+		public virtual void Test_Query_With_Related_Object_Property()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce")).ToList();
+
+				Assert.That(students.Count, Is.GreaterThan(0));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Create_Object_Without_Related_Parent()
 		{
 			Assert.Catch<TransactionAbortedException>(() =>

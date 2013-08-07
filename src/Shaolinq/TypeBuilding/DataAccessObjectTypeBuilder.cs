@@ -10,7 +10,8 @@ using Platform.Reflection;
 
 namespace Shaolinq.TypeBuilding
 {
-	public class DataAccessObjectTypeBuilder
+	public class 
+		DataAccessObjectTypeBuilder
 	{
 		internal static readonly string ForceSetPrefix = "ForceSet";
 		internal static readonly string ObjectDataFieldName = "data";
@@ -244,7 +245,7 @@ namespace Shaolinq.TypeBuilding
 					constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
 					constructorGenerator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyDescriptor.PropertyName].GetSetMethod());
 
-					EmitUpdatedComputedPropertes(propertyDescriptor.PropertyName, constructorGenerator);
+					EmitUpdatedComputedPropertes(constructorGenerator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
 				}
 			
 				// Create type
@@ -1354,7 +1355,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldc_I4_1);
 						generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
 
-						EmitUpdatedComputedPropertes(propertyBuilder.Name, generator);
+						EmitUpdatedComputedPropertes(generator, propertyBuilder.Name, currentPropertyDescriptor == null ? false : currentPropertyDescriptor.IsPrimaryKey);
 
 						generator.Emit(OpCodes.Ret);
 					}
@@ -1536,14 +1537,15 @@ namespace Shaolinq.TypeBuilding
 					var computeLabel = privateGenerator.DefineLabel();
 					var isNullLabel = privateGenerator.DefineLabel();
 					
-					if (!propertyInfo.PropertyType.IsValueType)
-					{
-						privateGenerator.Emit(OpCodes.Ldarg_1);
-						privateGenerator.Emit(OpCodes.Brfalse, isNullLabel);
-					}
-
 					if (propertyInfo.PropertyType.IsDataAccessObjectType())
 					{
+
+						if (!propertyInfo.PropertyType.IsValueType)
+						{
+							privateGenerator.Emit(OpCodes.Ldarg_1);
+							privateGenerator.Emit(OpCodes.Brfalse, isNullLabel);
+						}
+
 						var innerTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyBuilder.PropertyType);
 						var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[propertyBuilder.PropertyType];
 
@@ -1580,17 +1582,10 @@ namespace Shaolinq.TypeBuilding
 
 							privateGenerator.MarkLabel(nextPropertyLabel);
 						}
-					}
 
-					privateGenerator.Emit(OpCodes.Br, computeLabel);
+						privateGenerator.Emit(OpCodes.Br, computeLabel);
+						privateGenerator.MarkLabel(isNullLabel);
 					
-					privateGenerator.MarkLabel(isNullLabel);
-
-					if (propertyInfo.PropertyType.IsDataAccessObjectType())
-					{
-						var innerTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyBuilder.PropertyType);
-						var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[propertyBuilder.PropertyType];
-
 						foreach (var propertyDescriptor in innerTypeDescriptor.PrimaryKeyProperties)
 						{
 							privateGenerator.Emit(OpCodes.Ldarg_0);
@@ -1599,11 +1594,11 @@ namespace Shaolinq.TypeBuilding
 
 							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
 						}
+
+						privateGenerator.MarkLabel(computeLabel);
 					}
 
-					privateGenerator.MarkLabel(computeLabel);
-
-					EmitUpdatedComputedPropertes(propertyBuilder.Name, privateGenerator);
+					EmitUpdatedComputedPropertes(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor == null ? false : currentPropertyDescriptor.IsPrimaryKey);
 
 					privateGenerator.Emit(OpCodes.Ret);
 
@@ -2128,8 +2123,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyDescriptor.PropertyName]);
 
-				EmitUpdatedComputedPropertes(propertyDescriptor.PropertyName, generator);
-
+				EmitUpdatedComputedPropertes(generator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
 
 				generator.Emit(OpCodes.Ret);
 
@@ -2476,7 +2470,7 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		private void EmitUpdatedComputedPropertes(string propertyName2, ILGenerator generator)
+		private void EmitUpdatedComputedPropertes(ILGenerator generator, string changedPropertyName, bool propertyIsPrimaryKey)
 		{
 			var propertyNames = new List<string>();
 
@@ -2484,13 +2478,28 @@ namespace Shaolinq.TypeBuilding
 			{
 				foreach (var referencedPropertyName in GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences()))
 				{
-					if (referencedPropertyName == propertyName2)
+					if (referencedPropertyName == changedPropertyName)
 					{
 						propertyNames.Add(propertyDescriptor.PropertyName);
 
 						break;
 					}
 				}
+			}
+
+			if (propertyNames.Count == 0)
+			{
+				return;
+			}
+
+			var label = generator.DefineLabel();
+
+			if (propertyIsPrimaryKey)
+			{
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, dataObjectField);
+				generator.Emit(OpCodes.Ldfld, isDeflatedReferenceField);
+				generator.Emit(OpCodes.Brtrue, label);
 			}
 
 			foreach (var name in propertyNames)
@@ -2500,6 +2509,9 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Call, methodInfo);
 			}
+
+			generator.MarkLabel(label);
+			generator.Emit(OpCodes.Ret);
 		}
 
 		protected virtual void BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod()

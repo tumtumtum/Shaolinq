@@ -298,6 +298,7 @@ namespace Shaolinq
 				retval.SetIsDeflatedReference(true);
 				retval.SetDataAccessModel(this);
 				retval.SetPrimaryKeys(propertyInfoAndValues);
+				retval.ResetModified();
 
 				this.GetCurrentDataContext(false).CacheObject(retval, false);
 
