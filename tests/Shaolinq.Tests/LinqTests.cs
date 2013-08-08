@@ -27,11 +27,17 @@ namespace Shaolinq.Tests
 
 				var tum = school.Students.NewDataAccessObject();
 
+				var address = this.model.Address.NewDataAccessObject();
+				address.Number = 178;
+				address.Street = "Fake Street";
+
 				tum.Firstname = "Tum";
 				tum.Lastname = "Nguyen";
 				tum.Sex = Sex.Male;
+				tum.Address = address;
 				tum.Height = 177;
 				tum.FavouriteNumber = 36;
+				tum.Address = address;
 				tum.Birthdate = new DateTime(1979, 12, 24, 04, 00, 00);
 
 				var mars = school.Students.NewDataAccessObject();
@@ -40,6 +46,7 @@ namespace Shaolinq.Tests
 				mars.Lastname = "Nguyen";
 				mars.Nickname = "The Cat";
 				mars.Height = 20;
+				mars.Address = address;
 				mars.Sex = Sex.Female;
 				mars.BestFriend = tum;
 				mars.Birthdate = new DateTime(2003, 11, 2);
@@ -49,15 +56,152 @@ namespace Shaolinq.Tests
 
 				school.Name = "Brandon's Kung Fu School";
 
-				var chuck = school.Students.NewDataAccessObject();
+				var chuck1 = school.Students.NewDataAccessObject();
 
-				chuck.Firstname = "Chuck";
-				chuck.Lastname = "Norris";
-				chuck.Nickname = "God";
-				chuck.Height = Double.PositiveInfinity;
-				chuck.FavouriteNumber = 8;
+				var address2 = this.model.Address.NewDataAccessObject();
+				address2.Number = 1799;
+				address2.Street = "Fake Street";
+
+				chuck1.Firstname = "Chuck";
+				chuck1.Lastname = "Norris";
+				chuck1.Nickname = "God";
+				chuck1.Address = address2;
+				chuck1.Height = Double.PositiveInfinity;
+				chuck1.FavouriteNumber = 8;
+
+				var chuck2 = school.Students.NewDataAccessObject();
+
+				chuck2.Firstname = "Chuck";
+				chuck2.Lastname = "Yeager";
+				chuck2.Height = 182;
+			
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_GroupBy_With_Count()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  group student by student.Firstname into g
+							  select new { Count = g.Count(), Name = g.Key };
+
+				var resultsArray = results.OrderBy(c => c.Name).ToArray();
+
+				Assert.AreEqual("Chuck", resultsArray[0].Name);
+				Assert.AreEqual(2, resultsArray[0].Count);
+				
+				scope.Complete();
+			}
+		}
+
+		private class TempObject
+		{
+			private readonly TestDataAccessModel model;
+
+			public TempObject(TestDataAccessModel model)
+			{
+				this.model = model;
+			}
+
+			public Address GetAddress()
+			{
+				return this.model.Address.FirstOrDefault(c => c.Number == 178);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_Local_Object_And_Method_Call()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  where student.Address == new TempObject(model).GetAddress() 
+							  orderby  student.Firstname
+							  select new { student };
+
+				var array =  results.ToArray();
+
+				Assert.AreEqual(2, array.Length);
+				Assert.AreEqual("Mars", array[0].student.Firstname);
+				Assert.AreEqual("Tum", array[1].student.Firstname);
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_Multiple_From_Manual_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  from school in this.model.Schools
+							  orderby  student.Firstname
+							  where student.School.Id == school.Id
+							  select new { student.Fullname, school.Name };
+
+				var students = this.model.Students.ToArray();
+				var schools = this.model.Schools.ToArray();
+
+				var resultsLocal = from student in students
+							  from school in schools
+							  orderby student.Firstname
+							  where student.School.Id == school.Id
+							  select new { student.Fullname, school.Name };
+
+				Assert.IsTrue(resultsLocal.SequenceEqual(results));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_Skip()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = ((from student in this.model.Students
+				                orderby student.Firstname
+				                select student).Skip(2)).ToArray();
+
+				Assert.IsTrue(students.OrderBy(c => c.Firstname).Skip(2).SequenceEqual(results));
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_Take()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = ((from student in this.model.Students
+				                orderby student.Firstname
+				                select student).Take(2));
+
+				Assert.IsTrue(students.OrderBy(c => c.Firstname).Take(2).SequenceEqual(results));
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_Skip_Take()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = ((from student in this.model.Students
+				                orderby student.Firstname
+				                select student).Skip(1).Take(2)).ToList();
+
+				Assert.AreEqual(results.Count, 2);
+
+				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).Skip(1).Take(2)));
 			}
 		}
 

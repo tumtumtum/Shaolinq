@@ -76,5 +76,30 @@ namespace Shaolinq.Persistence.Sql.Sqlite
 
 			return base.VisitFunctionCall(functionCallExpression);
 		}
+
+
+		protected override void AppendLimit(SqlSelectExpression selectExpression)
+		{
+			if (selectExpression.Skip != null || selectExpression.Take != null)
+			{
+				if (selectExpression.Take != null)
+				{
+					commandText.Append(" LIMIT ");
+
+					Visit(selectExpression.Take);
+				}
+				else
+				{
+					commandText.AppendLine(" LIMIT -1 ");
+				}
+
+				if (selectExpression.Skip != null)
+				{
+					commandText.Append(" OFFSET ");
+
+					Visit(selectExpression.Skip);
+				}
+			}
+		}
 	}
 }

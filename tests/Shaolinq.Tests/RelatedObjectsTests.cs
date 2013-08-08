@@ -17,6 +17,32 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Query_By_Comparing_Related_Objects()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.NewDataAccessObject();
+
+				var student = school.Students.NewDataAccessObject();
+
+				student.Firstname = "Chuck";
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var schools = (from s in this.model.Schools select s);
+
+				var results = from student in this.model.Students
+							  where student.School == schools.First()
+							  select student;
+
+				var resultsArray = results.ToArray();
+			}
+		}
+
+		[Test]
 		public virtual void Test_Query_With_Related_Object_PrimaryKey()
 		{
 			using (var scope = new TransactionScope())
