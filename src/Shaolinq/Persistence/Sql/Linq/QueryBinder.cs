@@ -44,9 +44,11 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		public static Expression Bind(BaseDataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
 		{
-			var queryBinder = new QueryBinder(dataAccessModel, expression, conditionType, extraCondition);
+			var expandedExpression = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
-			return queryBinder.Visit(expression);
+			var queryBinder = new QueryBinder(dataAccessModel, expandedExpression, conditionType, extraCondition);
+
+			return queryBinder.Visit(expandedExpression);
 		}
 
 		private static bool CanBeColumn(Expression expression)
@@ -286,7 +288,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			
 			var alias = this.GetNextAlias();
 
-			var projectedColumns = ProjectColumns(resultExpr, alias, this.objectOperandByMemberInit, outerProjection.Select.Alias, innerProjection.Select.Alias);
+			var projectedColumns = ProjectColumns(resultExpr, alias, this.objectOperandByMemberInit,  outerProjection.Select.Alias, innerProjection.Select.Alias);
 
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, join, null, null, outerProjection.Select.ForUpdate || innerProjection.Select.ForUpdate), projectedColumns.Projector, null);
 		}
@@ -475,7 +477,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-            if (methodCallExpression.Method.DeclaringType == typeof(Queryable) || methodCallExpression.Method.DeclaringType == typeof(Enumerable)
+            if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
+				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
 			{
 				switch (methodCallExpression.Method.Name)
@@ -485,6 +488,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 					case "WhereForUpdate":
 						return this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
 					case "Select":
+		
 						return this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
 					case "SelectForUpdate":
 						return this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
@@ -884,13 +888,13 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate, bool forUpdate)
 		{
-			 var projection = (SqlProjectionExpression)this.Visit(source);
+			var projection = (SqlProjectionExpression)this.Visit(source);
 
 			AddExpressionByParameter(predicate.Parameters[0], projection.Projector);
 
 			var where = this.Visit(predicate.Body);
 
-			string alias = this.GetNextAlias();
+			var alias = this.GetNextAlias();
 
 			var pc = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, GetExistingAlias(projection.Select));
 
@@ -1366,6 +1370,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 					break;
 				case ExpressionType.New:
+					// Source is a anonymous type from a join
 					var newExpression = (NewExpression)source;
 
 					if (newExpression.Members != null)
@@ -1549,6 +1554,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			if (propertyInfo != null)
 			{
+				// TODO: Throw an unsupported exception if not binding for SQL ToString implementation
+
 				return Expression.Property(source, propertyInfo);
 			}
 

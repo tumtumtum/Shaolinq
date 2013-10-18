@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 
@@ -9,6 +10,10 @@ namespace Shaolinq.TypeBuilding
 	public static class MethodInfoFastRef
 	{
 		public static readonly MethodInfo QueryableWhereMethod;
+		public static readonly MethodInfo QueryableSelectMethod;
+		public static readonly MethodInfo QueryableJoinMethod;
+		public static readonly MethodInfo QueryableDefaultIfEmptyMethod;
+		public static readonly MethodInfo ExpressionGenericLambdaMethod;
 		public static readonly MethodInfo GuidEqualsMethod = typeof(Guid).GetMethod("Equals", new Type[] { typeof(Guid) });
 		public static readonly MethodInfo GuidNewGuid = typeof(Guid).GetMethod("NewGuid", BindingFlags.Public | BindingFlags.Static);
 		public static readonly MethodInfo StringExtensionsIsLikeMethodInfo = typeof(ShaolinqStringExtensions).GetMethod("IsLike", BindingFlags.Static | BindingFlags.Public);
@@ -28,25 +33,13 @@ namespace Shaolinq.TypeBuilding
 		
 		static MethodInfoFastRef()
 		{
-			foreach (var method in typeof(Queryable).GetMethods().Filter(c => c.Name == "Where"))
-			{
-				var parameters = method.GetParameters();
-				
-				if (parameters.Length == 2)
-				{
-					var genericargs = parameters[1].ParameterType.GetGenericArguments();
+			// TODO: Make these match arg types so that they're safe to future API changes
 
-					if (genericargs.Length == 1)
-					{
-						if (genericargs[0].GetGenericArguments().Length == 2)
-						{
-							QueryableWhereMethod = method;
-
-							break;
-						}
-					}
-				}
-			}
+			QueryableWhereMethod = (from method in typeof(Queryable).GetMethods().Filter(c => c.Name == "Where") let parameters = method.GetParameters() where parameters.Length == 2 let genericargs = parameters[1].ParameterType.GetGenericArguments() where genericargs.Length == 1 where genericargs[0].GetGenericArguments().Length == 2 select method).First();
+			QueryableSelectMethod = typeof(Queryable).GetMethods().Where(c => c.Name == "Select").First(c => c.GetParameters().Length == 2);
+			QueryableJoinMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "Join")).First(c => c.GetParameters().Length == 5);
+			QueryableDefaultIfEmptyMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "DefaultIfEmpty")).First(c => c.GetParameters().Length == 1);
+			ExpressionGenericLambdaMethod = typeof(Expression).GetMethods().First(c => c.Name == "Lambda" && c.GetGenericArguments().Length == 1);
 		}
 	}
 }

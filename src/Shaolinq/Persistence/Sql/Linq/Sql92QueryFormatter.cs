@@ -941,9 +941,20 @@ namespace Shaolinq.Persistence.Sql.Linq
 			return deleteExpression;
 		}
 
+		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
+		{
+			this.Visit(memberExpression.Expression);
+			commandText.Append(".");
+			commandText.Append("Prop(");
+			commandText.Append(memberExpression.Member.Name);
+			commandText.Append(")");
+
+			return memberExpression;
+		}
+
 		protected override Expression VisitObjectOperand(SqlObjectOperand objectOperand)
 		{
-			commandText.Append("[ColumnsList]");
+			commandText.Append("Obj(").Append(objectOperand.Type.Name).Append(")");
 
 			return objectOperand;
 		}

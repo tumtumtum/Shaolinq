@@ -96,6 +96,8 @@
     <Compile Include="PersistenceTransactionContextWrapper.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="Persistence\Sql\Linq\GroupByCollator.cs" />
+    <Compile Include="Persistence\Sql\Linq\Optimizer\ReferencedRelatedObjectPropertyGatherer.cs" />
+    <Compile Include="Persistence\Sql\Linq\RelatedPropertiesJoinExpander.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
@@ -169,7 +171,7 @@
     <Compile Include="Persistence\Sql\Linq\Optimizer\RedundantSubqueryFinder.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\UnusedColumnRemover.cs" />
     <Compile Include="Persistence\Sql\Linq\ExpressionReplacer.cs" />
-    <Compile Include="Persistence\Sql\Linq\RelatedDomainObjectProjector.cs" />
+    <Compile Include="Persistence\Sql\Linq\RelatedDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Sql\Linq\SelectFirstType.cs" />
     <Compile Include="Persistence\Sql\Linq\SqlJoinType.cs" />
     <Compile Include="TypeBuilding\MethodInfoFastRef.cs" />

@@ -108,7 +108,7 @@ namespace Shaolinq.Tests
 
 			public Address GetAddress()
 			{
-				return this.model.Address.FirstOrDefault(c => c.Number == 178);
+				return this.model.Address.First(c => c.Number == 178);
 			}
 		}
 

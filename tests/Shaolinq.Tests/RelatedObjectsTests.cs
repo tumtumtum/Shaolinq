@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.DataAccessModel.Test;
 
 namespace Shaolinq.Tests
 {
@@ -17,7 +18,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Query_By_Comparing_Related_Objects()
+		public void Test_Query_By_Comparing_Related_Objects()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -55,14 +56,30 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("Not supported yet")]
+		[Test]
+		//[Test, Ignore("Not supported yet")]
 		public virtual void Test_Query_With_Related_Object_Property()
 		{
 			using (var scope = new TransactionScope())
 			{
-				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce")).ToList();
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
 
-				Assert.That(students.Count, Is.GreaterThan(0));
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				
+				/*var students = (from student in this.model.Students
+				                join school in this.model.Schools
+					                on student.School equals school
+								where school.Name.StartsWith("Bruce")
+				                select school).ToList();*/
+				
+				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce") && c.Firstname  == "Chuck").ToList();
 
 				scope.Complete();
 			}
@@ -181,7 +198,6 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				Assert.AreEqual(2, model.Students.Count());
 				Assert.AreEqual(1, school.Students.Count());
 
 				scope.Complete();
