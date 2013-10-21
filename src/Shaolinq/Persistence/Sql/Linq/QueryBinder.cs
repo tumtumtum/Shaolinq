@@ -14,6 +14,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 	public class QueryBinder
 		: Platform.Linq.ExpressionVisitor
 	{
+		private bool inSelectBody;
 		private int aliasCount;
 		private readonly Type conditionType;
 		private LambdaExpression extraCondition;
@@ -156,6 +157,11 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
+			if (this.inSelectBody)
+			{
+				return base.VisitBinary(binaryExpression);
+			}
+
 			Expression left, right;
 
 			if (binaryExpression.Left.Type == typeof(string) && binaryExpression.Right.Type == typeof(string))
@@ -488,7 +494,6 @@ namespace Shaolinq.Persistence.Sql.Linq
 					case "WhereForUpdate":
 						return this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
 					case "Select":
-		
 						return this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
 					case "SelectForUpdate":
 						return this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
@@ -689,7 +694,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						break;
 				}
 			}
-			else if (methodCallExpression.Method == MethodInfoFastRef.StringExtensionsIsLikeMethodInfo)
+			else if (!this.inSelectBody && methodCallExpression.Method == MethodInfoFastRef.StringExtensionsIsLikeMethodInfo)
 			{
 				var operand1 = Visit(methodCallExpression.Arguments[0]);
 				var operand2 = Visit(methodCallExpression.Arguments[1]);
@@ -698,6 +703,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 			}
 			else if (methodCallExpression.Method.DeclaringType == typeof(string))
 			{
+				if (this.inSelectBody)
+				{
+					Console.WriteLine();
+				}
 				switch (methodCallExpression.Method.Name)
 				{
 					case "Contains":
@@ -1119,11 +1128,23 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		private Expression BindSelect(Type resultType, Expression source, LambdaExpression selector, bool forUpdate)
 		{
+			Expression expression; 
+			var oldInselect = this.inSelectBody;
 			var projection = (SqlProjectionExpression)this.Visit(source);
 
 			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			var expression = this.Visit(selector.Body);
+			this.inSelectBody = true;
+
+			try
+			{	
+				expression = this.Visit(selector.Body);
+			}
+			finally
+			{
+				this.inSelectBody = oldInselect;
+			}
+
 			var alias = this.GetNextAlias();
 			var pc = ProjectColumns(expression, alias, this.objectOperandByMemberInit, projection.Select.Alias);
 
@@ -1483,65 +1504,68 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			var fieldInfo = memberInfo as FieldInfo;
 
-			if (typeof(ICollection<>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType))
+			if (!this.inSelectBody)
 			{
-				if (memberInfo.Name == "Count")
+				if (typeof(ICollection<>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType))
 				{
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType() ,SqlFunction.CollectionCount ,source);
+					if (memberInfo.Name == "Count")
+					{
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.CollectionCount, source);
+					}
 				}
-			}
-			else if (memberInfo.DeclaringType == typeof(DateTime))
-			{
-				switch (memberInfo.Name)
+				else if (memberInfo.DeclaringType == typeof(DateTime))
 				{
-					case "Week":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Week, source);
-					case "Month":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Month, source);
-					case "Year":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Year, source);
-					case "Hour":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Hour, source);
-					case "Minute":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Minute, source);
-					case "Second":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Second, source);
-					case "DayOfWeek":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfWeek, source);
-					case "Day":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfMonth, source);
-					case "DayOfYear":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfYear, source);
-					case "Date":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Date, source);
-					default:
-						throw new NotSupportedException("Member access on DateTime: " + memberInfo);
+					switch (memberInfo.Name)
+					{
+						case "Week":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Week, source);
+						case "Month":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Month, source);
+						case "Year":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Year, source);
+						case "Hour":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Hour, source);
+						case "Minute":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Minute, source);
+						case "Second":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Second, source);
+						case "DayOfWeek":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfWeek, source);
+						case "Day":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfMonth, source);
+						case "DayOfYear":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfYear, source);
+						case "Date":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Date, source);
+						default:
+							throw new NotSupportedException("Member access on DateTime: " + memberInfo);
+					}
 				}
-			}
-			else if (memberInfo.DeclaringType == typeof(ServerDateTime))
-			{
-				switch (memberInfo.Name)
+				else if (memberInfo.DeclaringType == typeof(ServerDateTime))
 				{
-					case "Now":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerDateTime);
+					switch (memberInfo.Name)
+					{
+						case "Now":
+							return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerDateTime);
+					}
 				}
-			}
-			else if (typeof(IGrouping<,>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType) && source is NewExpression && memberInfo.Name == "Key")
-			{
-				var newExpression = source as NewExpression;
+				else if (typeof(IGrouping<,>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType) && source is NewExpression && memberInfo.Name == "Key")
+				{
+					var newExpression = source as NewExpression;
 
-				var arg = newExpression.Arguments[0];
-				
-				return arg;
-			}
-			else if (source != null && source.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
-			{
-				Expression expression;
-				var objectOperandExpression = (SqlObjectOperand)source;
+					var arg = newExpression.Arguments[0];
 
-				if (objectOperandExpression.ExpressionsByPropertyName.TryGetValue(memberInfo.Name, out expression))
+					return arg;
+				}
+				else if (source != null && source.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
 				{
-					return expression;
+					Expression expression;
+					var objectOperandExpression = (SqlObjectOperand)source;
+
+					if (objectOperandExpression.ExpressionsByPropertyName.TryGetValue(memberInfo.Name, out expression))
+					{
+						return expression;
+					}
 				}
 			}
 

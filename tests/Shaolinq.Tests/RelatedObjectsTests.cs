@@ -57,8 +57,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		//[Test, Ignore("Not supported yet")]
-		public virtual void Test_Query_With_Related_Object_Property()
+		public virtual void Test_Select_And_Project_Related_Object_Property()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -72,14 +71,112 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				
-				/*var students = (from student in this.model.Students
-				                join school in this.model.Schools
-					                on student.School equals school
-								where school.Name.StartsWith("Bruce")
-				                select school).ToList();*/
-				
-				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce") && c.Firstname  == "Chuck").ToList();
+				var names = this.model.Students.Select(c => c.Firstname + "jo").ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Implict_Join_1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var students = this.model.Students.Where(c => c.Firstname == "Chuck").Select(c => c.School).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Implict_Join_2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var addresses = this.model.Students.Select(c => c.School.Name == "Bruce's Kung Fu School" ? c.Address : c.Address).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Implict_Join_3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var schools  = this.model.Students.Select(c => c.Address.Number == 0 ? c.School : c.School).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Property_Implicit_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var students = this.model.Students.Select(c => c.School.Name).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Where_With_Multiple_Related_Object_Property_Multiple_Implicit_Joins()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce") && c.Address.Number == 0).ToList();
 
 				scope.Complete();
 			}

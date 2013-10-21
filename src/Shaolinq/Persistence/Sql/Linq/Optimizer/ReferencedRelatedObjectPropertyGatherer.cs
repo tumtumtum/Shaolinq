@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
@@ -8,10 +9,36 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 	public  class ReferencedRelatedObjectPropertyGatherer
 		: SqlExpressionVisitor
 	{
+		private bool disableCompare;
 		private readonly BaseDataAccessModel model;
 		private readonly ParameterExpression sourceParameterExpression;
 		private readonly List<MemberExpression> results = new List<MemberExpression>();
+		private readonly HashSet<Expression> expressionsToIgnore = new HashSet<Expression>();
 
+		private class DisableCompareContext
+			: IDisposable
+		{
+			private readonly bool savedDisableCompare;
+			private readonly ReferencedRelatedObjectPropertyGatherer gatherer;
+
+			public DisableCompareContext(ReferencedRelatedObjectPropertyGatherer gatherer)
+			{
+				this.gatherer = gatherer;
+				savedDisableCompare = gatherer.disableCompare;
+				gatherer.disableCompare = true;
+			}
+
+			public void Dispose()
+			{
+				this.gatherer.disableCompare = savedDisableCompare;
+			}
+		}
+
+		protected IDisposable AcquireDisableCompareContext()
+		{
+			return new DisableCompareContext(this);
+		}
+		
 		public ReferencedRelatedObjectPropertyGatherer(BaseDataAccessModel model, ParameterExpression sourceParameterExpression)
 		{
 			this.model = model;
@@ -42,18 +69,50 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 			return 1 + CountLevel(((MemberExpression)memberExpression.Expression));
 		}
 
+		protected override Expression VisitBinary(BinaryExpression binaryExpression)
+		{
+			using (this.AcquireDisableCompareContext())
+			{
+				return base.VisitBinary(binaryExpression);
+			}
+		}
+
+		protected override Expression VisitConditional(ConditionalExpression expression)
+		{
+			Expression test;
+
+			using (this.AcquireDisableCompareContext())
+			{
+				test = this.Visit(expression.Test);
+			}
+
+			var ifTrue = this.Visit(expression.IfTrue);
+			var ifFalse = this.Visit(expression.IfFalse);
+
+			if (test != expression.Test || ifTrue != expression.IfTrue || ifFalse != expression.IfFalse)
+			{
+				return Expression.Condition(test, ifTrue, ifFalse);
+			}
+			else
+			{
+				return expression;
+			}
+		}
+
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
 			var level = CountLevel(memberExpression);
 
-			if (level >= 2)
+			if (level >= 1 && !expressionsToIgnore.Contains(memberExpression))
 			{
-				var add = true;
+				var add = false;
 				var type = memberExpression.Expression.Type;
 				var memberMemberExpression = memberExpression.Expression as MemberExpression;
 
 				if (memberMemberExpression != null)
 				{
+					add = true;
+
 					var typeDescriptor = this.model.GetTypeDescriptor(type);
 					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 
@@ -61,11 +120,31 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 					{
 						add = false;
 					}
+
+					if (sourceParameterExpression != null)
+					{
+						if (memberMemberExpression.Expression != sourceParameterExpression)
+						{
+							add = false;
+						}
+					}
+				}
+				else if (memberExpression.Type.IsDataAccessObjectType() && !disableCompare)
+				{
+					add = true;
 				}
 
 				if (add)
 				{
 					this.results.Add(memberExpression);
+				
+					var expression = memberExpression;
+
+					while (expression != null)
+					{
+						expressionsToIgnore.Add(expression);
+						expression = expression.Expression as MemberExpression;
+					}
 				}
 			}
 
