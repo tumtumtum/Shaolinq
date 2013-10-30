@@ -248,7 +248,6 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-
 			using (var scope = new TransactionScope())
 			{
 				var obj1 = this.model.ObjectWithCompositePrimaryKeys.ReferenceTo(new

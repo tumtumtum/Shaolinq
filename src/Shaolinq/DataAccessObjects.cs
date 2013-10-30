@@ -2,7 +2,7 @@
 {
 	public class DataAccessObjects<T>
 		: DataAccessObjectsQueryable<T>
-		where T : IDataAccessObject
+		where T : class, IDataAccessObject
 	{
 	}
 }

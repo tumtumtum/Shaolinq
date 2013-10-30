@@ -102,8 +102,9 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
 			var level = CountLevel(memberExpression);
+			var max = memberExpression.Type.IsDataAccessObjectType() ? 1 : 2;
 
-			if (level >= 1 && !expressionsToIgnore.Contains(memberExpression))
+			if (level >= max && !expressionsToIgnore.Contains(memberExpression))
 			{
 				var add = false;
 				var type = memberExpression.Expression.Type;

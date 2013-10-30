@@ -176,7 +176,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 					return methodCallExpression;
 				}
 			}
-			else if (methodCallExpression.Method.IsGenericMethod && methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
+			else if (methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
 				&& methodCallExpression.Method.Name == "GetValueOrDefault")
 			{
 				Visit(methodCallExpression.Object);

@@ -10,7 +10,7 @@ namespace Shaolinq
 {
 	public class RelatedDataAccessObjects<T>
 		: DataAccessObjectsQueryable<T>, IRelatedDataAccessObjectContext, IDataAccessObjectActivator
-		where T : IDataAccessObject
+		where T : class, IDataAccessObject
 	{
 		public IDataAccessObject RelatedDataAccessObject { get; private set; }
 

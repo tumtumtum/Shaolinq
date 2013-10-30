@@ -13,7 +13,7 @@ namespace Shaolinq
 	/// <typeparam name="T">The type data access object</typeparam>
 	public class DataAccessObjectsQueryable<T>
 		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator
-		where T : IDataAccessObject
+		where T : class, IDataAccessObject
 	{
 		/// <summary>
 		/// A reference to the related <see cref="BaseDataAccessModel"/>.

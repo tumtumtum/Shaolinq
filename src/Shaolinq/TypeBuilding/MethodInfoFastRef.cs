@@ -14,6 +14,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableJoinMethod;
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod;
 		public static readonly MethodInfo ExpressionGenericLambdaMethod;
+		public static readonly MethodInfo BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod;
 		public static readonly MethodInfo GuidEqualsMethod = typeof(Guid).GetMethod("Equals", new Type[] { typeof(Guid) });
 		public static readonly MethodInfo GuidNewGuid = typeof(Guid).GetMethod("NewGuid", BindingFlags.Public | BindingFlags.Static);
 		public static readonly MethodInfo StringExtensionsIsLikeMethodInfo = typeof(ShaolinqStringExtensions).GetMethod("IsLike", BindingFlags.Static | BindingFlags.Public);
@@ -40,6 +41,7 @@ namespace Shaolinq.TypeBuilding
 			QueryableJoinMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "Join")).First(c => c.GetParameters().Length == 5);
 			QueryableDefaultIfEmptyMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "DefaultIfEmpty")).First(c => c.GetParameters().Length == 1);
 			ExpressionGenericLambdaMethod = typeof(Expression).GetMethods().First(c => c.Name == "Lambda" && c.GetGenericArguments().Length == 1);
+			BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = typeof(BaseDataAccessModel).GetMethods().First(c => c.Name == "GetReferenceByPrimaryKey" && c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(object[]));
 		}
 	}
 }

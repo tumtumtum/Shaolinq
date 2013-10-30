@@ -7,7 +7,7 @@ namespace Shaolinq
 	public static class XmlSerializationExtensions
 	{
 		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, TextReader reader, bool transient, SerializationParameters parameters)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
 			var value = querable.NewDataAccessObject(transient);
@@ -18,7 +18,7 @@ namespace Shaolinq
 		}
 
 		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, TextReader reader, bool transient)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
 			var value = querable.NewDataAccessObject(transient);
@@ -29,7 +29,7 @@ namespace Shaolinq
 		}
 
 		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, XmlReader reader, bool transient, SerializationParameters parameters)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
 			var value = querable.NewDataAccessObject(transient);
@@ -40,7 +40,7 @@ namespace Shaolinq
 		}
 
 		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, XmlReader reader, bool transient)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
 			var value = querable.NewDataAccessObject(transient);
@@ -51,7 +51,7 @@ namespace Shaolinq
 		}
 
 		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, string xml, bool transient)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
 			var value = querable.NewDataAccessObject(transient);
@@ -62,7 +62,7 @@ namespace Shaolinq
 		}
 
 		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, string xml, bool transient, SerializationParameters parameters)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
 			var value = querable.NewDataAccessObject(transient);
@@ -73,7 +73,7 @@ namespace Shaolinq
 		}
 
 		public static T PopulateFromXml<T>(this T value, string xml)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
 

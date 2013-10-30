@@ -120,7 +120,28 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Query_Select_Related_Object_Implict_Join_3()
+		public virtual void Test_Query_Where_Related_Object_Compared_To_Null()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+				
+				var schools = this.model.Students.Where(c => c.School == null).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Where_Related_Object_Compared_To_Variable()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -134,7 +155,145 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				var schools  = this.model.Students.Select(c => c.Address.Number == 0 ? c.School : c.School).ToList();
+				var students = this.model.Students.Where(c => c.School == brucesSchool).ToList();
+
+				Assert.AreEqual(1, students.Count);
+				Assert.AreSame(brucesSchool, students[0].School);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Select_With_Conditional()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var values = this.model.Students.Select(c => c.School == brucesSchool  ? true : false).ToList();
+
+				Assert.That(values.Count, Is.GreaterThan(0));
+				
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Select_With_Conditional_On_Null()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var values = this.model.Students.Select(c => c.School == null ? true : false).ToList();
+
+				Assert.That(values.Count, Is.GreaterThan(0));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Select_With_Conditional_On_Implicit_Join_Value()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var students = this.model.Students.Select(c => c.Address.Number == 0 ? c.School : brucesSchool).ToList();
+
+				Assert.That(students.Count, Is.GreaterThan(0));
+				
+				scope.Complete();
+			}
+		}
+
+
+		[Test]
+		public virtual void Test_Query_Where_Related_Object_Property_Compared_To_Variable()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Address = this.model.Address.NewDataAccessObject();
+				brucesStudent.Address.Number = 1087;
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var id = brucesStudent.Address.Number;
+				var students = this.model.Students.Where(c => c.Address.Number == id).ToList();
+
+				Assert.AreEqual(1, students.Count);
+				Assert.AreSame(brucesStudent, students[0]);
+
+				students = this.model.Students.Where(c => c.Address.Number != id).ToList();
+
+				Assert.That(students.Count, Is.LessThan(this.model.Students.Count()));
+				Assert.IsFalse(students.Contains(brucesStudent));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Where_Related_Object_Property_Compared_To_Variable_Complex()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Address = this.model.Address.NewDataAccessObject();
+				brucesStudent.Address.Number = 1088;
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var students = this.model.Students.Where(c => c.Address.Number == brucesStudent.Address.Number).ToList();
+
+				Assert.AreEqual(1, students.Count);
+				Assert.AreSame(brucesStudent, students[0]);
+
+				students = this.model.Students.Where(c => c.Address.Number != brucesStudent.Address.Number).ToList();
+
+				Assert.That(students.Count, Is.LessThan(this.model.Students.Count()));
+				Assert.IsFalse(students.Contains(brucesStudent));
 
 				scope.Complete();
 			}
@@ -155,7 +314,9 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				var students = this.model.Students.Select(c => c.School.Name).ToList();
+				var schoolName = this.model.Students.Where(c => c == brucesStudent).Select(c => c.School.Name).First();
+
+				Assert.AreEqual(brucesSchool.Name, schoolName);
 
 				scope.Complete();
 			}
@@ -177,6 +338,30 @@ namespace Shaolinq.Tests
 				scope.Flush(model);
 
 				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce") && c.Address.Number == 0).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Where_Compare_Object_To_Null()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.NewDataAccessObject();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var students = this.model.Students.Where(c => c == brucesStudent).ToList();
+
+				Assert.AreEqual(1, students.Count);
+				Assert.AreSame(brucesStudent, students[0]);
 
 				scope.Complete();
 			}

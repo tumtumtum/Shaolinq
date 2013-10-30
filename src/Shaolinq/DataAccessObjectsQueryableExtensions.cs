@@ -21,7 +21,7 @@ namespace Shaolinq
 		}
 
 		public static void DeleteImmediately<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			queryable.DataAccessModel.FlushCurrentTransaction();
 
@@ -41,7 +41,7 @@ namespace Shaolinq
 		}
 
 		public static void DeleteDelayed<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			if (queryable.ExtraCondition != null)
 			{

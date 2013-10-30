@@ -137,20 +137,24 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in this.model.Students
+				var results = (from student in this.model.Students
 							  from school in this.model.Schools
 							  orderby  student.Firstname
 							  where student.School.Id == school.Id
-							  select new { student.Fullname, school.Name };
+							  select new { student.Fullname, school.Name }).ToList();
 
 				var students = this.model.Students.ToArray();
 				var schools = this.model.Schools.ToArray();
 
-				var resultsLocal = from student in students
-							  from school in schools
-							  orderby student.Firstname
-							  where student.School.Id == school.Id
-							  select new { student.Fullname, school.Name };
+				var resultsLocal = (from student in students
+				                    from school in schools
+				                    orderby student.Firstname
+				                    where student.School.Id == school.Id
+				                    select new
+				                    {
+					                    student.Fullname,
+					                    school.Name
+				                    }).ToList();
 
 				Assert.IsTrue(resultsLocal.SequenceEqual(results));
 
@@ -379,6 +383,19 @@ namespace Shaolinq.Tests
 				var student1 = this.model.Students.FirstOrDefault(c => c.Firstname == "Tum");
 
 				Assert.IsNotNull(student1);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Query_Select_Scalar_With_First()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var studentName = this.model.Students.Select(c => c.Firstname).First();
+
+				Assert.IsNotNull(studentName);
 
 				scope.Complete();
 			}

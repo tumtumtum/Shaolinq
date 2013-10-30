@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 
 		protected override Expression VisitParameter(ParameterExpression expression)
 		{
-			hashCode ^= expression.Name.GetHashCode();
+			hashCode ^= expression.Name == null ? 0 : expression.Name.GetHashCode();
 
 			return base.VisitParameter(expression);
 		}

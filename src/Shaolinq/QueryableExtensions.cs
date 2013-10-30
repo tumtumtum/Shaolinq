@@ -17,13 +17,13 @@ namespace Shaolinq
 		}
 
 		public static IQueryable<T> WhereForUpdate<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			return queryable.PersistenceQueryProvider.CreateQuery<T>(Expression.Call(null, WhereForUpdateMethod.MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
 		}
 
 		public static IQueryable<R> SelectForUpdate<T, R>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, R>> condition)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			return queryable.PersistenceQueryProvider.CreateQuery<R>(Expression.Call(null, SelectForUpdateMethod.MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
 		}

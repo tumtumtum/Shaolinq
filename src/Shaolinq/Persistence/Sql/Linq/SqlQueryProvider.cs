@@ -32,34 +32,27 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		public override T Execute<T>(Expression expression)
 		{
-			if (typeof(IEnumerable).IsAssignableFrom(typeof(T)))
+			var v = this.PrivateExecute(expression);
+
+			switch (v.Second)
 			{
-				return (T)this.PrivateExecute(expression).First;
-			}
-			else
-			{
-				var v = this.PrivateExecute(expression);
+				case SelectFirstType.FirstOrDefault:
+					return ((IEnumerable<T>)v.First).FirstOrDefault();
+				case SelectFirstType.Single:
+					return ((IEnumerable<T>)v.First).Single();
+				case SelectFirstType.SingleOrDefault:
+					return ((IEnumerable<T>)v.First).SingleOrDefault();
+				case SelectFirstType.DefaultIfEmpty:
+					var retval = ((IEnumerable<T>)v.First).SingleOrDefault();
 
-				switch (v.Second)
-				{
-					case SelectFirstType.FirstOrDefault:
-						return ((IEnumerable<T>)v.First).FirstOrDefault();
-					case SelectFirstType.Single:
-						return ((IEnumerable<T>)v.First).Single();
-					case SelectFirstType.SingleOrDefault:
-						return ((IEnumerable<T>)v.First).SingleOrDefault();
-					case SelectFirstType.DefaultIfEmpty:
-						var retval = ((IEnumerable<T>)v.First).SingleOrDefault();
+					if (retval == null || retval.Equals(typeof(T).GetDefaultValue()))
+					{
+						return (T)Expression.Lambda(v.Third).Compile().DynamicInvoke(null);
+					}
 
-						if (retval == null || retval.Equals(typeof(T).GetDefaultValue()))
-						{
-							return (T)Expression.Lambda(v.Third).Compile().DynamicInvoke(null);
-						}
-
-						return retval;
-					default:
-						return ((IEnumerable<T>)v.First).First();
-				}
+					return retval;
+				default:
+					return ((IEnumerable<T>)v.First).First();
 			}
 		}
 
@@ -168,8 +161,6 @@ namespace Shaolinq.Persistence.Sql.Linq
 					}
 
 					var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.PersistenceContext, projectionExpression.Projector, columns);
-
-					projectionLambda = (LambdaExpression)ObjectOperandAssignmentExpander.Expand(this.DataAccessModel, this.PersistenceContext, projectionLambda);
 
 					cacheInfo.ElementType = projectionLambda.Body.Type;
 					cacheInfo.Projector = projectionLambda.Compile();

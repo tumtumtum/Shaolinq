@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using Shaolinq.Persistence;
@@ -27,7 +26,7 @@ namespace Shaolinq
 
 		[ReflectionEmitted]
 		public abstract DataAccessObjects<T> GetDataAccessObjects<T>()
-			where T : IDataAccessObject;
+			where T : class, IDataAccessObject;
 
 		public virtual TypeDescriptor GetTypeDescriptor(Type type)
 		{
@@ -280,8 +279,16 @@ namespace Shaolinq
 		private readonly Dictionary<Type, Func<Object, PropertyInfoAndValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, PropertyInfoAndValue[]>>();
 
 		public virtual T GetReferenceByPrimaryKey<T>(PropertyInfoAndValue[] primaryKey)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
+			foreach (var keyValue in primaryKey)
+			{
+				if (keyValue.value == null)
+				{
+					return null;
+				}
+			}
+
 			var propertyInfoAndValues = primaryKey;
 
 			var existing = this.GetCurrentDataContext(false).GetObject(this.GetPersistenceContext(typeof(T)), this.GetConcreteTypeFromDefinitionType(typeof(T)), propertyInfoAndValues);
@@ -312,8 +319,53 @@ namespace Shaolinq
 			return this.GetReferenceByPrimaryKey<T>(new { Id = primaryKey });
 		}
 
+		public virtual T GetReferenceByPrimaryKey<T>(object[] primaryKeyValues)
+			where T : class, IDataAccessObject
+		{
+			if (primaryKeyValues == null)
+			{
+				throw new ArgumentNullException("primaryKeyValues");
+			}
+
+			var objectType = typeof(object[]);
+			Func<object, PropertyInfoAndValue[]> func;
+
+			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
+			{
+				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
+
+				var parameter = Expression.Parameter(typeof(object));
+				var constructor = typeof(PropertyInfoAndValue).GetConstructor(new Type[] { typeof(PropertyInfo), typeof(object), typeof(string), typeof(string), typeof(bool), typeof(int) });
+
+				var index = 0;
+				var initializers = new List<Expression>();
+
+				foreach (var property in typeDescriptor.PrimaryKeyProperties)
+				{
+					var valueExpression = Expression.Convert(Expression.ArrayIndex(Expression.Convert(parameter, typeof(object[])), Expression.Constant(index)), typeof(object));
+					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
+					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo), Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
+
+					initializers.Add(newExpression);
+					index++;
+				}
+
+				var body = Expression.NewArrayInit(typeof(PropertyInfoAndValue), initializers);
+
+				var lambdaExpression = Expression.Lambda(typeof(Func<object, PropertyInfoAndValue[]>), body, parameter);
+
+				func = (Func<object, PropertyInfoAndValue[]>)lambdaExpression.Compile();
+
+				propertyInfoAndValueGetterFuncByType[objectType] = func;
+			}
+
+			var propertyInfoAndValues = func(primaryKeyValues);
+
+			return this.GetReferenceByPrimaryKey<T>(propertyInfoAndValues);
+		}
+
 		public virtual T GetReferenceByPrimaryKey<T>(object primaryKey)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			if (primaryKey == null)
 			{

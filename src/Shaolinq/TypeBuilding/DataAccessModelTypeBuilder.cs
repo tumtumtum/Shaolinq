@@ -135,6 +135,7 @@ namespace Shaolinq.TypeBuilding
 			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
 			var genericParameters = methodBuilder.DefineGenericParameters(new string[] { "T" });
 
+			genericParameters[0].SetGenericParameterAttributes(GenericParameterAttributes.ReferenceTypeConstraint);
 			genericParameters[0].SetInterfaceConstraints(typeof(IDataAccessObject));
 
 			var generator = methodBuilder.GetILGenerator();

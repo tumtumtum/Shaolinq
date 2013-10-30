@@ -154,7 +154,7 @@
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlOrderByExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\AggregateFinder.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\AggregateRewriter.cs" />
-    <Compile Include="Persistence\Sql\Linq\DomainObjectProjector.cs" />
+    <Compile Include="Persistence\Sql\Linq\DataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlAggregateSubqueryExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlAggregateType.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlAggregateExpression.cs" />

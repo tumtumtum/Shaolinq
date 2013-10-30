@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
+using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
@@ -163,6 +166,33 @@ namespace Shaolinq.Persistence.Sql.Linq
 			return expression;
 		}
 
+		protected override Expression VisitConditional(ConditionalExpression expression)
+		{
+			var test = this.Visit(expression.Test);
+			var ifTrue = this.Visit(expression.IfTrue);
+			var ifFalse = this.Visit(expression.IfFalse);
+
+			if (ifTrue.Type != ifFalse.Type)
+			{
+				if (ifTrue.Type.IsDataAccessObjectType() && !ifTrue.Type.IsAbstract)
+				{
+					return (Expression)Expression.Condition(test, ifTrue, Expression.Convert(ifFalse, ifTrue.Type));
+				}
+				else
+				{
+					return (Expression)Expression.Condition(test, Expression.Convert(ifTrue, ifFalse.Type), ifFalse);
+				}
+			}
+			else if (test != expression.Test || ifTrue != expression.IfTrue || ifFalse != expression.IfFalse)
+			{
+				return (Expression)Expression.Condition(test, ifTrue, ifFalse);
+			}
+			else
+			{
+				return (Expression)expression;
+			}
+		}
+
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
 			// Replace all column accesses with the appropriate IDataReader call
@@ -186,6 +216,15 @@ namespace Shaolinq.Persistence.Sql.Linq
 			}
 		}
 
+		protected override Expression VisitObjectOperand(SqlObjectOperand objectOperand)
+		{
+			var arrayOfValues = Expression.NewArrayInit(typeof(object), objectOperand.ExpressionsInOrder.Select(c => (Expression)Expression.Convert(this.Visit(c), typeof(object))).ToArray());
+
+			var method = MethodInfoFastRef.BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(objectOperand.Type);
+
+			return Expression.Call(Expression.Property(this.objectProjector, "DataAccessModel"), method, arrayOfValues);
+		}
+
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
 			var subQuery = Expression.Lambda(base.VisitProjection(projection), this.objectProjector);
@@ -193,6 +232,90 @@ namespace Shaolinq.Persistence.Sql.Linq
 			var boundExecuteSubQueryMethod = ExecuteSubQueryMethod.MakeGenericMethod(elementType);
 
 			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery)), projection.Type);
+		}
+
+		private IEnumerable<MemberAssignment> CreateMemberAssignments(MemberAssignment assignment)
+		{
+			// Assignments of related objects are converted to multiple assignments of the foriegn key values
+
+			var i = 0;
+			var sqlObjectOperand = (SqlObjectOperand) assignment.Expression;
+			var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(assignment.Expression.Type);
+
+			var ownerTypeDescriptor = this.dataAccessModel.GetTypeDescriptor(assignment.Member.ReflectedType);
+			var ownerPropertyDescriptor = ownerTypeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
+
+			foreach (var primaryKey in typeDescriptor.PrimaryKeyProperties)
+			{
+				var type = this.dataAccessModel.GetConcreteTypeFromDefinitionType(assignment.Member.ReflectedType);
+				var propertyInfo = type.GetProperties().FirstOrDefault(c => c.Name == ownerPropertyDescriptor.PersistedName + primaryKey.PersistedShortName);
+				
+				yield return Expression.Bind(propertyInfo, this.Visit(sqlObjectOperand.ExpressionsInOrder[i]));
+
+				i++;
+			}
+		}
+
+		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
+		{
+			List<MemberBinding> list = null;
+
+			for (int i = 0, n = original.Count; i < n; i++)
+			{
+				if (original[i].BindingType == MemberBindingType.Assignment)
+				{
+					var assignment = (MemberAssignment)original[i];
+
+					if (assignment.Expression.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
+					{
+						foreach (var subAssignment in CreateMemberAssignments(assignment))
+						{
+							if (list != null)
+							{
+								list.Add(subAssignment);
+							}
+							else
+							{
+								list = new List<MemberBinding>(n);
+
+								for (var j = 0; j < i; j++)
+								{
+									list.Add(original[j]);
+								}
+
+								list.Add(subAssignment);
+							}
+						}
+
+						continue;
+					}
+				}
+
+				var b = VisitBinding(original[i]);
+
+				if (list != null)
+				{
+					list.Add(b);
+				}
+				else if (b != original[i])
+				{
+					list = new List<MemberBinding>(n);
+
+					for (var j = 0; j < i; j++)
+					{
+						list.Add(original[j]);
+					}
+
+					list.Add(b);
+				}
+			}
+
+			if (list != null)
+			{
+				return list;
+			}
+
+			return original;
 		}
 	}
 }

@@ -6,12 +6,14 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 {
 	/// <summary>
 	/// Converts binary expressions between two <see cref="SqlObjectOperand"/> expressions
-	/// into multiple binary expressions performaning the operation over the the primary
+	/// into multiple binary expressions performing the operation over the the primary
 	/// keys of the object operands.
 	/// </summary>
 	public class ObjectOperandComparisonExpander
 		: SqlExpressionVisitor
 	{
+		private bool inProjector;
+
 		private ObjectOperandComparisonExpander()
 		{
 		}
@@ -23,8 +25,44 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 			return fixer.Visit(expression);
 		}
 
+		protected override Expression VisitProjection(SqlProjectionExpression projection)
+		{
+			var source = (SqlSelectExpression)Visit(projection.Select);
+
+			var oldInProjector = inProjector;
+
+			inProjector = true;
+
+			Expression projector;
+
+			try
+			{
+				projector = Visit(projection.Projector);
+			}
+			finally
+			{
+				inProjector = oldInProjector;
+			}
+
+			var aggregator = (LambdaExpression)Visit(projection.Aggregator);
+
+			if (source != projection.Select
+				|| projector != projection.Projector
+				|| aggregator != projection.Aggregator)
+			{
+				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.SelectFirstType, null);
+			}
+
+			return projection;
+		}
+
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
+			if (this.inProjector)
+			{
+				return functionCallExpression;
+			}
+
 			if (functionCallExpression.Arguments.Count == 1)
 			{
 				if (functionCallExpression.Arguments[0] is SqlObjectOperand)
@@ -57,6 +95,11 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
+			if (inProjector)
+			{
+				return binaryExpression;
+			}
+
 			if (binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand
 				&& binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
 			{

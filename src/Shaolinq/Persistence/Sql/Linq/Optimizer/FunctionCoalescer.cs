@@ -27,41 +27,6 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 			return functionCoalescer.Visit(expression);
 		}
 
-		protected override Expression VisitBinary(BinaryExpression binaryExpression)
-		{
-			if (binaryExpression.NodeType == ExpressionType.NotEqual
-				|| binaryExpression.NodeType == ExpressionType.Equal)
-			{
-				var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
-
-				var leftConstantExpression = binaryExpression.Left as ConstantExpression;
-				var rightConstantExpression = binaryExpression.Right as ConstantExpression;
-
-				if (rightConstantExpression != null)
-				{
-					if (rightConstantExpression.Value == null)
-					{
-						if (leftConstantExpression == null || leftConstantExpression.Value != null)
-						{
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, binaryExpression.Left);
-						}
-					}
-				}
-				
-				if (leftConstantExpression != null)
-				{
-					if (leftConstantExpression.Value == null)
-					{
-						if (rightConstantExpression == null || rightConstantExpression.Value != null)
-						{
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, binaryExpression.Right);
-						}
-					}
-				}
-			}
-			return base.VisitBinary(binaryExpression);
-		}
-
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
 			if (functionCallExpression.Arguments.Count == 2)

@@ -45,10 +45,9 @@ namespace Shaolinq.Persistence
 			else if (propertyDescriptor.PersistedMemberAttribute != null && propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
 				var i = 0;
-				Pair<string, PropertyDescriptor>[] retval;
 				var typeDescriptor = dataAccessModel.GetTypeDescriptor(propertyDescriptor.PropertyType);
 
-				retval = new Pair<string, PropertyDescriptor>[typeDescriptor.PrimaryKeyProperties.Count()];
+				var retval = new Pair<string, PropertyDescriptor>[typeDescriptor.PrimaryKeyProperties.Count];
 
 				foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
 				{

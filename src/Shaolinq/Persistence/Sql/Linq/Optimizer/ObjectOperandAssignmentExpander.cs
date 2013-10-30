@@ -70,7 +70,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 							{
 								list = new List<MemberBinding>(n);
 
-								for (int j = 0; j < i; j++)
+								for (var j = 0; j < i; j++)
 								{
 									list.Add(original[j]);
 								}
@@ -93,7 +93,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 				{
 					list = new List<MemberBinding>(n);
 
-					for (int j = 0; j < i; j++)
+					for (var j = 0; j < i; j++)
 					{
 						list.Add(original[j]);
 					}
