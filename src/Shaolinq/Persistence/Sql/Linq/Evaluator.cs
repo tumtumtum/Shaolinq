@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -128,14 +130,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 					if (Nullable.GetUnderlyingType(unaryExpression.Type) != null)
 					{
-						value = Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), e.Type);
+						return Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), e.Type);
 					}
 					else
 					{
-						value = Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type), e.Type);
+						return Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type), e.Type);
 					}
 
-					return Expression.Constant(value, e.Type);
+					// return Expression.Constant(value, e.Type);
 				}
 				else if (e.NodeType == ExpressionType.Convert && ((UnaryExpression)e).Operand.NodeType == ExpressionType.MemberAccess && ((UnaryExpression)e).Operand.Type.IsEnum)
 				{

@@ -91,10 +91,12 @@
     <Compile Include="IdentityEqualityComparer.cs" />
     <Compile Include="MissingDataAccessObjectException.cs" />
     <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
+    <Compile Include="MutableTuple.cs" />
     <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="PersistenceTransactionContextWrapper.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlTupleExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\GroupByCollator.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Sql\Linq\RelatedPropertiesJoinExpander.cs" />

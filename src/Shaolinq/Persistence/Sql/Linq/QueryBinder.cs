@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -221,11 +223,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 				}
 			}
 
-
 			if (binaryExpression.NodeType == ExpressionType.Coalesce)
             {
                 left = Visit(binaryExpression.Left);
-                
                 right = Visit(binaryExpression.Right);
 
                 return new SqlFunctionCallExpression(binaryExpression.Type, SqlFunction.Coalesce, new[] { left, right });
@@ -269,6 +269,25 @@ namespace Shaolinq.Persistence.Sql.Linq
 				{
 					return Expression.Coalesce(left, right, conversion as LambdaExpression);
 				}
+
+				if (left.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand && right.NodeType == (ExpressionType)SqlExpressionType.Projection)
+				{
+					var objectOperandExpression = (SqlObjectOperand)left;
+					var tupleExpression = new SqlTupleExpression(objectOperandExpression.ExpressionsInOrder);
+					var selector = MakeSelectorForPrimaryKeys(left.Type, tupleExpression.Type);
+					var rightWithSelect = BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)right, selector, false);
+
+					return Expression.MakeBinary(binaryExpression.NodeType, tupleExpression, rightWithSelect, binaryExpression.IsLiftedToNull, binaryExpression.Method);
+				}
+				else if (left.NodeType == (ExpressionType)SqlExpressionType.Projection && right.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
+				{
+					var objectOperandExpression = (SqlObjectOperand)right;
+					var tupleExpression = new SqlTupleExpression(objectOperandExpression.ExpressionsInOrder);
+					var selector = MakeSelectorForPrimaryKeys(right.Type, tupleExpression.Type);
+					var leftWithSelect = BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)right, selector, false);
+
+					return Expression.MakeBinary(binaryExpression.NodeType, leftWithSelect, tupleExpression, binaryExpression.IsLiftedToNull, binaryExpression.Method);
+				}
 				else
 				{
 					return Expression.MakeBinary(binaryExpression.NodeType, left, right, binaryExpression.IsLiftedToNull, binaryExpression.Method);
@@ -276,6 +295,54 @@ namespace Shaolinq.Persistence.Sql.Linq
 			}
 
 			return binaryExpression;
+		}
+
+		private LambdaExpression MakeSelectorForPrimaryKeys(Type objectType,  Type returnType)
+		{
+			var parameter = Expression.Parameter(objectType);
+			var constructor = returnType.GetConstructor(Type.EmptyTypes);
+			var newExpression = Expression.New(constructor);
+
+			var bindings = new List<MemberBinding>();
+			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(objectType);
+
+			var itemNumber = 1;
+
+			foreach (var property in typeDescriptor.PrimaryKeyProperties)
+			{
+				var itemProperty = returnType.GetProperty("Item" + itemNumber, BindingFlags.Instance | BindingFlags.Public);
+				bindings.Add(Expression.Bind(itemProperty, Expression.Property(parameter, property.PropertyName)));
+
+				itemNumber++;
+			}
+
+			var body = Expression.MemberInit(newExpression, bindings);
+
+			return Expression.Lambda(body, parameter);
+		}
+
+		private Expression BindSelectForPrimaryKeyProjection(Type resultType, SqlProjectionExpression projection, LambdaExpression selector, bool forUpdate)
+		{
+			Expression expression;
+			var oldIsWithinClientSideCode = this.isWithinClientSideCode;
+			
+			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
+
+			this.isWithinClientSideCode = true;
+
+			try
+			{
+				expression = this.Visit(selector.Body);
+			}
+			finally
+			{
+				this.isWithinClientSideCode = oldIsWithinClientSideCode;
+			}
+
+			var alias = this.GetNextAlias();
+			var pc = ProjectColumns(expression, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+
+			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
 
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)

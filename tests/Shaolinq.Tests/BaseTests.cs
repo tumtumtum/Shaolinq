@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
 ﻿using System;
 using Shaolinq.Persistence.Sql.Sqlite;
 using Shaolinq.Tests.DataAccessModel.Test;

@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -40,11 +42,25 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 					return this.VisitAggregateSubquery((SqlAggregateSubqueryExpression)expression);
 				case SqlExpressionType.ObjectOperand:
 					return this.VisitObjectOperand((SqlObjectOperand)expression);
+				case SqlExpressionType.Tuple:
+					return this.VisitTuple((SqlTupleExpression)expression);
 				case SqlExpressionType.Delete:
 					return this.VisitDeleteExpression((SqlDeleteExpression)expression);
 				default:
 					return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitTuple(SqlTupleExpression tupleExpression)
+		{
+			var expressions = VisitExpressionList(tupleExpression.SubExpressions);
+
+			if (tupleExpression.SubExpressions != expressions)
+			{
+				return new SqlTupleExpression(expressions, tupleExpression.Type);
+			}
+
+			return tupleExpression;
 		}
 
 		protected virtual Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
