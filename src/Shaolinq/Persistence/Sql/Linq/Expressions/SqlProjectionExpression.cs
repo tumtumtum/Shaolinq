@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
 ﻿using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Sql.Linq.Expressions
@@ -37,7 +39,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 		}
 
 		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, SelectFirstType selectFirstType, Expression defaultValueExpression, bool isDefaultIfEmpty)
-			: base(select.Type)
+			: base(selectFirstType == SelectFirstType.None ? select.Type : select.Type.GetGenericArguments()[0])
 		{
 			this.Select = select;
 			this.Projector = projector;

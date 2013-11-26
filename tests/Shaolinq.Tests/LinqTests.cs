@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,6 +78,74 @@ namespace Shaolinq.Tests
 				chuck2.Height = 182;
 			
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Nested_Select_Scalar_Comparison_In_Predicate1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = (from student in this.model.Students
+				               where student.School.Id == ((from s in this.model.Schools select s.Id).First())
+				               select student).ToList();
+
+				Assert.That(results.Count, Is.GreaterThan(0));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Nested_Select_Scalar_Comparison_In_Predicate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = (from student in this.model.Students
+							   where student.School.Id == ((from s in this.model.Schools select s.Id).FirstOrDefault())
+							   select student).ToList();
+
+				Assert.That(results.Count, Is.GreaterThan(0));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Nested_Select_Scalar_Inequality_Comparison_In_Predicate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = (from student in this.model.Students
+							   where student.Address.Number >= ((from address in this.model.Address select address.Number).Max())
+							   select student).ToList();
+
+				Assert.That(results.Count, Is.GreaterThan(0));
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Nested_Select_In_Projection()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = (from student in this.model.Students
+							   select new { Student = student, MaxAddress = (from s in this.model.Address select s.Number).Max()}).ToList();
+
+				Assert.That(results.Count, Is.GreaterThan(0));
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Nested_Select_Object_Comparison()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = (from student in this.model.Students
+							   where student.School == (from s in this.model.Schools select s).First()
+							   select student).ToList();
+
+				Assert.That(results.Count, Is.GreaterThan(0));
 			}
 		}
 

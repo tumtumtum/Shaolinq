@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -176,7 +178,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 					return methodCallExpression;
 				}
 			}
-			else if (methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
+			else if (methodCallExpression.Method.DeclaringType.IsGenericType
+				&& methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
 				&& methodCallExpression.Method.Name == "GetValueOrDefault")
 			{
 				Visit(methodCallExpression.Object);
@@ -728,92 +731,116 @@ namespace Shaolinq.Persistence.Sql.Linq
 			return expression;
 		}
 
+		private int selectNest;
+
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			commandText.Append("SELECT ");
+			var selectNested = selectNest > 0;
 
-			if (selectExpression.Distinct)
+			if (selectNested)
 			{
-				commandText.Append("DISTINCT ");
+				commandText.Append("(");
 			}
 
-			if (selectExpression.Columns.Count == 0)
+			try
 			{
-				commandText.Append("* ");
-			}
+				selectNest++;
 
-			for (int i = 0, n = selectExpression.Columns.Count; i < n; i++)
-			{
-				var column = selectExpression.Columns[i];
+				commandText.Append("SELECT ");
 
-				if (i > 0)
+				if (selectExpression.Distinct)
 				{
-					commandText.Append(", ");
+					commandText.Append("DISTINCT ");
 				}
 
-				VisitColumn(selectExpression, column);
-			}
-
-			if (selectExpression.From != null)
-			{
-				AppendNewLine(Indentation.Same);
-				commandText.Append("FROM ");
-				VisitSource(selectExpression.From);
-			}
-
-			if (selectExpression.Where != null)
-			{
-				AppendNewLine(Indentation.Same);
-				commandText.Append("WHERE ");
-				Visit(selectExpression.Where);
-			}
-
-			if (selectExpression.OrderBy != null && selectExpression.OrderBy.Count > 0)
-			{
-				this.AppendNewLine(Indentation.Same);
-
-				commandText.Append("ORDER BY ");
-
-				for (int i = 0; i < selectExpression.OrderBy.Count; i++)
+				if (selectExpression.Columns.Count == 0)
 				{
-					var orderExpression = selectExpression.OrderBy[i];
+					commandText.Append("* ");
+				}
+
+				for (int i = 0, n = selectExpression.Columns.Count; i < n; i++)
+				{
+					var column = selectExpression.Columns[i];
 
 					if (i > 0)
 					{
 						commandText.Append(", ");
 					}
 
-					this.Visit(orderExpression.Expression);
-
-					if (orderExpression.OrderType == OrderType.Descending)
-					{
-						commandText.Append(" DESC");
-					}
+					VisitColumn(selectExpression, column);
 				}
-			}
 
-			if (selectExpression.GroupBy != null && selectExpression.GroupBy.Count > 0)
-			{
-				this.AppendNewLine(Indentation.Same);
-				commandText.Append("GROUP BY ");
-
-				for (var i = 0; i < selectExpression.GroupBy.Count; i++)
+				if (selectExpression.From != null)
 				{
-					if (i > 0)
-					{
-						commandText.Append(", ");
-					}
+					AppendNewLine(Indentation.Same);
+					commandText.Append("FROM ");
+					VisitSource(selectExpression.From);
+				}
 
-					this.Visit(selectExpression.GroupBy[i]);
+				if (selectExpression.Where != null)
+				{
+					AppendNewLine(Indentation.Same);
+					commandText.Append("WHERE ");
+					Visit(selectExpression.Where);
+				}
+
+				if (selectExpression.OrderBy != null && selectExpression.OrderBy.Count > 0)
+				{
+					this.AppendNewLine(Indentation.Same);
+
+					commandText.Append("ORDER BY ");
+
+					for (int i = 0; i < selectExpression.OrderBy.Count; i++)
+					{
+						var orderExpression = selectExpression.OrderBy[i];
+
+						if (i > 0)
+						{
+							commandText.Append(", ");
+						}
+
+						this.Visit(orderExpression.Expression);
+
+						if (orderExpression.OrderType == OrderType.Descending)
+						{
+							commandText.Append(" DESC");
+						}
+					}
+				}
+
+				if (selectExpression.GroupBy != null && selectExpression.GroupBy.Count > 0)
+				{
+					this.AppendNewLine(Indentation.Same);
+					commandText.Append("GROUP BY ");
+
+					for (var i = 0; i < selectExpression.GroupBy.Count; i++)
+					{
+						if (i > 0)
+						{
+							commandText.Append(", ");
+						}
+
+						this.Visit(selectExpression.GroupBy[i]);
+					}
+				}
+
+				AppendLimit(selectExpression);
+
+				if (selectExpression.ForUpdate && this.sqlDialect.SupportsForUpdate)
+				{
+					commandText.Append(" FOR UPDATE");
+				}
+
+				if (selectNested)
+				{
+					commandText.Append(")");
 				}
 			}
-
-			AppendLimit(selectExpression);
-
-			if (selectExpression.ForUpdate && this.sqlDialect.SupportsForUpdate)
+			finally
 			{
-				commandText.Append(" FOR UPDATE");
+				selectNest--;
 			}
+
 
 			return selectExpression;
 		}
@@ -957,6 +984,28 @@ namespace Shaolinq.Persistence.Sql.Linq
 			commandText.Append("Obj(").Append(objectOperand.Type.Name).Append(")");
 
 			return objectOperand;
+		}
+
+		protected override Expression VisitTuple(SqlTupleExpression tupleExpression)
+		{
+			commandText.Append('(');
+
+			var i = 0;
+
+			foreach (var expression in tupleExpression.SubExpressions)
+			{
+				this.Visit(expression);
+
+				if (i != tupleExpression.SubExpressions.Count - 1)
+				{
+					commandText.Append(" ,");
+				}
+				i++;
+			}
+
+			commandText.Append(')');
+
+			return tupleExpression;
 		}
 	}
 }
