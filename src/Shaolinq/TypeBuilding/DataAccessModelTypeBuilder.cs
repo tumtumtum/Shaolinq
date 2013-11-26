@@ -164,7 +164,6 @@ namespace Shaolinq.TypeBuilding
 			var constructor = TypeBuilder.GetConstructor(typeof(DataAccessObjects<>).MakeGenericType(genericParameters[0]), constructorPrep);
 
 			// Create new queryable
-			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Newobj, constructor);
 			generator.Emit(OpCodes.Stloc, typedLocal);
 
