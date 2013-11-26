@@ -637,6 +637,9 @@ namespace Shaolinq
 		public virtual T Inflate<T>(T obj)
 			where T : class, IDataAccessObject
 		{
+			var t = this.ToString();
+			var s = this.GetDataAccessObjects<T>();
+
 			return this.GetDataAccessObjects<T>().First(c => c == obj);
 		}
 	}

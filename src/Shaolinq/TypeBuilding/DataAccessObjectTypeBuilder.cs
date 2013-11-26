@@ -249,8 +249,8 @@ namespace Shaolinq.TypeBuilding
 
 					EmitUpdatedComputedPropertes(constructorGenerator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
 				}
-			
-				// Create type
+				
+				constructorGenerator.Emit(OpCodes.Ret);
 
 				dataObjectTypeTypeBuilder.CreateType();
 
