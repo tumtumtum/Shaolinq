@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Shaolinq</id>
+    <version>$version$</version>
+    <title>Shaolinq Data Access Framework</title>
+    <summary>A thoughtful ORM and Linq provider for .NET</summary>
+    <authors>Thong Nguyen</authors>
+    <owners>Thong Nguyen</owners>
+    <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/tumtumtum/Shaolinq</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description></description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
+    <tags>linq provider orm sqlite sql database</tags>
+  </metadata>
+</package>
