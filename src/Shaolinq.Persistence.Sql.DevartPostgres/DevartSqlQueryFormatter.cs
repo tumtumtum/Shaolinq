@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using Shaolinq.Persistence.Sql.Linq;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
 
-namespace Shaolinq.Persistence.Sql.DevartPostgres
+namespace Shaolinq.Postgres.Devart
 {
 	public class DevartSqlQueryFormatter
 		: Sql92QueryFormatter

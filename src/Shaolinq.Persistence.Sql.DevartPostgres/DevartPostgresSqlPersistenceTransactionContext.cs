@@ -8,7 +8,7 @@ using System.Threading;
 using System.Transactions;
 using Devart.Data.PostgreSql;
 
-namespace Shaolinq.Persistence.Sql.DevartPostgres
+namespace Shaolinq.Postgres.Devart
 {
 	public class DevartPostgresSqlPersistenceTransactionContext
 		: SqlPersistenceTransactionContext

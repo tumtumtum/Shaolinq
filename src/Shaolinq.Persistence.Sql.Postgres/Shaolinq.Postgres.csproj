@@ -101,9 +101,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shaolinq.Persistence.Sql.Postgres.Shared\Shaolinq.Persistence.Sql.Postgres.Shared.csproj">
+    <ProjectReference Include="..\Shaolinq.Persistence.Sql.Postgres.Shared\Shaolinq.Postgres.Shared.csproj">
       <Project>{371cef26-5eb2-4fcb-9109-e821260d4189}</Project>
-      <Name>Shaolinq.Persistence.Sql.Postgres.Shared</Name>
+      <Name>Shaolinq.Postgres.Shared</Name>
     </ProjectReference>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">
       <Project>{0C8321D6-4DF6-4B90-AF5A-92537D4A7E54}</Project>

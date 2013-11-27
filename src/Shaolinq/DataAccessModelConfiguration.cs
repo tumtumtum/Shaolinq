@@ -29,7 +29,7 @@ namespace Shaolinq
 				{
 					var match = NameRegex.Match(reader.Name);
 					var provider = match.Groups[1].Value;
-					var namespaceName = "Shaolinq.Persistence.Sql." + provider;
+					var namespaceName = "Shaolinq." + provider;
 
 					type = Type.GetType(String.Concat(namespaceName, ".", reader.Name, "Info"), false);
 

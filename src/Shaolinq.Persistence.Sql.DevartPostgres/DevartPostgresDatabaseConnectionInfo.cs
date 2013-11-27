@@ -3,7 +3,7 @@
 ﻿using System;
 using Platform.Xml.Serialization;
 
-namespace Shaolinq.Persistence.Sql.DevartPostgres
+namespace Shaolinq.Postgres.Devart
 {
 	[XmlElement]
 	public class DevartPostgresDatabaseConnectionInfo

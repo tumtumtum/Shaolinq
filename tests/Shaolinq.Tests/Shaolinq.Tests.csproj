@@ -89,13 +89,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Shaolinq.Persistence.Sql.Postgres\Shaolinq.Persistence.Sql.Postgres.csproj">
+    <ProjectReference Include="..\..\src\Shaolinq.Persistence.Sql.Postgres\Shaolinq.Postgres.csproj">
       <Project>{e79dcced-1693-4e38-98ac-b988d7429615}</Project>
-      <Name>Shaolinq.Persistence.Sql.Postgres</Name>
+      <Name>Shaolinq.Postgres</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Shaolinq.Persistence.Sql.Sqlite\Shaolinq.Persistence.Sql.Sqlite.csproj">
+    <ProjectReference Include="..\..\src\Shaolinq.Persistence.Sql.Sqlite\Shaolinq.Sqlite.csproj">
       <Project>{5fd0c2b3-f601-452a-8c72-d5962b6a089a}</Project>
-      <Name>Shaolinq.Persistence.Sql.Sqlite</Name>
+      <Name>Shaolinq.Sqlite</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Shaolinq\Shaolinq.csproj">
       <Project>{0c8321d6-4df6-4b90-af5a-92537d4a7e54}</Project>

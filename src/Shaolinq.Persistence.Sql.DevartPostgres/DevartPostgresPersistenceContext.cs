@@ -7,11 +7,12 @@ using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Transactions;
-using Shaolinq.Persistence.Sql.Linq;
+﻿using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Persistence.Sql.Linq;
 using Devart.Data.PostgreSql;
 using Shaolinq.Persistence.Sql.Postgres.Shared;
 
-namespace Shaolinq.Persistence.Sql.DevartPostgres
+namespace Shaolinq.Postgres.Devart
 {
     public class DevartPostgresPersistenceContext
         : SqlPersistenceContext

@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq", "Shaolinq\Shaolinq.csproj", "{0C8321D6-4DF6-4B90-AF5A-92537D4A7E54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Persistence.Sql.Postgres", "Shaolinq.Persistence.Sql.Postgres\Shaolinq.Persistence.Sql.Postgres.csproj", "{E79DCCED-1693-4E38-98AC-B988D7429615}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Postgres", "Shaolinq.Persistence.Sql.Postgres\Shaolinq.Postgres.csproj", "{E79DCCED-1693-4E38-98AC-B988D7429615}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Persistence.Sql.Sqlite", "Shaolinq.Persistence.Sql.Sqlite\Shaolinq.Persistence.Sql.Sqlite.csproj", "{5FD0C2B3-F601-452A-8C72-D5962B6A089A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Sqlite", "Shaolinq.Persistence.Sql.Sqlite\Shaolinq.Sqlite.csproj", "{5FD0C2B3-F601-452A-8C72-D5962B6A089A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Tests", "..\tests\Shaolinq.Tests\Shaolinq.Tests.csproj", "{F5BEB79B-3BCA-46AE-A08E-1B86CDD03616}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Persistence.Sql.MySql", "Shaolinq.Persistence.Sql.MySql\Shaolinq.Persistence.Sql.MySql.csproj", "{3020F62F-0078-4202-86EB-DD013294D1F2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.MySql", "Shaolinq.Persistence.Sql.MySql\Shaolinq.MySql.csproj", "{3020F62F-0078-4202-86EB-DD013294D1F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Persistence.Sql.DevartPostgres", "Shaolinq.Persistence.Sql.DevartPostgres\Shaolinq.Persistence.Sql.DevartPostgres.csproj", "{7294424C-60A2-4D6E-B210-763E383CB150}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Postgres.Devart", "Shaolinq.Persistence.Sql.DevartPostgres\Shaolinq.Postgres.Devart.csproj", "{7294424C-60A2-4D6E-B210-763E383CB150}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Persistence.Sql.Postgres.Shared", "Shaolinq.Persistence.Sql.Postgres.Shared\Shaolinq.Persistence.Sql.Postgres.Shared.csproj", "{371CEF26-5EB2-4FCB-9109-E821260D4189}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Postgres.Shared", "Shaolinq.Persistence.Sql.Postgres.Shared\Shaolinq.Postgres.Shared.csproj", "{371CEF26-5EB2-4FCB-9109-E821260D4189}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
