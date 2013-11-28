@@ -8,8 +8,8 @@
     <ProjectGuid>{7294424C-60A2-4D6E-B210-763E383CB150}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Shaolinq.Postgres.Devart</RootNamespace>
-    <AssemblyName>Shaolinq.Postgres.Devart</AssemblyName>
+    <RootNamespace>Shaolinq.Postgres.DotConnect</RootNamespace>
+    <AssemblyName>Shaolinq.Postgres.DotConnect</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>

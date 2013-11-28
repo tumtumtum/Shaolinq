@@ -4,10 +4,10 @@
 using Platform.Xml.Serialization;
 ﻿using Shaolinq.Persistence.Sql;
 
-namespace Shaolinq.Postgres.Devart
+namespace Shaolinq.Postgres.DotConnect
 {
 	[XmlElement]
-	public class PostgresDevartDatabaseConnectionInfo
+	public class PostgresDotConnectDatabaseConnectionInfo
 		: DatabaseConnectionInfo
 	{
 		[XmlAttribute]
@@ -37,7 +37,7 @@ namespace Shaolinq.Postgres.Devart
 		[XmlAttribute]
 		public DateTimeKind DateTimeKindIfUnspecified { get; set; }
 
-		public PostgresDevartDatabaseConnectionInfo()
+		public PostgresDotConnectDatabaseConnectionInfo()
 		{
 			this.Port = 5432;
 			this.Pooling = true;

@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Shaolinq.Persistence.Sql.DevartPostgres")]
-[assembly: AssemblyDescription("Shaolinq Devart Postgres Persistence Library")]
+[assembly: AssemblyTitle("Shaolinq.Postgres.DotConnect")]
+[assembly: AssemblyDescription("Shaolinq DotConnect Postgres Persistence Library")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Shaolinq.Persistence.Sql.DevartPostgres")]
+[assembly: AssemblyProduct("Shaolinq.Postgres.DotConnect")]
 [assembly: AssemblyCopyright("Copyright © 2007-2013 Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

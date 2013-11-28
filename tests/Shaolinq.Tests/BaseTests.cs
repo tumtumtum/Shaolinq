@@ -2,7 +2,7 @@
 
 ﻿using System;
 ﻿using Shaolinq.MySql;
-﻿using Shaolinq.Postgres.Devart;
+﻿using Shaolinq.Postgres.DotConnect;
 ﻿using Shaolinq.Sqlite;
 using Shaolinq.Tests.DataAccessModel.Test;
 using log4net.Config;
@@ -65,19 +65,19 @@ namespace Shaolinq.Tests
 			};
 		}
 
-		protected DataAccessModelConfiguration CreatePostgresDevartConfiguration(string contextName, string databaseName)
+		protected DataAccessModelConfiguration CreatePostgresDotConnectConfiguration(string contextName, string databaseName)
 		{
 			return new DataAccessModelConfiguration()
 			{
 				PersistenceContexts = new PersistenceContextInfo[]
 				{
-					new PostgresDevartPersistenceContextInfo()
+					new PostgresDotConnectPersistenceContextInfo()
 					{
 						ContextName = contextName,
 						DatabaseName = databaseName,
-						DatabaseConnectionInfos = new PostgresDevartDatabaseConnectionInfo[]
+						DatabaseConnectionInfos = new PostgresDotConnectDatabaseConnectionInfo[]
 						{
-							new PostgresDevartDatabaseConnectionInfo()
+							new PostgresDotConnectDatabaseConnectionInfo()
 							{
 								ServerName = "localhost",
 								UserId = "postgres",
@@ -92,9 +92,9 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreateConfiguration(string providerName, string contextName, string databaseName)
 		{
-			if (providerName == "Postgres.Devart")
+			if (providerName == "Postgres.DotConnect")
 			{
-				return this.CreatePostgresDevartConfiguration(contextName, databaseName);
+				return this.CreatePostgresDotConnectConfiguration(contextName, databaseName);
 			}
 			else if (providerName == "MySql")
 			{

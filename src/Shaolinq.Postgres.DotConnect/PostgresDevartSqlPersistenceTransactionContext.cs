@@ -8,9 +8,9 @@ using System.Transactions;
 using Devart.Data.PostgreSql;
 ﻿using Shaolinq.Persistence.Sql;
 
-namespace Shaolinq.Postgres.Devart
+namespace Shaolinq.Postgres.DotConnect
 {
-	public class PostgresDevartSqlPersistenceTransactionContext
+	public class PostgresDotConnectSqlPersistenceTransactionContext
 		: SqlPersistenceTransactionContext
 	{
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
@@ -27,7 +27,7 @@ namespace Shaolinq.Postgres.Devart
 		private readonly Transaction transaction;
         private PgSqlTransaction dbTransaction;
 
-		public PostgresDevartSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, BaseDataAccessModel dataAccessModel, Transaction transaction)
+		public PostgresDotConnectSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, BaseDataAccessModel dataAccessModel, Transaction transaction)
 			: base(persistenceContext, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;

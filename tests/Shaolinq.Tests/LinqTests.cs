@@ -9,9 +9,9 @@ using Shaolinq.Tests.DataAccessModel.Test;
 
 namespace Shaolinq.Tests
 {
-	//[TestFixture("Sqlite")]
+	[TestFixture("Sqlite")]
 	[TestFixture("MySql")]
-	//[TestFixture("Postgres.Devart")]
+	[TestFixture("Postgres.DotConnect")]
 	public class LinqTests
 		: BaseTests
 	{

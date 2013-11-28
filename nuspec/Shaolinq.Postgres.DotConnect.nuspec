@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Shaolinq.Sqlite</id>
+    <id>Shaolinq.Postgres.DotConnect</id>
     <version>$version$</version>
-    <title>Shaolinq ORM and Linq provider for Sqlite</title>
-    <summary>A thoughtful ORM and Linq provider for .NET and Sqlite</summary>
+    <title>Shaolinq ORM and Linq provider for Postgres (DotConnect)</title>
+    <summary>A thoughtful ORM and Linq provider for .NET and Postgres (via the DotConnect Postgres provider)</summary>
     <authors>Thong Nguyen</authors>
     <owners>Thong Nguyen</owners>
     <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
@@ -12,6 +12,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
     Shaolinq is a thoughtfully designed ORM andLinq provider for .NET
+    
+    Use this package to add Shaolinq including out-of-the-box Postgres support (via the DotCOnnect Postgres provider).
     
     Designed to perform super fast and be easy to use, Shaolinq's features also include:
     
@@ -30,6 +32,8 @@
     <tags>linq provider orm sqlite mysql sql database</tags>
     <dependencies>
       <dependency id="Shaolinq"/>
-    </dependencies>
+      <dependency id="Shaolinq.Postgres.Shared"/>
+      <dependency id="dotConnect.Express.for.PostgreSQL"/>
+      </dependencies>
   </metadata>
 </package>

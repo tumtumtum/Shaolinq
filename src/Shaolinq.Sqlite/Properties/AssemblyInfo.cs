@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Shaolinq.Persistence.Sql.Sqlite")]
-[assembly: AssemblyDescription("Shaolinq Sqlite Persistence Library")]
+[assembly: AssemblyTitle("Shaolinq.Sqlite")]
+[assembly: AssemblyDescription("Shaolinq Sqlite Provider Library")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Shaolinq.Persistence.Sql.Sqlite")]
+[assembly: AssemblyProduct("Shaolinq.Sqlite")]
 [assembly: AssemblyCopyright("Copyright © 2007-2013 Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

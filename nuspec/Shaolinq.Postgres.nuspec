@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Shaolinq.Sqlite</id>
+    <id>Shaolinq.Postgres</id>
     <version>$version$</version>
-    <title>Shaolinq ORM and Linq provider for Sqlite</title>
-    <summary>A thoughtful ORM and Linq provider for .NET and Sqlite</summary>
+    <title>Shaolinq ORM and Linq provider for Postgres</title>
+    <summary>A thoughtful ORM and Linq provider for .NET and Postgres</summary>
     <authors>Thong Nguyen</authors>
     <owners>Thong Nguyen</owners>
     <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
@@ -12,6 +12,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
     Shaolinq is a thoughtfully designed ORM andLinq provider for .NET
+    
+    Use this package to add Shaolinq including out-of-the-box Postgres support (via Npgsql).
     
     Designed to perform super fast and be easy to use, Shaolinq's features also include:
     
@@ -29,7 +31,9 @@
     <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
     <tags>linq provider orm sqlite mysql sql database</tags>
     <dependencies>
+      <dependency id="Npgsql"/>
       <dependency id="Shaolinq"/>
+      <dependency id="Shaolinq.Postgres.Shared"/>
     </dependencies>
   </metadata>
 </package>

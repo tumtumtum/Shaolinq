@@ -93,13 +93,17 @@
       <Project>{3020F62F-0078-4202-86EB-DD013294D1F2}</Project>
       <Name>Shaolinq.MySql</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Shaolinq.Postgres.Devart\Shaolinq.Postgres.Devart.csproj">
+    <ProjectReference Include="..\..\src\Shaolinq.Postgres.DotConnect\Shaolinq.Postgres.DotConnect.csproj">
       <Project>{7294424c-60a2-4d6e-b210-763e383cb150}</Project>
-      <Name>Shaolinq.Postgres.Devart</Name>
+      <Name>Shaolinq.Postgres.DotConnect</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Shaolinq.Postgres.Shared\Shaolinq.Postgres.Shared.csproj">
       <Project>{371cef26-5eb2-4fcb-9109-e821260d4189}</Project>
       <Name>Shaolinq.Postgres.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Shaolinq.Postgres\Shaolinq.Postgres.csproj">
+      <Project>{e79dcced-1693-4e38-98ac-b988d7429615}</Project>
+      <Name>Shaolinq.Postgres</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Shaolinq.Sqlite\Shaolinq.Sqlite.csproj">
       <Project>{5fd0c2b3-f601-452a-8c72-d5962b6a089a}</Project>

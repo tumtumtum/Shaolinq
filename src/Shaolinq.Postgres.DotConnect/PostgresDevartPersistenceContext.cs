@@ -13,9 +13,9 @@ using System.Transactions;
 using Devart.Data.PostgreSql;
 using Shaolinq.Postgres.Shared;
 
-namespace Shaolinq.Postgres.Devart
+namespace Shaolinq.Postgres.DotConnect
 {
-    public class PostgresDevartPersistenceContext
+    public class PostgresDotConnectPersistenceContext
         : SqlPersistenceContext
     {
 	    public string Host { get; set; }
@@ -48,7 +48,7 @@ namespace Shaolinq.Postgres.Devart
         private readonly string connectionString;
         private readonly string databaselessConnectionString;
 
-		public PostgresDevartPersistenceContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, int commandTimeoutSeconds, bool nativeUuids, string schemaNamePrefix, DateTimeKind dateTimeKindForUnspecifiedDateTimeKinds)
+		public PostgresDotConnectPersistenceContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, int commandTimeoutSeconds, bool nativeUuids, string schemaNamePrefix, DateTimeKind dateTimeKindForUnspecifiedDateTimeKinds)
 			: base(database, PostgresSqlDialect.Default, new PostgresSqlDataTypeProvider(nativeUuids, dateTimeKindForUnspecifiedDateTimeKinds))
         {
             this.Host = host;
@@ -81,12 +81,12 @@ namespace Shaolinq.Postgres.Devart
 
         public override PersistenceTransactionContext NewDataTransactionContext(BaseDataAccessModel dataAccessModel, Transaction transaction)
         {
-            return new PostgresDevartSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
+            return new PostgresDotConnectSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
         }
 
 		public override Sql92QueryFormatter NewQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
         {
-            return new PostgresDevartSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
+            return new PostgresDotConnectSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
         }
 
         protected override DbProviderFactory NewDbProproviderFactory()
@@ -270,7 +270,7 @@ namespace Shaolinq.Postgres.Devart
 
         public override PersistenceStoreCreator NewPersistenceStoreCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
         {
-            return new PostgresDevartSqlDatabaseCreator(this, model, persistenceContextInfo);
+            return new PostgresDotConnectSqlDatabaseCreator(this, model, persistenceContextInfo);
         }
 
         public override MigrationPlanApplicator NewMigrationPlanApplicator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)

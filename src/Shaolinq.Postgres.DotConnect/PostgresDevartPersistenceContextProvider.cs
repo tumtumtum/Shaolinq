@@ -1,16 +1,16 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- namespace Shaolinq.Postgres.Devart
+ namespace Shaolinq.Postgres.DotConnect
 {
-	public class PostgresDevartPersistenceContextProvider
+	public class PostgresDotConnectPersistenceContextProvider
 		: PersistenceContextProvider
 	{
-		public PostgresDevartPersistenceContextProvider(string contextName, string databaseName, PostgresDevartDatabaseConnectionInfo[] connectionInfos)
+		public PostgresDotConnectPersistenceContextProvider(string contextName, string databaseName, PostgresDotConnectDatabaseConnectionInfo[] connectionInfos)
 			: base(contextName)
 		{
 			foreach (var connectionInfo in connectionInfos)
 			{
-				AddPersistenceContext(connectionInfo.PersistenceMode, new PostgresDevartPersistenceContext
+				AddPersistenceContext(connectionInfo.PersistenceMode, new PostgresDotConnectPersistenceContext
 				(
 					connectionInfo.ServerName,
 					connectionInfo.UserId,

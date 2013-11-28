@@ -7,9 +7,9 @@ using System.Linq.Expressions;
 ﻿using Shaolinq.Persistence.Sql.Linq;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
 
-namespace Shaolinq.Postgres.Devart
+namespace Shaolinq.Postgres.DotConnect
 {
-	public class PostgresDevartSqlQueryFormatter
+	public class PostgresDotConnectSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
 		public BaseDataAccessModel DataAccessModel { get; private set; }
@@ -22,7 +22,7 @@ namespace Shaolinq.Postgres.Devart
 			}
 		}
 
-		public PostgresDevartSqlQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
+		public PostgresDotConnectSqlQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 			: base(expression, options, sqlDataTypeProvider, sqlDialect)
 		{
 			this.DataAccessModel = dataAccessModel;

@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- namespace Shaolinq.Postgres.Devart
+ namespace Shaolinq.Postgres.DotConnect
 {
-    public static class PostgresDevartConfiguration
+    public static class PostgresDotConnectConfiguration
     {
         public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, bool poolConnections, string userId, string password)
         {
@@ -15,13 +15,13 @@
             {
 				PersistenceContexts = new PersistenceContextInfo[]
                 {
-                    new PostgresDevartPersistenceContextInfo()
+                    new PostgresDotConnectPersistenceContextInfo()
                     {
                         ContextName = contextName,
                         DatabaseName = databaseName,
                         DatabaseConnectionInfos = new[]
 						{
-                            new PostgresDevartDatabaseConnectionInfo()
+                            new PostgresDotConnectDatabaseConnectionInfo()
                             {
                                 PersistenceMode = persistenceMode,
                                 ServerName = serverName,

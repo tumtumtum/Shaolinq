@@ -10,7 +10,7 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
-	[TestFixture("Postgres.Devart")]
+	[TestFixture("Postgres.DotConnect")]
 	public class PrimaryKeyTests
 		: BaseTests
 	{

@@ -2,18 +2,18 @@
 
  using Platform.Xml.Serialization;
 
-namespace Shaolinq.Postgres.Devart
+namespace Shaolinq.Postgres.DotConnect
 {
 	[XmlElement]
-	public class PostgresDevartPersistenceContextInfo
+	public class PostgresDotConnectPersistenceContextInfo
 		: PersistenceContextInfo
 	{
 		[XmlAttribute]
 		public string DatabaseName { get; set; }
 
 		[XmlElement("Connections")]
-		[XmlListElement(typeof(PostgresDevartDatabaseConnectionInfo), "Connection")]
-		public PostgresDevartDatabaseConnectionInfo[] DatabaseConnectionInfos { get; set; }
+		[XmlListElement(typeof(PostgresDotConnectDatabaseConnectionInfo), "Connection")]
+		public PostgresDotConnectDatabaseConnectionInfo[] DatabaseConnectionInfos { get; set; }
 
 		public override string PersistenceContextName
 		{
@@ -23,7 +23,7 @@ namespace Shaolinq.Postgres.Devart
 
 		public override PersistenceContextProvider NewDatabaseContextProvider()
 		{
-			return new PostgresDevartPersistenceContextProvider(this.ContextName, this.DatabaseName, this.DatabaseConnectionInfos);
+			return new PostgresDotConnectPersistenceContextProvider(this.ContextName, this.DatabaseName, this.DatabaseConnectionInfos);
 		}
 	}
 }
