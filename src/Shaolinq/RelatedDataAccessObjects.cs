@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -182,18 +182,18 @@ namespace Shaolinq
 			}
 		}
 
-		public override T NewDataAccessObject()
+		public override T Create()
 		{
-			var retval = base.NewDataAccessObject();
+			var retval = base.Create();
 
 			this.InitializeDataAccessObject(this.RelatedDataAccessObject, retval);
 
 			return retval;
 		}
 
-		IDataAccessObject IDataAccessObjectActivator.NewDataAccessObject()
+		IDataAccessObject IDataAccessObjectActivator.Create()
 		{
-			return this.NewDataAccessObject();
+			return this.Create();
 		}
 	}
 }

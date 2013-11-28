@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -45,19 +45,19 @@ namespace Shaolinq
 			base.Initialize(this.PersistenceContext.NewQueryProvider(this.DataAccessModel, this.PersistenceContext), expression);
 		}
 
-		public virtual T NewDataAccessObject()
+		public virtual T Create()
 		{
 			return this.DataAccessModel.NewDataAccessObject<T>();
 		}
 
-		public virtual T NewDataAccessObject(bool transient)
+		public virtual T Create(bool transient)
 		{
 			return this.DataAccessModel.NewDataAccessObject<T>(transient);
 		}
 
-		IDataAccessObject IDataAccessObjectActivator.NewDataAccessObject()
+		IDataAccessObject IDataAccessObjectActivator.Create()
 		{
-			return this.NewDataAccessObject();
+			return this.Create();
 		}
 
 		public virtual T ReferenceTo(object primaryKey)

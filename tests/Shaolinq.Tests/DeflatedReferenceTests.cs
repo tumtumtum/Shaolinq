@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
@@ -8,7 +8,9 @@ using Shaolinq.Tests.DataAccessModel.Test;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres.Devart")]
 	public class DeflatedReferenceTests
 		: BaseTests
 	{
@@ -26,7 +28,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.NewDataAccessObject();
+				var school = this.model.Schools.Create();
 
 				school.Name = schoolName;
 
@@ -39,7 +41,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.Students.NewDataAccessObject();
+				var student = this.model.Students.Create();
 
 				student.School = this.model.Schools.ReferenceTo(schoolId);
 
@@ -66,7 +68,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.Students.NewDataAccessObject();
+				var student = this.model.Students.Create();
 
 				student.School = this.model.Schools.ReferenceTo(8972394);
 
@@ -81,7 +83,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				scope.Flush(model);
 
@@ -117,7 +119,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				scope.Flush(model);
 
@@ -149,7 +151,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				scope.Flush(model);
 
@@ -191,7 +193,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = 1077;
 
@@ -209,20 +211,25 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
-				var student = school.Students.NewDataAccessObject();
+				var student = school.Students.Create();
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
 
-				var friend = school.Students.NewDataAccessObject();
+				var friend = school.Students.Create();
 				
 				friend.Firstname = "Chuck";
 				friend.Lastname = "Norris";
+
+				if (this.ProviderName == "MySql")
+				{
+					scope.Flush(model);
+				}
 
 				student.BestFriend = friend;
 
@@ -250,11 +257,11 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
-				var student = school.Students.NewDataAccessObject();
+				var student = school.Students.Create();
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 				student.Firstname = "Bruce";
@@ -331,7 +338,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First();
+				var student = model.Students.OrderBy(c => c.Id).First();
 
 				Assert.AreEqual(1, student.School.Id);
 				Assert.IsTrue(student.School.IsDeflatedReference);

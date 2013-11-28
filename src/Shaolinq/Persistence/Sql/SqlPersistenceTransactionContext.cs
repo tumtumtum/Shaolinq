@@ -684,8 +684,10 @@ namespace Shaolinq.Persistence.Sql
 
 				for (int i = 0, lastindex = updatedProperties.Count - 1; i <= lastindex; i++)
 				{
-					AppendParameter(command, commandText, updatedProperties[i].propertyInfo.PropertyType, updatedProperties[i].value);
+					var updatedProperty = updatedProperties[i];
 
+					AppendParameter(command, commandText, updatedProperty.propertyInfo.PropertyType, updatedProperty.value);
+					
 					if (i != lastindex)
 					{
 						commandText.Append(",");

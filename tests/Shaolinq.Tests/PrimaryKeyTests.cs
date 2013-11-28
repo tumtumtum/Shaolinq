@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Transactions;
@@ -8,7 +8,9 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres.Devart")]
 	public class PrimaryKeyTests
 		: BaseTests
 	{
@@ -22,7 +24,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
 				// Should not be able to set AutoIncrement property
 
@@ -37,7 +39,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
 				// AutoIncrement Guid  properties are set immediately
 
@@ -58,7 +60,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
 				obj1.Id = Guid.NewGuid();
 
@@ -71,7 +73,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = Guid.NewGuid();
 
@@ -90,8 +92,8 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.NewDataAccessObject();
-					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
+					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
 					// Both objects will have same primary key (Guid.Empty)
 
@@ -105,7 +107,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithLongAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj = model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 
 				// Should not be able to set AutoIncrement properties
 
@@ -120,8 +122,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = model.ObjectWithLongAutoIncrementPrimaryKeys.NewDataAccessObject();
-				var obj2 = model.ObjectWithLongAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj1 = model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
+				var obj2 = model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 
 				scope.Flush(model);
 
@@ -146,7 +148,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 					obj.Name = name;
 
@@ -164,7 +166,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 					obj.Id = 0;
 					obj.Name = name;
@@ -182,7 +184,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.NewDataAccessObject();
+				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = 999;
 				obj.Name = name;
@@ -208,7 +210,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = this.model.ObjectWithCompositePrimaryKeys.NewDataAccessObject();
+				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Create();
 
 				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(obj1.Id));
 				
@@ -216,7 +218,7 @@ namespace Shaolinq.Tests
 				obj1.SecondaryKey = secondaryKey;
 				obj1.Name = "Obj1";
 
-				var obj2 = this.model.ObjectWithCompositePrimaryKeys.NewDataAccessObject();
+				var obj2 = this.model.ObjectWithCompositePrimaryKeys.Create();
 				obj2.Id = 2;
 				obj2.SecondaryKey = secondaryKey;
 				obj2.Name = "Obj2";

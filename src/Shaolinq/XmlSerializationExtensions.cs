@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.IO;
+ using System.IO;
 using System.Xml;
 using Platform.Xml.Serialization;
 
@@ -12,7 +12,7 @@ namespace Shaolinq
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
-			var value = querable.NewDataAccessObject(transient);
+			var value = querable.Create(transient);
 
 			serializer.Deserialize(value, reader, parameters);
 
@@ -23,7 +23,7 @@ namespace Shaolinq
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
-			var value = querable.NewDataAccessObject(transient);
+			var value = querable.Create(transient);
 
 			serializer.Deserialize(value, reader, SerializationParameters.Empty);
 
@@ -34,7 +34,7 @@ namespace Shaolinq
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
-			var value = querable.NewDataAccessObject(transient);
+			var value = querable.Create(transient);
 
 			serializer.Deserialize(value, reader, parameters);
 
@@ -45,7 +45,7 @@ namespace Shaolinq
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
-			var value = querable.NewDataAccessObject(transient);
+			var value = querable.Create(transient);
 
 			serializer.Deserialize(value, reader, SerializationParameters.Empty);
 
@@ -56,7 +56,7 @@ namespace Shaolinq
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
-			var value = querable.NewDataAccessObject(transient);
+			var value = querable.Create(transient);
 			
 			serializer.Deserialize(value, xml);
 
@@ -67,7 +67,7 @@ namespace Shaolinq
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
-			var value = querable.NewDataAccessObject(transient);
+			var value = querable.Create(transient);
 
 			serializer.Deserialize(value, xml, parameters);
 

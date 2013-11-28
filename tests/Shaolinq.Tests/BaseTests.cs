@@ -1,7 +1,9 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-using Shaolinq.Persistence.Sql.Sqlite;
+﻿using Shaolinq.MySql;
+﻿using Shaolinq.Postgres.Devart;
+﻿using Shaolinq.Sqlite;
 using Shaolinq.Tests.DataAccessModel.Test;
 using log4net.Config;
 
@@ -13,6 +15,31 @@ namespace Shaolinq.Tests
 
 		public void Foo()
 		{
+		}
+
+		protected DataAccessModelConfiguration CreateMySqlConfiguration(string contextName, string databaseName)
+		{
+			return new DataAccessModelConfiguration()
+			{
+				PersistenceContexts = new PersistenceContextInfo[]
+				{
+					new MySqlPersistenceContextInfo()
+					{
+						ContextName = contextName,
+						DatabaseName = databaseName,
+						DatabaseConnectionInfos = new MySqlDatabaseConnectionInfo[]
+						{
+							new MySqlDatabaseConnectionInfo()
+							{
+								PersistenceMode = PersistenceMode.ReadWrite,
+								ServerName = "localhost",
+								UserName = "root",
+								Password = "root"
+							}
+						}
+					}
+				}
+			};
 		}
 
 		protected DataAccessModelConfiguration CreateSqliteConfiguration(string contextName, string databaseName)
@@ -38,16 +65,59 @@ namespace Shaolinq.Tests
 			};
 		}
 
+		protected DataAccessModelConfiguration CreatePostgresDevartConfiguration(string contextName, string databaseName)
+		{
+			return new DataAccessModelConfiguration()
+			{
+				PersistenceContexts = new PersistenceContextInfo[]
+				{
+					new PostgresDevartPersistenceContextInfo()
+					{
+						ContextName = contextName,
+						DatabaseName = databaseName,
+						DatabaseConnectionInfos = new PostgresDevartDatabaseConnectionInfo[]
+						{
+							new PostgresDevartDatabaseConnectionInfo()
+							{
+								ServerName = "localhost",
+								UserId = "postgres",
+								Password = "postgres",
+								PersistenceMode = PersistenceMode.ReadWrite
+							}
+						}
+					}
+				}
+			};
+		}
+
 		protected DataAccessModelConfiguration CreateConfiguration(string providerName, string contextName, string databaseName)
 		{
-			return this.CreateSqliteConfiguration(contextName, databaseName);
+			if (providerName == "Postgres.Devart")
+			{
+				return this.CreatePostgresDevartConfiguration(contextName, databaseName);
+			}
+			else if (providerName == "MySql")
+			{
+				return this.CreateMySqlConfiguration(contextName, databaseName);
+			}
+			else
+			{
+				return this.CreateSqliteConfiguration(contextName, databaseName);
+			}
 		}
-		
-		private readonly string providerName;
+
+		protected string ProviderName
+		{
+			get;
+			private set;
+		}
+
 		private readonly DataAccessModelConfiguration configuration;
 
 		public BaseTests(string providerName)
 		{
+			this.ProviderName = providerName;
+
 			XmlConfigurator.Configure();
 
 			try
@@ -55,8 +125,6 @@ namespace Shaolinq.Tests
 				configuration = this.CreateConfiguration(providerName, "Test", this.GetType().Name);
 				model = BaseDataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
 				model.CreateDatabases(true);
-
-				this.providerName = providerName;
 			}
 			catch (Exception e)
 			{

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Shaolinq.MySql</id>
+    <version>$version$</version>
+    <title>Shaolinq ORM and Linq provider for Sqlite</title>
+    <summary>A thoughtful ORM and Linq provider for .NET and Sqlite</summary>
+    <authors>Thong Nguyen</authors>
+    <owners>Thong Nguyen</owners>
+    <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/tumtumtum/Shaolinq</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description></description>
+    <releaseNotes>Initial release</releaseNotes>
+    <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
+    <tags>linq provider orm sqlite mysql sql database</tags>
+    <dependencies>
+      <dependency id="Shaolinq"/>
+    </dependencies>
+  </metadata>
+</package>

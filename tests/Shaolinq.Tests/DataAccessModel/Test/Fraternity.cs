@@ -1,9 +1,6 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.DataAccessModel.Test
 {
@@ -11,6 +8,12 @@ namespace Shaolinq.Tests.DataAccessModel.Test
 	public abstract class Fraternity
 		: DataAccessObject<string>
 	{
+		[SizeConstraint(MaximumLength = 32)]
+		public override abstract string Id
+		{
+			get; set; 
+		}
+
 		[RelatedDataAccessObjects]
 		public abstract RelatedDataAccessObjects<Student> Students { get; }
 	}

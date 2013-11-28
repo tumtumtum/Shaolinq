@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +10,9 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres.Devart")]
 	public class ConcurrencyTests
 		: BaseTests
 	{
@@ -19,7 +21,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.NewDataAccessObject();
+				var school = this.model.Schools.Create();
 
 				school.Name = "Lee's Kung Fu School";
 

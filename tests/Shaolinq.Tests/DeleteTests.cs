@@ -1,13 +1,15 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres.Devart")]
 	public class DeleteTests
 		: BaseTests
 	{
@@ -24,19 +26,39 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 				
 				scope.Flush(model);
 
 				schoolId = school.Id;
 
-				var student1 = school.Students.NewDataAccessObject();
-				var student2 = school.Students.NewDataAccessObject();
+				if (this.ProviderName == "MySql")
+				{
+					// MySql does not support deferred foriegn key checks so create student2 first
 
-				student1Id = student1.Id;
-				student2Id = student2.Id;
+					var student2 = school.Students.Create();
 
-				student1.BestFriend = student2;
+					scope.Flush(model);
+
+					var student1 = school.Students.Create();
+
+
+					student1Id = student1.Id;
+					student2Id = student2.Id;
+
+					student1.BestFriend = student2;
+				}
+				else
+				{
+					var student1 = school.Students.Create(); 
+					var student2 = school.Students.Create();
+
+					student1Id = student1.Id;
+					student2Id = student2.Id;
+
+					student1.BestFriend = student2;
+				}
+				
 				
 				scope.Complete();
 			}
@@ -64,7 +86,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.NewDataAccessObject();
+				var school = this.model.Schools.Create();
 
 				Assert.IsFalse(school.IsDeleted);
 				school.Delete();
@@ -81,7 +103,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.NewDataAccessObject();
+				var school = this.model.Schools.Create();
 
 				school.Delete();
 
@@ -101,7 +123,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.NewDataAccessObject();
+				var school = this.model.Schools.Create();
 
 				school.Name = "Yoga Decorum";
 
@@ -159,7 +181,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.NewDataAccessObject();
+				var school = this.model.Schools.Create();
 
 				school.Name = "Yoga Decorum";
 

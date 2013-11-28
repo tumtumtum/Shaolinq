@@ -24,7 +24,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				var persistenceTransactionContext = (SqlPersistenceTransactionContext)acquisition.PersistenceTransactionContext;
 
-				using (this.dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
+				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
 				{
 					while (dataReader.Read())
 					{
@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 							throw new InvalidOperationException("Sequence contains more than one element");
 						}
 
-						T retval = this.objectReader(this, this.dataReader, this.placeholderValues);
+						T retval = this.objectReader(this, dataReader, this.placeholderValues);
 
 						if (this.relatedDataAccessObjectContext.InitializeDataAccessObject != null)
 						{

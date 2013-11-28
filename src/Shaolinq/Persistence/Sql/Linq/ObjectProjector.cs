@@ -16,7 +16,6 @@ namespace Shaolinq.Persistence.Sql.Linq
 		public PersistenceContext PersistenceContext { get; private set; }
 
 		protected int count = 0;
-		protected IDataReader dataReader;
 		private readonly IQueryProvider provider;
 		protected SelectFirstType selectFirstType;
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
@@ -99,7 +98,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				var persistenceTransactionContext = (SqlPersistenceTransactionContext)acquisition.PersistenceTransactionContext;
 
-				using (this.dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
+				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
 				{
 					while (dataReader.Read())
 					{
@@ -108,7 +107,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 							throw new InvalidOperationException("Sequence contains more than one element");
 						}
 
-						yield return this.objectReader(this, this.dataReader, placeholderValues);
+						yield return this.objectReader(this,dataReader, placeholderValues);
 
 						count++;
 					}

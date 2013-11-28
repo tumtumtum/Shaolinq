@@ -1,9 +1,9 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq
+ namespace Shaolinq
 {
 	public interface IDataAccessObjectActivator
 	{
-		IDataAccessObject NewDataAccessObject();
+		IDataAccessObject Create();
 	}
 }

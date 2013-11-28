@@ -1,13 +1,15 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres.Devart")]
 	public class RelatedObjectTests
 		: BaseTests
 	{
@@ -21,9 +23,9 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.NewDataAccessObject();
+				var school = this.model.Schools.Create();
 
-				var student = school.Students.NewDataAccessObject();
+				var student = school.Students.Create();
 
 				student.Firstname = "Chuck";
 
@@ -60,11 +62,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -81,11 +83,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -102,11 +104,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -123,11 +125,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -144,11 +146,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -168,11 +170,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -191,11 +193,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -214,11 +216,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -238,13 +240,13 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
-				brucesStudent.Address = this.model.Address.NewDataAccessObject();
+				brucesStudent.Address = this.model.Address.Create();
 				brucesStudent.Address.Number = 1087;
 
 				brucesStudent.Firstname = "Chuck";
@@ -271,13 +273,13 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
-				brucesStudent.Address = this.model.Address.NewDataAccessObject();
+				brucesStudent.Address = this.model.Address.Create();
 				brucesStudent.Address.Number = 1088;
 
 				brucesStudent.Firstname = "Chuck";
@@ -303,11 +305,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -326,11 +328,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -347,11 +349,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var brucesSchool = this.model.Schools.NewDataAccessObject();
+				var brucesSchool = this.model.Schools.Create();
 
 				brucesSchool.Name = "Bruce's Kung Fu School";
 
-				var brucesStudent = brucesSchool.Students.NewDataAccessObject();
+				var brucesStudent = brucesSchool.Students.Create();
 
 				brucesStudent.Firstname = "Chuck";
 
@@ -373,7 +375,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var student = model.Students.NewDataAccessObject();
+					var student = model.Students.Create();
 
 					student.Firstname = "Bruce";
 					student.Lastname = "Lee";
@@ -391,11 +393,11 @@ namespace Shaolinq.Tests
 			
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				school.Name = "Kung Fu School 1";
 
-				var student = school.Students.NewDataAccessObject();
+				var student = school.Students.Create();
 
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
@@ -430,11 +432,11 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				school.Name = "Kung Fu School 1";
 
-				var student = model.Students.NewDataAccessObject();
+				var student = model.Students.Create();
 
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
@@ -474,8 +476,8 @@ namespace Shaolinq.Tests
 
 				Assert.AreEqual(1, school.Students.Count());
 
-				var anotherSchool = model.Schools.NewDataAccessObject();
-				var anotherStudent = anotherSchool.Students.NewDataAccessObject();
+				var anotherSchool = model.Schools.Create();
+				var anotherStudent = anotherSchool.Students.Create();
 
 				scope.Flush(model);
 
@@ -490,13 +492,13 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.NewDataAccessObject();
+				var school = model.Schools.Create();
 
 				Console.Write(model.GetPersistenceContext(school.GetType()).PersistenceStoreName);
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
-				var student = school.Students.NewDataAccessObject();
+				var student = school.Students.Create();
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 				student.Firstname = "Bruce";

@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using Platform;
 
 namespace Shaolinq
@@ -23,7 +23,7 @@ namespace Shaolinq
 
 				if (dataAccessObjectActivator != null)
 				{
-					return (T)dataAccessObjectActivator.NewDataAccessObject();
+					return (T)dataAccessObjectActivator.Create();
 				}
 				else
 				{

@@ -83,17 +83,19 @@ namespace Shaolinq.Persistence.Sql.Linq
 		}
 
 		private struct ProjectorCacheInfo
-		{
-			public Type ElementType;
-			public Delegate Projector;
+		{	
+			public Type elementType;
+			public Delegate projector;
 		}
+
 
 		private class ProjectorCacheEqualityComparer
 			: IEqualityComparer<ProjectorCacheKey>
 		{
 			public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
 			{
-				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, true);
+				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, true)
+				       && x.persistenceContext == y.persistenceContext;
 			}
 
 			public int GetHashCode(ProjectorCacheKey obj)
@@ -105,16 +107,18 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private struct ProjectorCacheKey
 		{
 			internal readonly int hashCode;
+			internal readonly PersistenceContext persistenceContext;
 			internal readonly Expression projectionExpression;
 
-			public ProjectorCacheKey(Expression projectionExpression)
+			public ProjectorCacheKey(Expression projectionExpression, PersistenceContext persistenceContext)
 			{
+				this.persistenceContext = persistenceContext;
 				this.projectionExpression = projectionExpression;
-				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression);
+				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) & persistenceContext.GetHashCode();
 			}
 		}
 
-		private static readonly Dictionary<ProjectorCacheKey, ProjectorCacheInfo> projectorCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(new ProjectorCacheEqualityComparer());
+		private static readonly Dictionary<ProjectorCacheKey, ProjectorCacheInfo> ProjectorCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(new ProjectorCacheEqualityComparer());
 
 		private Triple<object, SelectFirstType, Expression> PrivateExecute(Expression expression)
 		{
@@ -146,32 +150,32 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
 
-			var key = new ProjectorCacheKey(projectionExpression);
+			var key = new ProjectorCacheKey(projectionExpression, this.PersistenceContext);
 
-			lock (projectorCache)
+			lock (ProjectorCache)
 			{
-				if (!projectorCache.TryGetValue(key, out cacheInfo))
+				if (!ProjectorCache.TryGetValue(key, out cacheInfo))
 				{
 					const int maxCacheSize = 1024;
 
-					if (projectorCache.Count > maxCacheSize)
+					if (ProjectorCache.Count > maxCacheSize)
 					{
 						Logger.WarnFormat("ProjectorCache/LambdaCache has more than {0} items.  Flushing.", maxCacheSize);
 						Logger.WarnFormat("Query Causing Flush: {0}", formatResult);
 
-						projectorCache.Clear();
+						ProjectorCache.Clear();
 					}
 
 					var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.PersistenceContext, projectionExpression.Projector, columns);
 
-					cacheInfo.ElementType = projectionLambda.Body.Type;
-					cacheInfo.Projector = projectionLambda.Compile();
+					cacheInfo.elementType = projectionLambda.Body.Type;
+					cacheInfo.projector = projectionLambda.Compile();
 
-					projectorCache[key] = cacheInfo;
+					ProjectorCache[key] = cacheInfo;
 				}
 			}
 
-			var elementType = TypeHelper.GetElementType(cacheInfo.ElementType);
+			var elementType = TypeHelper.GetElementType(cacheInfo.elementType);
 			var concreteElementType = elementType;
 
 			if (elementType.IsDataAccessObjectType())
@@ -198,7 +202,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						this.DataAccessModel,
 						formatResult,
 						this.PersistenceContext,
-						cacheInfo.Projector,
+						cacheInfo.projector,
 						this.RelatedDataAccessObjectContext,
 						projectionExpression.SelectFirstType,
 						placeholderValues
@@ -218,7 +222,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						this.DataAccessModel,
 						formatResult,
 						this.PersistenceContext,
-						cacheInfo.Projector,
+						cacheInfo.projector,
 						this.RelatedDataAccessObjectContext,
 						projectionExpression.SelectFirstType,
 						placeholderValues

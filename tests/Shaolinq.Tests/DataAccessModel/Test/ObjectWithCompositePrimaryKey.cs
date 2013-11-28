@@ -1,6 +1,8 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq.Tests.DataAccessModel.Test
+using Platform.Validation;
+
+namespace Shaolinq.Tests.DataAccessModel.Test
 {
 	[DataAccessObject]
 	public abstract class ObjectWithCompositePrimaryKey
@@ -9,7 +11,7 @@
 		[AutoIncrement(false)]
 		public abstract override long Id { get; set; }
 
-		[PrimaryKey, PersistedMember]
+		[PrimaryKey, PersistedMember, SizeConstraint(MaximumLength = 128)]
 		public abstract string SecondaryKey { get; set; }
 
 		[PersistedMember]

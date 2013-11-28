@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Platform;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.DataAccessModel.Test
 {
@@ -12,6 +13,7 @@ namespace Shaolinq.Tests.DataAccessModel.Test
 	public abstract class Paper
 		: DataAccessObject<string>
 	{
+		[SizeConstraint(MaximumLength=32)]
 		public string PaperCode
 		{
 			get

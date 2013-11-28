@@ -120,25 +120,6 @@ namespace Shaolinq
 
 		public virtual void Commit(Enlistment enlistment)
 		{
-			try
-			{
-				foreach (var persistenceTransactionContext in persistenceTransactionContextsByStoreContexts.Values)
-				{
-					persistenceTransactionContext.persistenceTransactionContext.Commit();
-				}
-			}
-			catch
-			{
-				foreach (var persistenceTransactionContext in persistenceTransactionContextsByStoreContexts.Values)
-				{
-					persistenceTransactionContext.persistenceTransactionContext.Dispose();
-				}
-
-				enlistment.Done();
-
-				throw;
-			}
-			
 			enlistment.Done();
 		}
 
@@ -156,8 +137,14 @@ namespace Shaolinq
 					this.CurrentDataContext.Commit(this, false);
 				}
 
+				foreach (var persistenceTransactionContext in persistenceTransactionContextsByStoreContexts.Values)
+				{
+					persistenceTransactionContext.persistenceTransactionContext.Commit();
+				}
+
+				preparingEnlistment.Done();
+
 				Dispose();
-				preparingEnlistment.Prepared();
 			}
 			catch (Exception e)
 			{
@@ -167,6 +154,7 @@ namespace Shaolinq
 				}
 
 				preparingEnlistment.ForceRollback(e);
+
 				Dispose();
 			}
 		}
