@@ -254,6 +254,7 @@ namespace Shaolinq.Tests
 		public void Test_Create_Student_Then_Access_School_As_DeflatedReference()
 		{
 			Guid studentId;
+			long schoolId;
 
 			using (var scope = new TransactionScope())
 			{
@@ -270,6 +271,7 @@ namespace Shaolinq.Tests
 				scope.Flush(model);
 
 				studentId = student.Id;
+				schoolId = school.Id;
 
 				scope.Complete();
 			}
@@ -338,9 +340,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.OrderBy(c => c.Id).First();
+				var student = model.Students.First(c => c.Id == studentId);
 
-				Assert.AreEqual(1, student.School.Id);
+				Assert.AreEqual(schoolId, student.School.Id);
 				Assert.IsTrue(student.School.IsDeflatedReference);
 
 				Assert.AreEqual("The Shaolinq School of Kung Fu", student.School.Name);
@@ -352,12 +354,12 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.FirstOrDefault();
+				var student = model.Students.First(c => c.Id == studentId);
 
-				Assert.AreEqual(1, student.School.Id);
+				Assert.AreEqual(schoolId, student.School.Id);
 				Assert.IsTrue(student.School.IsDeflatedReference);
 
-				var school = model.Schools.FirstOrDefault();
+				var school = model.Schools.FirstOrDefault(c => c.Id == schoolId);
 
 				Assert.IsFalse(student.School.IsDeflatedReference);
 
