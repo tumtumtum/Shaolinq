@@ -10,26 +10,24 @@
     <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
     <projectUrl>https://github.com/tumtumtum/Shaolinq</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>
-    Shaolinq is a thoughtfully designed ORM andLinq provider for .NET
+    <description>Shaolinq is a thoughtfully designed ORM and Linq provider for .NET
     
-    Use this package to add Shaolinq including out-of-the-box Postgres support (via the DotCOnnect Postgres provider).
+Use this package to add Shaolinq and out-of-the-box Postgres support (via the DotConnect ADO.NET Postgres provider).
     
-    Designed to perform super fast and be easy to use, Shaolinq's features also include:
+Designed to perform super fast and be easy to use, Shaolinq's features also include:
     
-    - First class schema-first ORM with WYSIWYG data access and minipulation.
-    - First class LINQ support (not the basic kind you see in most other OSS projects).
-    - Single trip updating of objects.
-    - Support for Sqlite, MySql and Postgres.
-    - Automatic database creation and schema migration.
-    - Delete LINQ extension for batch server side deletes.
-    - Full support for server side date functions (Date.DayOfWeek etc).
-    - Easily extensible with a simple interface for adding support for other ADO.NET compatible databases.
-    - Open Source!
-    </description>
+- First class schema-first ORM with WYSIWYG data access and minipulation.
+- First class LINQ support (not the basic kind you see in most other OSS projects).
+- Single trip updating of objects.
+- Support for Sqlite, MySql and Postgres.
+- Automatic database creation and schema migration.
+- Delete LINQ extension for batch server side deletes.
+- Full support for server side date functions (Date.DayOfWeek etc).
+- Easily extensible with a simple interface for adding support for other ADO.NET compatible databases.
+- Open Source!</description>
     <releaseNotes>Initial release</releaseNotes>
     <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
-    <tags>linq provider orm sqlite mysql sql database</tags>
+    <tags>linq provider orm postgres sql database</tags>
     <dependencies>
       <dependency id="Shaolinq"/>
       <dependency id="Shaolinq.Postgres.Shared"/>

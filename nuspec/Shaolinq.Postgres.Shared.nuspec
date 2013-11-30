@@ -13,11 +13,11 @@
     <description>
     Shaolinq is a thoughtfully designed ORM andLinq provider for .NET
     
-    This library contains types used by Shaolinq.Postgres and Shaolinq.Postgres.Devart.
+    This library contains types used by Shaolinq.Postgres and Shaolinq.Postgres.DotCOnnect.
     </description>
     <releaseNotes>Initial release</releaseNotes>
     <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
-    <tags>linq provider orm sqlite mysql sql database</tags>
+    <tags>linq provider orm</tags>
     <dependencies>
       <dependency id="Shaolinq"/>
     </dependencies>
