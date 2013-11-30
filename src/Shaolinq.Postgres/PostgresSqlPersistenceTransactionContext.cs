@@ -3,29 +3,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading;
 using System.Transactions;
 using Npgsql;
+﻿using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Postgres.Shared;
 
-namespace Shaolinq.Persistence.Sql.Postgres
+namespace Shaolinq.Postgres
 {
 	/// <summary>
 	/// A Postgres specific <see cref="SqlPersistenceTransactionContext"/>.
 	/// </summary>
 	public class PostgresSqlPersistenceTransactionContext
-		: SqlPersistenceTransactionContext
+		: PostgresSharedSqlPersistenceTransactionContext
 	{
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForUpdate = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
-
-		protected override char ParameterIndicatorChar
-		{
-			get
-			{
-				return '@';
-			}
-		}
 
 		private readonly Transaction transaction;
 		private NpgsqlTransaction dbTransaction;
@@ -113,24 +106,6 @@ namespace Shaolinq.Persistence.Sql.Postgres
 				}
 
 				GC.SuppressFinalize(this);
-			}
-		}
-
-		protected override object GetLastInsertedAutoIncrementValue(string tableName, string columnName, bool isSingularPrimaryKeyValue)
-		{
-			var command = this.DbConnection.CreateCommand();
-
-			command.CommandText = "SELECT currval('\"" + tableName + "_" + columnName + "_seq\"')";
-
-			try
-			{
-				return command.ExecuteScalar();
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e);
-
-				throw;
 			}
 		}
 

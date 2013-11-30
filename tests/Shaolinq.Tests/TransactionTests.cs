@@ -11,6 +11,7 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	public class TransactionTests
 		: BaseTests

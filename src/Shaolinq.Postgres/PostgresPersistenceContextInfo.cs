@@ -1,15 +1,15 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using Platform.Xml.Serialization;
+using Platform.Xml.Serialization;
 
-namespace Shaolinq.Persistence.Sql.Postgres
+namespace Shaolinq.Postgres
 {
 	[XmlElement]
 	public class PostgresPersistenceContextInfo
 		: PersistenceContextInfo
 	{
 		[XmlAttribute]
-		public string DatabaseName;
+		public string DatabaseName { get; set; }
 
 		public override string PersistenceContextName
 		{

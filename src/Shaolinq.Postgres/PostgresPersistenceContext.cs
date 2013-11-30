@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
@@ -8,10 +9,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Transactions;
 using Npgsql;
-using Shaolinq.Persistence.Sql.Linq;
+﻿using Shaolinq.Persistence;
+﻿using Shaolinq.Persistence.Sql;
+ using Shaolinq.Persistence.Sql.Linq;
 ﻿using Shaolinq.Postgres.Shared;
 
-namespace Shaolinq.Persistence.Sql.Postgres
+﻿namespace Shaolinq.Postgres
 {
 	public class PostgresPersistenceContext
 		: SqlPersistenceContext

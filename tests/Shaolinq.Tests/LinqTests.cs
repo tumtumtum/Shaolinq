@@ -11,6 +11,7 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("Sqlite")]
 	[TestFixture("MySql")]
+	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	public class LinqTests
 		: BaseTests
@@ -70,7 +71,7 @@ namespace Shaolinq.Tests
 				chuck1.Lastname = "Norris";
 				chuck1.Nickname = "God";
 				chuck1.Address = address2;
-				chuck1.Height = 100000;// Double.PositiveInfinity;
+				chuck1.Height = 100000; // TODO: MySql support for Double.PositiveInfinity;
 				chuck1.FavouriteNumber = 8;
 
 				var chuck2 = school.Students.Create();

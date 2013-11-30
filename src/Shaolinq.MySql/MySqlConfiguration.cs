@@ -4,12 +4,17 @@ namespace Shaolinq.MySql
 {
 	public static class MySqlConfiguration
 	{
-		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, bool poolConnections, string userName, string password)
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userName, string password)
 		{
-			return CreateConfiguration(PersistenceMode.ReadWrite, contextName, databaseName, serverName, poolConnections, userName, password);
+			return CreateConfiguration(contextName, databaseName, serverName, userName, password, true);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(PersistenceMode persistenceMode, string contextName, string databaseName, string serverName, bool poolConnections, string userName, string password)
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userName, string password,  bool poolConnections)
+		{
+			return CreateConfiguration(contextName, databaseName, serverName, userName, password, poolConnections, PersistenceMode.ReadWrite);
+		}
+
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userName, string password,  bool poolConnections, PersistenceMode persistenceMode)
 		{
 			return new DataAccessModelConfiguration()
 			{

@@ -1,6 +1,8 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq.Persistence.Sql.Postgres
+using Shaolinq.Persistence.Sql;
+
+namespace Shaolinq.Postgres
 {
 	public class PostgresSqlDatabaseCreator
 		: SqlDatabaseCreator

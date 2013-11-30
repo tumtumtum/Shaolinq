@@ -7,22 +7,15 @@ using System.Data;
 using System.Transactions;
 using Devart.Data.PostgreSql;
 ﻿using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres.DotConnect
 {
 	public class PostgresDotConnectSqlPersistenceTransactionContext
-		: SqlPersistenceTransactionContext
+		: PostgresSharedSqlPersistenceTransactionContext
 	{
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForUpdate = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
-
-		protected override char ParameterIndicatorChar
-		{
-			get
-			{
-				return '@';
-			}
-		}
 
 		private readonly Transaction transaction;
         private PgSqlTransaction dbTransaction;
@@ -99,29 +92,6 @@ namespace Shaolinq.Postgres.DotConnect
 				}
 
 				GC.SuppressFinalize(this);
-			}
-		}
-
-		protected override object GetLastInsertedAutoIncrementValue(string tableName, string columnName, bool isSingularPrimaryKeyValue)
-		{
-			if (!isSingularPrimaryKeyValue)
-			{
-				throw new NotSupportedException();
-			}
-
-			var command = this.DbConnection.CreateCommand();
-
-			command.CommandText = String.Format("SELECT currval(pg_get_serial_sequence('\"{0}\"', '{1}'))", tableName, columnName);
-
-			try
-			{
-				return command.ExecuteScalar();
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e);
-
-				throw;
 			}
 		}
 

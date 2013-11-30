@@ -85,14 +85,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PostgresDevartConfiguration.cs" />
-    <Compile Include="PostgresDevartDatabaseConnectionInfo.cs" />
-    <Compile Include="PostgresDevartPersistenceContextProvider.cs" />
-    <Compile Include="PostgresDevartPersistenceContext.cs" />
-    <Compile Include="PostgresDevartPersistenceContextInfo.cs" />
-    <Compile Include="PostgresDevartSqlDatabaseCreator.cs" />
-    <Compile Include="PostgresDevartSqlPersistenceTransactionContext.cs" />
-    <Compile Include="PostgresDevartSqlQueryFormatter.cs" />
+    <Compile Include="PostgresDotConnectConfiguration.cs" />
+    <Compile Include="PostgresDotConnectDatabaseConnectionInfo.cs" />
+    <Compile Include="PostgresDotConnectPersistenceContextProvider.cs" />
+    <Compile Include="PostgresDotConnectPersistenceContext.cs" />
+    <Compile Include="PostgresDotConnectPersistenceContextInfo.cs" />
+    <Compile Include="PostgresDotConnectSqlDatabaseCreator.cs" />
+    <Compile Include="PostgresDotConnectSqlPersistenceTransactionContext.cs" />
+    <Compile Include="PostgresDotConnectSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

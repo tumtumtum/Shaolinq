@@ -1,9 +1,10 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using Platform.Xml.Serialization;
+using Shaolinq.Persistence.Sql;
 
-namespace Shaolinq.Persistence.Sql.Postgres
+namespace Shaolinq.Postgres
 {
 	[XmlElement]
 	public class PostgresDatabaseConnectionInfo

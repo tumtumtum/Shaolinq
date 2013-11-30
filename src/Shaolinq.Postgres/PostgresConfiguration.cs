@@ -1,15 +1,20 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq.Persistence.Sql.Postgres
+namespace Shaolinq.Postgres
 {
 	public static class PostgresConfiguration
 	{
-		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, bool poolConnections, string userId, string password)
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password)
 		{
-			return CreateConfiguration(PersistenceMode.ReadWrite, contextName, databaseName, serverName, poolConnections, userId, password);
+			return CreateConfiguration(contextName, databaseName, serverName, userId, password, true);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(PersistenceMode persistenceMode, string contextName, string databaseName, string serverName, bool poolConnections, string userId, string password)
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password, bool poolConnections)
+		{
+			return CreateConfiguration(contextName, databaseName, serverName, userId, password, poolConnections, PersistenceMode.ReadWrite);
+		}
+
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password, bool poolConnections, PersistenceMode persistenceMode)
 		{
 			return new DataAccessModelConfiguration()
 			{
@@ -20,17 +25,17 @@
 						ContextName = contextName,
 						DatabaseName = databaseName,
 						DatabaseConnectionInfos =
-							new[]
+						new[]
+						{
+							new PostgresDatabaseConnectionInfo()
 							{
-								new PostgresDatabaseConnectionInfo()
-								{
-									PersistenceMode = persistenceMode,
-									ServerName = serverName,
-									Pooling = true,
-									UserId = userId,
-									Password = password
-								},
-							}
+								PersistenceMode = persistenceMode,
+								ServerName = serverName,
+								Pooling = true,
+								UserId = userId,
+								Password = password
+							},
+						}
 					}
 				}
 			};
