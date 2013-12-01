@@ -30,6 +30,7 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
     <tags>linq provider orm sqlite mysql sql database</tags>
     <dependencies>
       <dependency id="Shaolinq"/>
+      <dependency id="MySql.Data"/>
     </dependencies>
   </metadata>
 </package>
