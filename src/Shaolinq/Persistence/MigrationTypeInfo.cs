@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+ using System.Collections.Generic;
 using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.Persistence
@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence
 		public List<IndexDescriptor> NewIndexes { get; set; }
 		public List<TableIndexDescriptor> OldIndexes { get; set; }
 
-		public MigrationTypeInfo(BaseDataAccessModel model, TypeDescriptor typeDescriptor)
+		public MigrationTypeInfo(DataAccessModel model, TypeDescriptor typeDescriptor)
 			: this()
 		{
 			this.TypeDescriptor = typeDescriptor;

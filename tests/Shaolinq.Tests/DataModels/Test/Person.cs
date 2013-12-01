@@ -3,7 +3,7 @@
 ﻿using System;
 using Platform.Validation;
 
-namespace Shaolinq.Tests.DataAccessModel.Test
+namespace Shaolinq.Tests.DataModels.Test
 {
 	[DataAccessObject(Abstract = true)]
 	public abstract class Person

@@ -10,6 +10,10 @@ namespace Shaolinq.Persistence
 {
 	public class ModelTypeDescriptor
 	{
+		public Type Type { get; private set; }
+		public DataAccessModelAttribute DataAccessModelAttribute { get; private set; }
+		public PersistenceContextAttribute PersistenceContextAttribute { get; private set; }
+
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptors = new Dictionary<Type, TypeDescriptor>();
 		private readonly Dictionary<Type, PersistenceContextAttribute> typePersistenceContexts = new Dictionary<Type, PersistenceContextAttribute>();
 
@@ -68,24 +72,6 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public Type Type
-		{
-			get;
-			private set;
-		}
-
-		public DataAccessModelAttribute DataAccessModelAttribute
-		{
-			get;
-			private set;
-		}
-
-		public PersistenceContextAttribute PersistenceContextAttribute
-		{
-			get;
-			private set;
-		}
-
 		public IEnumerable<Type> GetQueryableTypes()
 		{
 			return this.typeDescriptors.Keys;
@@ -96,7 +82,7 @@ namespace Shaolinq.Persistence
 			return this.typeDescriptors.Values;
 		}
 
-		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(BaseDataAccessModel model, string contextName)
+		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model, string contextName)
 		{
 			return this.GetQueryableTypeDescriptors(model, t => this.GetQueryablePersistenceContextName(t.Type) == contextName).Sorted((x, y) => x.GetPersistedName(model).CompareTo(y.GetPersistedName(model)));
 		}
@@ -113,14 +99,9 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
-		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(BaseDataAccessModel model, Predicate<TypeDescriptor> accept)
+		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model, Predicate<TypeDescriptor> accept)
 		{
 			return this.typeDescriptors.Values.Filter(accept);
-		}
-
-		public PersistenceContextAttribute GetQueryablePersistenceContextAttribute(Type type)
-		{
-			return this.typePersistenceContexts[type];
 		}
 
 		public string GetQueryablePersistenceContextName(Type type)

@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,10 +17,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 	{
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
 
-		public BaseDataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 		public PersistenceContext PersistenceContext { get; private set; }
 
-		public SqlQueryProvider(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+		public SqlQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
 			: base(typeof(SqlQueryable<>))
 		{
 			this.DataAccessModel = dataAccessModel;
@@ -63,7 +63,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			return PrivateExecute(expression).First;
 		}
 
-		public static Expression Optimize(BaseDataAccessModel dataAccessModel, Expression expression)
+		public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression)
 		{
 			expression = GroupByCollator.Collate(expression);
 			expression = AggregateRewriter.Rewrite(expression);

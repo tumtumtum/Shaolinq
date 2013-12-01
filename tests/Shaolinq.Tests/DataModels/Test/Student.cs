@@ -2,7 +2,7 @@
 
 ﻿using Platform.Validation;
 
-namespace Shaolinq.Tests.DataAccessModel.Test
+namespace Shaolinq.Tests.DataModels.Test
 {
 	[DataAccessObject]
 	public abstract class Student

@@ -4,7 +4,7 @@
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
-using Shaolinq.Tests.DataAccessModel.Test;
+using Shaolinq.Tests.DataModels.Test;
 
 namespace Shaolinq.Tests
 {

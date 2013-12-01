@@ -1,7 +1,7 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -64,12 +64,12 @@ using Npgsql;
 			databaselessConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", host, userid, password, database, port, pooling, minPoolSize, maxPoolSize, connectionTimeoutSeconds, commandTimeoutSeconds);
 		}
 
-		public override PersistenceTransactionContext NewDataTransactionContext(BaseDataAccessModel dataAccessModel, Transaction transaction)
+		public override PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			return new PostgresSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
 		}
 
-		public override Sql92QueryFormatter NewQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
+		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 		{
 			return new PostgresSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
@@ -200,22 +200,22 @@ using Npgsql;
 			return retval;
 		}
 
-		public override SqlSchemaWriter NewSqlSchemaWriter(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 		{
 			return new SqlSchemaWriter(this, model, persistenceContextInfo);
 		}
 
-		public override PersistenceStoreCreator NewPersistenceStoreCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 		{
 			return new PostgresSqlDatabaseCreator(this, model, persistenceContextInfo);
 		}
 
-		public override MigrationPlanApplicator NewMigrationPlanApplicator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
 		{
 			return new SqlMigrationPlanApplicator(this, model, dataAccessModelPersistenceContextInfo);
 		}
 
-		public override MigrationPlanCreator NewMigrationPlanCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
 		{
 			return new SqlPersistenceContextMigrationPlanCreator(this, model, dataAccessModelPersistenceContextInfo);
 		}
@@ -304,7 +304,7 @@ using Npgsql;
 			return new DisabledForeignKeyCheckContext(persistenceTransactionContext);	
 		}
 
-		public override IPersistenceQueryProvider NewQueryProvider(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
 		{
 			return new SqlQueryProvider(dataAccessModel, persistenceContext);
 		}

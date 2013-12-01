@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		/// <param name="expression">The root of the expression tree.</param>
 		/// <param name="fnCanBeEvaluated">A function that decides whether a given expression node can be part of the local function.</param>
 		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
-		public static Expression PartialEval(BaseDataAccessModel dataAccessModel, Expression expression, Func<Expression, bool> fnCanBeEvaluated)
+		public static Expression PartialEval(DataAccessModel dataAccessModel, Expression expression, Func<Expression, bool> fnCanBeEvaluated)
 		{
 			return new SubtreeEvaluator(new Nominator(fnCanBeEvaluated).Nominate(expression)).Eval(dataAccessModel, expression);
 		}
@@ -26,7 +26,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		/// </summary>
 		/// <param name="expression">The root of the expression tree.</param>
 		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
-		public static Expression PartialEval(BaseDataAccessModel dataAccessModel, Expression expression)
+		public static Expression PartialEval(DataAccessModel dataAccessModel, Expression expression)
 		{
 			return PartialEval(dataAccessModel, expression, CanBeEvaluatedLocally);
 		}
@@ -78,7 +78,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private class SubtreeEvaluator : SqlExpressionVisitor
 		{
 			private int index;
-			private BaseDataAccessModel dataAccessModel;
+			private DataAccessModel dataAccessModel;
 			private readonly HashSet<Expression> candidates;
 
 			internal SubtreeEvaluator(HashSet<Expression> candidates)
@@ -86,7 +86,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				this.candidates = candidates;
 			}
 
-			internal Expression Eval(BaseDataAccessModel dataAccessModel, Expression exp)
+			internal Expression Eval(DataAccessModel dataAccessModel, Expression exp)
 			{
 				this.dataAccessModel = dataAccessModel;
 

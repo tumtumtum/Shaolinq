@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Text;
 using Platform;
@@ -11,11 +11,11 @@ namespace Shaolinq.Persistence.Sql
 {
 	public class SqlSchemaWriter
 	{
-		public BaseDataAccessModel Model { get; set; }
+		public DataAccessModel Model { get; set; }
 		public SqlPersistenceContext SqlPersistenceContext { get; private set; }
 		public DataAccessModelPersistenceContextInfo PersistenceContextInfo { get; set; }
 
-		public SqlSchemaWriter(SqlPersistenceContext sqlPersistenceContext, BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public SqlSchemaWriter(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 		{
 			this.SqlPersistenceContext = sqlPersistenceContext;
 			this.Model = model;

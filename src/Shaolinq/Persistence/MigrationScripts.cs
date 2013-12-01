@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+ using System.Collections.Generic;
 using System.IO;
 
 namespace Shaolinq.Persistence
@@ -14,7 +14,7 @@ namespace Shaolinq.Persistence
 			this.scripts = new Dictionary<string, string>();
 		}
 
-		public void AddScripts(BaseDataAccessModel model, MigrationScripts other)
+		public void AddScripts(DataAccessModel model, MigrationScripts other)
 		{
 			foreach (var keyValuePair in other.scripts)
 			{
@@ -22,7 +22,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public void AddScript(BaseDataAccessModel model, TypeDescriptor typeDescriptor, string script)
+		public void AddScript(DataAccessModel model, TypeDescriptor typeDescriptor, string script)
 		{
 			this.scripts[typeDescriptor.GetPersistedName(model)] = script;
 		}

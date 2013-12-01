@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -78,7 +78,7 @@ namespace Shaolinq.Persistence.Sql
 
 		#endregion
 
-		public BaseDataAccessModel Model { get; private set; }
+		public DataAccessModel Model { get; private set; }
 
 		protected SqlPersistenceContext SqlPersistenceContext { get; private set; }
 
@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence.Sql
 
 		private SqlSchemaWriter schemaWriter;
 
-		protected SqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		protected SqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 		{
 			this.SqlPersistenceContext = sqlPersistenceContext;
 			this.PersistenceContextInfo = persistenceContextInfo;
@@ -379,7 +379,7 @@ namespace Shaolinq.Persistence.Sql
 			}
 		}
 
-		public static string CreateManyToManyTableName(BaseDataAccessModel model, TypeDescriptor type1, TypeDescriptor type2)
+		public static string CreateManyToManyTableName(DataAccessModel model, TypeDescriptor type1, TypeDescriptor type2)
 		{
 			if (StringComparer.InvariantCulture.Compare(type1.GetPersistedName(model), type2.GetPersistedName(model)) >= 0)
 			{

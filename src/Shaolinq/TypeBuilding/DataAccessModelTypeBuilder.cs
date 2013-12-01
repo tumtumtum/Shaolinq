@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -94,7 +94,7 @@ namespace Shaolinq.TypeBuilding
 					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldnull);
-					initialiseGenerator.Emit(OpCodes.Callvirt, propertyInfo.PropertyType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(BaseDataAccessModel), typeof(Expression) }, null));
+					initialiseGenerator.Emit(OpCodes.Callvirt, propertyInfo.PropertyType.GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(DataAccessModel), typeof(Expression) }, null));
 
 					// Add to dictionary
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
@@ -172,7 +172,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldnull);
 
-			var methodPrep = typeof(DataAccessObjectsQueryable<>).GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(BaseDataAccessModel), typeof(Expression) }, null);
+			var methodPrep = typeof(DataAccessObjectsQueryable<>).GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(DataAccessModel), typeof(Expression) }, null);
 			var initializeMethod =TypeBuilder.GetMethod(typeof(DataAccessObjectsQueryable<>).MakeGenericType(genericParameters[0]), methodPrep);
 
 			generator.Emit(OpCodes.Callvirt, initializeMethod);

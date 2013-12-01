@@ -8,9 +8,9 @@ namespace Shaolinq
 	public class DataAccessObjectProjectionContext
 		: ProjectionContext
 	{
-		private readonly BaseDataAccessModel dataAccessModel;
+		private readonly DataAccessModel dataAccessModel;
 
-		public DataAccessObjectProjectionContext(BaseDataAccessModel dataAccessModel)
+		public DataAccessObjectProjectionContext(DataAccessModel dataAccessModel)
 		{
 			this.dataAccessModel = dataAccessModel;	
 		}

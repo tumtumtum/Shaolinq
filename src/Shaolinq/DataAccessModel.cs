@@ -13,7 +13,7 @@ using Platform;
 
 namespace Shaolinq
 {
-	public abstract class BaseDataAccessModel
+	public abstract class DataAccessModel
 		 : MarshalByRefObject, IDisposable
 	{
 		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
@@ -65,8 +65,6 @@ namespace Shaolinq
 		}
 		private DataAccessObjectProjectionContext dataAccessObjectProjectionContext;
 
-		#region TryGetPersistenceContext
-
 		private readonly Dictionary<Type, PersistenceContext> persistenceContextsByType = new Dictionary<Type, PersistenceContext>();
 
 		public PersistenceContext GetPersistenceContext(IDataAccessObject dataAccessObject)
@@ -82,29 +80,11 @@ namespace Shaolinq
 
 			if (!persistenceContextsByType.TryGetValue(concreteType, out persistenceContext))
 			{
-				var buffer = new StringBuilder();
-
-				buffer.AppendFormat("Unable to find persistence context for type: {0}.  Available contexts: ", concreteType);
-
-				var x = 0;
-
-				foreach (var context in persistenceContextsByType.Keys)
-				{
-					if (x++ != 0)
-					{
-						buffer.Append(", ");
-					}
-
-					buffer.Append(context.Name);
-				}
-
-				throw new InvalidOperationException(buffer.ToString());
+				throw new InvalidOperationException(string.Format("Unable to find persistence context for type: {0}", type.Name));
 			}
 
 			return persistenceContext;
 		}
-
-		#endregion
 
 		#region Transaction Handling
 
@@ -160,13 +140,13 @@ namespace Shaolinq
 		}
 
 		public static T BuildDataAccessModel<T>()
-			where T : BaseDataAccessModel
+			where T : DataAccessModel
 		{
 			return BuildDataAccessModel<T>(null);
 		}
 
 		public static T BuildDataAccessModel<T>(DataAccessModelConfiguration configuration)
-			where T : BaseDataAccessModel
+			where T : DataAccessModel
 		{
 			var builder = DataAccessModelAssemblyBuilder.Default;
 			var buildInfo = builder.GetOrBuildConcreteAssembly(typeof(T).Assembly);
@@ -181,26 +161,64 @@ namespace Shaolinq
 			return retval;
 		}
 
+		public virtual DataAccessModelConfiguration GetConfiguration(string path)
+		{
+			return ConfigurationBlock<DataAccessModelConfiguration>.Load(path);
+		}
+
 		public DataAccessModelConfiguration GetDefaultConfiguration()
 		{
-			var configuration = ConfigurationBlock<DataAccessModelConfiguration>.Load(this.GetType().Namespace.SplitAroundCharFromRight('.').Right);
+			var typeName = this.GetType().Name;
 
-			if (configuration == null)
+			var configuration = this.GetConfiguration(typeName);
+
+			if (configuration != null)
 			{
-				configuration = ConfigurationBlock<DataAccessModelConfiguration>.Load(this.GetType().Namespace.SplitAroundCharFromRight('.').Right + "/DataAccessModel");
+				return configuration;
 			}
 
-			if (configuration == null)
+			if (typeName.EndsWith("DataAccessModel"))
 			{
-				configuration = ConfigurationBlock<DataAccessModelConfiguration>.Load(this.GetType().Namespace.SplitAroundCharFromRight('.').Right + "/Configuration");
+				configuration = this.GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
+
+				if (configuration != null)
+				{
+					return configuration;
+				}
 			}
 
-			if (configuration == null)
+			if (this.GetType().Name.EndsWith("DataAccessModel"))
 			{
-				configuration = ConfigurationBlock<DataAccessModelConfiguration>.Load(this.GetType().Namespace.Replace('.', '/') + "/Configuration");
+				var name = this.GetType().Name;
+
+				configuration = this.GetConfiguration(name.Left(name.Length - "DataAccessModel".Length));
+
+				if (configuration != null)
+				{
+					return configuration;
+				}
 			}
 
-			return configuration;
+			if (!string.IsNullOrEmpty(this.GetType().Namespace))
+			{
+				var namespaceTail = this.GetType().Namespace.SplitAroundCharFromRight('.').Right;
+
+				configuration = this.GetConfiguration(namespaceTail);
+
+				if (configuration != null)
+				{
+					return configuration;
+				}
+
+				configuration = this.GetConfiguration(namespaceTail + "/DataAccessModel");
+
+				if (configuration != null)
+				{
+					return configuration;
+				}
+			}
+
+			return null;
 		}
 
 		internal void SetConfiguration(DataAccessModelConfiguration configuration)
@@ -228,7 +246,7 @@ namespace Shaolinq
 			}
 		}
 
-		~BaseDataAccessModel()
+		~DataAccessModel()
 		{
 			Dispose();
 		}

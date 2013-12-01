@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -107,7 +107,7 @@ namespace Shaolinq.TypeBuilding
 
 			var builder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
 			
-			foreach (var type in assembly.GetTypes().Filter(typeof(BaseDataAccessModel).IsAssignableFrom))
+			foreach (var type in assembly.GetTypes().Filter(typeof(DataAccessModel).IsAssignableFrom))
 			{
 				builder.BuildType(type);
 			}

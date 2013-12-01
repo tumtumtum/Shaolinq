@@ -15,7 +15,7 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		protected PostgresSharedSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, BaseDataAccessModel dataAccessModel, Transaction transaction)
+		protected PostgresSharedSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
 			: base(persistenceContext, dataAccessModel, transaction)
 		{
 		}

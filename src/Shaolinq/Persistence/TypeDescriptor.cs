@@ -51,9 +51,10 @@ namespace Shaolinq.Persistence
 			return false;
 		}
 
-		public string GetPersistedName(BaseDataAccessModel model)
+		public string GetPersistedName(DataAccessModel model)
 		{
 			var persistenceContext = model.GetPersistenceContext(model.ModelTypeDescriptor.GetQueryablePersistenceContextName(this.Type));
+//			var persistenceContext = model.GetPersistenceContext(model.GetPersistenceContext(this.Type).);
 
 			return GetPersistedName(persistenceContext);
 		}

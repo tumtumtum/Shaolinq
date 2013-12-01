@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
@@ -23,7 +23,7 @@ namespace Shaolinq.Postgres
 		private readonly Transaction transaction;
 		private NpgsqlTransaction dbTransaction;
 
-		public PostgresSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, BaseDataAccessModel dataAccessModel, Transaction transaction)
+		public PostgresSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
 			: base(persistenceContext, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;

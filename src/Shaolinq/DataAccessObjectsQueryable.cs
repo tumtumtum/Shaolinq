@@ -18,9 +18,9 @@ namespace Shaolinq
 		where T : class, IDataAccessObject
 	{
 		/// <summary>
-		/// A reference to the related <see cref="BaseDataAccessModel"/>.
+		/// A reference to the related <see cref="Shaolinq.DataAccessModel"/>.
 		/// </summary>
-		public BaseDataAccessModel DataAccessModel { get; set; }
+		public DataAccessModel DataAccessModel { get; set; }
 
 		/// <summary>
 		/// A reference to the <see cref="PersistenceContext"/> related to this object.
@@ -32,7 +32,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Used to support the framework.  Do not call this method directly.
 		/// </summary>
-		public virtual void Initialize(BaseDataAccessModel dataAccessModel, Expression expression)
+		public virtual void Initialize(DataAccessModel dataAccessModel, Expression expression)
 		{
 			if (this.DataAccessModel != null || this.PersistenceContext != null)
 			{

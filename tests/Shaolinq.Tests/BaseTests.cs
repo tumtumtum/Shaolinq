@@ -1,12 +1,12 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 ﻿using System.Reflection;
 ﻿using Shaolinq.MySql;
 ﻿using Shaolinq.Postgres;
 ﻿using Shaolinq.Postgres.DotConnect;
 ﻿using Shaolinq.Sqlite;
-using Shaolinq.Tests.DataAccessModel.Test;
+using Shaolinq.Tests.DataModels.Test;
 using log4net.Config;
 
 namespace Shaolinq.Tests
@@ -59,7 +59,7 @@ namespace Shaolinq.Tests
 			try
 			{
 				configuration = this.CreateConfiguration(providerName, "Test", this.GetType().Name);
-				model = BaseDataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
+				model = DataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
 				model.CreateDatabases(true);
 			}
 			catch (Exception e)

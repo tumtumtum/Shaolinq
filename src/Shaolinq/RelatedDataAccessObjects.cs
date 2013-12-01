@@ -28,7 +28,7 @@ namespace Shaolinq
 		public EntityRelationshipType RelationshipType { get; private set; }
 		public Action<IDataAccessObject, IDataAccessObject> InitializeDataAccessObject { get; private set; }
 		
-		public virtual void Initialize(IDataAccessObject relatedDataAccessObject, BaseDataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
+		public virtual void Initialize(IDataAccessObject relatedDataAccessObject, DataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
 		{
 			base.Initialize(dataAccessModel, null);
 

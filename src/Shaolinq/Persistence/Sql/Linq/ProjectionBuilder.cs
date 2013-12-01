@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -20,12 +20,12 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private readonly ParameterExpression dataReader;
 		private readonly ParameterExpression objectProjector;
 		private readonly ParameterExpression dynamicParameters;
-		private readonly BaseDataAccessModel dataAccessModel;
+		private readonly DataAccessModel dataAccessModel;
 		private readonly PersistenceContext persistenceContext;
 		private readonly Dictionary<string, int> columnIndexes;
 		private static readonly MethodInfo ExecuteSubQueryMethod = typeof(ObjectProjector).GetMethod("ExecuteSubQuery");
 
-		private ProjectionBuilder(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext, IEnumerable<string> columns)
+		private ProjectionBuilder(DataAccessModel dataAccessModel, PersistenceContext persistenceContext, IEnumerable<string> columns)
 		{
 			var x = 0;
 			this.dataAccessModel = dataAccessModel;
@@ -51,7 +51,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		/// and an <see cref="IDataReader"/>.  The lambda expression will construct a single
 		/// object for return from the current row in the given <see cref="IDataReader"/>.
 		/// </returns>
-		public static LambdaExpression Build(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext, Expression expression, IEnumerable<string> columns)
+		public static LambdaExpression Build(DataAccessModel dataAccessModel, PersistenceContext persistenceContext, Expression expression, IEnumerable<string> columns)
 		{
 			var projectionBuilder = new ProjectionBuilder(dataAccessModel, persistenceContext, columns);
 
@@ -119,11 +119,11 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			if (expression.Type.IsDataAccessObjectType())
 			{
-				// Replace all new DataAccessObject() calls with new ConcreteDataAccessObject(BaseDataAccessModel)
+				// Replace all new DataAccessObject() calls with new ConcreteDataAccessObject(DataAccessModel)
 
 				return Expression.New
 				(
-					this.dataAccessModel.GetConcreteTypeFromDefinitionType(expression.Type).GetConstructor(new [] { typeof(BaseDataAccessModel) }),
+					this.dataAccessModel.GetConcreteTypeFromDefinitionType(expression.Type).GetConstructor(new [] { typeof(DataAccessModel) }),
 					new Expression[] { Expression.Property(this.objectProjector, "DataAccessModel") }
 				);
 			}

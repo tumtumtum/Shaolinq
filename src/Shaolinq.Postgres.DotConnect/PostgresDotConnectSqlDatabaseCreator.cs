@@ -7,7 +7,7 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectSqlDatabaseCreator
 		: SqlDatabaseCreator
 	{
-		public PostgresDotConnectSqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public PostgresDotConnectSqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 			: base(sqlPersistenceContext, model, persistenceContextInfo)
 		{
 		}

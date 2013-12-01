@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,14 +26,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private readonly Dictionary<Expression, GroupByInfo> groupByMap;
 		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter;
 		
-		public BaseDataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 
 		protected void AddExpressionByParameter(ParameterExpression parameterExpression, Expression expression)
 		{
 			expressionsByParameter[parameterExpression] = expression;
 		}
 
-		private QueryBinder(BaseDataAccessModel dataAccessModel, Expression rootExpression, Type conditionType, LambdaExpression extraCondition)
+		private QueryBinder(DataAccessModel dataAccessModel, Expression rootExpression, Type conditionType, LambdaExpression extraCondition)
 		{
 			this.conditionType = conditionType;
 			this.DataAccessModel = dataAccessModel;
@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			groupByMap = new Dictionary<Expression, GroupByInfo>();
 		}
 
-		public static Expression Bind(BaseDataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
+		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
 		{
 			var expandedExpression = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 

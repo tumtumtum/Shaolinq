@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		where U : T
 		where T : IDataAccessObject
 	{
-		public DataAccessObjectProjector(IQueryProvider provider, BaseDataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
+		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
 			: base(provider, dataAccessModel, formatResult, persistenceContextStore, objectReader, relatedDataAccessObjectContext, selectFirstType, placeholderValues)
 		{
 		}

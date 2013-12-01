@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Transactions;
 using MySql.Data.MySqlClient;
@@ -32,7 +32,7 @@ namespace Shaolinq.MySql
 			return false;
 		}
 
-		public MySqlSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, BaseDataAccessModel dataAccessModel, Transaction transaction)
+		public MySqlSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
 			: base(persistenceContext, dataAccessModel, transaction)
 		{
 		}

@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -122,7 +122,7 @@ namespace Shaolinq.TypeBuilding
 		}
       
 		public T NewDataAccessModel<T>()
-			where T : BaseDataAccessModel
+			where T : DataAccessModel
 		{
 			Delegate constructor;
 			

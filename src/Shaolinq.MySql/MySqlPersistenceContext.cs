@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Transactions;
@@ -52,12 +52,12 @@ using MySql.Data.MySqlClient;
 			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.PersistenceStoreName, this.Username, this.Password, poolConnections);
 		}
 
-		public override PersistenceTransactionContext NewDataTransactionContext(BaseDataAccessModel dataAccessModel, Transaction transaction)
+		public override PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			return new MySqlSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
 		}
 
-		public override Sql92QueryFormatter NewQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
+		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 		{
 			return new MySqlSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
@@ -72,22 +72,22 @@ using MySql.Data.MySqlClient;
 			throw new NotImplementedException();
 		}
 
-		public override SqlSchemaWriter NewSqlSchemaWriter(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 		{
 			return new SqlSchemaWriter(this, model, persistenceContextInfo);
 		}
 
-		public override PersistenceStoreCreator NewPersistenceStoreCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 		{
 			return new MySqlSqlDatabaseCreator(this, model, persistenceContextInfo);
 		}
 
-		public override MigrationPlanApplicator NewMigrationPlanApplicator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override MigrationPlanCreator NewMigrationPlanCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
 		{
 			return new SqlPersistenceContextMigrationPlanCreator(this, model, dataAccessModelPersistenceContextInfo);
 		}
@@ -162,7 +162,7 @@ using MySql.Data.MySqlClient;
 			return new DisabledForeignKeyCheckContext(persistenceTransactionContext);	
 		}
 
-		public override IPersistenceQueryProvider NewQueryProvider(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
 		{
 			return new SqlQueryProvider(dataAccessModel, persistenceContext);
 		}

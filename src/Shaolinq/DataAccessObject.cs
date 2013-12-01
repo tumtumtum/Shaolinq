@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Shaolinq.Persistence;
@@ -62,7 +62,7 @@ namespace Shaolinq
 			return true;
 		}
 
-		public virtual BaseDataAccessModel DataAccessModel { get; private set; }
+		public virtual DataAccessModel DataAccessModel { get; private set; }
 
 		TypeDescriptor IDataAccessObject.TypeDescriptor
 		{
@@ -131,7 +131,7 @@ namespace Shaolinq
 			this.isTransient = transient;
 		}
 
-		void IDataAccessObject.SetDataAccessModel(BaseDataAccessModel dataAccessModel)
+		void IDataAccessObject.SetDataAccessModel(DataAccessModel dataAccessModel)
 		{
 			if (this.DataAccessModel != null)
 			{

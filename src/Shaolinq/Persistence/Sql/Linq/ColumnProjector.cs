@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
@@ -70,14 +70,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private readonly string newAlias;
 		private readonly string[] existingAliases;
 
-		private readonly BaseDataAccessModel dataAccessModel;
+		private readonly DataAccessModel dataAccessModel;
 		private readonly HashSet<string> columnNames; 
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
 		private readonly Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(BaseDataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand, params string[] existingAliases)
+		internal ColumnProjector(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			this.candidates = Nominator.Nominate(canBeColumn, expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(BaseDataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand, params string[] existingAliases)
 		{
 			var projector = new ColumnProjector(dataAccessModel, canBeColumn, expression, newAlias, memberInitBySqlObjectOperand, existingAliases);
 

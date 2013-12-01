@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Sql
 	public class SqlPersistenceContextMigrationPlanCreator
 		: MigrationPlanCreator
 	{
-		public SqlPersistenceContextMigrationPlanCreator(SqlPersistenceContext sqlPersistenceContext, BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public SqlPersistenceContextMigrationPlanCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 			: base(sqlPersistenceContext, model, persistenceContextInfo)
 		{
 		}

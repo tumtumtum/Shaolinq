@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 		: SqlExpressionVisitor
 	{
 		private bool disableCompare;
-		private readonly BaseDataAccessModel model;
+		private readonly DataAccessModel model;
 		private readonly ParameterExpression sourceParameterExpression;
 		private readonly List<MemberExpression> results = new List<MemberExpression>();
 		private readonly HashSet<Expression> expressionsToIgnore = new HashSet<Expression>();
@@ -41,13 +41,13 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 			return new DisableCompareContext(this);
 		}
 		
-		public ReferencedRelatedObjectPropertyGatherer(BaseDataAccessModel model, ParameterExpression sourceParameterExpression)
+		public ReferencedRelatedObjectPropertyGatherer(DataAccessModel model, ParameterExpression sourceParameterExpression)
 		{
 			this.model = model;
 			this.sourceParameterExpression = sourceParameterExpression;
 		}
 
-		public static List<MemberExpression> Gather(BaseDataAccessModel model, Expression expression, ParameterExpression sourceParameterExpression)
+		public static List<MemberExpression> Gather(DataAccessModel model, Expression expression, ParameterExpression sourceParameterExpression)
 		{
 			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, sourceParameterExpression);
 			

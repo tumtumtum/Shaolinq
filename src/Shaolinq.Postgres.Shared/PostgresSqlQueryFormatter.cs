@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 ﻿using Shaolinq.Persistence.Sql;
@@ -12,7 +12,7 @@ namespace Shaolinq.Postgres.Shared
 	public class PostgresSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public BaseDataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 
 		protected override char ParameterIndicatorChar
 		{
@@ -22,7 +22,7 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		public PostgresSqlQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
+		public PostgresSqlQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 			: base(expression, options, sqlDataTypeProvider, sqlDialect)
 		{
 			this.DataAccessModel = dataAccessModel;

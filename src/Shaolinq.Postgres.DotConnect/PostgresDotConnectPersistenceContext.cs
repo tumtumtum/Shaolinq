@@ -79,12 +79,12 @@ namespace Shaolinq.Postgres.DotConnect
             connectionString = sb.ConnectionString;
         }
 
-        public override PersistenceTransactionContext NewDataTransactionContext(BaseDataAccessModel dataAccessModel, Transaction transaction)
+        public override PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
         {
             return new PostgresDotConnectSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
         }
 
-		public override Sql92QueryFormatter NewQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
+		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
         {
             return new PostgresDotConnectSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
         }
@@ -263,22 +263,22 @@ namespace Shaolinq.Postgres.DotConnect
 			return retval;
         }
 
-        public override SqlSchemaWriter NewSqlSchemaWriter(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+        public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
         {
             return new SqlSchemaWriter(this, model, persistenceContextInfo);
         }
 
-        public override PersistenceStoreCreator NewPersistenceStoreCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+        public override PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
         {
             return new PostgresDotConnectSqlDatabaseCreator(this, model, persistenceContextInfo);
         }
 
-        public override MigrationPlanApplicator NewMigrationPlanApplicator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+        public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
         {
             return new SqlMigrationPlanApplicator(this, model, dataAccessModelPersistenceContextInfo);
         }
 
-        public override MigrationPlanCreator NewMigrationPlanCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+        public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
         {
             return new SqlPersistenceContextMigrationPlanCreator(this, model, dataAccessModelPersistenceContextInfo);
         }
@@ -367,7 +367,7 @@ namespace Shaolinq.Postgres.DotConnect
             return new DisabledForeignKeyCheckContext(persistenceTransactionContext);	
         }
 
-        public override IPersistenceQueryProvider NewQueryProvider(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+        public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
         {
             return new SqlQueryProvider(dataAccessModel, persistenceContext);
         }

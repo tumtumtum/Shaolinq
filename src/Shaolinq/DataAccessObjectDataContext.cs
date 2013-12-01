@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -544,9 +544,9 @@ namespace Shaolinq
 		private CacheByPersistenceContext<string> cacheByString;
 
 		protected bool DisableCache { get; private set; }
-		public BaseDataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 
-		public DataAccessObjectDataContext(BaseDataAccessModel dataAccessModel, bool disableCache)
+		public DataAccessObjectDataContext(DataAccessModel dataAccessModel, bool disableCache)
 		{
 			this.DisableCache = disableCache;
 			this.DataAccessModel = dataAccessModel;

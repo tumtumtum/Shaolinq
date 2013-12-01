@@ -7,7 +7,7 @@ namespace Shaolinq.MySql
 	public class MySqlSqlDatabaseCreator
 		: SqlDatabaseCreator
 	{
-		public MySqlSqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public MySqlSqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 			: base(sqlPersistenceContext, model, persistenceContextInfo)
 		{
 		}

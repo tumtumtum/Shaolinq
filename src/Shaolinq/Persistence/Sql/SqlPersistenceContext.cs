@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Data.Common;
 
 namespace Shaolinq.Persistence.Sql
@@ -62,7 +62,7 @@ namespace Shaolinq.Persistence.Sql
 
 		public abstract TableDescriptor GetTableDescriptor(string tableName);
         
-		public abstract SqlSchemaWriter NewSqlSchemaWriter(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo);
+		public abstract SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo);
 
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(PersistenceTransactionContext persistenceTransactionContext);
 	}

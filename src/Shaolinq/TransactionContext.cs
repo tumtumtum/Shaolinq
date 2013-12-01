@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Transactions;
@@ -12,7 +12,7 @@ namespace Shaolinq
 		: IEnlistmentNotification, IDisposable
 	{
 		public Transaction Transaction { get; set; }
-		public BaseDataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 
 		public DataAccessObjectDataContext CurrentDataContext
 		{
@@ -28,7 +28,7 @@ namespace Shaolinq
 		}
 		internal DataAccessObjectDataContext dataAccessObjectDataContext;
 
-		public TransactionContext(BaseDataAccessModel dataAccessModel, Transaction transaction)
+		public TransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			this.DataAccessModel = dataAccessModel;
 			this.Transaction = transaction;

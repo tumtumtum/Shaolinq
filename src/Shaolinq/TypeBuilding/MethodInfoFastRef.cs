@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -43,7 +43,7 @@ namespace Shaolinq.TypeBuilding
 			QueryableJoinMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "Join")).First(c => c.GetParameters().Length == 5);
 			QueryableDefaultIfEmptyMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "DefaultIfEmpty")).First(c => c.GetParameters().Length == 1);
 			ExpressionGenericLambdaMethod = typeof(Expression).GetMethods().First(c => c.Name == "Lambda" && c.GetGenericArguments().Length == 1);
-			BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = typeof(BaseDataAccessModel).GetMethods().First(c => c.Name == "GetReferenceByPrimaryKey" && c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(object[]));
+			BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = typeof(DataAccessModel).GetMethods().First(c => c.Name == "GetReferenceByPrimaryKey" && c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(object[]));
 		}
 	}
 }

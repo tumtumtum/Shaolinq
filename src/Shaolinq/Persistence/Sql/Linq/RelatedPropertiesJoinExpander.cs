@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,14 +16,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 	public class RelatedPropertiesJoinExpander
 		: SqlExpressionVisitor
 	{
-		private readonly BaseDataAccessModel model;
+		private readonly DataAccessModel model;
 
-		private RelatedPropertiesJoinExpander(BaseDataAccessModel model)
+		private RelatedPropertiesJoinExpander(DataAccessModel model)
 		{
 			this.model = model;
 		}
 
-		public static Expression Expand(BaseDataAccessModel model, Expression expression)
+		public static Expression Expand(DataAccessModel model, Expression expression)
 		{
 			return new RelatedPropertiesJoinExpander(model).Visit(expression);
 		}

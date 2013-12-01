@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
@@ -108,7 +108,7 @@ namespace Shaolinq.Persistence.Sql
 			get; set;
 		}
 
-		public BaseDataAccessModel DataAccessModel
+		public DataAccessModel DataAccessModel
 		{
 			get;
 			private set;
@@ -122,7 +122,7 @@ namespace Shaolinq.Persistence.Sql
 
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 
-		protected SqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, BaseDataAccessModel dataAccessModel, Transaction transaction)
+		protected SqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			this.PersistenceContext = persistenceContext;
 			sqlDataTypeProvider = persistenceContext.SqlDataTypeProvider;

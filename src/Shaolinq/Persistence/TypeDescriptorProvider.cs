@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -71,9 +71,9 @@ namespace Shaolinq.Persistence
 					dataAccessModelTypes.Add(type);
 				}
 
-				if (typeof(BaseDataAccessModel).IsAssignableFrom(type) && dataAccessModelAttribute == null)
+				if (typeof(DataAccessModel).IsAssignableFrom(type) && dataAccessModelAttribute == null)
 				{
-					throw new InvalidDataAccessObjectModelDefinition("The BaseDataAccessModel type '{0}' is missing a [DataAccessModel] attribute", type.Name);
+					throw new InvalidDataAccessObjectModelDefinition("The DataAccessModel type '{0}' is missing a [DataAccessModel] attribute", type.Name);
 				}
 
 				var baseType = type;

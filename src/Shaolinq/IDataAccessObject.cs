@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Shaolinq.Persistence;
@@ -20,7 +20,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Gets the data access model associated with the current domain object.
 		/// </summary>
-		BaseDataAccessModel DataAccessModel { get; }
+		DataAccessModel DataAccessModel { get; }
 
 		/// <summary>
 		/// Returns true if the current object has only been partially loaded and can't be read.
@@ -141,7 +141,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Sets the associated model of this object.
 		/// </summary>
-		void SetDataAccessModel(BaseDataAccessModel dataAccessModel);
+		void SetDataAccessModel(DataAccessModel dataAccessModel);
 
 		/// <summary>
 		/// Sets the underlying data container of the current data access object with the one in the given domain object.

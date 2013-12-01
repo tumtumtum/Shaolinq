@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -209,7 +209,7 @@ namespace Shaolinq.TypeBuilding
 				constructorGenerator.Emit(OpCodes.Ret);
 
 				// Build constructor that takes a data access model
-				var secondConstructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(BaseDataAccessModel) });
+				var secondConstructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(DataAccessModel) });
 
 				// Call base constructor in constructor
 				var secondCtorGenerator = secondConstructorBuilder.GetILGenerator();
@@ -628,7 +628,7 @@ namespace Shaolinq.TypeBuilding
 				propertyBuilder = this.propertyBuilders[propertyName];
 				currentFieldInDataObject = valueFields[propertyName];
 
-				propertyBuilder.SetGetMethod(BuildRelatedDataAccessObjectsMethod(propertyName, MethodAttributes.Public, CallingConventions.Standard, propertyType, typeBuilder, dataObjectField, currentFieldInDataObject, propertyType.GetConstructor(Type.EmptyTypes), persistenceContextAttribute.GetPersistenceContextName(typeBuilder.BaseType), relationshipType, propertyInfo));
+				propertyBuilder.SetGetMethod(BuildRelatedDataAccessObjectsMethod(propertyName, MethodAttributes.Public, CallingConventions.Standard, propertyType, typeBuilder, dataObjectField, currentFieldInDataObject, propertyType.GetConstructor(Type.EmptyTypes), relationshipType, propertyInfo));
 			}
 
 			BuildPersistedProperty(propertyInfo, propertyBuilder, pass);
@@ -656,11 +656,11 @@ namespace Shaolinq.TypeBuilding
 				propertyBuilder = this.propertyBuilders[propertyInfo.Name];
 				currentFieldInDataObject = valueFields[propertyInfo.Name];
 
-				propertyBuilder.SetGetMethod(BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, typeBuilder, dataObjectField, currentFieldInDataObject, currentFieldInDataObject.FieldType.GetConstructor(Type.EmptyTypes), persistenceContextAttribute.GetPersistenceContextName(typeBuilder.BaseType), EntityRelationshipType.ParentOfOneToMany, propertyInfo));
+				propertyBuilder.SetGetMethod(BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, typeBuilder, dataObjectField, currentFieldInDataObject, currentFieldInDataObject.FieldType.GetConstructor(Type.EmptyTypes), EntityRelationshipType.ParentOfOneToMany, propertyInfo));
 			}
 		}
 
-		protected virtual MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, ConstructorInfo constructorInfo, string persistenceContextName, EntityRelationshipType relationshipType, PropertyInfo propertyInfo)
+		protected virtual MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, ConstructorInfo constructorInfo, EntityRelationshipType relationshipType, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 
@@ -703,7 +703,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 
 			// Call "RelatedDataAccessObjects.Initialize"
-			generator.Emit(OpCodes.Callvirt, constructorInfo.DeclaringType.GetMethod("Initialize", new [] {typeof(IDataAccessObject), typeof(BaseDataAccessModel), typeof(EntityRelationshipType), typeof(string)}));
+			generator.Emit(OpCodes.Callvirt, constructorInfo.DeclaringType.GetMethod("Initialize", new [] {typeof(IDataAccessObject), typeof(DataAccessModel), typeof(EntityRelationshipType), typeof(string)}));
 
 			// Store object
 			generator.Emit(OpCodes.Ldarg_0);
@@ -1116,7 +1116,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + "ForeignKeys"].GetGetMethod());
-						generator.Emit(OpCodes.Callvirt, typeof(BaseDataAccessModel).GetMethod("GetReferenceByPrimaryKey", BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(PropertyInfoAndValue[])}, null).MakeGenericMethod(propertyInfo.PropertyType));
+						generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetReferenceByPrimaryKey", BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(PropertyInfoAndValue[])}, null).MakeGenericMethod(propertyInfo.PropertyType));
 						generator.Emit(OpCodes.Castclass, local.LocalType);
 						generator.Emit(OpCodes.Stloc, local);
 
@@ -1477,7 +1477,7 @@ namespace Shaolinq.TypeBuilding
 								generator.Emit(OpCodes.Callvirt, typeDescriptor.Type.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
 
 								generator.Emit(OpCodes.Ldc_I4_0);
-								generator.Emit(OpCodes.Callvirt, typeof(BaseDataAccessModel).GetMethod("GetCurrentDataContext", BindingFlags.Public | BindingFlags.Instance));
+								generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetCurrentDataContext", BindingFlags.Public | BindingFlags.Instance));
 								generator.Emit(OpCodes.Ldarg_0);
 								generator.Emit(OpCodes.Ldc_I4_0);
 								generator.Emit(OpCodes.Callvirt, typeof(DataAccessObjectDataContext).GetMethod("CacheObject", BindingFlags.Public | BindingFlags.Instance));

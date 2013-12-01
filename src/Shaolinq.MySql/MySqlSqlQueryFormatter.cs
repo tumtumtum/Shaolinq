@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.ObjectModel;
+ using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 ﻿using Shaolinq.Persistence.Sql;
 ﻿using Shaolinq.Persistence.Sql.Linq;
@@ -11,7 +11,7 @@ namespace Shaolinq.MySql
 	public class MySqlSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public BaseDataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 
 		protected override char ParameterIndicatorChar
 		{
@@ -21,7 +21,7 @@ namespace Shaolinq.MySql
 			}
 		}
 
-		public MySqlSqlQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
+		public MySqlSqlQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 			: base(expression, options, sqlDataTypeProvider, sqlDialect)
 		{
 			this.DataAccessModel = dataAccessModel;

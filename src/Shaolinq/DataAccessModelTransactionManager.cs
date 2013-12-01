@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Transactions;
@@ -11,21 +11,21 @@ namespace Shaolinq
 		: IDisposable
 	{
 		/// <summary>
-		/// Gets the <see cref="DataAccessModelTransactionManager "/> for the current <see cref="BaseDataAccessModel"/> for the current thread.
+		/// Gets the <see cref="DataAccessModelTransactionManager "/> for the current <see cref="Shaolinq.DataAccessModel"/> for the current thread.
 		/// </summary>
 		/// <remarks>
 		/// The framework does not support accessing objects created within different transactions
 		/// from other transactions. For each Transaction there may be more than one attached
 		/// <see cref="TransactionContext"/> (one for each thread that participates in the transaction).
 		/// </remarks>
-		public static DataAccessModelTransactionManager GetAmbientTransactionManager(BaseDataAccessModel dataAccessModel)
+		public static DataAccessModelTransactionManager GetAmbientTransactionManager(DataAccessModel dataAccessModel)
 		{
 			DataAccessModelTransactionManager retval;
 			var transactionManagers = t_AmbientTransactionManagers;
 
 			if (transactionManagers == null)
 			{
-				transactionManagers = new Dictionary<BaseDataAccessModel, DataAccessModelTransactionManager>();
+				transactionManagers = new Dictionary<DataAccessModel, DataAccessModelTransactionManager>();
 				t_AmbientTransactionManagers = transactionManagers;
 			}
 
@@ -39,9 +39,9 @@ namespace Shaolinq
 			return retval;
 		}
 		[ThreadStatic]
-		private volatile static Dictionary<BaseDataAccessModel, DataAccessModelTransactionManager> t_AmbientTransactionManagers;
+		private volatile static Dictionary<DataAccessModel, DataAccessModelTransactionManager> t_AmbientTransactionManagers;
         
-		public BaseDataAccessModel DataAccessModel
+		public DataAccessModel DataAccessModel
 		{
 			get;
 			private set;
@@ -79,7 +79,7 @@ namespace Shaolinq
 		private TransactionContext rootContext;
 		private readonly IDictionary<Transaction, TransactionContext> transactionContextsByTransaction;
 
-		public DataAccessModelTransactionManager(BaseDataAccessModel dataAccessModel)
+		public DataAccessModelTransactionManager(DataAccessModel dataAccessModel)
 		{
 			EventHandler handler = null;
 			var weakThis = new WeakReference(this);
@@ -97,7 +97,7 @@ namespace Shaolinq
 				}
 				else
 				{
-					((BaseDataAccessModel)sender).Disposed -= handler;
+					((DataAccessModel)sender).Disposed -= handler;
 				}
 			};
 

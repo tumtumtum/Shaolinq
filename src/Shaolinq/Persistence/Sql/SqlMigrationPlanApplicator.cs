@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Text;
+ using System.Text;
 
 namespace Shaolinq.Persistence.Sql
 {
@@ -9,7 +9,7 @@ namespace Shaolinq.Persistence.Sql
 	{
 		private readonly SqlSchemaWriter schemaWriter;
 
-		public SqlMigrationPlanApplicator(SqlPersistenceContext sqlPersistenceContext, BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public SqlMigrationPlanApplicator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 			: base(sqlPersistenceContext, model, persistenceContextInfo)
 		{
 			schemaWriter = this.SqlPersistenceContext.NewSqlSchemaWriter(model, persistenceContextInfo);

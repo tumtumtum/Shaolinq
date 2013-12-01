@@ -4,8 +4,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
+using Shaolinq.Tests.DataModels.Test;
+
 using NUnit.Framework;
-using Shaolinq.Tests.DataAccessModel.Test;
 
 namespace Shaolinq.Tests
 {

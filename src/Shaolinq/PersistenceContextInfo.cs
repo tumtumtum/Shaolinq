@@ -10,7 +10,6 @@ namespace Shaolinq
 		[XmlAttribute]
 		public string ContextName { get; set; }
 		public abstract string PersistenceContextName { get; set; }
-
 		public abstract PersistenceContextProvider NewDatabaseContextProvider();
 	}
 }

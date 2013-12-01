@@ -241,7 +241,7 @@
     <Compile Include="DataAccessModelConfiguration.cs" />
     <Compile Include="DataAccessModelPersistenceContextInfo.cs" />
     <Compile Include="DataAccessObject.cs" />
-    <Compile Include="BaseDataAccessModel.cs" />
+    <Compile Include="DataAccessModel.cs" />
     <Compile Include="DataAccessObjectsQueryable.cs" />
     <Compile Include="DataAccessObjectAttribute.cs" />
     <Compile Include="PersistedMemberAttribute.cs" />

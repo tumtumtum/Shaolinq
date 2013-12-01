@@ -1,13 +1,13 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+ using System.Collections.Generic;
 using System.Transactions;
 
 namespace Shaolinq
 {
 	public static class TransactionScopeExtensions
 	{
-		public static void Flush(this TransactionScope scope, BaseDataAccessModel dataAccessModel)
+		public static void Flush(this TransactionScope scope, DataAccessModel dataAccessModel)
 		{
 			dataAccessModel.FlushCurrentTransaction();
 		}

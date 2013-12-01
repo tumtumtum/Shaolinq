@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,16 +14,16 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 	public class ObjectOperandAssignmentExpander
 		: SqlExpressionVisitor
 	{
-		private readonly BaseDataAccessModel dataAccessModel;
+		private readonly DataAccessModel dataAccessModel;
 		private readonly PersistenceContext persistenceContext;
 
-		private ObjectOperandAssignmentExpander(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+		private ObjectOperandAssignmentExpander(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
 		{
 			this.dataAccessModel = dataAccessModel;
 			this.persistenceContext = persistenceContext;
 		}
 
-		public static Expression Expand(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext, Expression expression)
+		public static Expression Expand(DataAccessModel dataAccessModel, PersistenceContext persistenceContext, Expression expression)
 		{
 			return new ObjectOperandAssignmentExpander(dataAccessModel, persistenceContext).Visit(expression);
 		}

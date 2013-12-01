@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 	public class ObjectProjector
 	{
 		public SqlQueryFormatResult FormatResult { get; private set; }
-		public BaseDataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 		public PersistenceContext PersistenceContext { get; private set; }
 
 		protected int count = 0;
@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected SelectFirstType selectFirstType;
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
-		public ObjectProjector(IQueryProvider provider, BaseDataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
 		{
 			this.provider = provider;
 			this.DataAccessModel = dataAccessModel;
@@ -83,7 +83,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected readonly object[] placeholderValues;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
 
-		public ObjectProjector(IQueryProvider provider, BaseDataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
 			: base(provider, dataAccessModel, formatResult, persistenceContextStore, relatedDataAccessObjectContext, selectFirstType)
 		{
 			this.placeholderValues = placeholderValues;

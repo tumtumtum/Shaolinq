@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Transactions;
@@ -26,7 +26,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual Pair<string, PropertyDescriptor>[] GetPersistedNames(BaseDataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
+		public virtual Pair<string, PropertyDescriptor>[] GetPersistedNames(DataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
 		{
 			if (propertyDescriptor.IsBackReferenceProperty)
 			{
@@ -66,17 +66,17 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public abstract Sql92QueryFormatter NewQueryFormatter(BaseDataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options);
+		public abstract Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options);
 
-		public abstract IPersistenceQueryProvider NewQueryProvider(BaseDataAccessModel dataAccessModel, PersistenceContext persistenceContext);
+		public abstract IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext);
 
-		public abstract PersistenceTransactionContext NewDataTransactionContext(BaseDataAccessModel dataAccessModel, Transaction transaction);
+		public abstract PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
 
-		public abstract PersistenceStoreCreator NewPersistenceStoreCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
+		public abstract PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
 
-		public abstract MigrationPlanApplicator NewMigrationPlanApplicator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
+		public abstract MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
 
-		public abstract MigrationPlanCreator NewMigrationPlanCreator(BaseDataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
+		public abstract MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
         
 		public virtual void Dispose()
 		{

@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using Shaolinq.Persistence.Sql;
+ using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.Persistence
 {
@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected MigrationPlanApplicator(SqlPersistenceContext sqlPersistenceContext, BaseDataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		protected MigrationPlanApplicator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
 		{
 			this.Model = model;
 			this.SqlPersistenceContext = sqlPersistenceContext;
@@ -35,7 +35,7 @@ namespace Shaolinq.Persistence
 			set;
 		}
 
-		protected BaseDataAccessModel Model
+		protected DataAccessModel Model
 		{
 			get;
 			set;
