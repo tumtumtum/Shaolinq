@@ -1,7 +1,5 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-using  Shaolinq.Tests.DataModels.Test;
-
 namespace Shaolinq.Tests.DataModels.Test
 {
 	[DataAccessModel]
@@ -11,6 +9,12 @@ namespace Shaolinq.Tests.DataModels.Test
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Address> Address { get; }
 
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Cat> Cats { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Dog> Dogs { get; }
+		
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Club> Club { get; }
 

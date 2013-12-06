@@ -14,11 +14,22 @@ namespace Shaolinq.MySql
 			return "AUTO_INCREMENT";
 		}
 
-		public override bool SupportsForUpdate
+		public override bool SupportsFeature(SqlFeature feature)
 		{
-			get
+			switch (feature)
 			{
-				return true;
+				case SqlFeature.AlterTableAddConstraints:
+					return true;
+				case SqlFeature.Constraints:
+					return true;
+				case SqlFeature.IndexNameCasing:
+					return true;
+				case SqlFeature.IndexToLower:
+					return false;
+				case SqlFeature.SelectForUpdate:
+					return true;
+				default:
+					return false;
 			}
 		}
 	}

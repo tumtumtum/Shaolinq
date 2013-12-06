@@ -30,7 +30,6 @@ namespace Shaolinq.TypeBuilding
 		private ConstructorBuilder dataConstructorBuilder;
 		private readonly TypeDescriptor typeDescriptor;
 		private FieldInfo dataObjectChangedInDataObject;
-		private readonly PersistenceContextAttribute persistenceContextAttribute;
 		private readonly Dictionary<string, FieldBuilder> valueFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, FieldBuilder> valueChangedFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, FieldBuilder> valueIsSetFields = new Dictionary<string, FieldBuilder>();
@@ -51,9 +50,6 @@ namespace Shaolinq.TypeBuilding
 			assemblyBuildContext.TypeBuilders[baseType] = this;
 
 			this.typeDescriptor = GetTypeDescriptor(baseType);
-
-			persistenceContextAttribute = baseType.GetFirstCustomAttribute<PersistenceContextAttribute>(true)
-			                              ?? PersistenceContextAttribute.Default;
 		}
 
 		private TypeDescriptor GetTypeDescriptor(Type type)

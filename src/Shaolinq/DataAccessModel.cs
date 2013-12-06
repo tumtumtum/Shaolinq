@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -65,25 +65,14 @@ namespace Shaolinq
 		}
 		private DataAccessObjectProjectionContext dataAccessObjectProjectionContext;
 
-		private readonly Dictionary<Type, PersistenceContext> persistenceContextsByType = new Dictionary<Type, PersistenceContext>();
-
-		public PersistenceContext GetPersistenceContext(IDataAccessObject dataAccessObject)
+		public DatabaseConnection GetDatabaseConnection(IDataAccessObject dataAccessObject)
 		{
-			return GetPersistenceContext(dataAccessObject.GetType());
+			return this.GetDatabaseConnection(dataAccessObject.GetType());
 		}
 
-		public PersistenceContext GetPersistenceContext(Type type)
+		public DatabaseConnection GetDatabaseConnection(Type type)
 		{
-			PersistenceContext persistenceContext;
-
-			var concreteType = this.GetConcreteTypeFromDefinitionType(type);
-
-			if (!persistenceContextsByType.TryGetValue(concreteType, out persistenceContext))
-			{
-				throw new InvalidOperationException(string.Format("Unable to find persistence context for type: {0}", type.Name));
-			}
-
-			return persistenceContext;
+			return this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
 		}
 
 		#region Transaction Handling
@@ -120,6 +109,8 @@ namespace Shaolinq
 
 		private AssemblyBuildInfo assemblyBuildInfo;
 
+		private readonly List<DatabaseConnection> databaseConnections = new List<DatabaseConnection>();
+
 		private void SetAssemblyBuildInfo(AssemblyBuildInfo value)
 		{
 			this.assemblyBuildInfo = value;
@@ -128,14 +119,11 @@ namespace Shaolinq
 			this.TypeDescriptorProvider = TypeDescriptorProvider.GetProvider(this.DefinitionAssembly);
 			this.ModelTypeDescriptor = this.TypeDescriptorProvider.GetModelTypeDescriptor(value.GetDefinitionModelType(this.GetType()));
 
-			foreach (var keyValuePair in value.GetQueryablePersistenceContextNamesByModelType(this.GetType()))
+			foreach (var databaseConnectionInfo in this.Configuration.DatabaseConnectionInfos)
 			{
-				PersistenceContext persistenceContext;
+				var newDatabaseConnection = databaseConnectionInfo.CreateDatabaseConnection();
 
-				if (this.TryGetPersistenceContext(keyValuePair.Value, out persistenceContext))
-				{
-					this.persistenceContextsByType[keyValuePair.Key] = persistenceContext;
-				}
+				this.databaseConnections.Add(newDatabaseConnection);
 			}
 		}
 
@@ -260,9 +248,9 @@ namespace Shaolinq
 		{
 			DataAccessModelTransactionManager.GetAmbientTransactionManager(this).FlushConnections();
 			
-			foreach (var persistenceContext in this.persistenceContextsByType.Values)
+			foreach (var context in this.databaseConnections)
 			{
-				persistenceContext.DropAllConnections();
+				context.DropAllConnections();
 			}
 		}
 
@@ -311,7 +299,7 @@ namespace Shaolinq
 
 			var propertyInfoAndValues = primaryKey;
 
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetPersistenceContext(typeof(T)), this.GetConcreteTypeFromDefinitionType(typeof(T)), propertyInfoAndValues);
+			var existing = this.GetCurrentDataContext(false).GetObject(this.GetDatabaseConnection(typeof(T)), this.GetConcreteTypeFromDefinitionType(typeof(T)), propertyInfoAndValues);
 
 			if (existing != null)
 			{
@@ -498,115 +486,69 @@ namespace Shaolinq
 
 		#endregion
 
-		internal protected virtual PersistenceContext GetPersistenceContext(string persistenceContextName)
+		internal protected virtual DatabaseConnection GetCurrentDatabaseConnection(DatabaseReadMode mode)
 		{
-			PersistenceContext retval;
-			PersistenceContextProvider persistenceContextProvider;
-
-			if (!Configuration.TryGetDatabaseContextProvider(persistenceContextName, out persistenceContextProvider)
-				|| !persistenceContextProvider.TryGetPersistenceContext(PersistenceMode.ReadWrite, out retval))
+			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(false);
+			
+			if (transactionContext.DatabaseConnection == null)
 			{
-				throw new InvalidOperationException("Unable to find persistence context: " + persistenceContextName);
+				transactionContext.DatabaseConnection = this.databaseConnections[0];
 			}
-
-			return retval;
-		}
-
-		internal protected virtual bool TryGetPersistenceContext(string persistenceContextName, out PersistenceContext persistenceContext)
-		{
-			PersistenceContextProvider persistenceContextProvider;
-
-			if (!Configuration.TryGetDatabaseContextProvider(persistenceContextName, out persistenceContextProvider))
-			{
-				persistenceContext = null;
-				return false;
-			}
-
-			return persistenceContextProvider.TryGetPersistenceContext(PersistenceMode.ReadWrite, out persistenceContext);
+			
+			return transactionContext.DatabaseConnection;
 		}
 
 		#region CreateDatabases
 
 		/// <summary>
-		/// Creates the a database from the model for all persistence contexts
-		/// </summary>
-		public virtual int CreateDatabases(bool overwrite)
-		{
-			if (overwrite)
-			{
-				FlushConnections();
-			}
-			
-			return CreateDatabases(overwrite, this.Configuration.PersistenceContexts.Select(x => new DataAccessModelPersistenceContextInfo(x.ContextName)).ToArray());
-		}
-
-		/// <summary>
 		/// Creates the a database from the data access model
 		/// </summary>
-		/// <param name="persistenceContextInfos">An array of persistence contexts that define the databases to use</param>
-		public virtual int CreateDatabases(bool overwrite, params DataAccessModelPersistenceContextInfo[] persistenceContextInfos)
+		public virtual void CreateDatabases(bool overwrite)
 		{
-			int retval = 0;
-
-			foreach (var persistenceContextInfo in persistenceContextInfos)
-			{
-				var persistenceContext = this.GetPersistenceContext(persistenceContextInfo.ContextName);
-
-				var databaseCreator = persistenceContext.NewPersistenceStoreCreator(this, persistenceContextInfo);
-
-				if (databaseCreator.CreatePersistenceStorage(overwrite))
-				{
-					retval++;
-				}
-			}
-
-			return retval;
+			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).CreateDatabase(overwrite);
 		}
 
+		/*
 		public virtual MigrationPlan CreateMigrationPlan()
 		{
-			return CreateMigrationPlan(this.Configuration.PersistenceContexts.Select(x => new DataAccessModelPersistenceContextInfo(x.ContextName)).ToArray());
+			return CreateMigrationPlan(this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite));
 		}
 
-		protected virtual MigrationPlan CreateMigrationPlan(params DataAccessModelPersistenceContextInfo[] persistenceContextInfos)
+		protected virtual MigrationPlan CreateMigrationPlan(DatabaseConnection connection)
 		{
 			var retval = new MigrationPlan();
 
-			foreach (var persistenceContextInfo in persistenceContextInfos)
-			{
-				var persistenceContext = this.GetPersistenceContext(persistenceContextInfo.ContextName);
+			var planCreator = connection.NewMigrationPlanCreator(this);
 
-				var planCreator = persistenceContext.NewMigrationPlanCreator(this, persistenceContextInfo);
+			var plan = planCreator.CreateMigrationPlan();
 
-				var plan = planCreator.CreateMigrationPlan();
-
-				retval.AddPersistenceContextMigrationPlan(persistenceContextInfo, plan);
-			}
+			retval.AddDatabaseMigrationPlan(connection, plan);
 
 			return retval;
 		}
 
 		public virtual MigrationScripts CreateMigrationScripts()
 		{
-			return CreateMigrationScripts(this.Configuration.PersistenceContexts.Select(x => new DataAccessModelPersistenceContextInfo(x.ContextName)).ToArray());
+			return CreateMigrationScripts(this.Configuration.PersistenceContexts.Select(x => new DataAccessModelDatabaseConnectionInfo(x.ContextName)).ToArray());
 		}
 
-		public virtual MigrationScripts CreateMigrationScripts(params DataAccessModelPersistenceContextInfo[] persistenceContextInfos)
+		public virtual MigrationScripts CreateMigrationScripts(params DataAccessModelDatabaseConnectionInfo[] databaseConnectionInfos)
 		{
 			var retval = new MigrationScripts();
 
-			foreach (var persistenceContextInfo in persistenceContextInfos)
+			foreach (var databaseConnectionInfo in databaseConnectionInfos)
 			{
-				var persistenceContext = this.GetPersistenceContext(persistenceContextInfo.ContextName);
+				var persistenceContext = this.GetDatabaseConnection(databaseConnectionInfo.ConnectionName);
 
-				var applicator = persistenceContext.NewMigrationPlanApplicator(this, persistenceContextInfo);
-				var plan = persistenceContext.NewMigrationPlanCreator(this, persistenceContextInfo).CreateMigrationPlan();
+				var applicator = persistenceContext.NewMigrationPlanApplicator(this);
+				var plan = persistenceContext.NewMigrationPlanCreator(this).CreateMigrationPlan();
 
 				retval.AddScripts(this, applicator.CreateScripts(plan));
 			}
 
 			return retval;
 		}
+		*/
 
 		#endregion
 

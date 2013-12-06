@@ -7,8 +7,8 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDatabaseCreator
 		: SqlDatabaseCreator
 	{
-		public SqliteSqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
-			: base(sqlPersistenceContext, model, persistenceContextInfo)
+		public SqliteSqlDatabaseCreator(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
+			: base(databaseConnection, model)
 		{
 		}
 	}

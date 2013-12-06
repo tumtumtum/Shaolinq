@@ -14,6 +14,8 @@ namespace Shaolinq
 		public Transaction Transaction { get; set; }
 		public DataAccessModel DataAccessModel { get; private set; }
 
+		public DatabaseConnection DatabaseConnection { get; set; }
+
 		public DataAccessObjectDataContext CurrentDataContext
 		{
 			get
@@ -33,47 +35,47 @@ namespace Shaolinq
 			this.DataAccessModel = dataAccessModel;
 			this.Transaction = transaction;
 
-			persistenceTransactionContextsByStoreContexts = new Dictionary<PersistenceContext, TransactionEntry>(PrimeNumbers.Prime7);
+			persistenceTransactionContextsByStoreContexts = new Dictionary<DatabaseConnection, TransactionEntry>(PrimeNumbers.Prime7);
 		}
 
 		internal struct TransactionEntry
 		{
-			public PersistenceTransactionContext persistenceTransactionContext;
+			public DatabaseTransactionContext databaseTransactionContext;
 
-			public TransactionEntry(PersistenceTransactionContext value)
+			public TransactionEntry(DatabaseTransactionContext value)
 			{
-				this.persistenceTransactionContext = value;
+				this.databaseTransactionContext = value;
 			}
 		}
 
-		internal readonly IDictionary<PersistenceContext, TransactionEntry> persistenceTransactionContextsByStoreContexts;
+		internal readonly IDictionary<DatabaseConnection, TransactionEntry> persistenceTransactionContextsByStoreContexts;
 
-		public virtual PersistenceTransactionContextAcquisition AcquirePersistenceTransactionContext(PersistenceContext persistenceContext)
+		public virtual PersistenceTransactionContextAcquisition AcquirePersistenceTransactionContext(DatabaseConnection databaseConnection)
 		{
-			PersistenceTransactionContext retval;
+			DatabaseTransactionContext retval;
 
 			if (this.Transaction == null)
 			{
-				retval = persistenceContext.NewDataTransactionContext(this.DataAccessModel, null);
+				retval = databaseConnection.NewDataTransactionContext(this.DataAccessModel, null);
 
-				return new PersistenceTransactionContextAcquisition(this, persistenceContext, retval);
+				return new PersistenceTransactionContextAcquisition(this, databaseConnection, retval);
 			}
 			else
 			{
 				TransactionEntry outValue;
 			
-				if (persistenceTransactionContextsByStoreContexts.TryGetValue(persistenceContext, out outValue))
+				if (persistenceTransactionContextsByStoreContexts.TryGetValue(databaseConnection, out outValue))
 				{
-					retval = outValue.persistenceTransactionContext;
+					retval = outValue.databaseTransactionContext;
 				}
 				else
 				{
-					retval = persistenceContext.NewDataTransactionContext(this.DataAccessModel, this.Transaction);
+					retval = databaseConnection.NewDataTransactionContext(this.DataAccessModel, this.Transaction);
 
-					persistenceTransactionContextsByStoreContexts[persistenceContext] = new TransactionEntry(retval);
+					persistenceTransactionContextsByStoreContexts[databaseConnection] = new TransactionEntry(retval);
 				}
 
-				return new PersistenceTransactionContextAcquisition(this, persistenceContext, retval);
+				return new PersistenceTransactionContextAcquisition(this, databaseConnection, retval);
 			}
 		}
 
@@ -83,7 +85,7 @@ namespace Shaolinq
 			{
 				try
 				{
-					persistenceTransactionContext.persistenceTransactionContext.Dispose();
+					persistenceTransactionContext.databaseTransactionContext.Dispose();
 				}
 				catch
 				{
@@ -103,7 +105,7 @@ namespace Shaolinq
 				{
 					try
 					{
-						persistenceTransactionContext.persistenceTransactionContext.Dispose();
+						persistenceTransactionContext.databaseTransactionContext.Dispose();
 					}
 					catch (Exception e)
 					{
@@ -139,7 +141,7 @@ namespace Shaolinq
 
 				foreach (var persistenceTransactionContext in persistenceTransactionContextsByStoreContexts.Values)
 				{
-					persistenceTransactionContext.persistenceTransactionContext.Commit();
+					persistenceTransactionContext.databaseTransactionContext.Commit();
 				}
 
 				preparingEnlistment.Done();
@@ -150,7 +152,7 @@ namespace Shaolinq
 			{
 				foreach (var persistenceTransactionContext in persistenceTransactionContextsByStoreContexts.Values)
 				{
-					persistenceTransactionContext.persistenceTransactionContext.Rollback();
+					persistenceTransactionContext.databaseTransactionContext.Rollback();
 				}
 
 				preparingEnlistment.ForceRollback(e);
@@ -163,7 +165,7 @@ namespace Shaolinq
 		{
 			foreach (var persistenceTransactionContext in persistenceTransactionContextsByStoreContexts.Values)
 			{
-				persistenceTransactionContext.persistenceTransactionContext.Rollback();
+				persistenceTransactionContext.databaseTransactionContext.Rollback();
 			}
 
 			Dispose();

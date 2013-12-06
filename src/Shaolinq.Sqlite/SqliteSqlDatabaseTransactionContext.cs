@@ -8,8 +8,8 @@ using System.Transactions;
 
 namespace Shaolinq.Sqlite
 {
-	public class SqliteSqlPersistenceTransactionContext
-		: SqlPersistenceTransactionContext
+	public class SqliteSqlDatabaseTransactionContext
+		: SqlDatabaseTransactionContext
 	{
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForUpdate = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
@@ -32,8 +32,8 @@ namespace Shaolinq.Sqlite
 			return false;
 		}
 
-		public SqliteSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(persistenceContext, dataAccessModel, transaction)
+		public SqliteSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(databaseConnection, dataAccessModel, transaction)
 		{
 		}
 
@@ -44,7 +44,7 @@ namespace Shaolinq.Sqlite
 
 		public override void Dispose()
 		{
-			if (!String.Equals(this.PersistenceContext.PersistenceStoreName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+			if (!String.Equals(this.DatabaseConnection.PersistenceStoreName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
 				base.Dispose();
 			}

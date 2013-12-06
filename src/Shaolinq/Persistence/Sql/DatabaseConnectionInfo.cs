@@ -1,14 +1,14 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using Platform.Xml.Serialization;
+ using Platform.Xml.Serialization;
 
 namespace Shaolinq.Persistence.Sql
 {
 	[XmlElement]
-	public class DatabaseConnectionInfo
+	public abstract class DatabaseConnectionInfo
 	{
 		[XmlAttribute]
-		public PersistenceMode PersistenceMode { get; set; }
+		public DatabaseReadMode DatabaseReadMode { get; set; }
 
 		[XmlAttribute]
 		public int CommandTimeout { get; set; }
@@ -19,12 +19,14 @@ namespace Shaolinq.Persistence.Sql
 		[XmlAttribute]
 		public string SchemaNamePrefix { get; set; }
 
-		public DatabaseConnectionInfo()
+		protected DatabaseConnectionInfo()
 		{
 			this.CommandTimeout = 120;
 			this.ConnectionTimeout = 60;
 			this.SchemaNamePrefix = "";
-			this.PersistenceMode = PersistenceMode.ReadWrite;
+			this.DatabaseReadMode = DatabaseReadMode.ReadWrite;
 		}
+
+		public abstract DatabaseConnection CreateDatabaseConnection();
 	}
 }

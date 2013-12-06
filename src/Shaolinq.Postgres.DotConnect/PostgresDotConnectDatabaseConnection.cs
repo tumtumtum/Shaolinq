@@ -15,8 +15,8 @@ using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres.DotConnect
 {
-    public class PostgresDotConnectPersistenceContext
-        : SqlPersistenceContext
+    public class PostgresDotConnectDatabaseConnection
+        : SystemDataBasedDatabaseConnection
     {
 	    public string Host { get; set; }
 	    public string Userid { get; set; }
@@ -48,7 +48,7 @@ namespace Shaolinq.Postgres.DotConnect
         private readonly string connectionString;
         private readonly string databaselessConnectionString;
 
-		public PostgresDotConnectPersistenceContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, int commandTimeoutSeconds, bool nativeUuids, string schemaNamePrefix, DateTimeKind dateTimeKindForUnspecifiedDateTimeKinds)
+		public PostgresDotConnectDatabaseConnection(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, int commandTimeoutSeconds, bool nativeUuids, string schemaNamePrefix, DateTimeKind dateTimeKindForUnspecifiedDateTimeKinds)
 			: base(database, PostgresSqlDialect.Default, new PostgresSqlDataTypeProvider(nativeUuids, dateTimeKindForUnspecifiedDateTimeKinds))
         {
             this.Host = host;
@@ -79,9 +79,9 @@ namespace Shaolinq.Postgres.DotConnect
             connectionString = sb.ConnectionString;
         }
 
-        public override PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+        public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
         {
-            return new PostgresDotConnectSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
+            return new PostgresDotConnectSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
         }
 
 		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
@@ -263,24 +263,24 @@ namespace Shaolinq.Postgres.DotConnect
 			return retval;
         }
 
-        public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+        public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model)
         {
-            return new SqlSchemaWriter(this, model, persistenceContextInfo);
+            return new SqlSchemaWriter(this, model);
         }
 
-        public override PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+        public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
         {
-            return new PostgresDotConnectSqlDatabaseCreator(this, model, persistenceContextInfo);
+            return new PostgresDotConnectSqlDatabaseCreator(this, model);
         }
 
-        public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+        public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
         {
-            return new SqlMigrationPlanApplicator(this, model, dataAccessModelPersistenceContextInfo);
+            return new SqlMigrationPlanApplicator(this, model);
         }
 
-        public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+        public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model)
         {
-            return new SqlPersistenceContextMigrationPlanCreator(this, model, dataAccessModelPersistenceContextInfo);
+            return new SqlDatabaseMigrationPlanCreator(this, model);
         }
 
         public override bool CreateDatabase(bool overwrite)
@@ -362,14 +362,14 @@ namespace Shaolinq.Postgres.DotConnect
             return retval;
         }
 
-        public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(PersistenceTransactionContext persistenceTransactionContext)
+        public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
         {
-            return new DisabledForeignKeyCheckContext(persistenceTransactionContext);	
+            return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
         }
 
-        public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+        public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
         {
-            return new SqlQueryProvider(dataAccessModel, persistenceContext);
+            return new SqlQueryProvider(dataAccessModel, databaseConnection);
         }
 
 		public override void DropAllConnections()

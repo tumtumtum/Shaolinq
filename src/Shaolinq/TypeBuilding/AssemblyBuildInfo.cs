@@ -22,8 +22,6 @@ namespace Shaolinq.TypeBuilding
 		private readonly Dictionary<Type, Type> concreteModelTypesByModelType;
 		private readonly Dictionary<Type, Delegate> dataAccessModelConstructors;
 		private readonly Dictionary<Type, Delegate> dataAccessObjectConstructors;
-		private readonly Dictionary<Type, string> persistenceContextNamesByConcreteType;
-		private readonly Dictionary<Type, Dictionary<Type, string>> queryablePersistenceContextNamesByConcreteModelType;
 		
 		public AssemblyBuildInfo(Assembly concreteAssembly, Assembly definitionAssembly)
 		{
@@ -35,8 +33,6 @@ namespace Shaolinq.TypeBuilding
 			this.modelTypesByConcreteModelType = new Dictionary<Type, Type>(PrimeNumbers.Prime7);
 			this.concreteModelTypesByModelType = new Dictionary<Type, Type>(PrimeNumbers.Prime7);
 			this.dataAccessObjectConstructors = new Dictionary<Type, Delegate>(PrimeNumbers.Prime67);
-			this.persistenceContextNamesByConcreteType = new Dictionary<Type, string>(PrimeNumbers.Prime7);
-			this.queryablePersistenceContextNamesByConcreteModelType = new Dictionary<Type, Dictionary<Type, string>>(PrimeNumbers.Prime7);
 			this.whereMethodInfos = new Dictionary<Type, MethodInfo>(PrimeNumbers.Prime127);
 			this.dataAccessObjectsTypes = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
 			this.enumerableTypes = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
@@ -49,8 +45,7 @@ namespace Shaolinq.TypeBuilding
 
 				this.concreteTypesByType[type.Type] = concreteType;
 				this.typesByConcreteType[concreteType] = type.Type;
-				persistenceContextNamesByConcreteType[concreteType] = type.PersistenceContextName;
-
+				
 				this.whereMethodInfos[type.Type] = MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(type.Type);
 				this.dataAccessObjectsTypes[type.Type] = TypeHelper.DataAccessObjectsType.MakeGenericType(type.Type);
 				this.enumerableTypes[type.Type] = TypeHelper.IEnumerableType.MakeGenericType(type.Type);
@@ -62,26 +57,6 @@ namespace Shaolinq.TypeBuilding
 
 				this.concreteModelTypesByModelType[descriptor.Type] = concreteType;
 				this.modelTypesByConcreteModelType[concreteType] = descriptor.Type;
-
-				var modelPersistenceContextNamesByConcreteType = new Dictionary<Type, string>(PrimeNumbers.Prime127);
-
-				foreach (var queryableType in descriptor.GetQueryableTypes())
-				{
-					Type concreteQueryableType;
-
-					if (queryableType.Assembly == this.concreteAssembly || queryableType.Assembly == this.definitionAssembly)
-					{
-						concreteQueryableType = this.concreteTypesByType[queryableType];
-					}
-					else
-					{
-						concreteQueryableType = DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(queryableType.Assembly).concreteTypesByType[queryableType];
-					}
-
-					modelPersistenceContextNamesByConcreteType[concreteQueryableType] = descriptor.GetQueryablePersistenceContextName(queryableType);
-				}
-
-				this.queryablePersistenceContextNamesByConcreteModelType[concreteType] = modelPersistenceContextNamesByConcreteType;
 			}
 		}
 
@@ -211,21 +186,6 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			return ((Func<T>)constructor)();
-		}
-
-		public IDictionary<Type, string> GetQueryablePersistenceContextNamesByModelType(Type modelType)
-		{
-			return this.queryablePersistenceContextNamesByConcreteModelType[modelType];
-		}
-		
-		public IDictionary<Type, string> GetPersistenceContextNamesByConcreteType()
-		{
-			return this.persistenceContextNamesByConcreteType;
-		}
-
-		public string GetPersistenceContextName(Type definitionType)
-		{
-			return this.persistenceContextNamesByConcreteType[definitionType];
 		}
 
 		public Type GetConcreteType(Type definitionType)

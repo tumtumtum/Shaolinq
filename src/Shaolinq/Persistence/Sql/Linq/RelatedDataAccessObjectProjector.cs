@@ -11,8 +11,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 		where U : T
 		where T : IDataAccessObject
 	{
-		public RelatedDataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, persistenceContextStore, objectReader, relatedDataAccessObjectContext, selectFirstType, placeholderValues)
+		public RelatedDataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, DatabaseConnection databaseConnection, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
+			: base(provider, dataAccessModel, formatResult, databaseConnection, objectReader, relatedDataAccessObjectContext, selectFirstType, placeholderValues)
 		{
 		}
 
@@ -20,9 +20,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			var transactionContext = this.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.PersistenceContext))
+			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.DatabaseConnection))
 			{
-				var persistenceTransactionContext = (SqlPersistenceTransactionContext)acquisition.PersistenceTransactionContext;
+				var persistenceTransactionContext = (SqlDatabaseTransactionContext)acquisition.DatabaseTransactionContext;
 
 				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
 				{

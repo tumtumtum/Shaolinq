@@ -53,38 +53,23 @@ namespace Shaolinq.Persistence
 
 		public string GetPersistedName(DataAccessModel model)
 		{
-			var persistenceContext = model.GetPersistenceContext(model.ModelTypeDescriptor.GetQueryablePersistenceContextName(this.Type));
-//			var persistenceContext = model.GetPersistenceContext(model.GetPersistenceContext(this.Type).);
-
-			return GetPersistedName(persistenceContext);
-		}
-
-		public string GetPersistedName(PersistenceContext persistenceContext)
-		{
-			return (persistenceContext.SchemaNamePrefix ?? "") + this.DataAccessObjectAttribute.GetName(this.Type);
-		}
+			var connection = model.GetDatabaseConnection(this.Type);
 		
-		public DataAccessObjectAttribute DataAccessObjectAttribute
-		{
-			get;
-			private set;
+			return GetPersistedName(connection);
 		}
 
-		public PersistenceContextAttribute PersistenceContextAttribute
+		public string GetPersistedName(DatabaseConnection databaseConnection)
 		{
-			get;
-			private set;
+			return (databaseConnection.SchemaNamePrefix ?? "") + this.DataAccessObjectAttribute.GetName(this.Type);
 		}
-        
+
+		public List<IndexDescriptor> Indexes { get; private set; }
+
+		public DataAccessObjectAttribute DataAccessObjectAttribute { get; private set; }
+
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
 			return relationshipInfos.Values;
-		}
-
-		public List<IndexDescriptor> Indexes
-		{
-			get;
-			private set;
 		}
 
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos; 
@@ -154,14 +139,6 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
-		public virtual string PersistenceContextName
-		{
-			get
-			{
-				return this.PersistenceContextAttribute.GetPersistenceContextName(this.Type);
-			}
-		}
-        
 		public ICollection<PropertyDescriptor> RelatedProperties
 		{
 			get;
@@ -394,9 +371,6 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-			this.PersistenceContextAttribute = type.GetFirstCustomAttribute<PersistenceContextAttribute>(true)
-												?? PersistenceContextAttribute.Default;
-            
 			// Load related properties
 
 			var relatedProperties = new List<PropertyDescriptor>();

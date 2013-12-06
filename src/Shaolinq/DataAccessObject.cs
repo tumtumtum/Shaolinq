@@ -54,7 +54,7 @@ namespace Shaolinq
 
 		protected bool CanHaveNewPrimaryKey(PropertyInfoAndValue[] primaryKey)
 		{
-			if (this.DataAccessModel.GetCurrentDataContext(false).GetObject(this.DataAccessModel.GetPersistenceContext(this.GetType()), this.GetType(), primaryKey) != null)
+			if (this.DataAccessModel.GetCurrentDataContext(false).GetObject(this.DataAccessModel.GetDatabaseConnection(this.GetType()), this.GetType(), primaryKey) != null)
 			{
 				return false;
 			}
@@ -80,11 +80,11 @@ namespace Shaolinq
 			}
 		}
 
-		public PersistenceContext PersistenceContext
+		public DatabaseConnection DatabaseConnection
 		{
 			get
 			{
-				return this.DataAccessModel.GetPersistenceContext(this.GetType());
+				return this.DataAccessModel.GetDatabaseConnection(this.GetType());
 			}
 		}
 

@@ -1,18 +1,18 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using Shaolinq.Persistence.Sql;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
 
 namespace Shaolinq
 {
-	public class PersistenceTransactionContextWrapper
-		: PersistenceTransactionContext
+	public class DatabaseTransactionContextWrapper
+		: DatabaseTransactionContext
 	{
-		protected readonly PersistenceTransactionContext wrappee;
+		protected readonly DatabaseTransactionContext wrappee;
 
-		public PersistenceTransactionContextWrapper(PersistenceTransactionContext wrappee)
+		public DatabaseTransactionContextWrapper(DatabaseTransactionContext wrappee)
 		{
 			this.wrappee = wrappee;
 		}

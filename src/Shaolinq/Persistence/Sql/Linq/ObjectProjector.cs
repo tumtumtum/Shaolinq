@@ -13,19 +13,19 @@ namespace Shaolinq.Persistence.Sql.Linq
 	{
 		public SqlQueryFormatResult FormatResult { get; private set; }
 		public DataAccessModel DataAccessModel { get; private set; }
-		public PersistenceContext PersistenceContext { get; private set; }
+		public DatabaseConnection DatabaseConnection { get; private set; }
 
 		protected int count = 0;
 		private readonly IQueryProvider provider;
 		protected SelectFirstType selectFirstType;
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, DatabaseConnection databaseConnection, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
 		{
 			this.provider = provider;
 			this.DataAccessModel = dataAccessModel;
 			this.FormatResult = formatResult;
-			this.PersistenceContext = persistenceContextStore;
+			this.DatabaseConnection = databaseConnection;
 			this.selectFirstType = selectFirstType;
 			this.relatedDataAccessObjectContext = relatedDataAccessObjectContext;
 		}
@@ -83,8 +83,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected readonly object[] placeholderValues;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, PersistenceContext persistenceContextStore, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, persistenceContextStore, relatedDataAccessObjectContext, selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, DatabaseConnection databaseConnection, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
+			: base(provider, dataAccessModel, formatResult, databaseConnection, relatedDataAccessObjectContext, selectFirstType)
 		{
 			this.placeholderValues = placeholderValues;
 			this.objectReader = (Func<ObjectProjector, IDataReader, object[], U>)objectReader;
@@ -94,9 +94,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			var transactionContext = this.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.PersistenceContext))
+			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.DatabaseConnection))
 			{
-				var persistenceTransactionContext = (SqlPersistenceTransactionContext)acquisition.PersistenceTransactionContext;
+				var persistenceTransactionContext = (SqlDatabaseTransactionContext)acquisition.DatabaseTransactionContext;
 
 				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
 				{

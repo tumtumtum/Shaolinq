@@ -12,18 +12,14 @@ namespace Shaolinq.Persistence
 	{
 		public Type Type { get; private set; }
 		public DataAccessModelAttribute DataAccessModelAttribute { get; private set; }
-		public PersistenceContextAttribute PersistenceContextAttribute { get; private set; }
-
+		
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptors = new Dictionary<Type, TypeDescriptor>();
-		private readonly Dictionary<Type, PersistenceContextAttribute> typePersistenceContexts = new Dictionary<Type, PersistenceContextAttribute>();
-
+		
 		public ModelTypeDescriptor(Type type)
 		{
 			this.Type = type;
 
 			this.DataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
-
-			this.PersistenceContextAttribute = type.GetFirstCustomAttribute<PersistenceContextAttribute>(true) ?? PersistenceContextAttribute.Default;
 
 			foreach (var propertyInfo in this.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
 			{
@@ -34,20 +30,17 @@ namespace Shaolinq.Persistence
 					continue;
 				}
 
-				// Use the persistance context attribute on the property if it exists
-				var propertyPersistenceContextAttribute = propertyInfo.GetFirstCustomAttribute<PersistenceContextAttribute>(true);
-
-				Type t = propertyInfo.PropertyType;
+				var propertyType = propertyInfo.PropertyType;
 				Type genericType = null;
 
-				while (t != null)
+				while (propertyType != null)
 				{
-					if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(DataAccessObjectsQueryable<>))
+					if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(DataAccessObjectsQueryable<>))
 					{
-						genericType = t.GetGenericArguments()[0];
+						genericType = propertyType.GetGenericArguments()[0];
 					}
 
-					t = t.BaseType;
+					propertyType = propertyType.BaseType;
 				}
 
 				if (genericType == null)
@@ -65,10 +58,6 @@ namespace Shaolinq.Persistence
 				}
 
 				this.typeDescriptors[typeDescriptor.Type] = typeDescriptor;
-
-				var persistenceContextAttribute = propertyPersistenceContextAttribute ?? typeDescriptor.PersistenceContextAttribute;
-
-				this.typePersistenceContexts[typeDescriptor.Type] = persistenceContextAttribute;
 			}
 		}
 
@@ -77,14 +66,9 @@ namespace Shaolinq.Persistence
 			return this.typeDescriptors.Keys;
 		}
 
-		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors()
+		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model)
 		{
-			return this.typeDescriptors.Values;
-		}
-
-		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model, string contextName)
-		{
-			return this.GetQueryableTypeDescriptors(model, t => this.GetQueryablePersistenceContextName(t.Type) == contextName).Sorted((x, y) => x.GetPersistedName(model).CompareTo(y.GetPersistedName(model)));
+			return this.typeDescriptors.Values.Sorted((x, y) => String.Compare(x.GetPersistedName(model), y.GetPersistedName(model), System.StringComparison.Ordinal));
 		}
 
 		public TypeDescriptor GetQueryableTypeDescriptor(Type type)
@@ -102,11 +86,6 @@ namespace Shaolinq.Persistence
 		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model, Predicate<TypeDescriptor> accept)
 		{
 			return this.typeDescriptors.Values.Filter(accept);
-		}
-
-		public string GetQueryablePersistenceContextName(Type type)
-		{
-			return this.typePersistenceContexts[type].GetPersistenceContextName(type);
 		}
 	}
 }

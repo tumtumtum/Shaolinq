@@ -1,5 +1,7 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
+using Shaolinq.Persistence.Sql;
+
 namespace Shaolinq.Postgres
 {
 	public static class PostgresConfiguration
@@ -11,32 +13,24 @@ namespace Shaolinq.Postgres
 
 		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password, bool poolConnections)
 		{
-			return CreateConfiguration(contextName, databaseName, serverName, userId, password, poolConnections, PersistenceMode.ReadWrite);
+			return CreateConfiguration(contextName, databaseName, serverName, userId, password, poolConnections, DatabaseReadMode.ReadWrite);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password, bool poolConnections, PersistenceMode persistenceMode)
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password, bool poolConnections, DatabaseReadMode databaseReadMode)
 		{
 			return new DataAccessModelConfiguration()
 			{
-				PersistenceContexts = new PersistenceContextInfo[]
+				DatabaseConnectionInfos = new DatabaseConnectionInfo[]
 				{
-					new PostgresPersistenceContextInfo()
+					new PostgresDatabaseConnectionInfo()
 					{
-						ContextName = contextName,
 						DatabaseName = databaseName,
-						DatabaseConnectionInfos =
-						new[]
-						{
-							new PostgresDatabaseConnectionInfo()
-							{
-								PersistenceMode = persistenceMode,
-								ServerName = serverName,
-								Pooling = true,
-								UserId = userId,
-								Password = password
-							},
-						}
-					}
+						DatabaseReadMode = databaseReadMode,
+						ServerName = serverName,
+						Pooling = true,
+						UserId = userId,
+						Password = password
+					},
 				}
 			};
 		}

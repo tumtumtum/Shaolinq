@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Sql;
 using Platform;
-using TypeAndTcx = Platform.Pair<System.Type, Shaolinq.PersistenceTransactionContext>;
+using TypeAndTcx = Platform.Pair<System.Type, Shaolinq.DatabaseTransactionContext>;
 
 namespace Shaolinq
 {
@@ -71,21 +71,21 @@ namespace Shaolinq
 
 		#endregion
 
-		#region CacheByPersistenceContext
+		#region CacheByDatabaseConnection
 
-		private class CacheByPersistenceContext<T>
-			: IEnumerable<KeyValuePair<PersistenceContext, ObjectsByIdCache<T>>>
+		private class CacheByDatabaseConnection<T>
+			: IEnumerable<KeyValuePair<DatabaseConnection, ObjectsByIdCache<T>>>
 		{
-			private readonly Dictionary<PersistenceContext, ObjectsByIdCache<T>> objectsByIdCacheByPersistenceContext;
+			private readonly Dictionary<DatabaseConnection, ObjectsByIdCache<T>> objectsByIdCacheByDatabaseConnection;
 
-			public CacheByPersistenceContext()
+			public CacheByDatabaseConnection()
 			{
-				objectsByIdCacheByPersistenceContext = new Dictionary<PersistenceContext, ObjectsByIdCache<T>>(PrimeNumbers.Prime17);
+				this.objectsByIdCacheByDatabaseConnection = new Dictionary<DatabaseConnection, ObjectsByIdCache<T>>(PrimeNumbers.Prime17);
 			}
 
 			public void UpgradeNewToUpdated()
 			{
-				foreach (var objectsByIdCache in objectsByIdCacheByPersistenceContext.Values)
+				foreach (var objectsByIdCache in this.objectsByIdCacheByDatabaseConnection.Values)
 				{
 					objectsByIdCache.UpdateNewToUpdated();
 				}
@@ -93,7 +93,7 @@ namespace Shaolinq
 
 			public void AssertObjectsAreReadyForCommit()
 			{
-				foreach (var objectsByIdCache in objectsByIdCacheByPersistenceContext.Values)
+				foreach (var objectsByIdCache in this.objectsByIdCacheByDatabaseConnection.Values)
 				{
 					objectsByIdCache.AssertObjectsAreReadyForCommit();
 				}
@@ -103,9 +103,9 @@ namespace Shaolinq
 			{
 				ObjectsByIdCache<T> objectsById;
 
-				var persistenceContext = value.GetPersistenceContext();
+				var databaseConnection = value.GetDatabaseConnection();
 
-				if (!this.objectsByIdCacheByPersistenceContext.TryGetValue(persistenceContext, out objectsById))
+				if (!this.objectsByIdCacheByDatabaseConnection.TryGetValue(databaseConnection, out objectsById))
 				{
 					return;
 				}
@@ -113,15 +113,15 @@ namespace Shaolinq
 				objectsById.Deleted(value);
 			}
 
-			public DataAccessObject<T> Get(PersistenceContext persistenceContext, Type type, PropertyInfoAndValue[] primaryKey)
+			public DataAccessObject<T> Get(DatabaseConnection databaseConnection, Type type, PropertyInfoAndValue[] primaryKey)
 			{
 				ObjectsByIdCache<T> objectsById;
 
-				if (!this.objectsByIdCacheByPersistenceContext.TryGetValue(persistenceContext, out objectsById))
+				if (!this.objectsByIdCacheByDatabaseConnection.TryGetValue(databaseConnection, out objectsById))
 				{
 					objectsById = new ObjectsByIdCache<T>();
 
-					this.objectsByIdCacheByPersistenceContext[persistenceContext] = objectsById;
+					this.objectsByIdCacheByDatabaseConnection[databaseConnection] = objectsById;
 				}
 
 				return objectsById.Get(type, primaryKey);
@@ -131,21 +131,21 @@ namespace Shaolinq
 			{
 				ObjectsByIdCache<T> objectsById;
                 
-				var persistenceContext = value.GetPersistenceContext();
+				var databaseConnection = value.GetDatabaseConnection();
 
-				if (!this.objectsByIdCacheByPersistenceContext.TryGetValue(persistenceContext, out objectsById))
+				if (!this.objectsByIdCacheByDatabaseConnection.TryGetValue(databaseConnection, out objectsById))
 				{
 					objectsById = new ObjectsByIdCache<T>();
 
-					this.objectsByIdCacheByPersistenceContext[persistenceContext] = objectsById;
+					this.objectsByIdCacheByDatabaseConnection[databaseConnection] = objectsById;
 				}
                 
 				return objectsById.Cache(value, forImport);
 			}
             
-			public IEnumerator<KeyValuePair<PersistenceContext, ObjectsByIdCache<T>>> GetEnumerator()
+			public IEnumerator<KeyValuePair<DatabaseConnection, ObjectsByIdCache<T>>> GetEnumerator()
 			{
-				return this.objectsByIdCacheByPersistenceContext.GetEnumerator();
+				return this.objectsByIdCacheByDatabaseConnection.GetEnumerator();
 			}
 
 			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -538,10 +538,10 @@ namespace Shaolinq
 
 		#endregion
 
-		private CacheByPersistenceContext<int> cacheByInt;
-		private CacheByPersistenceContext<long> cacheByLong;
-		private CacheByPersistenceContext<Guid> cacheByGuid;
-		private CacheByPersistenceContext<string> cacheByString;
+		private CacheByDatabaseConnection<int> cacheByInt;
+		private CacheByDatabaseConnection<long> cacheByLong;
+		private CacheByDatabaseConnection<Guid> cacheByGuid;
+		private CacheByDatabaseConnection<string> cacheByString;
 
 		protected bool DisableCache { get; private set; }
 		public DataAccessModel DataAccessModel { get; private set; }
@@ -571,14 +571,14 @@ namespace Shaolinq
 				case TypeCode.Int32:
 					if (cacheByInt == null)
 					{
-						cacheByInt = new CacheByPersistenceContext<int>();
+						cacheByInt = new CacheByDatabaseConnection<int>();
 					}
 					cacheByInt.Deleted((DataAccessObject<int>)value);
 					break;
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
-						cacheByLong = new CacheByPersistenceContext<long>();
+						cacheByLong = new CacheByDatabaseConnection<long>();
 					}
 					cacheByLong.Deleted((DataAccessObject<long>)value);
 					break;
@@ -587,7 +587,7 @@ namespace Shaolinq
 					{
 						if (cacheByGuid == null)
 						{
-							cacheByGuid = new CacheByPersistenceContext<Guid>();
+							cacheByGuid = new CacheByDatabaseConnection<Guid>();
 						}
 						cacheByGuid.Deleted((DataAccessObject<Guid>)value);
 					}
@@ -595,7 +595,7 @@ namespace Shaolinq
 					{
 						if (cacheByString == null)
 						{
-							cacheByString = new CacheByPersistenceContext<string>();
+							cacheByString = new CacheByDatabaseConnection<string>();
 						}
 						cacheByString.Deleted((DataAccessObject<string>)value);
 					}
@@ -643,7 +643,7 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual IDataAccessObject GetObject(PersistenceContext persistenceContext, Type type, PropertyInfoAndValue[] primaryKeys)
+		public virtual IDataAccessObject GetObject(DatabaseConnection databaseConnection, Type type, PropertyInfoAndValue[] primaryKeys)
 		{
 			if (this.DisableCache)
 			{
@@ -660,14 +660,14 @@ namespace Shaolinq
 						return null;
 					}
 
-					return cacheByInt.Get(persistenceContext, type, primaryKeys);
+					return cacheByInt.Get(databaseConnection, type, primaryKeys);
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
 						return null;
 					}
 
-					return cacheByLong.Get(persistenceContext, type, primaryKeys);
+					return cacheByLong.Get(databaseConnection, type, primaryKeys);
 				default:
 					if (keyType == typeof(Guid))
 					{
@@ -676,7 +676,7 @@ namespace Shaolinq
 							return null;
 						}
 
-						return cacheByGuid.Get(persistenceContext, type, primaryKeys);
+						return cacheByGuid.Get(databaseConnection, type, primaryKeys);
 					}
 					else if (keyType == typeof(string))
 					{
@@ -685,7 +685,7 @@ namespace Shaolinq
 							return null;
 						}
 
-						return cacheByString.Get(persistenceContext, type, primaryKeys);
+						return cacheByString.Get(databaseConnection, type, primaryKeys);
 					}
 					break;
 			}
@@ -712,13 +712,13 @@ namespace Shaolinq
 				case TypeCode.Int32:
 					if (cacheByInt == null)
 					{
-						cacheByInt = new CacheByPersistenceContext<int>();
+						cacheByInt = new CacheByDatabaseConnection<int>();
 					}
 					return cacheByInt.Cache((DataAccessObject<int>)value, forImport);
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
-						cacheByLong = new CacheByPersistenceContext<long>();
+						cacheByLong = new CacheByDatabaseConnection<long>();
 					}
 					return cacheByLong.Cache((DataAccessObject<long>)value, forImport);
 				default:
@@ -726,7 +726,7 @@ namespace Shaolinq
 					{
 						if (cacheByGuid == null)
 						{
-							cacheByGuid = new CacheByPersistenceContext<Guid>();
+							cacheByGuid = new CacheByDatabaseConnection<Guid>();
 						}
 						return cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
 					}
@@ -734,7 +734,7 @@ namespace Shaolinq
 					{
 						if (cacheByString == null)
 						{
-							cacheByString = new CacheByPersistenceContext<string>();
+							cacheByString = new CacheByDatabaseConnection<string>();
 						}
 						return cacheByString.Cache((DataAccessObject<string>)value, forImport);
 					}
@@ -829,7 +829,7 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitDeleted<T>(CacheByPersistenceContext<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
+		private static void CommitDeleted<T>(CacheByDatabaseConnection<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
 			// Insert new objects from cache
 			foreach (var i in cache)
@@ -842,7 +842,7 @@ namespace Shaolinq
 				{
 					foreach (var j in i.Value.objectsDeleted)
 					{
-						acquisition.PersistenceTransactionContext.Delete(j.Key, j.Value.Values);
+						acquisition.DatabaseTransactionContext.Delete(j.Key, j.Value.Values);
 					}
 				}
 
@@ -850,7 +850,7 @@ namespace Shaolinq
 				{
 					foreach (var j in i.Value.objectsDeletedComposite)
 					{
-						acquisition.PersistenceTransactionContext.Delete(j.Key, j.Value.Values);
+						acquisition.DatabaseTransactionContext.Delete(j.Key, j.Value.Values);
 					}
 				}
 			}
@@ -879,7 +879,7 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitUpdated<T>(CacheByPersistenceContext<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
+		private static void CommitUpdated<T>(CacheByDatabaseConnection<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
 			// Insert new objects from cache
 			foreach (var i in cache)
@@ -890,14 +890,14 @@ namespace Shaolinq
 
 				foreach (var j in i.Value.objectsByIdCache)
 				{
-					acquisition.PersistenceTransactionContext.Update(j.Key, j.Value.Values);
+					acquisition.DatabaseTransactionContext.Update(j.Key, j.Value.Values);
 				}
 
 				if (i.Value.objectsByIdCacheComposite != null)
 				{
 					foreach (var j in i.Value.objectsByIdCacheComposite)
 					{
-						acquisition.PersistenceTransactionContext.Update(j.Key, j.Value.Values);
+						acquisition.DatabaseTransactionContext.Update(j.Key, j.Value.Values);
 					}
 				}
 			}
@@ -926,16 +926,16 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitNewPhase1<T>(HashSet<PersistenceTransactionContextAcquisition> acquisitions, CacheByPersistenceContext<T> cacheByPersistenceContext, TransactionContext transactionContext, Dictionary<TypeAndTcx, InsertResults> insertResultsByType, Dictionary<TypeAndTcx, IList<IDataAccessObject>> fixups)
+		private static void CommitNewPhase1<T>(HashSet<PersistenceTransactionContextAcquisition> acquisitions, CacheByDatabaseConnection<T> cacheByDatabaseConnection, TransactionContext transactionContext, Dictionary<TypeAndTcx, InsertResults> insertResultsByType, Dictionary<TypeAndTcx, IList<IDataAccessObject>> fixups)
 		{
 			// Insert new objects from cache
-			foreach (var i in cacheByPersistenceContext)
+			foreach (var i in cacheByDatabaseConnection)
 			{
 				var acquisition = transactionContext.AcquirePersistenceTransactionContext(i.Key);
 
 				acquisitions.Add(acquisition);
 
-				var persistenceTransactionContext = acquisition.PersistenceTransactionContext;
+				var persistenceTransactionContext = acquisition.DatabaseTransactionContext;
 
 				foreach (var j in i.Value.newObjects)
 				{
@@ -1018,9 +1018,9 @@ namespace Shaolinq
 			foreach (var i in fixups)
 			{
 				var type = i.Key.Left;
-				var transactionPersistenceContext = i.Key.Right;
+				var databaseTransactionContext = i.Key.Right;
 
-				transactionPersistenceContext.Update(type, i.Value);
+				databaseTransactionContext.Update(type, i.Value);
 			}
 		}
 	}

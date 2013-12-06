@@ -8,8 +8,8 @@ using MySql.Data.MySqlClient;
 
 namespace Shaolinq.MySql
 {
-	public class MySqlSqlPersistenceTransactionContext
-		: SqlPersistenceTransactionContext
+	public class MySqlSqlDatabaseTransactionContext
+		: SqlDatabaseTransactionContext
 	{
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForUpdate = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
@@ -32,8 +32,8 @@ namespace Shaolinq.MySql
 			return false;
 		}
 
-		public MySqlSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(persistenceContext, dataAccessModel, transaction)
+		public MySqlSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(databaseConnection, dataAccessModel, transaction)
 		{
 		}
 

@@ -11,8 +11,8 @@ using Devart.Data.PostgreSql;
 
 namespace Shaolinq.Postgres.DotConnect
 {
-	public class PostgresDotConnectSqlPersistenceTransactionContext
-		: PostgresSharedSqlPersistenceTransactionContext
+	public class PostgresDotConnectSqlDatabaseTransactionContext
+		: PostgresSharedSqlDatabaseTransactionContext
 	{
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForUpdate = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
@@ -20,8 +20,8 @@ namespace Shaolinq.Postgres.DotConnect
 		private readonly Transaction transaction;
         private PgSqlTransaction dbTransaction;
 
-		public PostgresDotConnectSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(persistenceContext, dataAccessModel, transaction)
+		public PostgresDotConnectSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(databaseConnection, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;
 
@@ -55,7 +55,7 @@ namespace Shaolinq.Postgres.DotConnect
 			var retval = (((PgSqlConnection)this.DbConnection).CreateCommand());
             
 			retval.Transaction = this.dbTransaction;
-			retval.CommandTimeout = (int)this.PersistenceContext.CommandTimeout.TotalSeconds;
+			retval.CommandTimeout = (int)this.DatabaseConnection.CommandTimeout.TotalSeconds;
 			
 			return retval;
 		}

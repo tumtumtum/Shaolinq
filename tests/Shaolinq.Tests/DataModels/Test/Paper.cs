@@ -14,6 +14,12 @@ namespace Shaolinq.Tests.DataModels.Test
 		: DataAccessObject<string>
 	{
 		[SizeConstraint(MaximumLength=32)]
+		public abstract override string Id
+		{
+			get;
+			set;
+		}
+
 		public string PaperCode
 		{
 			get

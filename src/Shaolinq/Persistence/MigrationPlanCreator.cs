@@ -21,11 +21,10 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected MigrationPlanCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		protected MigrationPlanCreator(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
 		{
 			this.Model = model;
-			this.SqlPersistenceContext = sqlPersistenceContext;
-			this.PersistenceContextInfo = persistenceContextInfo;
+			this.SystemDataBasedDatabaseConnection = databaseConnection;
 			this.ModelTypeDescriptor = this.Model.ModelTypeDescriptor;
 		}
 
@@ -41,18 +40,18 @@ namespace Shaolinq.Persistence
 			set;
 		}
 
-		protected DataAccessModelPersistenceContextInfo PersistenceContextInfo
+		protected DataAccessModelDatabaseConnectionInfo DatabaseConnectionInfo
 		{
 			get;
 			set;
 		}
 
-		protected SqlPersistenceContext SqlPersistenceContext
+		protected SystemDataBasedDatabaseConnection SystemDataBasedDatabaseConnection
 		{
 			get;
 			set;
 		}
 
-		public abstract PersistenceContextMigrationPlan CreateMigrationPlan();
+		public abstract DatabaseMigrationPlan CreateMigrationPlan();
 	}
 }

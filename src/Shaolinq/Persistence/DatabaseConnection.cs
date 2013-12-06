@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Transactions;
@@ -10,7 +10,7 @@ using Platform;
 
 namespace Shaolinq.Persistence
 {
-	public abstract class PersistenceContext
+	public abstract class DatabaseConnection
 		: IDisposable
 	{
 		public string PersistenceStoreName { get; set; }
@@ -67,22 +67,17 @@ namespace Shaolinq.Persistence
 		}
 
 		public abstract Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options);
+		public abstract IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection);
+		public abstract DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
+		public abstract DatabaseCreator NewDatabaseCreator(DataAccessModel model);
+		public abstract MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model);
+		public abstract MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model);
 
-		public abstract IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext);
-
-		public abstract PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
-
-		public abstract PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
-
-		public abstract MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
-
-		public abstract MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo);
-        
+		public abstract void DropAllConnections();
+		
 		public virtual void Dispose()
 		{
 			DropAllConnections();
 		}
-
-		public abstract void DropAllConnections();
 	}
 }

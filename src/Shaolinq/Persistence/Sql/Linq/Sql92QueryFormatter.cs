@@ -826,7 +826,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 				AppendLimit(selectExpression);
 
-				if (selectExpression.ForUpdate && this.sqlDialect.SupportsForUpdate)
+				if (selectExpression.ForUpdate && this.sqlDialect.SupportsFeature(SqlFeature.Constraints))
 				{
 					commandText.Append(" FOR UPDATE");
 				}

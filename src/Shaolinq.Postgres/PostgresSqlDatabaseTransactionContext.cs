@@ -12,10 +12,10 @@ using Npgsql;
 namespace Shaolinq.Postgres
 {
 	/// <summary>
-	/// A Postgres specific <see cref="SqlPersistenceTransactionContext"/>.
+	/// A Postgres specific <see cref="SqlDatabaseTransactionContext"/>.
 	/// </summary>
-	public class PostgresSqlPersistenceTransactionContext
-		: PostgresSharedSqlPersistenceTransactionContext
+	public class PostgresSqlDatabaseTransactionContext
+		: PostgresSharedSqlDatabaseTransactionContext
 	{
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
 		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForUpdate = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
@@ -23,8 +23,8 @@ namespace Shaolinq.Postgres
 		private readonly Transaction transaction;
 		private NpgsqlTransaction dbTransaction;
 
-		public PostgresSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(persistenceContext, dataAccessModel, transaction)
+		public PostgresSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(databaseConnection, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;
 

@@ -35,11 +35,22 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		public override bool SupportsIndexNameCasing
+		public override bool SupportsFeature(SqlFeature feature)
 		{
-			get
+			switch (feature)
 			{
-				return false;
+				case SqlFeature.AlterTableAddConstraints:
+					return true;
+				case SqlFeature.Constraints:
+					return true;
+				case SqlFeature.IndexNameCasing:
+					return false;
+				case SqlFeature.IndexToLower:
+					return true;
+				case SqlFeature.SelectForUpdate:
+					return true;
+				default:
+					return false;
 			}
 		}
 
@@ -60,22 +71,6 @@ namespace Shaolinq.Postgres.Shared
 		public override string GetAutoIncrementSuffix()
 		{
 			return "";
-		}
-
-		public override bool SupportsForUpdate
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		public override bool SupportsIndexToLower
-		{
-			get
-			{
-				return true;
-			}
 		}
 	}
 }

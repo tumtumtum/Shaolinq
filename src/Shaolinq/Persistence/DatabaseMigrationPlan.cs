@@ -4,7 +4,7 @@
 
 namespace Shaolinq.Persistence
 {
-	public class PersistenceContextMigrationPlan
+	public class DatabaseMigrationPlan
 	{
 		public List<MigrationTypeInfo> NewTypes
 		{
@@ -24,7 +24,7 @@ namespace Shaolinq.Persistence
 			set;
 		}
 
-		public PersistenceContextMigrationPlan()
+		public DatabaseMigrationPlan()
 		{
 			this.NewTypes = new List<MigrationTypeInfo>();
 			this.ModifiedTypes = new List<MigrationTypeInfo>();

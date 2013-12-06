@@ -60,24 +60,6 @@ namespace Shaolinq.TypeBuilding
 				{
 					throw new InvalidOperationException("DataAccessModel objects should not defined properties of type RelatedDataAccessObject<>");
 				}
-				
-				// Use the persistance context attribute on the property if it exists
-				var propertyPersistenceContextAttribute = propertyInfo.GetFirstCustomAttribute<PersistenceContextAttribute>(true);
-
-				Type type = null;
-				Type t = propertyInfo.PropertyType;
-
-				while (t != null)
-				{
-					if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(DataAccessObjectsQueryable<>))
-					{
-						type = t.GetGenericArguments()[0];
-					}
-
-					t = t.BaseType;
-				}
-
-				var persistenceContextAttribute = propertyPersistenceContextAttribute ?? type.GetFirstCustomAttribute<PersistenceContextAttribute>(true) ?? PersistenceContextAttribute.Default;
 
 				if (propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetSetMethod().IsAbstract)
 				{

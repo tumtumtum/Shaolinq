@@ -93,11 +93,9 @@
   <ItemGroup>
     <Compile Include="PostgresConfiguration.cs" />
     <Compile Include="PostgresDatabaseConnectionInfo.cs" />
-    <Compile Include="PostgresPersistenceContextInfo.cs" />
-    <Compile Include="PostgresPersistenceContextProvider.cs" />
-    <Compile Include="PostgresPersistenceContext.cs" />
+    <Compile Include="PostgresDatabaseConnection.cs" />
     <Compile Include="PostgresSqlDatabaseCreator.cs" />
-    <Compile Include="PostgresSqlPersistenceTransactionContext.cs" />
+    <Compile Include="PostgresSqlDatabaseTransactionContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -7,7 +7,7 @@ namespace Shaolinq.Sqlite
 	internal class DisabledForeignKeyCheckContext
 		: IDisabledForeignKeyCheckContext
 	{
-		public DisabledForeignKeyCheckContext(PersistenceTransactionContext context)
+		public DisabledForeignKeyCheckContext(DatabaseTransactionContext context)
 		{
 		}
 

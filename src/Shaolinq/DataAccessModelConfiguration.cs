@@ -1,22 +1,23 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Platform;
 using Platform.Xml.Serialization;
+ using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq
 {
 	[XmlElement]
 	public class DataAccessModelConfiguration
 	{
-		public class PersistenceContextInfoDynamicTypeProvider
+		public class DatabaseConnectionInfoDynamicTypeProvider
 			: IXmlListElementDynamicTypeProvider
 		{
-			private static readonly Regex NameRegex = new Regex("([a-zA-Z0-9]+)PersistenceContext");
+			private static readonly Regex NameRegex = new Regex("([a-zA-Z0-9]+)DatabaseConnection");
 
-			public PersistenceContextInfoDynamicTypeProvider(SerializationMemberInfo memberInfo, TypeSerializerCache cache, SerializerOptions options)
+			public DatabaseConnectionInfoDynamicTypeProvider(SerializationMemberInfo memberInfo, TypeSerializerCache cache, SerializerOptions options)
 			{
 			}
 
@@ -72,38 +73,13 @@ namespace Shaolinq
 				return instance.GetType().Name.ReplaceLast("Info", "");
 			}
 		}
-
-		private readonly IDictionary<string, PersistenceContextProvider> databaseContextProviders = new Dictionary<string, PersistenceContextProvider>();
-
-		[XmlElement]
-		[XmlListElementDynamicTypeProvider(typeof(PersistenceContextInfoDynamicTypeProvider))]
-		public PersistenceContextInfo[] PersistenceContexts
+		
+		[XmlElement("DatabaseConnections")]
+		[XmlListElementDynamicTypeProvider(typeof(DatabaseConnectionInfoDynamicTypeProvider))]
+		public DatabaseConnectionInfo[] DatabaseConnectionInfos
 		{
 			get;
 			set;
-		}
-
-		public bool TryGetDatabaseContextProvider(string contextName, out PersistenceContextProvider persistenceContextProvider)
-		{
-			if (this.databaseContextProviders.TryGetValue(contextName, out persistenceContextProvider))
-			{
-				return true;
-			}
-
-			foreach (var persistenceContextInfo in PersistenceContexts)
-			{
-				if (persistenceContextInfo.ContextName != contextName)
-				{
-					continue;
-				}
-
-				persistenceContextProvider = persistenceContextInfo.NewDatabaseContextProvider();
-				this.databaseContextProviders[contextName] = persistenceContextProvider;
-
-				return true;
-			}
-
-			return false;
 		}
 	}
 }

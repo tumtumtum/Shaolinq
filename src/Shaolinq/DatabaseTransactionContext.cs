@@ -7,7 +7,7 @@ using Shaolinq.Persistence.Sql.Linq.Expressions;
 
 namespace Shaolinq
 {
-	public abstract class PersistenceTransactionContext
+	public abstract class DatabaseTransactionContext
 		: IDisposable
 	{
 		public abstract bool IsClosed { get; }

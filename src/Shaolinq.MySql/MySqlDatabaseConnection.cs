@@ -11,8 +11,8 @@ using MySql.Data.MySqlClient;
 
 ﻿namespace Shaolinq.MySql
 {
-	public class MySqlPersistenceContext
-		: SqlPersistenceContext
+	public class MySqlDatabaseConnection
+		: SystemDataBasedDatabaseConnection
 	{
 		public string ServerName { get; private set; }
 		public string Username { get; private set; }
@@ -41,7 +41,7 @@ using MySql.Data.MySqlClient;
 
 		private readonly string connectionString;
 
-		public MySqlPersistenceContext(string serverName, string database, string username, string password, bool poolConnections, string schemaNamePrefix)
+		public MySqlDatabaseConnection(string serverName, string database, string username, string password, bool poolConnections, string schemaNamePrefix)
 			: base(database, MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance)
 		{
 			this.ServerName = serverName;
@@ -52,9 +52,9 @@ using MySql.Data.MySqlClient;
 			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.PersistenceStoreName, this.Username, this.Password, poolConnections);
 		}
 
-		public override PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
-			return new MySqlSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
+			return new MySqlSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
 
 		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
@@ -72,24 +72,24 @@ using MySql.Data.MySqlClient;
 			throw new NotImplementedException();
 		}
 
-		public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model)
 		{
-			return new SqlSchemaWriter(this, model, persistenceContextInfo);
+			return new SqlSchemaWriter(this, model);
 		}
 
-		public override PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
 		{
-			return new MySqlSqlDatabaseCreator(this, model, persistenceContextInfo);
+			return new MySqlSqlDatabaseCreator(this, model);
 		}
 
-		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model)
 		{
-			return new SqlPersistenceContextMigrationPlanCreator(this, model, dataAccessModelPersistenceContextInfo);
+			return new SqlDatabaseMigrationPlanCreator(this, model);
 		}
 
 		public override bool CreateDatabase(bool overwrite)
@@ -157,14 +157,14 @@ using MySql.Data.MySqlClient;
 			return retval;
 		}
         
-		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(PersistenceTransactionContext persistenceTransactionContext)
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
 		{
-			return new DisabledForeignKeyCheckContext(persistenceTransactionContext);	
+			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
 		}
 
-		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
 		{
-			return new SqlQueryProvider(dataAccessModel, persistenceContext);
+			return new SqlQueryProvider(dataAccessModel, databaseConnection);
 		}
 
 		public override void DropAllConnections()

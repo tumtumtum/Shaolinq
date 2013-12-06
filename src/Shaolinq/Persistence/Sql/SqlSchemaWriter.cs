@@ -12,14 +12,12 @@ namespace Shaolinq.Persistence.Sql
 	public class SqlSchemaWriter
 	{
 		public DataAccessModel Model { get; set; }
-		public SqlPersistenceContext SqlPersistenceContext { get; private set; }
-		public DataAccessModelPersistenceContextInfo PersistenceContextInfo { get; set; }
-
-		public SqlSchemaWriter(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public SystemDataBasedDatabaseConnection SystemDataBasedDatabaseConnection { get; private set; }
+		
+		public SqlSchemaWriter(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
 		{
-			this.SqlPersistenceContext = sqlPersistenceContext;
+			this.SystemDataBasedDatabaseConnection = databaseConnection;
 			this.Model = model;
-			this.PersistenceContextInfo = persistenceContextInfo;
 		}
 
 		public static string CreateForiegnKeyName(string foriegnTableName, string idColumnName)
@@ -44,10 +42,10 @@ namespace Shaolinq.Persistence.Sql
 
 				var columnName = name ?? CreateForiegnKeyName(relatedType.GetPersistedName(this.Model), propertyDescriptor.PersistedName);
 
-				var dataType = this.SqlPersistenceContext.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
+				var dataType = this.SystemDataBasedDatabaseConnection.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
 
-				builder.Append(this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append(columnName).Append(this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append(" ");
-				builder.Append(this.SqlPersistenceContext.SqlDialect.GetColumnName(propertyDescriptor, dataType, true)).Append(" ");
+				builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append(columnName).Append(this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append(" ");
+				builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnName(propertyDescriptor, dataType, true)).Append(" ");
 
 				if (valueRequired)
 				{
@@ -69,9 +67,9 @@ namespace Shaolinq.Persistence.Sql
 		public virtual string GetQualifiedIndexName(TypeDescriptor typeDescriptor, IndexDescriptor indexDescriptor)
 		{
 			var indexName = indexDescriptor.Name;
-			var typeNameForIndex = typeDescriptor.GetPersistedName(this.Model.GetPersistenceContext(this.PersistenceContextInfo.ContextName));
+			var typeNameForIndex = typeDescriptor.GetPersistedName(this.SystemDataBasedDatabaseConnection);
 			
-			if (!this.SqlPersistenceContext.SqlDialect.SupportsIndexNameCasing)
+			if (!this.SystemDataBasedDatabaseConnection.SqlDialect.SupportsFeature(SqlFeature.IndexNameCasing))
 			{
 				indexName = indexName.ToLower();
 				typeNameForIndex = typeNameForIndex.ToLower();
@@ -93,7 +91,7 @@ namespace Shaolinq.Persistence.Sql
 
 			builder.Append(GetQualifiedIndexName(typeDescriptor, indexDescriptor));
 			builder.Append(' ');
-			builder.AppendFormat("ON {0}{1}{0}", this.SqlPersistenceContext.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
+			builder.AppendFormat("ON {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
 			builder.Append('(');
 
 			foreach (var propertyDescriptor in indexDescriptor.Properties)
@@ -101,14 +99,14 @@ namespace Shaolinq.Persistence.Sql
 				if (toLower)
 				{
 					builder.Append("(lower(");
-					builder.Append(this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append(propertyDescriptor.PersistedName).Append(
-						this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append("))");
+					builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append(propertyDescriptor.PersistedName).Append(
+						this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append("))");
 					builder.Append(',');
 				}
 				else
 				{
-					builder.Append(this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append(propertyDescriptor.PersistedName).Append(
-						this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append(" ");
+					builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append(propertyDescriptor.PersistedName).Append(
+						this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append(" ");
 					builder.Append(',');
 				}
 			}
@@ -122,7 +120,7 @@ namespace Shaolinq.Persistence.Sql
 		{
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				foreach (var v in this.SqlPersistenceContext.GetPersistedNames(this.Model, propertyDescriptor))
+				foreach (var v in this.SystemDataBasedDatabaseConnection.GetPersistedNames(this.Model, propertyDescriptor))
 				{
 					yield return v.Left;
 				}
@@ -142,7 +140,7 @@ namespace Shaolinq.Persistence.Sql
 
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				foreach (var v in this.SqlPersistenceContext.GetPersistedNames(this.Model, propertyDescriptor))
+				foreach (var v in this.SystemDataBasedDatabaseConnection.GetPersistedNames(this.Model, propertyDescriptor))
 				{
 					this.WriteColumnDefinition(builder, v.Right, v.Left, true);
 				}
@@ -150,10 +148,10 @@ namespace Shaolinq.Persistence.Sql
 				return;
 			}
 
-			var dataType = this.SqlPersistenceContext.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
+			var dataType = this.SystemDataBasedDatabaseConnection.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
 
-			builder.Append(this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append(name).Append(this.SqlPersistenceContext.SqlDialect.NameQuoteChar).Append(" ");
-			builder.Append(this.SqlPersistenceContext.SqlDialect.GetColumnName(propertyDescriptor, dataType, asForeignKey));
+			builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append(name).Append(this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar).Append(" ");
+			builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnName(propertyDescriptor, dataType, asForeignKey));
 
 			bool requiresNotNull = false;
 
@@ -204,7 +202,7 @@ namespace Shaolinq.Persistence.Sql
 					&& !asForeignKey)
 				{
 					builder.Append(" ");
-					builder.Append(this.SqlPersistenceContext.SqlDialect.GetAutoIncrementSuffix());
+					builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetAutoIncrementSuffix());
 				}
 			}
 

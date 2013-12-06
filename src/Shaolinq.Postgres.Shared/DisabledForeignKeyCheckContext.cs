@@ -7,9 +7,9 @@ namespace Shaolinq.Postgres.Shared
 	public class DisabledForeignKeyCheckContext
 		: IDisabledForeignKeyCheckContext
 	{
-		public DisabledForeignKeyCheckContext(PersistenceTransactionContext context)
+		public DisabledForeignKeyCheckContext(DatabaseTransactionContext context)
 		{
-			var command = ((SqlPersistenceTransactionContext)context).DbConnection.CreateCommand();
+			var command = ((SqlDatabaseTransactionContext)context).DbConnection.CreateCommand();
 
 			command.CommandText = "SET CONSTRAINTS ALL DEFERRED;";
 			command.ExecuteNonQuery();

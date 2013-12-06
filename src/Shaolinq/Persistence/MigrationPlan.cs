@@ -1,39 +1,39 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+ using System.Collections.Generic;
 using System.Linq;
 
 namespace Shaolinq.Persistence
 {
 	public class MigrationPlan
 	{
-		private readonly Dictionary<DataAccessModelPersistenceContextInfo, PersistenceContextMigrationPlan> migrationPlans;
+		private readonly Dictionary<DataAccessModelDatabaseConnectionInfo, DatabaseMigrationPlan> migrationPlans;
 
 		public MigrationPlan()
 		{
-			this.migrationPlans = new Dictionary<DataAccessModelPersistenceContextInfo, PersistenceContextMigrationPlan>();
+			this.migrationPlans = new Dictionary<DataAccessModelDatabaseConnectionInfo, DatabaseMigrationPlan>();
 		}
 
-		public void AddPersistenceContextMigrationPlan(DataAccessModelPersistenceContextInfo contextInfo, PersistenceContextMigrationPlan persistenceContextMigrationPlan)
+		public void AddDatabaseMigrationPlan(DataAccessModelDatabaseConnectionInfo contextInfo, DatabaseMigrationPlan databaseMigrationPlan)
 		{
-			this.migrationPlans[contextInfo] = persistenceContextMigrationPlan;
+			this.migrationPlans[contextInfo] = databaseMigrationPlan;
 		}
 
-		public List<DataAccessModelPersistenceContextInfo> GetPersistenceContexts()
+		public List<DataAccessModelDatabaseConnectionInfo> GetDatabaseConnectionInfos()
 		{
 			return this.migrationPlans.Keys.ToList();
 		}
 
-		public List<PersistenceContextMigrationPlan> GetPersistenceContextMigrationPlans()
+		public List<DatabaseMigrationPlan> GetDatabaseMigrationPlans()
 		{
 			return this.migrationPlans.Values.ToList();
 		}
 
-		public PersistenceContextMigrationPlan GetMigrationPlan(string persistenceContextName)
+		public DatabaseMigrationPlan GetMigrationPlan(string databaseConnectionName)
 		{
 			foreach (var keyValue in migrationPlans)
 			{
-				if (keyValue.Key.ContextName == persistenceContextName)
+				if (keyValue.Key.ConnectionName == databaseConnectionName)
 				{
 					return keyValue.Value;
 				}

@@ -4,8 +4,8 @@ using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.Postgres.Shared
 {
-	public abstract class PostgresSharedSqlPersistenceTransactionContext
-		: SqlPersistenceTransactionContext
+	public abstract class PostgresSharedSqlDatabaseTransactionContext
+		: SqlDatabaseTransactionContext
 	{
 		protected override char ParameterIndicatorChar
 		{
@@ -15,8 +15,8 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		protected PostgresSharedSqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(persistenceContext, dataAccessModel, transaction)
+		protected PostgresSharedSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(databaseConnection, dataAccessModel, transaction)
 		{
 		}
 

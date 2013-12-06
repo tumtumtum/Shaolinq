@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -29,7 +29,7 @@ namespace Shaolinq
 
 			var transactionContext = queryable.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.PersistenceContext))
+			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DatabaseConnection))
 			{
 				var expression = (Expression)Expression.Call(null, MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof(DataAccessObjectsQueryable<T>)), condition);
 
@@ -38,7 +38,7 @@ namespace Shaolinq
 				expression = ObjectOperandComparisonExpander.Expand(expression);
 				expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression);
 
-				acquisition.PersistenceTransactionContext.Delete((SqlDeleteExpression)expression);
+				acquisition.DatabaseTransactionContext.Delete((SqlDeleteExpression)expression);
 			}
 		}
 

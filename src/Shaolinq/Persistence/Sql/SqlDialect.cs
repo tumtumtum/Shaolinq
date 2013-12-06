@@ -30,35 +30,22 @@
 			}
 		}
 
-		public virtual bool SupportsForUpdate
+		public virtual bool SupportsFeature(SqlFeature feature)
 		{
-			get
+			switch (feature)
 			{
-				return false;
-			}
-		}
-
-		public virtual bool SupportsConstraints
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		public virtual bool SupportsIndexNameCasing
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		public virtual bool SupportsIndexToLower
-		{
-			get
-			{
-				return false;
+				case SqlFeature.AlterTableAddConstraints:
+					return true;
+				case SqlFeature.Constraints:
+					return true;
+				case SqlFeature.IndexNameCasing:
+					return true;
+				case SqlFeature.IndexToLower:
+					return true;
+				case SqlFeature.SelectForUpdate:
+					return true;
+				default:
+					return false;
 			}
 		}
 

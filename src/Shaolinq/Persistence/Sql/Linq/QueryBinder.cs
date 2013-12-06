@@ -766,7 +766,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						break;
 				}
 			}
-			else if (methodCallExpression.Method.DeclaringType == typeof(SqlPersistenceTransactionContext))
+			else if (methodCallExpression.Method.DeclaringType == typeof(SqlDatabaseTransactionContext))
 			{
 				switch (methodCallExpression.Method.Name)
 				{
@@ -1340,7 +1340,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				columns.Add(new SqlColumnDeclaration(columnName, new SqlColumnExpression(columnType, tableAlias, columnName)));
 			}
 
-			var context = this.DataAccessModel.GetPersistenceContext(typeDescriptor.Type);
+			var context = this.DataAccessModel.GetDatabaseConnection(typeDescriptor.Type);
 
 			foreach (var propertyDescriptor in typeDescriptor.RelatedProperties.Filter(c => c.IsBackReferenceProperty).Concat(typeDescriptor.PersistedProperties.Filter(c => c.PropertyType.IsDataAccessObjectType())))
 			{

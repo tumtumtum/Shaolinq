@@ -87,11 +87,9 @@
   <ItemGroup>
     <Compile Include="PostgresDotConnectConfiguration.cs" />
     <Compile Include="PostgresDotConnectDatabaseConnectionInfo.cs" />
-    <Compile Include="PostgresDotConnectPersistenceContextProvider.cs" />
-    <Compile Include="PostgresDotConnectPersistenceContext.cs" />
-    <Compile Include="PostgresDotConnectPersistenceContextInfo.cs" />
+    <Compile Include="PostgresDotConnectDatabaseConnection.cs" />
     <Compile Include="PostgresDotConnectSqlDatabaseCreator.cs" />
-    <Compile Include="PostgresDotConnectSqlPersistenceTransactionContext.cs" />
+    <Compile Include="PostgresDotConnectSqlDatabaseTransactionContext.cs" />
     <Compile Include="PostgresDotConnectSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

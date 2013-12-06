@@ -9,10 +9,10 @@ namespace Shaolinq.Persistence.Sql
 	{
 		private readonly SqlSchemaWriter schemaWriter;
 
-		public SqlMigrationPlanApplicator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
-			: base(sqlPersistenceContext, model, persistenceContextInfo)
+		public SqlMigrationPlanApplicator(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
+			: base(databaseConnection, model)
 		{
-			schemaWriter = this.SqlPersistenceContext.NewSqlSchemaWriter(model, persistenceContextInfo);
+			schemaWriter = this.SystemDataBasedDatabaseConnection.NewSqlSchemaWriter(model);
 		}
 
 		protected virtual string CreateMigrationScript(MigrationTypeInfo info)
@@ -76,42 +76,42 @@ namespace Shaolinq.Persistence.Sql
 				return;
 			}
 
-			var newDataType = this.SqlPersistenceContext.SqlDataTypeProvider.GetSqlDataType(migrationPropertyInfo.PropertyDescriptor.PropertyType).GetMigrationSqlName(migrationPropertyInfo.PropertyDescriptor);
+			var newDataType = this.SystemDataBasedDatabaseConnection.SqlDataTypeProvider.GetSqlDataType(migrationPropertyInfo.PropertyDescriptor.PropertyType).GetMigrationSqlName(migrationPropertyInfo.PropertyDescriptor);
 
 			if (migrationPropertyInfo.PropertyDescriptor.IsRelatedDataAccessObjectsProperty || migrationPropertyInfo.PropertyDescriptor.IsBackReferenceProperty)
 			{
 				sql.AppendFormat("/* Changing column with FKC */");
 			}
 
-			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SqlPersistenceContext.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
-			sql.AppendFormat(@" ALTER COLUMN {1}{0}{1} TYPE {2}", migrationPropertyInfo.PersistedName, this.SqlPersistenceContext.SqlDialect.NameQuoteChar, newDataType);
+			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
+			sql.AppendFormat(@" ALTER COLUMN {1}{0}{1} TYPE {2}", migrationPropertyInfo.PersistedName, this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, newDataType);
 			sql.AppendLine(";");
 		}
 
 		protected virtual void WriteDropColumn(StringBuilder sql, TypeDescriptor typeDescriptor, string columnName)
 		{
-			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SqlPersistenceContext.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
-			sql.AppendFormat(@" DROP COLUMN {1}{0}{1} CASCADE", columnName, this.SqlPersistenceContext.SqlDialect.NameQuoteChar);
+			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
+			sql.AppendFormat(@" DROP COLUMN {1}{0}{1} CASCADE", columnName, this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar);
 			sql.AppendLine(";");
 		}
 
 		protected virtual void WriteAddColumn(StringBuilder sql, TypeDescriptor typeDescriptor, PropertyDescriptor propertyDescriptor)
 		{
-			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SqlPersistenceContext.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
+			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
 			sql.Append(@" ADD COLUMN ");
 			this.schemaWriter.WriteColumnDefinition(sql, propertyDescriptor, null, false);
 			sql.AppendLine(";");
 		}
 
-		public override MigrationScripts CreateScripts(PersistenceContextMigrationPlan persistenceContextMigrationPlan)
+		public override MigrationScripts CreateScripts(DatabaseMigrationPlan databaseMigrationPlan)
 		{
 			// Create new tables
 
 			var retval = new MigrationScripts();
 			var databaseCreationContext = new SqlDatabaseCreator.CreateDatabaseContext();
-			var databaseCreator = (SqlDatabaseCreator) this.SqlPersistenceContext.NewPersistenceStoreCreator(this.Model, this.PersistenceContextInfo);
+			var databaseCreator = (SqlDatabaseCreator) this.SystemDataBasedDatabaseConnection.NewDatabaseCreator(this.Model);
             
-			foreach (var migrationTypeInfo in persistenceContextMigrationPlan.NewTypes)
+			foreach (var migrationTypeInfo in databaseMigrationPlan.NewTypes)
 			{
 				var builder = new StringBuilder();
 
@@ -130,7 +130,7 @@ namespace Shaolinq.Persistence.Sql
 
 			// Modify existing tables
 
-			foreach (var migrationTypeInfo in persistenceContextMigrationPlan.ModifiedTypes)
+			foreach (var migrationTypeInfo in databaseMigrationPlan.ModifiedTypes)
 			{
 				retval.AddScript(this.Model, migrationTypeInfo.TypeDescriptor, CreateMigrationScript(migrationTypeInfo));
 			}

@@ -9,11 +9,22 @@ namespace Shaolinq.Sqlite
 	{
 		public new static readonly SqliteSqlDialect Default = new SqliteSqlDialect();
 
-		public override bool SupportsConstraints
+		public override bool SupportsFeature(SqlFeature feature)
 		{
-			get
+			switch (feature)
 			{
-				return true;
+				case SqlFeature.AlterTableAddConstraints:
+					return false;
+				case SqlFeature.Constraints:
+					return true;
+				case SqlFeature.IndexNameCasing:
+					return true;
+				case SqlFeature.IndexToLower:
+					return true;
+				case SqlFeature.SelectForUpdate:
+					return false;
+				default:
+					return false;
 			}
 		}
 

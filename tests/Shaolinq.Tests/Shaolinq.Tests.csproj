@@ -58,7 +58,9 @@
   <ItemGroup>
     <Compile Include="BaseTests.cs" />
     <Compile Include="DataModels\Test\Address.cs" />
+    <Compile Include="DataModels\Test\Cat.cs" />
     <Compile Include="DataModels\Test\Club.cs" />
+    <Compile Include="DataModels\Test\Dog.cs" />
     <Compile Include="DataModels\Test\Fraternity.cs" />
     <Compile Include="DataModels\Test\Lecture.cs" />
     <Compile Include="DataModels\Test\ObjectWithCompositePrimaryKey.cs" />

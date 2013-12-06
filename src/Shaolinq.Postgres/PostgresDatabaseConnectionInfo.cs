@@ -1,8 +1,9 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
+﻿using System;
 using Platform.Xml.Serialization;
-using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Persistence;
+﻿using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.Postgres
 {
@@ -10,6 +11,9 @@ namespace Shaolinq.Postgres
 	public class PostgresDatabaseConnectionInfo
 		: DatabaseConnectionInfo
 	{
+		[XmlAttribute]
+		public string DatabaseName{ get; set; }
+
 		[XmlAttribute]
 		public string ServerName { get; set; }
 
@@ -30,7 +34,7 @@ namespace Shaolinq.Postgres
 
 		[XmlAttribute]
 		public string Password { get; set; }
-		
+
 		[XmlAttribute]
 		public bool NativeUuids { get; set; }
 
@@ -43,6 +47,11 @@ namespace Shaolinq.Postgres
 			this.Pooling = true;
 			this.MaxPoolSize = 100;
 			this.NativeUuids = true;
+		}
+		
+		public override DatabaseConnection CreateDatabaseConnection()
+		{
+			return new PostgresDatabaseConnection(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.NativeUuids, this.CommandTimeout, this.SchemaNamePrefix, this.DateTimeKindIfUnspecified);
 		}
 	}
 }

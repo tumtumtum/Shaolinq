@@ -18,13 +18,13 @@ namespace Shaolinq.Persistence.Sql.Linq
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
 
 		public DataAccessModel DataAccessModel { get; private set; }
-		public PersistenceContext PersistenceContext { get; private set; }
+		public DatabaseConnection DatabaseConnection { get; private set; }
 
-		public SqlQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+		public SqlQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
 			: base(typeof(SqlQueryable<>))
 		{
 			this.DataAccessModel = dataAccessModel;
-			this.PersistenceContext = persistenceContext;
+			this.DatabaseConnection = databaseConnection;
 		}
 		
 		public override IQueryable<T> CreateQuery<T>(Expression expression)
@@ -95,7 +95,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
 			{
 				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, true)
-				       && x.persistenceContext == y.persistenceContext;
+				       && x.databaseConnection == y.databaseConnection;
 			}
 
 			public int GetHashCode(ProjectorCacheKey obj)
@@ -107,14 +107,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private struct ProjectorCacheKey
 		{
 			internal readonly int hashCode;
-			internal readonly PersistenceContext persistenceContext;
+			internal readonly DatabaseConnection databaseConnection;
 			internal readonly Expression projectionExpression;
 
-			public ProjectorCacheKey(Expression projectionExpression, PersistenceContext persistenceContext)
+			public ProjectorCacheKey(Expression projectionExpression, DatabaseConnection databaseConnection)
 			{
-				this.persistenceContext = persistenceContext;
+				this.databaseConnection = databaseConnection;
 				this.projectionExpression = projectionExpression;
-				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) & persistenceContext.GetHashCode();
+				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) & databaseConnection.GetHashCode();
 			}
 		}
 
@@ -145,12 +145,12 @@ namespace Shaolinq.Persistence.Sql.Linq
 			
 			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
 
-			var sqlQueryFormatter = this.PersistenceContext.NewQueryFormatter(this.DataAccessModel, this.PersistenceContext.SqlDataTypeProvider, this.PersistenceContext.SqlDialect, projectionExpression, SqlQueryFormatterOptions.Default);
+			var sqlQueryFormatter = this.DatabaseConnection.NewQueryFormatter(this.DataAccessModel, this.DatabaseConnection.SqlDataTypeProvider, this.DatabaseConnection.SqlDialect, projectionExpression, SqlQueryFormatterOptions.Default);
 			var formatResult = sqlQueryFormatter.Format();
 
 			placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
 
-			var key = new ProjectorCacheKey(projectionExpression, this.PersistenceContext);
+			var key = new ProjectorCacheKey(projectionExpression, this.DatabaseConnection);
 
 			lock (ProjectorCache)
 			{
@@ -166,7 +166,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						ProjectorCache.Clear();
 					}
 
-					var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.PersistenceContext, projectionExpression.Projector, columns);
+					var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.DatabaseConnection, projectionExpression.Projector, columns);
 
 					cacheInfo.elementType = projectionLambda.Body.Type;
 					cacheInfo.projector = projectionLambda.Compile();
@@ -201,7 +201,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						this,
 						this.DataAccessModel,
 						formatResult,
-						this.PersistenceContext,
+						this.DatabaseConnection,
 						cacheInfo.projector,
 						this.RelatedDataAccessObjectContext,
 						projectionExpression.SelectFirstType,
@@ -221,7 +221,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						this,
 						this.DataAccessModel,
 						formatResult,
-						this.PersistenceContext,
+						this.DatabaseConnection,
 						cacheInfo.projector,
 						this.RelatedDataAccessObjectContext,
 						projectionExpression.SelectFirstType,
@@ -246,7 +246,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition));
 			}
 
-			var sqlQueryFormatter = this.PersistenceContext.NewQueryFormatter(this.DataAccessModel, this.PersistenceContext.SqlDataTypeProvider, this.PersistenceContext.SqlDialect, projectionExpression, SqlQueryFormatterOptions.Default);
+			var sqlQueryFormatter = this.DatabaseConnection.NewQueryFormatter(this.DataAccessModel, this.DatabaseConnection.SqlDataTypeProvider, this.DatabaseConnection.SqlDialect, projectionExpression, SqlQueryFormatterOptions.Default);
 			
 			return sqlQueryFormatter.Format().CommandText;
 		}

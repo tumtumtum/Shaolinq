@@ -23,9 +23,9 @@ namespace Shaolinq
 		public DataAccessModel DataAccessModel { get; set; }
 
 		/// <summary>
-		/// A reference to the <see cref="PersistenceContext"/> related to this object.
+		/// A reference to the <see cref="DatabaseConnection"/> related to this object.
 		/// </summary>
-		public PersistenceContext PersistenceContext { get; set; }
+		public DatabaseConnection DatabaseConnection { get; set; }
 
 		public LambdaExpression ExtraCondition { get; protected set; }
 
@@ -34,15 +34,15 @@ namespace Shaolinq
 		/// </summary>
 		public virtual void Initialize(DataAccessModel dataAccessModel, Expression expression)
 		{
-			if (this.DataAccessModel != null || this.PersistenceContext != null)
+			if (this.DataAccessModel != null || this.DatabaseConnection != null)
 			{
 				throw new ObjectAlreadyInitializedException(this);
 			}
 
 			this.DataAccessModel = dataAccessModel;
-			this.PersistenceContext = this.DataAccessModel.GetPersistenceContext(typeof(T));
+			this.DatabaseConnection = this.DataAccessModel.GetDatabaseConnection(typeof(T));
 
-			base.Initialize(this.PersistenceContext.NewQueryProvider(this.DataAccessModel, this.PersistenceContext), expression);
+			base.Initialize(this.DatabaseConnection.NewQueryProvider(this.DataAccessModel, this.DatabaseConnection), expression);
 		}
 
 		public virtual T Create()

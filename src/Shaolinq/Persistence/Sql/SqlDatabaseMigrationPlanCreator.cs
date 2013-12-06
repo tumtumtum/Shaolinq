@@ -7,29 +7,29 @@ using System.Transactions;
 
 namespace Shaolinq.Persistence.Sql
 {
-	public class SqlPersistenceContextMigrationPlanCreator
+	public class SqlDatabaseMigrationPlanCreator
 		: MigrationPlanCreator
 	{
-		public SqlPersistenceContextMigrationPlanCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
-			: base(sqlPersistenceContext, model, persistenceContextInfo)
+		public SqlDatabaseMigrationPlanCreator(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
+			: base(databaseConnection, model)
 		{
 		}
 
-		public override PersistenceContextMigrationPlan CreateMigrationPlan()
+		public override DatabaseMigrationPlan CreateMigrationPlan()
 		{
-			var migrationPlan = new PersistenceContextMigrationPlan();
+			var migrationPlan = new DatabaseMigrationPlan();
 
 			using (var scope = new TransactionScope(TransactionScopeOption.Suppress))
 			{
-				using (var dataTransactionContext = this.SqlPersistenceContext.NewDataTransactionContext(this.Model, Transaction.Current))
+				using (var dataTransactionContext = this.SystemDataBasedDatabaseConnection.NewDataTransactionContext(this.Model, Transaction.Current))
 				{
-					if (this.SqlPersistenceContext.SupportsDisabledForeignKeyCheckContext)
+					if (this.SystemDataBasedDatabaseConnection.SupportsDisabledForeignKeyCheckContext)
 					{
-						using (this.SqlPersistenceContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
+						using (this.SystemDataBasedDatabaseConnection.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 						{
-							foreach (var typeDescriptor in this.ModelTypeDescriptor.GetQueryableTypeDescriptors(this.Model, this.PersistenceContextInfo.ContextName))
+							foreach (var typeDescriptor in this.ModelTypeDescriptor.GetQueryableTypeDescriptors(this.Model))
 							{
-								var tableDescriptor = this.SqlPersistenceContext.GetTableDescriptor(typeDescriptor.GetPersistedName(this.Model));
+								var tableDescriptor = this.SystemDataBasedDatabaseConnection.GetTableDescriptor(typeDescriptor.GetPersistedName(this.Model));
 
 								if (tableDescriptor == null)
 								{
@@ -49,7 +49,7 @@ namespace Shaolinq.Persistence.Sql
 					}
 					else
 					{
-						throw new NotSupportedException(String.Format("PersistenceContext '{0}' does not support SupportsDisabledForeignKeyCheckContext", this.SqlPersistenceContext.GetType()));
+						throw new NotSupportedException(String.Format("DatabaseConnection '{0}' does not support SupportsDisabledForeignKeyCheckContext", this.SystemDataBasedDatabaseConnection.GetType()));
 					}
 
 					scope.Complete();
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence.Sql
 			return migrationPlan;
 		}
 
-		private MigrationTypeInfo CreateTypeMigrationPlan(PersistenceContextMigrationPlan plan, TypeDescriptor typeDescriptor, TableDescriptor tableDescriptor)
+		private MigrationTypeInfo CreateTypeMigrationPlan(DatabaseMigrationPlan plan, TypeDescriptor typeDescriptor, TableDescriptor tableDescriptor)
 		{
 			//Debug.Assert(typeDescriptor != null && typeDescriptor.Type != null && !typeDescriptor.Type.Name.ToLower().EndsWith("ack"));
 			
@@ -68,7 +68,7 @@ namespace Shaolinq.Persistence.Sql
 			var existingPropertyNames = new Dictionary<string, PropertyDescriptor>();
 			var existingColumnNames = new HashSet<string>(tableDescriptor.Columns.Select(c => c.ColumnName));
 
-			var sqlSchemaWriter = this.SqlPersistenceContext.NewSqlSchemaWriter(this.Model, this.PersistenceContextInfo);
+			var sqlSchemaWriter = this.SystemDataBasedDatabaseConnection.NewSqlSchemaWriter(this.Model);
 
 			foreach (var property in typeDescriptor.PersistedProperties)
 			{
@@ -134,7 +134,7 @@ namespace Shaolinq.Persistence.Sql
 
 					if (propertyDescriptor.PropertyType == typeof(string) || propertyDescriptor.PropertyType == typeof(Guid) || propertyDescriptor.PropertyType == typeof(Guid?))
 					{
-						var sqlDataType = this.SqlPersistenceContext.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
+						var sqlDataType = this.SystemDataBasedDatabaseConnection.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
 						var newSize = sqlDataType.GetDataLength(propertyDescriptor);
 
 						var length = (long)columnDescriptor.DataLength;

@@ -1,5 +1,7 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
+using Shaolinq.Persistence.Sql;
+
 namespace Shaolinq.MySql
 {
 	public static class MySqlConfiguration
@@ -11,31 +13,24 @@ namespace Shaolinq.MySql
 
 		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userName, string password,  bool poolConnections)
 		{
-			return CreateConfiguration(contextName, databaseName, serverName, userName, password, poolConnections, PersistenceMode.ReadWrite);
+			return CreateConfiguration(contextName, databaseName, serverName, userName, password, poolConnections, DatabaseReadMode.ReadWrite);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userName, string password,  bool poolConnections, PersistenceMode persistenceMode)
+		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userName, string password,  bool poolConnections, DatabaseReadMode databaseReadMode)
 		{
 			return new DataAccessModelConfiguration()
 			{
-				PersistenceContexts = new PersistenceContextInfo[]
+				DatabaseConnectionInfos = new DatabaseConnectionInfo[]
 				{
-					new MySqlPersistenceContextInfo()
+					new MySqlDatabaseConnectionInfo()
 					{
-						ContextName = contextName,
 						DatabaseName = databaseName,
-						DatabaseConnectionInfos = new[]
-						{
-							new MySqlDatabaseConnectionInfo()
-							{
-								PersistenceMode = persistenceMode,
-								ServerName = serverName,
-								PoolConnections = true,
-								UserName = userName,
-								Password = password
-							},
-						}
-					}
+						DatabaseReadMode = databaseReadMode,
+						ServerName = serverName,
+						PoolConnections = true,
+						UserName = userName,
+						Password = password
+					},
 				}
 			};
 		}

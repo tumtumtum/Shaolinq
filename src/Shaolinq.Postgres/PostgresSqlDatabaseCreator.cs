@@ -7,8 +7,8 @@ namespace Shaolinq.Postgres
 	public class PostgresSqlDatabaseCreator
 		: SqlDatabaseCreator
 	{
-		public PostgresSqlDatabaseCreator(SqlPersistenceContext sqlPersistenceContext, DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
-			: base(sqlPersistenceContext, model, persistenceContextInfo)
+		public PostgresSqlDatabaseCreator(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
+			: base(databaseConnection, model)
 		{
 		}
 	}

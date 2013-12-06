@@ -2,6 +2,7 @@
 
 ﻿using System;
 using Platform.Xml.Serialization;
+﻿using Shaolinq.Persistence;
 ﻿using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.Postgres.DotConnect
@@ -10,6 +11,9 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectDatabaseConnectionInfo
 		: DatabaseConnectionInfo
 	{
+		[XmlAttribute]
+		public string DatabaseName { get; set; }
+
 		[XmlAttribute]
 		public string ServerName { get; set; }
 
@@ -43,6 +47,11 @@ namespace Shaolinq.Postgres.DotConnect
 			this.Pooling = true;
 			this.MaxPoolSize = 100;
 			this.NativeUuids = true;
+		}
+
+		public override DatabaseConnection CreateDatabaseConnection()
+		{
+			return new PostgresDotConnectDatabaseConnection(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.CommandTimeout, this.NativeUuids, this.SchemaNamePrefix, this.DateTimeKindIfUnspecified);
 		}
 	}
 }

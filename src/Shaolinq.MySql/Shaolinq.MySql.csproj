@@ -85,13 +85,11 @@
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="MySqlConfiguration.cs" />
     <Compile Include="MySqlDatabaseConnectionInfo.cs" />
-    <Compile Include="MySqlPersistenceContextProvider.cs" />
-    <Compile Include="MySqlPersistenceContextInfo.cs" />
-    <Compile Include="MySqlPersistenceContext.cs" />
+    <Compile Include="MySqlDatabaseConnection.cs" />
     <Compile Include="MySqlSqlDatabaseCreator.cs" />
     <Compile Include="MySqlSqlDataTypeProvider.cs" />
     <Compile Include="MySqlSqlDialect.cs" />
-    <Compile Include="MySqlSqlPersistenceTransactionContext.cs" />
+    <Compile Include="MySqlSqlDatabaseTransactionContext.cs" />
     <Compile Include="MySqlSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

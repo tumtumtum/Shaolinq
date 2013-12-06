@@ -56,7 +56,7 @@
     <Compile Include="PostgresSqlDialect.cs" />
     <Compile Include="PostgresSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PostgresSharedSqlPersistenceTransactionContext.cs" />
+    <Compile Include="PostgresSharedSqlDatabaseTransactionContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

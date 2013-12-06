@@ -16,8 +16,8 @@ using Npgsql;
 
 ﻿namespace Shaolinq.Postgres
 {
-	public class PostgresPersistenceContext
-		: SqlPersistenceContext
+	public class PostgresDatabaseConnection
+		: SystemDataBasedDatabaseConnection
 	{
 		public string Host { get; set; }
 		public string Userid { get; set; }
@@ -49,7 +49,7 @@ using Npgsql;
 		private readonly string connectionString;
 		private readonly string databaselessConnectionString;
 
-		public PostgresPersistenceContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, bool nativeUuids, int commandTimeoutSeconds, string schemaNamePrefix, DateTimeKind dateTimeKindIfUnspecifed)
+		public PostgresDatabaseConnection(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, bool nativeUuids, int commandTimeoutSeconds, string schemaNamePrefix, DateTimeKind dateTimeKindIfUnspecifed)
 			: base(database, PostgresSqlDialect.Default, new PostgresSqlDataTypeProvider(nativeUuids, dateTimeKindIfUnspecifed))
 		{
 			this.Host = host;
@@ -64,9 +64,9 @@ using Npgsql;
 			databaselessConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", host, userid, password, database, port, pooling, minPoolSize, maxPoolSize, connectionTimeoutSeconds, commandTimeoutSeconds);
 		}
 
-		public override PersistenceTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
-			return new PostgresSqlPersistenceTransactionContext(this, dataAccessModel, transaction);
+			return new PostgresSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
 
 		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
@@ -200,24 +200,24 @@ using Npgsql;
 			return retval;
 		}
 
-		public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model)
 		{
-			return new SqlSchemaWriter(this, model, persistenceContextInfo);
+			return new SqlSchemaWriter(this, model);
 		}
 
-		public override PersistenceStoreCreator NewPersistenceStoreCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo)
+		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
 		{
-			return new PostgresSqlDatabaseCreator(this, model, persistenceContextInfo);
+			return new PostgresSqlDatabaseCreator(this, model);
 		}
 
-		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
 		{
-			return new SqlMigrationPlanApplicator(this, model, dataAccessModelPersistenceContextInfo);
+			return new SqlMigrationPlanApplicator(this, model);
 		}
 
-		public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model, DataAccessModelPersistenceContextInfo dataAccessModelPersistenceContextInfo)
+		public override MigrationPlanCreator NewMigrationPlanCreator(DataAccessModel model)
 		{
-			return new SqlPersistenceContextMigrationPlanCreator(this, model, dataAccessModelPersistenceContextInfo);
+			return new SqlDatabaseMigrationPlanCreator(this, model);
 		}
 
 		public override bool CreateDatabase(bool overwrite)
@@ -299,14 +299,14 @@ using Npgsql;
 			return retval;
 		}
 
-		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(PersistenceTransactionContext persistenceTransactionContext)
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
 		{
-			return new DisabledForeignKeyCheckContext(persistenceTransactionContext);	
+			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
 		}
 
-		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, PersistenceContext persistenceContext)
+		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
 		{
-			return new SqlQueryProvider(dataAccessModel, persistenceContext);
+			return new SqlQueryProvider(dataAccessModel, databaseConnection);
 		}
 
 		public override void DropAllConnections()

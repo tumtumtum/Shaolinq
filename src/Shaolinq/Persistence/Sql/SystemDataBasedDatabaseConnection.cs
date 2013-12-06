@@ -5,8 +5,8 @@ using System.Data.Common;
 
 namespace Shaolinq.Persistence.Sql
 {
-	public abstract class SqlPersistenceContext
-		: PersistenceContext
+	public abstract class SystemDataBasedDatabaseConnection
+		: DatabaseConnection
 	{
 		private readonly DbProviderFactory dBProviderFactory;
 
@@ -32,7 +32,7 @@ namespace Shaolinq.Persistence.Sql
 			return retval;
 		}
 
-		protected SqlPersistenceContext(string persistenceStoreName, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
+		protected SystemDataBasedDatabaseConnection(string persistenceStoreName, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
 		{
 			this.CommandTimeout = TimeSpan.FromSeconds(60);
 
@@ -44,26 +44,10 @@ namespace Shaolinq.Persistence.Sql
 			this.dBProviderFactory = NewDbProproviderFactory();
 		}
 
-		/// <summary>
-		/// Gets the ODBC/ADO connection string for the current database
-		/// </summary>
-		/// <returns>
-		/// A database connection string
-		/// </returns>
 		protected abstract string GetConnectionString();
-
-		/// <summary>
-		/// Creates a new <see cref="DbProviderFactory"/>
-		/// </summary>
-		/// <returns>
-		/// The new <see cref="DbProviderFactory"/>
-		/// </returns>
 		protected abstract DbProviderFactory NewDbProproviderFactory();
-
 		public abstract TableDescriptor GetTableDescriptor(string tableName);
-        
-		public abstract SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model, DataAccessModelPersistenceContextInfo persistenceContextInfo);
-
-		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(PersistenceTransactionContext persistenceTransactionContext);
+        public abstract SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model);
+		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext);
 	}
 }

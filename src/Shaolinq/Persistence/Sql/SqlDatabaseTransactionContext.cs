@@ -17,8 +17,8 @@ using Platform;
 
 namespace Shaolinq.Persistence.Sql
 {
-	public abstract class SqlPersistenceTransactionContext
-		: PersistenceTransactionContext
+	public abstract class SqlDatabaseTransactionContext
+		: DatabaseTransactionContext
 	{
 		protected int disposed = 0;
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
@@ -114,7 +114,7 @@ namespace Shaolinq.Persistence.Sql
 			private set;
 		}
 
-		public SqlPersistenceContext PersistenceContext
+		public SystemDataBasedDatabaseConnection DatabaseConnection
 		{
 			get;
 			private set;
@@ -122,17 +122,17 @@ namespace Shaolinq.Persistence.Sql
 
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 
-		protected SqlPersistenceTransactionContext(SqlPersistenceContext persistenceContext, DataAccessModel dataAccessModel, Transaction transaction)
+		protected SqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
 		{
-			this.PersistenceContext = persistenceContext;
-			sqlDataTypeProvider = persistenceContext.SqlDataTypeProvider;
+			this.DatabaseConnection = databaseConnection;
+			sqlDataTypeProvider = databaseConnection.SqlDataTypeProvider;
 
-			this.DbConnection = persistenceContext.OpenConnection();
+			this.DbConnection = databaseConnection.OpenConnection();
 
 			this.DataAccessModel = dataAccessModel;
 		}
 
-		~SqlPersistenceTransactionContext()
+		~SqlDatabaseTransactionContext()
 		{
 			Dispose();
 		}
@@ -215,7 +215,7 @@ namespace Shaolinq.Persistence.Sql
 		{
 			var retval = this.DbConnection.CreateCommand();
 
-			retval.CommandTimeout = (int)this.PersistenceContext.CommandTimeout.TotalSeconds;
+			retval.CommandTimeout = (int)this.DatabaseConnection.CommandTimeout.TotalSeconds;
 
 			return retval;
 		}
@@ -584,15 +584,15 @@ namespace Shaolinq.Persistence.Sql
 
 			command = CreateCommand();
 
-			commandText.Append("UPDATE ").Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
-			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel)).Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+			commandText.Append("UPDATE ").Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel)).Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 			commandText.Append(" SET ");
 
 			for (var i = 0; i < updatedProperties.Count; i++)
 			{
-				commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 				commandText.Append(updatedProperties[i].persistedName);
-				commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 				commandText.Append('=');
 				AppendParameter(command, commandText, updatedProperties[i].propertyInfo.PropertyType, updatedProperties[i].value);
 
@@ -608,9 +608,9 @@ namespace Shaolinq.Persistence.Sql
 			
 			for (var k = 0; k < primaryKeys.Length; k++)
 			{
-				commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 				commandText.Append(primaryKeys[k].persistedName);
-				commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 				commandText.Append('=');
 				AppendParameter(command, commandText, primaryKeys[k].propertyInfo.PropertyType, primaryKeys[k].value);
 
@@ -636,7 +636,7 @@ namespace Shaolinq.Persistence.Sql
 			if (updatedProperties.Count == 0)
 			{
 				command = CreateCommand();
-				command.CommandText = "INSERT INTO " + this.PersistenceContext.SqlDialect.NameQuoteChar + typeDescriptor.GetPersistedName(this.DataAccessModel) + this.PersistenceContext.SqlDialect.NameQuoteChar + " DEFAULT VALUES";
+				command.CommandText = "INSERT INTO " + this.DatabaseConnection.SqlDialect.NameQuoteChar + typeDescriptor.GetPersistedName(this.DataAccessModel) + this.DatabaseConnection.SqlDialect.NameQuoteChar + " DEFAULT VALUES";
 
 				return command;
 			}
@@ -656,9 +656,9 @@ namespace Shaolinq.Persistence.Sql
 
 			command = CreateCommand();
 
-			commandText.Append("INSERT INTO ").Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+			commandText.Append("INSERT INTO ").Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel));
-			commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+			commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 
 			if (updatedProperties.Count > 0 || this.InsertDefaultString == null)
 			{
@@ -666,9 +666,9 @@ namespace Shaolinq.Persistence.Sql
 
 				for (int i = 0, lastindex = updatedProperties.Count - 1; i <= lastindex; i++)
 				{
-					commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+					commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 					commandText.Append(updatedProperties[i].persistedName);
-					commandText.Append(this.PersistenceContext.SqlDialect.NameQuoteChar);
+					commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
 
 					if (i != lastindex)
 					{
@@ -741,7 +741,7 @@ namespace Shaolinq.Persistence.Sql
 		
 		public override void Delete(SqlDeleteExpression deleteExpression)
 		{
-			var formatter = this.PersistenceContext.NewQueryFormatter(this.DataAccessModel, this.PersistenceContext.SqlDataTypeProvider, this.PersistenceContext.SqlDialect, deleteExpression, SqlQueryFormatterOptions.Default);
+			var formatter = this.DatabaseConnection.NewQueryFormatter(this.DataAccessModel, this.DatabaseConnection.SqlDataTypeProvider, this.DatabaseConnection.SqlDialect, deleteExpression, SqlQueryFormatterOptions.Default);
 			var formatResult = formatter.Format();
 
 			using (var command = CreateCommand())
@@ -775,7 +775,7 @@ namespace Shaolinq.Persistence.Sql
 			}
 		}
 
-		internal static readonly MethodInfo DeleteHelperMethod = typeof(SqlPersistenceTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
+		internal static readonly MethodInfo DeleteHelperMethod = typeof(SqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
 		
 		public static MethodInfo GetDeleteMethod(Type type)
 		{

@@ -7,13 +7,13 @@ namespace Shaolinq.MySql
 	internal class DisabledForeignKeyCheckContext
 		: IDisabledForeignKeyCheckContext
 	{
-		private readonly PersistenceTransactionContext context;
+		private readonly DatabaseTransactionContext context;
 
-		public DisabledForeignKeyCheckContext(PersistenceTransactionContext context)
+		public DisabledForeignKeyCheckContext(DatabaseTransactionContext context)
 		{
 			this.context = context;
 
-			var command = ((SqlPersistenceTransactionContext)context).DbConnection.CreateCommand();
+			var command = ((SqlDatabaseTransactionContext)context).DbConnection.CreateCommand();
 
 			command.CommandText = "SET FOREIGN_KEY_CHECKS = 0;";
 
@@ -22,7 +22,7 @@ namespace Shaolinq.MySql
 
 		public virtual void Dispose()
 		{
-			var command = ((SqlPersistenceTransactionContext)context).DbConnection.CreateCommand();
+			var command = ((SqlDatabaseTransactionContext)context).DbConnection.CreateCommand();
 
 			command.CommandText = "SET FOREIGN_KEY_CHECKS = 1;";
 
