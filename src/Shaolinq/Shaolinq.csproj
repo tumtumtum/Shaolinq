@@ -96,6 +96,15 @@
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="DatabaseTransactionContextWrapper.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlAlterTableExpression.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlColumnDeferability.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlColumnDefinitionExpression.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlForeignKeyConstraintExpression.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlReferencesColumnExpression.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlCreateIndexExpression.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlCreateTableExpression.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlSimpleConstraint.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlSimpleConstraintExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlTupleExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\GroupByCollator.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\ReferencedRelatedObjectPropertyGatherer.cs" />

@@ -297,5 +297,32 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 
 			return deleteExpression;
 		}
+
+		public virtual Expression VisitColumnDefinitionExpression(SqlColumnDefinitionExpression columnDefinitionExpression)
+		{
+			var constraints = this.VisitExpressionList(columnDefinitionExpression.ConstraintExpressions);
+
+			if (constraints != columnDefinitionExpression.ConstraintExpressions)
+			{
+				return new SqlColumnDefinitionExpression(columnDefinitionExpression.ColumnName, constraints);
+			}
+
+			return columnDefinitionExpression;
+		}
+
+		public virtual Expression VisitCreateTableExpression(SqlCreateTableExpression createTableExpression)
+		{
+			var constraints = VisitExpressionList(createTableExpression.TableConstraints);
+			var columnDefinitions = VisitExpressionList(createTableExpression.TableConstraints);
+
+			if (createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
+			{
+				return new SqlCreateTableExpression(createTableExpression.TableName, columnDefinitions, constraints);
+			}
+			else
+			{
+				return createTableExpression;
+			}
+		}
 	}
 }
