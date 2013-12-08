@@ -14,7 +14,8 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Sql.Linq
 {
-	public class Sql92QueryFormatter : SqlQueryFormatter
+	public class Sql92QueryFormatter
+		: SqlQueryFormatter
 	{
 		public struct FunctionResolveResult
 		{
@@ -54,7 +55,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				this.arguments = arguments;
 			}
 		}
-        
+
 		protected enum Indentation
 		{
 			Same,
@@ -62,11 +63,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			Outer
 		}
 
-		public Expression Expression
-		{
-			get;
-			private set;
-		}
+		public Expression Expression { get; private set; }
 
 		protected virtual char ParameterIndicatorChar
 		{
@@ -83,11 +80,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		protected readonly SqlDialect sqlDialect;
 
-		internal int IndentationWidth
-		{
-			get;
-			private set;
-		}
+		internal int IndentationWidth { get; private set; }
 
 		public Sql92QueryFormatter(Expression expression)
 			: this(expression, SqlQueryFormatterOptions.Default, null, null)
@@ -137,7 +130,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			return new SqlQueryFormatResult(commandText.ToString(), parameterValues);
 		}
-        
+
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
 			return Visit(projection.Select);
@@ -158,7 +151,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				Debug.Assert(depth >= 0);
 			}
 
-			commandText.Append(' ', depth*this.IndentationWidth);
+			commandText.Append(' ', depth * this.IndentationWidth);
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
@@ -179,8 +172,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 				}
 			}
 			else if (methodCallExpression.Method.DeclaringType.IsGenericType
-				&& methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
-				&& methodCallExpression.Method.Name == "GetValueOrDefault")
+			         && methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
+			         && methodCallExpression.Method.Name == "GetValueOrDefault")
 			{
 				Visit(methodCallExpression.Object);
 
@@ -229,10 +222,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 					var unaryType = Nullable.GetUnderlyingType(unaryExpression.Type) ?? unaryExpression.Type;
 					var operandType = Nullable.GetUnderlyingType(unaryExpression.Operand.Type) ?? unaryExpression.Operand.Type;
-					
+
 					if (unaryType == operandType
-						|| (IsNumeric(unaryType) && IsNumeric(operandType))
-						|| unaryExpression.Operand.Type.IsDataAccessObjectType())
+					    || (IsNumeric(unaryType) && IsNumeric(operandType))
+					    || unaryExpression.Operand.Type.IsDataAccessObjectType())
 					{
 						Visit(unaryExpression.Operand);
 					}
@@ -274,7 +267,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case SqlFunction.CompareObject:
 					var expressionType = (ExpressionType)((ConstantExpression)arguments[0]).Value;
 					var args = new Expression[2];
-					
+
 					args[0] = arguments[1];
 					args[1] = arguments[2];
 
@@ -295,45 +288,45 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case SqlFunction.ServerDateTime:
 					return new FunctionResolveResult("NOW", false, arguments);
 				case SqlFunction.StartsWith:
-					{
-						Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
-						newArgument = RedundantFunctionCallRemover.Remove(newArgument);
-						
-						var list = new List<Expression>
-						{
-							arguments[0],
-							newArgument
-						};
+				{
+					Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
+					newArgument = RedundantFunctionCallRemover.Remove(newArgument);
 
-						return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
-					}
+					var list = new List<Expression>
+					{
+						arguments[0],
+						newArgument
+					};
+
+					return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
+				}
 				case SqlFunction.ContainsString:
-					{
-						Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
-						newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), newArgument);
-						newArgument = RedundantFunctionCallRemover.Remove(newArgument);
-						
-						var list = new List<Expression>
-						{
-							arguments[0],
-							newArgument
-						};
+				{
+					Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
+					newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), newArgument);
+					newArgument = RedundantFunctionCallRemover.Remove(newArgument);
 
-						return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
-					}
+					var list = new List<Expression>
+					{
+						arguments[0],
+						newArgument
+					};
+
+					return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
+				}
 				case SqlFunction.EndsWith:
-					{
-						Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
-						newArgument = RedundantFunctionCallRemover.Remove(newArgument);
-						
-						var list = new List<Expression>
-						{
-							arguments[0],
-							newArgument
-						};
+				{
+					Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
+					newArgument = RedundantFunctionCallRemover.Remove(newArgument);
 
-						return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
-					}
+					var list = new List<Expression>
+					{
+						arguments[0],
+						newArgument
+					};
+
+					return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
+				}
 				default:
 					return new FunctionResolveResult(function.ToString().ToUpper(), false, arguments);
 			}
@@ -346,7 +339,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			if (result.treatAsOperator)
 			{
 				this.commandText.Append("(");
-				
+
 				if (result.functionPrefix != null)
 				{
 					this.commandText.Append(result.functionPrefix).Append(' ');
@@ -392,7 +385,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				{
 					this.commandText.Append(result.functionPrefix).Append(' ');
 				}
-                
+
 				if (result.argsBefore != null && result.argsBefore.Length > 0)
 				{
 					for (int i = 0, n = result.argsBefore.Length - 1; i <= n; i++)
@@ -412,7 +405,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
 				{
 					Visit(result.arguments[i]);
-					
+
 					if (i != n || (result.argsAfter != null && result.argsAfter.Length > 0))
 					{
 						this.commandText.Append(", ");
@@ -448,54 +441,54 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-            commandText.Append("(");
+			commandText.Append("(");
 
-            Visit(binaryExpression.Left);
+			Visit(binaryExpression.Left);
 
-            switch (binaryExpression.NodeType)
-            {
-                case ExpressionType.And:
-                case ExpressionType.AndAlso:
-                    commandText.Append(" AND ");
-                    break;
-                case ExpressionType.Or:
-                case ExpressionType.OrElse:
-                    commandText.Append(" OR ");
-                    break;
-                case ExpressionType.Equal:
-                    commandText.Append(" = ");
-                    break;
-                case ExpressionType.NotEqual:
-                    commandText.Append(" <> ");
-                    break;
-                case ExpressionType.LessThan:
-                    commandText.Append(" < ");
-                    break;
-                case ExpressionType.LessThanOrEqual:
-                    commandText.Append(" <= ");
-                    break;
-                case ExpressionType.GreaterThan:
-                    commandText.Append(" > ");
-                    break;
-                case ExpressionType.GreaterThanOrEqual:
-                    commandText.Append(" >= ");
-                    break;
-                case ExpressionType.Add:
-                    commandText.Append(" + ");
-                    break;
-                case ExpressionType.Subtract:
-                    commandText.Append(" - ");
-                    break;
-                case ExpressionType.Multiply:
-                    commandText.Append(" * ");
-                    break;
-                default:
-                    throw new NotSupportedException(String.Format("The binary operator '{0}' is not supported", binaryExpression.NodeType));
-            }
+			switch (binaryExpression.NodeType)
+			{
+				case ExpressionType.And:
+				case ExpressionType.AndAlso:
+					commandText.Append(" AND ");
+					break;
+				case ExpressionType.Or:
+				case ExpressionType.OrElse:
+					commandText.Append(" OR ");
+					break;
+				case ExpressionType.Equal:
+					commandText.Append(" = ");
+					break;
+				case ExpressionType.NotEqual:
+					commandText.Append(" <> ");
+					break;
+				case ExpressionType.LessThan:
+					commandText.Append(" < ");
+					break;
+				case ExpressionType.LessThanOrEqual:
+					commandText.Append(" <= ");
+					break;
+				case ExpressionType.GreaterThan:
+					commandText.Append(" > ");
+					break;
+				case ExpressionType.GreaterThanOrEqual:
+					commandText.Append(" >= ");
+					break;
+				case ExpressionType.Add:
+					commandText.Append(" + ");
+					break;
+				case ExpressionType.Subtract:
+					commandText.Append(" - ");
+					break;
+				case ExpressionType.Multiply:
+					commandText.Append(" * ");
+					break;
+				default:
+					throw new NotSupportedException(String.Format("The binary operator '{0}' is not supported", binaryExpression.NodeType));
+			}
 
-            Visit(binaryExpression.Right);
+			Visit(binaryExpression.Right);
 
-            commandText.Append(")");
+			commandText.Append(")");
 
 			return binaryExpression;
 		}
@@ -621,7 +614,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 					throw new NotSupportedException(String.Concat("Unknown aggregate type: ", aggregateType));
 			}
 		}
-        
+
 		protected virtual bool RequiresAsteriskWhenNoArgument(SqlAggregateType aggregateType)
 		{
 			return aggregateType == SqlAggregateType.Count;
@@ -646,7 +639,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				commandText.Append("*");
 			}
-			
+
 			commandText.Append(")");
 
 			return sqlAggregate;
@@ -908,10 +901,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 				this.Visit(join.Condition);
 				this.AppendNewLine(Indentation.Outer);
 			}
-            
+
 			return join;
 		}
-        
+
 		protected override Expression VisitSource(Expression source)
 		{
 			switch ((SqlExpressionType)source.NodeType)
@@ -948,7 +941,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected string ignoreAlias;
 		protected string replaceAlias;
 
-		protected override Expression VisitDeleteExpression(SqlDeleteExpression deleteExpression)
+		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
 			commandText.Append("DELETE ");
 			commandText.Append("FROM ").Append(this.sqlDialect.NameQuoteChar);
@@ -1006,6 +999,54 @@ namespace Shaolinq.Persistence.Sql.Linq
 			commandText.Append(')');
 
 			return tupleExpression;
+		}
+
+		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
+		{
+			commandText.Append("CREATE TABLE ");
+			commandText.Append(this.sqlDialect.NameQuoteChar);
+			commandText.Append(createTableExpression.TableName);
+			commandText.Append(this.sqlDialect.NameQuoteChar);
+			commandText.AppendLine();
+			commandText.Append("(");
+
+			this.AppendNewLine(Indentation.Inner);
+
+			var i = 0;
+
+			foreach (var expression in createTableExpression.ColumnDefinitionExpressions)
+			{
+				this.Visit(expression);
+
+				if (i != createTableExpression.ColumnDefinitionExpressions.Count - 1)
+				{
+					commandText.Append(",");
+					this.AppendNewLine(Indentation.Same);
+				}
+
+				i++;
+			}
+
+			i = 0;
+
+			foreach (var expression in createTableExpression.TableConstraints)
+			{
+				this.Visit(expression);
+
+				if (i != createTableExpression.TableConstraints.Count - 1)
+				{
+					commandText.AppendLine(",");
+				}
+
+				i++;
+			}
+
+			this.AppendNewLine(Indentation.Outer);
+
+			commandText.AppendLine(");");
+			commandText.AppendLine();
+
+			return base.VisitCreateTable(createTableExpression);
 		}
 	}
 }

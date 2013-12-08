@@ -19,6 +19,13 @@
 		Subquery,
 		ObjectOperand,
 		ConstantPlaceholder,
-		Tuple
+		Tuple,
+		AlterTable,
+		ColumnDefinition,
+		CreateIndex,
+		CreateTable,
+		ForeignKeyConstraint,
+		ReferencesColumn,
+		SimpleConstraint
 	}
 }

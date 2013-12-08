@@ -13,6 +13,14 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 		public ReadOnlyCollection<Expression> TableConstraints { get; private set; }
 		public ReadOnlyCollection<Expression> ColumnDefinitionExpressions { get; private set; }
 
+		public override ExpressionType NodeType
+		{
+			get
+			{
+				return (ExpressionType)SqlExpressionType.CreateTable;
+			}
+		}
+
 		public SqlCreateTableExpression(string tableName, IList<Expression> columnExpressions, IList<Expression> tableConstraintExpressions)
 			: base(typeof(void))
 		{

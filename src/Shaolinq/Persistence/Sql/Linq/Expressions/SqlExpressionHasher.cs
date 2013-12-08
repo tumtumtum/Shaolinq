@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
@@ -331,9 +331,9 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			return base.VisitColumnDeclarations(columns);
 		}
 
-		protected override Expression VisitDeleteExpression(SqlDeleteExpression deleteExpression)
+		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
-			return base.VisitDeleteExpression(deleteExpression);
+			return base.VisitDelete(deleteExpression);
 		}
 	}
 }
