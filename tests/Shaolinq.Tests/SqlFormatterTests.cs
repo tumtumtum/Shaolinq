@@ -15,7 +15,7 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new List<Expression>
 			{
-				new SqlColumnDefinitionExpression("Column1", null)
+				new SqlColumnDefinitionExpression("Column1", new List<Expression>())
 			};
 
 			var constraints = new List<Expression>
