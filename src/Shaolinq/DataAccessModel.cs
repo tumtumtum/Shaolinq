@@ -498,14 +498,14 @@ namespace Shaolinq
 			return transactionContext.DatabaseConnection;
 		}
 
-		#region CreateDatabases
+		#region CreateDatabase
 
 		/// <summary>
 		/// Creates the a database from the data access model
 		/// </summary>
-		public virtual void CreateDatabases(bool overwrite)
+		public virtual void CreateDatabase(DatabaseCreationOptions options)
 		{
-			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).CreateDatabase(overwrite);
+			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).CreateDatabase((options & DatabaseCreationOptions.DeleteExisting) != 0);
 		}
 
 		/*

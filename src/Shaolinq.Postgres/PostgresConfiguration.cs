@@ -6,17 +6,17 @@ namespace Shaolinq.Postgres
 {
 	public static class PostgresConfiguration
 	{
-		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password)
+		public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userId, string password)
 		{
-			return CreateConfiguration(contextName, databaseName, serverName, userId, password, true);
+			return CreateConfiguration(databaseName, serverName, userId, password, true);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password, bool poolConnections)
+		public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userId, string password, bool poolConnections)
 		{
-			return CreateConfiguration(contextName, databaseName, serverName, userId, password, poolConnections, DatabaseReadMode.ReadWrite);
+			return CreateConfiguration(databaseName, serverName, userId, password, poolConnections, DatabaseReadMode.ReadWrite);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(string contextName, string databaseName, string serverName, string userId, string password, bool poolConnections, DatabaseReadMode databaseReadMode)
+		public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userId, string password, bool poolConnections, DatabaseReadMode databaseReadMode)
 		{
 			return new DataAccessModelConfiguration()
 			{
