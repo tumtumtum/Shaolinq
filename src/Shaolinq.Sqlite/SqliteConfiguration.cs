@@ -6,12 +6,12 @@ namespace Shaolinq.Sqlite
 {
 	public static class SqliteConfiguration
 	{
-		public static DataAccessModelConfiguration CreateConfiguration(string fileName)
+		public static DataAccessModelConfiguration Create(string fileName)
 		{
-			return CreateConfiguration(fileName, DatabaseReadMode.ReadWrite);
+			return Create(fileName, DatabaseReadMode.ReadWrite);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(string fileName, DatabaseReadMode databaseReadMode)
+		public static DataAccessModelConfiguration Create(string fileName, DatabaseReadMode databaseReadMode)
 		{
 			return new DataAccessModelConfiguration
 			{

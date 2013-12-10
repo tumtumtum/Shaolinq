@@ -498,12 +498,10 @@ namespace Shaolinq
 			return transactionContext.DatabaseConnection;
 		}
 
-		#region CreateDatabase
-
 		/// <summary>
 		/// Creates the a database from the data access model
 		/// </summary>
-		public virtual void CreateDatabase(DatabaseCreationOptions options)
+		public virtual void Create(DatabaseCreationOptions options)
 		{
 			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).CreateDatabase((options & DatabaseCreationOptions.DeleteExisting) != 0);
 		}
@@ -549,8 +547,6 @@ namespace Shaolinq
 			return retval;
 		}
 		*/
-
-		#endregion
 
 		public virtual void FlushCurrentTransaction()
 		{

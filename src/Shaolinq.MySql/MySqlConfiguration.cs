@@ -6,17 +6,17 @@ namespace Shaolinq.MySql
 {
 	public static class MySqlConfiguration
 	{
-		public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userName, string password)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password)
 		{
-			return CreateConfiguration(databaseName, serverName, userName, password, true);
+			return Create(databaseName, serverName, userName, password, true);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userName, string password,  bool poolConnections)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password,  bool poolConnections)
 		{
-			return CreateConfiguration(databaseName, serverName, userName, password, poolConnections, DatabaseReadMode.ReadWrite);
+			return Create(databaseName, serverName, userName, password, poolConnections, DatabaseReadMode.ReadWrite);
 		}
 
-		public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userName, string password,  bool poolConnections, DatabaseReadMode databaseReadMode)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password,  bool poolConnections, DatabaseReadMode databaseReadMode)
 		{
 			return new DataAccessModelConfiguration()
 			{

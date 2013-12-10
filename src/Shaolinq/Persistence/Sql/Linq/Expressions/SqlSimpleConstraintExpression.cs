@@ -7,8 +7,9 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 	public class SqlSimpleConstraintExpression
 		: SqlBaseExpression
 	{
-		public string ColumnName { get; private set; }
+		public string[] ColumnNames { get; private set; }
 		public SqlSimpleConstraint Constrant { get; private set; }
+		public object Value { get; private set; }
 
 		public override ExpressionType NodeType
 		{
@@ -18,11 +19,12 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			}
 		}
 
-		public SqlSimpleConstraintExpression(SqlSimpleConstraint constraint, string columnName = null)
+		public SqlSimpleConstraintExpression(SqlSimpleConstraint constraint, string[] columnNames = null, object value = null)
 			: base(typeof(void))
 		{
 			this.Constrant = constraint;
-			this.ColumnName = columnName;
+			this.ColumnNames = columnNames;
+			this.Value = value;
 		}
 	}
 }

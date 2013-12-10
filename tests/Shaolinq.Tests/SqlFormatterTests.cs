@@ -15,21 +15,19 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new List<Expression>
 			{
-				new SqlColumnDefinitionExpression("Column1", new List<Expression>())
+				new SqlColumnDefinitionExpression("Column1", "INTEGER", new List<Expression>())
 			};
 
 			var constraints = new List<Expression>
 			{
-				new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull, "Column1")
+				new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, new[] {"Column1"})
 			};
 
 			var createTableExpression = new SqlCreateTableExpression("table1", columnDefinitions, constraints);
 
 			var formatter = new Sql92QueryFormatter(createTableExpression);
 
-			var s = formatter.Format().ToString();
-
-			Console.WriteLine(s);
+			Console.WriteLine(formatter.Format().CommandText);
 		}
 	}
 }

@@ -45,9 +45,9 @@ namespace Shaolinq.MySql
 			switch (functionCallExpression.Function)
 			{
 				case SqlFunction.DayOfWeek:
-					commandText.Append("((");
+					this.Write("((");
 					base.VisitFunctionCall(functionCallExpression);
-					commandText.Append(") - 1)");
+					this.Write(") - 1)");
 
 					return functionCallExpression;
 			}

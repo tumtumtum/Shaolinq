@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 ﻿using Shaolinq.Persistence.Sql;
@@ -67,17 +67,17 @@ namespace Shaolinq.Postgres.Shared
 		{
 			if (column.Expression.Type == typeof(Decimal))
 			{
-				commandText.Append("ROUND(CAST(");
+				this.Write("ROUND(CAST(");
 				var c = Visit(column.Expression) as SqlColumnExpression;
-				commandText.Append(" as NUMERIC)");
-				commandText.Append(", 20)");
+				this.Write(" as NUMERIC)");
+				this.Write(", 20)");
 
 				if (!String.IsNullOrEmpty(column.Name))
 				{
-					commandText.Append(" AS ");
-					commandText.Append(this.sqlDialect.NameQuoteChar)
-						.Append(column.Name)
-						.Append(this.sqlDialect.NameQuoteChar);
+					this.Write(" AS ");
+					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(column.Name);
+					this.Write(this.sqlDialect.NameQuoteChar);
 				}
 			}
 			else
@@ -92,14 +92,14 @@ namespace Shaolinq.Postgres.Shared
 			{
 				if (selectExpression.Take != null)
 				{
-					commandText.Append(" LIMIT ");
+					this.Write(" LIMIT ");
 
 					Visit(selectExpression.Take);
 				}
 
 				if (selectExpression.Skip != null)
 				{
-					commandText.Append(" OFFSET ");
+					this.Write(" OFFSET ");
 
 					Visit(selectExpression.Skip);
 				}

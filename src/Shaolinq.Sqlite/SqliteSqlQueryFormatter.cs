@@ -70,9 +70,9 @@ namespace Shaolinq.Sqlite
 				case SqlFunction.Minute:
 				case SqlFunction.Second:
 				case SqlFunction.Hour:
-					commandText.Append("(CAST (");
+					this.Write("(CAST (");
 					base.VisitFunctionCall(functionCallExpression);
-					commandText.Append(" AS INTEGER))");
+					this.Write(" AS INTEGER))");
 
 					return functionCallExpression;
 			}
@@ -87,18 +87,18 @@ namespace Shaolinq.Sqlite
 			{
 				if (selectExpression.Take != null)
 				{
-					commandText.Append(" LIMIT ");
+					this.Write(" LIMIT ");
 
 					Visit(selectExpression.Take);
 				}
 				else
 				{
-					commandText.AppendLine(" LIMIT -1 ");
+					this.WriteLine(" LIMIT -1 ");
 				}
 
 				if (selectExpression.Skip != null)
 				{
-					commandText.Append(" OFFSET ");
+					this.Write(" OFFSET ");
 
 					Visit(selectExpression.Skip);
 				}

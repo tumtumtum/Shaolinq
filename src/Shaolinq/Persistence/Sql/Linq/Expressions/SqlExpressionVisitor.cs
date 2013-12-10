@@ -315,7 +315,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 
 			if (constraints != columnDefinitionExpression.ConstraintExpressions)
 			{
-				return new SqlColumnDefinitionExpression(columnDefinitionExpression.ColumnName, constraints);
+				return new SqlColumnDefinitionExpression(columnDefinitionExpression.ColumnName, columnDefinitionExpression.ColumnTypeName, constraints);
 			}
 
 			return columnDefinitionExpression;

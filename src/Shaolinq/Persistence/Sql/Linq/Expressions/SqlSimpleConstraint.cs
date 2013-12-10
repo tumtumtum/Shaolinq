@@ -5,7 +5,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 	public enum SqlSimpleConstraint
 	{
 		NotNull,
-		Uniques,
+		Unique,
 		DefaultValue,
 		PrimaryKey
 	}

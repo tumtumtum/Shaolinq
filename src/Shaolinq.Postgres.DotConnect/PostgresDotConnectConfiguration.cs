@@ -6,17 +6,17 @@ namespace Shaolinq.Postgres.DotConnect
 {
     public static class PostgresDotConnectConfiguration
     {
-		public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userId, string password)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password)
 		{
-			return CreateConfiguration(databaseName, serverName, userId, password, true);
+			return Create(databaseName, serverName, userId, password, true);
 		}
 
-        public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userId, string password,  bool poolConnections)
+        public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password,  bool poolConnections)
         {
-			return CreateConfiguration(databaseName, serverName, userId, password, poolConnections, DatabaseReadMode.ReadWrite);
+			return Create(databaseName, serverName, userId, password, poolConnections, DatabaseReadMode.ReadWrite);
         }
 
-        public static DataAccessModelConfiguration CreateConfiguration(string databaseName, string serverName, string userId, string password,  bool poolConnections,  DatabaseReadMode databaseReadMode)
+        public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password,  bool poolConnections,  DatabaseReadMode databaseReadMode)
         {
             return new DataAccessModelConfiguration()
             {

@@ -4,7 +4,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
@@ -79,8 +78,53 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private readonly SqlQueryFormatterOptions options;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		protected readonly SqlDialect sqlDialect;
-
 		internal int IndentationWidth { get; private set; }
+
+		public class IndentationContext
+			: IDisposable
+		{
+			private readonly Sql92QueryFormatter parent;
+
+			public IndentationContext(Sql92QueryFormatter parent)
+			{
+				this.parent = parent;
+				this.parent.depth++;
+				this.parent.WriteLine();
+			}
+
+			public void Dispose()
+			{
+				this.parent.depth--;
+			}
+		}
+
+		public IndentationContext AcquireIndentationContext()
+		{
+			return new IndentationContext(this);
+		}
+
+		public virtual void WriteLine()
+		{
+			this.commandText.AppendLine();
+			this.commandText.Append(' ', depth * this.IndentationWidth);
+		}
+
+		public virtual void WriteLine(object line)
+		{
+			this.commandText.Append(line);
+			this.commandText.AppendLine();
+			this.commandText.Append(' ', depth * this.IndentationWidth);
+		}
+		
+		public virtual void Write(object value)
+		{
+			this.commandText.Append(value);
+		}
+
+		public virtual void WriteFormat(string format, params object[] args)
+		{
+			this.commandText.AppendFormat(format, args);
+		}
 
 		public Sql92QueryFormatter(Expression expression)
 			: this(expression, SqlQueryFormatterOptions.Default, null, null)
@@ -134,24 +178,6 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
 			return Visit(projection.Select);
-		}
-
-		private void AppendNewLine(Indentation style)
-		{
-			commandText.AppendLine();
-
-			if (style == Indentation.Inner)
-			{
-				depth++;
-			}
-			else if (style == Indentation.Outer)
-			{
-				depth--;
-
-				Debug.Assert(depth >= 0);
-			}
-
-			commandText.Append(' ', depth * this.IndentationWidth);
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
@@ -235,9 +261,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 					}
 					break;
 				case ExpressionType.Not:
-					this.commandText.Append("NOT (");
+					this.Write("NOT (");
 					Visit(unaryExpression.Operand);
-					this.commandText.Append(")");
+					this.Write(")");
 					break;
 				default:
 					throw new NotSupportedException(String.Format("The unary operator '{0}' is not supported", unaryExpression.NodeType));
@@ -338,66 +364,69 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			if (result.treatAsOperator)
 			{
-				this.commandText.Append("(");
+				this.Write("(");
 
 				if (result.functionPrefix != null)
 				{
-					this.commandText.Append(result.functionPrefix).Append(' ');
+					this.Write(result.functionPrefix);
+					this.Write(' ');
 				}
-
+				
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
 				{
 					var requiresGrouping = result.arguments[i] is SqlSelectExpression;
 
 					if (requiresGrouping)
 					{
-						this.commandText.Append("(");
+						this.Write("(");
 					}
 
 					Visit(result.arguments[i]);
 
 					if (requiresGrouping)
 					{
-						this.commandText.Append(")");
+						this.Write(")");
 					}
 
 					if (i != n)
 					{
-						this.commandText.Append(' ');
-						this.commandText.Append(result.functionName);
-						this.commandText.Append(' ');
+						this.Write(' ');
+						this.Write(result.functionName);
+						this.Write(' ');
 					}
 				}
 
 				if (result.functionSuffix != null)
 				{
-					this.commandText.Append(' ').Append(result.functionSuffix);
+					this.Write(' ');
+					this.Write(result.functionSuffix);
 				}
 
-				this.commandText.Append(")");
+				this.Write(")");
 			}
 			else
 			{
-				this.commandText.Append(result.functionName);
-				this.commandText.Append("(");
+				this.Write(result.functionName);
+				this.Write("(");
 
 				if (result.functionPrefix != null)
 				{
-					this.commandText.Append(result.functionPrefix).Append(' ');
+					this.Write(result.functionPrefix);
+					this.Write(' ');
 				}
 
 				if (result.argsBefore != null && result.argsBefore.Length > 0)
 				{
 					for (int i = 0, n = result.argsBefore.Length - 1; i <= n; i++)
 					{
-						commandText.Append(this.ParameterIndicatorChar);
-						commandText.Append("param");
-						commandText.Append(parameterValues.Count);
+						this.Write(this.ParameterIndicatorChar);
+						this.Write("param");
+						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsBefore[i].Left, result.argsBefore[i].Right));
 
 						if (i != n || (functionCallExpression.Arguments.Count > 0))
 						{
-							this.commandText.Append(", ");
+							this.Write(", ");
 						}
 					}
 				}
@@ -408,7 +437,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 					if (i != n || (result.argsAfter != null && result.argsAfter.Length > 0))
 					{
-						this.commandText.Append(", ");
+						this.Write(", ");
 					}
 				}
 
@@ -416,24 +445,25 @@ namespace Shaolinq.Persistence.Sql.Linq
 				{
 					for (int i = 0, n = result.argsAfter.Length - 1; i <= n; i++)
 					{
-						commandText.Append(this.ParameterIndicatorChar);
-						commandText.Append("param");
-						commandText.Append(parameterValues.Count);
+						Write(this.ParameterIndicatorChar);
+						Write("param");
+						Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsAfter[i].Left, result.argsAfter[i].Right));
 
 						if (i != n)
 						{
-							this.commandText.Append(", ");
+							this.Write(", ");
 						}
 					}
 				}
 
 				if (result.functionSuffix != null)
 				{
-					this.commandText.Append(' ').Append(result.functionSuffix);
+					this.Write(' ');
+					this.Write(result.functionSuffix);
 				}
 
-				this.commandText.Append(")");
+				this.Write(")");
 			}
 
 			return functionCallExpression;
@@ -441,7 +471,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			commandText.Append("(");
+			Write("(");
 
 			Visit(binaryExpression.Left);
 
@@ -449,38 +479,38 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				case ExpressionType.And:
 				case ExpressionType.AndAlso:
-					commandText.Append(" AND ");
+					Write(" AND ");
 					break;
 				case ExpressionType.Or:
 				case ExpressionType.OrElse:
-					commandText.Append(" OR ");
+					Write(" OR ");
 					break;
 				case ExpressionType.Equal:
-					commandText.Append(" = ");
+					Write(" = ");
 					break;
 				case ExpressionType.NotEqual:
-					commandText.Append(" <> ");
+					Write(" <> ");
 					break;
 				case ExpressionType.LessThan:
-					commandText.Append(" < ");
+					Write(" < ");
 					break;
 				case ExpressionType.LessThanOrEqual:
-					commandText.Append(" <= ");
+					Write(" <= ");
 					break;
 				case ExpressionType.GreaterThan:
-					commandText.Append(" > ");
+					Write(" > ");
 					break;
 				case ExpressionType.GreaterThanOrEqual:
-					commandText.Append(" >= ");
+					Write(" >= ");
 					break;
 				case ExpressionType.Add:
-					commandText.Append(" + ");
+					Write(" + ");
 					break;
 				case ExpressionType.Subtract:
-					commandText.Append(" - ");
+					Write(" - ");
 					break;
 				case ExpressionType.Multiply:
-					commandText.Append(" * ");
+					Write(" * ");
 					break;
 				default:
 					throw new NotSupportedException(String.Format("The binary operator '{0}' is not supported", binaryExpression.NodeType));
@@ -488,7 +518,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			Visit(binaryExpression.Right);
 
-			commandText.Append(")");
+			Write(")");
 
 			return binaryExpression;
 		}
@@ -497,13 +527,13 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			var i = 0;
 
-			commandText.Append("(");
+			this.Write("(");
 
 			foreach (var obj in collection)
 			{
 				VisitConstant(Expression.Constant(obj));
 
-				commandText.Append(", ");
+				this.Write(", ");
 				i++;
 			}
 
@@ -512,7 +542,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				commandText.Length -= 2;
 			}
 
-			commandText.Append(")");
+			this.Write(")");
 		}
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholderExpression)
@@ -523,7 +553,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			}
 			else
 			{
-				commandText.AppendFormat("$${0}", constantPlaceholderExpression.Index);
+				this.WriteFormat("$${0}", constantPlaceholderExpression.Index);
 
 				return constantPlaceholderExpression;
 			}
@@ -533,7 +563,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			if (constantExpression.Value == null)
 			{
-				commandText.Append("NULL");
+				this.Write("NULL");
 			}
 			else
 			{
@@ -542,9 +572,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 				switch (Type.GetTypeCode(type))
 				{
 					case TypeCode.Boolean:
-						commandText.Append(this.ParameterIndicatorChar);
-						commandText.Append("param");
-						commandText.Append(parameterValues.Count);
+						this.Write(this.ParameterIndicatorChar);
+						this.Write("param");
+						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
 						break;
 					case TypeCode.Object:
@@ -554,9 +584,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 						}
 						else if (type == typeof(Guid))
 						{
-							commandText.Append(this.ParameterIndicatorChar);
-							commandText.Append("param");
-							commandText.Append(parameterValues.Count);
+							this.Write(this.ParameterIndicatorChar);
+							this.Write("param");
+							this.Write(parameterValues.Count);
 
 							var value = constantExpression.Value as Guid?;
 
@@ -571,22 +601,24 @@ namespace Shaolinq.Persistence.Sql.Linq
 						}
 						else
 						{
-							commandText.Append("obj: " + constantExpression.Value);
+							this.Write("obj: " + constantExpression.Value);
 						}
 						break;
 					default:
 						if (constantExpression.Type.IsEnum)
 						{
-							commandText.Append(this.ParameterIndicatorChar);
-							commandText.Append("param");
-							commandText.Append(parameterValues.Count);
+							this.Write(this.ParameterIndicatorChar);
+							this.Write("param");
+							this.Write(parameterValues.Count);
+
 							parameterValues.Add(new Pair<Type, object>(typeof(string), Enum.GetName(constantExpression.Type, constantExpression.Value)));
 						}
 						else
 						{
-							commandText.Append(this.ParameterIndicatorChar);
-							commandText.Append("param");
-							commandText.Append(parameterValues.Count);
+							this.Write(this.ParameterIndicatorChar);
+							this.Write("param");
+							this.Write(parameterValues.Count);
+
 							parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
 						}
 						break;
@@ -622,13 +654,13 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitAggregate(SqlAggregateExpression sqlAggregate)
 		{
-			commandText.Append(GetAggregateName(sqlAggregate.AggregateType));
+			this.Write(GetAggregateName(sqlAggregate.AggregateType));
 
-			commandText.Append("(");
+			this.Write("(");
 
 			if (sqlAggregate.IsDistinct)
 			{
-				commandText.Append("DISTINCT ");
+				Write("DISTINCT ");
 			}
 
 			if (sqlAggregate.Argument != null)
@@ -637,10 +669,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 			}
 			else if (RequiresAsteriskWhenNoArgument(sqlAggregate.AggregateType))
 			{
-				commandText.Append("*");
+				this.Write("*");
 			}
 
-			commandText.Append(")");
+			this.Write(")");
 
 			return sqlAggregate;
 		}
@@ -659,13 +691,15 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitSubquery(SqlSubqueryExpression subquery)
 		{
-			commandText.Append("(");
-			this.AppendNewLine(Indentation.Inner);
-			this.Visit(subquery.Select);
-			this.AppendNewLine(Indentation.Same);
-			commandText.Append(")");
+			this.Write("(");
 
-			this.Indent(Indentation.Outer);
+			using (AcquireIndentationContext())
+			{
+				this.Visit(subquery.Select);
+				this.WriteLine();
+			}
+
+			this.Write(")");
 
 			return subquery;
 		}
@@ -676,25 +710,23 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				if (ignoreAlias == columnExpression.SelectAlias)
 				{
-					commandText.Append(this.sqlDialect.NameQuoteChar).Append(replaceAlias).Append(this.sqlDialect.NameQuoteChar);
+					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(replaceAlias);
+					this.Write(this.sqlDialect.NameQuoteChar);
 				}
 				else
 				{
-					try
-					{
-						commandText.Append(this.sqlDialect.NameQuoteChar).Append(columnExpression.SelectAlias).Append(
-							this.sqlDialect.NameQuoteChar);
-					}
-					catch (NullReferenceException)
-					{
-						Console.WriteLine();
-					}
+					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(columnExpression.SelectAlias);
+					this.Write(this.sqlDialect.NameQuoteChar);
 				}
 
-				commandText.Append(".");
+				this.Write(".");
 			}
 
-			commandText.Append(this.sqlDialect.NameQuoteChar).Append(columnExpression.Name).Append(this.sqlDialect.NameQuoteChar);
+			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(columnExpression.Name);
+			this.Write(this.sqlDialect.NameQuoteChar);
 
 			return columnExpression;
 		}
@@ -705,21 +737,23 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			if ((c == null || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
 			{
-				commandText.Append(" AS ");
-				commandText.Append(this.sqlDialect.NameQuoteChar).Append(column.Name).Append(this.sqlDialect.NameQuoteChar);
+				this.Write(" AS ");
+				this.Write(this.sqlDialect.NameQuoteChar);
+				this.Write(column.Name);
+				this.Write(this.sqlDialect.NameQuoteChar);
 			}
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
 		{
-			commandText.Append("CASE WHEN (");
-			Visit(expression.Test);
-			commandText.Append(")");
-			commandText.Append(" THEN (");
-			Visit(expression.IfTrue);
-			commandText.Append(") ELSE (");
-			Visit(expression.IfFalse);
-			commandText.Append(") END");
+			this.Write("CASE WHEN (");
+			this.Visit(expression.Test);
+			this.Write(")");
+			this.Write(" THEN (");
+			this.Visit(expression.IfTrue);
+			this.Write(") ELSE (");
+			this.Visit(expression.IfFalse);
+			this.Write(") END");
 
 			return expression;
 		}
@@ -732,23 +766,23 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			if (selectNested)
 			{
-				commandText.Append("(");
+				this.Write("(");
 			}
 
 			try
 			{
 				selectNest++;
 
-				commandText.Append("SELECT ");
+				this.Write("SELECT ");
 
 				if (selectExpression.Distinct)
 				{
-					commandText.Append("DISTINCT ");
+					this.Write("DISTINCT ");
 				}
 
 				if (selectExpression.Columns.Count == 0)
 				{
-					commandText.Append("* ");
+					this.Write("* ");
 				}
 
 				for (int i = 0, n = selectExpression.Columns.Count; i < n; i++)
@@ -757,7 +791,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 					if (i > 0)
 					{
-						commandText.Append(", ");
+						this.Write(", ");
 					}
 
 					VisitColumn(selectExpression, column);
@@ -765,23 +799,22 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 				if (selectExpression.From != null)
 				{
-					AppendNewLine(Indentation.Same);
-					commandText.Append("FROM ");
+					this.WriteLine();
+					this.Write("FROM ");
 					VisitSource(selectExpression.From);
 				}
 
 				if (selectExpression.Where != null)
 				{
-					AppendNewLine(Indentation.Same);
-					commandText.Append("WHERE ");
+					this.WriteLine();
+					this.Write("WHERE ");
 					Visit(selectExpression.Where);
 				}
 
 				if (selectExpression.OrderBy != null && selectExpression.OrderBy.Count > 0)
 				{
-					this.AppendNewLine(Indentation.Same);
-
-					commandText.Append("ORDER BY ");
+					this.WriteLine();
+					this.Write("ORDER BY ");
 
 					for (int i = 0; i < selectExpression.OrderBy.Count; i++)
 					{
@@ -789,28 +822,28 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 						if (i > 0)
 						{
-							commandText.Append(", ");
+							this.Write(", ");
 						}
 
 						this.Visit(orderExpression.Expression);
 
 						if (orderExpression.OrderType == OrderType.Descending)
 						{
-							commandText.Append(" DESC");
+							this.Write(" DESC");
 						}
 					}
 				}
 
 				if (selectExpression.GroupBy != null && selectExpression.GroupBy.Count > 0)
 				{
-					this.AppendNewLine(Indentation.Same);
-					commandText.Append("GROUP BY ");
+					this.WriteLine();
+					this.Write("GROUP BY ");
 
 					for (var i = 0; i < selectExpression.GroupBy.Count; i++)
 					{
 						if (i > 0)
 						{
-							commandText.Append(", ");
+							this.Write(", ");
 						}
 
 						this.Visit(selectExpression.GroupBy[i]);
@@ -821,19 +854,18 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 				if (selectExpression.ForUpdate && this.sqlDialect.SupportsFeature(SqlFeature.Constraints))
 				{
-					commandText.Append(" FOR UPDATE");
+					this.Write(" FOR UPDATE");
 				}
 
 				if (selectNested)
 				{
-					commandText.Append(")");
+					this.Write(")");
 				}
 			}
 			finally
 			{
 				selectNest--;
 			}
-
 
 			return selectExpression;
 		}
@@ -842,11 +874,11 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			if (selectExpression.Skip != null || selectExpression.Take != null)
 			{
-				commandText.Append(" LIMIT ");
+				this.Write(" LIMIT ");
 
 				if (selectExpression.Skip == null)
 				{
-					commandText.Append("0");
+					this.Write("0");
 				}
 				else
 				{
@@ -855,14 +887,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 				if (selectExpression.Take != null)
 				{
-					commandText.Append(", ");
+					this.Write(", ");
 
 					Visit(selectExpression.Take);
 				}
 				else if (selectExpression.Skip != null)
 				{
-					commandText.Append(", ");
-					commandText.Append(Int64.MaxValue);
+					this.Write(", ");
+					this.Write(Int64.MaxValue);
 				}
 			}
 		}
@@ -871,24 +903,24 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			this.VisitSource(join.Left);
 
-			this.AppendNewLine(Indentation.Same);
+			this.WriteLine();
 
 			switch (join.JoinType)
 			{
 				case SqlJoinType.CrossJoin:
-					commandText.Append(" CROSS JOIN ");
+					this.Write(" CROSS JOIN ");
 					break;
 				case SqlJoinType.InnerJoin:
-					commandText.Append(" INNER JOIN ");
+					this.Write(" INNER JOIN ");
 					break;
 				case SqlJoinType.LeftJoin:
-					commandText.Append(" LEFT JOIN ");
+					this.Write(" LEFT JOIN ");
 					break;
 				case SqlJoinType.RightJoin:
-					commandText.Append(" RIGHT JOIN ");
+					this.Write(" RIGHT JOIN ");
 					break;
 				case SqlJoinType.OuterJoin:
-					commandText.Append(" FULL OUTER JOIN ");
+					this.Write(" FULL OUTER JOIN ");
 					break;
 			}
 
@@ -896,10 +928,12 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			if (join.Condition != null)
 			{
-				this.AppendNewLine(Indentation.Inner);
-				commandText.Append("ON ");
-				this.Visit(join.Condition);
-				this.AppendNewLine(Indentation.Outer);
+				using (AcquireIndentationContext())
+				{
+					this.Write("ON ");
+
+					this.Visit(join.Condition);
+				}
 			}
 
 			return join;
@@ -911,22 +945,33 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				case SqlExpressionType.Table:
 					var table = (SqlTableExpression)source;
-					commandText.Append(this.sqlDialect.NameQuoteChar);
-					commandText.Append(table.Name);
-					commandText.Append(this.sqlDialect.NameQuoteChar);
-					commandText.Append(" AS ");
-					commandText.Append(this.sqlDialect.NameQuoteChar).Append(table.Alias).Append(this.sqlDialect.NameQuoteChar);
+
+					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(table.Name);
+					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(" AS ");
+					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(table.Alias);
+					this.Write(this.sqlDialect.NameQuoteChar);
+
 					break;
 				case SqlExpressionType.Select:
 					var select = (SqlSelectExpression)source;
-					AppendNewLine(Indentation.Same);
-					commandText.Append("(");
-					AppendNewLine(Indentation.Inner);
-					Visit(select);
-					AppendNewLine(Indentation.Outer);
-					commandText.Append(")");
-					commandText.Append(" AS ");
-					commandText.Append(this.sqlDialect.NameQuoteChar).Append(select.Alias).Append(this.sqlDialect.NameQuoteChar);
+					this.WriteLine();
+					this.Write("(");
+
+					using (AcquireIndentationContext())
+					{
+						Visit(select);
+						this.WriteLine();
+					}
+					
+					this.Write(")");
+					this.Write(" AS ");
+					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(select.Alias);
+					this.Write(this.sqlDialect.NameQuoteChar);
+
 					break;
 				case SqlExpressionType.Join:
 					this.VisitJoin((SqlJoinExpression)source);
@@ -943,13 +988,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
-			commandText.Append("DELETE ");
-			commandText.Append("FROM ").Append(this.sqlDialect.NameQuoteChar);
-			commandText.Append(deleteExpression.TableName);
-			commandText.Append(this.sqlDialect.NameQuoteChar);
-			this.AppendNewLine(Indentation.Same);
-			commandText.Append(" WHERE ");
-			this.AppendNewLine(Indentation.Same);
+			this.Write("DELETE ");
+			this.Write("FROM ");
+			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(deleteExpression.TableName);
+			this.Write(this.sqlDialect.NameQuoteChar);
+			this.WriteLine();
+			this.Write(" WHERE ");
+			this.WriteLine();
 
 			ignoreAlias = deleteExpression.Alias;
 			replaceAlias = deleteExpression.TableName;
@@ -964,24 +1010,26 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
 			this.Visit(memberExpression.Expression);
-			commandText.Append(".");
-			commandText.Append("Prop(");
-			commandText.Append(memberExpression.Member.Name);
-			commandText.Append(")");
+			this.Write(".");
+			this.Write("Prop(");
+			this.Write(memberExpression.Member.Name);
+			this.Write(")");
 
 			return memberExpression;
 		}
 
 		protected override Expression VisitObjectOperand(SqlObjectOperand objectOperand)
 		{
-			commandText.Append("Obj(").Append(objectOperand.Type.Name).Append(")");
+			this.Write("Obj(");
+			this.Write(objectOperand.Type.Name);
+			this.Write(")");
 
 			return objectOperand;
 		}
 
 		protected override Expression VisitTuple(SqlTupleExpression tupleExpression)
 		{
-			commandText.Append('(');
+			this.Write('(');
 
 			var i = 0;
 
@@ -991,62 +1039,153 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 				if (i != tupleExpression.SubExpressions.Count - 1)
 				{
-					commandText.Append(" ,");
+					this.Write(" ,");
 				}
 				i++;
 			}
 
-			commandText.Append(')');
+			this.Write(')');
 
 			return tupleExpression;
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
-			commandText.Append("CREATE TABLE ");
-			commandText.Append(this.sqlDialect.NameQuoteChar);
-			commandText.Append(createTableExpression.TableName);
-			commandText.Append(this.sqlDialect.NameQuoteChar);
-			commandText.AppendLine();
-			commandText.Append("(");
+			this.Write("CREATE TABLE ");
+			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(createTableExpression.TableName);
+			this.Write(this.sqlDialect.NameQuoteChar);
+			this.WriteLine();
+			this.Write("(");
+			
+			using (AcquireIndentationContext())
+			{
+				var i = 0;
 
-			this.AppendNewLine(Indentation.Inner);
+				foreach (var expression in createTableExpression.ColumnDefinitionExpressions)
+				{
+					this.Visit(expression);
+
+					if (i != createTableExpression.ColumnDefinitionExpressions.Count - 1
+						|| createTableExpression.TableConstraints.Count > 0)
+					{
+						this.Write(",");
+						this.WriteLine();
+					}
+
+					i++;
+				}
+
+				i = 0;
+
+				foreach (var expression in createTableExpression.TableConstraints)
+				{
+					this.Visit(expression);
+
+					if (i != createTableExpression.TableConstraints.Count - 1)
+					{
+						this.WriteLine(",");
+					}
+
+					i++;
+				}
+			}
+
+			this.WriteLine();
+			;
+			this.WriteLine(");");
+			this.WriteLine();
+
+			return createTableExpression;
+		}
+
+		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
+		{
+			switch (simpleConstraintExpression.Constrant)
+			{
+				case SqlSimpleConstraint.DefaultValue:
+					if (simpleConstraintExpression.Value != null)
+					{
+						this.Write(" DEFAULT ");
+						this.Write(simpleConstraintExpression.Value);
+					}
+					break;
+				case SqlSimpleConstraint.NotNull:
+					this.Write("NOT NULL ");
+					break;
+				case SqlSimpleConstraint.PrimaryKey:
+					this.Write("PRIMARY KEY ");
+					if (simpleConstraintExpression.ColumnNames != null)
+					{
+						var i = 0;
+						foreach (var s in simpleConstraintExpression.ColumnNames)
+						{
+							this.Write(this.sqlDialect.NameQuoteChar);
+							this.Write(s);
+							this.Write(this.sqlDialect.NameQuoteChar);
+
+							if (i != simpleConstraintExpression.ColumnNames.Length - 1)
+							{
+								this.Write(", ");
+							}
+						}
+					}
+					break;
+				case SqlSimpleConstraint.Unique:
+					this.Write("UNIQUE(");
+					if (simpleConstraintExpression.ColumnNames != null)
+					{
+						var i = 0;
+						foreach (var s in simpleConstraintExpression.ColumnNames)
+						{
+							this.Write(this.sqlDialect.NameQuoteChar);
+							this.Write(s);
+							this.Write(this.sqlDialect.NameQuoteChar);
+
+							if (i != simpleConstraintExpression.ColumnNames.Length - 1)
+							{
+								this.Write(", ");
+							}
+						}
+					}
+					this.Write(")");
+					break;
+				default:
+					break;
+			}
+
+			return simpleConstraintExpression;
+		}
+
+		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
+		{
+			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(columnDefinitionExpression.ColumnName);
+			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(' ');
+			this.Write(columnDefinitionExpression.ColumnTypeName);
 
 			var i = 0;
 
-			foreach (var expression in createTableExpression.ColumnDefinitionExpressions)
+			foreach (var constraint in columnDefinitionExpression.ConstraintExpressions)
 			{
-				this.Visit(expression);
-
-				if (i != createTableExpression.ColumnDefinitionExpressions.Count - 1)
+				if (i == 0)
 				{
-					commandText.Append(",");
-					this.AppendNewLine(Indentation.Same);
+					this.Write(' ');
+				}
+
+				this.Visit(constraint);
+				this.Write(' ');
+
+				if (i != columnDefinitionExpression.ConstraintExpressions.Count - 1)
+				{
+					this.Write(',');
 				}
 
 				i++;
 			}
 
-			i = 0;
-
-			foreach (var expression in createTableExpression.TableConstraints)
-			{
-				this.Visit(expression);
-
-				if (i != createTableExpression.TableConstraints.Count - 1)
-				{
-					commandText.AppendLine(",");
-				}
-
-				i++;
-			}
-
-			this.AppendNewLine(Indentation.Outer);
-
-			commandText.AppendLine(");");
-			commandText.AppendLine();
-
-			return base.VisitCreateTable(createTableExpression);
+			return columnDefinitionExpression;
 		}
 	}
 }

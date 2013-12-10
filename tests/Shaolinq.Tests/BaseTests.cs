@@ -17,25 +17,25 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)
 		{
-			return MySqlConfiguration.CreateConfiguration(databaseName, "localhost", "root", "root");
+			return MySqlConfiguration.Create(databaseName, "localhost", "root", "root");
 		}
 
 		protected DataAccessModelConfiguration CreateSqliteConfiguration(string databaseName)
 		{
-			return SqliteConfiguration.CreateConfiguration(databaseName + ".db");
+			return SqliteConfiguration.Create(databaseName + ".db");
 		}
 
 		protected DataAccessModelConfiguration CreatePostgresConfiguration(string databaseName)
 		{
-			return PostgresConfiguration.CreateConfiguration(databaseName, "localhost", "postgres", "postgres");
+			return PostgresConfiguration.Create(databaseName, "localhost", "postgres", "postgres");
 		}
 
 		protected DataAccessModelConfiguration CreatePostgresDotConnectConfiguration(string databaseName)
 		{
-			return PostgresDotConnectConfiguration.CreateConfiguration("DotConnect" + databaseName, "localhost", "postgres", "postgres");
+			return PostgresDotConnectConfiguration.Create("DotConnect" + databaseName, "localhost", "postgres", "postgres");
 		}
 
-		protected DataAccessModelConfiguration CreateConfiguration(string providerName, string databaseName)
+		protected DataAccessModelConfiguration Create(string providerName, string databaseName)
 		{
 			var methodInfo = this.GetType().GetMethod("Create" + providerName.Replace(".", "") + "Configuration", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -58,9 +58,9 @@ namespace Shaolinq.Tests
 
 			try
 			{
-				configuration = this.CreateConfiguration(providerName, this.GetType().Name);
+				configuration = this.Create(providerName, this.GetType().Name);
 				model = DataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
-				model.CreateDatabase(DatabaseCreationOptions.DeleteExisting);
+				model.Create(DatabaseCreationOptions.DeleteExisting);
 			}
 			catch (Exception e)
 			{
