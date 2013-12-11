@@ -15,12 +15,13 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new List<Expression>
 			{
-				new SqlColumnDefinitionExpression("Column1", "INTEGER", new List<Expression>())
+				new SqlColumnDefinitionExpression("Column1", "INTEGER", new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
 			};
 
 			var constraints = new List<Expression>
 			{
-				new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, new[] {"Column1"})
+				new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, new[] {"Column1"}),
+				new SqlForeignKeyConstraintExpression(new [] {"Column1"}, new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction))
 			};
 
 			var createTableExpression = new SqlCreateTableExpression("table1", columnDefinitions, constraints);

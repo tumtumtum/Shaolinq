@@ -5,7 +5,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 	public class SqlForeignKeyConstraintExpression
 		: SqlBaseExpression
 	{
-		public string ColumnName { get; set; }
+		public string[] ColumnNames { get; set; }
 		public SqlReferencesColumnExpression ReferencesColumnExpression { get; private set; }
 
 		public override ExpressionType NodeType
@@ -16,10 +16,10 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			}
 		}
 
-		public SqlForeignKeyConstraintExpression(string columnName, SqlReferencesColumnExpression referencesColumnExpression)
+		public SqlForeignKeyConstraintExpression(string[] columnNames, SqlReferencesColumnExpression referencesColumnExpression)
 			: base(typeof(void))
 		{
-			this.ColumnName = columnName;
+			this.ColumnNames = columnNames;
 			this.ReferencesColumnExpression = referencesColumnExpression;
 		}
 	}

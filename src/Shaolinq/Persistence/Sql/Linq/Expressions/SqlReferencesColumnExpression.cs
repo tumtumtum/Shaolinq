@@ -8,7 +8,9 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 	{
 		public string ReferencedTableName {get;private set;}
 		public ReadOnlyCollection<string> ReferencedColumnNames {get;private set;}
-		public SqlColumnDeferability Deferability { get; private set; }
+		public SqlColumnReferenceDeferrability Deferrability { get; private set; }
+		public SqlColumnReferenceAction OnDeleteAction { get; private set; }
+		public SqlColumnReferenceAction OnUpdateAction { get; private set; }
 
 		public override ExpressionType NodeType
 		{
@@ -18,11 +20,13 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			}
 		}
 
-		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnDeferability deferability, string[] referencedColumnNames)
+		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, string[] referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
 			: base(typeof(void))
 		{
+			this.OnDeleteAction = onDelete;
+			this.OnUpdateAction = onUpdate;
 			this.ReferencedTableName = referencedTableName;
-			this.Deferability = deferability;
+			this.Deferrability = deferrability;
 			this.ReferencedColumnNames = new ReadOnlyCollection<string>(referencedColumnNames);
 		}
 	}

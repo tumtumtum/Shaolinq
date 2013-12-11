@@ -1099,6 +1099,93 @@ namespace Shaolinq.Persistence.Sql.Linq
 			return createTableExpression;
 		}
 
+		private void Write(SqlColumnReferenceAction action)
+		{
+			switch (action)
+			{
+				case SqlColumnReferenceAction.Cascade:
+					this.Write("CASCADE");
+					break;
+				case SqlColumnReferenceAction.Restrict:
+					this.Write("RESTRICT");
+					break;
+				case SqlColumnReferenceAction.SetDefault:
+					this.Write("SET DEFAULT");
+					break;
+				case SqlColumnReferenceAction.SetNull:
+					this.Write("SET NULL");
+					break;
+			}
+		}
+
+		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
+		{
+			this.Write("FORIEGN KEY(");
+
+			for (var i = 0; i < foreignKeyConstraintExpression.ColumnNames.Length; i++)
+			{
+				this.Write(foreignKeyConstraintExpression.ColumnNames[i]);
+
+				if (i != foreignKeyConstraintExpression.ColumnNames.Length - 1)
+				{
+					this.Write(", ");
+				}
+			}
+
+			this.Write(") ");
+
+			this.Visit(foreignKeyConstraintExpression.ReferencesColumnExpression);
+
+			return foreignKeyConstraintExpression;
+		}
+
+		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
+		{
+			this.Write("REFERENCES ");
+			this.Write(referencesColumnExpression.ReferencedTableName);
+			this.Write("(");
+
+			for (var i = 0; i < referencesColumnExpression.ReferencedColumnNames.Count; i++)
+			{
+				this.Write(referencesColumnExpression.ReferencedColumnNames[i]);
+				
+				if (i != referencesColumnExpression.ReferencedColumnNames.Count - 1)
+				{
+					this.Write(", ");
+				}
+			}
+
+			this.Write(")");
+
+			if (referencesColumnExpression.OnDeleteAction != SqlColumnReferenceAction.NoAction)
+			{
+				this.Write(" ON DELETE ");
+				this.Write(referencesColumnExpression.OnDeleteAction);
+			}
+
+			if (referencesColumnExpression.OnUpdateAction != SqlColumnReferenceAction.NoAction)
+			{
+				this.Write(" ON UPDATE ");
+
+				this.Write(referencesColumnExpression.OnUpdateAction);
+			}
+
+			switch (referencesColumnExpression.Deferrability)
+			{
+				case SqlColumnReferenceDeferrability.Deferrable:
+					this.Write(" DEFERRABLE");
+					break;
+				case SqlColumnReferenceDeferrability.InitiallyDeferred:
+					this.Write(" INITIALLY DEFERRED"); 
+					break;
+				case SqlColumnReferenceDeferrability.InitiallyImmediate:
+					this.Write(" INITIALLY IMMEDIATE");
+					break;
+			}
+
+			return referencesColumnExpression;
+		}
+
 		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
 		{
 			switch (simpleConstraintExpression.Constrant)
@@ -1106,7 +1193,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case SqlSimpleConstraint.DefaultValue:
 					if (simpleConstraintExpression.Value != null)
 					{
-						this.Write(" DEFAULT ");
+						this.Write("DEFAULT ");
 						this.Write(simpleConstraintExpression.Value);
 					}
 					break;
@@ -1132,10 +1219,13 @@ namespace Shaolinq.Persistence.Sql.Linq
 					}
 					break;
 				case SqlSimpleConstraint.Unique:
-					this.Write("UNIQUE(");
+					this.Write("UNIQUE");
 					if (simpleConstraintExpression.ColumnNames != null)
 					{
+						this.Write("(");
+					
 						var i = 0;
+
 						foreach (var s in simpleConstraintExpression.ColumnNames)
 						{
 							this.Write(this.sqlDialect.NameQuoteChar);
@@ -1147,10 +1237,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 								this.Write(", ");
 							}
 						}
+
+						this.Write(")");
 					}
-					this.Write(")");
-					break;
-				default:
 					break;
 			}
 
@@ -1175,11 +1264,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 				}
 
 				this.Visit(constraint);
-				this.Write(' ');
 
 				if (i != columnDefinitionExpression.ConstraintExpressions.Count - 1)
 				{
-					this.Write(',');
+					this.Write(" ");
 				}
 
 				i++;

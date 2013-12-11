@@ -26,6 +26,7 @@
 		CreateTable,
 		ForeignKeyConstraint,
 		ReferencesColumn,
-		SimpleConstraint
+		SimpleConstraint,
+		StatementList
 	}
 }

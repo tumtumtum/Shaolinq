@@ -356,13 +356,42 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			return simpleConstraintExpression;
 		}
 
+		protected virtual Expression VisitStatementList(SqlStatementListExpression statementListExpression)
+		{
+			List<Expression> newStatements = null;
+			
+			for (var i = 0; i < statementListExpression.Statements.Count; i++)
+			{
+				var expression = this.Visit(statementListExpression.Statements[i]);
+
+				if (expression != statementListExpression.Statements[i])
+				{
+					if (newStatements == null)
+					{
+						newStatements = new List<Expression>();
+
+						for (var j = 0; j <= i; j++)
+						{
+							newStatements.Add(statementListExpression.Statements[j]);
+						}
+					}
+					else
+					{
+						newStatements.Add(expression);
+					}
+				}
+			}
+
+			return statementListExpression;
+		}
+
 		protected virtual Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
 		{
 			var referencesColumnExpression = (SqlReferencesColumnExpression)this.Visit(foreignKeyConstraintExpression.ReferencesColumnExpression);
 
 			if (referencesColumnExpression != foreignKeyConstraintExpression.ReferencesColumnExpression)
 			{
-				return new SqlForeignKeyConstraintExpression(foreignKeyConstraintExpression.ColumnName, referencesColumnExpression);
+				return new SqlForeignKeyConstraintExpression(foreignKeyConstraintExpression.ColumnNames, referencesColumnExpression);
 			}
 			else
 			{
