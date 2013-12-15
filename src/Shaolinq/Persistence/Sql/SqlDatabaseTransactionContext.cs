@@ -120,12 +120,14 @@ namespace Shaolinq.Persistence.Sql
 			private set;
 		}
 
+		private readonly string identifierQuoteString;
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 
 		protected SqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			this.DatabaseConnection = databaseConnection;
 			sqlDataTypeProvider = databaseConnection.SqlDataTypeProvider;
+			identifierQuoteString = databaseConnection.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
 
 			this.DbConnection = databaseConnection.OpenConnection();
 
@@ -584,15 +586,15 @@ namespace Shaolinq.Persistence.Sql
 
 			command = CreateCommand();
 
-			commandText.Append("UPDATE ").Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
-			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel)).Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+			commandText.Append("UPDATE ").Append(identifierQuoteString);
+			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel)).Append(identifierQuoteString);
 			commandText.Append(" SET ");
 
 			for (var i = 0; i < updatedProperties.Count; i++)
 			{
-				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+				commandText.Append(identifierQuoteString);
 				commandText.Append(updatedProperties[i].persistedName);
-				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+				commandText.Append(identifierQuoteString);
 				commandText.Append('=');
 				AppendParameter(command, commandText, updatedProperties[i].propertyInfo.PropertyType, updatedProperties[i].value);
 
@@ -608,9 +610,9 @@ namespace Shaolinq.Persistence.Sql
 			
 			for (var k = 0; k < primaryKeys.Length; k++)
 			{
-				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+				commandText.Append(identifierQuoteString);
 				commandText.Append(primaryKeys[k].persistedName);
-				commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+				commandText.Append(identifierQuoteString);
 				commandText.Append('=');
 				AppendParameter(command, commandText, primaryKeys[k].propertyInfo.PropertyType, primaryKeys[k].value);
 
@@ -636,7 +638,7 @@ namespace Shaolinq.Persistence.Sql
 			if (updatedProperties.Count == 0)
 			{
 				command = CreateCommand();
-				command.CommandText = "INSERT INTO " + this.DatabaseConnection.SqlDialect.NameQuoteChar + typeDescriptor.GetPersistedName(this.DataAccessModel) + this.DatabaseConnection.SqlDialect.NameQuoteChar + " DEFAULT VALUES";
+				command.CommandText = "INSERT INTO " + identifierQuoteString + typeDescriptor.GetPersistedName(this.DataAccessModel) + identifierQuoteString + " DEFAULT VALUES";
 
 				return command;
 			}
@@ -656,9 +658,9 @@ namespace Shaolinq.Persistence.Sql
 
 			command = CreateCommand();
 
-			commandText.Append("INSERT INTO ").Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+			commandText.Append("INSERT INTO ").Append(identifierQuoteString);
 			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel));
-			commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+			commandText.Append(identifierQuoteString);
 
 			if (updatedProperties.Count > 0 || this.InsertDefaultString == null)
 			{
@@ -666,9 +668,9 @@ namespace Shaolinq.Persistence.Sql
 
 				for (int i = 0, lastindex = updatedProperties.Count - 1; i <= lastindex; i++)
 				{
-					commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+					commandText.Append(identifierQuoteString);
 					commandText.Append(updatedProperties[i].persistedName);
-					commandText.Append(this.DatabaseConnection.SqlDialect.NameQuoteChar);
+					commandText.Append(identifierQuoteString);
 
 					if (i != lastindex)
 					{

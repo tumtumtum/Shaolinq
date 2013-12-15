@@ -24,7 +24,7 @@ namespace Shaolinq.Tests
 				new SqlForeignKeyConstraintExpression(new [] {"Column1"}, new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction))
 			};
 
-			var createTableExpression = new SqlCreateTableExpression("table1", columnDefinitions, constraints);
+			var createTableExpression = new SqlCreateTableExpression("Table1", columnDefinitions, constraints);
 
 			var formatter = new Sql92QueryFormatter(createTableExpression);
 

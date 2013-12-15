@@ -8,10 +8,13 @@ namespace Shaolinq.Persistence.Sql
 		: MigrationPlanApplicator
 	{
 		private readonly SqlSchemaWriter schemaWriter;
+		private readonly string identifierQuoteString;
 
 		public SqlMigrationPlanApplicator(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
 			: base(databaseConnection, model)
 		{
+			identifierQuoteString = databaseConnection.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
+
 			schemaWriter = this.SystemDataBasedDatabaseConnection.NewSqlSchemaWriter(model);
 		}
 
@@ -83,21 +86,21 @@ namespace Shaolinq.Persistence.Sql
 				sql.AppendFormat("/* Changing column with FKC */");
 			}
 
-			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
-			sql.AppendFormat(@" ALTER COLUMN {1}{0}{1} TYPE {2}", migrationPropertyInfo.PersistedName, this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, newDataType);
+			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", identifierQuoteString, typeDescriptor.GetPersistedName(this.Model));
+			sql.AppendFormat(@" ALTER COLUMN {1}{0}{1} TYPE {2}", migrationPropertyInfo.PersistedName, identifierQuoteString, newDataType);
 			sql.AppendLine(";");
 		}
 
 		protected virtual void WriteDropColumn(StringBuilder sql, TypeDescriptor typeDescriptor, string columnName)
 		{
-			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
-			sql.AppendFormat(@" DROP COLUMN {1}{0}{1} CASCADE", columnName, this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar);
+			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", identifierQuoteString, typeDescriptor.GetPersistedName(this.Model));
+			sql.AppendFormat(@" DROP COLUMN {1}{0}{1} CASCADE", columnName, identifierQuoteString);
 			sql.AppendLine(";");
 		}
 
 		protected virtual void WriteAddColumn(StringBuilder sql, TypeDescriptor typeDescriptor, PropertyDescriptor propertyDescriptor)
 		{
-			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
+			sql.AppendFormat(@"ALTER TABLE {0}{1}{0}", identifierQuoteString, typeDescriptor.GetPersistedName(this.Model));
 			sql.Append(@" ADD COLUMN ");
 			this.schemaWriter.WriteColumnDefinition(sql, propertyDescriptor, null, false);
 			sql.AppendLine(";");

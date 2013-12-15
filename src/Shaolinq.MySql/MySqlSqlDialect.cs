@@ -9,11 +9,6 @@ namespace Shaolinq.MySql
 	{
 		public new static readonly MySqlSqlDialect Default = new MySqlSqlDialect();
 
-		public override string GetAutoIncrementSuffix()
-		{
-			return "AUTO_INCREMENT";
-		}
-
 		public override bool SupportsFeature(SqlFeature feature)
 		{
 			switch (feature)

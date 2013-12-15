@@ -11,22 +11,6 @@ namespace Shaolinq.Postgres.Shared
 	{
 		public new static readonly PostgresSqlDialect Default = new PostgresSqlDialect();
 
-		public override char NameQuoteChar
-		{
-			get
-			{
-				return '\"';
-			}
-		}
-
-		public override string LikeString
-		{
-			get
-			{
-				return "ILIKE";
-			}
-		}
-
 		public override string DeferrableText
 		{
 			get
@@ -68,9 +52,19 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		public override string GetAutoIncrementSuffix()
+		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
-			return "";
+			switch (symbol)
+			{
+				case SqlSyntaxSymbol.Like:
+					return "ILIKE";
+				case SqlSyntaxSymbol.AutoIncrementSuffix:
+					return "";
+				case SqlSyntaxSymbol.IdentifierQuote:
+					return "\"";
+				default:
+					return base.GetSyntaxSymbolString(symbol);
+			}
 		}
 	}
 }

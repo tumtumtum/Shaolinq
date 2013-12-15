@@ -158,6 +158,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 				this.sqlDialect = sqlDialect;
 			}
 
+			this.identifierQuoteString = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
+
 			this.IndentationWidth = 2;
 			this.Expression = expression;
 		}
@@ -289,7 +291,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case SqlFunction.In:
 					return new FunctionResolveResult("IN", true, arguments);
 				case SqlFunction.Like:
-					return new FunctionResolveResult(this.sqlDialect.LikeString, true, arguments);
+					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
 				case SqlFunction.CompareObject:
 					var expressionType = (ExpressionType)((ConstantExpression)arguments[0]).Value;
 					var args = new Expression[2];
@@ -310,7 +312,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 					}
 					throw new InvalidOperationException();
 				case SqlFunction.NotLike:
-					return new FunctionResolveResult("NOT " + this.sqlDialect.LikeString, true, arguments);
+					return new FunctionResolveResult("NOT " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
 				case SqlFunction.ServerDateTime:
 					return new FunctionResolveResult("NOW", false, arguments);
 				case SqlFunction.StartsWith:
@@ -324,7 +326,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						newArgument
 					};
 
-					return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
+					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
 				}
 				case SqlFunction.ContainsString:
 				{
@@ -338,7 +340,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						newArgument
 					};
 
-					return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
+					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
 				}
 				case SqlFunction.EndsWith:
 				{
@@ -351,7 +353,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 						newArgument
 					};
 
-					return new FunctionResolveResult(this.sqlDialect.LikeString, true, new ReadOnlyCollection<Expression>(list));
+					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
 				}
 				default:
 					return new FunctionResolveResult(function.ToString().ToUpper(), false, arguments);
@@ -710,23 +712,23 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				if (ignoreAlias == columnExpression.SelectAlias)
 				{
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 					this.Write(replaceAlias);
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 				}
 				else
 				{
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 					this.Write(columnExpression.SelectAlias);
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 				}
 
 				this.Write(".");
 			}
 
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 			this.Write(columnExpression.Name);
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 
 			return columnExpression;
 		}
@@ -738,9 +740,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 			if ((c == null || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
 			{
 				this.Write(" AS ");
-				this.Write(this.sqlDialect.NameQuoteChar);
+				this.Write(identifierQuoteString);
 				this.Write(column.Name);
-				this.Write(this.sqlDialect.NameQuoteChar);
+				this.Write(identifierQuoteString);
 			}
 		}
 
@@ -946,13 +948,13 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case SqlExpressionType.Table:
 					var table = (SqlTableExpression)source;
 
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 					this.Write(table.Name);
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 					this.Write(" AS ");
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 					this.Write(table.Alias);
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 
 					break;
 				case SqlExpressionType.Select:
@@ -968,9 +970,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 					
 					this.Write(")");
 					this.Write(" AS ");
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 					this.Write(select.Alias);
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(identifierQuoteString);
 
 					break;
 				case SqlExpressionType.Join:
@@ -985,14 +987,15 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected string ignoreAlias;
 		protected string replaceAlias;
+		private readonly string identifierQuoteString;
 
 		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
 			this.Write("DELETE ");
 			this.Write("FROM ");
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 			this.Write(deleteExpression.TableName);
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 			this.WriteLine();
 			this.Write(" WHERE ");
 			this.WriteLine();
@@ -1052,9 +1055,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
 			this.Write("CREATE TABLE ");
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 			this.Write(createTableExpression.TableName);
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 			this.WriteLine();
 			this.Write("(");
 			
@@ -1124,7 +1127,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			for (var i = 0; i < foreignKeyConstraintExpression.ColumnNames.Length; i++)
 			{
+				this.Write(identifierQuoteString);
 				this.Write(foreignKeyConstraintExpression.ColumnNames[i]);
+				this.Write(identifierQuoteString);
 
 				if (i != foreignKeyConstraintExpression.ColumnNames.Length - 1)
 				{
@@ -1207,9 +1212,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 						var i = 0;
 						foreach (var s in simpleConstraintExpression.ColumnNames)
 						{
-							this.Write(this.sqlDialect.NameQuoteChar);
+							this.Write(identifierQuoteString);
 							this.Write(s);
-							this.Write(this.sqlDialect.NameQuoteChar);
+							this.Write(identifierQuoteString);
 
 							if (i != simpleConstraintExpression.ColumnNames.Length - 1)
 							{
@@ -1228,9 +1233,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 						foreach (var s in simpleConstraintExpression.ColumnNames)
 						{
-							this.Write(this.sqlDialect.NameQuoteChar);
+							this.Write(identifierQuoteString);
 							this.Write(s);
-							this.Write(this.sqlDialect.NameQuoteChar);
+							this.Write(identifierQuoteString);
 
 							if (i != simpleConstraintExpression.ColumnNames.Length - 1)
 							{
@@ -1248,9 +1253,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
 		{
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 			this.Write(columnDefinitionExpression.ColumnName);
-			this.Write(this.sqlDialect.NameQuoteChar);
+			this.Write(identifierQuoteString);
 			this.Write(' ');
 			this.Write(columnDefinitionExpression.ColumnTypeName);
 

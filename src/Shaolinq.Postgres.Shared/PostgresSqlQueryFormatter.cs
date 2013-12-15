@@ -75,9 +75,9 @@ namespace Shaolinq.Postgres.Shared
 				if (!String.IsNullOrEmpty(column.Name))
 				{
 					this.Write(" AS ");
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote));
 					this.Write(column.Name);
-					this.Write(this.sqlDialect.NameQuoteChar);
+					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote));
 				}
 			}
 			else

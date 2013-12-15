@@ -113,6 +113,7 @@
     <Compile Include="Persistence\Sql\Linq\Optimizer\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Sql\Linq\RelatedPropertiesJoinExpander.cs" />
     <Compile Include="Persistence\Sql\SqlFeature.cs" />
+    <Compile Include="Persistence\Sql\SqlSyntaxSymbol.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />

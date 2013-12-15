@@ -36,9 +36,14 @@ namespace Shaolinq.Sqlite
 			}
 		}
 
-		public override string GetAutoIncrementSuffix()
+		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
-			return "AUTOINCREMENT";
+			if (symbol == SqlSyntaxSymbol.AutoIncrementSuffix)
+			{
+				return "AUTOINCREMENT";
+			}
+
+			return base.GetSyntaxSymbolString(symbol);
 		}
 	}
 }

@@ -89,6 +89,7 @@ namespace Shaolinq.Persistence.Sql
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 
 		private readonly SqlSchemaWriter schemaWriter;
+		private readonly string identifierQuoteString;
 
 		protected SqlDatabaseCreator(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel model)
 		{
@@ -97,6 +98,7 @@ namespace Shaolinq.Persistence.Sql
 			this.typeDescriptorProvider = TypeDescriptorProvider.GetProvider(model.DefinitionAssembly);
 			this.ModelTypeDescriptor = this.Model.ModelTypeDescriptor;
 
+			this.identifierQuoteString = databaseConnection.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
 			this.schemaWriter = databaseConnection.NewSqlSchemaWriter(model);
 		}
 
@@ -176,7 +178,7 @@ namespace Shaolinq.Persistence.Sql
 			int snip = 0;
 			var builder = new StringBuilder();
 
-			builder.AppendFormat(@"CREATE TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, typeDescriptor.GetPersistedName(this.Model));
+			builder.AppendFormat(@"CREATE TABLE {0}{1}{0}", identifierQuoteString, typeDescriptor.GetPersistedName(this.Model));
 
 			builder.AppendLine();
 			builder.AppendLine("(");
@@ -220,7 +222,7 @@ namespace Shaolinq.Persistence.Sql
 			if (typeDescriptor.PrimaryKeyCount > 1)
 			{
 				string primaryKeys = typeDescriptor.PrimaryKeyProperties
-				                                   .Convert<PropertyDescriptor, string>(x => this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar + x.PersistedName + this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar)
+												   .Convert<PropertyDescriptor, string>(x => identifierQuoteString + x.PersistedName + identifierQuoteString)
 				                                   .JoinToString(", ");
 
 				builder.AppendLine(",");
@@ -246,7 +248,7 @@ namespace Shaolinq.Persistence.Sql
 							foreignKeyNames,
 							propertyTypeDescriptor.GetPersistedName(this.Model),
 							primaryKeyNames,
-							this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar,
+							identifierQuoteString,
 							this.SystemDataBasedDatabaseConnection.SqlDialect.DeferrableText,
 							(!propertyTypeDescriptor.Type.IsValueType || Nullable.GetUnderlyingType(propertyTypeDescriptor.Type) != null) ? "NULL" : "DEFAULT",
 							typeDescriptor.GetPersistedName(this.Model)
@@ -262,7 +264,7 @@ namespace Shaolinq.Persistence.Sql
 							foreignKeyNames,
 							propertyTypeDescriptor.GetPersistedName(this.Model),
 							primaryKeyNames,
-							this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar,
+							identifierQuoteString,
 							this.SystemDataBasedDatabaseConnection.SqlDialect.DeferrableText,
 							(!propertyTypeDescriptor.Type.IsValueType || Nullable.GetUnderlyingType(propertyTypeDescriptor.Type) != null) ? "NULL" : "DEFAULT"
 						);
@@ -315,7 +317,7 @@ namespace Shaolinq.Persistence.Sql
 							foreignKeys,
 							typeRelationshipInfo.RelatedTypeTypeDescriptor.GetPersistedName(this.Model),
 							relatedPrimaryKeys,
-							this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar,
+							identifierQuoteString,
 							this.SystemDataBasedDatabaseConnection.SqlDialect.DeferrableText
 						);
 
@@ -353,7 +355,7 @@ namespace Shaolinq.Persistence.Sql
 
 						var dataType = this.SystemDataBasedDatabaseConnection.SqlDataTypeProvider.GetSqlDataType(typeof(int));
 
-						builder.AppendFormat(@"CREATE TABLE {0}{1}{0}", this.SystemDataBasedDatabaseConnection.SqlDialect.NameQuoteChar, manyToManyTableName);
+						builder.AppendFormat(@"CREATE TABLE {0}{1}{0}", identifierQuoteString, manyToManyTableName);
 						builder.AppendLine("(");
 						builder.Append("Id ");
 						builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnName(null, dataType, true));
@@ -387,7 +389,7 @@ namespace Shaolinq.Persistence.Sql
 		{
 			get
 			{
-				return this.SystemDataBasedDatabaseConnection.SqlDialect.GetAutoIncrementSuffix();
+				return this.SystemDataBasedDatabaseConnection.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrementSuffix);
 			}
 		}
 

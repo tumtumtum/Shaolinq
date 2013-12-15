@@ -6,27 +6,11 @@
 	{
 		public static readonly SqlDialect Default = new SqlDialect();
 
-		public virtual char NameQuoteChar
-		{
-			get
-			{
-				return '`';
-			}
-		}
-
 		public virtual string DeferrableText
 		{
 			get
 			{
 				return "";
-			}
-		}
-
-		public virtual string LikeString
-		{
-			get
-			{
-				return "LIKE";
 			}
 		}
 
@@ -54,9 +38,21 @@
 			return sqlDataType.GetSqlName(propertyDescriptor);
 		}
 
-		public virtual string GetAutoIncrementSuffix()
+		public virtual string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
-			return "AUTO_INCREMENT";
+			switch (symbol)
+			{
+				case SqlSyntaxSymbol.Null:
+					return "NULL";
+				case SqlSyntaxSymbol.Like:
+					return "LIKE";
+				case SqlSyntaxSymbol.IdentifierQuote:
+					return "`";
+				case SqlSyntaxSymbol.AutoIncrementSuffix:
+					return "AUTO_INCREMENT";
+				default:
+					return "";
+			}
 		}
 	}
 }
