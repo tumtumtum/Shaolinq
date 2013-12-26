@@ -495,7 +495,7 @@ namespace Shaolinq.Tests
 			{
 				var school = model.Schools.Create();
 
-				Console.Write(model.GetDatabaseConnection(school.GetType()).PersistenceStoreName);
+				Console.Write(model.GetDatabaseConnection(school.GetType()).DatabaseName);
 
 				school.Name = "The Shaolinq School of Kung Fu";
 

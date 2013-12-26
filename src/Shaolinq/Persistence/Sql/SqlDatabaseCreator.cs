@@ -358,7 +358,7 @@ namespace Shaolinq.Persistence.Sql
 						builder.AppendFormat(@"CREATE TABLE {0}{1}{0}", identifierQuoteString, manyToManyTableName);
 						builder.AppendLine("(");
 						builder.Append("Id ");
-						builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnName(null, dataType, true));
+						builder.Append(dataType.GetSqlName(null));
 						builder.Append(" PRIMARY KEY ");
 						builder.Append(this.AutoIncrementKeyword);
 						builder.AppendLine(", ");

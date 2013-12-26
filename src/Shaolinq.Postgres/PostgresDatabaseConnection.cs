@@ -74,7 +74,7 @@ using Npgsql;
 			return new PostgresSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
 
-		protected override DbProviderFactory NewDbProproviderFactory()
+		protected override DbProviderFactory NewDbProviderFactory()
 		{
 			return NpgsqlFactory.Instance;
 		}
@@ -84,7 +84,7 @@ using Npgsql;
 			var retval = new TableDescriptor();
 			var sql = string.Format(@"SELECT * FROM ""{0}"" LIMIT 1", tableName);
 
-			var factory = NewDbProproviderFactory();
+			var factory = this.NewDbProviderFactory();
 
 			using (var connection = factory.CreateConnection())
 			{
@@ -225,7 +225,7 @@ using Npgsql;
 			bool retval = false;
 			DbProviderFactory factory;
 
-			factory = NewDbProproviderFactory();
+			factory = this.NewDbProviderFactory();
             
 			using (var connection = factory.CreateConnection())
 			{
@@ -249,7 +249,7 @@ using Npgsql;
 							{
 								string s = reader.GetString(0);
 
-								if (s.Equals(this.PersistenceStoreName))
+								if (s.Equals(this.DatabaseName))
 								{
 									drop = true;
 
@@ -264,14 +264,14 @@ using Npgsql;
 						using (command = connection.CreateCommand())
 						{
 							NpgsqlConnection.ClearAllPools();
-							command.CommandText = String.Concat("DROP DATABASE \"", this.PersistenceStoreName, "\";");
+							command.CommandText = String.Concat("DROP DATABASE \"", this.DatabaseName, "\";");
 							command.ExecuteNonQuery();
 						}
 					}
 
 					using (command = connection.CreateCommand())
 					{
-						command.CommandText = String.Concat("CREATE DATABASE \"", this.PersistenceStoreName, "\" WITH ENCODING 'UTF8';");
+						command.CommandText = String.Concat("CREATE DATABASE \"", this.DatabaseName, "\" WITH ENCODING 'UTF8';");
 						command.ExecuteNonQuery();
 					}
 
@@ -283,7 +283,7 @@ using Npgsql;
 					{
 						using (command = connection.CreateCommand())
 						{
-							command.CommandText = String.Concat("CREATE DATABASE \"", this.PersistenceStoreName, "\" WITH ENCODING 'UTF8';");
+							command.CommandText = String.Concat("CREATE DATABASE \"", this.DatabaseName, "\" WITH ENCODING 'UTF8';");
 							command.ExecuteNonQuery();
 						}
 

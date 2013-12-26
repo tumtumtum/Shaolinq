@@ -58,6 +58,18 @@ namespace Shaolinq.Persistence
 			private set;
 		}
 
+		public ValueRequiredAttribute ValueRequiredAttribute
+		{
+			get;
+			private set;
+		}
+
+		public DefaultValueAttribute DefaultValueAttribute
+		{
+			get;
+			private set;
+		}
+
 		public BackReferenceAttribute BackReferenceAttribute
 		{
 			get;
@@ -186,6 +198,8 @@ namespace Shaolinq.Persistence
 			this.PropertyInfo = propertyInfo;
 			this.DeclaringTypeDescriptor = declaringTypeDescriptor;
 
+			this.ValueRequiredAttribute = propertyInfo.GetFirstCustomAttribute<ValueRequiredAttribute>(true);
+			this.DefaultValueAttribute = propertyInfo.GetFirstCustomAttribute<DefaultValueAttribute>(true);
 			this.BackReferenceAttribute = propertyInfo.GetFirstCustomAttribute<BackReferenceAttribute>(true);
 			this.RelatedDataAccessObjectsAttribute = propertyInfo.GetFirstCustomAttribute<RelatedDataAccessObjectsAttribute>(true);
 			this.PersistedMemberAttribute = propertyInfo.GetFirstCustomAttribute<PersistedMemberAttribute>(true);

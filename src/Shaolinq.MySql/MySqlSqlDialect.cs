@@ -27,5 +27,15 @@ namespace Shaolinq.MySql
 					return false;
 			}
 		}
+
+		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
+		{
+			if (symbol == SqlSyntaxSymbol.IdentifierQuote)
+			{
+				return "`";
+			}
+
+			return base.GetSyntaxSymbolString(symbol);
+		}
 	}
 }

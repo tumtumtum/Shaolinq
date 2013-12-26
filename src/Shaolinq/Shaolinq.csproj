@@ -112,6 +112,7 @@
     <Compile Include="Persistence\Sql\Linq\GroupByCollator.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Sql\Linq\RelatedPropertiesJoinExpander.cs" />
+    <Compile Include="Persistence\Sql\Linq\SqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\Sql\SqlFeature.cs" />
     <Compile Include="Persistence\Sql\SqlSyntaxSymbol.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />

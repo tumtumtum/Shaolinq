@@ -49,7 +49,7 @@ using MySql.Data.MySqlClient;
 			this.Password = password;
 			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
 			
-			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.PersistenceStoreName, this.Username, this.Password, poolConnections);
+			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, poolConnections);
 		}
 
 		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
@@ -62,7 +62,7 @@ using MySql.Data.MySqlClient;
 			return new MySqlSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
 
-		protected override DbProviderFactory NewDbProproviderFactory()
+		protected override DbProviderFactory NewDbProviderFactory()
 		{
 			return new MySqlClientFactory();
 		}
@@ -95,7 +95,7 @@ using MySql.Data.MySqlClient;
 		public override bool CreateDatabase(bool overwrite)
 		{
 			var retval = false;
-			var factory = this.NewDbProproviderFactory();
+			var factory = this.NewDbProviderFactory();
 
 			using (var connection = factory.CreateConnection())
 			{
@@ -109,7 +109,7 @@ using MySql.Data.MySqlClient;
 				{
 					var drop = false;
 
-					command.CommandText = String.Format("SHOW DATABASES;", this.PersistenceStoreName);
+					command.CommandText = String.Format("SHOW DATABASES;", this.DatabaseName);
 
 					using (var reader = command.ExecuteReader())
 					{
@@ -117,8 +117,8 @@ using MySql.Data.MySqlClient;
 						{
 							var s = reader.GetString(0);
 
-							if (s.Equals(this.PersistenceStoreName) ||
-                                s.Equals(this.PersistenceStoreName.ToLower()))
+							if (s.Equals(this.DatabaseName) ||
+                                s.Equals(this.DatabaseName.ToLower()))
 							{
 								drop = true;
 
@@ -129,11 +129,11 @@ using MySql.Data.MySqlClient;
 
 					if (drop)
 					{
-						command.CommandText = String.Concat("DROP DATABASE ", this.PersistenceStoreName);
+						command.CommandText = String.Concat("DROP DATABASE ", this.DatabaseName);
 						command.ExecuteNonQuery();
 					}
 
-					command.CommandText = String.Concat("CREATE DATABASE ", this.PersistenceStoreName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+					command.CommandText = String.Concat("CREATE DATABASE ", this.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
 					command.ExecuteNonQuery();
 
 					retval = true;
@@ -142,7 +142,7 @@ using MySql.Data.MySqlClient;
 				{
 					try
 					{
-						command.CommandText = String.Concat("CREATE DATABASE ", this.PersistenceStoreName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+						command.CommandText = String.Concat("CREATE DATABASE ", this.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
 						command.ExecuteNonQuery();
 
 						retval = true;

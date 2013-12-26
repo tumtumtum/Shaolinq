@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PostgresDataDefinitionExpressionAmmender.cs" />
     <Compile Include="PostgresDateTimeDataType.cs" />
     <Compile Include="PostgresUuidSqlDataType.cs" />
     <Compile Include="DisabledForeignKeyCheckContext.cs" />

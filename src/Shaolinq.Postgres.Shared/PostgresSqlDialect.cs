@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using Platform;
 ﻿using Shaolinq.Persistence;
@@ -38,7 +38,7 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		public override string GetColumnName(PropertyDescriptor propertyDescriptor, SqlDataType sqlDataType, bool isForiegnKey)
+		public override string GetColumnDataTypeName(PropertyDescriptor propertyDescriptor, SqlDataType sqlDataType, bool isForiegnKey)
 		{
 			var type = sqlDataType.UnderlyingType ?? sqlDataType.SupportedType;
 
@@ -48,7 +48,7 @@ namespace Shaolinq.Postgres.Shared
 			}
 			else
 			{
-				return base.GetColumnName(propertyDescriptor, sqlDataType, isForiegnKey);
+				return base.GetColumnDataTypeName(propertyDescriptor, sqlDataType, isForiegnKey);
 			}
 		}
 
@@ -60,8 +60,6 @@ namespace Shaolinq.Postgres.Shared
 					return "ILIKE";
 				case SqlSyntaxSymbol.AutoIncrementSuffix:
 					return "";
-				case SqlSyntaxSymbol.IdentifierQuote:
-					return "\"";
 				default:
 					return base.GetSyntaxSymbolString(symbol);
 			}

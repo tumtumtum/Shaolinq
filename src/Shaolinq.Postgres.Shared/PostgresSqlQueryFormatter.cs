@@ -3,6 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+using Shaolinq.Postgres;
 ﻿using Shaolinq.Persistence.Sql;
 ﻿using Shaolinq.Persistence.Sql.Linq;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
@@ -23,7 +24,7 @@ namespace Shaolinq.Postgres.Shared
 		}
 
 		public PostgresSqlQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
-			: base(expression, options, sqlDataTypeProvider, sqlDialect)
+			: base(PostgresDataDefinitionExpressionAmmender.Ammend(expression), options, sqlDataTypeProvider, sqlDialect)
 		{
 			this.DataAccessModel = dataAccessModel;
 		}

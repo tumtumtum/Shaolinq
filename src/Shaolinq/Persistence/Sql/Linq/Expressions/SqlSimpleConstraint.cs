@@ -7,6 +7,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 		NotNull,
 		Unique,
 		DefaultValue,
-		PrimaryKey
+		PrimaryKey,
+		PrimaryKeyAutoIncrement
 	}
 }

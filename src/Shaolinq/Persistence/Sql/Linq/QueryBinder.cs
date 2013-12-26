@@ -1348,7 +1348,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 				var columnExpressions = new List<Expression>();
 				var propertyNames = new List<string>();
 				
-				foreach (var v in context.GetPersistedNames(this.DataAccessModel, propertyDescriptor))
+				foreach (var v in context.SqlDialect.GetPersistedNames(this.DataAccessModel, propertyDescriptor))
 				{
 					var expression = new SqlColumnExpression(v.Right.PropertyType, selectAlias, v.Left);
 

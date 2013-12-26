@@ -89,7 +89,7 @@ namespace Shaolinq.Postgres.DotConnect
             return new PostgresDotConnectSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
         }
 
-        protected override DbProviderFactory NewDbProproviderFactory()
+        protected override DbProviderFactory NewDbProviderFactory()
         {
             return PgSqlProviderFactory.Instance;
         }
@@ -98,7 +98,7 @@ namespace Shaolinq.Postgres.DotConnect
         {
 			var retval = new TableDescriptor();
 
-			var factory = NewDbProproviderFactory();
+			var factory = this.NewDbProviderFactory();
 
 			using (var connection = factory.CreateConnection())
 			{
@@ -288,7 +288,7 @@ namespace Shaolinq.Postgres.DotConnect
             bool retval = false;
             DbProviderFactory factory;
 
-            factory = NewDbProproviderFactory();
+            factory = this.NewDbProviderFactory();
 
         	this.DropAllConnections();
 
@@ -313,7 +313,7 @@ namespace Shaolinq.Postgres.DotConnect
                             {
                                 string s = reader.GetString(0);
 
-                                if (s.Equals(this.PersistenceStoreName))
+                                if (s.Equals(this.DatabaseName))
                                 {
                                     drop = true;
 
@@ -327,14 +327,14 @@ namespace Shaolinq.Postgres.DotConnect
                     {
                         using (command = connection.CreateCommand())
                         {
-                            command.CommandText = String.Concat("DROP DATABASE \"", this.PersistenceStoreName, "\";");
+                            command.CommandText = String.Concat("DROP DATABASE \"", this.DatabaseName, "\";");
                             command.ExecuteNonQuery();
                         }
                     }
 
                     using (command = connection.CreateCommand())
                     {
-                        command.CommandText = String.Concat("CREATE DATABASE \"", this.PersistenceStoreName, "\" WITH ENCODING 'UTF8';");
+                        command.CommandText = String.Concat("CREATE DATABASE \"", this.DatabaseName, "\" WITH ENCODING 'UTF8';");
                         command.ExecuteNonQuery();
                     }
 
@@ -346,7 +346,7 @@ namespace Shaolinq.Postgres.DotConnect
                     {	
                         using (command = connection.CreateCommand())
                         {
-                            command.CommandText = String.Concat("CREATE DATABASE \"", this.PersistenceStoreName, "\" WITH ENCODING 'UTF8';");
+                            command.CommandText = String.Concat("CREATE DATABASE \"", this.DatabaseName, "\" WITH ENCODING 'UTF8';");
                             command.ExecuteNonQuery();
                         }
 

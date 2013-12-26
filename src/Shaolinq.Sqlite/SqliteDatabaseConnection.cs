@@ -42,14 +42,14 @@ namespace Shaolinq.Sqlite
 			: base(fileName, SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance)
 		{
 			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
-			connectionString = "Data Source=" + this.PersistenceStoreName + ";foreign keys=True";
+			connectionString = "Data Source=" + this.DatabaseName + ";foreign keys=True";
 		}
 
 		private SqliteSqlDatabaseTransactionContext inMemoryContext;
 
 		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
-			if (String.Equals(this.PersistenceStoreName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+			if (String.Equals(this.DatabaseName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
 				if (inMemoryContext == null)
 				{
@@ -67,7 +67,7 @@ namespace Shaolinq.Sqlite
 			return new SqliteSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
 
-		protected override DbProviderFactory NewDbProproviderFactory()
+		protected override DbProviderFactory NewDbProviderFactory()
 		{
 			return new SQLiteFactory();
 		}
@@ -100,9 +100,9 @@ namespace Shaolinq.Sqlite
 		public override bool CreateDatabase(bool overwrite)
 		{
 			var retval = false;
-			var path = this.PersistenceStoreName;
+			var path = this.DatabaseName;
 
-			if (String.Equals(this.PersistenceStoreName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+			if (String.Equals(this.DatabaseName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
 				if (inMemoryContext != null)
 				{

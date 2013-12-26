@@ -4,12 +4,31 @@ using System.Linq.Expressions;
 using NUnit.Framework;
 using Shaolinq.Persistence.Sql.Linq;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
+using Shaolinq.Tests.DataModels.Test;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture]
+	[TestFixture("Sqlite")]
+	[TestFixture("Postgres")]
 	public class SqlFormatterTests
+		: BaseTests
 	{
+		public SqlFormatterTests(string providerName)
+			: base(providerName)
+		{	
+		}
+
+		[Test]
+		public void Test_DataDefinitionBuilder()
+		{
+			var dbConnection = this.model.GetDatabaseConnection(typeof(Student));
+			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model);
+
+			var formatter = dbConnection.NewQueryFormatter(this.model, dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, dataDefinitionExpressions, SqlQueryFormatterOptions.Default);
+
+			Console.WriteLine(formatter.Format().CommandText);
+		}
+
 		[Test]
 		public void Test_Format_Create_Table_With_Table_Constraints()
 		{

@@ -60,6 +60,8 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 					return this.VisitReferencesColumn((SqlReferencesColumnExpression)expression);
 				case SqlExpressionType.SimpleConstraint:
 					return this.VisitSimpleConstraint((SqlSimpleConstraintExpression)expression);
+				case SqlExpressionType.StatementList:
+					return this.VisitStatementList((SqlStatementListExpression)expression);
 				default:
 					return base.Visit(expression);
 			}
@@ -324,7 +326,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 		protected virtual Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
 			var constraints = VisitExpressionList(createTableExpression.TableConstraints);
-			var columnDefinitions = VisitExpressionList(createTableExpression.TableConstraints);
+			var columnDefinitions = VisitExpressionList(createTableExpression.ColumnDefinitionExpressions);
 
 			if (createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
 			{
@@ -370,10 +372,12 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 					{
 						newStatements = new List<Expression>();
 
-						for (var j = 0; j <= i; j++)
+						for (var j = 0; j < i; j++)
 						{
 							newStatements.Add(statementListExpression.Statements[j]);
 						}
+
+						newStatements.Add(expression);
 					}
 					else
 					{
@@ -382,7 +386,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 				}
 			}
 
-			return statementListExpression;
+			return newStatements == null ? statementListExpression : new SqlStatementListExpression(newStatements);
 		}
 
 		protected virtual Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)

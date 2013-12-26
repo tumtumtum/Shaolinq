@@ -44,7 +44,7 @@ namespace Shaolinq.Sqlite
 
 		public override void Dispose()
 		{
-			if (!String.Equals(this.DatabaseConnection.PersistenceStoreName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+			if (!String.Equals(this.DatabaseConnection.DatabaseName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
 				base.Dispose();
 			}

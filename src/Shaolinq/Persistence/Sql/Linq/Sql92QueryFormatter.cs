@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -1193,20 +1193,21 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
 		{
-			switch (simpleConstraintExpression.Constrant)
+			switch (simpleConstraintExpression.Constraint)
 			{
 				case SqlSimpleConstraint.DefaultValue:
 					if (simpleConstraintExpression.Value != null)
 					{
-						this.Write("DEFAULT ");
+						this.Write("DEFAULT");
 						this.Write(simpleConstraintExpression.Value);
 					}
 					break;
 				case SqlSimpleConstraint.NotNull:
-					this.Write("NOT NULL ");
+					this.Write("NOT NULL");
 					break;
 				case SqlSimpleConstraint.PrimaryKey:
-					this.Write("PRIMARY KEY ");
+				case SqlSimpleConstraint.PrimaryKeyAutoIncrement:
+					this.Write("PRIMARY KEY");
 					if (simpleConstraintExpression.ColumnNames != null)
 					{
 						var i = 0;
@@ -1222,6 +1223,17 @@ namespace Shaolinq.Persistence.Sql.Linq
 							}
 						}
 					}
+
+					if (simpleConstraintExpression.Constraint == SqlSimpleConstraint.PrimaryKeyAutoIncrement)
+					{
+						var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrementSuffix);
+
+						if (!string.IsNullOrEmpty(s))
+						{
+							this.Write(" " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrementSuffix));
+						}
+					}
+
 					break;
 				case SqlSimpleConstraint.Unique:
 					this.Write("UNIQUE");

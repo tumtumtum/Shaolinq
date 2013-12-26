@@ -48,7 +48,7 @@ namespace Shaolinq.Persistence.Sql
 				var dataType = this.SystemDataBasedDatabaseConnection.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
 
 				builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote)).Append(columnName).Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote)).Append(" ");
-				builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnName(propertyDescriptor, dataType, true)).Append(" ");
+				builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnDataTypeName(propertyDescriptor, dataType, true)).Append(" ");
 
 				if (valueRequired)
 				{
@@ -122,7 +122,7 @@ namespace Shaolinq.Persistence.Sql
 		{
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				foreach (var v in this.SystemDataBasedDatabaseConnection.GetPersistedNames(this.Model, propertyDescriptor))
+				foreach (var v in this.SystemDataBasedDatabaseConnection.SqlDialect.GetPersistedNames(this.Model, propertyDescriptor))
 				{
 					yield return v.Left;
 				}
@@ -142,7 +142,7 @@ namespace Shaolinq.Persistence.Sql
 
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				foreach (var v in this.SystemDataBasedDatabaseConnection.GetPersistedNames(this.Model, propertyDescriptor))
+				foreach (var v in this.SystemDataBasedDatabaseConnection.SqlDialect.GetPersistedNames(this.Model, propertyDescriptor))
 				{
 					this.WriteColumnDefinition(builder, v.Right, v.Left, true);
 				}
@@ -153,7 +153,7 @@ namespace Shaolinq.Persistence.Sql
 			var dataType = this.SystemDataBasedDatabaseConnection.SqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
 
 			builder.Append(identifierQuoteString).Append(name).Append(identifierQuoteString).Append(" ");
-			builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnName(propertyDescriptor, dataType, asForeignKey));
+			builder.Append(this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnDataTypeName(propertyDescriptor, dataType, asForeignKey));
 
 			bool requiresNotNull = false;
 

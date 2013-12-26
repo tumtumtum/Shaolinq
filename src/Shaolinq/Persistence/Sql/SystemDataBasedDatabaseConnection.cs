@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Data.Common;
 
 namespace Shaolinq.Persistence.Sql
@@ -32,20 +32,20 @@ namespace Shaolinq.Persistence.Sql
 			return retval;
 		}
 
-		protected SystemDataBasedDatabaseConnection(string persistenceStoreName, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
+		protected SystemDataBasedDatabaseConnection(string databaseName, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
 		{
 			this.CommandTimeout = TimeSpan.FromSeconds(60);
 
 			this.SqlDialect = sqlDialect;
 			this.SqlDataTypeProvider = sqlDataTypeProvider;
 
-			this.PersistenceStoreName = persistenceStoreName;
+			this.DatabaseName = databaseName;
 
-			this.dBProviderFactory = NewDbProproviderFactory();
+			this.dBProviderFactory = this.NewDbProviderFactory();
 		}
-
+		
 		protected abstract string GetConnectionString();
-		protected abstract DbProviderFactory NewDbProproviderFactory();
+		protected abstract DbProviderFactory NewDbProviderFactory();
 		public abstract TableDescriptor GetTableDescriptor(string tableName);
         public abstract SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model);
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext);
