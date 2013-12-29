@@ -16,7 +16,6 @@ namespace Shaolinq.Persistence
 		public string SchemaNamePrefix { get; protected set; }
 		public SqlDataTypeProvider SqlDataTypeProvider { get; protected set; }
 		
-		public abstract bool CreateDatabase(bool overwrite);
 		public abstract Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options);
 		public abstract DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
 		public abstract DatabaseCreator NewDatabaseCreator(DataAccessModel model);
@@ -25,13 +24,16 @@ namespace Shaolinq.Persistence
 		public abstract TableDescriptor GetTableDescriptor(string tableName);
 		public abstract SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model);
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext);
-		public abstract void DropAllConnections();
-
+		
 		public virtual IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel)
 		{
 			return new SqlQueryProvider(dataAccessModel, this);
 		}
-		
+
+		public virtual void DropAllConnections()
+		{
+		}
+
 		public virtual void Dispose()
 		{
 			DropAllConnections();
