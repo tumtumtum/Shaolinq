@@ -6,7 +6,7 @@ using System.Data.Common;
 namespace Shaolinq.Persistence.Sql
 {
 	public abstract class SystemDataBasedDatabaseConnection
-		: DatabaseConnection
+		: SqlDatabaseContext
 	{
 		private readonly DbProviderFactory dBProviderFactory;
 

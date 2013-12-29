@@ -30,9 +30,9 @@ namespace Shaolinq.MySql
 			this.PoolConnections = true;
 		}
 
-		public override DatabaseConnection CreateDatabaseConnection()
+		public override SqlDatabaseContext CreateDatabaseConnection()
 		{
-			return new MySqlDatabaseConnection(this.ServerName, this.DatabaseName, this.UserName, this.Password, this.PoolConnections, this.SchemaNamePrefix);
+			return new MySqlSqlDatabaseContext(this.ServerName, this.DatabaseName, this.UserName, this.Password, this.PoolConnections, this.SchemaNamePrefix);
 		}
 	}
 }

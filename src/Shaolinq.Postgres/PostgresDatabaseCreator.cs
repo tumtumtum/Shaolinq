@@ -8,19 +8,19 @@ namespace Shaolinq.Postgres
 	public class PostgresDatabaseCreator
 		: PostgresSharedDatabaseCreator
 	{
-		public PostgresDatabaseCreator(PostgresDatabaseConnection connection, DataAccessModel model)
+		public PostgresDatabaseCreator(PostgresSqlDatabaseContext connection, DataAccessModel model)
 			: base(connection, model)
 		{
 		}
 
 		protected override string GetDatabaselessConnectionString()
 		{
-			return ((PostgresDatabaseConnection)this.connection).databaselessConnectionString;
+			return ((PostgresSqlDatabaseContext)this.connection).databaselessConnectionString;
 		}
 
 		protected override DbProviderFactory CreateDbProviderFactory()
 		{
-			return ((PostgresDatabaseConnection)this.connection).NewDbProviderFactory();
+			return ((PostgresSqlDatabaseContext)this.connection).NewDbProviderFactory();
 		}
 	}
 }

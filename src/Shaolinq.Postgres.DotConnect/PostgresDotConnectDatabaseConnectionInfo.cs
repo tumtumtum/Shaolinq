@@ -49,9 +49,9 @@ namespace Shaolinq.Postgres.DotConnect
 			this.NativeUuids = true;
 		}
 
-		public override DatabaseConnection CreateDatabaseConnection()
+		public override SqlDatabaseContext CreateDatabaseConnection()
 		{
-			return new PostgresDotConnectDatabaseConnection(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.CommandTimeout, this.NativeUuids, this.SchemaNamePrefix, this.DateTimeKindIfUnspecified);
+			return new PostgresDotConnectSqlDatabaseContext(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.CommandTimeout, this.NativeUuids, this.SchemaNamePrefix, this.DateTimeKindIfUnspecified);
 		}
 	}
 }

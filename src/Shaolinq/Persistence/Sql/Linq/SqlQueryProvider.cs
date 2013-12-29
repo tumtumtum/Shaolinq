@@ -18,9 +18,9 @@ namespace Shaolinq.Persistence.Sql.Linq
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
 
 		public DataAccessModel DataAccessModel { get; private set; }
-		public DatabaseConnection DatabaseConnection { get; private set; }
+		public SqlDatabaseContext DatabaseConnection { get; private set; }
 
-		public SqlQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
+		public SqlQueryProvider(DataAccessModel dataAccessModel, SqlDatabaseContext databaseConnection)
 			: base(typeof(SqlQueryable<>))
 		{
 			this.DataAccessModel = dataAccessModel;
@@ -107,10 +107,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private struct ProjectorCacheKey
 		{
 			internal readonly int hashCode;
-			internal readonly DatabaseConnection databaseConnection;
+			internal readonly SqlDatabaseContext databaseConnection;
 			internal readonly Expression projectionExpression;
 
-			public ProjectorCacheKey(Expression projectionExpression, DatabaseConnection databaseConnection)
+			public ProjectorCacheKey(Expression projectionExpression, SqlDatabaseContext databaseConnection)
 			{
 				this.databaseConnection = databaseConnection;
 				this.projectionExpression = projectionExpression;

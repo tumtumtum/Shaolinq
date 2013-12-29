@@ -98,7 +98,7 @@
     <Compile Include="SqliteSqlDatabaseTransactionContext.cs" />
     <Compile Include="SqliteSqlDataTypeProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqliteDatabaseConnection.cs" />
+    <Compile Include="SqliteSqlDatabaseContext.cs" />
     <Compile Include="SqliteSqlQueryFormatter.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -148,14 +148,7 @@
     <Compile Include="InvalidDataAccessModelDefinition.cs" />
     <Compile Include="PersistenceTransactionContextAcquisition.cs" />
     <Compile Include="Persistence\IndexDescriptor.cs" />
-    <Compile Include="Persistence\MigrationScripts.cs" />
-    <Compile Include="Persistence\DatabaseMigrationPlan.cs" />
-    <Compile Include="Persistence\MigrationPlan.cs" />
-    <Compile Include="Persistence\MigrationPropertyInfo.cs" />
-    <Compile Include="Persistence\MigrationTypeInfo.cs" />
     <Compile Include="Persistence\ModelTypeDescriptor.cs" />
-    <Compile Include="Persistence\MigrationPlanCreator.cs" />
-    <Compile Include="Persistence\MigrationPlanApplicator.cs" />
     <Compile Include="Persistence\Sql\ColumnDescriptor.cs" />
     <Compile Include="Persistence\Sql\DatabaseConnectionInfo.cs" />
     <Compile Include="Persistence\Sql\DataRecordMethods.cs" />
@@ -207,10 +200,6 @@
     <Compile Include="Persistence\Sql\PrimitiveSqlDataType.cs" />
     <Compile Include="Persistence\Sql\InsertResults.cs" />
     <Compile Include="Persistence\Sql\SqlDialect.cs" />
-    <Compile Include="Persistence\Sql\SqlDatabaseMigrationPlanCreator.cs" />
-    <Compile Include="Persistence\Sql\SqlMigrationPropertyInfo.cs" />
-    <Compile Include="Persistence\Sql\SqlSchemaWriter.cs" />
-    <Compile Include="Persistence\Sql\SqlMigrationPlanApplicator.cs" />
     <Compile Include="Persistence\Sql\TableDescriptor.cs" />
     <Compile Include="PrimeNumbers.cs" />
     <Compile Include="PropertyInfoAndValue.cs" />
@@ -254,7 +243,7 @@
     <Compile Include="MissingObjectIdentifierException.cs" />
     <Compile Include="ObjectAlreadyInitializedException.cs" />
     <Compile Include="Persistence\IPersistenceQueryable.cs" />
-    <Compile Include="Persistence\DatabaseConnection.cs" />
+    <Compile Include="Persistence\SqlDatabaseContext.cs" />
     <Compile Include="DatabaseTransactionContext.cs" />
     <Compile Include="DataAccessModelConfiguration.cs" />
     <Compile Include="DataAccessModelDatabaseConnectionInfo.cs" />

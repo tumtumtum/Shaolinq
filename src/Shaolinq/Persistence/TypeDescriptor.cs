@@ -58,7 +58,7 @@ namespace Shaolinq.Persistence
 			return GetPersistedName(connection);
 		}
 
-		public string GetPersistedName(DatabaseConnection databaseConnection)
+		public string GetPersistedName(SqlDatabaseContext databaseConnection)
 		{
 			return (databaseConnection.SchemaNamePrefix ?? "") + this.DataAccessObjectAttribute.GetName(this.Type);
 		}

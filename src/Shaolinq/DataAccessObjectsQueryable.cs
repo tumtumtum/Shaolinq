@@ -25,7 +25,7 @@ namespace Shaolinq
 		/// <summary>
 		/// A reference to the <see cref="DatabaseConnection"/> related to this object.
 		/// </summary>
-		public DatabaseConnection DatabaseConnection { get; set; }
+		public SqlDatabaseContext DatabaseConnection { get; set; }
 
 		public LambdaExpression ExtraCondition { get; protected set; }
 

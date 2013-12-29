@@ -6,9 +6,9 @@ namespace Shaolinq.MySql
 	public class MySqlDatabaseCreator
 		: DatabaseCreator
 	{
-		private readonly MySqlDatabaseConnection connection;
+		private readonly MySqlSqlDatabaseContext connection;
 
-		public MySqlDatabaseCreator(MySqlDatabaseConnection connection, DataAccessModel model)
+		public MySqlDatabaseCreator(MySqlSqlDatabaseContext connection, DataAccessModel model)
 			: base(model)
 		{
 			this.connection = connection;

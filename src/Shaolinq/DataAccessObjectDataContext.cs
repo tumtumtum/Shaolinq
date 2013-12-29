@@ -74,13 +74,13 @@ namespace Shaolinq
 		#region CacheByDatabaseConnection
 
 		private class CacheByDatabaseConnection<T>
-			: IEnumerable<KeyValuePair<DatabaseConnection, ObjectsByIdCache<T>>>
+			: IEnumerable<KeyValuePair<SqlDatabaseContext, ObjectsByIdCache<T>>>
 		{
-			private readonly Dictionary<DatabaseConnection, ObjectsByIdCache<T>> objectsByIdCacheByDatabaseConnection;
+			private readonly Dictionary<SqlDatabaseContext, ObjectsByIdCache<T>> objectsByIdCacheByDatabaseConnection;
 
 			public CacheByDatabaseConnection()
 			{
-				this.objectsByIdCacheByDatabaseConnection = new Dictionary<DatabaseConnection, ObjectsByIdCache<T>>(PrimeNumbers.Prime17);
+				this.objectsByIdCacheByDatabaseConnection = new Dictionary<SqlDatabaseContext, ObjectsByIdCache<T>>(PrimeNumbers.Prime17);
 			}
 
 			public void UpgradeNewToUpdated()
@@ -113,7 +113,7 @@ namespace Shaolinq
 				objectsById.Deleted(value);
 			}
 
-			public DataAccessObject<T> Get(DatabaseConnection databaseConnection, Type type, PropertyInfoAndValue[] primaryKey)
+			public DataAccessObject<T> Get(SqlDatabaseContext databaseConnection, Type type, PropertyInfoAndValue[] primaryKey)
 			{
 				ObjectsByIdCache<T> objectsById;
 
@@ -143,7 +143,7 @@ namespace Shaolinq
 				return objectsById.Cache(value, forImport);
 			}
             
-			public IEnumerator<KeyValuePair<DatabaseConnection, ObjectsByIdCache<T>>> GetEnumerator()
+			public IEnumerator<KeyValuePair<SqlDatabaseContext, ObjectsByIdCache<T>>> GetEnumerator()
 			{
 				return this.objectsByIdCacheByDatabaseConnection.GetEnumerator();
 			}
@@ -643,7 +643,7 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual IDataAccessObject GetObject(DatabaseConnection databaseConnection, Type type, PropertyInfoAndValue[] primaryKeys)
+		public virtual IDataAccessObject GetObject(SqlDatabaseContext databaseConnection, Type type, PropertyInfoAndValue[] primaryKeys)
 		{
 			if (this.DisableCache)
 			{

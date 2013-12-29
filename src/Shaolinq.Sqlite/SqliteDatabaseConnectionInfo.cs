@@ -13,9 +13,9 @@ namespace Shaolinq.Sqlite
 		[XmlAttribute]
 		public string FileName { get; set; }
 
-		public override DatabaseConnection CreateDatabaseConnection()
+		public override SqlDatabaseContext CreateDatabaseConnection()
 		{
-			return new SqliteDatabaseConnection(this.FileName, this.SchemaNamePrefix);
+			return new SqliteSqlDatabaseContext(this.FileName, this.SchemaNamePrefix);
 		}
 	}
 }

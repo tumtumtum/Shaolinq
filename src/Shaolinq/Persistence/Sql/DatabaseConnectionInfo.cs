@@ -27,6 +27,6 @@ namespace Shaolinq.Persistence.Sql
 			this.DatabaseReadMode = DatabaseReadMode.ReadWrite;
 		}
 
-		public abstract DatabaseConnection CreateDatabaseConnection();
+		public abstract SqlDatabaseContext CreateDatabaseConnection();
 	}
 }

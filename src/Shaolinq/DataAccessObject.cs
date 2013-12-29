@@ -80,7 +80,7 @@ namespace Shaolinq
 			}
 		}
 
-		public DatabaseConnection DatabaseConnection
+		public SqlDatabaseContext DatabaseConnection
 		{
 			get
 			{

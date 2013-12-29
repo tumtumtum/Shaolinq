@@ -8,9 +8,9 @@ namespace Shaolinq.Sqlite
 	public class SqliteDatabaseCreator
 		: DatabaseCreator
 	{
-		private readonly SqliteDatabaseConnection connection;
+		private readonly SqliteSqlDatabaseContext connection;
 		
-		public SqliteDatabaseCreator(SqliteDatabaseConnection connection, DataAccessModel model)
+		public SqliteDatabaseCreator(SqliteSqlDatabaseContext connection, DataAccessModel model)
 			: base(model)
 		{
 			this.connection = connection;

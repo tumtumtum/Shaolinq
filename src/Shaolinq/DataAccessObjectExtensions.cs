@@ -6,7 +6,7 @@ namespace Shaolinq
 {
 	public static class DataAccessObjectExtensions
 	{
-		public static DatabaseConnection GetDatabaseConnection(this IDataAccessObject dataAccessObject)
+		public static SqlDatabaseContext GetDatabaseConnection(this IDataAccessObject dataAccessObject)
 		{
 			return dataAccessObject.DataAccessModel.GetDatabaseConnection(dataAccessObject);
 		}

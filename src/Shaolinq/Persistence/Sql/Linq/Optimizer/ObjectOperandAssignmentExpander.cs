@@ -15,15 +15,15 @@ namespace Shaolinq.Persistence.Sql.Linq.Optimizer
 		: SqlExpressionVisitor
 	{
 		private readonly DataAccessModel dataAccessModel;
-		private readonly DatabaseConnection databaseConnection;
+		private readonly SqlDatabaseContext databaseConnection;
 
-		private ObjectOperandAssignmentExpander(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
+		private ObjectOperandAssignmentExpander(DataAccessModel dataAccessModel, SqlDatabaseContext databaseConnection)
 		{
 			this.dataAccessModel = dataAccessModel;
 			this.databaseConnection = databaseConnection;
 		}
 
-		public static Expression Expand(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection, Expression expression)
+		public static Expression Expand(DataAccessModel dataAccessModel, SqlDatabaseContext databaseConnection, Expression expression)
 		{
 			return new ObjectOperandAssignmentExpander(dataAccessModel, databaseConnection).Visit(expression);
 		}

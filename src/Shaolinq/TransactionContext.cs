@@ -14,7 +14,7 @@ namespace Shaolinq
 		public Transaction Transaction { get; set; }
 		public DataAccessModel DataAccessModel { get; private set; }
 
-		public DatabaseConnection DatabaseConnection { get; set; }
+		public SqlDatabaseContext DatabaseConnection { get; set; }
 
 		public DataAccessObjectDataContext CurrentDataContext
 		{
@@ -35,7 +35,7 @@ namespace Shaolinq
 			this.DataAccessModel = dataAccessModel;
 			this.Transaction = transaction;
 
-			persistenceTransactionContextsByStoreContexts = new Dictionary<DatabaseConnection, TransactionEntry>(PrimeNumbers.Prime7);
+			persistenceTransactionContextsByStoreContexts = new Dictionary<SqlDatabaseContext, TransactionEntry>(PrimeNumbers.Prime7);
 		}
 
 		internal struct TransactionEntry
@@ -48,9 +48,9 @@ namespace Shaolinq
 			}
 		}
 
-		internal readonly IDictionary<DatabaseConnection, TransactionEntry> persistenceTransactionContextsByStoreContexts;
+		internal readonly IDictionary<SqlDatabaseContext, TransactionEntry> persistenceTransactionContextsByStoreContexts;
 
-		public virtual PersistenceTransactionContextAcquisition AcquirePersistenceTransactionContext(DatabaseConnection databaseConnection)
+		public virtual PersistenceTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext databaseConnection)
 		{
 			DatabaseTransactionContext retval;
 

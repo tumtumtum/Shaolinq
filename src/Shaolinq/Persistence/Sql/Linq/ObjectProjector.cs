@@ -13,14 +13,14 @@ namespace Shaolinq.Persistence.Sql.Linq
 	{
 		public SqlQueryFormatResult FormatResult { get; private set; }
 		public DataAccessModel DataAccessModel { get; private set; }
-		public DatabaseConnection DatabaseConnection { get; private set; }
+		public SqlDatabaseContext DatabaseConnection { get; private set; }
 
 		protected int count = 0;
 		private readonly IQueryProvider provider;
 		protected SelectFirstType selectFirstType;
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, DatabaseConnection databaseConnection, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext databaseConnection, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
 		{
 			this.provider = provider;
 			this.DataAccessModel = dataAccessModel;
@@ -83,7 +83,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected readonly object[] placeholderValues;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, DatabaseConnection databaseConnection, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext databaseConnection, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
 			: base(provider, dataAccessModel, formatResult, databaseConnection, relatedDataAccessObjectContext, selectFirstType)
 		{
 			this.placeholderValues = placeholderValues;

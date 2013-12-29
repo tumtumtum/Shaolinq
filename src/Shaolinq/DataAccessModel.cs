@@ -67,12 +67,12 @@ namespace Shaolinq
 		}
 		private DataAccessObjectProjectionContext dataAccessObjectProjectionContext;
 
-		public DatabaseConnection GetDatabaseConnection(IDataAccessObject dataAccessObject)
+		public SqlDatabaseContext GetDatabaseConnection(IDataAccessObject dataAccessObject)
 		{
 			return this.GetDatabaseConnection(dataAccessObject.GetType());
 		}
 
-		public DatabaseConnection GetDatabaseConnection(Type type)
+		public SqlDatabaseContext GetDatabaseConnection(Type type)
 		{
 			return this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
 		}
@@ -111,7 +111,7 @@ namespace Shaolinq
 
 		private AssemblyBuildInfo assemblyBuildInfo;
 
-		private readonly List<DatabaseConnection> databaseConnections = new List<DatabaseConnection>();
+		private readonly List<SqlDatabaseContext> databaseConnections = new List<SqlDatabaseContext>();
 
 		private void SetAssemblyBuildInfo(AssemblyBuildInfo value)
 		{
@@ -488,12 +488,12 @@ namespace Shaolinq
 
 		#endregion
 
-		public virtual DatabaseConnection GetCurrentDatabaseConnection()
+		public virtual SqlDatabaseContext GetCurrentDatabaseConnection()
 		{
 			return this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
 		}
 
-		public virtual DatabaseConnection GetCurrentDatabaseConnection(DatabaseReadMode mode)
+		public virtual SqlDatabaseContext GetCurrentDatabaseConnection(DatabaseReadMode mode)
 		{
 			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(false);
 			
