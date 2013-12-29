@@ -1,6 +1,5 @@
 ﻿using System.Transactions;
-using Shaolinq.Persistence.Sql;
-using Shaolinq.Persistence.Sql.Linq;
+using Shaolinq.Persistence.Linq;
 using log4net;
 
 namespace Shaolinq.Persistence

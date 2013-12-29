@@ -3,7 +3,6 @@
 ﻿using System;
 using Platform.Xml.Serialization;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.Postgres.DotConnect
 {
@@ -49,7 +48,7 @@ namespace Shaolinq.Postgres.DotConnect
 			this.NativeUuids = true;
 		}
 
-		public override SqlDatabaseContext CreateDatabaseConnection()
+		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
 			return new PostgresDotConnectSqlDatabaseContext(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.CommandTimeout, this.NativeUuids, this.SchemaNamePrefix, this.DateTimeKindIfUnspecified);
 		}

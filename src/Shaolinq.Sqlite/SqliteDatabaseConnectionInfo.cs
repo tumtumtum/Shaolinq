@@ -2,8 +2,7 @@
 
 ﻿using Platform.Xml.Serialization;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Sql;
-
+﻿
 namespace Shaolinq.Sqlite
 {
 	[XmlElement]
@@ -13,7 +12,7 @@ namespace Shaolinq.Sqlite
 		[XmlAttribute]
 		public string FileName { get; set; }
 
-		public override SqlDatabaseContext CreateDatabaseConnection()
+		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
 			return new SqliteSqlDatabaseContext(this.FileName, this.SchemaNamePrefix);
 		}

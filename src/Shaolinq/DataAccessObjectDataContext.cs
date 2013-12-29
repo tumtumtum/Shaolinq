@@ -1,13 +1,10 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Sql;
 using Platform;
 using TypeAndTcx = Platform.Pair<System.Type, Shaolinq.DatabaseTransactionContext>;
 

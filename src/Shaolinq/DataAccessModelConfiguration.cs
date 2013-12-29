@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Platform;
 using Platform.Xml.Serialization;
- using Shaolinq.Persistence.Sql;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {

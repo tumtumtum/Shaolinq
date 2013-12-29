@@ -2,7 +2,7 @@
 
 using System.Linq;
 using System.Linq.Expressions;
-using Shaolinq.Persistence.Sql.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Postgres.Shared
 {

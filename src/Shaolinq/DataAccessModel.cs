@@ -1,16 +1,13 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading;
- using System.Transactions;
- using Shaolinq.Persistence;
- using Shaolinq.Persistence.Sql;
- using Shaolinq.TypeBuilding;
+using Shaolinq.Persistence;
+using Shaolinq.TypeBuilding;
 using Platform;
 
 namespace Shaolinq
@@ -123,7 +120,7 @@ namespace Shaolinq
 
 			foreach (var databaseConnectionInfo in this.Configuration.DatabaseConnectionInfos)
 			{
-				var newDatabaseConnection = databaseConnectionInfo.CreateDatabaseConnection();
+				var newDatabaseConnection = databaseConnectionInfo.CreateSqlDatabaseContext();
 
 				this.databaseConnections.Add(newDatabaseConnection);
 			}

@@ -2,9 +2,9 @@
 
  using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-﻿using Shaolinq.Persistence.Sql;
-﻿using Shaolinq.Persistence.Sql.Linq;
-using Shaolinq.Persistence.Sql.Linq.Expressions;
+﻿using Shaolinq.Persistence;
+﻿using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Sqlite
 {

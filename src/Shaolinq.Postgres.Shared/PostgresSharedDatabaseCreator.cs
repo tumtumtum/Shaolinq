@@ -4,7 +4,6 @@ using System;
 using System.Data;
 using System.Data.Common;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.Postgres.Shared
 {

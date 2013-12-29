@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Platform;
-using Platform.Collections;
 using Platform.Reflection;
 
 namespace Shaolinq.Persistence
@@ -62,8 +61,6 @@ namespace Shaolinq.Persistence
 		{
 			return (databaseConnection.SchemaNamePrefix ?? "") + this.DataAccessObjectAttribute.GetName(this.Type);
 		}
-
-		public List<IndexDescriptor> Indexes { get; private set; }
 
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; private set; }
 
@@ -461,50 +458,6 @@ namespace Shaolinq.Persistence
 
 			var computedTextProperties = this.persistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList();
 			this.ComputedTextProperties = new ReadOnlyCollection<PropertyDescriptor>(computedTextProperties);
-
-			// IndexeDescriptors
-
-			this.CreateIndexDescriptors();
-		}
-
-		private void CreateIndexDescriptors()
-		{
-			this.Indexes = new List<IndexDescriptor>();
-
-			var indexAttributes = (from propertyDescriptor in this.PersistedProperties
-			                       from indexAttribute in propertyDescriptor.IndexAttributes
-			                       select new Pair<IndexAttribute, PropertyDescriptor>(indexAttribute, propertyDescriptor)).ToList();
-
-			var groupings = indexAttributes.GroupBy(c => c.Key.IndexName);
-
-			foreach (var grouping in groupings)
-			{
-				var indexDescriptor = new IndexDescriptor
-				{
-					Name = grouping.Key
-				};
-
-				if (grouping.Any(indexAttribute => indexAttribute.Key.Unique))
-				{
-					indexDescriptor.IsUnique = true;
-				}
-
-				if (grouping.Any(indexAttribute => indexAttribute.Key.LowercaseIndex))
-				{
-					indexDescriptor.AlsoIndexToLower = true;
-				}
-
-				var groupingValues = new List<Pair<IndexAttribute, PropertyDescriptor>>(grouping);
-
-				groupingValues.MergeSort((x, y) => x.Left.CompositeOrder - y.Left.CompositeOrder);
-
-				foreach (var value in groupingValues)
-				{
-					indexDescriptor.Properties.Add(value.Value);
-				}
-
-				this.Indexes.Add(indexDescriptor);
-			}
 		}
 
 		public override string ToString()

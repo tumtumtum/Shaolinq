@@ -59,10 +59,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Devart.Data">
-      <HintPath>..\..\lib\Packages\dotConnect.Express.for.PostgreSQL.6.6.276\lib\Devart.Data.dll</HintPath>
+      <HintPath>..\..\lib\Packages\dotConnect.Express.for.PostgreSQL.7.2.65\lib\Devart.Data.dll</HintPath>
     </Reference>
     <Reference Include="Devart.Data.PostgreSql">
-      <HintPath>..\..\lib\Packages\dotConnect.Express.for.PostgreSQL.6.6.276\lib\Devart.Data.PostgreSql.dll</HintPath>
+      <HintPath>..\..\lib\Packages\dotConnect.Express.for.PostgreSQL.7.2.65\lib\Devart.Data.PostgreSql.dll</HintPath>
     </Reference>
     <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -76,14 +76,7 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PostgresDatabaseCreator.cs" />

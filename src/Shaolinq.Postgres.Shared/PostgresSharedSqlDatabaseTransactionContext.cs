@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Transactions;
-using Shaolinq.Persistence.Sql;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
 {

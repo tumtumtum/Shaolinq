@@ -5,8 +5,7 @@ using System.Data.Common;
 using System.Linq.Expressions;
 using System.Transactions;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Sql;
-﻿using Shaolinq.Persistence.Sql.Linq;
+﻿using Shaolinq.Persistence.Linq;
 using MySql.Data.MySqlClient;
 
 ﻿namespace Shaolinq.MySql

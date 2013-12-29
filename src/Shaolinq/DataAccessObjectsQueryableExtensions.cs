@@ -4,9 +4,9 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Shaolinq.Persistence.Sql.Linq;
-using Shaolinq.Persistence.Sql.Linq.Expressions;
-using Shaolinq.Persistence.Sql.Linq.Optimizer;
+using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq
 {

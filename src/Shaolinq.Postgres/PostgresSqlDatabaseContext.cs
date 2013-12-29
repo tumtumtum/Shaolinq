@@ -1,16 +1,12 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Transactions;
 using Npgsql;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Sql;
- using Shaolinq.Persistence.Sql.Linq;
+using Shaolinq.Persistence.Linq;
 ﻿using Shaolinq.Postgres.Shared;
 
 ﻿namespace Shaolinq.Postgres

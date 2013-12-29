@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Sql.Linq;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq
 {

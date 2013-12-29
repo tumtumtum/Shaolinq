@@ -3,7 +3,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
-﻿using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
 {

@@ -6,7 +6,7 @@ using System.Data;
 using System.Threading;
 using System.Transactions;
 using Npgsql;
-﻿using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Persistence;
 ﻿using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres

@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Transactions;
 using MySql.Data.MySqlClient;
-﻿using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Persistence;
 
 namespace Shaolinq.MySql
 {

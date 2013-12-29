@@ -2,7 +2,6 @@
 
 ﻿using Platform.Xml.Serialization;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Sql;
 
 namespace Shaolinq.MySql
 {
@@ -30,7 +29,7 @@ namespace Shaolinq.MySql
 			this.PoolConnections = true;
 		}
 
-		public override SqlDatabaseContext CreateDatabaseConnection()
+		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
 			return new MySqlSqlDatabaseContext(this.ServerName, this.DatabaseName, this.UserName, this.Password, this.PoolConnections, this.SchemaNamePrefix);
 		}

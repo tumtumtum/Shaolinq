@@ -1,7 +1,7 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-﻿using Shaolinq.Persistence.Sql;
+﻿using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
 {

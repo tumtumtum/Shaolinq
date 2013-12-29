@@ -37,17 +37,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization">
-      <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PostgresSharedDatabaseCreator.cs" />

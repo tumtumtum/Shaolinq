@@ -5,8 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Sql;
-
+﻿
 namespace Shaolinq.Postgres.Shared
 {
 	public class PostgresSharedUuidSqlDataType

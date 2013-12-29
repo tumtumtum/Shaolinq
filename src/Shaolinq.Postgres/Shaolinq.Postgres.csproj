@@ -58,10 +58,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Packages\Npgsql.2.0.13-beta1\lib\net40\Mono.Security.dll</HintPath>
-    </Reference>
     <Reference Include="Npgsql, Version=2.0.13.91, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\lib\Packages\Npgsql.2.0.13-beta1\lib\net40\Npgsql.dll</HintPath>
@@ -73,23 +69,12 @@
     <Reference Include="Platform.Xml.Serialization">
       <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
-    <Reference Include="policy.2.0.Npgsql, Version=0.0.0.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Packages\Npgsql.2.0.13-beta1\lib\net40\policy.2.0.Npgsql.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PostgresConfiguration.cs" />

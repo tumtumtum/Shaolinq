@@ -2,8 +2,8 @@
 
  using System;
 using System.Collections.Generic;
-using Shaolinq.Persistence.Sql;
-using Shaolinq.Persistence.Sql.Linq.Expressions;
+using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq
 {
