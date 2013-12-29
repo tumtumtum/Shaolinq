@@ -66,8 +66,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\lib\Packages\Npgsql.2.0.13-beta1\lib\net40\Npgsql.dll</HintPath>
     </Reference>
-    <Reference Include="Platform">
-      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.81\lib\35\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
     </Reference>
     <Reference Include="Platform.Xml.Serialization">
       <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>
@@ -94,7 +95,7 @@
     <Compile Include="PostgresConfiguration.cs" />
     <Compile Include="PostgresDatabaseConnectionInfo.cs" />
     <Compile Include="PostgresDatabaseConnection.cs" />
-    <Compile Include="PostgresSqlDatabaseCreator.cs" />
+    <Compile Include="PostgresDatabaseCreator.cs" />
     <Compile Include="PostgresSqlDatabaseTransactionContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

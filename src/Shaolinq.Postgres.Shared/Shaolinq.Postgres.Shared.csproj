@@ -33,8 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Platform">
-      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.81\lib\35\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
     </Reference>
     <Reference Include="Platform.Xml.Serialization">
       <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>
@@ -49,13 +50,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PostgresDataDefinitionExpressionAmmender.cs" />
-    <Compile Include="PostgresDateTimeDataType.cs" />
-    <Compile Include="PostgresUuidSqlDataType.cs" />
+    <Compile Include="PostgresSharedDatabaseCreator.cs" />
+    <Compile Include="PostgresSharedDataDefinitionExpressionAmmender.cs" />
+    <Compile Include="PostgresSharedDateTimeDataType.cs" />
+    <Compile Include="PostgresSharedUuidSqlDataType.cs" />
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
-    <Compile Include="PostgresSqlDataTypeProvider.cs" />
-    <Compile Include="PostgresSqlDialect.cs" />
-    <Compile Include="PostgresSqlQueryFormatter.cs" />
+    <Compile Include="PostgresSharedSqlDataTypeProvider.cs" />
+    <Compile Include="PostgresSharedSqlDialect.cs" />
+    <Compile Include="PostgresSharedSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PostgresSharedSqlDatabaseTransactionContext.cs" />
   </ItemGroup>

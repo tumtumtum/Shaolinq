@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
+using Platform.Reflection;
+using Platform.Validation;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Sql.Linq
@@ -13,6 +16,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private readonly DataAccessModel model;
 		private readonly List<Expression> createTableExpressions;
+		private List<Expression> currentTableConstraints;
 
 		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model)
 		{
@@ -21,15 +25,16 @@ namespace Shaolinq.Persistence.Sql.Linq
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 
 			this.createTableExpressions = new List<Expression>();
+			this.currentTableConstraints = new List<Expression>();
 		}
 
-		private List<Expression> BuildColumnConstraints(PropertyDescriptor propertyDescriptor, string[] columnNames, bool forForeignKey)
+		private List<Expression> BuildColumnConstraints(PropertyDescriptor propertyDescriptor, string[] columnNames, PropertyDescriptor foreignKeyReferencingProperty)
 		{
 			var retval = new List<Expression>();
 
-			if (!propertyDescriptor.PropertyType.IsValueType || forForeignKey)
+			if (foreignKeyReferencingProperty != null)
 			{
-				var valueRequiredAttribute = propertyDescriptor.ValueRequiredAttribute;
+				var valueRequiredAttribute = foreignKeyReferencingProperty.ValueRequiredAttribute;
 
 				if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
 				{
@@ -38,40 +43,86 @@ namespace Shaolinq.Persistence.Sql.Linq
 			}
 			else
 			{
-				if (!propertyDescriptor.PropertyType.IsNullableType())
+				if (propertyDescriptor.PropertyType.IsNullableType() || !propertyDescriptor.PropertyType.IsValueType)
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
-				}
-			}
+					var valueRequiredAttribute = propertyDescriptor.ValueRequiredAttribute;
 
-			if (propertyDescriptor.IsPrimaryKey)
-			{
-				if (propertyDescriptor.PropertyType.IsIntegerType() && propertyDescriptor.IsAutoIncrement && !forForeignKey)
-				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKeyAutoIncrement));
+					if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
+					{
+						retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
+					}
 				}
 				else
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
+					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
 				}
-			}
 
-			if (propertyDescriptor.HasUniqueAttribute && propertyDescriptor.UniqueAttribute.Unique)
-			{
-				retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
-			}
+				if (propertyDescriptor.IsPrimaryKey)
+				{
+					if (propertyDescriptor.PropertyType.IsIntegerType() && propertyDescriptor.IsAutoIncrement)
+					{
+						retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKeyAutoIncrement));
+					}
+					else
+					{
+						retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
+					}
+				}
 
-			var defaultValueAttribute = propertyDescriptor.DefaultValueAttribute;
+				if (propertyDescriptor.HasUniqueAttribute && propertyDescriptor.UniqueAttribute.Unique)
+				{
+					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique));
+				}
 
-			if (defaultValueAttribute != null)
-			{
-				retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.DefaultValue, null, defaultValueAttribute.Value));
+				var defaultValueAttribute = propertyDescriptor.DefaultValueAttribute;
+
+				if (defaultValueAttribute != null)
+				{
+					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.DefaultValue, null, defaultValueAttribute.Value));
+				}
 			}
 
 			return retval;
 		}
 
-		private IEnumerable<Expression> BuildColumnDefinitions(PropertyDescriptor propertyDescriptor, string columnName, bool asForeignKey)
+		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, Pair<string, PropertyDescriptor>[] columnNamesAndReferencedTypeProperties)
+		{
+			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(referencingProperty.PropertyType);
+			var referencedTableName = relatedPropertyTypeDescriptor.GetPersistedName(this.model);
+
+			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required);
+			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible);
+
+			foreach (var pair in columnNamesAndReferencedTypeProperties)
+			{
+				var retval = (SqlColumnDefinitionExpression)this.BuildColumnDefinitions(pair.Right, pair.Left, referencingProperty).First();
+
+				if (columnNamesAndReferencedTypeProperties.Length == 1 && supportsInlineForeignKeys)
+				{
+					var names = new ReadOnlyCollection<string>(new[] { pair.Right.PersistedName });
+					var newConstraints = new List<Expression>(retval.ConstraintExpressions);
+					var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, names, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
+
+					newConstraints.Add(referencesColumnExpression);
+
+					retval = new SqlColumnDefinitionExpression(retval.ColumnName, retval.ColumnTypeName, newConstraints);
+				}
+
+				yield return retval;
+			}
+
+			if (columnNamesAndReferencedTypeProperties.Length > 1 || !supportsInlineForeignKeys)
+			{
+				var currentTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.Left).ToList());
+				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.Right.PersistedName).ToList());
+				var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, referencedTableColumnNames, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
+				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
+
+				currentTableConstraints.Add(foreignKeyConstraint);
+			}
+		}
+
+		private IEnumerable<Expression> BuildColumnDefinitions(PropertyDescriptor propertyDescriptor, string columnName, PropertyDescriptor foreignKeyReferencingProperty)
 		{
 			if (columnName == null)
 			{
@@ -80,9 +131,11 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				foreach (var pair in this.sqlDialect.GetPersistedNames(this.model, propertyDescriptor))
+				var pairs = this.sqlDialect.GetColumnNames(this.model, propertyDescriptor);
+				
+				foreach (var result in this.BuildForeignKeyColumnDefinitions(propertyDescriptor, pairs))
 				{
-					yield return this.BuildColumnDefinitions(pair.Right, pair.Left, true).First();
+					yield return result;
 				}
 
 				yield break;
@@ -90,42 +143,43 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 			var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(propertyDescriptor.PropertyType);
 			var columnDataTypeName = sqlDataType.GetSqlName(propertyDescriptor);
-			var constraints = this.BuildColumnConstraints(propertyDescriptor, new[] { columnName }, false);
+			var constraints = this.BuildColumnConstraints(propertyDescriptor, new[] { columnName }, foreignKeyReferencingProperty);
 
 			yield return new SqlColumnDefinitionExpression(columnName, columnDataTypeName, constraints);
 		}
 
-		private List<Expression> BuildTableConstraints(TypeDescriptor typeDescriptor)
+		private IEnumerable<Expression> BuildRelatedColumnDefinitions(TypeDescriptor typeDescriptor)
 		{
-			var retval = new List<Expression>();
-
-			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties)
+			foreach (var typeRelationshipInfo in typeDescriptor.GetRelationshipInfos())
 			{
-				if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
+				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
-					var names = this.sqlDialect.GetPersistedNames(this.model, propertyDescriptor).Select(c => c.Left).ToArray();
+					var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
+					var referencedTableName = relatedPropertyTypeDescriptor.GetPersistedName(this.model);
+					var pairs = this.sqlDialect.GetColumnNames(this.model, relatedPropertyTypeDescriptor, referencedTableName);
 
-					var constraints = this.BuildColumnConstraints(propertyDescriptor, names, true);
-
-					retval.AddRange(constraints);
+					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, pairs))
+					{
+						yield return result;
+					}
 				}
 			}
-
-			return retval;
 		}
 
 		private Expression BuildCreateTableExpression(TypeDescriptor typeDescriptor)
 		{
 			var columnExpressions = new List<Expression>();
 
+			currentTableConstraints = new List<Expression>();
+
 			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties)
 			{
-				columnExpressions.AddRange(this.BuildColumnDefinitions(propertyDescriptor, propertyDescriptor.PersistedName, false));
-			} 
+				columnExpressions.AddRange(this.BuildColumnDefinitions(propertyDescriptor, propertyDescriptor.PersistedName, null));
+			}
+
+			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
 			
-			var tableConstraintExpressions = this.BuildTableConstraints(typeDescriptor);
-			
-			return new SqlCreateTableExpression(typeDescriptor.GetPersistedName(this.model), columnExpressions, tableConstraintExpressions);
+			return new SqlCreateTableExpression(typeDescriptor.GetPersistedName(this.model), columnExpressions, currentTableConstraints);
 		}
 
 		private Expression Build()
@@ -135,14 +189,18 @@ namespace Shaolinq.Persistence.Sql.Linq
 				this.createTableExpressions.Add(BuildCreateTableExpression(typeDescriptor));
 			}
 
-			return new SqlStatementListExpression(this.createTableExpressions);
+			return new SqlStatementListExpression(new ReadOnlyCollection<Expression>(this.createTableExpressions));
 		}
 
 		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model)
 		{
 			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model);
 
-			return builder.Build();
+			var retval = builder.Build();
+
+			retval = SqlMultiColumnPrimaryKeyCoalescer.Coalesce(retval);
+
+			return retval;
 		}
 	}
 }

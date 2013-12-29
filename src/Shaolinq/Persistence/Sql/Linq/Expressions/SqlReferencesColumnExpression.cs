@@ -20,14 +20,14 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			}
 		}
 
-		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, string[] referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
+		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, ReadOnlyCollection<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
 			: base(typeof(void))
 		{
 			this.OnDeleteAction = onDelete;
 			this.OnUpdateAction = onUpdate;
 			this.ReferencedTableName = referencedTableName;
 			this.Deferrability = deferrability;
-			this.ReferencedColumnNames = new ReadOnlyCollection<string>(referencedColumnNames);
+			this.ReferencedColumnNames = referencedColumnNames;
 		}
 	}
 }

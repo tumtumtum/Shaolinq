@@ -5,7 +5,7 @@ namespace Shaolinq
 	[Flags]
 	public enum DatabaseCreationOptions
 	{
-		None,
+		IfNotExist,
 		DeleteExisting
 	}
 }

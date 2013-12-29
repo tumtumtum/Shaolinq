@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq.Persistence.Sql.Linq.Expressions
+ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 {
 	public enum SqlExpressionType
 	{
@@ -21,6 +21,7 @@
 		ConstantPlaceholder,
 		Tuple,
 		AlterTable,
+		ConstraintAction,
 		ColumnDefinition,
 		CreateIndex,
 		CreateTable,

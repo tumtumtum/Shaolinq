@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-
- using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -25,32 +24,16 @@ using Npgsql;
 		public string Database { get; set; }
 		public int Port { get; set; }
 
-		public override bool SupportsNestedTransactions
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		protected override string GetConnectionString()
+		public override string GetConnectionString()
 		{
 			return connectionString;
 		}
 
-		public override bool SupportsDisabledForeignKeyCheckContext
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		private readonly string connectionString;
-		private readonly string databaselessConnectionString;
+		internal readonly string connectionString;
+		internal readonly string databaselessConnectionString;
 
 		public PostgresDatabaseConnection(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, bool nativeUuids, int commandTimeoutSeconds, string schemaNamePrefix, DateTimeKind dateTimeKindIfUnspecifed)
-			: base(database, PostgresSqlDialect.Default, new PostgresSqlDataTypeProvider(nativeUuids, dateTimeKindIfUnspecifed))
+			: base(database, PostgresSharedSqlDialect.Default, new PostgresSharedSqlDataTypeProvider(nativeUuids, dateTimeKindIfUnspecifed))
 		{
 			this.Host = host;
 			this.Userid = userid;
@@ -71,10 +54,10 @@ using Npgsql;
 
 		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 		{
-			return new PostgresSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
+			return new PostgresSharedSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
 
-		protected override DbProviderFactory NewDbProviderFactory()
+		public override DbProviderFactory NewDbProviderFactory()
 		{
 			return NpgsqlFactory.Instance;
 		}
@@ -207,7 +190,7 @@ using Npgsql;
 
 		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
 		{
-			return new PostgresSqlDatabaseCreator(this, model);
+			return new PostgresDatabaseCreator(this, model);
 		}
 
 		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
@@ -302,11 +285,6 @@ using Npgsql;
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
 		{
 			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
-		}
-
-		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
-		{
-			return new SqlQueryProvider(dataAccessModel, databaseConnection);
 		}
 
 		public override void DropAllConnections()

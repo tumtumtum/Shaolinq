@@ -23,6 +23,8 @@ namespace Shaolinq.Sqlite
 					return true;
 				case SqlFeature.SelectForUpdate:
 					return false;
+				case SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible:
+					return false;
 				default:
 					return false;
 			}

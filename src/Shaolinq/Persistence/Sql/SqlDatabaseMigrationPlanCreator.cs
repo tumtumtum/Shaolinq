@@ -23,33 +23,26 @@ namespace Shaolinq.Persistence.Sql
 			{
 				using (var dataTransactionContext = this.SystemDataBasedDatabaseConnection.NewDataTransactionContext(this.Model, Transaction.Current))
 				{
-					if (this.SystemDataBasedDatabaseConnection.SupportsDisabledForeignKeyCheckContext)
+					using (this.SystemDataBasedDatabaseConnection.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{
-						using (this.SystemDataBasedDatabaseConnection.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
+						foreach (var typeDescriptor in this.ModelTypeDescriptor.GetQueryableTypeDescriptors(this.Model))
 						{
-							foreach (var typeDescriptor in this.ModelTypeDescriptor.GetQueryableTypeDescriptors(this.Model))
+							var tableDescriptor = this.SystemDataBasedDatabaseConnection.GetTableDescriptor(typeDescriptor.GetPersistedName(this.Model));
+
+							if (tableDescriptor == null)
 							{
-								var tableDescriptor = this.SystemDataBasedDatabaseConnection.GetTableDescriptor(typeDescriptor.GetPersistedName(this.Model));
+								migrationPlan.NewTypes.Add(new MigrationTypeInfo(this.Model, typeDescriptor));
 
-								if (tableDescriptor == null)
-								{
-									migrationPlan.NewTypes.Add(new MigrationTypeInfo(this.Model, typeDescriptor));
+								continue;
+							}
 
-									continue;
-								}
-                                
-								var migrationTypeInfo = CreateTypeMigrationPlan(migrationPlan, typeDescriptor, tableDescriptor);
+							var migrationTypeInfo = CreateTypeMigrationPlan(migrationPlan, typeDescriptor, tableDescriptor);
 
-								if (migrationTypeInfo != null)
-								{
-									migrationPlan.ModifiedTypes.Add(migrationTypeInfo);
-								}
+							if (migrationTypeInfo != null)
+							{
+								migrationPlan.ModifiedTypes.Add(migrationTypeInfo);
 							}
 						}
-					}
-					else
-					{
-						throw new NotSupportedException(String.Format("DatabaseConnection '{0}' does not support SupportsDisabledForeignKeyCheckContext", this.SystemDataBasedDatabaseConnection.GetType()));
 					}
 
 					scope.Complete();
@@ -82,20 +75,20 @@ namespace Shaolinq.Persistence.Sql
 			{
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
-					var relatedPropertyTypeDescriptor = this.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.RelatedProperty.PropertyType);
+					var relatedPropertyTypeDescriptor = this.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
 
 					foreach (var primaryKeyProperty in relatedPropertyTypeDescriptor.PrimaryKeyProperties)
 					{
-						var propName = typeRelationshipInfo.RelatedProperty.PersistedName + primaryKeyProperty.PersistedShortName;
-						existingPropertyNames[propName] = typeRelationshipInfo.RelatedProperty;
+						var propName = typeRelationshipInfo.ReferencingProperty.PersistedName + primaryKeyProperty.PersistedShortName;
+						existingPropertyNames[propName] = typeRelationshipInfo.ReferencingProperty;
 
 						if (!existingColumnNames.Contains(propName))
 						{
 							retval.NewProperties.Add(new MigrationPropertyInfo()
 							{
-								PropertyDescriptor = typeRelationshipInfo.RelatedProperty,
+								PropertyDescriptor = typeRelationshipInfo.ReferencingProperty,
 								PropertyName = propName,
-								PersistedName = typeRelationshipInfo.RelatedProperty.PersistedName
+								PersistedName = typeRelationshipInfo.ReferencingProperty.PersistedName
 							});
 						}
 					}

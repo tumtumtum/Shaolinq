@@ -42,9 +42,9 @@
     <Reference Include="nunit.framework">
       <HintPath>..\..\lib\Packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Platform, Version=1.0.0.81, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.81\lib\35\Platform.dll</HintPath>
+      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -163,9 +163,9 @@ namespace Shaolinq.Persistence
 
 					if (relationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 					{
-						if (!typeDescriptor.RelatedProperties.Filter(c => c.BackReferenceAttribute != null && c.PropertyType == closedCelationshipInfo.RelatedProperty.PropertyType).Any())
+						if (!typeDescriptor.RelatedProperties.Filter(c => c.BackReferenceAttribute != null && c.PropertyType == closedCelationshipInfo.ReferencingProperty.PropertyType).Any())
 						{
-							throw new InvalidDataAccessObjectModelDefinition("The child type {0} participates in a one-many relationship with the parent type {1} but does not explicitly define a BackReference property", typeDescriptor, relationshipInfo.RelatedProperty.DeclaringTypeDescriptor);
+							throw new InvalidDataAccessObjectModelDefinition("The child type {0} participates in a one-many relationship with the parent type {1} but does not explicitly define a BackReference property", typeDescriptor, relationshipInfo.ReferencingProperty.DeclaringTypeDescriptor);
 						}
 					}
 				}

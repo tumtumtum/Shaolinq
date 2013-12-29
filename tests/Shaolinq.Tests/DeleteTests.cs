@@ -22,7 +22,6 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Use_Deflated_Reference_To_Update_Related_Object_That_Was_Deleted()
 		{
-			long schoolId;
 			Guid student1Id, student2Id;
 
 			using (var scope = new TransactionScope())
@@ -30,8 +29,6 @@ namespace Shaolinq.Tests
 				var school = model.Schools.Create();
 				
 				scope.Flush(model);
-
-				schoolId = school.Id;
 
 				if (this.ProviderName == "MySql")
 				{
@@ -73,9 +70,10 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student1 = model.Students.First(c => c.Id == student1Id);
-				Assert.IsNull(model.Students.FirstOrDefault(c => c.Id == student2Id));
+				Assert.IsNull(this.model.Students.FirstOrDefault(c => c.Id == student2Id));
 
+				var student1 = model.Students.First(c => c.Id == student1Id);
+				
 				Assert.IsNull(student1.BestFriend);
 
 				scope.Complete();

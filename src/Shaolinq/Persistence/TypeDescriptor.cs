@@ -96,7 +96,7 @@ namespace Shaolinq.Persistence
 			if (relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
 			{
 				retval.EntityRelationshipType = entityRelationshipType;
-				retval.RelatedProperty = relatedProperty;
+				retval.ReferencingProperty = relatedProperty;
 				retval.RelatedTypeTypeDescriptor = relatedTypeDescriptor;
 
 				return retval;
@@ -479,9 +479,10 @@ namespace Shaolinq.Persistence
 
 			foreach (var grouping in groupings)
 			{
-				var indexDescriptor = new IndexDescriptor();
-
-				indexDescriptor.Name = grouping.Key;
+				var indexDescriptor = new IndexDescriptor
+				{
+					Name = grouping.Key
+				};
 
 				if (grouping.Any(indexAttribute => indexAttribute.Key.Unique))
 				{

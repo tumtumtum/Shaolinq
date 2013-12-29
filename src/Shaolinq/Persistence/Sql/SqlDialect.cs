@@ -35,25 +35,26 @@ namespace Shaolinq.Persistence.Sql
 			}
 		}
 
-		public virtual Pair<string, PropertyDescriptor>[] GetPersistedNames(DataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
+		public virtual Pair<string, PropertyDescriptor>[] GetColumnNames(DataAccessModel model, TypeDescriptor typeDescriptor, string namePrefix)
 		{
-			if (propertyDescriptor.IsBackReferenceProperty)
+			var retval = new Pair<string, PropertyDescriptor>[typeDescriptor.PrimaryKeyProperties.Count];
+
+			var i = 0;
+
+			foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
 			{
-				var i = 0;
-				var typeDescriptor = dataAccessModel.GetTypeDescriptor(propertyDescriptor.PropertyType);
+				retval[i] = new Pair<string, PropertyDescriptor>(namePrefix + relatedPropertyDescriptor.PersistedShortName, relatedPropertyDescriptor);
 
-				var retval = new Pair<string, PropertyDescriptor>[typeDescriptor.PrimaryKeyProperties.Count];
-
-				foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
-				{
-					retval[i] = new Pair<string, PropertyDescriptor>(propertyDescriptor.PersistedName + relatedPropertyDescriptor.PersistedShortName, relatedPropertyDescriptor);
-
-					i++;
-				}
-
-				return retval;
+				i++;
 			}
-			else if (propertyDescriptor.PersistedMemberAttribute != null && propertyDescriptor.PropertyType.IsDataAccessObjectType())
+
+			return retval;
+		}
+
+		public virtual Pair<string, PropertyDescriptor>[] GetColumnNames(DataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
+		{
+			if (propertyDescriptor.IsBackReferenceProperty
+				|| propertyDescriptor.PersistedMemberAttribute != null && propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
 				var i = 0;
 				var typeDescriptor = dataAccessModel.GetTypeDescriptor(propertyDescriptor.PropertyType);

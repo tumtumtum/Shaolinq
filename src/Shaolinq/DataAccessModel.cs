@@ -7,8 +7,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Shaolinq.Persistence;
-using Shaolinq.TypeBuilding;
+ using System.Transactions;
+ using Shaolinq.Persistence;
+ using Shaolinq.Persistence.Sql;
+ using Shaolinq.TypeBuilding;
 using Platform;
 
 namespace Shaolinq
@@ -486,7 +488,12 @@ namespace Shaolinq
 
 		#endregion
 
-		internal protected virtual DatabaseConnection GetCurrentDatabaseConnection(DatabaseReadMode mode)
+		public virtual DatabaseConnection GetCurrentDatabaseConnection()
+		{
+			return this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
+		}
+
+		public virtual DatabaseConnection GetCurrentDatabaseConnection(DatabaseReadMode mode)
 		{
 			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(false);
 			
@@ -498,12 +505,15 @@ namespace Shaolinq
 			return transactionContext.DatabaseConnection;
 		}
 
-		/// <summary>
-		/// Creates the a database from the data access model
-		/// </summary>
+		public virtual void Create()
+		{
+			this.Create(DatabaseCreationOptions.IfNotExist);
+		}
+
 		public virtual void Create(DatabaseCreationOptions options)
 		{
-			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).CreateDatabase((options & DatabaseCreationOptions.DeleteExisting) != 0);
+			//this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewOldDatabaseCreator(this).CreateDatabase((options & DatabaseCreationOptions.DeleteExisting) != 0);
+			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).Create((options & DatabaseCreationOptions.DeleteExisting) != 0);
 		}
 
 		/*

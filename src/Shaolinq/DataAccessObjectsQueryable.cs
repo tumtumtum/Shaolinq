@@ -42,7 +42,7 @@ namespace Shaolinq
 			this.DataAccessModel = dataAccessModel;
 			this.DatabaseConnection = this.DataAccessModel.GetDatabaseConnection(typeof(T));
 
-			base.Initialize(this.DatabaseConnection.NewQueryProvider(this.DataAccessModel, this.DatabaseConnection), expression);
+			base.Initialize(this.DatabaseConnection.NewQueryProvider(this.DataAccessModel), expression);
 		}
 
 		public virtual T Create()

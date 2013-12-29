@@ -50,12 +50,17 @@ namespace Shaolinq.Postgres.DotConnect
 			}
 		}
 
-		protected override IDbCommand CreateCommand()
+		public override IDbCommand CreateCommand(SqlCreateCommandOptions options)
 		{
 			var retval = (((PgSqlConnection)this.DbConnection).CreateCommand());
             
 			retval.Transaction = this.dbTransaction;
 			retval.CommandTimeout = (int)this.DatabaseConnection.CommandTimeout.TotalSeconds;
+			
+			if ((options & SqlCreateCommandOptions.UnpreparedExecute) != 0)
+			{
+				retval.UnpreparedExecute = true;	
+			}
 			
 			return retval;
 		}

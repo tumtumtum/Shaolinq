@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System.Text;
+using System;
+using System.Text;
 
 namespace Shaolinq.Persistence.Sql
 {
@@ -110,9 +111,12 @@ namespace Shaolinq.Persistence.Sql
 		{
 			// Create new tables
 
+			throw new NotImplementedException();
+
+#if NOTHING
 			var retval = new MigrationScripts();
-			var databaseCreationContext = new SqlDatabaseCreator.CreateDatabaseContext();
-			var databaseCreator = (SqlDatabaseCreator) this.SystemDataBasedDatabaseConnection.NewDatabaseCreator(this.Model);
+			var databaseCreationContext = new SqlOldDatabaseCreator.CreateDatabaseContext();
+			var databaseCreator = (SqlOldDatabaseCreator) this.SystemDataBasedDatabaseConnection.NewOldDatabaseCreator(this.Model);
             
 			foreach (var migrationTypeInfo in databaseMigrationPlan.NewTypes)
 			{
@@ -139,6 +143,7 @@ namespace Shaolinq.Persistence.Sql
 			}
 
 			return retval;
+#endif
 		}
 	}
 }

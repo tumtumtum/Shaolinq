@@ -60,8 +60,9 @@
     <Reference Include="log4net">
       <HintPath>..\..\lib\Packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Platform">
-      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.81\lib\35\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
     </Reference>
     <Reference Include="Platform.Xml.Serialization">
       <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>
@@ -90,6 +91,7 @@
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="IdentityEqualityComparer.cs" />
+    <Compile Include="InternalListExtensions.cs" />
     <Compile Include="MissingDataAccessObjectException.cs" />
     <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
     <Compile Include="MutableTuple.cs" />
@@ -97,9 +99,12 @@
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="DatabaseTransactionContextWrapper.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
+    <Compile Include="Persistence\DatabaseCreator.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlConstraintActionExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlAlterTableExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlColumnDefinitionExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlColumnReferenceDeferrability.cs" />
+    <Compile Include="Persistence\Sql\Linq\Expressions\SqlConstraintActionType.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlForeignKeyConstraintExpression.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlColumnReferenceAction.cs" />
     <Compile Include="Persistence\Sql\Linq\Expressions\SqlReferencesColumnExpression.cs" />
@@ -112,7 +117,11 @@
     <Compile Include="Persistence\Sql\Linq\GroupByCollator.cs" />
     <Compile Include="Persistence\Sql\Linq\Optimizer\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Sql\Linq\RelatedPropertiesJoinExpander.cs" />
+    <Compile Include="Persistence\Sql\Linq\SqlForeignKeyConstraintToAlterAmmender.cs" />
+    <Compile Include="Persistence\Sql\Linq\SqlReferencesColumnDeferrabilityRemover.cs" />
     <Compile Include="Persistence\Sql\Linq\SqlDataDefinitionExpressionBuilder.cs" />
+    <Compile Include="Persistence\Sql\Linq\SqlMultiColumnPrimaryKeyCoalescer.cs" />
+    <Compile Include="Persistence\Sql\SqlCreateCommandOptions.cs" />
     <Compile Include="Persistence\Sql\SqlFeature.cs" />
     <Compile Include="Persistence\Sql\SqlSyntaxSymbol.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
@@ -246,7 +255,6 @@
     <Compile Include="ObjectAlreadyInitializedException.cs" />
     <Compile Include="Persistence\IPersistenceQueryable.cs" />
     <Compile Include="Persistence\DatabaseConnection.cs" />
-    <Compile Include="Persistence\DatabaseCreator.cs" />
     <Compile Include="DatabaseTransactionContext.cs" />
     <Compile Include="DataAccessModelConfiguration.cs" />
     <Compile Include="DataAccessModelDatabaseConnectionInfo.cs" />
@@ -263,7 +271,6 @@
     <Compile Include="RelatedDataAccessObjects.cs" />
     <Compile Include="RelatedDataAccessObjectsAttribute.cs" />
     <Compile Include="Persistence\Sql\SystemDataBasedDatabaseConnection.cs" />
-    <Compile Include="Persistence\Sql\SqlDatabaseCreator.cs" />
     <Compile Include="Persistence\Sql\SqlDatabaseTransactionContext.cs" />
     <Compile Include="Persistence\Sql\SqlDataType.cs" />
     <Compile Include="Persistence\Sql\SqlDataTypeProvider.cs" />

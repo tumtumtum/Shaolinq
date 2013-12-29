@@ -9,6 +9,7 @@ namespace Shaolinq.Persistence.Sql
 		SelectForUpdate,
 		AlterTableAddConstraints,
 		IndexNameCasing,
-		IndexToLower
+		IndexToLower,
+		SupportsAndPrefersInlineForeignKeysWherePossible
 	}
 }

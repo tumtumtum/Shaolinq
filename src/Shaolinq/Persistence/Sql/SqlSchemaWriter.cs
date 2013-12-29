@@ -122,7 +122,7 @@ namespace Shaolinq.Persistence.Sql
 		{
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				foreach (var v in this.SystemDataBasedDatabaseConnection.SqlDialect.GetPersistedNames(this.Model, propertyDescriptor))
+				foreach (var v in this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnNames(this.Model, propertyDescriptor))
 				{
 					yield return v.Left;
 				}
@@ -142,7 +142,7 @@ namespace Shaolinq.Persistence.Sql
 
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				foreach (var v in this.SystemDataBasedDatabaseConnection.SqlDialect.GetPersistedNames(this.Model, propertyDescriptor))
+				foreach (var v in this.SystemDataBasedDatabaseConnection.SqlDialect.GetColumnNames(this.Model, propertyDescriptor))
 				{
 					this.WriteColumnDefinition(builder, v.Right, v.Left, true);
 				}

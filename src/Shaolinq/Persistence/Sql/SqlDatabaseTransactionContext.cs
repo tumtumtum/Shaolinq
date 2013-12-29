@@ -213,7 +213,12 @@ namespace Shaolinq.Persistence.Sql
 			}
 		}
 
-		protected virtual IDbCommand CreateCommand()
+		public virtual IDbCommand CreateCommand()
+		{
+			return CreateCommand(SqlCreateCommandOptions.Default);
+		}
+
+		public virtual IDbCommand CreateCommand(SqlCreateCommandOptions options)
 		{
 			var retval = this.DbConnection.CreateCommand();
 

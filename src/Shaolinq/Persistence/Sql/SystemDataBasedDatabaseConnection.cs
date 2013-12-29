@@ -11,11 +11,7 @@ namespace Shaolinq.Persistence.Sql
 		private readonly DbProviderFactory dBProviderFactory;
 
 		public TimeSpan CommandTimeout { get; set; }
-		public abstract bool SupportsNestedTransactions { get; }
-		public abstract bool SupportsDisabledForeignKeyCheckContext { get; }
-
-		public abstract bool CreateDatabase(bool overwrite);
-
+		
 		/// <summary>
 		/// Opens a new <see cref="DbConnection"/>
 		/// </summary>
@@ -44,10 +40,7 @@ namespace Shaolinq.Persistence.Sql
 			this.dBProviderFactory = this.NewDbProviderFactory();
 		}
 		
-		protected abstract string GetConnectionString();
-		protected abstract DbProviderFactory NewDbProviderFactory();
-		public abstract TableDescriptor GetTableDescriptor(string tableName);
-        public abstract SqlSchemaWriter NewSqlSchemaWriter(DataAccessModel model);
-		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext);
+		public abstract string GetConnectionString();
+		public abstract DbProviderFactory NewDbProviderFactory();
 	}
 }

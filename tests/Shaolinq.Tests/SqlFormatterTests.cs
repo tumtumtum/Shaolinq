@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using NUnit.Framework;
 using Shaolinq.Persistence.Sql.Linq;
 using Shaolinq.Persistence.Sql.Linq.Expressions;
-using Shaolinq.Tests.DataModels.Test;
 
 namespace Shaolinq.Tests
 {
@@ -21,7 +21,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_DataDefinitionBuilder()
 		{
-			var dbConnection = this.model.GetDatabaseConnection(typeof(Student));
+			var dbConnection = this.model.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
 			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model);
 
 			var formatter = dbConnection.NewQueryFormatter(this.model, dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, dataDefinitionExpressions, SqlQueryFormatterOptions.Default);
@@ -34,13 +34,13 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new List<Expression>
 			{
-				new SqlColumnDefinitionExpression("Column1", "INTEGER", new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
+				new SqlColumnDefinitionExpression("Column1", "INTEGER", new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
 			};
 
 			var constraints = new List<Expression>
 			{
 				new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, new[] {"Column1"}),
-				new SqlForeignKeyConstraintExpression(new [] {"Column1"}, new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction))
+				new SqlForeignKeyConstraintExpression("fkc", new ReadOnlyCollection<string>(new [] {"Column1"}), new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction))
 			};
 
 			var createTableExpression = new SqlCreateTableExpression("Table1", columnDefinitions, constraints);

@@ -50,6 +50,17 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
+				var school = this.model.Schools.Create();
+
+				var student = school.Students.Create();
+
+				student.Firstname = "TQWROP";
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
 				var students = this.model.Students.Where(c => c.School.Id > 0).ToList();
 
 				Assert.That(students.Count, Is.GreaterThan(0));
@@ -494,8 +505,6 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var school = model.Schools.Create();
-
-				Console.Write(model.GetDatabaseConnection(school.GetType()).DatabaseName);
 
 				school.Name = "The Shaolinq School of Kung Fu";
 

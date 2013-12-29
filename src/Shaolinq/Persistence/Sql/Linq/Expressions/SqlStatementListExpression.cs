@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Sql.Linq.Expressions
@@ -6,7 +7,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 	public class SqlStatementListExpression
 		: SqlBaseExpression
 	{
-		public List<Expression> Statements { get; set; }
+		public ReadOnlyCollection<Expression> Statements { get; set; }
 
 		public override ExpressionType NodeType
 		{
@@ -16,10 +17,10 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			}
 		}
 
-		public SqlStatementListExpression(List<Expression> statements)
+		public SqlStatementListExpression(ReadOnlyCollection<Expression> statements)
 			: base(typeof(void))
 		{
-			Statements = statements;
+			this.Statements = statements;
 		}
 	}
 }

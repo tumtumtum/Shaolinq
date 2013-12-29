@@ -15,25 +15,9 @@ namespace Shaolinq.Sqlite
 	public class SqliteDatabaseConnection
 		: SystemDataBasedDatabaseConnection
 	{
-		public override bool SupportsNestedTransactions
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		protected override string GetConnectionString()
+		public override string GetConnectionString()
 		{
 			return connectionString;
-		}
-
-		public override bool SupportsDisabledForeignKeyCheckContext
-		{
-			get
-			{
-				return true;
-			}
 		}
 
 		private readonly string connectionString;
@@ -45,7 +29,7 @@ namespace Shaolinq.Sqlite
 			connectionString = "Data Source=" + this.DatabaseName + ";foreign keys=True";
 		}
 
-		private SqliteSqlDatabaseTransactionContext inMemoryContext;
+		internal SqliteSqlDatabaseTransactionContext inMemoryContext;
 
 		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
@@ -67,7 +51,7 @@ namespace Shaolinq.Sqlite
 			return new SqliteSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
 
-		protected override DbProviderFactory NewDbProviderFactory()
+		public override DbProviderFactory NewDbProviderFactory()
 		{
 			return new SQLiteFactory();
 		}
@@ -84,7 +68,7 @@ namespace Shaolinq.Sqlite
 
 		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
 		{
-			return new SqliteSqlDatabaseCreator(this, model);
+			return new SqliteDatabaseCreator(this, model);
 		}
 
 		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
@@ -205,11 +189,6 @@ namespace Shaolinq.Sqlite
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
 		{
 			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
-		}
-
-		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
-		{
-			return new SqlQueryProvider(dataAccessModel, databaseConnection);
 		}
 
 		public override void DropAllConnections()

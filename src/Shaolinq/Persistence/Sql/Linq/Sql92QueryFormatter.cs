@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -164,6 +164,18 @@ namespace Shaolinq.Persistence.Sql.Linq
 			this.Expression = expression;
 		}
 
+		protected override Expression PreProcess(Expression expression)
+		{
+			expression = base.PreProcess(expression);
+			
+			if (this.sqlDialect.SupportsFeature(SqlFeature.AlterTableAddConstraints))
+			{
+				expression = SqlForeignKeyConstraintToAlterAmmender.Ammend(expression);
+			}
+
+			return expression;
+		}
+
 		public override SqlQueryFormatResult Format()
 		{
 			if (this.commandText == null)
@@ -171,7 +183,11 @@ namespace Shaolinq.Persistence.Sql.Linq
 				commandText = new StringBuilder(512);
 				parameterValues = new List<Pair<Type, object>>();
 
-				Visit(this.Expression);
+				Visit(this.PreProcess(this.Expression));
+			}
+			else
+			{
+				throw new InvalidOperationException("Formatter already used");
 			}
 
 			return new SqlQueryFormatResult(commandText.ToString(), parameterValues);
@@ -549,7 +565,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholderExpression)
 		{
-			if (this.options.EvaluateConstantPlaceholders)
+			if ((this.options & SqlQueryFormatterOptions.EvaluateConstantPlaceholders) != 0)
 			{
 				return base.VisitConstantPlaceholder(constantPlaceholderExpression);
 			}
@@ -712,24 +728,18 @@ namespace Shaolinq.Persistence.Sql.Linq
 			{
 				if (ignoreAlias == columnExpression.SelectAlias)
 				{
-					this.Write(identifierQuoteString);
-					this.Write(replaceAlias);
-					this.Write(identifierQuoteString);
+					this.WriteQuotedIdentifier(replaceAlias);
 				}
 				else
 				{
-					this.Write(identifierQuoteString);
-					this.Write(columnExpression.SelectAlias);
-					this.Write(identifierQuoteString);
+					this.WriteQuotedIdentifier(columnExpression.SelectAlias);
 				}
 
 				this.Write(".");
 			}
 
-			this.Write(identifierQuoteString);
-			this.Write(columnExpression.Name);
-			this.Write(identifierQuoteString);
-
+			this.WriteQuotedIdentifier(columnExpression.Name);
+			
 			return columnExpression;
 		}
 
@@ -740,9 +750,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 			if ((c == null || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
 			{
 				this.Write(" AS ");
-				this.Write(identifierQuoteString);
-				this.Write(column.Name);
-				this.Write(identifierQuoteString);
+				this.WriteQuotedIdentifier(column.Name);
 			}
 		}
 
@@ -948,14 +956,10 @@ namespace Shaolinq.Persistence.Sql.Linq
 				case SqlExpressionType.Table:
 					var table = (SqlTableExpression)source;
 
-					this.Write(identifierQuoteString);
-					this.Write(table.Name);
-					this.Write(identifierQuoteString);
+					this.WriteQuotedIdentifier(table.Name);
 					this.Write(" AS ");
-					this.Write(identifierQuoteString);
-					this.Write(table.Alias);
-					this.Write(identifierQuoteString);
-
+					this.WriteQuotedIdentifier(table.Alias);
+					
 					break;
 				case SqlExpressionType.Select:
 					var select = (SqlSelectExpression)source;
@@ -970,10 +974,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 					
 					this.Write(")");
 					this.Write(" AS ");
-					this.Write(identifierQuoteString);
-					this.Write(select.Alias);
-					this.Write(identifierQuoteString);
-
+					this.WriteQuotedIdentifier(select.Alias);
+					
 					break;
 				case SqlExpressionType.Join:
 					this.VisitJoin((SqlJoinExpression)source);
@@ -993,9 +995,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		{
 			this.Write("DELETE ");
 			this.Write("FROM ");
-			this.Write(identifierQuoteString);
-			this.Write(deleteExpression.TableName);
-			this.Write(identifierQuoteString);
+			this.WriteQuotedIdentifier(deleteExpression.TableName);
 			this.WriteLine();
 			this.Write(" WHERE ");
 			this.WriteLine();
@@ -1055,9 +1055,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
 			this.Write("CREATE TABLE ");
-			this.Write(identifierQuoteString);
-			this.Write(createTableExpression.TableName);
-			this.Write(identifierQuoteString);
+			this.WriteQuotedIdentifier(createTableExpression.TableName);
 			this.WriteLine();
 			this.Write("(");
 			
@@ -1123,15 +1121,20 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
 		{
-			this.Write("FORIEGN KEY(");
-
-			for (var i = 0; i < foreignKeyConstraintExpression.ColumnNames.Length; i++)
+			if (foreignKeyConstraintExpression.ConstraintName != null)
 			{
-				this.Write(identifierQuoteString);
-				this.Write(foreignKeyConstraintExpression.ColumnNames[i]);
-				this.Write(identifierQuoteString);
+				this.Write("CONSTRAINT ");
+				this.WriteQuotedIdentifier(foreignKeyConstraintExpression.ConstraintName);
+				this.Write(" ");
+			}
 
-				if (i != foreignKeyConstraintExpression.ColumnNames.Length - 1)
+			this.Write("FOREIGN KEY(");
+
+			for (var i = 0; i < foreignKeyConstraintExpression.ColumnNames.Count; i++)
+			{
+				this.WriteQuotedIdentifier(foreignKeyConstraintExpression.ColumnNames[i]);
+
+				if (i != foreignKeyConstraintExpression.ColumnNames.Count - 1)
 				{
 					this.Write(", ");
 				}
@@ -1144,15 +1147,22 @@ namespace Shaolinq.Persistence.Sql.Linq
 			return foreignKeyConstraintExpression;
 		}
 
+		protected virtual void WriteQuotedIdentifier(string identifierName)
+		{
+			this.Write(identifierQuoteString);
+			this.Write(identifierName);
+			this.Write(identifierQuoteString);
+		}
+
 		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
 		{
 			this.Write("REFERENCES ");
-			this.Write(referencesColumnExpression.ReferencedTableName);
+			this.WriteQuotedIdentifier(referencesColumnExpression.ReferencedTableName);
 			this.Write("(");
 
 			for (var i = 0; i < referencesColumnExpression.ReferencedColumnNames.Count; i++)
 			{
-				this.Write(referencesColumnExpression.ReferencedColumnNames[i]);
+				this.WriteQuotedIdentifier(referencesColumnExpression.ReferencedColumnNames[i]);
 				
 				if (i != referencesColumnExpression.ReferencedColumnNames.Count - 1)
 				{
@@ -1175,20 +1185,25 @@ namespace Shaolinq.Persistence.Sql.Linq
 				this.Write(referencesColumnExpression.OnUpdateAction);
 			}
 
-			switch (referencesColumnExpression.Deferrability)
+			this.WriteDeferrability(referencesColumnExpression.Deferrability);
+
+			return referencesColumnExpression;
+		}
+
+		protected virtual void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)
+		{
+			switch (deferrability)
 			{
 				case SqlColumnReferenceDeferrability.Deferrable:
 					this.Write(" DEFERRABLE");
 					break;
 				case SqlColumnReferenceDeferrability.InitiallyDeferred:
-					this.Write(" INITIALLY DEFERRED"); 
+					this.Write(" INITIALLY DEFERRED");
 					break;
 				case SqlColumnReferenceDeferrability.InitiallyImmediate:
 					this.Write(" INITIALLY IMMEDIATE");
 					break;
 			}
-
-			return referencesColumnExpression;
 		}
 
 		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
@@ -1213,10 +1228,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 						var i = 0;
 						foreach (var s in simpleConstraintExpression.ColumnNames)
 						{
-							this.Write(identifierQuoteString);
-							this.Write(s);
-							this.Write(identifierQuoteString);
-
+							this.WriteQuotedIdentifier(s);
+							
 							if (i != simpleConstraintExpression.ColumnNames.Length - 1)
 							{
 								this.Write(", ");
@@ -1245,10 +1258,8 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 						foreach (var s in simpleConstraintExpression.ColumnNames)
 						{
-							this.Write(identifierQuoteString);
-							this.Write(s);
-							this.Write(identifierQuoteString);
-
+							this.WriteQuotedIdentifier(s);
+							
 							if (i != simpleConstraintExpression.ColumnNames.Length - 1)
 							{
 								this.Write(", ");
@@ -1265,9 +1276,7 @@ namespace Shaolinq.Persistence.Sql.Linq
 
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
 		{
-			this.Write(identifierQuoteString);
-			this.Write(columnDefinitionExpression.ColumnName);
-			this.Write(identifierQuoteString);
+			this.WriteQuotedIdentifier(columnDefinitionExpression.ColumnName);
 			this.Write(' ');
 			this.Write(columnDefinitionExpression.ColumnTypeName);
 
@@ -1291,6 +1300,26 @@ namespace Shaolinq.Persistence.Sql.Linq
 			}
 
 			return columnDefinitionExpression;
+		}
+
+		protected override Expression VisitConstraintAction(SqlConstraintActionExpression actionExpression)
+		{
+			this.Write(actionExpression.ActionType.ToString().ToUpper());
+			this.Write(" ");
+			this.Visit(actionExpression.ConstraintExpression);
+
+			return actionExpression;
+		}
+
+		protected override Expression VisitAlterTable(SqlAlterTableExpression alterTableExpression)
+		{
+			this.Write("ALTER TABLE ");
+			this.WriteQuotedIdentifier(alterTableExpression.TableName);
+			this.Write(" ");
+			this.VisitExpressionList(alterTableExpression.Actions);
+			this.WriteLine(";");
+
+			return alterTableExpression;
 		}
 	}
 }

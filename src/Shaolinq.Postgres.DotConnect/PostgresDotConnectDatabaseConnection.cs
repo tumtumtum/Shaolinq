@@ -24,32 +24,16 @@ namespace Shaolinq.Postgres.DotConnect
 	    public string Database { get; set; }
 	    public int Port { get; set; }
 
-	    public override bool SupportsNestedTransactions
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        protected override string GetConnectionString()
+		public override string GetConnectionString()
         {
             return connectionString;
         }
 
-        public override bool SupportsDisabledForeignKeyCheckContext
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        private readonly string connectionString;
-        private readonly string databaselessConnectionString;
+        internal readonly string connectionString;
+        internal readonly string databaselessConnectionString;
 
 		public PostgresDotConnectDatabaseConnection(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, int commandTimeoutSeconds, bool nativeUuids, string schemaNamePrefix, DateTimeKind dateTimeKindForUnspecifiedDateTimeKinds)
-			: base(database, PostgresSqlDialect.Default, new PostgresSqlDataTypeProvider(nativeUuids, dateTimeKindForUnspecifiedDateTimeKinds))
+			: base(database, PostgresSharedSqlDialect.Default, new PostgresSharedSqlDataTypeProvider(nativeUuids, dateTimeKindForUnspecifiedDateTimeKinds))
         {
             this.Host = host;
             this.Userid = userid;
@@ -86,10 +70,10 @@ namespace Shaolinq.Postgres.DotConnect
 
 		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
         {
-            return new PostgresDotConnectSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
+            return new PostgresSharedSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
         }
 
-        protected override DbProviderFactory NewDbProviderFactory()
+		public override DbProviderFactory NewDbProviderFactory()
         {
             return PgSqlProviderFactory.Instance;
         }
@@ -268,12 +252,12 @@ namespace Shaolinq.Postgres.DotConnect
             return new SqlSchemaWriter(this, model);
         }
 
-        public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
-        {
-            return new PostgresDotConnectSqlDatabaseCreator(this, model);
-        }
+	    public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
+	    {
+		    return new PostgresDotConnectDatabaseCreator(this, model);
+	    }
 
-        public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
+	    public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
         {
             return new SqlMigrationPlanApplicator(this, model);
         }
@@ -365,11 +349,6 @@ namespace Shaolinq.Postgres.DotConnect
         public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
         {
             return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
-        }
-
-        public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
-        {
-            return new SqlQueryProvider(dataAccessModel, databaseConnection);
         }
 
 		public override void DropAllConnections()

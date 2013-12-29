@@ -77,9 +77,9 @@ namespace Shaolinq.Postgres
 			}
 		}
 
-		protected override IDbCommand CreateCommand()
+		public override IDbCommand CreateCommand(SqlCreateCommandOptions options)
 		{
-			var retval = base.CreateCommand();
+			var retval = base.CreateCommand(options);
 
 			retval.Transaction = this.dbTransaction;
 			

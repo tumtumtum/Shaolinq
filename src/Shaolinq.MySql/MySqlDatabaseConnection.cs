@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Transactions;
@@ -18,28 +18,13 @@ using MySql.Data.MySqlClient;
 		public string Username { get; private set; }
 		public string Password { get; private set; }
 
-		public override bool SupportsNestedTransactions
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		protected override string GetConnectionString()
+		public override string GetConnectionString()
 		{
 			return connectionString;
 		}
 
-		public override bool SupportsDisabledForeignKeyCheckContext
-		{
-			get
-			{
-				return true;
-			}
-		}
-
-		private readonly string connectionString;
+		internal readonly string connectionString;
+		internal readonly string databaselessConnectionString;
 
 		public MySqlDatabaseConnection(string serverName, string database, string username, string password, bool poolConnections, string schemaNamePrefix)
 			: base(database, MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance)
@@ -50,6 +35,7 @@ using MySql.Data.MySqlClient;
 			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
 			
 			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, poolConnections);
+			databaselessConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
 		}
 
 		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
@@ -62,7 +48,7 @@ using MySql.Data.MySqlClient;
 			return new MySqlSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
 
-		protected override DbProviderFactory NewDbProviderFactory()
+		public override DbProviderFactory NewDbProviderFactory()
 		{
 			return new MySqlClientFactory();
 		}
@@ -79,7 +65,7 @@ using MySql.Data.MySqlClient;
 
 		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
 		{
-			return new MySqlSqlDatabaseCreator(this, model);
+			return new MySqlDatabaseCreator(this, model);
 		}
 
 		public override MigrationPlanApplicator NewMigrationPlanApplicator(DataAccessModel model)
@@ -160,11 +146,6 @@ using MySql.Data.MySqlClient;
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
 		{
 			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
-		}
-
-		public override IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel, DatabaseConnection databaseConnection)
-		{
-			return new SqlQueryProvider(dataAccessModel, databaseConnection);
 		}
 
 		public override void DropAllConnections()

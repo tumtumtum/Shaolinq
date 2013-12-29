@@ -1,11 +1,13 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.ObjectModel;
+using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Sql.Linq.Expressions
 {
 	public class SqlForeignKeyConstraintExpression
 		: SqlBaseExpression
 	{
-		public string[] ColumnNames { get; set; }
+		public string ConstraintName { get; set; }
+		public ReadOnlyCollection<string> ColumnNames { get; set; }
 		public SqlReferencesColumnExpression ReferencesColumnExpression { get; private set; }
 
 		public override ExpressionType NodeType
@@ -16,9 +18,10 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 			}
 		}
 
-		public SqlForeignKeyConstraintExpression(string[] columnNames, SqlReferencesColumnExpression referencesColumnExpression)
+		public SqlForeignKeyConstraintExpression(string constraintName, ReadOnlyCollection<string> columnNames, SqlReferencesColumnExpression referencesColumnExpression)
 			: base(typeof(void))
 		{
+			this.ConstraintName = constraintName;
 			this.ColumnNames = columnNames;
 			this.ReferencesColumnExpression = referencesColumnExpression;
 		}

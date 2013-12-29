@@ -27,6 +27,22 @@ namespace Shaolinq.Sqlite
 			this.DataAccessModel = dataAccessModel;
 		}
 
+		protected override void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)
+		{
+			switch (deferrability)
+			{
+				case SqlColumnReferenceDeferrability.Deferrable:
+					this.Write(" DEFERRABLE");
+					break;
+				case SqlColumnReferenceDeferrability.InitiallyDeferred:
+					this.Write(" DEFERRABLE INITIALLY DEFERRED");
+					break;
+				case SqlColumnReferenceDeferrability.InitiallyImmediate:
+					this.Write(" DEFERRABLE INITIALLY IMMEDIATE");
+					break;
+			}
+		}
+
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunction function, ReadOnlyCollection<Expression> arguments)
 		{
 			switch (function)

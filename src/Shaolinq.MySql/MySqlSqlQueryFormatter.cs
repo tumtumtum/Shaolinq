@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 ﻿using Shaolinq.Persistence.Sql;
 ﻿using Shaolinq.Persistence.Sql.Linq;
@@ -25,6 +25,11 @@ namespace Shaolinq.MySql
 			: base(expression, options, sqlDataTypeProvider, sqlDialect)
 		{
 			this.DataAccessModel = dataAccessModel;
+		}
+
+		protected override Expression PreProcess(Expression expression)
+		{
+			return SqlReferencesColumnDeferrabilityRemover.Remove(expression);
 		}
 
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunction function, ReadOnlyCollection<Expression> arguments)

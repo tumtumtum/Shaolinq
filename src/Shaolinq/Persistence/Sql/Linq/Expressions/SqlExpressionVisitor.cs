@@ -48,6 +48,8 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 					return this.VisitDelete((SqlDeleteExpression)expression);
 				case SqlExpressionType.AlterTable:
 					return this.VisitAlterTable((SqlAlterTableExpression)expression);
+				case SqlExpressionType.ConstraintAction:
+					return this.VisitConstraintAction((SqlConstraintActionExpression)expression);
 				case SqlExpressionType.ColumnDefinition:
 					return this.VisitColumnDefinition((SqlColumnDefinitionExpression)expression);
 				case SqlExpressionType.CreateIndex:
@@ -340,7 +342,19 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 
 		protected virtual Expression VisitAlterTable(SqlAlterTableExpression alterTableExpression)
 		{
+			var newList = this.VisitExpressionList(alterTableExpression.Actions);
+
+			if (newList != alterTableExpression.Actions)
+			{
+				return new SqlAlterTableExpression(alterTableExpression.TableName, newList);
+			}
+
 			return alterTableExpression;
+		}
+
+		protected virtual Expression VisitConstraintAction(SqlConstraintActionExpression actionExpression)
+		{
+			return actionExpression;
 		}
 
 		protected virtual Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
@@ -376,17 +390,16 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 						{
 							newStatements.Add(statementListExpression.Statements[j]);
 						}
+					}
+				}
 
-						newStatements.Add(expression);
-					}
-					else
-					{
-						newStatements.Add(expression);
-					}
+				if (newStatements != null)
+				{
+					newStatements.Add(expression);
 				}
 			}
 
-			return newStatements == null ? statementListExpression : new SqlStatementListExpression(newStatements);
+			return newStatements == null ? statementListExpression : new SqlStatementListExpression(new ReadOnlyCollection<Expression>(newStatements));
 		}
 
 		protected virtual Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
@@ -395,7 +408,7 @@ namespace Shaolinq.Persistence.Sql.Linq.Expressions
 
 			if (referencesColumnExpression != foreignKeyConstraintExpression.ReferencesColumnExpression)
 			{
-				return new SqlForeignKeyConstraintExpression(foreignKeyConstraintExpression.ColumnNames, referencesColumnExpression);
+				return new SqlForeignKeyConstraintExpression(foreignKeyConstraintExpression.ConstraintName, foreignKeyConstraintExpression.ColumnNames, referencesColumnExpression);
 			}
 			else
 			{

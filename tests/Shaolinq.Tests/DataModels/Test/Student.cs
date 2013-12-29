@@ -11,7 +11,7 @@ namespace Shaolinq.Tests.DataModels.Test
 		[PersistedMember]
 		public abstract Sex Sex { get; set; }
 
-		[BackReference]
+		[BackReference, ValueRequired(true)]
 		public abstract School School { get; set; }
 
 		[BackReference, ValueRequired(false)]
