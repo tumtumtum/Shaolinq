@@ -80,6 +80,57 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
+		public static ForeignKeyColumnInfo[] ExpandPropertyIntoForeignKeyColumns(DataAccessModel model, TypeDescriptor typeDescriptor, string namePrefix)
+		{
+			var retval = new ForeignKeyColumnInfo[typeDescriptor.PrimaryKeyProperties.Count];
+
+			var i = 0;
+
+			foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
+			{
+				retval[i] = new ForeignKeyColumnInfo
+				{
+					ForeignType = typeDescriptor,
+					ColumnName = namePrefix + relatedPropertyDescriptor.PersistedShortName,
+					KeyPropertyOnForeignType = relatedPropertyDescriptor
+				};
+
+				i++;
+			}
+
+			return retval;
+		}
+
+		public static ForeignKeyColumnInfo[] ExpandPropertyIntoForeignKeyColumns(DataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
+		{
+			if (propertyDescriptor.IsBackReferenceProperty || propertyDescriptor.PersistedMemberAttribute != null && propertyDescriptor.PropertyType.IsDataAccessObjectType())
+			{
+				var i = 0;
+				var typeDescriptor = dataAccessModel.GetTypeDescriptor(propertyDescriptor.PropertyType);
+
+				var retval = new ForeignKeyColumnInfo[typeDescriptor.PrimaryKeyProperties.Count];
+
+				foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
+				{
+					retval[i] = new ForeignKeyColumnInfo
+					{
+						ForeignType = typeDescriptor,
+						OjbectPropertyOnReferencingType = propertyDescriptor,
+						ColumnName = propertyDescriptor.PersistedName + relatedPropertyDescriptor.PersistedShortName,
+						KeyPropertyOnForeignType = relatedPropertyDescriptor
+					};
+
+					i++;
+				}
+
+				return retval;
+			}
+			else
+			{
+				throw new InvalidOperationException();
+			}
+		}
+
 		private string GetNextAlias()
 		{
 			return "T" + (aliasCount++);
@@ -1348,13 +1399,13 @@ namespace Shaolinq.Persistence.Linq
 				var columnExpressions = new List<Expression>();
 				var propertyNames = new List<string>();
 				
-				foreach (var v in context.SqlDialect.GetColumnNames(this.DataAccessModel, propertyDescriptor))
+				foreach (var v in QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.DataAccessModel, propertyDescriptor))
 				{
-					var expression = new SqlColumnExpression(v.Right.PropertyType, selectAlias, v.Left);
+					var expression = new SqlColumnExpression(v.KeyPropertyOnForeignType.PropertyType, selectAlias, v.ColumnName);
 
 					columnExpressions.Add(expression);
-					propertyNames.Add(v.Right.PropertyName);
-					columns.Add(new SqlColumnDeclaration(v.Left, new SqlColumnExpression(v.Right.PropertyType, tableAlias, v.Left)));
+					propertyNames.Add(v.KeyPropertyOnForeignType.PropertyName);
+					columns.Add(new SqlColumnDeclaration(v.ColumnName, new SqlColumnExpression(v.KeyPropertyOnForeignType.PropertyType, tableAlias, v.ColumnName)));
 				}
 
 				var objectOperand = new SqlObjectOperand(columnType, columnExpressions, propertyNames);

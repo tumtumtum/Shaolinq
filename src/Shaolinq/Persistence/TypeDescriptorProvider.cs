@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,44 +12,44 @@ namespace Shaolinq.Persistence
 {
 	public class TypeDescriptorProvider
 	{
-		private static IDictionary<Assembly, TypeDescriptorProvider> c_TypeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
-
+		private static IDictionary<Assembly, TypeDescriptorProvider> TypeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
+		
+		public Assembly Assembly { get; private set; }
+		private readonly List<Type> dataAccessModelTypes = new List<Type>();
+		private Dictionary<Type, ModelTypeDescriptor> modelTypeDescriptorsByType;
+		private readonly Dictionary<Type, TypeDescriptor> typeDescriptorsByType = new Dictionary<Type, TypeDescriptor>();
+		
 		public static TypeDescriptorProvider GetProvider(Assembly assembly)
 		{
 			TypeDescriptorProvider retval;
 
 			assembly = DataAccessModelAssemblyBuilder.Default.GetDefinitionAssembly(assembly);
 
-			if (c_TypeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
+			if (TypeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
 			{
 				return retval;
 			}
 
 			lock (typeof(TypeDescriptorProvider))
 			{
-				if (!c_TypeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
+				if (!TypeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
 				{
 					retval = new TypeDescriptorProvider(assembly);
 
 					var newTypeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
 
-					foreach (var kvp in c_TypeDescriptorProvidersByAssembly)
+					foreach (var kvp in TypeDescriptorProvidersByAssembly)
 					{
 						newTypeDescriptorProvidersByAssembly[kvp.Key] = kvp.Value;
 					}
 
 					newTypeDescriptorProvidersByAssembly[assembly] = retval;
-					c_TypeDescriptorProvidersByAssembly = newTypeDescriptorProvidersByAssembly;
+					TypeDescriptorProvidersByAssembly = newTypeDescriptorProvidersByAssembly;
 				}
 
 				return retval;
 			}
 		}
-
-		private Dictionary<Type, ModelTypeDescriptor> modelTypeDescriptorsByType;
-		private readonly Dictionary<Type, TypeDescriptor> typeDescriptorsByType = new Dictionary<Type, TypeDescriptor>();
-
-		public Assembly Assembly { get; private set; }
 
 		private TypeDescriptorProvider(Assembly assembly)
 		{
@@ -58,11 +58,9 @@ namespace Shaolinq.Persistence
 			Parse();
 		}
 
-		private readonly List<Type> dataAccessModelTypes = new List<Type>();
-
 		private void Parse()
 		{
-			foreach (Type type in this.Assembly.GetTypes())
+			foreach (var type in this.Assembly.GetTypes())
 			{
 				var dataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
 
@@ -174,15 +172,11 @@ namespace Shaolinq.Persistence
 
 		private void BuildModelTypeDescriptors()
 		{
-			// Resolve model type descriptors
-
 			modelTypeDescriptorsByType = new Dictionary<Type, ModelTypeDescriptor>();
 
-			foreach (var dataAccessModelType in dataAccessModelTypes)
+			foreach (var modelTypeDescriptor in this.dataAccessModelTypes.Select(dataAccessModelType => new ModelTypeDescriptor(dataAccessModelType)))
 			{
-				var modelTypeDescriptor = new ModelTypeDescriptor(dataAccessModelType);
-
-				modelTypeDescriptorsByType[modelTypeDescriptor.Type] = modelTypeDescriptor;
+				this.modelTypeDescriptorsByType[modelTypeDescriptor.Type] = modelTypeDescriptor;
 			}
 		}
 

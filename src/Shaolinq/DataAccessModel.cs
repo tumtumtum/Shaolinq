@@ -15,19 +15,72 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : MarshalByRefObject, IDisposable
 	{
-		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
-
 		public Assembly DefinitionAssembly { get; private set; }
+		public AssemblyBuildInfo AssemblyBuildInfo { get; private set; }
 		public DataAccessModelConfiguration Configuration { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public virtual ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
+		internal DataAccessObjectProjectionContext DataAccessObjectProjectionContext { get; private set; }
 
+		private readonly List<SqlDatabaseContext> databaseConnections = new List<SqlDatabaseContext>();
+		private Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>(); 
+		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
+		private readonly Dictionary<Type, Func<Object, PropertyInfoAndValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, PropertyInfoAndValue[]>>();
+		
 		[ReflectionEmitted]
 		protected abstract void Initialise();
 
 		[ReflectionEmitted]
-		public abstract DataAccessObjects<T> GetDataAccessObjects<T>()
-			where T : class, IDataAccessObject;
+		public abstract DataAccessObjects<T> GetDataAccessObjects<T>() where T : class, IDataAccessObject;
+
+		public event EventHandler Disposed;
+
+		public DataAccessModelTransactionManager AmbientTransactionManager
+		{
+			get
+			{
+				if (this.disposed == 1)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return DataAccessModelTransactionManager.GetAmbientTransactionManager(this);
+			}
+		}
+
+		protected DataAccessModel()
+		{
+			this.DataAccessObjectProjectionContext = new DataAccessObjectProjectionContext(this);
+		}
+
+		protected virtual void OnDisposed(EventArgs eventArgs)
+		{
+			if (this.Disposed != null)
+			{
+				this.Disposed(this, eventArgs);
+			}
+		}
+
+		~DataAccessModel()
+		{
+			Dispose();
+		}
+
+		private int disposed = 0;
+
+		public virtual void Dispose()
+		{
+			this.CloseAllConnections();
+
+			if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
+			{
+				this.CloseAllConnections();
+
+				this.OnDisposed(EventArgs.Empty);
+
+				GC.SuppressFinalize(this);
+			}
+		}
 
 		public virtual TypeDescriptor GetTypeDescriptor(Type type)
 		{
@@ -46,24 +99,6 @@ namespace Shaolinq
 			return proxyFunction(this.DataAccessObjectProjectionContext, dataAccessObject);
 		}
 
-		public DataAccessObjectProjectionContext DataAccessObjectProjectionContext
-		{
-			get
-			{
-				if (this.dataAccessObjectProjectionContext == null)
-				{
-					var newInstance = new DataAccessObjectProjectionContext(this);
-
-					Thread.MemoryBarrier();
-
-					this.dataAccessObjectProjectionContext = newInstance;
-				}
-
-				return this.dataAccessObjectProjectionContext;
-			}
-		}
-		private DataAccessObjectProjectionContext dataAccessObjectProjectionContext;
-
 		public SqlDatabaseContext GetDatabaseConnection(IDataAccessObject dataAccessObject)
 		{
 			return this.GetDatabaseConnection(dataAccessObject.GetType());
@@ -74,46 +109,14 @@ namespace Shaolinq
 			return this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
 		}
 
-		#region Transaction Handling
-
-		public DataAccessModelTransactionManager AmbientTransactionManager
-		{
-			get
-			{
-				if (this.disposed == 1)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return DataAccessModelTransactionManager.GetAmbientTransactionManager(this);
-			}
-		}
-
 		public virtual DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
 			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(forWrite).CurrentDataContext;
 		}
 
-		#endregion
-
-		#region BuildDataAccessModel
-
-		public AssemblyBuildInfo AssemblyBuildInfo
-		{
-			get
-			{
-				return assemblyBuildInfo;
-			}
-		}
-
-		private AssemblyBuildInfo assemblyBuildInfo;
-
-		private readonly List<SqlDatabaseContext> databaseConnections = new List<SqlDatabaseContext>();
-
 		private void SetAssemblyBuildInfo(AssemblyBuildInfo value)
 		{
-			this.assemblyBuildInfo = value;
-
+			this.AssemblyBuildInfo = value;
 			this.DefinitionAssembly = value.definitionAssembly;
 			this.TypeDescriptorProvider = TypeDescriptorProvider.GetProvider(this.DefinitionAssembly);
 			this.ModelTypeDescriptor = this.TypeDescriptorProvider.GetModelTypeDescriptor(value.GetDefinitionModelType(this.GetType()));
@@ -148,7 +151,7 @@ namespace Shaolinq
 			return retval;
 		}
 
-		public virtual DataAccessModelConfiguration GetConfiguration(string path)
+		public static DataAccessModelConfiguration GetConfiguration(string path)
 		{
 			return ConfigurationBlock<DataAccessModelConfiguration>.Load(path);
 		}
@@ -157,7 +160,7 @@ namespace Shaolinq
 		{
 			var typeName = this.GetType().Name;
 
-			var configuration = this.GetConfiguration(typeName);
+			var configuration = DataAccessModel.GetConfiguration(typeName);
 
 			if (configuration != null)
 			{
@@ -166,7 +169,7 @@ namespace Shaolinq
 
 			if (typeName.EndsWith("DataAccessModel"))
 			{
-				configuration = this.GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
+				configuration = DataAccessModel.GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
 
 				if (configuration != null)
 				{
@@ -178,7 +181,7 @@ namespace Shaolinq
 			{
 				var name = this.GetType().Name;
 
-				configuration = this.GetConfiguration(name.Left(name.Length - "DataAccessModel".Length));
+				configuration = DataAccessModel.GetConfiguration(name.Left(name.Length - "DataAccessModel".Length));
 
 				if (configuration != null)
 				{
@@ -190,14 +193,14 @@ namespace Shaolinq
 			{
 				var namespaceTail = this.GetType().Namespace.SplitAroundCharFromRight('.').Right;
 
-				configuration = this.GetConfiguration(namespaceTail);
+				configuration = DataAccessModel.GetConfiguration(namespaceTail);
 
 				if (configuration != null)
 				{
 					return configuration;
 				}
 
-				configuration = this.GetConfiguration(namespaceTail + "/DataAccessModel");
+				configuration = DataAccessModel.GetConfiguration(namespaceTail + "/DataAccessModel");
 
 				if (configuration != null)
 				{
@@ -223,53 +226,18 @@ namespace Shaolinq
 			this.Configuration = configuration;
 		}
 
-		public event EventHandler Disposed;
-
-		protected virtual void OnDisposed(EventArgs eventArgs)
-		{
-			if (this.Disposed != null)
-			{
-				this.Disposed(this, eventArgs);
-			}
-		}
-
-		~DataAccessModel()
-		{
-			Dispose();
-		}
-
-		private int disposed = 0;
-
 		/// <summary>
-		/// Removes all cached connections for the database model associated with the current thread.
+		/// Flushes and closes all connections for the DataAccessModel associated with the current thread.
 		/// </summary>
-		public virtual void FlushConnections()
+		public virtual void CloseAllConnections()
 		{
 			DataAccessModelTransactionManager.GetAmbientTransactionManager(this).FlushConnections();
-			
+
 			foreach (var context in this.databaseConnections)
 			{
 				context.DropAllConnections();
 			}
 		}
-
-		public virtual void Dispose()
-		{
-			FlushConnections();
-
-			if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
-			{
-				FlushConnections();
-
-				this.OnDisposed(EventArgs.Empty);
-
-				GC.SuppressFinalize(this);
-			}
-		}
-
-		#endregion
-
-		#region Definition and Concrete Type Resolvers
 
 		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)
 		{
@@ -280,10 +248,6 @@ namespace Shaolinq
 		{
 			return DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(concreteType.Assembly).GetDefinitionType(concreteType);
 		}
-
-		#endregion
-
-		private readonly Dictionary<Type, Func<Object, PropertyInfoAndValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, PropertyInfoAndValue[]>>();
 
 		public virtual T GetReferenceByPrimaryKey<T>(PropertyInfoAndValue[] primaryKey)
 			where T : class, IDataAccessObject
@@ -306,7 +270,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = this.assemblyBuildInfo.NewDataAccessObject<T>();
+				var retval = this.AssemblyBuildInfo.NewDataAccessObject<T>();
 
 				retval.SetIsNew(false);
 				retval.SetIsDeflatedReference(true);
@@ -431,8 +395,6 @@ namespace Shaolinq
 			return this.GetReferenceByPrimaryKey<T>(propertyInfoAndValues);
 		}
 
-		#region DataAccessObject factories
-
 		public virtual IDataAccessObject NewDataAccessObject(Type type)
 		{
 			return NewDataAccessObject(type, false);
@@ -446,7 +408,7 @@ namespace Shaolinq
 
 		public virtual IDataAccessObject NewDataAccessObject(Type type, bool transient)
 		{
-			var retval = this.assemblyBuildInfo.NewDataAccessObject(type);
+			var retval = this.AssemblyBuildInfo.NewDataAccessObject(type);
 
 			retval.SetIsNew(true);
 			retval.SetDataAccessModel(this);
@@ -466,7 +428,7 @@ namespace Shaolinq
 		public virtual T NewDataAccessObject<T>(bool transient)
 			where T : IDataAccessObject
 		{
-			var retval = this.assemblyBuildInfo.NewDataAccessObject<T>();
+			var retval = this.AssemblyBuildInfo.NewDataAccessObject<T>();
 
 			retval.SetIsNew(true);
 			retval.SetDataAccessModel(this);
@@ -482,8 +444,6 @@ namespace Shaolinq
 
 			return retval;
 		}
-
-		#endregion
 
 		public virtual SqlDatabaseContext GetCurrentDatabaseConnection()
 		{
@@ -509,51 +469,8 @@ namespace Shaolinq
 
 		public virtual void Create(DatabaseCreationOptions options)
 		{
-			//this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewOldDatabaseCreator(this).CreateDatabase((options & DatabaseCreationOptions.DeleteExisting) != 0);
 			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).Create((options & DatabaseCreationOptions.DeleteExisting) != 0);
 		}
-
-		/*
-		public virtual MigrationPlan CreateMigrationPlan()
-		{
-			return CreateMigrationPlan(this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite));
-		}
-
-		protected virtual MigrationPlan CreateMigrationPlan(DatabaseConnection connection)
-		{
-			var retval = new MigrationPlan();
-
-			var planCreator = connection.NewMigrationPlanCreator(this);
-
-			var plan = planCreator.CreateMigrationPlan();
-
-			retval.AddDatabaseMigrationPlan(connection, plan);
-
-			return retval;
-		}
-
-		public virtual MigrationScripts CreateMigrationScripts()
-		{
-			return CreateMigrationScripts(this.Configuration.PersistenceContexts.Select(x => new DataAccessModelDatabaseConnectionInfo(x.ContextName)).ToArray());
-		}
-
-		public virtual MigrationScripts CreateMigrationScripts(params DataAccessModelDatabaseConnectionInfo[] databaseConnectionInfos)
-		{
-			var retval = new MigrationScripts();
-
-			foreach (var databaseConnectionInfo in databaseConnectionInfos)
-			{
-				var persistenceContext = this.GetDatabaseConnection(databaseConnectionInfo.ConnectionName);
-
-				var applicator = persistenceContext.NewMigrationPlanApplicator(this);
-				var plan = persistenceContext.NewMigrationPlanCreator(this).CreateMigrationPlan();
-
-				retval.AddScripts(this, applicator.CreateScripts(plan));
-			}
-
-			return retval;
-		}
-		*/
 
 		public virtual void FlushCurrentTransaction()
 		{
@@ -562,8 +479,6 @@ namespace Shaolinq
 			this.GetCurrentDataContext(true).Commit(transactionContext, true);
 		}
 
-		private volatile Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>();
-
 		public virtual IDataAccessObject Inflate(IDataAccessObject dataAccessObject)
 		{
 			if (dataAccessObject == null)
@@ -571,10 +486,9 @@ namespace Shaolinq
 				throw new ArgumentNullException("dataAccessObject");
 			}
 
+			Func<IDataAccessObject, IDataAccessObject> func; 
 			var definitionType = dataAccessObject.DefinitionType;
 			
-			Func<IDataAccessObject, IDataAccessObject> func;
-
 			if (!inflateFuncsByType.TryGetValue(definitionType, out func))
 			{
 				var parameter = Expression.Parameter(typeof(IDataAccessObject), "dataAccessObject");

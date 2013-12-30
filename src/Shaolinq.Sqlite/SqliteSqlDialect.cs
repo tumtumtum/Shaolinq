@@ -29,15 +29,7 @@ namespace Shaolinq.Sqlite
 					return false;
 			}
 		}
-
-		public override string DeferrableText
-		{
-			get
-			{
-				return "DEFERRABLE INITIALLY DEFERRED";
-			}
-		}
-
+		
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
 			if (symbol == SqlSyntaxSymbol.AutoIncrementSuffix)

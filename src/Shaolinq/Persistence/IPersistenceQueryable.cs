@@ -8,11 +8,7 @@ namespace Shaolinq.Persistence
 	public interface IPersistenceQueryProvider
 		: IQueryProvider
 	{
-		IRelatedDataAccessObjectContext RelatedDataAccessObjectContext 
-		{
-			get;
-			set;
-		}
+		IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }
 
 		string GetQueryText(Expression expression);
 	}

@@ -12,23 +12,23 @@ namespace Shaolinq.Persistence
 {
 	public class PropertyDescriptor
 	{
-		public TypeDescriptor DeclaringTypeDescriptor
-		{
-			get;
-			private set;
-		}
-
-		public Type OwnerType
-		{
-			get;
-			private set;
-		}
-
-		public PropertyInfo PropertyInfo
-		{
-			get;
-			private set;
-		}
+		public Type OwnerType { get; private set; }
+		public bool IsPrimaryKey { get; private set; }
+		public string PersistedName { get; private set; }
+		public string PersistedShortName { get; private set; }
+		public PropertyInfo PropertyInfo { get; private set; }
+		public UniqueAttribute UniqueAttribute { get; private set; }
+		public TypeDescriptor DeclaringTypeDescriptor { get; private set; }
+		public PrimaryKeyAttribute PrimaryKeyAttribute { get; private set; }
+		public DefaultValueAttribute DefaultValueAttribute { get; private set; }
+		public AutoIncrementAttribute AutoIncrementAttribute { get; private set; }
+		public ValueRequiredAttribute ValueRequiredAttribute { get; private set; }
+		public BackReferenceAttribute BackReferenceAttribute { get; private set; }
+		public PersistedMemberAttribute PersistedMemberAttribute { get; private set; }
+		public ReadOnlyCollection<IndexAttribute> IndexAttributes { get; private set; }
+		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; private set; }
+		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; private set; }
+		public ReferencedObjectPrimaryKeyPropertyAttribute ReferencedObjectPrimaryKeyPropertyAttribute { get; private set; }
 
 		public string PropertyName
 		{
@@ -38,54 +38,12 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public UniqueAttribute UniqueAttribute
-		{
-			get;
-			private set;
-		}
-
 		public bool HasUniqueAttribute
 		{
 			get
 			{
 				return this.UniqueAttribute != null;
 			}
-		}
-
-		public PersistedMemberAttribute PersistedMemberAttribute
-		{
-			get;
-			private set;
-		}
-
-		public ValueRequiredAttribute ValueRequiredAttribute
-		{
-			get;
-			private set;
-		}
-
-		public DefaultValueAttribute DefaultValueAttribute
-		{
-			get;
-			private set;
-		}
-
-		public BackReferenceAttribute BackReferenceAttribute
-		{
-			get;
-			private set;
-		}
-
-		public ReadOnlyCollection<IndexAttribute> IndexAttributes
-		{
-			get;
-			private set;
-		}
-
-		public ReferencedObjectPrimaryKeyPropertyAttribute ReferencedObjectPrimaryKeyPropertyAttribute
-		{
-			get;
-			private set;
 		}
 
 		public PropertyDescriptor ReferencedObjectPrimaryKeyPropertyDescriptor
@@ -98,19 +56,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 		internal PropertyInfo referencedObjectPrimaryKeyPropertyInfo;
-
-		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute
-		{
-			get;
-			private set;
-		}
-
-		public AutoIncrementAttribute AutoIncrementAttribute
-		{
-			get;
-			private set;
-		}
-
+		
 		public bool IsReferencedObjectPrimaryKeyProperty
 		{
 			get
@@ -152,24 +98,6 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public bool IsPrimaryKey
-		{
-			get;
-			private set;
-		}
-
-		public string PersistedName
-		{
-			get;
-			private set;
-		}
-
-		public string PersistedShortName
-		{
-			get;
-			private set;
-		}
-		
 		public Type PropertyType
 		{
 			get
@@ -184,12 +112,6 @@ namespace Shaolinq.Persistence
 			{
 				return this.ComputedTextMemberAttribute != null;
 			}
-		}
-
-		public ComputedTextMemberAttribute ComputedTextMemberAttribute
-		{
-			get;
-			private set;
 		}
 
 		public PropertyDescriptor(TypeDescriptor declaringTypeDescriptor, Type ownerType, PropertyInfo propertyInfo)
@@ -211,9 +133,8 @@ namespace Shaolinq.Persistence
 				this.AutoIncrementAttribute = propertyInfo.GetFirstCustomAttribute<AutoIncrementAttribute>(true);
 			}
 
-			var attribute = this.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
-
-			this.IsPrimaryKey = attribute != null && attribute.IsPrimaryKey;
+			this.PrimaryKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
+			this.IsPrimaryKey = this.PrimaryKeyAttribute != null && this.PrimaryKeyAttribute.IsPrimaryKey;
 
 			if (this.PersistedMemberAttribute != null)
 			{
@@ -251,7 +172,6 @@ namespace Shaolinq.Persistence
 			}
 
 			this.IndexAttributes = new ReadOnlyCollection<IndexAttribute>(indexAttributes);
-            
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
 		}
 	}

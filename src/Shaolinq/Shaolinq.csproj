@@ -95,6 +95,7 @@
     <Compile Include="DatabaseTransactionContextWrapper.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="Persistence\DatabaseCreator.cs" />
+    <Compile Include="Persistence\ForeignKeyColumnInfo.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstraintActionExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAlterTableExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlColumnDefinitionExpression.cs" />

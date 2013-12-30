@@ -85,7 +85,7 @@ namespace Shaolinq.Persistence.Linq
 			return retval;
 		}
 
-		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, Pair<string, PropertyDescriptor>[] columnNamesAndReferencedTypeProperties)
+		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ForeignKeyColumnInfo[] columnNamesAndReferencedTypeProperties)
 		{
 			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(referencingProperty.PropertyType);
 			var referencedTableName = relatedPropertyTypeDescriptor.GetPersistedName(this.model);
@@ -93,13 +93,13 @@ namespace Shaolinq.Persistence.Linq
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required);
 			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible);
 
-			foreach (var pair in columnNamesAndReferencedTypeProperties)
+			foreach (var foreignKeyColumn in columnNamesAndReferencedTypeProperties)
 			{
-				var retval = (SqlColumnDefinitionExpression)this.BuildColumnDefinitions(pair.Right, pair.Left, referencingProperty).First();
+				var retval = (SqlColumnDefinitionExpression)this.BuildColumnDefinitions(foreignKeyColumn.KeyPropertyOnForeignType, foreignKeyColumn.ColumnName, referencingProperty).First();
 
 				if (columnNamesAndReferencedTypeProperties.Length == 1 && supportsInlineForeignKeys)
 				{
-					var names = new ReadOnlyCollection<string>(new[] { pair.Right.PersistedName });
+					var names = new ReadOnlyCollection<string>(new[] { foreignKeyColumn.KeyPropertyOnForeignType.PersistedName });
 					var newConstraints = new List<Expression>(retval.ConstraintExpressions);
 					var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, names, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
 
@@ -113,8 +113,8 @@ namespace Shaolinq.Persistence.Linq
 
 			if (columnNamesAndReferencedTypeProperties.Length > 1 || !supportsInlineForeignKeys)
 			{
-				var currentTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.Left).ToList());
-				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.Right.PersistedName).ToList());
+				var currentTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.ColumnName).ToList());
+				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.KeyPropertyOnForeignType.PersistedName).ToList());
 				var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, referencedTableColumnNames, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
 				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
 
@@ -131,9 +131,9 @@ namespace Shaolinq.Persistence.Linq
 
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				var pairs = this.sqlDialect.GetColumnNames(this.model, propertyDescriptor);
+				var foreignKeyColumn = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, propertyDescriptor);
 				
-				foreach (var result in this.BuildForeignKeyColumnDefinitions(propertyDescriptor, pairs))
+				foreach (var result in this.BuildForeignKeyColumnDefinitions(propertyDescriptor, foreignKeyColumn))
 				{
 					yield return result;
 				}
@@ -156,9 +156,9 @@ namespace Shaolinq.Persistence.Linq
 				{
 					var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
 					var referencedTableName = relatedPropertyTypeDescriptor.GetPersistedName(this.model);
-					var pairs = this.sqlDialect.GetColumnNames(this.model, relatedPropertyTypeDescriptor, referencedTableName);
+					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, relatedPropertyTypeDescriptor, referencedTableName);
 
-					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, pairs))
+					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
 					{
 						yield return result;
 					}

@@ -10,14 +10,6 @@ namespace Shaolinq.Postgres.Shared
 	{
 		public new static readonly PostgresSharedSqlDialect Default = new PostgresSharedSqlDialect();
 
-		public override string DeferrableText
-		{
-			get
-			{
-				return "DEFERRABLE INITIALLY DEFERRED";
-			}
-		}
-
 		public override bool SupportsFeature(SqlFeature feature)
 		{
 			switch (feature)

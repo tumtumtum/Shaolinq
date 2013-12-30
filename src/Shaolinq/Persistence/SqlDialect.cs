@@ -8,14 +8,6 @@ namespace Shaolinq.Persistence
 	{
 		public static readonly SqlDialect Default = new SqlDialect();
 
-		public virtual string DeferrableText
-		{
-			get
-			{
-				return "";
-			}
-		}
-
 		public virtual bool SupportsFeature(SqlFeature feature)
 		{
 			switch (feature)
@@ -32,47 +24,6 @@ namespace Shaolinq.Persistence
 					return true;
 				default:
 					return false;
-			}
-		}
-
-		public virtual Pair<string, PropertyDescriptor>[] GetColumnNames(DataAccessModel model, TypeDescriptor typeDescriptor, string namePrefix)
-		{
-			var retval = new Pair<string, PropertyDescriptor>[typeDescriptor.PrimaryKeyProperties.Count];
-
-			var i = 0;
-
-			foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
-			{
-				retval[i] = new Pair<string, PropertyDescriptor>(namePrefix + relatedPropertyDescriptor.PersistedShortName, relatedPropertyDescriptor);
-
-				i++;
-			}
-
-			return retval;
-		}
-
-		public virtual Pair<string, PropertyDescriptor>[] GetColumnNames(DataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
-		{
-			if (propertyDescriptor.IsBackReferenceProperty
-				|| propertyDescriptor.PersistedMemberAttribute != null && propertyDescriptor.PropertyType.IsDataAccessObjectType())
-			{
-				var i = 0;
-				var typeDescriptor = dataAccessModel.GetTypeDescriptor(propertyDescriptor.PropertyType);
-
-				var retval = new Pair<string, PropertyDescriptor>[typeDescriptor.PrimaryKeyProperties.Count];
-
-				foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
-				{
-					retval[i] = new Pair<string, PropertyDescriptor>(propertyDescriptor.PersistedName + relatedPropertyDescriptor.PersistedShortName, relatedPropertyDescriptor);
-
-					i++;
-				}
-
-				return retval;
-			}
-			else
-			{
-				return new[] { new Pair<string, PropertyDescriptor>(propertyDescriptor.PersistedName, propertyDescriptor) };
 			}
 		}
 

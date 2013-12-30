@@ -12,22 +12,27 @@ namespace Shaolinq.Persistence
 {
 	public class TypeDescriptor
 	{
-		public Type Type
-		{
-			get;
-			private set;
-		}
+		public Type Type { get; private set; }
+		public ICollection<PropertyDescriptor> RelatedProperties { get; private set; }
+		public ICollection<PropertyDescriptor> PrimaryKeyProperties { get; private set; }
+		public ICollection<PropertyDescriptor> PersistedProperties { get; private set; }
+		public ICollection<PropertyDescriptor> ComputedTextProperties { get; private set; }
+		public ICollection<PropertyDescriptor> ReferencedObjectPrimaryKeyProperties { get; private set; }
 
 		public bool HasPrimaryKeys
 		{
-			get;
-			private set;
+			get
+			{
+				return this.PrimaryKeyProperties.Count > 0;
+			}
 		}
 
 		public int PrimaryKeyCount
 		{
-			get;
-			private set;
+			get
+			{
+				return this.PrimaryKeyProperties.Count;
+			}
 		}
 
 		public static bool IsSimpleType(Type type)
@@ -105,12 +110,6 @@ namespace Shaolinq.Persistence
 
 			return retval;
 		}
-        
-		public ICollection<PropertyDescriptor> PrimaryKeyProperties
-		{
-			get;
-			private set;
-		}
 
 		public PropertyDescriptor GetPropertyDescriptorByColumnName(string columnName)
 		{
@@ -136,78 +135,44 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
-		public ICollection<PropertyDescriptor> RelatedProperties
-		{
-			get;
-			private set;
-		}
-
 		public PropertyDescriptor GetRelatedProperty(Type type)
 		{
 			PropertyDescriptor retval;
 
-			if (!relatedProperties.TryGetValue(type, out retval))
+			if (!this.relatedPropertiesByType.TryGetValue(type, out retval))
 			{
-				retval = this.RelatedProperties.Filter
-					(
-					c =>
+				Func<PropertyDescriptor, bool> isForType = delegate(PropertyDescriptor c)
+				{
+					if (type.IsAssignableFrom(c.PropertyType))
+					{
+						return true;
+					}
+
+					if (c.PropertyType.IsGenericType && typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(c.PropertyType.GetGenericTypeDefinition()))
+					{
+						if (c.PropertyType.GetGenericArguments()[0] == type)
 						{
-							if (type.IsAssignableFrom(c.PropertyType))
-							{
-								return true;
-							}
-
-							if (c.PropertyType.IsGenericType && typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(c.PropertyType.GetGenericTypeDefinition()))
-							{
-								if (c.PropertyType.GetGenericArguments()[0] == type)
-								{
-									return true;
-								}
-							}
-
-							return false;
+							return true;
 						}
-					).FirstOrDefault();
+					}
+
+					return false;
+				};
+
+				retval = this.RelatedProperties.FirstOrDefault(isForType);
 
 				if (retval == null)
 				{
 					throw new InvalidOperationException(String.Format("Unable to find related property for type '{0}' on type '{1}'", type.Name, this.Type.Name));
 				}
 
-				relatedProperties[type] = retval;
+				this.relatedPropertiesByType[type] = retval;
 			}
 
 			return retval;
 		}
 
-		private readonly Dictionary<Type, PropertyDescriptor> relatedProperties = new Dictionary<Type, PropertyDescriptor>();
-
-		public ICollection<PropertyDescriptor> PersistedProperties
-		{
-			get
-			{
-				if (persistedProperties == null)
-				{
-					persistedProperties = new ReadOnlyCollection<PropertyDescriptor>(propertyDescriptorsByPropertyInfo.Values.ToList());
-				}
-
-				return persistedProperties;
-			}
-		}
-		private ICollection<PropertyDescriptor> persistedProperties;
-
-
-		public ICollection<PropertyDescriptor> ReferencedObjectPrimaryKeyProperties
-		{
-			get;
-			private set;
-		}
-
-		public ICollection<PropertyDescriptor> ComputedTextProperties
-		{
-			get;
-			private set;
-		}
+		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
 
 		private bool IsValidDataType(Type type)
 		{
@@ -288,9 +253,7 @@ namespace Shaolinq.Persistence
 
 				if (attribute != null)
 				{
-					PropertyDescriptor propertyDescriptor;
-
-					propertyDescriptor = new PropertyDescriptor(this, type, propertyInfo);
+					var propertyDescriptor = new PropertyDescriptor(this, type, propertyInfo);
 
 					if (propertyInfo.GetGetMethod() == null)
 					{
@@ -438,26 +401,9 @@ namespace Shaolinq.Persistence
 			}
 
 			this.RelatedProperties = new ReadOnlyCollection<PropertyDescriptor>(relatedProperties);
-            
-			var primaryKeys = new List<PropertyDescriptor>();
-
-			foreach (var propertyDescriptor in this.PersistedProperties)
-			{
-				var primaryKeyAttribute = propertyDescriptor.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
-
-				if (primaryKeyAttribute != null && primaryKeyAttribute.IsPrimaryKey)
-				{
-					primaryKeys.Add(propertyDescriptor);
-				}
-			}
-
-			this.PrimaryKeyProperties = new ReadOnlyCollection<PropertyDescriptor>(primaryKeys);
-
-			this.HasPrimaryKeys = primaryKeys.Count > 0;
-			this.PrimaryKeyCount = primaryKeys.Count;
-
-			var computedTextProperties = this.persistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList();
-			this.ComputedTextProperties = new ReadOnlyCollection<PropertyDescriptor>(computedTextProperties);
+			this.PersistedProperties = new ReadOnlyCollection<PropertyDescriptor>(propertyDescriptorsByPropertyInfo.Values.ToList());
+			this.PrimaryKeyProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
+			this.ComputedTextProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
 		}
 
 		public override string ToString()
