@@ -10,6 +10,7 @@ namespace Shaolinq.Persistence
 		AlterTableAddConstraints,
 		IndexNameCasing,
 		IndexToLower,
+		InsertIntoReturning,
 		SupportsAndPrefersInlineForeignKeysWherePossible
 	}
 }

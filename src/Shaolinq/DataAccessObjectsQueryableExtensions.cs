@@ -27,9 +27,9 @@ namespace Shaolinq
 		{
 			queryable.DataAccessModel.FlushCurrentTransaction();
 
-			var transactionContext = queryable.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
+			var transactionContext = queryable.DataAccessModel.AmbientTransactionManager.GetCurrentContext(true);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DatabaseConnection))
+			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DataAccessModel.GetCurrentSqlDatabaseContext()))
 			{
 				var expression = (Expression)Expression.Call(null, MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof(DataAccessObjectsQueryable<T>)), condition);
 

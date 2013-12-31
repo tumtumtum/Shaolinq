@@ -989,13 +989,18 @@ namespace Shaolinq.Persistence.Linq
 
 		protected string ignoreAlias;
 		protected string replaceAlias;
-		private readonly string identifierQuoteString;
+		protected readonly string identifierQuoteString;
+
+		protected virtual void WriteTableName(string tableName)
+		{
+			this.AppendFullyQualifiedQuotedTableName(tableName, this.Write);
+		}
 
 		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
 			this.Write("DELETE ");
 			this.Write("FROM ");
-			this.WriteQuotedIdentifier(deleteExpression.TableName);
+			this.WriteTableName(deleteExpression.TableName);
 			this.WriteLine();
 			this.Write(" WHERE ");
 			this.WriteLine();
@@ -1055,7 +1060,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
 			this.Write("CREATE TABLE ");
-			this.WriteQuotedIdentifier(createTableExpression.TableName);
+			this.WriteTableName(createTableExpression.TableName);
 			this.WriteLine();
 			this.Write("(");
 			
@@ -1093,7 +1098,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			this.WriteLine();
-			;
 			this.WriteLine(");");
 			this.WriteLine();
 
@@ -1157,7 +1161,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
 		{
 			this.Write("REFERENCES ");
-			this.WriteQuotedIdentifier(referencesColumnExpression.ReferencedTableName);
+			this.WriteTableName(referencesColumnExpression.ReferencedTableName);
 			this.Write("(");
 
 			for (var i = 0; i < referencesColumnExpression.ReferencedColumnNames.Count; i++)
@@ -1234,6 +1238,7 @@ namespace Shaolinq.Persistence.Linq
 							{
 								this.Write(", ");
 							}
+							i++;
 						}
 					}
 
@@ -1264,6 +1269,8 @@ namespace Shaolinq.Persistence.Linq
 							{
 								this.Write(", ");
 							}
+
+							i++;
 						}
 
 						this.Write(")");
@@ -1314,12 +1321,19 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitAlterTable(SqlAlterTableExpression alterTableExpression)
 		{
 			this.Write("ALTER TABLE ");
-			this.WriteQuotedIdentifier(alterTableExpression.TableName);
+			this.WriteTableName(alterTableExpression.TableName);
 			this.Write(" ");
 			this.VisitExpressionList(alterTableExpression.Actions);
 			this.WriteLine(";");
 
 			return alterTableExpression;
+		}
+
+		public virtual void AppendFullyQualifiedQuotedTableName(string tableName, Action<string> append)
+		{
+			append(this.identifierQuoteString);
+			append(tableName);
+			append(this.identifierQuoteString);
 		}
 	}
 }

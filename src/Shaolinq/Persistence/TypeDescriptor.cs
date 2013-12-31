@@ -19,6 +19,21 @@ namespace Shaolinq.Persistence
 		public ICollection<PropertyDescriptor> ComputedTextProperties { get; private set; }
 		public ICollection<PropertyDescriptor> ReferencedObjectPrimaryKeyProperties { get; private set; }
 
+		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
+		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
+		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
+		private readonly IDictionary<PropertyInfo, PropertyDescriptor> propertyDescriptorsByPropertyInfo;
+
+		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
+
+		public string TypeName
+		{
+			get
+			{
+				return this.Type.Name;
+			}
+		}
+
 		public bool HasPrimaryKeys
 		{
 			get
@@ -55,16 +70,12 @@ namespace Shaolinq.Persistence
 			return false;
 		}
 
-		public string GetPersistedName(DataAccessModel model)
+		public string PersistedName
 		{
-			var connection = model.GetDatabaseConnection(this.Type);
-		
-			return GetPersistedName(connection);
-		}
-
-		public string GetPersistedName(SqlDatabaseContext databaseConnection)
-		{
-			return (databaseConnection.SchemaNamePrefix ?? "") + this.DataAccessObjectAttribute.GetName(this.Type);
+			get
+			{
+				return this.DataAccessObjectAttribute.GetName(this.Type);
+			}
 		}
 
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; private set; }
@@ -74,11 +85,6 @@ namespace Shaolinq.Persistence
 			return relationshipInfos.Values;
 		}
 
-		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos; 
-		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
-		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
-		private readonly IDictionary<PropertyInfo, PropertyDescriptor> propertyDescriptorsByPropertyInfo;
-		
 		public TypeRelationshipInfo GetRelationshipInfo(TypeDescriptor relatedTypeDescriptor)
 		{
 			TypeRelationshipInfo retval;
@@ -172,9 +178,7 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
-		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
-
-		private bool IsValidDataType(Type type)
+		private static bool IsValidDataType(Type type)
 		{
 			var underlyingType = Nullable.GetUnderlyingType(type);
 
@@ -331,8 +335,6 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-			// Load related properties
-
 			var relatedProperties = new List<PropertyDescriptor>();
 
 			foreach (var propertyInfo in this.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -408,7 +410,7 @@ namespace Shaolinq.Persistence
 
 		public override string ToString()
 		{
-			return "TypeDescriptor: "+ this.Type.ToString();
+			return "TypeDescriptor: " + this.Type.Name;
 		}
 	}
 }

@@ -10,9 +10,9 @@ namespace Shaolinq.Postgres.Shared
 	public abstract class PostgresSharedDatabaseCreator
 		: DatabaseCreator
 	{
-		protected readonly SystemDataBasedDatabaseConnection  connection;
+		protected readonly SystemDataBasedSqlDatabaseContext  connection;
 
-		protected PostgresSharedDatabaseCreator(SystemDataBasedDatabaseConnection connection, DataAccessModel model)
+		protected PostgresSharedDatabaseCreator(SystemDataBasedSqlDatabaseContext connection, DataAccessModel model)
 			: base(model)
 		{
 			this.connection = connection;

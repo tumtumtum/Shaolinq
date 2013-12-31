@@ -14,7 +14,7 @@ namespace Shaolinq.Sqlite
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
-			return new SqliteSqlDatabaseContext(this.FileName, this.SchemaNamePrefix);
+			return new SqliteSqlDatabaseContext(this.FileName, this.SchemaName, this.TableNamePrefix, this.Categories);
 		}
 	}
 }

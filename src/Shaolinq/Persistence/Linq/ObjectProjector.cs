@@ -20,12 +20,12 @@ namespace Shaolinq.Persistence.Linq
 		protected SelectFirstType selectFirstType;
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext databaseConnection, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
 		{
 			this.provider = provider;
 			this.DataAccessModel = dataAccessModel;
 			this.FormatResult = formatResult;
-			this.DatabaseConnection = databaseConnection;
+			this.DatabaseConnection = sqlDatabaseContext;
 			this.selectFirstType = selectFirstType;
 			this.relatedDataAccessObjectContext = relatedDataAccessObjectContext;
 		}
@@ -83,8 +83,8 @@ namespace Shaolinq.Persistence.Linq
 		protected readonly object[] placeholderValues;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext databaseConnection, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, databaseConnection, relatedDataAccessObjectContext, selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
+			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, relatedDataAccessObjectContext, selectFirstType)
 		{
 			this.placeholderValues = placeholderValues;
 			this.objectReader = (Func<ObjectProjector, IDataReader, object[], U>)objectReader;

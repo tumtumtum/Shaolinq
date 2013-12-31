@@ -1,14 +1,14 @@
-﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System.IO;
+using System.IO;
 using System.Xml;
 using Platform.Xml.Serialization;
 
-namespace Shaolinq
+namespace Shaolinq.Xml
 {
 	public static class XmlSerializationExtensions
 	{
-		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, TextReader reader, bool transient, SerializationParameters parameters)
+		public static T Create<T>(this DataAccessObjectsQueryable<T> querable, TextReader reader, bool transient, SerializationParameters parameters)
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
@@ -19,7 +19,7 @@ namespace Shaolinq
 			return value;
 		}
 
-		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, TextReader reader, bool transient)
+		public static T Create<T>(this DataAccessObjectsQueryable<T> querable, TextReader reader, bool transient)
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
@@ -30,7 +30,7 @@ namespace Shaolinq
 			return value;
 		}
 
-		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, XmlReader reader, bool transient, SerializationParameters parameters)
+		public static T Create<T>(this DataAccessObjectsQueryable<T> querable, XmlReader reader, bool transient, SerializationParameters parameters)
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
@@ -41,7 +41,7 @@ namespace Shaolinq
 			return value;
 		}
 
-		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, XmlReader reader, bool transient)
+		public static T Create<T>(this DataAccessObjectsQueryable<T> querable, XmlReader reader, bool transient)
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
@@ -52,7 +52,7 @@ namespace Shaolinq
 			return value;
 		}
 
-		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, string xml, bool transient)
+		public static T Create<T>(this DataAccessObjectsQueryable<T> querable, string xml, bool transient)
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();
@@ -63,7 +63,7 @@ namespace Shaolinq
 			return value;
 		}
 
-		public static T NewDataAccessObject<T>(this DataAccessObjectsQueryable<T> querable, string xml, bool transient, SerializationParameters parameters)
+		public static T Create<T>(this DataAccessObjectsQueryable<T> querable, string xml, bool transient, SerializationParameters parameters)
 			where T : class, IDataAccessObject
 		{
 			var serializer = XmlSerializer<T>.New();

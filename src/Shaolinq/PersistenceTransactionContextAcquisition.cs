@@ -9,13 +9,13 @@ namespace Shaolinq
 		: IDisposable
 	{
 		public TransactionContext TransactionContext { get; private set; }
-		public SqlDatabaseContext DatabaseConnection { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
 		public DatabaseTransactionContext DatabaseTransactionContext { get; private set; }
 
-		public PersistenceTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext databaseConnection, DatabaseTransactionContext databaseTransactionContext)
+		public PersistenceTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, DatabaseTransactionContext databaseTransactionContext)
 		{
 			this.TransactionContext = transactionContext;
-			this.DatabaseConnection = databaseConnection;
+			this.SqlDatabaseContext = sqlDatabaseContext;
 			this.DatabaseTransactionContext = databaseTransactionContext;
 		}
 

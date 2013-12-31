@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Linq;
 using System.Linq.Expressions;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Postgres.Shared
@@ -9,11 +9,17 @@ namespace Shaolinq.Postgres.Shared
 	public class PostgresSharedDataDefinitionExpressionAmmender
 		: SqlExpressionVisitor
 	{
+		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private bool foundPrimaryKeyAutoIncrementColumnConstraint;
 
-		public static Expression Ammend(Expression expression)
+		private PostgresSharedDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
 		{
-			var processor = new PostgresSharedDataDefinitionExpressionAmmender();
+			this.sqlDataTypeProvider = sqlDataTypeProvider;
+		}
+
+		public static Expression Ammend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
+		{
+			var processor = new PostgresSharedDataDefinitionExpressionAmmender(sqlDataTypeProvider);
 
 			return processor.Visit(expression);
 		}
@@ -36,7 +42,16 @@ namespace Shaolinq.Postgres.Shared
 
 			if (this.foundPrimaryKeyAutoIncrementColumnConstraint)
 			{
-				retval = new SqlColumnDefinitionExpression(retval.ColumnName, "SERIAL", retval.ConstraintExpressions);
+				var longTypeSqlName = sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
+
+				if (columnDefinitionExpression.ColumnTypeName == longTypeSqlName)
+				{
+					retval = new SqlColumnDefinitionExpression(retval.ColumnName, "BIGSERIAL", retval.ConstraintExpressions);
+				}
+				else
+				{
+					retval = new SqlColumnDefinitionExpression(retval.ColumnName, "SERIAL", retval.ConstraintExpressions);
+				}
 			}
 
 			return retval;

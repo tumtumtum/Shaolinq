@@ -13,10 +13,10 @@ namespace Shaolinq.MySql
 
 		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password,  bool poolConnections)
 		{
-			return Create(databaseName, serverName, userName, password, poolConnections, DatabaseReadMode.ReadWrite);
+			return Create(databaseName, serverName, userName, password, poolConnections, null);
 		}
 
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password,  bool poolConnections, DatabaseReadMode databaseReadMode)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password,  bool poolConnections, string categories)
 		{
 			return new DataAccessModelConfiguration()
 			{
@@ -25,7 +25,7 @@ namespace Shaolinq.MySql
 					new MySqlDatabaseConnectionInfo()
 					{
 						DatabaseName = databaseName,
-						DatabaseReadMode = databaseReadMode,
+						Categories = categories,
 						ServerName = serverName,
 						PoolConnections = true,
 						UserName = userName,

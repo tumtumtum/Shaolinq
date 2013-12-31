@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Transactions;
 
 namespace Shaolinq
@@ -10,6 +10,11 @@ namespace Shaolinq
 		public static void Flush(this TransactionScope scope, DataAccessModel dataAccessModel)
 		{
 			dataAccessModel.FlushCurrentTransaction();
+		}
+
+		public static void SetReadOnly(this TransactionScope scope, DataAccessModel dataAccessModel)
+		{
+			dataAccessModel.SetCurentTransactionReadOnly();
 		}
 
 		public static T Import<T>(this TransactionScope scope, T dataAccessObject)

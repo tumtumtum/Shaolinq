@@ -10,6 +10,9 @@ namespace Shaolinq
 	public class DataAccessModelTransactionManager
 		: IDisposable
 	{
+		[ThreadStatic]
+		private static Dictionary<DataAccessModel, DataAccessModelTransactionManager> AmbientTransactionManagers;
+        
 		/// <summary>
 		/// Gets the <see cref="DataAccessModelTransactionManager "/> for the current <see cref="Shaolinq.DataAccessModel"/> for the current thread.
 		/// </summary>
@@ -21,12 +24,13 @@ namespace Shaolinq
 		public static DataAccessModelTransactionManager GetAmbientTransactionManager(DataAccessModel dataAccessModel)
 		{
 			DataAccessModelTransactionManager retval;
-			var transactionManagers = t_AmbientTransactionManagers;
+			var transactionManagers = AmbientTransactionManagers;
 
 			if (transactionManagers == null)
 			{
 				transactionManagers = new Dictionary<DataAccessModel, DataAccessModelTransactionManager>();
-				t_AmbientTransactionManagers = transactionManagers;
+
+				DataAccessModelTransactionManager.AmbientTransactionManagers = transactionManagers;
 			}
 
 			if (!transactionManagers.TryGetValue(dataAccessModel, out retval))
@@ -38,9 +42,7 @@ namespace Shaolinq
 
 			return retval;
 		}
-		[ThreadStatic]
-		private volatile static Dictionary<DataAccessModel, DataAccessModelTransactionManager> t_AmbientTransactionManagers;
-        
+
 		public DataAccessModel DataAccessModel
 		{
 			get;

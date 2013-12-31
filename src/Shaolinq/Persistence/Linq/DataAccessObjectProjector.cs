@@ -11,8 +11,8 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : IDataAccessObject
 	{
-		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext databaseConnection, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, databaseConnection, objectReader, relatedDataAccessObjectContext, selectFirstType, placeholderValues)
+		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
+			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, objectReader, relatedDataAccessObjectContext, selectFirstType, placeholderValues)
 		{
 		}
 

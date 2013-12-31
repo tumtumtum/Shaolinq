@@ -11,7 +11,7 @@ using System.Transactions;
 namespace Shaolinq.Sqlite
 {
 	public class SqliteSqlDatabaseContext
-		: SystemDataBasedDatabaseConnection
+		: SystemDataBasedSqlDatabaseContext
 	{
 		public override string GetConnectionString()
 		{
@@ -20,10 +20,9 @@ namespace Shaolinq.Sqlite
 
 		private readonly string connectionString;
 		
-		public SqliteSqlDatabaseContext(string fileName, string schemaNamePrefix)
-			: base(fileName, SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance)
+		public SqliteSqlDatabaseContext(string fileName, string schemaName, string tableNamePrefix, string categories)
+			: base(fileName, schemaName, tableNamePrefix, categories, SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance)
 		{
-			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
 			connectionString = "Data Source=" + this.DatabaseName + ";foreign keys=True";
 		}
 

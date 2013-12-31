@@ -21,6 +21,30 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_AutoIncrement_PrimaryKey()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var obj1 = model.Schools.Create();
+				scope.Flush(model);
+
+				var obj2 = model.Schools.Create();
+				scope.Flush(model);
+				Assert.Greater(obj2.Id, obj1.Id);
+
+				var obj3 = model.Schools.Create();
+				scope.Flush(model);
+				Assert.Greater(obj3.Id, obj2.Id);
+
+				var obj4 = model.Schools.Create();
+				scope.Flush(model); 
+				Assert.Greater(obj4.Id, obj3.Id);
+				
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Create_Object_With_Guid_AutoIncrement_PrimaryKey_And_Set_PrimaryKey()
 		{
 			using (var scope = new TransactionScope())

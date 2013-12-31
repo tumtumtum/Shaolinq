@@ -1391,8 +1391,6 @@ namespace Shaolinq.Persistence.Linq
 				columns.Add(new SqlColumnDeclaration(columnName, new SqlColumnExpression(columnType, tableAlias, columnName)));
 			}
 
-			var context = this.DataAccessModel.GetDatabaseConnection(typeDescriptor.Type);
-
 			foreach (var propertyDescriptor in typeDescriptor.RelatedProperties.Filter(c => c.IsBackReferenceProperty).Concat(typeDescriptor.PersistedProperties.Filter(c => c.PropertyType.IsDataAccessObjectType())))
 			{
 				var columnType = propertyDescriptor.PropertyType;
@@ -1431,7 +1429,7 @@ namespace Shaolinq.Persistence.Linq
 			objectOperandByMemberInit[projectorExpression] = primaryKeyObjectOperand;
 
 			var resultType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(elementType);
-			var projection = new SqlProjectionExpression(new SqlSelectExpression(resultType, selectAlias, columns, new SqlTableExpression(resultType, tableAlias, typeDescriptor.GetPersistedName(this.DataAccessModel)), null, null, false), projectorExpression, null);
+			var projection = new SqlProjectionExpression(new SqlSelectExpression(resultType, selectAlias, columns, new SqlTableExpression(resultType, tableAlias, typeDescriptor.PersistedName), null, null, false), projectorExpression, null);
 
 			if ((conditionType == elementType || (conditionType != null && conditionType.IsAssignableFrom(elementType))) && extraCondition != null)
 			{

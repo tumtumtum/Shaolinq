@@ -21,8 +21,8 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_DataDefinitionBuilder()
 		{
-			var dbConnection = this.model.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
-			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model);
+			var dbConnection = this.model.GetCurrentSqlDatabaseContext();
+			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model, string.Empty);
 
 			var formatter = dbConnection.NewQueryFormatter(this.model, dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, dataDefinitionExpressions, SqlQueryFormatterOptions.Default);
 

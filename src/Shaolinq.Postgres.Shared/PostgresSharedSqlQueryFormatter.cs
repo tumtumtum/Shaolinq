@@ -3,6 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+using System.Text;
 using Shaolinq.Postgres;
 ﻿using Shaolinq.Persistence;
 ﻿using Shaolinq.Persistence.Linq;
@@ -13,6 +14,7 @@ namespace Shaolinq.Postgres.Shared
 	public class PostgresSharedSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
+		private readonly string schemaName;
 		public DataAccessModel DataAccessModel { get; private set; }
 
 		protected override char ParameterIndicatorChar
@@ -23,15 +25,16 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		public PostgresSharedSqlQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
+		public PostgresSharedSqlQueryFormatter(DataAccessModel dataAccessModel, string schemaName, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 			: base(expression, options, sqlDataTypeProvider, sqlDialect)
 		{
+			this.schemaName = schemaName;
 			this.DataAccessModel = dataAccessModel;
 		}
 
 		protected override Expression PreProcess(Expression expression)
 		{
-			expression =  PostgresSharedDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression));
+			expression =  PostgresSharedDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), sqlDataTypeProvider);
 
 			return expression;
 		}
@@ -83,9 +86,9 @@ namespace Shaolinq.Postgres.Shared
 				if (!String.IsNullOrEmpty(column.Name))
 				{
 					this.Write(" AS ");
-					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote));
+					this.Write(this.identifierQuoteString);
 					this.Write(column.Name);
-					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote));
+					this.Write(this.identifierQuoteString);
 				}
 			}
 			else
@@ -112,6 +115,21 @@ namespace Shaolinq.Postgres.Shared
 					Visit(selectExpression.Skip);
 				}
 			}
+		}
+
+		public override void AppendFullyQualifiedQuotedTableName(string tableName, Action<string> append)
+		{
+			if (!string.IsNullOrEmpty(this.schemaName))
+			{
+				append(this.identifierQuoteString);
+				append(this.schemaName);
+				append(this.identifierQuoteString);
+				append(".");
+			}
+
+			append(this.identifierQuoteString);
+			append(tableName);
+			append(this.identifierQuoteString);
 		}
 	}
 }

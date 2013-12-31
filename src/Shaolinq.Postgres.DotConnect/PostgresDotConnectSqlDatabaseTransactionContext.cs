@@ -20,8 +20,8 @@ namespace Shaolinq.Postgres.DotConnect
 		private readonly Transaction transaction;
         private PgSqlTransaction dbTransaction;
 
-		public PostgresDotConnectSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(databaseConnection, dataAccessModel, transaction)
+		public PostgresDotConnectSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;
 
@@ -55,7 +55,7 @@ namespace Shaolinq.Postgres.DotConnect
 			var retval = (((PgSqlConnection)this.DbConnection).CreateCommand());
             
 			retval.Transaction = this.dbTransaction;
-			retval.CommandTimeout = (int)this.DatabaseConnection.CommandTimeout.TotalSeconds;
+			retval.CommandTimeout = (int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds;
 			
 			if ((options & SqlCreateCommandOptions.UnpreparedExecute) != 0)
 			{

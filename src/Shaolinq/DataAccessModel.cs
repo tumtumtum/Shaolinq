@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using System.Transactions;
 using Shaolinq.Persistence;
 using Shaolinq.TypeBuilding;
 using Platform;
@@ -22,7 +23,22 @@ namespace Shaolinq
 		public virtual ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 		internal DataAccessObjectProjectionContext DataAccessObjectProjectionContext { get; private set; }
 
-		private readonly List<SqlDatabaseContext> databaseConnections = new List<SqlDatabaseContext>();
+		private struct SqlDatabaseContextsInfo
+		{
+			public uint counter;
+			public List<SqlDatabaseContext> databaseContexts;
+
+			public static SqlDatabaseContextsInfo Create()
+			{
+				return new SqlDatabaseContextsInfo()
+				{
+					databaseContexts = new List<SqlDatabaseContext>()
+				};
+			}
+		}
+
+		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
+
 		private Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>(); 
 		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
 		private readonly Dictionary<Type, Func<Object, PropertyInfoAndValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, PropertyInfoAndValue[]>>();
@@ -82,6 +98,16 @@ namespace Shaolinq
 			}
 		}
 
+		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)
+		{
+			return DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(definitionType.Assembly).GetConcreteType(definitionType);
+		}
+
+		internal Type GetDefinitionTypeFromConcreteType(Type concreteType)
+		{
+			return DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(concreteType.Assembly).GetDefinitionType(concreteType);
+		}
+
 		public virtual TypeDescriptor GetTypeDescriptor(Type type)
 		{
 			return TypeDescriptorProvider.GetProvider(type.Assembly).GetTypeDescriptor(this.GetDefinitionTypeFromConcreteType(type));
@@ -99,17 +125,7 @@ namespace Shaolinq
 			return proxyFunction(this.DataAccessObjectProjectionContext, dataAccessObject);
 		}
 
-		public SqlDatabaseContext GetDatabaseConnection(IDataAccessObject dataAccessObject)
-		{
-			return this.GetDatabaseConnection(dataAccessObject.GetType());
-		}
-
-		public SqlDatabaseContext GetDatabaseConnection(Type type)
-		{
-			return this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
-		}
-
-		public virtual DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
+		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
 			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(forWrite).CurrentDataContext;
 		}
@@ -123,9 +139,39 @@ namespace Shaolinq
 
 			foreach (var databaseConnectionInfo in this.Configuration.DatabaseConnectionInfos)
 			{
-				var newDatabaseConnection = databaseConnectionInfo.CreateSqlDatabaseContext();
+				SqlDatabaseContextsInfo info;
+				var newSqlDatabaseContext = databaseConnectionInfo.CreateSqlDatabaseContext();
 
-				this.databaseConnections.Add(newDatabaseConnection);
+				if (newSqlDatabaseContext.ContextCategories.Length == 0)
+				{
+					if (!this.sqlDatabaseContextsByCategory.TryGetValue(".", out info))
+					{
+						info = SqlDatabaseContextsInfo.Create();
+
+						this.sqlDatabaseContextsByCategory["."] = info;
+					}
+
+					info.databaseContexts.Add(newSqlDatabaseContext);
+				}
+				else
+				{
+					foreach (var category in newSqlDatabaseContext.ContextCategories)
+					{
+						if (!this.sqlDatabaseContextsByCategory.TryGetValue(".", out info))
+						{
+							info = SqlDatabaseContextsInfo.Create();
+
+							this.sqlDatabaseContextsByCategory[category] = info;
+						}
+
+						info.databaseContexts.Add(newSqlDatabaseContext);
+					}
+				}
+			}
+
+			if (!this.sqlDatabaseContextsByCategory.ContainsKey("."))
+			{
+				throw new InvalidDataAccessObjectModelDefinition("Configuration must define at least one root DatabaseContext category");
 			}
 		}
 
@@ -159,7 +205,6 @@ namespace Shaolinq
 		public DataAccessModelConfiguration GetDefaultConfiguration()
 		{
 			var typeName = this.GetType().Name;
-
 			var configuration = DataAccessModel.GetConfiguration(typeName);
 
 			if (configuration != null)
@@ -170,18 +215,6 @@ namespace Shaolinq
 			if (typeName.EndsWith("DataAccessModel"))
 			{
 				configuration = DataAccessModel.GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
-
-				if (configuration != null)
-				{
-					return configuration;
-				}
-			}
-
-			if (this.GetType().Name.EndsWith("DataAccessModel"))
-			{
-				var name = this.GetType().Name;
-
-				configuration = DataAccessModel.GetConfiguration(name.Left(name.Length - "DataAccessModel".Length));
 
 				if (configuration != null)
 				{
@@ -233,20 +266,13 @@ namespace Shaolinq
 		{
 			DataAccessModelTransactionManager.GetAmbientTransactionManager(this).FlushConnections();
 
-			foreach (var context in this.databaseConnections)
+			foreach (var key in this.sqlDatabaseContextsByCategory.Keys)
 			{
-				context.DropAllConnections();
+				foreach (var context in this.sqlDatabaseContextsByCategory[key].databaseContexts)
+				{
+					context.DropAllConnections();
+				}
 			}
-		}
-
-		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)
-		{
-			return DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(definitionType.Assembly).GetConcreteType(definitionType);
-		}
-
-		internal Type GetDefinitionTypeFromConcreteType(Type concreteType)
-		{
-			return DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(concreteType.Assembly).GetDefinitionType(concreteType);
 		}
 
 		public virtual T GetReferenceByPrimaryKey<T>(PropertyInfoAndValue[] primaryKey)
@@ -262,7 +288,7 @@ namespace Shaolinq
 
 			var propertyInfoAndValues = primaryKey;
 
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetDatabaseConnection(typeof(T)), this.GetConcreteTypeFromDefinitionType(typeof(T)), propertyInfoAndValues);
+			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), propertyInfoAndValues);
 
 			if (existing != null)
 			{
@@ -401,7 +427,7 @@ namespace Shaolinq
 		}
 
 		public virtual T NewDataAccessObject<T>()
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			return NewDataAccessObject<T>(false);
 		}
@@ -426,7 +452,7 @@ namespace Shaolinq
 		}
 
 		public virtual T NewDataAccessObject<T>(bool transient)
-			where T : IDataAccessObject
+			where T : class, IDataAccessObject
 		{
 			var retval = this.AssemblyBuildInfo.NewDataAccessObject<T>();
 
@@ -445,21 +471,68 @@ namespace Shaolinq
 			return retval;
 		}
 
-		public virtual SqlDatabaseContext GetCurrentDatabaseConnection()
+		internal IPersistenceQueryProvider NewQueryProvider()
 		{
-			return this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
+			return this.GetCurrentSqlDatabaseContext().NewQueryProvider(this);
 		}
 
-		public virtual SqlDatabaseContext GetCurrentDatabaseConnection(DatabaseReadMode mode)
+		public virtual SqlDatabaseContext GetCurrentSqlDatabaseContext()
+		{
+			var forWrite = Transaction.Current != null;
+
+			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(forWrite);
+			
+			if (transactionContext.SqlDatabaseContext == null)
+			{
+				SqlDatabaseContextsInfo info;
+
+				if (!this.sqlDatabaseContextsByCategory.TryGetValue(transactionContext.DatabaseContextCategoriesKey, out info))
+				{
+					var compositeInfo = SqlDatabaseContextsInfo.Create();
+
+					foreach (var category in transactionContext.DatabaseContextCategories)
+					{
+						info = this.sqlDatabaseContextsByCategory[category];
+
+						compositeInfo.databaseContexts.AddRange(info.databaseContexts);
+					}
+
+					info = this.sqlDatabaseContextsByCategory[transactionContext.DatabaseContextCategoriesKey] = compositeInfo;
+				}
+
+				var index = (int)(info.counter++ % info.databaseContexts.Count);
+
+				transactionContext.SqlDatabaseContext = info.databaseContexts[index];
+			}
+			
+			return transactionContext.SqlDatabaseContext;
+		}
+
+		public virtual void SetCurrentTransactionDatabaseCategories(params string[] categories)
 		{
 			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(false);
 			
-			if (transactionContext.DatabaseConnection == null)
+			if (transactionContext.DatabaseContextCategories == null)
 			{
-				transactionContext.DatabaseConnection = this.databaseConnections[0];
+				foreach (var category in categories)
+				{
+					if (!this.sqlDatabaseContextsByCategory.ContainsKey(category))
+					{
+						throw new InvalidOperationException("Unsupported category: " + category);
+					}
+				}
+
+				transactionContext.DatabaseContextCategories = categories;
 			}
-			
-			return transactionContext.DatabaseConnection;
+			else
+			{
+				throw new InvalidOperationException("Transactions database context categories can only be set before any scope operations are performed");
+			}
+		}
+
+		public virtual void SetCurentTransactionReadOnly()
+		{
+			this.SetCurrentTransactionDatabaseCategories("ReadOnly");
 		}
 
 		public virtual void Create()
@@ -469,7 +542,12 @@ namespace Shaolinq
 
 		public virtual void Create(DatabaseCreationOptions options)
 		{
-			this.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite).NewDatabaseCreator(this).Create((options & DatabaseCreationOptions.DeleteExisting) != 0);
+			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
+			{
+				this.GetCurrentSqlDatabaseContext().NewDatabaseCreator(this).Create((options & DatabaseCreationOptions.DeleteExisting) != 0);
+
+				scope.Complete();
+			}
 		}
 
 		public virtual void FlushCurrentTransaction()

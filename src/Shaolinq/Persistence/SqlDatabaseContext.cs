@@ -3,7 +3,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Transactions;
-using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
@@ -11,9 +10,11 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseContext
 		: IDisposable
 	{
-		public string DatabaseName { get; set; }
+		public string DatabaseName { get; protected set; }
+		public string SchemaName { get; protected set; }
+		public string[] ContextCategories { get; protected set; }
+		public string TableNamePrefix { get; protected set; }
 		public SqlDialect SqlDialect { get; protected set; }
-		public string SchemaNamePrefix { get; protected set; }
 		public SqlDataTypeProvider SqlDataTypeProvider { get; protected set; }
 		
 		public abstract Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options);

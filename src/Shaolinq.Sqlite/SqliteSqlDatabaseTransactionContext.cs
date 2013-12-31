@@ -32,8 +32,8 @@ namespace Shaolinq.Sqlite
 			return false;
 		}
 
-		public SqliteSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(databaseConnection, dataAccessModel, transaction)
+		public SqliteSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{
 		}
 
@@ -44,7 +44,7 @@ namespace Shaolinq.Sqlite
 
 		public override void Dispose()
 		{
-			if (!String.Equals(this.DatabaseConnection.DatabaseName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+			if (!String.Equals(this.SqlDatabaseContext.DatabaseName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
 				base.Dispose();
 			}

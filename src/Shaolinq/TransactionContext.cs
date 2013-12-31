@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Transactions;
@@ -12,9 +12,9 @@ namespace Shaolinq
 		: IEnlistmentNotification, IDisposable
 	{
 		public Transaction Transaction { get; set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; set; }
 		public DataAccessModel DataAccessModel { get; private set; }
-
-		public SqlDatabaseContext DatabaseConnection { get; set; }
+		internal readonly IDictionary<SqlDatabaseContext, TransactionEntry> persistenceTransactionContextsByStoreContexts;
 
 		public DataAccessObjectDataContext CurrentDataContext
 		{
@@ -22,7 +22,7 @@ namespace Shaolinq
 			{
 				if (this.dataAccessObjectDataContext == null)
 				{
-					this.dataAccessObjectDataContext = new DataAccessObjectDataContext(this.DataAccessModel, this.Transaction == null);
+					this.dataAccessObjectDataContext = new DataAccessObjectDataContext(this.DataAccessModel, this.DataAccessModel.GetCurrentSqlDatabaseContext(), this.Transaction == null);
 				}
 
 				return this.dataAccessObjectDataContext;
@@ -30,10 +30,36 @@ namespace Shaolinq
 		}
 		internal DataAccessObjectDataContext dataAccessObjectDataContext;
 
+
+		public string[] DatabaseContextCategories
+		{
+			get
+			{
+				return databaseContextCategories;
+			}
+			set
+			{
+				databaseContextCategories = value;
+
+				if (value == null || value.Length == 0)
+				{
+					this.DatabaseContextCategoriesKey = ".";
+				}
+				else
+				{
+					this.DatabaseContextCategoriesKey = string.Join(",", value);
+				}
+			}
+		}
+		private string[] databaseContextCategories;
+
+		public string DatabaseContextCategoriesKey { get; private set; }
+
 		public TransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			this.DataAccessModel = dataAccessModel;
 			this.Transaction = transaction;
+			this.DatabaseContextCategoriesKey = ".";
 
 			persistenceTransactionContextsByStoreContexts = new Dictionary<SqlDatabaseContext, TransactionEntry>(PrimeNumbers.Prime7);
 		}
@@ -48,34 +74,32 @@ namespace Shaolinq
 			}
 		}
 
-		internal readonly IDictionary<SqlDatabaseContext, TransactionEntry> persistenceTransactionContextsByStoreContexts;
-
-		public virtual PersistenceTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext databaseConnection)
+		public virtual PersistenceTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext sqlDatabaseContext)
 		{
 			DatabaseTransactionContext retval;
 
 			if (this.Transaction == null)
 			{
-				retval = databaseConnection.NewDataTransactionContext(this.DataAccessModel, null);
+				retval = sqlDatabaseContext.NewDataTransactionContext(this.DataAccessModel, null);
 
-				return new PersistenceTransactionContextAcquisition(this, databaseConnection, retval);
+				return new PersistenceTransactionContextAcquisition(this, sqlDatabaseContext, retval);
 			}
 			else
 			{
 				TransactionEntry outValue;
 			
-				if (persistenceTransactionContextsByStoreContexts.TryGetValue(databaseConnection, out outValue))
+				if (persistenceTransactionContextsByStoreContexts.TryGetValue(sqlDatabaseContext, out outValue))
 				{
 					retval = outValue.databaseTransactionContext;
 				}
 				else
 				{
-					retval = databaseConnection.NewDataTransactionContext(this.DataAccessModel, this.Transaction);
+					retval = sqlDatabaseContext.NewDataTransactionContext(this.DataAccessModel, this.Transaction);
 
-					persistenceTransactionContextsByStoreContexts[databaseConnection] = new TransactionEntry(retval);
+					persistenceTransactionContextsByStoreContexts[sqlDatabaseContext] = new TransactionEntry(retval);
 				}
 
-				return new PersistenceTransactionContextAcquisition(this, databaseConnection, retval);
+				return new PersistenceTransactionContextAcquisition(this, sqlDatabaseContext, retval);
 			}
 		}
 
@@ -134,9 +158,9 @@ namespace Shaolinq
 		{
 			try
 			{
-				if (this.CurrentDataContext != null)
+				if (this.dataAccessObjectDataContext != null)
 				{
-					this.CurrentDataContext.Commit(this, false);
+					this.dataAccessObjectDataContext.Commit(this, false);
 				}
 
 				foreach (var persistenceTransactionContext in persistenceTransactionContextsByStoreContexts.Values)

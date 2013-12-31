@@ -15,13 +15,15 @@ namespace Shaolinq.Persistence.Linq
 		private readonly SqlDialect sqlDialect;
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private readonly DataAccessModel model;
+		private readonly string tableNamePrefix;
 		private readonly List<Expression> createTableExpressions;
 		private List<Expression> currentTableConstraints;
 
-		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model)
+		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, string tableNamePrefix)
 		{
-			this.model = model; 
+			this.model = model;
 			this.sqlDialect = sqlDialect;
+			this.tableNamePrefix = tableNamePrefix;
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 
 			this.createTableExpressions = new List<Expression>();
@@ -88,7 +90,7 @@ namespace Shaolinq.Persistence.Linq
 		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ForeignKeyColumnInfo[] columnNamesAndReferencedTypeProperties)
 		{
 			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(referencingProperty.PropertyType);
-			var referencedTableName = relatedPropertyTypeDescriptor.GetPersistedName(this.model);
+			var referencedTableName = relatedPropertyTypeDescriptor.PersistedName;
 
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required);
 			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible);
@@ -155,7 +157,7 @@ namespace Shaolinq.Persistence.Linq
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
 					var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
-					var referencedTableName = relatedPropertyTypeDescriptor.GetPersistedName(this.model);
+					var referencedTableName = relatedPropertyTypeDescriptor.PersistedName;
 					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, relatedPropertyTypeDescriptor, referencedTableName);
 
 					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
@@ -178,8 +180,10 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
-			
-			return new SqlCreateTableExpression(typeDescriptor.GetPersistedName(this.model), columnExpressions, currentTableConstraints);
+
+			var tableName = tableNamePrefix != null ? tableNamePrefix + typeDescriptor.PersistedName : typeDescriptor.PersistedName;
+
+			return new SqlCreateTableExpression(tableName, columnExpressions, currentTableConstraints);
 		}
 
 		private Expression Build()
@@ -192,9 +196,9 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlStatementListExpression(new ReadOnlyCollection<Expression>(this.createTableExpressions));
 		}
 
-		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model)
+		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, string tableNamePrefix)
 		{
-			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model);
+			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model, tableNamePrefix);
 
 			var retval = builder.Build();
 

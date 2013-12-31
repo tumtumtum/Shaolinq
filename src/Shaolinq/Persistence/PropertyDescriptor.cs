@@ -174,5 +174,10 @@ namespace Shaolinq.Persistence
 			this.IndexAttributes = new ReadOnlyCollection<IndexAttribute>(indexAttributes);
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
 		}
+
+		public override string ToString()
+		{
+			return string.Format("PropertyDescriptor: {0}.{1}", this.DeclaringTypeDescriptor.TypeName, this.PropertyName);
+		}
 	}
 }

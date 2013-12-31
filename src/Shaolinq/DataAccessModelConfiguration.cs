@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
-using System.Collections.Generic;
+using System;
 using System.Text.RegularExpressions;
 using Platform;
 using Platform.Xml.Serialization;
@@ -15,7 +14,7 @@ namespace Shaolinq
 		public class DatabaseConnectionInfoDynamicTypeProvider
 			: IXmlListElementDynamicTypeProvider
 		{
-			private static readonly Regex NameRegex = new Regex("([a-zA-Z0-9]+)DatabaseConnection");
+			private static readonly Regex NameRegex = new Regex("([a-zA-Z0-9]+)SqlDatabaseContext");
 
 			public DatabaseConnectionInfoDynamicTypeProvider(SerializationMemberInfo memberInfo, TypeSerializerCache cache, SerializerOptions options)
 			{
@@ -59,7 +58,7 @@ namespace Shaolinq
 						return type;
 					}
 
-					throw new NotSupportedException(String.Format("ContextProviderType: {0}.  Tried Explicit: {1}" + reader.Name, type));
+					throw new NotSupportedException(String.Format("ContextProviderType: {0}.  Tried Explicit: {1}" + reader.Name, typeName));
 				}
 			}
 

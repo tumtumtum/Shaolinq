@@ -374,7 +374,6 @@ namespace Shaolinq.TypeBuilding
 				else
 				{
 					generator.Emit(OpCodes.Ldarg_0);
-					///generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());	
 					generator.Emit(OpCodes.Ldfld, dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueFields[propertyDescriptor.PropertyName]);
 					generator.Emit(OpCodes.Ldnull);
@@ -1353,7 +1352,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldc_I4_1);
 						generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
 
-						EmitUpdatedComputedPropertes(generator, propertyBuilder.Name, currentPropertyDescriptor == null ? false : currentPropertyDescriptor.IsPrimaryKey);
+						EmitUpdatedComputedPropertes(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
 
 						generator.Emit(OpCodes.Ret);
 					}
@@ -1596,7 +1595,7 @@ namespace Shaolinq.TypeBuilding
 						privateGenerator.MarkLabel(computeLabel);
 					}
 
-					EmitUpdatedComputedPropertes(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor == null ? false : currentPropertyDescriptor.IsPrimaryKey);
+					EmitUpdatedComputedPropertes(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
 
 					privateGenerator.Emit(OpCodes.Ret);
 

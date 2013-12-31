@@ -12,24 +12,23 @@ using Shaolinq.Postgres.Shared;
 namespace Shaolinq.Postgres.DotConnect
 {
     public class PostgresDotConnectSqlDatabaseContext
-        : SystemDataBasedDatabaseConnection
+        : SystemDataBasedSqlDatabaseContext
     {
-	    public string Host { get; set; }
+		public int Port { get; set; }
+		public string Host { get; set; }
 	    public string Userid { get; set; }
 	    public string Password { get; set; }
 	    public string Database { get; set; }
-	    public int Port { get; set; }
+	    internal readonly string connectionString;
+		internal readonly string databaselessConnectionString;
 
 		public override string GetConnectionString()
         {
             return connectionString;
         }
 
-        internal readonly string connectionString;
-        internal readonly string databaselessConnectionString;
-
-		public PostgresDotConnectSqlDatabaseContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, int commandTimeoutSeconds, bool nativeUuids, string schemaNamePrefix, DateTimeKind dateTimeKindForUnspecifiedDateTimeKinds)
-			: base(database, PostgresSharedSqlDialect.Default, new PostgresSharedSqlDataTypeProvider(nativeUuids, dateTimeKindForUnspecifiedDateTimeKinds))
+        public PostgresDotConnectSqlDatabaseContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, int commandTimeoutSeconds, bool nativeUuids, string schemaName, string tableNamePrefix, string categories, DateTimeKind dateTimeKindForUnspecifiedDateTimeKinds)
+			: base(database, schemaName, tableNamePrefix, categories, PostgresSharedSqlDialect.Default, new PostgresSharedSqlDataTypeProvider(nativeUuids, dateTimeKindForUnspecifiedDateTimeKinds))
         {
             this.Host = host;
             this.Userid = userid;
@@ -37,22 +36,22 @@ namespace Shaolinq.Postgres.DotConnect
             this.Database = database;
             this.Port = port; 
             this.CommandTimeout = TimeSpan.FromSeconds(commandTimeoutSeconds);
-			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
-
+			
             var sb = new PgSqlConnectionStringBuilder
-                         {
-                             Host = host,
-                             UserId = userid,
-                             Password = password,
-                             Port = port,
-                             Pooling = pooling,
-                             Enlist = false,
-                             ConnectionTimeout = connectionTimeoutSeconds,
-                             Charset = "UTF8",
-                             Unicode = true,
-                             MaxPoolSize = maxPoolSize,
-                             DefaultCommandTimeout = commandTimeoutSeconds
-                         };
+			{
+				Host = host,
+				UserId = userid,
+				Password = password,
+				Port = port,
+				Pooling = pooling,
+				Enlist = false,
+				ConnectionTimeout = connectionTimeoutSeconds,
+				Charset = "UTF8",
+				Unicode = true,
+				MaxPoolSize = maxPoolSize,
+				DefaultCommandTimeout = commandTimeoutSeconds
+			};
+
             databaselessConnectionString = sb.ConnectionString;
             
             sb.Database = database;
@@ -66,7 +65,7 @@ namespace Shaolinq.Postgres.DotConnect
 
 		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
         {
-            return new PostgresSharedSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
+            return new PostgresSharedSqlQueryFormatter(dataAccessModel, this.SchemaName, sqlDataTypeProvider, sqlDialect, expression, options);
         }
 
 		public override DbProviderFactory NewDbProviderFactory()

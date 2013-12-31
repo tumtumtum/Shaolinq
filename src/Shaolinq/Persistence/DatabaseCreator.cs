@@ -29,20 +29,19 @@ namespace Shaolinq.Persistence
 		
 		protected virtual void CreateDatabaseSchema()
 		{
-			var connection = this.model.GetCurrentDatabaseConnection(DatabaseReadMode.ReadWrite);
+			var sqlDatabaseContext = this.model.GetCurrentSqlDatabaseContext();
 
-			using (var scope = new TransactionScope(TransactionScopeOption.Suppress))
+			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
 			{
-				using (var dataTransactionContext = connection.NewDataTransactionContext(this.model, null))
+				using (var dataTransactionContext = sqlDatabaseContext.NewDataTransactionContext(this.model, null))
 				{
-					using (connection.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
+					using (sqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{
-						var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(connection.SqlDataTypeProvider, connection.SqlDialect, this.model);
+						var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(sqlDatabaseContext.SqlDataTypeProvider, sqlDatabaseContext.SqlDialect, this.model, sqlDatabaseContext.TableNamePrefix);
 
-						var formatter = connection.NewQueryFormatter(this.model, connection.SqlDataTypeProvider, connection.SqlDialect, dataDefinitionExpressions, SqlQueryFormatterOptions.Default);
+						var formatter = sqlDatabaseContext.NewQueryFormatter(this.model, sqlDatabaseContext.SqlDataTypeProvider, sqlDatabaseContext.SqlDialect, dataDefinitionExpressions, SqlQueryFormatterOptions.Default);
 
 						var result = formatter.Format();
-
 
 						using (var command = ((SqlDatabaseTransactionContext)dataTransactionContext).CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
 						{

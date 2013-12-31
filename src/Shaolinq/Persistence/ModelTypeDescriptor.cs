@@ -68,7 +68,7 @@ namespace Shaolinq.Persistence
 
 		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model)
 		{
-			return this.typeDescriptors.Values.Sorted((x, y) => String.Compare(x.GetPersistedName(model), y.GetPersistedName(model), System.StringComparison.Ordinal));
+			return this.typeDescriptors.Values.Sorted((x, y) => String.Compare(x.PersistedName, y.PersistedName, System.StringComparison.Ordinal));
 		}
 
 		public TypeDescriptor GetQueryableTypeDescriptor(Type type)

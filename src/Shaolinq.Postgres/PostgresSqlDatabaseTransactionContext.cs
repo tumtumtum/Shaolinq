@@ -23,8 +23,8 @@ namespace Shaolinq.Postgres
 		private readonly Transaction transaction;
 		private NpgsqlTransaction dbTransaction;
 
-		public PostgresSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(databaseConnection, dataAccessModel, transaction)
+		public PostgresSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;
 

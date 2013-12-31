@@ -8,7 +8,7 @@ namespace Shaolinq.Persistence
 	public abstract class DatabaseConnectionInfo
 	{
 		[XmlAttribute]
-		public DatabaseReadMode DatabaseReadMode { get; set; }
+		public string Categories { get; set; }
 
 		[XmlAttribute]
 		public int CommandTimeout { get; set; }
@@ -17,14 +17,18 @@ namespace Shaolinq.Persistence
 		public int ConnectionTimeout { get; set; }
 
 		[XmlAttribute]
-		public string SchemaNamePrefix { get; set; }
+		public string TableNamePrefix { get; set; }
+
+		[XmlAttribute]
+		public string SchemaName { get; set; }
 
 		protected DatabaseConnectionInfo()
 		{
 			this.CommandTimeout = 120;
 			this.ConnectionTimeout = 60;
-			this.SchemaNamePrefix = "";
-			this.DatabaseReadMode = DatabaseReadMode.ReadWrite;
+			this.SchemaName = ""; 
+			this.TableNamePrefix = "";
+			this.Categories = "";
 		}
 
 		public abstract SqlDatabaseContext CreateSqlDatabaseContext();

@@ -22,6 +22,8 @@ namespace Shaolinq.Persistence
 					return true;
 				case SqlFeature.SelectForUpdate:
 					return true;
+				case SqlFeature.InsertIntoReturning:
+					return false;
 				default:
 					return false;
 			}

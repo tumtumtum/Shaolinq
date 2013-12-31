@@ -12,14 +12,14 @@ using Shaolinq.Persistence.Linq;
 ﻿namespace Shaolinq.Postgres
 {
 	public class PostgresSqlDatabaseContext
-		: SystemDataBasedDatabaseConnection
+		: SystemDataBasedSqlDatabaseContext
 	{
 		public string Host { get; set; }
 		public string Userid { get; set; }
 		public string Password { get; set; }
 		public string Database { get; set; }
 		public int Port { get; set; }
-
+		
 		public override string GetConnectionString()
 		{
 			return connectionString;
@@ -28,15 +28,14 @@ using Shaolinq.Persistence.Linq;
 		internal readonly string connectionString;
 		internal readonly string databaselessConnectionString;
 
-		public PostgresSqlDatabaseContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, bool nativeUuids, int commandTimeoutSeconds, string schemaNamePrefix, DateTimeKind dateTimeKindIfUnspecifed)
-			: base(database, PostgresSharedSqlDialect.Default, new PostgresSharedSqlDataTypeProvider(nativeUuids, dateTimeKindIfUnspecifed))
+		public PostgresSqlDatabaseContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, bool nativeUuids, int commandTimeoutSeconds, string schemaName, string tableNamePrefix, string categories, DateTimeKind dateTimeKindIfUnspecifed)
+			: base(database, schemaName, tableNamePrefix, categories, PostgresSharedSqlDialect.Default, new PostgresSharedSqlDataTypeProvider(nativeUuids, dateTimeKindIfUnspecifed))
 		{
 			this.Host = host;
 			this.Userid = userid;
 			this.Password = password;
 			this.Database = database;
 			this.Port = port;
-			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
 			this.CommandTimeout = TimeSpan.FromSeconds(commandTimeoutSeconds);
 
 			connectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", host, userid, password, database, port, pooling, minPoolSize, maxPoolSize, connectionTimeoutSeconds, commandTimeoutSeconds);
@@ -50,7 +49,7 @@ using Shaolinq.Persistence.Linq;
 
 		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
 		{
-			return new PostgresSharedSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
+			return new PostgresSharedSqlQueryFormatter(dataAccessModel, this.SchemaName, sqlDataTypeProvider, sqlDialect, expression, options);
 		}
 
 		public override DbProviderFactory NewDbProviderFactory()

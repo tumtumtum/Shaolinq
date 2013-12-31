@@ -128,7 +128,6 @@
     <Compile Include="DatabaseReadMode.cs" />
     <Compile Include="DataAccessModelAttribute.cs" />
     <Compile Include="DataAccessObjectProjectionContext.cs" />
-    <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DataAccessObjects.cs" />
     <Compile Include="EnvironmentSubstitutor.cs" />
     <Compile Include="ExpectedDataAccessObjectTypeException.cs" />
@@ -238,7 +237,6 @@
     <Compile Include="Persistence\SqlDatabaseContext.cs" />
     <Compile Include="DatabaseTransactionContext.cs" />
     <Compile Include="DataAccessModelConfiguration.cs" />
-    <Compile Include="DataAccessModelDatabaseConnectionInfo.cs" />
     <Compile Include="DataAccessObject.cs" />
     <Compile Include="DataAccessModel.cs" />
     <Compile Include="DataAccessObjectsQueryable.cs" />
@@ -251,7 +249,7 @@
     <Compile Include="DataAccessObjectsAttribute.cs" />
     <Compile Include="RelatedDataAccessObjects.cs" />
     <Compile Include="RelatedDataAccessObjectsAttribute.cs" />
-    <Compile Include="Persistence\SystemDataBasedDatabaseConnection.cs" />
+    <Compile Include="Persistence\SystemDataBasedSqlDatabaseContext.cs" />
     <Compile Include="Persistence\SqlDatabaseTransactionContext.cs" />
     <Compile Include="Persistence\SqlDataType.cs" />
     <Compile Include="Persistence\SqlDataTypeProvider.cs" />
@@ -277,7 +275,7 @@
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="VariableSubstitutor.cs" />
     <Compile Include="WriteOnlyDomainObjectException.cs" />
-    <Compile Include="XmlSerializationExtensions.cs" />
+    <Compile Include="Xml\XmlSerializationExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

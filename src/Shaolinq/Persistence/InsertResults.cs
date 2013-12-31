@@ -5,12 +5,13 @@ using System.Collections.ObjectModel;
 
 namespace Shaolinq.Persistence
 {
-	public class InsertResults
+	public struct InsertResults
 	{
 		public ReadOnlyCollection<IDataAccessObject> ToFixUp { get; private set; }
 		public ReadOnlyCollection<IDataAccessObject> ToRetry { get; private set; }
 
 		public InsertResults(IList<IDataAccessObject> toFixUp, IList<IDataAccessObject> toRetry)
+			: this()
 		{
 			this.ToFixUp = new ReadOnlyCollection<IDataAccessObject>(toFixUp);
 			this.ToRetry = new ReadOnlyCollection<IDataAccessObject>(toRetry);

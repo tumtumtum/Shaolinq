@@ -22,11 +22,6 @@ namespace Shaolinq
 		/// </summary>
 		public DataAccessModel DataAccessModel { get; set; }
 
-		/// <summary>
-		/// A reference to the <see cref="DatabaseConnection"/> related to this object.
-		/// </summary>
-		public SqlDatabaseContext DatabaseConnection { get; set; }
-
 		public LambdaExpression ExtraCondition { get; protected set; }
 
 		/// <summary>
@@ -34,15 +29,14 @@ namespace Shaolinq
 		/// </summary>
 		public virtual void Initialize(DataAccessModel dataAccessModel, Expression expression)
 		{
-			if (this.DataAccessModel != null || this.DatabaseConnection != null)
+			if (this.DataAccessModel != null)
 			{
 				throw new ObjectAlreadyInitializedException(this);
 			}
 
 			this.DataAccessModel = dataAccessModel;
-			this.DatabaseConnection = this.DataAccessModel.GetDatabaseConnection(typeof(T));
 
-			base.Initialize(this.DatabaseConnection.NewQueryProvider(this.DataAccessModel), expression);
+			base.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 
 		public virtual T Create()

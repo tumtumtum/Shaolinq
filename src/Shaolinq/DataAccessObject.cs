@@ -54,7 +54,7 @@ namespace Shaolinq
 
 		protected bool CanHaveNewPrimaryKey(PropertyInfoAndValue[] primaryKey)
 		{
-			if (this.DataAccessModel.GetCurrentDataContext(false).GetObject(this.DataAccessModel.GetDatabaseConnection(this.GetType()), this.GetType(), primaryKey) != null)
+			if (this.DataAccessModel.GetCurrentDataContext(false).GetObject(this.GetType(), primaryKey) != null)
 			{
 				return false;
 			}
@@ -84,7 +84,7 @@ namespace Shaolinq
 		{
 			get
 			{
-				return this.DataAccessModel.GetDatabaseConnection(this.GetType());
+				return this.DataAccessModel.GetCurrentSqlDatabaseContext();
 			}
 		}
 

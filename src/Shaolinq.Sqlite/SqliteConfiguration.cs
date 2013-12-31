@@ -8,10 +8,10 @@ namespace Shaolinq.Sqlite
 	{
 		public static DataAccessModelConfiguration Create(string fileName)
 		{
-			return Create(fileName, DatabaseReadMode.ReadWrite);
+			return Create(fileName, null);
 		}
 
-		public static DataAccessModelConfiguration Create(string fileName, DatabaseReadMode databaseReadMode)
+		public static DataAccessModelConfiguration Create(string fileName, string categories)
 		{
 			return new DataAccessModelConfiguration
 			{
@@ -19,7 +19,7 @@ namespace Shaolinq.Sqlite
        			{
        				new SqliteDatabaseConnectionInfo()
        				{
-       					DatabaseReadMode = databaseReadMode,
+       					Categories = categories,
        					FileName = fileName
        				},
        			}

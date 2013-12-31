@@ -3,7 +3,8 @@
  using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq.Expressions;
+ using System.Linq;
+ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -103,35 +104,29 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public IDbConnection DbConnection
-		{
-			get; set;
-		}
+		public IDbConnection DbConnection { get; set; }
+		public DataAccessModel DataAccessModel { get; private set; }
+		public SystemDataBasedSqlDatabaseContext SqlDatabaseContext { get; private set; }
 
-		public DataAccessModel DataAccessModel
-		{
-			get;
-			private set;
-		}
-
-		public SystemDataBasedDatabaseConnection DatabaseConnection
-		{
-			get;
-			private set;
-		}
-
+		private readonly string tableNamePrefix;
 		private readonly string identifierQuoteString;
+		private readonly bool supportsInsertIntoReturning;
+		private readonly Sql92QueryFormatter queryFormatter;
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
+		private static readonly Regex FormatCommandRegex = new Regex(@"[@\?\$\%\#\!]param[0-9]+", RegexOptions.Compiled);
+		internal static readonly MethodInfo DeleteHelperMethod = typeof(SqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
 
-		protected SqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
+		protected SqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
 		{
-			this.DatabaseConnection = databaseConnection;
-			sqlDataTypeProvider = databaseConnection.SqlDataTypeProvider;
-			identifierQuoteString = databaseConnection.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
-
-			this.DbConnection = databaseConnection.OpenConnection();
-
+			this.SqlDatabaseContext = sqlDatabaseContext;
+			this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
+			this.identifierQuoteString = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
+			this.DbConnection = sqlDatabaseContext.OpenConnection();
 			this.DataAccessModel = dataAccessModel;
+
+			this.tableNamePrefix = this.SqlDatabaseContext.TableNamePrefix;
+			this.queryFormatter = this.SqlDatabaseContext.NewQueryFormatter(dataAccessModel, this.sqlDataTypeProvider, sqlDatabaseContext.SqlDialect, null, SqlQueryFormatterOptions.Default);
+			this.supportsInsertIntoReturning = this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.InsertIntoReturning);
 		}
 
 		~SqlDatabaseTransactionContext()
@@ -156,10 +151,7 @@ namespace Shaolinq.Persistence
 		/// Returns the character used to indicate a parameter within an
 		/// sql string.  Examples include '@' for sql server and '?' for mysql.
 		/// </summary>
-		protected abstract char ParameterIndicatorChar
-		{
-			get;
-		}
+		protected abstract char ParameterIndicatorChar { get; }
 
 		private static DbType GetDbType(Type type)
 		{
@@ -222,7 +214,7 @@ namespace Shaolinq.Persistence
 		{
 			var retval = this.DbConnection.CreateCommand();
 
-			retval.CommandTimeout = (int)this.DatabaseConnection.CommandTimeout.TotalSeconds;
+			retval.CommandTimeout = (int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds;
 
 			return retval;
 		}
@@ -272,8 +264,6 @@ namespace Shaolinq.Persistence
 				throw;
 			}
 		}
-
-		private static readonly Regex FormatCommandRegex = new Regex(@"[@\?\$\%\#\!]param[0-9]+", RegexOptions.Compiled);
 
 		internal static string FormatCommand(IDbCommand command)
 		{
@@ -427,10 +417,12 @@ namespace Shaolinq.Persistence
 					{
 						Logger.Debug(FormatCommand(command));
 					}
+					
+					object result;
 
 					try
 					{
-						command.ExecuteScalar();
+						result = command.ExecuteScalar();
 					}
 					catch (Exception e)
 					{
@@ -452,7 +444,7 @@ namespace Shaolinq.Persistence
 					
 					if (dataAccessObject.DefinesAnyAutoIncrementIntegerProperties)
 					{
-						bool isSingularPrimaryKeyValue = false;
+						var isSingularPrimaryKeyValue = false;
 						var propertyInfos = dataAccessObject.GetIntegerAutoIncrementPropertyInfos();
 
 						if (propertyInfos.Length == 1 && dataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys == 1)
@@ -460,28 +452,36 @@ namespace Shaolinq.Persistence
 							isSingularPrimaryKeyValue = true;
 						}
 
-						var i = 0;
 						var values = new object[propertyInfos.Length];
 
-						foreach (var propertyInfo in propertyInfos)
+						if (this.supportsInsertIntoReturning && isSingularPrimaryKeyValue)
 						{
-							var tableName = typeDescriptor.GetPersistedName(dataAccessObject.DataAccessModel);
-							var columnName = typeDescriptor.GetPropertyDescriptorByPropertyName(propertyInfo.Name).PersistedName;
+							values[0] = Convert.ChangeType(result, propertyInfos[0].PropertyType);
+						}
+						else
+						{
+							var i = 0;
+							
+							var tableName = PrefixedTableName(typeDescriptor.PersistedName);
 
-							var propertyType = propertyInfo.PropertyType.NonNullableType();
-							var value = this.GetLastInsertedAutoIncrementValue(tableName, columnName, isSingularPrimaryKeyValue);
+							foreach (var propertyInfo in propertyInfos)
+							{
+								var columnName = typeDescriptor.GetPropertyDescriptorByPropertyName(propertyInfo.Name).PersistedName;
+								var propertyType = propertyInfo.PropertyType.NonNullableType();
+								var value = this.GetLastInsertedAutoIncrementValue(tableName, columnName, isSingularPrimaryKeyValue);
 
-							if (value == null)
-							{
-								i++;
-							}
-							else if (value.GetType() == propertyType)
-							{
-								values[i++] = value;
-							}
-							else
-							{
-								values[i++] = Convert.ChangeType(value, propertyType);
+								if (value == null)
+								{
+									i++;
+								}
+								else if (value.GetType() == propertyType)
+								{
+									values[i++] = value;
+								}
+								else
+								{
+									values[i++] = Convert.ChangeType(value, propertyType);
+								}
 							}
 						}
 
@@ -489,7 +489,7 @@ namespace Shaolinq.Persistence
 
 						if (dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
-							Update(type, new IDataAccessObject[] { dataAccessObject });
+							Update(type, new [] { dataAccessObject });
 						}
 					}
 
@@ -591,8 +591,8 @@ namespace Shaolinq.Persistence
 
 			command = CreateCommand();
 
-			commandText.Append("UPDATE ").Append(identifierQuoteString);
-			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel)).Append(identifierQuoteString);
+			commandText.Append("UPDATE ");
+			queryFormatter.AppendFullyQualifiedQuotedTableName(PrefixedTableName(typeDescriptor.PersistedName), c => commandText.Append(c));
 			commandText.Append(" SET ");
 
 			for (var i = 0; i < updatedProperties.Count; i++)
@@ -634,16 +634,67 @@ namespace Shaolinq.Persistence
 			return command;
 		}
 
+		private string PrefixedTableName(string tableName)
+		{
+			if (!string.IsNullOrEmpty(tableNamePrefix))
+			{
+				return tableNamePrefix + tableName;
+			}
+
+			return tableName;
+		}
+
+		private void AppendReturningPrimaryKeys(StringBuilder builder, TypeDescriptor typeDescriptor)
+		{
+			if (!this.supportsInsertIntoReturning)
+			{
+				return;
+			}
+
+			var properties = typeDescriptor.PrimaryKeyProperties.Where(c => c.IsAutoIncrement).ToList();
+
+			if (properties.Count != 1)
+			{
+				return;
+			}
+
+			builder.Append(" RETURNING ");
+
+			var i = 0;
+			
+			foreach (var property in properties)
+			{
+				builder.Append(this.identifierQuoteString);
+				builder.Append(property.PersistedName);
+				builder.Append(this.identifierQuoteString);
+
+				if (i++ != properties.Count - 1)
+				{
+					builder.Append(", ");
+				}
+			}
+		}
+
 		protected virtual IDbCommand BuildInsertCommand(TypeDescriptor typeDescriptor, IDataAccessObject dataAccessObject)
 		{
 			IDbCommand command;
 			CommandValue commandValue;
+			StringBuilder commandText;
+
 			var updatedProperties = dataAccessObject.GetChangedProperties();
 
 			if (updatedProperties.Count == 0)
 			{
+				commandText = new StringBuilder();
+
 				command = CreateCommand();
-				command.CommandText = "INSERT INTO " + identifierQuoteString + typeDescriptor.GetPersistedName(this.DataAccessModel) + identifierQuoteString + " DEFAULT VALUES";
+
+				commandText.Append("INSERT INTO ");
+				queryFormatter.AppendFullyQualifiedQuotedTableName(PrefixedTableName(typeDescriptor.PersistedName), c => commandText.Append(c));
+				commandText.Append(" DEFAULT VALUES");
+				this.AppendReturningPrimaryKeys(commandText, typeDescriptor);
+
+				command.CommandText = commandText.ToString();
 
 				return command;
 			}
@@ -659,14 +710,13 @@ namespace Shaolinq.Persistence
 				return command;
 			}
 
-			var commandText = new StringBuilder();
+			commandText = new StringBuilder();
 
 			command = CreateCommand();
 
-			commandText.Append("INSERT INTO ").Append(identifierQuoteString);
-			commandText.Append(typeDescriptor.GetPersistedName(this.DataAccessModel));
-			commandText.Append(identifierQuoteString);
-
+			commandText.Append("INSERT INTO ");			
+			queryFormatter.AppendFullyQualifiedQuotedTableName(PrefixedTableName(typeDescriptor.PersistedName), c => commandText.Append(c));
+		
 			if (updatedProperties.Count > 0 || this.InsertDefaultString == null)
 			{
 				commandText.Append('(');
@@ -683,12 +733,8 @@ namespace Shaolinq.Persistence
 					}
 				}
 
-				commandText.Append(')');
-
-				commandText.Append(" VALUES ");
-
-				commandText.Append('(');
-
+				commandText.Append(") VALUES (");
+				
 				for (int i = 0, lastindex = updatedProperties.Count - 1; i <= lastindex; i++)
 				{
 					var updatedProperty = updatedProperties[i];
@@ -700,7 +746,10 @@ namespace Shaolinq.Persistence
 						commandText.Append(",");
 					}
 				}
+
 				commandText.AppendLine(")");
+
+				this.AppendReturningPrimaryKeys(commandText, typeDescriptor);
 			}
 			else
 			{
@@ -748,7 +797,7 @@ namespace Shaolinq.Persistence
 		
 		public override void Delete(SqlDeleteExpression deleteExpression)
 		{
-			var formatter = this.DatabaseConnection.NewQueryFormatter(this.DataAccessModel, this.DatabaseConnection.SqlDataTypeProvider, this.DatabaseConnection.SqlDialect, deleteExpression, SqlQueryFormatterOptions.Default);
+			var formatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, deleteExpression, SqlQueryFormatterOptions.Default);
 			var formatResult = formatter.Format();
 
 			using (var command = CreateCommand())
@@ -782,8 +831,6 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		internal static readonly MethodInfo DeleteHelperMethod = typeof(SqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
-		
 		public static MethodInfo GetDeleteMethod(Type type)
 		{
 			return DeleteHelperMethod.MakeGenericMethod(type);

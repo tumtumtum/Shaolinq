@@ -31,7 +31,7 @@ namespace Shaolinq.MySql
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
-			return new MySqlSqlDatabaseContext(this.ServerName, this.DatabaseName, this.UserName, this.Password, this.PoolConnections, this.SchemaNamePrefix);
+			return new MySqlSqlDatabaseContext(this.ServerName, this.DatabaseName, this.UserName, this.Password, this.PoolConnections, this.SchemaName, this.TableNamePrefix, this.Categories);
 		}
 	}
 }

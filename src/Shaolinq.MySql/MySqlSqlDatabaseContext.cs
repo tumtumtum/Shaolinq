@@ -11,7 +11,7 @@ using MySql.Data.MySqlClient;
 ﻿namespace Shaolinq.MySql
 {
 	public class MySqlSqlDatabaseContext
-		: SystemDataBasedDatabaseConnection
+		: SystemDataBasedSqlDatabaseContext
 	{
 		public string ServerName { get; private set; }
 		public string Username { get; private set; }
@@ -25,13 +25,12 @@ using MySql.Data.MySqlClient;
 		internal readonly string connectionString;
 		internal readonly string databaselessConnectionString;
 
-		public MySqlSqlDatabaseContext(string serverName, string database, string username, string password, bool poolConnections, string schemaNamePrefix)
-			: base(database, MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance)
+		public MySqlSqlDatabaseContext(string serverName, string database, string username, string password, bool poolConnections, string schemaName, string tableNamePrefix, string categories)
+			: base(database, schemaName, tableNamePrefix, categories, MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance)
 		{
 			this.ServerName = serverName;
 			this.Username = username;
 			this.Password = password;
-			this.SchemaNamePrefix = EnvironmentSubstitutor.Substitute(schemaNamePrefix);
 			
 			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, poolConnections);
 			databaselessConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);

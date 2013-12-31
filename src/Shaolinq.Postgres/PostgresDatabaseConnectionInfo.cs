@@ -50,7 +50,7 @@ namespace Shaolinq.Postgres
 		
 		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
-			return new PostgresSqlDatabaseContext(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.NativeUuids, this.CommandTimeout, this.SchemaNamePrefix, this.DateTimeKindIfUnspecified);
+			return new PostgresSqlDatabaseContext(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.NativeUuids, this.CommandTimeout, this.TableNamePrefix, this.SchemaName, this.Categories, this.DateTimeKindIfUnspecified);
 		}
 	}
 }

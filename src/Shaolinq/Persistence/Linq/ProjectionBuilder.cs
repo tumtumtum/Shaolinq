@@ -20,15 +20,15 @@ namespace Shaolinq.Persistence.Linq
 		private readonly ParameterExpression objectProjector;
 		private readonly ParameterExpression dynamicParameters;
 		private readonly DataAccessModel dataAccessModel;
-		private readonly SqlDatabaseContext databaseConnection;
+		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly Dictionary<string, int> columnIndexes;
 		private static readonly MethodInfo ExecuteSubQueryMethod = typeof(ObjectProjector).GetMethod("ExecuteSubQuery");
 
-		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext databaseConnection, IEnumerable<string> columns)
+		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IEnumerable<string> columns)
 		{
 			var x = 0;
 			this.dataAccessModel = dataAccessModel;
-			this.databaseConnection = databaseConnection;
+			this.sqlDatabaseContext = sqlDatabaseContext;
 
 			columnIndexes = columns.ToDictionaryWithKeys(c => x++);
 
@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence.Linq
 		/// Builds the lambda expression that will perform the projection
 		/// </summary>
 		/// <param name="dataAccessModel">The related data access model</param>
-		/// <param name="databaseConnection">The related <see cref="SqlDatabaseContext"/></param>
+		/// <param name="sqlDatabaseContext">The related <see cref="SqlDatabaseContext"/></param>
 		/// <param name="expression">
 		/// The expression that performs the projection (can be any expression but usually is a MemberInit expression)
 		/// </param>
@@ -50,9 +50,9 @@ namespace Shaolinq.Persistence.Linq
 		/// and an <see cref="IDataReader"/>.  The lambda expression will construct a single
 		/// object for return from the current row in the given <see cref="IDataReader"/>.
 		/// </returns>
-		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext databaseConnection, Expression expression, IEnumerable<string> columns)
+		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression, IEnumerable<string> columns)
 		{
-			var projectionBuilder = new ProjectionBuilder(dataAccessModel, databaseConnection, columns);
+			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, columns);
 
 			var body = projectionBuilder.Visit(expression);
             
@@ -204,7 +204,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var sqlDataType = this.databaseConnection.SqlDataTypeProvider.GetSqlDataType(column.Type);
+				var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
 
 				if (!this.columnIndexes.ContainsKey(column.Name))
 				{

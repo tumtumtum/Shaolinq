@@ -2,10 +2,11 @@
 
 using System;
 using System.Data.Common;
+using System.Linq;
 
 namespace Shaolinq.Persistence
 {
-	public abstract class SystemDataBasedDatabaseConnection
+	public abstract class SystemDataBasedSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		private readonly DbProviderFactory dBProviderFactory;
@@ -28,7 +29,7 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
-		protected SystemDataBasedDatabaseConnection(string databaseName, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
+		protected SystemDataBasedSqlDatabaseContext(string databaseName, string schemaName, string tableNamePrefix, string categories, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
 		{
 			this.CommandTimeout = TimeSpan.FromSeconds(60);
 
@@ -36,6 +37,10 @@ namespace Shaolinq.Persistence
 			this.SqlDataTypeProvider = sqlDataTypeProvider;
 
 			this.DatabaseName = databaseName;
+			this.ContextCategories = categories == null ? new string[0] : categories.Split(',').Select(c => c.Trim()).ToArray();
+
+			this.SchemaName = EnvironmentSubstitutor.Substitute(schemaName);
+			this.TableNamePrefix = EnvironmentSubstitutor.Substitute(tableNamePrefix);
 
 			this.dBProviderFactory = this.NewDbProviderFactory();
 		}

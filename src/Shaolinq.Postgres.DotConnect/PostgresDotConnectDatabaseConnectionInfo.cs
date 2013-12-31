@@ -50,7 +50,7 @@ namespace Shaolinq.Postgres.DotConnect
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
-			return new PostgresDotConnectSqlDatabaseContext(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.CommandTimeout, this.NativeUuids, this.SchemaNamePrefix, this.DateTimeKindIfUnspecified);
+			return new PostgresDotConnectSqlDatabaseContext(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.CommandTimeout, this.NativeUuids, this.SchemaName, this.TableNamePrefix, this.Categories, this.DateTimeKindIfUnspecified);
 		}
 	}
 }

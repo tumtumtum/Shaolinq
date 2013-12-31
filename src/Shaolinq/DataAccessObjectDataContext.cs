@@ -68,94 +68,9 @@ namespace Shaolinq
 
 		#endregion
 
-		#region CacheByDatabaseConnection
-
-		private class CacheByDatabaseConnection<T>
-			: IEnumerable<KeyValuePair<SqlDatabaseContext, ObjectsByIdCache<T>>>
-		{
-			private readonly Dictionary<SqlDatabaseContext, ObjectsByIdCache<T>> objectsByIdCacheByDatabaseConnection;
-
-			public CacheByDatabaseConnection()
-			{
-				this.objectsByIdCacheByDatabaseConnection = new Dictionary<SqlDatabaseContext, ObjectsByIdCache<T>>(PrimeNumbers.Prime17);
-			}
-
-			public void UpgradeNewToUpdated()
-			{
-				foreach (var objectsByIdCache in this.objectsByIdCacheByDatabaseConnection.Values)
-				{
-					objectsByIdCache.UpdateNewToUpdated();
-				}
-			}
-
-			public void AssertObjectsAreReadyForCommit()
-			{
-				foreach (var objectsByIdCache in this.objectsByIdCacheByDatabaseConnection.Values)
-				{
-					objectsByIdCache.AssertObjectsAreReadyForCommit();
-				}
-			}
-
-			public void Deleted(DataAccessObject<T> value)
-			{
-				ObjectsByIdCache<T> objectsById;
-
-				var databaseConnection = value.GetDatabaseConnection();
-
-				if (!this.objectsByIdCacheByDatabaseConnection.TryGetValue(databaseConnection, out objectsById))
-				{
-					return;
-				}
-
-				objectsById.Deleted(value);
-			}
-
-			public DataAccessObject<T> Get(SqlDatabaseContext databaseConnection, Type type, PropertyInfoAndValue[] primaryKey)
-			{
-				ObjectsByIdCache<T> objectsById;
-
-				if (!this.objectsByIdCacheByDatabaseConnection.TryGetValue(databaseConnection, out objectsById))
-				{
-					objectsById = new ObjectsByIdCache<T>();
-
-					this.objectsByIdCacheByDatabaseConnection[databaseConnection] = objectsById;
-				}
-
-				return objectsById.Get(type, primaryKey);
-			}
-
-			public DataAccessObject<T> Cache(DataAccessObject<T> value, bool forImport)
-			{
-				ObjectsByIdCache<T> objectsById;
-                
-				var databaseConnection = value.GetDatabaseConnection();
-
-				if (!this.objectsByIdCacheByDatabaseConnection.TryGetValue(databaseConnection, out objectsById))
-				{
-					objectsById = new ObjectsByIdCache<T>();
-
-					this.objectsByIdCacheByDatabaseConnection[databaseConnection] = objectsById;
-				}
-                
-				return objectsById.Cache(value, forImport);
-			}
-            
-			public IEnumerator<KeyValuePair<SqlDatabaseContext, ObjectsByIdCache<T>>> GetEnumerator()
-			{
-				return this.objectsByIdCacheByDatabaseConnection.GetEnumerator();
-			}
-
-			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-			{
-				return this.GetEnumerator();
-			}
-		}
-
-		#endregion
-
 		#region ObjectsByIdCache
 
-		private class ObjectsByIdCache<T>
+		internal class ObjectsByIdCache<T>
 		{
 			internal readonly Dictionary<Type, HashSet<IDataAccessObject>> newObjects;
 			internal readonly Dictionary<Type, Dictionary<T, IDataAccessObject>> objectsByIdCache;
@@ -535,18 +450,20 @@ namespace Shaolinq
 
 		#endregion
 
-		private CacheByDatabaseConnection<int> cacheByInt;
-		private CacheByDatabaseConnection<long> cacheByLong;
-		private CacheByDatabaseConnection<Guid> cacheByGuid;
-		private CacheByDatabaseConnection<string> cacheByString;
+		private ObjectsByIdCache<int> cacheByInt;
+		private ObjectsByIdCache<long> cacheByLong;
+		private ObjectsByIdCache<Guid> cacheByGuid;
+		private ObjectsByIdCache<string> cacheByString;
 
 		protected bool DisableCache { get; private set; }
 		public DataAccessModel DataAccessModel { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
 
-		public DataAccessObjectDataContext(DataAccessModel dataAccessModel, bool disableCache)
+		public DataAccessObjectDataContext(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, bool disableCache)
 		{
 			this.DisableCache = disableCache;
 			this.DataAccessModel = dataAccessModel;
+			this.SqlDatabaseContext = sqlDatabaseContext;
 		}
 
 		public virtual void Deleted(IDataAccessObject value)
@@ -568,14 +485,14 @@ namespace Shaolinq
 				case TypeCode.Int32:
 					if (cacheByInt == null)
 					{
-						cacheByInt = new CacheByDatabaseConnection<int>();
+						cacheByInt = new ObjectsByIdCache<int>();
 					}
 					cacheByInt.Deleted((DataAccessObject<int>)value);
 					break;
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
-						cacheByLong = new CacheByDatabaseConnection<long>();
+						cacheByLong = new ObjectsByIdCache<long>();
 					}
 					cacheByLong.Deleted((DataAccessObject<long>)value);
 					break;
@@ -584,7 +501,7 @@ namespace Shaolinq
 					{
 						if (cacheByGuid == null)
 						{
-							cacheByGuid = new CacheByDatabaseConnection<Guid>();
+							cacheByGuid = new ObjectsByIdCache<Guid>();
 						}
 						cacheByGuid.Deleted((DataAccessObject<Guid>)value);
 					}
@@ -592,7 +509,7 @@ namespace Shaolinq
 					{
 						if (cacheByString == null)
 						{
-							cacheByString = new CacheByDatabaseConnection<string>();
+							cacheByString = new ObjectsByIdCache<string>();
 						}
 						cacheByString.Deleted((DataAccessObject<string>)value);
 					}
@@ -640,7 +557,7 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual IDataAccessObject GetObject(SqlDatabaseContext databaseConnection, Type type, PropertyInfoAndValue[] primaryKeys)
+		public virtual IDataAccessObject GetObject(Type type, PropertyInfoAndValue[] primaryKeys)
 		{
 			if (this.DisableCache)
 			{
@@ -657,14 +574,14 @@ namespace Shaolinq
 						return null;
 					}
 
-					return cacheByInt.Get(databaseConnection, type, primaryKeys);
+					return cacheByInt.Get(type, primaryKeys);
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
 						return null;
 					}
 
-					return cacheByLong.Get(databaseConnection, type, primaryKeys);
+					return cacheByLong.Get(type, primaryKeys);
 				default:
 					if (keyType == typeof(Guid))
 					{
@@ -673,7 +590,7 @@ namespace Shaolinq
 							return null;
 						}
 
-						return cacheByGuid.Get(databaseConnection, type, primaryKeys);
+						return cacheByGuid.Get(type, primaryKeys);
 					}
 					else if (keyType == typeof(string))
 					{
@@ -682,7 +599,7 @@ namespace Shaolinq
 							return null;
 						}
 
-						return cacheByString.Get(databaseConnection, type, primaryKeys);
+						return cacheByString.Get(type, primaryKeys);
 					}
 					break;
 			}
@@ -709,13 +626,13 @@ namespace Shaolinq
 				case TypeCode.Int32:
 					if (cacheByInt == null)
 					{
-						cacheByInt = new CacheByDatabaseConnection<int>();
+						cacheByInt = new ObjectsByIdCache<int>();
 					}
 					return cacheByInt.Cache((DataAccessObject<int>)value, forImport);
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
-						cacheByLong = new CacheByDatabaseConnection<long>();
+						cacheByLong = new ObjectsByIdCache<long>();
 					}
 					return cacheByLong.Cache((DataAccessObject<long>)value, forImport);
 				default:
@@ -723,7 +640,7 @@ namespace Shaolinq
 					{
 						if (cacheByGuid == null)
 						{
-							cacheByGuid = new CacheByDatabaseConnection<Guid>();
+							cacheByGuid = new ObjectsByIdCache<Guid>();
 						}
 						return cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
 					}
@@ -731,7 +648,7 @@ namespace Shaolinq
 					{
 						if (cacheByString == null)
 						{
-							cacheByString = new CacheByDatabaseConnection<string>();
+							cacheByString = new ObjectsByIdCache<string>();
 						}
 						return cacheByString.Cache((DataAccessObject<string>)value, forImport);
 					}
@@ -775,22 +692,22 @@ namespace Shaolinq
 				{
 					if (this.cacheByInt != null)
 					{
-						this.cacheByInt.UpgradeNewToUpdated();
+						this.cacheByInt.UpdateNewToUpdated();
 					}
 					
 					if (this.cacheByLong != null)
 					{
-						this.cacheByLong.UpgradeNewToUpdated();
+						this.cacheByLong.UpdateNewToUpdated();
 					}
 
 					if (this.cacheByGuid != null)
 					{
-						this.cacheByGuid.UpgradeNewToUpdated();
+						this.cacheByGuid.UpdateNewToUpdated();
 					}
 
 					if (this.cacheByString != null)
 					{
-						this.cacheByString.UpgradeNewToUpdated();
+						this.cacheByString.UpdateNewToUpdated();
 					}
 				}
 			}
@@ -826,29 +743,25 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitDeleted<T>(CacheByDatabaseConnection<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
+		private static void CommitDeleted<T>(SqlDatabaseContext sqlDatabaseContext, ObjectsByIdCache<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			// Insert new objects from cache
-			foreach (var i in cache)
+			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+
+			acquisitions.Add(acquisition);
+
+			if (cache.objectsDeleted != null)
 			{
-				var acquisition = transactionContext.AcquirePersistenceTransactionContext(i.Key);
-
-				acquisitions.Add(acquisition);
-
-				if (i.Value.objectsDeleted != null)
+				foreach (var j in cache.objectsDeleted)
 				{
-					foreach (var j in i.Value.objectsDeleted)
-					{
-						acquisition.DatabaseTransactionContext.Delete(j.Key, j.Value.Values);
-					}
+					acquisition.DatabaseTransactionContext.Delete(j.Key, j.Value.Values);
 				}
+			}
 
-				if (i.Value.objectsDeletedComposite != null)
+			if (cache.objectsDeletedComposite != null)
+			{
+				foreach (var j in cache.objectsDeletedComposite)
 				{
-					foreach (var j in i.Value.objectsDeletedComposite)
-					{
-						acquisition.DatabaseTransactionContext.Delete(j.Key, j.Value.Values);
-					}
+					acquisition.DatabaseTransactionContext.Delete(j.Key, j.Value.Values);
 				}
 			}
 		}
@@ -857,45 +770,41 @@ namespace Shaolinq
 		{
 			if (this.cacheByInt != null)
 			{
-				CommitDeleted(this.cacheByInt, acquisitions, transactionContext);
+				CommitDeleted(this.SqlDatabaseContext, this.cacheByInt, acquisitions, transactionContext);
 			}
 
 			if (this.cacheByLong != null)
 			{
-				CommitDeleted(this.cacheByLong, acquisitions, transactionContext);
+				CommitDeleted(this.SqlDatabaseContext, this.cacheByLong, acquisitions, transactionContext);
 			}
 
 			if (this.cacheByGuid != null)
 			{
-				CommitDeleted(this.cacheByGuid, acquisitions, transactionContext);
+				CommitDeleted(this.SqlDatabaseContext, this.cacheByGuid, acquisitions, transactionContext);
 			}
 
 			if (this.cacheByString != null)
 			{
-				CommitDeleted(this.cacheByString, acquisitions, transactionContext);
+				CommitDeleted(this.SqlDatabaseContext, this.cacheByString, acquisitions, transactionContext);
 			}
 		}
 
-		private static void CommitUpdated<T>(CacheByDatabaseConnection<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
+		private static void CommitUpdated<T>(SqlDatabaseContext  sqlDatabaseContext, ObjectsByIdCache<T> cache, HashSet<PersistenceTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			// Insert new objects from cache
-			foreach (var i in cache)
+			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+
+			acquisitions.Add(acquisition);
+
+			foreach (var j in cache.objectsByIdCache)
 			{
-				var acquisition = transactionContext.AcquirePersistenceTransactionContext(i.Key);
+				acquisition.DatabaseTransactionContext.Update(j.Key, j.Value.Values);
+			}
 
-				acquisitions.Add(acquisition);
-
-				foreach (var j in i.Value.objectsByIdCache)
+			if (cache.objectsByIdCacheComposite != null)
+			{
+				foreach (var j in cache.objectsByIdCacheComposite)
 				{
 					acquisition.DatabaseTransactionContext.Update(j.Key, j.Value.Values);
-				}
-
-				if (i.Value.objectsByIdCacheComposite != null)
-				{
-					foreach (var j in i.Value.objectsByIdCacheComposite)
-					{
-						acquisition.DatabaseTransactionContext.Update(j.Key, j.Value.Values);
-					}
 				}
 			}
 		}
@@ -904,51 +813,47 @@ namespace Shaolinq
 		{
 			if (this.cacheByInt != null)
 			{
-				CommitUpdated(this.cacheByInt, acquisitions, transactionContext);
+				CommitUpdated(this.SqlDatabaseContext, this.cacheByInt, acquisitions, transactionContext);
 			}
 
 			if (this.cacheByLong != null)
 			{
-				CommitUpdated(this.cacheByLong, acquisitions, transactionContext);
+				CommitUpdated(this.SqlDatabaseContext, this.cacheByLong, acquisitions, transactionContext);
 			}
 
 			if (this.cacheByGuid != null)
 			{
-				CommitUpdated(this.cacheByGuid, acquisitions, transactionContext);
+				CommitUpdated(this.SqlDatabaseContext, this.cacheByGuid, acquisitions, transactionContext);
 			}
 
 			if (this.cacheByString != null)
 			{
-				CommitUpdated(this.cacheByString, acquisitions, transactionContext);
+				CommitUpdated(this.SqlDatabaseContext, this.cacheByString, acquisitions, transactionContext);
 			}
 		}
 
-		private static void CommitNewPhase1<T>(HashSet<PersistenceTransactionContextAcquisition> acquisitions, CacheByDatabaseConnection<T> cacheByDatabaseConnection, TransactionContext transactionContext, Dictionary<TypeAndTcx, InsertResults> insertResultsByType, Dictionary<TypeAndTcx, IList<IDataAccessObject>> fixups)
+		private static void CommitNewPhase1<T>(SqlDatabaseContext sqlDatabaseContext, HashSet<PersistenceTransactionContextAcquisition> acquisitions, ObjectsByIdCache<T> cache, TransactionContext transactionContext, Dictionary<TypeAndTcx, InsertResults> insertResultsByType, Dictionary<TypeAndTcx, IList<IDataAccessObject>> fixups)
 		{
-			// Insert new objects from cache
-			foreach (var i in cacheByDatabaseConnection)
+			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+
+			acquisitions.Add(acquisition);
+
+			var persistenceTransactionContext = acquisition.DatabaseTransactionContext;
+
+			foreach (var j in cache.newObjects)
 			{
-				var acquisition = transactionContext.AcquirePersistenceTransactionContext(i.Key);
+				var key = new TypeAndTcx(j.Key, persistenceTransactionContext);
 
-				acquisitions.Add(acquisition);
+				var currentInsertResults = persistenceTransactionContext.Insert(j.Key, j.Value);
 
-				var persistenceTransactionContext = acquisition.DatabaseTransactionContext;
-
-				foreach (var j in i.Value.newObjects)
+				if (currentInsertResults.ToRetry.Count > 0)
 				{
-					var key = new TypeAndTcx(j.Key, persistenceTransactionContext);
+					insertResultsByType[key] = currentInsertResults;
+				}
 
-					var currentInsertResults = persistenceTransactionContext.Insert(j.Key, j.Value);
-
-					if (currentInsertResults.ToRetry.Count > 0)
-					{
-						insertResultsByType[key] = currentInsertResults;
-					}
-
-					if (currentInsertResults.ToFixUp.Count > 0)
-					{
-						fixups[key] = currentInsertResults.ToFixUp;
-					}
+				if (currentInsertResults.ToFixUp.Count > 0)
+				{
+					fixups[key] = currentInsertResults.ToFixUp;
 				}
 			}
 		}
@@ -960,22 +865,22 @@ namespace Shaolinq
 
 			if (this.cacheByInt != null)
 			{
-				CommitNewPhase1(acquisitions, this.cacheByInt, transactionContext, insertResultsByType, fixups);
+				CommitNewPhase1(this.SqlDatabaseContext, acquisitions, this.cacheByInt, transactionContext, insertResultsByType, fixups);
 			}
 
 			if (this.cacheByLong != null)
 			{
-				CommitNewPhase1(acquisitions, this.cacheByLong, transactionContext, insertResultsByType, fixups);
+				CommitNewPhase1(this.SqlDatabaseContext, acquisitions, this.cacheByLong, transactionContext, insertResultsByType, fixups);
 			}
 
 			if (this.cacheByGuid != null)
 			{
-				CommitNewPhase1(acquisitions, this.cacheByGuid, transactionContext, insertResultsByType, fixups);
+				CommitNewPhase1(this.SqlDatabaseContext, acquisitions, this.cacheByGuid, transactionContext, insertResultsByType, fixups);
 			}
 
 			if (this.cacheByString != null)
 			{
-				CommitNewPhase1(acquisitions, this.cacheByString, transactionContext, insertResultsByType, fixups);
+				CommitNewPhase1(this.SqlDatabaseContext, acquisitions, this.cacheByString, transactionContext, insertResultsByType, fixups);
 			}
 
 			var currentInsertResultsByType = insertResultsByType;

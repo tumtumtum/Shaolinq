@@ -32,8 +32,8 @@ namespace Shaolinq.MySql
 			return false;
 		}
 
-		public MySqlSqlDatabaseTransactionContext(SystemDataBasedDatabaseConnection databaseConnection, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(databaseConnection, dataAccessModel, transaction)
+		public MySqlSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{
 		}
 

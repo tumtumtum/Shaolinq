@@ -8,9 +8,9 @@ namespace Shaolinq
 	public struct PropertyInfoAndValue
 	{
 		public readonly object value;
-		public string propertyName;
-		public string persistedName;
-		public bool isSynthetic;
+		public readonly string propertyName;
+		public readonly string persistedName;
+		public readonly bool isSynthetic;
 		public readonly int propertyNameHashCode;
 		public readonly PropertyInfo propertyInfo;
 
