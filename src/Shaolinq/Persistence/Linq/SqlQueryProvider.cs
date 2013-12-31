@@ -14,6 +14,43 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
+		internal protected struct ProjectorCacheKey
+		{
+			internal readonly int hashCode;
+			internal readonly SqlDatabaseContext sqlDatabaseContext;
+			internal readonly Expression projectionExpression;
+
+			public ProjectorCacheKey(Expression projectionExpression, SqlDatabaseContext sqlDatabaseContext)
+			{
+				this.sqlDatabaseContext = sqlDatabaseContext;
+				this.projectionExpression = projectionExpression;
+				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) & sqlDatabaseContext.GetHashCode();
+			}
+		}
+
+		internal protected struct ProjectorCacheInfo
+		{
+			public Type elementType;
+			public Delegate projector;
+		}
+
+		protected internal class ProjectorCacheEqualityComparer
+			: IEqualityComparer<ProjectorCacheKey>
+		{
+			public static ProjectorCacheEqualityComparer Default = new ProjectorCacheEqualityComparer();
+
+			public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
+			{
+				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, true)
+					   && x.sqlDatabaseContext == y.sqlDatabaseContext;
+			}
+
+			public int GetHashCode(ProjectorCacheKey obj)
+			{
+				return obj.hashCode;
+			}
+		}
+
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
 
 		public DataAccessModel DataAccessModel { get; private set; }
@@ -81,47 +118,8 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		private struct ProjectorCacheInfo
-		{	
-			public Type elementType;
-			public Delegate projector;
-		}
-
-
-		private class ProjectorCacheEqualityComparer
-			: IEqualityComparer<ProjectorCacheKey>
-		{
-			public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
-			{
-				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, true)
-				       && x.sqlDatabaseContext == y.sqlDatabaseContext;
-			}
-
-			public int GetHashCode(ProjectorCacheKey obj)
-			{
-				return obj.hashCode;
-			}
-		}
-
-		private struct ProjectorCacheKey
-		{
-			internal readonly int hashCode;
-			internal readonly SqlDatabaseContext sqlDatabaseContext;
-			internal readonly Expression projectionExpression;
-
-			public ProjectorCacheKey(Expression projectionExpression, SqlDatabaseContext sqlDatabaseContext)
-			{
-				this.sqlDatabaseContext = sqlDatabaseContext;
-				this.projectionExpression = projectionExpression;
-				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) & sqlDatabaseContext.GetHashCode();
-			}
-		}
-
-		private static readonly Dictionary<ProjectorCacheKey, ProjectorCacheInfo> ProjectorCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(new ProjectorCacheEqualityComparer());
-
 		private Triple<object, SelectFirstType, Expression> PrivateExecute(Expression expression)
 		{
-			var placeholderValues = new object[0];
 			var projectionExpression = expression as SqlProjectionExpression;
 			
 			if (projectionExpression == null)
@@ -147,33 +145,29 @@ namespace Shaolinq.Persistence.Linq
 			var sqlQueryFormatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, projectionExpression, SqlQueryFormatterOptions.Default);
 			var formatResult = sqlQueryFormatter.Format();
 
-			placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
+			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
 
 			var key = new ProjectorCacheKey(projectionExpression, this.SqlDatabaseContext);
 
-			lock (ProjectorCache)
+			var projectorCache = this.SqlDatabaseContext.projectorCache;
+
+			if (!projectorCache.TryGetValue(key, out cacheInfo))
 			{
-				if (!ProjectorCache.TryGetValue(key, out cacheInfo))
+				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression.Projector, columns);
+
+				cacheInfo.elementType = projectionLambda.Body.Type;
+				cacheInfo.projector = projectionLambda.Compile();
+
+				var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default);
+
+				if (!projectorCache.ContainsKey(key))
 				{
-					const int maxCacheSize = 1024;
-
-					if (ProjectorCache.Count > maxCacheSize)
-					{
-						Logger.WarnFormat("ProjectorCache/LambdaCache has more than {0} items.  Flushing.", maxCacheSize);
-						Logger.WarnFormat("Query Causing Flush: {0}", formatResult);
-
-						ProjectorCache.Clear();
-					}
-
-					var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression.Projector, columns);
-
-					cacheInfo.elementType = projectionLambda.Body.Type;
-					cacheInfo.projector = projectionLambda.Compile();
-
-					ProjectorCache[key] = cacheInfo;
+					newCache[key] = cacheInfo;
 				}
-			}
 
+				this.SqlDatabaseContext.projectorCache = newCache;
+			}
+			
 			var elementType = TypeHelper.GetElementType(cacheInfo.elementType);
 			var concreteElementType = elementType;
 

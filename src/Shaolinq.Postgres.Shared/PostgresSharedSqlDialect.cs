@@ -24,8 +24,6 @@ namespace Shaolinq.Postgres.Shared
 					return true;
 				case SqlFeature.SelectForUpdate:
 					return true;
-				case SqlFeature.InsertIntoReturning:
-					return true;
 				default:
 					return false;
 			}

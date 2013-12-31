@@ -96,6 +96,7 @@
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="Persistence\DatabaseCreator.cs" />
     <Compile Include="Persistence\ForeignKeyColumnInfo.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlAssignExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstraintActionExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAlterTableExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlColumnDefinitionExpression.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlConstraintActionType.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlForeignKeyConstraintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlColumnReferenceAction.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlInsertIntoExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlReferencesColumnExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlCreateIndexExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlCreateTableExpression.cs" />
@@ -110,6 +112,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlSimpleConstraintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlStatementListExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTupleExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlUpdateExpression.cs" />
     <Compile Include="Persistence\Linq\GroupByCollator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpander.cs" />

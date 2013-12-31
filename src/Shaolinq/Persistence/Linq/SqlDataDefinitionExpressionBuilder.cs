@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence.Linq
 		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ForeignKeyColumnInfo[] columnNamesAndReferencedTypeProperties)
 		{
 			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(referencingProperty.PropertyType);
-			var referencedTableName = relatedPropertyTypeDescriptor.PersistedName;
+			var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
 
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required);
 			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible);
@@ -157,7 +157,7 @@ namespace Shaolinq.Persistence.Linq
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
 					var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
-					var referencedTableName = relatedPropertyTypeDescriptor.PersistedName;
+					var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
 					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, relatedPropertyTypeDescriptor, referencedTableName);
 
 					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
@@ -181,7 +181,7 @@ namespace Shaolinq.Persistence.Linq
 
 			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
 
-			var tableName = tableNamePrefix != null ? tableNamePrefix + typeDescriptor.PersistedName : typeDescriptor.PersistedName;
+			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
 
 			return new SqlCreateTableExpression(tableName, columnExpressions, currentTableConstraints);
 		}

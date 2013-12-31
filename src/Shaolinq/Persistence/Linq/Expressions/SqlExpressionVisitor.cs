@@ -64,9 +64,46 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					return this.VisitSimpleConstraint((SqlSimpleConstraintExpression)expression);
 				case SqlExpressionType.StatementList:
 					return this.VisitStatementList((SqlStatementListExpression)expression);
+				case SqlExpressionType.InsertInto:
+					return this.VisitInsertInto((SqlInsertIntoExpression)expression);
+				case SqlExpressionType.Update:
+					return this.VisitUpdate((SqlUpdateExpression)expression);
+				case SqlExpressionType.Assign:
+					return this.VisitAssign((SqlAssignExpression)expression);
 				default:
 					return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitAssign(SqlAssignExpression expression)
+		{
+			var newTarget = this.Visit(expression.Target); 
+			var newValue = this.Visit(expression.Value);
+			
+			if (newValue != expression.Value)
+			{
+				return new SqlAssignExpression(newTarget, newValue);
+			}
+
+			return expression;
+		}
+
+		protected virtual Expression VisitUpdate(SqlUpdateExpression expression)
+		{
+			var newWhere = this.Visit(expression.Where);
+			var newAssignments = this.VisitExpressionList(expression.Assignments);
+
+			if (newWhere != expression.Where || newAssignments != expression.Assignments)
+			{
+				return new SqlUpdateExpression(expression.TableName, newAssignments, newWhere);
+			}
+
+			return expression;
+		}
+
+		protected virtual Expression VisitInsertInto(SqlInsertIntoExpression expression)
+		{
+			return expression;
 		}
 
 		protected virtual Expression VisitTuple(SqlTupleExpression tupleExpression)

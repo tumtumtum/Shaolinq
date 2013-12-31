@@ -406,6 +406,11 @@ namespace Shaolinq.Persistence
 			this.PersistedProperties = new ReadOnlyCollection<PropertyDescriptor>(propertyDescriptorsByPropertyInfo.Values.ToList());
 			this.PrimaryKeyProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
 			this.ComputedTextProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
+
+			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)
+			{
+				throw new InvalidDataAccessObjectModelDefinition("An object can only define one integer auto increment property");
+			}
 		}
 
 		public override string ToString()

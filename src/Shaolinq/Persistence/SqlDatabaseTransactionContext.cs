@@ -1,10 +1,12 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
- using System.Linq;
- using System.Linq.Expressions;
+using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -23,34 +25,30 @@ namespace Shaolinq.Persistence
 	{
 		protected int disposed = 0;
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
-		
-		protected struct CommandValue
+
+		protected internal struct SqlCommandValue
 		{
 			public string commandText;
 		}
 
-		public override bool IsClosed
+		protected internal struct SqlCommandKey
 		{
-			get
+			public readonly Type dataAccessObjectType;
+			public readonly List<PropertyInfoAndValue> changedProperties;
+
+			public SqlCommandKey(Type dataAccessObjectType, List<PropertyInfoAndValue> changedProperties)
 			{
-				return this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
+				this.dataAccessObjectType = dataAccessObjectType;
+				this.changedProperties = changedProperties;
 			}
 		}
 
-		protected abstract bool IsDataAccessException(Exception e);
-		protected abstract bool IsConcurrencyException(Exception e);
-
-		protected virtual string GetRelatedSql(Exception e)
-		{
-			return string.Empty;
-		}
-
-		protected class CommandKeyComparer
-			: IEqualityComparer<CommandKey>
+		protected internal class CommandKeyComparer
+			: IEqualityComparer<SqlCommandKey>
 		{
 			public static readonly CommandKeyComparer Default = new CommandKeyComparer();
 
-			public bool Equals(CommandKey x, CommandKey y)
+			public bool Equals(SqlCommandKey x, SqlCommandKey y)
 			{
 				if (x.dataAccessObjectType != y.dataAccessObjectType)
 				{
@@ -73,7 +71,7 @@ namespace Shaolinq.Persistence
 				return true;
 			}
 
-			public int GetHashCode(CommandKey obj)
+			public int GetHashCode(SqlCommandKey obj)
 			{
 				var count = obj.changedProperties.Count;
 				var retval = obj.dataAccessObjectType.GetHashCode() ^ count;
@@ -92,16 +90,20 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected struct CommandKey
+		public override bool IsClosed
 		{
-			public readonly Type dataAccessObjectType;
-			public readonly List<PropertyInfoAndValue> changedProperties;
-
-			public CommandKey(Type dataAccessObjectType, List<PropertyInfoAndValue> changedProperties)
+			get
 			{
-				this.dataAccessObjectType = dataAccessObjectType;
-				this.changedProperties = changedProperties;
+				return this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
 			}
+		}
+
+		protected abstract bool IsDataAccessException(Exception e);
+		protected abstract bool IsConcurrencyException(Exception e);
+
+		protected virtual string GetRelatedSql(Exception e)
+		{
+			return string.Empty;
 		}
 
 		public IDbConnection DbConnection { get; set; }
@@ -109,24 +111,17 @@ namespace Shaolinq.Persistence
 		public SystemDataBasedSqlDatabaseContext SqlDatabaseContext { get; private set; }
 
 		private readonly string tableNamePrefix;
-		private readonly string identifierQuoteString;
-		private readonly bool supportsInsertIntoReturning;
-		private readonly Sql92QueryFormatter queryFormatter;
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private static readonly Regex FormatCommandRegex = new Regex(@"[@\?\$\%\#\!]param[0-9]+", RegexOptions.Compiled);
 		internal static readonly MethodInfo DeleteHelperMethod = typeof(SqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
 
 		protected SqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
 		{
+			this.DataAccessModel = dataAccessModel; 
 			this.SqlDatabaseContext = sqlDatabaseContext;
 			this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
-			this.identifierQuoteString = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
 			this.DbConnection = sqlDatabaseContext.OpenConnection();
-			this.DataAccessModel = dataAccessModel;
-
-			this.tableNamePrefix = this.SqlDatabaseContext.TableNamePrefix;
-			this.queryFormatter = this.SqlDatabaseContext.NewQueryFormatter(dataAccessModel, this.sqlDataTypeProvider, sqlDatabaseContext.SqlDialect, null, SqlQueryFormatterOptions.Default);
-			this.supportsInsertIntoReturning = this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.InsertIntoReturning);
+			this.tableNamePrefix =sqlDatabaseContext.TableNamePrefix;
 		}
 
 		~SqlDatabaseTransactionContext()
@@ -444,48 +439,16 @@ namespace Shaolinq.Persistence
 					
 					if (dataAccessObject.DefinesAnyAutoIncrementIntegerProperties)
 					{
-						var isSingularPrimaryKeyValue = false;
 						var propertyInfos = dataAccessObject.GetIntegerAutoIncrementPropertyInfos();
 
-						if (propertyInfos.Length == 1 && dataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys == 1)
+						Debug.Assert(dataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys == 1);
+						
+						if (result != null && result.GetType() != propertyInfos[0].PropertyType)
 						{
-							isSingularPrimaryKeyValue = true;
+							result = Convert.ChangeType(result, propertyInfos[0].PropertyType);
 						}
 
-						var values = new object[propertyInfos.Length];
-
-						if (this.supportsInsertIntoReturning && isSingularPrimaryKeyValue)
-						{
-							values[0] = Convert.ChangeType(result, propertyInfos[0].PropertyType);
-						}
-						else
-						{
-							var i = 0;
-							
-							var tableName = PrefixedTableName(typeDescriptor.PersistedName);
-
-							foreach (var propertyInfo in propertyInfos)
-							{
-								var columnName = typeDescriptor.GetPropertyDescriptorByPropertyName(propertyInfo.Name).PersistedName;
-								var propertyType = propertyInfo.PropertyType.NonNullableType();
-								var value = this.GetLastInsertedAutoIncrementValue(tableName, columnName, isSingularPrimaryKeyValue);
-
-								if (value == null)
-								{
-									i++;
-								}
-								else if (value.GetType() == propertyType)
-								{
-									values[i++] = value;
-								}
-								else
-								{
-									values[i++] = Convert.ChangeType(value, propertyType);
-								}
-							}
-						}
-
-						dataAccessObject.SetIntegerAutoIncrementValues(values);
+						dataAccessObject.SetAutoIncrementKeyValue(result);
 
 						if (dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
@@ -511,12 +474,11 @@ namespace Shaolinq.Persistence
 			return new InsertResults(listToFixup, listToRetry);
 		}
 
-		protected abstract object GetLastInsertedAutoIncrementValue(string tableName, string columnName, bool isSingularPrimaryKeyValue); 
-
 		protected void AppendParameter(IDbCommand command, StringBuilder commandText, Type type, object value)
 		{
 			commandText.Append(this.ParameterIndicatorChar).Append("param").Append(command.Parameters.Count);
 
+			
 			AddParameter(command, type, value, true);
 		}
         
@@ -567,234 +529,139 @@ namespace Shaolinq.Persistence
 		protected virtual IDbCommand BuildUpdateCommand(TypeDescriptor typeDescriptor, IDataAccessObject dataAccessObject)
 		{
 			IDbCommand command;
-			CommandValue commandValue;
+			SqlCommandValue sqlCommandValue;
 			var updatedProperties = dataAccessObject.GetChangedProperties();
-			var primaryKeys = dataAccessObject.GetPrimaryKeys();
-
+			
 			if (updatedProperties.Count == 0)
 			{
 				return null;
 			}
 
-			var commandKey = new CommandKey(dataAccessObject.GetType(), updatedProperties);
+			var primaryKeys = dataAccessObject.GetPrimaryKeys();
+			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
-			if (this.UpdateCache.TryGetValue(commandKey, out commandValue))
+			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
 			{
 				command = CreateCommand();
-				command.CommandText = commandValue.commandText;
+				command.CommandText = sqlCommandValue.commandText;
 				FillParameters(command, updatedProperties, primaryKeys);
 
 				return command;
 			}
+			
+			var assignments = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.propertyInfo.PropertyType, null, c.persistedName), Expression.Constant(c.value))).ToList());
 
-			var commandText = new StringBuilder(256 + (updatedProperties.Count * 32));
+			Expression where = null;
+
+			var i = 0;
+
+			Debug.Assert(primaryKeys.Length > 0);
+
+			foreach (var primaryKey in primaryKeys)
+			{
+				var currentExpression = Expression.Equal(new SqlColumnExpression(primaryKey.propertyInfo.PropertyType, null, primaryKey.persistedName), Expression.Constant(primaryKey.value));
+
+				if (where == null)
+				{
+					where = currentExpression;
+				}
+				else
+				{
+					where = Expression.And(where, currentExpression);
+				}
+
+				i++;
+			}
+
+			var expression = new SqlUpdateExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), assignments, where);
+			var formatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.sqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
 			command = CreateCommand();
 
-			commandText.Append("UPDATE ");
-			queryFormatter.AppendFullyQualifiedQuotedTableName(PrefixedTableName(typeDescriptor.PersistedName), c => commandText.Append(c));
-			commandText.Append(" SET ");
+			var result = formatter.Format();
 
-			for (var i = 0; i < updatedProperties.Count; i++)
-			{
-				commandText.Append(identifierQuoteString);
-				commandText.Append(updatedProperties[i].persistedName);
-				commandText.Append(identifierQuoteString);
-				commandText.Append('=');
-				AppendParameter(command, commandText, updatedProperties[i].propertyInfo.PropertyType, updatedProperties[i].value);
-
-				if (i != updatedProperties.Count - 1)
-				{
-					commandText.Append(",");
-				}
-			}
-
-			commandText.Append(" WHERE ");
-
-			var j = updatedProperties.Count;
+			command.CommandText = result.CommandText;
+			CacheUpdateCommand(commandKey, new SqlCommandValue() { commandText = command.CommandText }); 
+			FillParameters(command, updatedProperties, primaryKeys);
 			
-			for (var k = 0; k < primaryKeys.Length; k++)
-			{
-				commandText.Append(identifierQuoteString);
-				commandText.Append(primaryKeys[k].persistedName);
-				commandText.Append(identifierQuoteString);
-				commandText.Append('=');
-				AppendParameter(command, commandText, primaryKeys[k].propertyInfo.PropertyType, primaryKeys[k].value);
-
-				if (k != primaryKeys.Length - 1)
-				{
-					commandText.Append(" AND ");
-				}
-			}
-
-			command.CommandText = commandText.ToString();
-
-			CacheUpdateCommand(commandKey, new CommandValue() { commandText = command.CommandText });
-
 			return command;
-		}
-
-		private string PrefixedTableName(string tableName)
-		{
-			if (!string.IsNullOrEmpty(tableNamePrefix))
-			{
-				return tableNamePrefix + tableName;
-			}
-
-			return tableName;
-		}
-
-		private void AppendReturningPrimaryKeys(StringBuilder builder, TypeDescriptor typeDescriptor)
-		{
-			if (!this.supportsInsertIntoReturning)
-			{
-				return;
-			}
-
-			var properties = typeDescriptor.PrimaryKeyProperties.Where(c => c.IsAutoIncrement).ToList();
-
-			if (properties.Count != 1)
-			{
-				return;
-			}
-
-			builder.Append(" RETURNING ");
-
-			var i = 0;
-			
-			foreach (var property in properties)
-			{
-				builder.Append(this.identifierQuoteString);
-				builder.Append(property.PersistedName);
-				builder.Append(this.identifierQuoteString);
-
-				if (i++ != properties.Count - 1)
-				{
-					builder.Append(", ");
-				}
-			}
 		}
 
 		protected virtual IDbCommand BuildInsertCommand(TypeDescriptor typeDescriptor, IDataAccessObject dataAccessObject)
 		{
 			IDbCommand command;
-			CommandValue commandValue;
-			StringBuilder commandText;
-
+			SqlCommandValue sqlCommandValue;
+			
 			var updatedProperties = dataAccessObject.GetChangedProperties();
+			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
-			if (updatedProperties.Count == 0)
-			{
-				commandText = new StringBuilder();
-
-				command = CreateCommand();
-
-				commandText.Append("INSERT INTO ");
-				queryFormatter.AppendFullyQualifiedQuotedTableName(PrefixedTableName(typeDescriptor.PersistedName), c => commandText.Append(c));
-				commandText.Append(" DEFAULT VALUES");
-				this.AppendReturningPrimaryKeys(commandText, typeDescriptor);
-
-				command.CommandText = commandText.ToString();
-
-				return command;
-			}
-
-			var commandKey = new CommandKey(dataAccessObject.GetType(), updatedProperties);
-            
-			if (this.InsertCache.TryGetValue(commandKey, out commandValue))
+			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))
 			{
 				command = CreateCommand();
-				command.CommandText = commandValue.commandText;
+				command.CommandText = sqlCommandValue.commandText;
 				FillParameters(command, updatedProperties, null);
 
 				return command;
 			}
 
-			commandText = new StringBuilder();
+			string returningAutoIncrementColumnName = null;
+
+			if (dataAccessObject.DefinesAnyAutoIncrementIntegerProperties)
+			{
+				var propertyDescriptors = typeDescriptor.PrimaryKeyProperties.Where(c => c.IsAutoIncrement && c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
+
+				Debug.Assert(propertyDescriptors.Count == 1);
+
+				returningAutoIncrementColumnName = propertyDescriptors[0].PersistedName;
+			}
+
+			var columnNames = new ReadOnlyCollection<string>(updatedProperties.Select(c => c.persistedName).ToList());
+			var valueExpressions = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.value)).ToList());
+			var expression = new SqlInsertIntoExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnName, valueExpressions);
+			
+			var formatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.sqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
+
+			var formatResult =  formatter.Format();
+
+			Debug.Assert(formatResult.ParameterValues.Count() == updatedProperties.Count);
 
 			command = CreateCommand();
 
-			commandText.Append("INSERT INTO ");			
-			queryFormatter.AppendFullyQualifiedQuotedTableName(PrefixedTableName(typeDescriptor.PersistedName), c => commandText.Append(c));
-		
-			if (updatedProperties.Count > 0 || this.InsertDefaultString == null)
-			{
-				commandText.Append('(');
-
-				for (int i = 0, lastindex = updatedProperties.Count - 1; i <= lastindex; i++)
-				{
-					commandText.Append(identifierQuoteString);
-					commandText.Append(updatedProperties[i].persistedName);
-					commandText.Append(identifierQuoteString);
-
-					if (i != lastindex)
-					{
-						commandText.Append(",");
-					}
-				}
-
-				commandText.Append(") VALUES (");
-				
-				for (int i = 0, lastindex = updatedProperties.Count - 1; i <= lastindex; i++)
-				{
-					var updatedProperty = updatedProperties[i];
-
-					AppendParameter(command, commandText, updatedProperty.propertyInfo.PropertyType, updatedProperty.value);
-					
-					if (i != lastindex)
-					{
-						commandText.Append(",");
-					}
-				}
-
-				commandText.AppendLine(")");
-
-				this.AppendReturningPrimaryKeys(commandText, typeDescriptor);
-			}
-			else
-			{
-				commandText.Append(' ').Append(this.InsertDefaultString);
-			}
-
-			command.CommandText = commandText.ToString();
-
-			CacheInsertCommand(commandKey, new CommandValue() { commandText = command.CommandText });
+			command.CommandText = formatResult.CommandText;
+			CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
+			FillParameters(command, updatedProperties, null);
 
 			return command;
 		}
 
-		protected abstract Dictionary<CommandKey, CommandValue> InsertCache { get; set; }
-		protected abstract Dictionary<CommandKey, CommandValue> UpdateCache { get; set; }
-
-		protected virtual void CacheInsertCommand(CommandKey commandKey, CommandValue commandValue)
+		protected void CacheInsertCommand(SqlCommandKey sqlCommandKey, SqlCommandValue sqlCommandValue)
 		{
-			var newDictionary = new Dictionary<CommandKey, CommandValue>(this.InsertCache, CommandKeyComparer.Default);
-			newDictionary[commandKey] = commandValue;
-			this.InsertCache = newDictionary;
+			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedInsertSqlCache, CommandKeyComparer.Default);
+
+			newDictionary[sqlCommandKey] = sqlCommandValue;
+
+			this.SqlDatabaseContext.formattedInsertSqlCache = newDictionary;
 		}
 
-		protected virtual bool TryGetInsertCommand(CommandKey commandKey, out CommandValue commandValue)
+		protected bool TryGetInsertCommand(SqlCommandKey sqlCommandKey, out SqlCommandValue sqlCommandValue)
 		{
-			return this.InsertCache.TryGetValue(commandKey, out commandValue);
+			return this.SqlDatabaseContext.formattedInsertSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
 		}
 
-		protected virtual void CacheUpdateCommand(CommandKey commandKey, CommandValue commandValue)
+		protected void CacheUpdateCommand(SqlCommandKey sqlCommandKey, SqlCommandValue sqlCommandValue)
 		{
-			var newDictionary = new Dictionary<CommandKey, CommandValue>(this.UpdateCache, CommandKeyComparer.Default);
-			newDictionary[commandKey] = commandValue;
-			this.UpdateCache = newDictionary;
+			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedUpdateSqlCache, CommandKeyComparer.Default);
+
+			newDictionary[sqlCommandKey] = sqlCommandValue;
+
+			this.SqlDatabaseContext.formattedUpdateSqlCache = newDictionary;
 		}
 
-		protected bool TryGetUpdateCommand(CommandKey commandKey, out CommandValue commandValue)
+		protected bool TryGetUpdateCommand(SqlCommandKey sqlCommandKey, out SqlCommandValue sqlCommandValue)
 		{
-			return this.UpdateCache.TryGetValue(commandKey, out commandValue);
+			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
 		}
 
-		protected abstract string InsertDefaultString
-		{
-			get;
-		}
-		
 		public override void Delete(SqlDeleteExpression deleteExpression)
 		{
 			var formatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, deleteExpression, SqlQueryFormatterOptions.Default);

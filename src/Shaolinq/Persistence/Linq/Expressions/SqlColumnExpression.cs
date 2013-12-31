@@ -30,6 +30,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			get
 			{
+				if (string.IsNullOrEmpty(this.SelectAlias))
+				{
+					return this.Name;
+				}
+
 				return this.SelectAlias + "." + this.Name;
 			}
 		}

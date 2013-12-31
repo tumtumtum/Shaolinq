@@ -8,7 +8,8 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Sqlite
 {
-	public class SqliteSqlQueryFormatter
+	public class 
+		SqliteSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
 		public DataAccessModel DataAccessModel { get; private set; }
@@ -119,6 +120,21 @@ namespace Shaolinq.Sqlite
 					Visit(selectExpression.Skip);
 				}
 			}
+		}
+
+		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
+		{
+			if (string.IsNullOrEmpty(expression.ReturningAutoIncrementColumnName))
+			{
+				return;
+			}
+
+			this.Write("; SELECT last_insert_rowid()");
+		}
+
+		protected override void WriteInsertDefaultValuesSuffix()
+		{
+			this.Write(" DEFAULT VALUES");
 		}
 	}
 }

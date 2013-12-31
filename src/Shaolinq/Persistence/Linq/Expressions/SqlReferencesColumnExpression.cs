@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions

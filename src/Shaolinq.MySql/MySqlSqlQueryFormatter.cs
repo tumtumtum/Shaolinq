@@ -59,5 +59,15 @@ namespace Shaolinq.MySql
 
 			return base.VisitFunctionCall(functionCallExpression);
 		}
+
+		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
+		{
+			if (string.IsNullOrEmpty(expression.ReturningAutoIncrementColumnName))
+			{
+				return;
+			}
+			
+			this.Write("; SELECT LAST_INSERT_ID()");
+		}
 	}
 }

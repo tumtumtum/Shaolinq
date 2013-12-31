@@ -117,6 +117,17 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
+		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
+		{
+			if (string.IsNullOrEmpty(expression.ReturningAutoIncrementColumnName))
+			{
+				return;
+			}
+
+			this.Write(" RETURNING ");
+			this.WriteQuotedIdentifier(expression.ReturningAutoIncrementColumnName);
+		}
+
 		public override void AppendFullyQualifiedQuotedTableName(string tableName, Action<string> append)
 		{
 			if (!string.IsNullOrEmpty(this.schemaName))

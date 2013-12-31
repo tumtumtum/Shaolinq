@@ -14,9 +14,6 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectSqlDatabaseTransactionContext
 		: PostgresSharedSqlDatabaseTransactionContext
 	{
-		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForInsert = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
-		private static volatile Dictionary<CommandKey, CommandValue> CachedCommandsForUpdate = new Dictionary<CommandKey, CommandValue>(CommandKeyComparer.Default);
-
 		private readonly Transaction transaction;
         private PgSqlTransaction dbTransaction;
 
@@ -97,38 +94,6 @@ namespace Shaolinq.Postgres.DotConnect
 				}
 
 				GC.SuppressFinalize(this);
-			}
-		}
-
-		protected override Dictionary<CommandKey, CommandValue> InsertCache
-		{
-			get
-			{
-				return CachedCommandsForInsert;
-			}
-			set
-			{
-				CachedCommandsForInsert = value;
-			}
-		}
-
-		protected override Dictionary<CommandKey, CommandValue> UpdateCache
-		{
-			get
-			{
-				return CachedCommandsForUpdate;
-			}
-			set
-			{
-				CachedCommandsForUpdate = value;
-			}
-		}
-
-		protected override string InsertDefaultString
-		{
-			get
-			{
-				return null;
 			}
 		}
 

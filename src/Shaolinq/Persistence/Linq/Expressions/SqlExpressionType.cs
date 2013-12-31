@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- namespace Shaolinq.Persistence.Linq.Expressions
+namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public enum SqlExpressionType
 	{
@@ -28,6 +28,9 @@
 		ForeignKeyConstraint,
 		ReferencesColumn,
 		SimpleConstraint,
-		StatementList
+		StatementList,
+		InsertInto,
+		Update,
+		Assign
 	}
 }

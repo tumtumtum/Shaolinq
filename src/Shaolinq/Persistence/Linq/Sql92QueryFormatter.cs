@@ -530,6 +530,9 @@ namespace Shaolinq.Persistence.Linq
 				case ExpressionType.Multiply:
 					Write(" * ");
 					break;
+				case ExpressionType.Assign:
+					Write(" = ");
+					break;
 				default:
 					throw new NotSupportedException(String.Format("The binary operator '{0}' is not supported", binaryExpression.NodeType));
 			}
@@ -581,7 +584,17 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (constantExpression.Value == null)
 			{
-				this.Write("NULL");
+				if ((this.options & SqlQueryFormatterOptions.OptimiseOutConstantNulls) != 0)
+				{
+					this.Write("NULL");
+				}
+				else
+				{
+					this.Write(this.ParameterIndicatorChar);
+					this.Write("param");
+					this.Write(parameterValues.Count);
+					parameterValues.Add(new Pair<Type, object>(constantExpression.Type, null));
+				}
 			}
 			else
 			{
@@ -600,7 +613,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							VisitCollection((IEnumerable)constantExpression.Value);
 						}
-						else if (type == typeof(Guid))
+						else
 						{
 							this.Write(this.ParameterIndicatorChar);
 							this.Write("param");
@@ -616,10 +629,6 @@ namespace Shaolinq.Persistence.Linq
 							{
 								parameterValues.Add(new Pair<Type, object>(constantExpression.Type, value));
 							}
-						}
-						else
-						{
-							this.Write("obj: " + constantExpression.Value);
 						}
 						break;
 					default:
@@ -949,6 +958,13 @@ namespace Shaolinq.Persistence.Linq
 			return join;
 		}
 
+		protected override Expression VisitTable(SqlTableExpression expression)
+		{
+			this.WriteQuotedIdentifier(expression.Name);
+
+			return expression;
+		}
+
 		protected override Expression VisitSource(Expression source)
 		{
 			switch ((SqlExpressionType)source.NodeType)
@@ -956,7 +972,7 @@ namespace Shaolinq.Persistence.Linq
 				case SqlExpressionType.Table:
 					var table = (SqlTableExpression)source;
 
-					this.WriteQuotedIdentifier(table.Name);
+					this.Visit(table);
 					this.Write(" AS ");
 					this.WriteQuotedIdentifier(table.Alias);
 					
@@ -1327,6 +1343,112 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteLine(";");
 
 			return alterTableExpression;
+		}
+
+		protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
+		{
+			this.Write("INSERT INTO ");
+			this.WriteTableName(expression.TableName);
+			this.Write("(");
+
+			var i = 0;
+			var count = expression.ColumnNames.Count;
+
+			foreach (var columnName in expression.ColumnNames)
+			{
+				this.WriteQuotedIdentifier(columnName);
+
+				if (i++ != count - 1)
+				{
+					this.Write(", ");
+				}
+			}
+
+			if (expression.ValueExpressions == null || expression.ValueExpressions.Count == 0)
+			{
+				this.Write(")");
+				this.WriteInsertDefaultValuesSuffix();
+				this.Write(",");
+
+				return expression;
+			}
+
+			this.Write(") VALUES (");
+
+			i = 0;
+			count = expression.ValueExpressions.Count;
+
+			foreach (var valueExpression in expression.ValueExpressions)
+			{
+				this.Visit(valueExpression);
+
+				if (i++ != count - 1)
+				{
+					this.Write(", ");
+				}
+			}
+
+			this.Write(")");
+
+			this.WriteInsertIntoReturning(expression);
+			this.Write(";");
+
+			return expression;
+		}
+
+		protected override Expression VisitAssign(SqlAssignExpression expression)
+		{
+			this.Visit(expression.Target);
+			this.Write(" = ");
+			this.Visit(expression.Value);
+
+			return expression;
+		}
+
+		protected override Expression VisitUpdate(SqlUpdateExpression expression)
+		{
+			this.Write("UPDATE ");
+			this.WriteTableName(expression.TableName);
+			this.Write(" SET ");
+
+			var i = 0;
+			var count = expression.Assignments.Count;
+
+			foreach (var name in expression.Assignments)
+			{
+				this.Visit(name);
+
+				if (i++ != count - 1)
+				{
+					this.Write(", ");
+				}
+			}
+
+			if (expression.Where == null)
+			{
+				this.Write(";");
+			}
+
+			this.Write(" WHERE ");
+			this.Visit(expression.Where);
+			this.Write(";");
+
+			return expression;
+		}
+
+		protected virtual void WriteInsertDefaultValuesSuffix()
+		{
+		}
+
+		protected virtual void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
+		{
+			if (expression.ReturningAutoIncrementColumnName == null)
+			{
+				return;
+			}
+
+			this.Write(" RETURNING ");
+			this.WriteQuotedIdentifier(expression.ReturningAutoIncrementColumnName);
 		}
 
 		public virtual void AppendFullyQualifiedQuotedTableName(string tableName, Action<string> append)

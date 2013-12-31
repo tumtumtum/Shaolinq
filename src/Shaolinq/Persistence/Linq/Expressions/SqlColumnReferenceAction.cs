@@ -1,4 +1,6 @@
-﻿namespace Shaolinq.Persistence.Linq.Expressions
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
+namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public enum SqlColumnReferenceAction
 	{

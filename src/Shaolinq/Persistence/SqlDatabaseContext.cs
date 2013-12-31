@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Transactions;
 using Shaolinq.Persistence.Linq;
@@ -10,6 +11,10 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseContext
 		: IDisposable
 	{
+		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default); 
+		internal volatile Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue>(SqlDatabaseTransactionContext.CommandKeyComparer.Default);
+		internal volatile Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue>(SqlDatabaseTransactionContext.CommandKeyComparer.Default);
+		
 		public string DatabaseName { get; protected set; }
 		public string SchemaName { get; protected set; }
 		public string[] ContextCategories { get; protected set; }

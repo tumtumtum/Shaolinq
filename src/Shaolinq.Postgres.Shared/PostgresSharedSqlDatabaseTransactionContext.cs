@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Transactions;
 using Shaolinq.Persistence;
-using log4net;
 
 namespace Shaolinq.Postgres.Shared
 {
@@ -22,41 +21,6 @@ namespace Shaolinq.Postgres.Shared
 			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{
 			this.schemaName = this.SqlDatabaseContext.SchemaName;
-		}
-
-		protected override object GetLastInsertedAutoIncrementValue(string tableName, string columnName, bool isSingularPrimaryKeyValue)
-		{
-			if (!isSingularPrimaryKeyValue)
-			{
-				throw new NotSupportedException();
-			}
-
-			var command = this.DbConnection.CreateCommand();
-
-			if (string.IsNullOrEmpty(this.schemaName))
-			{
-				command.CommandText = String.Format("SELECT currval(pg_get_serial_sequence('\"{0}\"', '{1}'))", tableName, columnName);
-			}
-			else
-			{
-				command.CommandText = String.Format("SELECT currval(pg_get_serial_sequence('\"{2}\".\"{0}\"', '{1}'))", tableName, columnName, this.SqlDatabaseContext.SchemaName);
-			}
-
-			if (Logger.IsDebugEnabled)
-			{
-				Logger.Debug(command.CommandText);
-			}
-
-			try
-			{
-				return command.ExecuteScalar();
-			}
-			catch (Exception e)
-			{
-				Logger.Error(e.ToString());
-
-				throw;
-			}
 		}
 	}
 }
