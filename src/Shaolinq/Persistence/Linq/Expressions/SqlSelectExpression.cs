@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public Expression Take { get; private set; }
 		public Expression Skip { get; private set; }
 		public bool ForUpdate { get; private set; }
-		public ReadOnlyCollection<SqlOrderByExpression> OrderBy { get; private set; }
+		public ReadOnlyCollection<Expression> OrderBy { get; private set; }
 		public ReadOnlyCollection<Expression> GroupBy { get; private set; }
 
 		public override ExpressionType NodeType
@@ -35,18 +35,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 		}
 
-		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<SqlOrderByExpression> orderBy, IEnumerable<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate)
+		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, IEnumerable<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate)
 			: base(type)
 		{
 			this.Alias = alias;
 			this.Distinct = distinct;
 			this.Columns = columns as ReadOnlyCollection<SqlColumnDeclaration> ?? new List<SqlColumnDeclaration>(columns).AsReadOnly();
 
-			this.OrderBy = orderBy as ReadOnlyCollection<SqlOrderByExpression>;
+			this.OrderBy = orderBy as ReadOnlyCollection<Expression>;
 
 			if (this.OrderBy == null && orderBy != null)
 			{
-				this.OrderBy = new List<SqlOrderByExpression>(orderBy).AsReadOnly();
+				this.OrderBy = new List<Expression>(orderBy).AsReadOnly();
 			}
 
 			this.GroupBy = groupBy as ReadOnlyCollection<Expression>;

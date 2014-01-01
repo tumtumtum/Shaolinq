@@ -43,7 +43,7 @@ namespace Shaolinq.Tests
 				new SqlForeignKeyConstraintExpression("fkc", new ReadOnlyCollection<string>(new [] {"Column1"}), new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction))
 			};
 
-			var createTableExpression = new SqlCreateTableExpression("Table1", columnDefinitions, constraints);
+			var createTableExpression = new SqlCreateTableExpression(new SqlTableExpression("Table1"), columnDefinitions, constraints);
 
 			var formatter = new Sql92QueryFormatter(createTableExpression);
 

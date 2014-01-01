@@ -63,7 +63,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				this.model.Students.DeleteImmediately(c => c.Id == student2Id);
+				this.model.Students.DeleteWhere(c => c.Id == student2Id);
 
 				scope.Complete();
 			}
@@ -193,7 +193,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				this.model.Schools.DeleteImmediately(c => c.Id == schoolId);
+				this.model.Schools.DeleteWhere(c => c.Id == schoolId);
 
 				scope.Complete();
 			}

@@ -128,7 +128,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var take = this.Visit(select.Take);
 			var skip = this.Visit(select.Skip);
 			var groupbys = this.VisitExpressionList(select.GroupBy);
-			var orderbys = this.VisitOrderBy(select.OrderBy);
+			var orderbys = this.VisitExpressionList(select.OrderBy);
 			var where = this.Visit(select.Where);
 			var from = this.Visit(select.From);
 

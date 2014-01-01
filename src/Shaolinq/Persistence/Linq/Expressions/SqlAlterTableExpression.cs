@@ -16,13 +16,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public string TableName { get; private set; }
+		public Expression Table { get; private set; }
 		public ReadOnlyCollection<Expression> Actions { get; private set; }
 
-		public SqlAlterTableExpression(string tableName, ReadOnlyCollection<Expression> actions)
+		public SqlAlterTableExpression(Expression table, ReadOnlyCollection<Expression> actions)
 			: base(typeof(void))
 		{
-			this.TableName = tableName;
+			this.Table = table;
 			this.Actions = actions;
 		}
 	}

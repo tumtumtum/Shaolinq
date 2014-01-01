@@ -128,7 +128,7 @@ namespace Shaolinq.Postgres.Shared
 			this.WriteQuotedIdentifier(expression.ReturningAutoIncrementColumnName);
 		}
 
-		public override void AppendFullyQualifiedQuotedTableName(string tableName, Action<string> append)
+		public override void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)
 		{
 			if (!string.IsNullOrEmpty(this.schemaName))
 			{

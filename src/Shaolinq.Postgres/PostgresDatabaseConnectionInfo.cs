@@ -8,7 +8,7 @@ namespace Shaolinq.Postgres
 {
 	[XmlElement]
 	public class PostgresDatabaseConnectionInfo
-		: DatabaseConnectionInfo
+		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
 		public string DatabaseName{ get; set; }

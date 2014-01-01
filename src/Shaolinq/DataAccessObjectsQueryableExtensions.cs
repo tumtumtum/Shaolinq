@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,15 +15,10 @@ namespace Shaolinq
 	{
 		internal static class MethodCache<T>
 		{
-			public static readonly MethodInfo DeleteMethod = typeof(DataAccessObjectsQueryableExtensions).GetMethod("DeleteImmediately").MakeGenericMethod(typeof(T));
+			public static readonly MethodInfo DeleteMethod = typeof(DataAccessObjectsQueryableExtensions).GetMethod("DeleteWhere").MakeGenericMethod(typeof(T));
 		}
 
-		public static MethodInfo GetDeleteMethod<T>()
-		{
-			return MethodCache<T>.DeleteMethod;
-		}
-
-		public static void DeleteImmediately<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
+		public static void DeleteWhere<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : class, IDataAccessObject
 		{
 			queryable.DataAccessModel.FlushCurrentTransaction();
@@ -42,7 +38,7 @@ namespace Shaolinq
 			}
 		}
 
-		public static void DeleteDelayed<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
+		public static IEnumerable<T> DeleteObjectByObjectWhere<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : class, IDataAccessObject
 		{
 			if (queryable.ExtraCondition != null)
@@ -57,6 +53,8 @@ namespace Shaolinq
 			foreach (T value in queryable.Where(condition))
 			{
 				value.Delete();
+
+				yield return value;
 			}
 		}
 	}

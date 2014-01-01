@@ -64,7 +64,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			return new SqlCreateTableExpression(createTableExpression.TableName, newColumnExpressions, newTableConstraintExpressions);
+			return new SqlCreateTableExpression(createTableExpression.Table, newColumnExpressions, newTableConstraintExpressions);
 		}
 	}
 }

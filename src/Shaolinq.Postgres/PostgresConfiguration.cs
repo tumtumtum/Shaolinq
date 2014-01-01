@@ -20,7 +20,7 @@ namespace Shaolinq.Postgres
 		{
 			return new DataAccessModelConfiguration()
 			{
-				DatabaseConnectionInfos = new DatabaseConnectionInfo[]
+				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
 					new PostgresDatabaseConnectionInfo()
 					{

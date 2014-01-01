@@ -15,7 +15,7 @@ namespace Shaolinq.Sqlite
 		{
 			return new DataAccessModelConfiguration
 			{
-		       	DatabaseConnectionInfos = new DatabaseConnectionInfo[]
+		       	SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
        			{
        				new SqliteDatabaseConnectionInfo()
        				{

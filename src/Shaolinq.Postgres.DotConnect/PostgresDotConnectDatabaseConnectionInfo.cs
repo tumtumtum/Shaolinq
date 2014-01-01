@@ -8,7 +8,7 @@ namespace Shaolinq.Postgres.DotConnect
 {
 	[XmlElement]
 	public class PostgresDotConnectDatabaseConnectionInfo
-		: DatabaseConnectionInfo
+		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
 		public string DatabaseName { get; set; }

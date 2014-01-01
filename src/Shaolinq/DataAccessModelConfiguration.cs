@@ -11,12 +11,12 @@ namespace Shaolinq
 	[XmlElement]
 	public class DataAccessModelConfiguration
 	{
-		public class DatabaseConnectionInfoDynamicTypeProvider
+		public class SqlDatabaseContextInfoDynamicTypeProvider
 			: IXmlListElementDynamicTypeProvider
 		{
-			private static readonly Regex NameRegex = new Regex("([a-zA-Z0-9]+)SqlDatabaseContext");
+			private static readonly Regex NameRegex = new Regex("([a-zA-Z0-9]+?)(Sql)?(DatabaseContext)?", RegexOptions.Compiled);
 
-			public DatabaseConnectionInfoDynamicTypeProvider(SerializationMemberInfo memberInfo, TypeSerializerCache cache, SerializerOptions options)
+			public SqlDatabaseContextInfoDynamicTypeProvider(SerializationMemberInfo memberInfo, TypeSerializerCache cache, SerializerOptions options)
 			{
 			}
 
@@ -73,9 +73,9 @@ namespace Shaolinq
 			}
 		}
 		
-		[XmlElement("DatabaseConnections")]
-		[XmlListElementDynamicTypeProvider(typeof(DatabaseConnectionInfoDynamicTypeProvider))]
-		public DatabaseConnectionInfo[] DatabaseConnectionInfos
+		[XmlElement("SqlDatabaseContexts")]
+		[XmlListElementDynamicTypeProvider(typeof(SqlDatabaseContextInfoDynamicTypeProvider))]
+		public SqlDatabaseContextInfo[] SqlDatabaseContextInfos
 		{
 			get;
 			set;

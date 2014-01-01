@@ -2,7 +2,8 @@
 
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq.Expressions;
+﻿using System.Linq;
+﻿using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 
@@ -43,7 +44,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (hasOrderBy)
 				{
-					this.PrependOrderings(select.OrderBy);
+					this.PrependOrderings(select.OrderBy.Select(c => (SqlOrderByExpression)c));
 				}
 
 				bool canHaveOrderBy = saveIsOuterMostSelect && AggregateFinder.Gather(select).Count == 0;

@@ -183,7 +183,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
 
-			return new SqlCreateTableExpression(tableName, columnExpressions, currentTableConstraints);
+			return new SqlCreateTableExpression(new SqlTableExpression(typeof(void), null, tableName), columnExpressions, currentTableConstraints);
 		}
 
 		private Expression Build()

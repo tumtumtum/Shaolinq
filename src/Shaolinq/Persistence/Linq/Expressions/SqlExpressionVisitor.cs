@@ -42,6 +42,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					return this.VisitAggregateSubquery((SqlAggregateSubqueryExpression)expression);
 				case SqlExpressionType.ObjectOperand:
 					return this.VisitObjectOperand((SqlObjectOperand)expression);
+				case SqlExpressionType.OrderBy:
+					return this.VisitOrderBy((SqlOrderByExpression)expression);
 				case SqlExpressionType.Tuple:
 					return this.VisitTuple((SqlTupleExpression)expression);
 				case SqlExpressionType.Delete:
@@ -70,9 +72,38 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					return this.VisitUpdate((SqlUpdateExpression)expression);
 				case SqlExpressionType.Assign:
 					return this.VisitAssign((SqlAssignExpression)expression);
+				case SqlExpressionType.CreateType:
+					return this.VisitCreateType((SqlCreateTypeExpression)expression);
+				case SqlExpressionType.Type:
+					return this.VisitType((SqlTypeExpression)expression);
+				case SqlExpressionType.EnumDefinition:
+					return this.VisitEnumDefinition((SqlEnumDefinitionExpression)expression);
 				default:
 					return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitEnumDefinition(SqlEnumDefinitionExpression expression)
+		{
+			return expression;
+		}
+
+		protected virtual Expression VisitType(SqlTypeExpression expression)
+		{
+			return expression;
+		}
+
+		protected virtual Expression VisitCreateType(SqlCreateTypeExpression expression)
+		{
+			var newSqlType = this.Visit(expression.SqlType);
+			var newAsExpression = this.Visit(expression.AsExpression);
+
+			if (newSqlType != expression.SqlType || newAsExpression != expression.AsExpression)
+			{
+				return new SqlCreateTypeExpression(newSqlType, newAsExpression);
+			}
+
+			return expression;
 		}
 
 		protected virtual Expression VisitAssign(SqlAssignExpression expression)
@@ -242,8 +273,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			var from = VisitSource(selectExpression.From);
 			var where = Visit(selectExpression.Where);
-            
-			var orderBy = this.VisitOrderBy(selectExpression.OrderBy);
+
+			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
 			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
 			var skip = this.Visit(selectExpression.Skip);
 			var take = this.Visit(selectExpression.Take);
@@ -257,35 +288,16 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return selectExpression;
 		}
 
-		protected virtual ReadOnlyCollection<SqlOrderByExpression> VisitOrderBy(ReadOnlyCollection<SqlOrderByExpression> expressions)
+		protected virtual Expression VisitOrderBy(SqlOrderByExpression orderByExpression)
 		{
-			if (expressions != null)
+			var newExpression = this.Visit(orderByExpression.Expression);
+
+			if (newExpression != orderByExpression.Expression)
 			{
-				List<SqlOrderByExpression> alternate = null;
-
-				for (int i = 0, n = expressions.Count; i < n; i++)
-				{
-					var expr = expressions[i];
-					var e = this.Visit(expr.Expression);
-
-					if (alternate == null && e != expr.Expression)
-					{
-						alternate = expressions.Take(i).ToList();
-					}
-
-					if (alternate != null)
-					{
-						alternate.Add(new SqlOrderByExpression(expr.OrderType, e));
-					}
-				}
-
-				if (alternate != null)
-				{
-					return alternate.AsReadOnly();
-				}
+				return new SqlOrderByExpression(orderByExpression.OrderType, newExpression);
 			}
 
-			return expressions;
+			return orderByExpression;
 		}
         
 		protected virtual Expression VisitSource(Expression source)
@@ -364,12 +376,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected virtual Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
+			var newTable = Visit(createTableExpression.Table);
 			var constraints = VisitExpressionList(createTableExpression.TableConstraints);
 			var columnDefinitions = VisitExpressionList(createTableExpression.ColumnDefinitionExpressions);
 
-			if (createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
+			if (newTable != createTableExpression.Table || createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
 			{
-				return new SqlCreateTableExpression(createTableExpression.TableName, columnDefinitions, constraints);
+				return new SqlCreateTableExpression(newTable, columnDefinitions, constraints);
 			}
 			else
 			{
@@ -379,11 +392,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected virtual Expression VisitAlterTable(SqlAlterTableExpression alterTableExpression)
 		{
+			var newTable = this.Visit(alterTableExpression.Table);
 			var newList = this.VisitExpressionList(alterTableExpression.Actions);
 
-			if (newList != alterTableExpression.Actions)
+			if (newTable != alterTableExpression.Table || newList != alterTableExpression.Actions)
 			{
-				return new SqlAlterTableExpression(alterTableExpression.TableName, newList);
+				return new SqlAlterTableExpression(newTable, newList);
 			}
 
 			return alterTableExpression;

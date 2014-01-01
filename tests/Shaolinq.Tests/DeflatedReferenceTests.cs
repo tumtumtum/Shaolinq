@@ -9,9 +9,9 @@ using Shaolinq.Tests.DataModels.Test;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
-	//[TestFixture("Sqlite")]
-	//[TestFixture("Postgres")]
-	///[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Sqlite")]
+	[TestFixture("Postgres")]
+	[TestFixture("Postgres.DotConnect")]
 	public class DeflatedReferenceTests
 		: BaseTests
 	{
@@ -95,7 +95,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				model.Schools.DeleteImmediately(c => c.Id == schoolId);
+				model.Schools.DeleteWhere(c => c.Id == schoolId);
 
 				scope.Complete();
 			}

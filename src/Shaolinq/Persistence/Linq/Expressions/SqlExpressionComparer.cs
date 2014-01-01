@@ -815,41 +815,25 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return columns;
 		}
 
-		protected override ReadOnlyCollection<SqlOrderByExpression> VisitOrderBy(ReadOnlyCollection<SqlOrderByExpression> expressions)
+		protected override Expression VisitOrderBy(SqlOrderByExpression orderByExpression)
 		{
-			ReadOnlyCollection<SqlOrderByExpression> current;
+			SqlOrderByExpression current;
 
-			if (!TryGetCurrent(expressions, out current))
+			if (!TryGetCurrent(orderByExpression, out current))
 			{
-				return expressions;
+				return orderByExpression;
 			}
 
-			result &= current.Count == expressions.Count;
+			result &= current.OrderType == orderByExpression.OrderType;
 
 			if (result)
 			{
-				for (var i = 0; i < current.Count; i++)
-				{
-					if (current[i].OrderType != expressions[i].OrderType)
-					{
-						result = false;
-
-						break;
-					}
-
-					currentObject = current[i].Expression;
-					Visit(expressions[i].Expression);
-					currentObject = current;
-
-					if (!result)
-					{
-						break;
-					}
-				}
+				currentObject = current.Expression;
+				Visit(orderByExpression.Expression);
+				currentObject = current;
 			}
 
-
-			return expressions;
+			return orderByExpression;
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
@@ -891,7 +875,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			if (result)
 			{
 				currentObject = current.OrderBy;
-				VisitOrderBy(selectExpression.OrderBy);
+				this.VisitExpressionList(selectExpression.OrderBy);
 				currentObject = current;
 			}
 

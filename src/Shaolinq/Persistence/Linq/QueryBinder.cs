@@ -809,7 +809,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				switch (methodCallExpression.Method.Name)
 				{
-					case "DeleteImmediately":
+					case "DeleteWhere":
 						if (methodCallExpression.Arguments.Count == 2)
 						{
 							return this.BindDelete(methodCallExpression.Arguments[0], (LambdaExpression)(StripQuotes(methodCallExpression.Arguments[1])));

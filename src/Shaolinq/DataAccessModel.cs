@@ -137,7 +137,7 @@ namespace Shaolinq
 			this.TypeDescriptorProvider = TypeDescriptorProvider.GetProvider(this.DefinitionAssembly);
 			this.ModelTypeDescriptor = this.TypeDescriptorProvider.GetModelTypeDescriptor(value.GetDefinitionModelType(this.GetType()));
 
-			foreach (var databaseConnectionInfo in this.Configuration.DatabaseConnectionInfos)
+			foreach (var databaseConnectionInfo in this.Configuration.SqlDatabaseContextInfos)
 			{
 				SqlDatabaseContextsInfo info;
 				var newSqlDatabaseContext = databaseConnectionInfo.CreateSqlDatabaseContext();

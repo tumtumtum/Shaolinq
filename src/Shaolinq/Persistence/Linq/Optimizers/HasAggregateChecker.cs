@@ -76,7 +76,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return select;
 			}
 			
-			this.VisitOrderBy(select.OrderBy);
+			this.VisitExpressionList(select.OrderBy);
 
 			if (this.hasAggregate)
 			{

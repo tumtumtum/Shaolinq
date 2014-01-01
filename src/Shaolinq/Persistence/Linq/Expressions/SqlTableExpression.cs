@@ -19,6 +19,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
+		public SqlTableExpression(string name)
+			: base(typeof(void))
+		{
+			this.Name = name;
+			this.Alias = null;
+		}
+
 		public SqlTableExpression(Type type, string alias, string name)
 			: base(type)
 		{

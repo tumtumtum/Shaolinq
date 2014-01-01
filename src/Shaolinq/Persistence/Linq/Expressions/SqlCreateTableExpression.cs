@@ -9,7 +9,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlCreateTableExpression
 		: SqlBaseExpression
 	{
-		public string TableName { get; set; }
+		public Expression Table { get; set; }
 		public ReadOnlyCollection<Expression> TableConstraints { get; private set; }
 		public ReadOnlyCollection<Expression> ColumnDefinitionExpressions { get; private set; }
 
@@ -21,10 +21,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlCreateTableExpression(string tableName, IList<Expression> columnExpressions, IList<Expression> tableConstraintExpressions)
+		public SqlCreateTableExpression(Expression table, IList<Expression> columnExpressions, IList<Expression> tableConstraintExpressions)
 			: base(typeof(void))
 		{
-			this.TableName = tableName;
+			this.Table = table;
 			this.TableConstraints = new ReadOnlyCollection<Expression>(tableConstraintExpressions);
 			this.ColumnDefinitionExpressions = new ReadOnlyCollection<Expression>(columnExpressions);
 		}

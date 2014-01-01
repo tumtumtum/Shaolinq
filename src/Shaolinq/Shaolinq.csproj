@@ -102,6 +102,8 @@
     <Compile Include="Persistence\Linq\Expressions\SqlColumnDefinitionExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlColumnReferenceDeferrability.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstraintActionType.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlCreateTypeExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlEnumDefinitionExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlForeignKeyConstraintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlColumnReferenceAction.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlInsertIntoExpression.cs" />
@@ -112,6 +114,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlSimpleConstraintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlStatementListExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTupleExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlTypeExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUpdateExpression.cs" />
     <Compile Include="Persistence\Linq\GroupByCollator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGatherer.cs" />
@@ -146,7 +149,7 @@
     <Compile Include="InvalidDataAccessModelDefinition.cs" />
     <Compile Include="PersistenceTransactionContextAcquisition.cs" />
     <Compile Include="Persistence\ModelTypeDescriptor.cs" />
-    <Compile Include="Persistence\DatabaseConnectionInfo.cs" />
+    <Compile Include="Persistence\SqlDatabaseContextInfo.cs" />
     <Compile Include="Persistence\DataRecordMethods.cs" />
     <Compile Include="Persistence\DefaultBlobSqlDataType.cs" />
     <Compile Include="Persistence\DefaultDictionarySqlDataType.cs" />

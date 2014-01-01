@@ -7,7 +7,7 @@ namespace Shaolinq.MySql
 {
 	[XmlElement]
 	public class MySqlDatabaseConnectionInfo
-		: DatabaseConnectionInfo
+		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
 		public string DatabaseName { get; set; }

@@ -298,16 +298,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitSelect(selectExpression);
 		}
 
-		protected override ReadOnlyCollection<SqlOrderByExpression> VisitOrderBy(ReadOnlyCollection<SqlOrderByExpression> expressions)
+		protected override Expression VisitOrderBy(SqlOrderByExpression orderByExpression)
 		{
-			if (expressions == null)
+			if (orderByExpression == null)
 			{
 				return null;
 			}
 
-			hashCode ^= expressions.Count << 16;
+			hashCode ^= (int)orderByExpression.OrderType;
 
-			return base.VisitOrderBy(expressions);
+			this.Visit(orderByExpression.Expression);
+
+			return base.VisitOrderBy(orderByExpression);
 		}
 
 		protected override Expression VisitSource(Expression source)

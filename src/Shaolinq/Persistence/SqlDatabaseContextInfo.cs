@@ -5,7 +5,7 @@ using Platform.Xml.Serialization;
 namespace Shaolinq.Persistence
 {
 	[XmlElement]
-	public abstract class DatabaseConnectionInfo
+	public abstract class SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
 		public string Categories { get; set; }
@@ -22,7 +22,7 @@ namespace Shaolinq.Persistence
 		[XmlAttribute]
 		public string SchemaName { get; set; }
 
-		protected DatabaseConnectionInfo()
+		protected SqlDatabaseContextInfo()
 		{
 			this.CommandTimeout = 120;
 			this.ConnectionTimeout = 60;

@@ -7,7 +7,7 @@ namespace Shaolinq.Sqlite
 {
 	[XmlElement]
 	public class SqliteDatabaseConnectionInfo
-		: DatabaseConnectionInfo
+		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
 		public string FileName { get; set; }
