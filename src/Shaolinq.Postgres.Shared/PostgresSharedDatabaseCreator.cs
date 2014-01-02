@@ -10,12 +10,14 @@ namespace Shaolinq.Postgres.Shared
 	public abstract class PostgresSharedDatabaseCreator
 		: DatabaseCreator
 	{
-		protected readonly SystemDataBasedSqlDatabaseContext  connection;
+		public string DatabaseName { get; private set; }
+		protected readonly SystemDataBasedSqlDatabaseContext sqlDatabaseContext;
 
-		protected PostgresSharedDatabaseCreator(SystemDataBasedSqlDatabaseContext connection, DataAccessModel model)
+		protected PostgresSharedDatabaseCreator(DataAccessModel model,  SystemDataBasedSqlDatabaseContext sqlDatabaseContext, string databaseName)
 			: base(model)
 		{
-			this.connection = connection;
+			this.DatabaseName = databaseName;
+			this.sqlDatabaseContext = sqlDatabaseContext;
 		}
 
 		#region CreateDatabaseOnly
@@ -28,7 +30,7 @@ namespace Shaolinq.Postgres.Shared
 			var retval = false;
 			var factory = this.CreateDbProviderFactory();
 
-			this.connection.DropAllConnections();
+			this.sqlDatabaseContext.DropAllConnections();
 
 			using (var dbConnection = factory.CreateConnection())
 			{
@@ -51,7 +53,7 @@ namespace Shaolinq.Postgres.Shared
 							{
 								string s = reader.GetString(0);
 
-								if (s.Equals(this.connection.DatabaseName))
+								if (s.Equals(this.DatabaseName))
 								{
 									drop = true;
 
@@ -65,14 +67,14 @@ namespace Shaolinq.Postgres.Shared
 					{
 						using (command = dbConnection.CreateCommand())
 						{
-							command.CommandText = String.Concat("DROP DATABASE \"", this.connection.DatabaseName, "\";");
+							command.CommandText = String.Concat("DROP DATABASE \"", this.DatabaseName, "\";");
 							command.ExecuteNonQuery();
 						}
 					}
 
 					using (command = dbConnection.CreateCommand())
 					{
-						command.CommandText = String.Concat("CREATE DATABASE \"", this.connection.DatabaseName, "\" WITH ENCODING 'UTF8';");
+						command.CommandText = String.Concat("CREATE DATABASE \"", this.DatabaseName, "\" WITH ENCODING 'UTF8';");
 						command.ExecuteNonQuery();
 					}
 
@@ -84,7 +86,7 @@ namespace Shaolinq.Postgres.Shared
 					{
 						using (command = dbConnection.CreateCommand())
 						{
-							command.CommandText = String.Concat("CREATE DATABASE \"", this.connection.DatabaseName, "\" WITH ENCODING 'UTF8';");
+							command.CommandText = String.Concat("CREATE DATABASE \"", this.DatabaseName, "\" WITH ENCODING 'UTF8';");
 							command.ExecuteNonQuery();
 						}
 

@@ -2,10 +2,8 @@
 
 using System;
 using System.Data.Common;
-using System.Linq.Expressions;
 using System.Transactions;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Linq;
 using MySql.Data.MySqlClient;
 
 ﻿namespace Shaolinq.MySql
@@ -13,6 +11,7 @@ using MySql.Data.MySqlClient;
 	public class MySqlSqlDatabaseContext
 		: SystemDataBasedSqlDatabaseContext
 	{
+		public string DatabaseName { get; protected set; }
 		public string ServerName { get; private set; }
 		public string Username { get; private set; }
 		public string Password { get; private set; }
@@ -25,14 +24,15 @@ using MySql.Data.MySqlClient;
 		internal readonly string connectionString;
 		internal readonly string databaselessConnectionString;
 
-		public MySqlSqlDatabaseContext(string serverName, string database, string username, string password, bool poolConnections, string schemaName, string tableNamePrefix, string categories)
-			: base(database, schemaName, tableNamePrefix, categories, MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance)
+		public MySqlSqlDatabaseContext(MySqlSqlDatabaseContextInfo contextInfo)
+			: base(MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance, new DefaultSqlQueryFormatterManager(MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance, typeof(MySqlSqlQueryFormatter)), contextInfo)
 		{
-			this.ServerName = serverName;
-			this.Username = username;
-			this.Password = password;
-			
-			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, poolConnections);
+			this.ServerName = contextInfo.ServerName;
+			this.Username = contextInfo.UserName;
+			this.Password = contextInfo.Password;
+			this.DatabaseName = contextInfo.DatabaseName;
+
+			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections);
 			databaselessConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
 		}
 
@@ -41,12 +41,7 @@ using MySql.Data.MySqlClient;
 			return new MySqlSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
 
-		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
-		{
-			return new MySqlSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
-		}
-
-		public override DbProviderFactory NewDbProviderFactory()
+		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return new MySqlClientFactory();
 		}

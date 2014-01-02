@@ -3,16 +3,15 @@
 using System;
 using System.Data.Common;
 using System.Data.SQLite;
-using System.Linq.Expressions;
 using System.Transactions;
 ﻿using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Sqlite
 {
 	public class SqliteSqlDatabaseContext
 		: SystemDataBasedSqlDatabaseContext
 	{
+		public string FileName { get; private set; }
 		public override string GetConnectionString()
 		{
 			return connectionString;
@@ -20,17 +19,19 @@ namespace Shaolinq.Sqlite
 
 		private readonly string connectionString;
 		
-		public SqliteSqlDatabaseContext(string fileName, string schemaName, string tableNamePrefix, string categories)
-			: base(fileName, schemaName, tableNamePrefix, categories, SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance)
+		public SqliteSqlDatabaseContext(SqliteSqlDatabaseContextInfo contextInfo)
+			: base(SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance, new DefaultSqlQueryFormatterManager(SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance, typeof(SqliteSqlQueryFormatter)), contextInfo)
 		{
-			connectionString = "Data Source=" + this.DatabaseName + ";foreign keys=True";
+			this.FileName = contextInfo.FileName;
+
+			connectionString = "Data Source=" + this.FileName + ";foreign keys=True";
 		}
 
 		internal SqliteSqlDatabaseTransactionContext inMemoryContext;
 
 		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
-			if (String.Equals(this.DatabaseName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+			if (String.Equals(this.FileName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
 				if (inMemoryContext == null)
 				{
@@ -43,12 +44,7 @@ namespace Shaolinq.Sqlite
 			return new SqliteSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
 
-		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
-		{
-			return new SqliteSqlQueryFormatter(dataAccessModel, sqlDataTypeProvider, sqlDialect, expression, options);
-		}
-
-		public override DbProviderFactory NewDbProviderFactory()
+		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return new SQLiteFactory();
 		}

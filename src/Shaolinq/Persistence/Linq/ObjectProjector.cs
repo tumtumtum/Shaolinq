@@ -13,7 +13,7 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public SqlQueryFormatResult FormatResult { get; private set; }
 		public DataAccessModel DataAccessModel { get; private set; }
-		public SqlDatabaseContext DatabaseConnection { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
 
 		protected int count = 0;
 		private readonly IQueryProvider provider;
@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence.Linq
 			this.provider = provider;
 			this.DataAccessModel = dataAccessModel;
 			this.FormatResult = formatResult;
-			this.DatabaseConnection = sqlDatabaseContext;
+			this.SqlDatabaseContext = sqlDatabaseContext;
 			this.selectFirstType = selectFirstType;
 			this.relatedDataAccessObjectContext = relatedDataAccessObjectContext;
 		}
@@ -94,7 +94,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.DatabaseConnection))
+			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
 				var persistenceTransactionContext = (SqlDatabaseTransactionContext)acquisition.DatabaseTransactionContext;
 

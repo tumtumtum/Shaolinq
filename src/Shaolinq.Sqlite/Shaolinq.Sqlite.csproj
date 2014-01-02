@@ -81,7 +81,7 @@
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="SqliteConfiguration.cs" />
-    <Compile Include="SqliteDatabaseConnectionInfo.cs" />
+    <Compile Include="SqliteSqlDatabaseContextInfo.cs" />
     <Compile Include="SqliteDatabaseCreator.cs" />
     <Compile Include="SqliteSqlDialect.cs" />
     <Compile Include="SqliteSqlDatabaseTransactionContext.cs" />

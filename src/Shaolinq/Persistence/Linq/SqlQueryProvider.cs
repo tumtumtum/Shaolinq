@@ -142,9 +142,8 @@ namespace Shaolinq.Persistence.Linq
 			
 			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
 
-			var sqlQueryFormatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, projectionExpression, SqlQueryFormatterOptions.Default);
-			var formatResult = sqlQueryFormatter.Format();
-
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression, SqlQueryFormatterOptions.Default);
+			
 			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
 
 			var key = new ProjectorCacheKey(projectionExpression, this.SqlDatabaseContext);
@@ -239,9 +238,9 @@ namespace Shaolinq.Persistence.Linq
 				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition));
 			}
 
-			var sqlQueryFormatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, projectionExpression, SqlQueryFormatterOptions.Default);
-			
-			return sqlQueryFormatter.Format().CommandText;
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
+
+			return result.CommandText;
 		}
 	}
 }

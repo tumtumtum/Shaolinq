@@ -6,22 +6,22 @@ namespace Shaolinq.MySql
 	public class MySqlDatabaseCreator
 		: DatabaseCreator
 	{
-		private readonly MySqlSqlDatabaseContext connection;
+		private readonly MySqlSqlDatabaseContext sqlDatabaseContext;
 
-		public MySqlDatabaseCreator(MySqlSqlDatabaseContext connection, DataAccessModel model)
+		public MySqlDatabaseCreator(MySqlSqlDatabaseContext sqlDatabaseContext, DataAccessModel model)
 			: base(model)
 		{
-			this.connection = connection;
+			this.sqlDatabaseContext = sqlDatabaseContext;
 		}
 
 		protected override bool CreateDatabaseOnly(bool overwrite)
 		{
 			var retval = false;
-			var factory = this.connection.NewDbProviderFactory();
+			var factory = this.sqlDatabaseContext.CreateDbProviderFactory();
 
 			using (var dbConnection = factory.CreateConnection())
 			{
-				dbConnection.ConnectionString = this.connection.databaselessConnectionString;
+				dbConnection.ConnectionString = this.sqlDatabaseContext.databaselessConnectionString;
 
 				dbConnection.Open();
 
@@ -31,7 +31,7 @@ namespace Shaolinq.MySql
 				{
 					var drop = false;
 
-					command.CommandText = String.Format("SHOW DATABASES;", this.connection.DatabaseName);
+					command.CommandText = String.Format("SHOW DATABASES;", this.sqlDatabaseContext.DatabaseName);
 
 					using (var reader = command.ExecuteReader())
 					{
@@ -39,8 +39,8 @@ namespace Shaolinq.MySql
 						{
 							var s = reader.GetString(0);
 
-							if (s.Equals(this.connection.DatabaseName) ||
-								s.Equals(this.connection.DatabaseName.ToLower()))
+							if (s.Equals(this.sqlDatabaseContext.DatabaseName) ||
+								s.Equals(this.sqlDatabaseContext.DatabaseName.ToLower()))
 							{
 								drop = true;
 
@@ -51,11 +51,11 @@ namespace Shaolinq.MySql
 
 					if (drop)
 					{
-						command.CommandText = String.Concat("DROP DATABASE ", this.connection.DatabaseName);
+						command.CommandText = String.Concat("DROP DATABASE ", this.sqlDatabaseContext.DatabaseName);
 						command.ExecuteNonQuery();
 					}
 
-					command.CommandText = String.Concat("CREATE DATABASE ", this.connection.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+					command.CommandText = String.Concat("CREATE DATABASE ", this.sqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
 					command.ExecuteNonQuery();
 
 					retval = true;
@@ -64,7 +64,7 @@ namespace Shaolinq.MySql
 				{
 					try
 					{
-						command.CommandText = String.Concat("CREATE DATABASE ", this.connection.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+						command.CommandText = String.Concat("CREATE DATABASE ", this.sqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
 						command.ExecuteNonQuery();
 
 						retval = true;

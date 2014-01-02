@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 ﻿using Shaolinq.Persistence;
 ﻿using Shaolinq.Persistence.Linq;
@@ -8,24 +8,12 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Sqlite
 {
-	public class 
-		SqliteSqlQueryFormatter
+	public class SqliteSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public DataAccessModel DataAccessModel { get; private set; }
-
-		protected override char ParameterIndicatorChar
+		public SqliteSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect,  SqlDataTypeProvider sqlDataTypeProvider)
+            : base(options, sqlDialect, sqlDataTypeProvider)
 		{
-			get
-			{
-				return '@';
-			}
-		}
-
-		public SqliteSqlQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
-            : base(expression, options, sqlDataTypeProvider, sqlDialect)
-		{
-			this.DataAccessModel = dataAccessModel;
 		}
 
 		protected override void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)

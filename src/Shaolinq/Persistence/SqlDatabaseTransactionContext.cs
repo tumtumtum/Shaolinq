@@ -574,11 +574,9 @@ namespace Shaolinq.Persistence
 			}
 
 			var expression = new SqlUpdateExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), assignments, where);
-			var formatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.sqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
 			command = CreateCommand();
-
-			var result = formatter.Format();
 
 			command.CommandText = result.CommandText;
 			CacheUpdateCommand(commandKey, new SqlCommandValue() { commandText = command.CommandText }); 
@@ -618,16 +616,14 @@ namespace Shaolinq.Persistence
 			var columnNames = new ReadOnlyCollection<string>(updatedProperties.Select(c => c.persistedName).ToList());
 			var valueExpressions = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.value)).ToList());
 			var expression = new SqlInsertIntoExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnName, valueExpressions);
-			
-			var formatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.sqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
-			var formatResult =  formatter.Format();
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
-			Debug.Assert(formatResult.ParameterValues.Count() == updatedProperties.Count);
+			Debug.Assert(result.ParameterValues.Count() == updatedProperties.Count);
 
 			command = CreateCommand();
 
-			command.CommandText = formatResult.CommandText;
+			command.CommandText = result.CommandText;
 			CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
 			FillParameters(command, updatedProperties, null);
 
@@ -664,9 +660,8 @@ namespace Shaolinq.Persistence
 
 		public override void Delete(SqlDeleteExpression deleteExpression)
 		{
-			var formatter = this.SqlDatabaseContext.NewQueryFormatter(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, deleteExpression, SqlQueryFormatterOptions.Default);
-			var formatResult = formatter.Format();
-
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
+			
 			using (var command = CreateCommand())
 			{
 				command.CommandText = formatResult.CommandText;

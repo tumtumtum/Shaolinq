@@ -3,8 +3,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-using System.Text;
-using Shaolinq.Postgres;
 ﻿using Shaolinq.Persistence;
 ﻿using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -15,21 +13,11 @@ namespace Shaolinq.Postgres.Shared
 		: Sql92QueryFormatter
 	{
 		private readonly string schemaName;
-		public DataAccessModel DataAccessModel { get; private set; }
-
-		protected override char ParameterIndicatorChar
-		{
-			get
-			{
-				return '@';
-			}
-		}
-
-		public PostgresSharedSqlQueryFormatter(DataAccessModel dataAccessModel, string schemaName, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
-			: base(expression, options, sqlDataTypeProvider, sqlDialect)
+		
+		public PostgresSharedSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName)
+			: base(options, sqlDialect, sqlDataTypeProvider)
 		{
 			this.schemaName = schemaName;
-			this.DataAccessModel = dataAccessModel;
 		}
 
 		protected override Expression PreProcess(Expression expression)

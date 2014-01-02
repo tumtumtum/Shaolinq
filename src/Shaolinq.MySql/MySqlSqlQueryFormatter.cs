@@ -11,20 +11,9 @@ namespace Shaolinq.MySql
 	public class MySqlSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public DataAccessModel DataAccessModel { get; private set; }
-
-		protected override char ParameterIndicatorChar
+		public MySqlSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
+			: base(options, sqlDialect, sqlDataTypeProvider, '?')
 		{
-			get
-			{
-				return '?';
-			}
-		}
-
-		public MySqlSqlQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
-			: base(expression, options, sqlDataTypeProvider, sqlDialect)
-		{
-			this.DataAccessModel = dataAccessModel;
 		}
 
 		protected override Expression PreProcess(Expression expression)

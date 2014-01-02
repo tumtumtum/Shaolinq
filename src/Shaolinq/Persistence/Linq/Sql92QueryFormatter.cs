@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.IO;
 using System.Linq.Expressions;
 using System.Text;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -56,88 +56,30 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected enum Indentation
-		{
-			Same,
-			Inner,
-			Outer
-		}
-
 		public Expression Expression { get; private set; }
 
-		protected virtual char ParameterIndicatorChar
-		{
-			get
-			{
-				return '@';
-			}
-		}
-
-		private int depth;
-		protected StringBuilder commandText;
-		protected List<Pair<Type, object>> parameterValues;
 		private readonly SqlQueryFormatterOptions options;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		protected readonly SqlDialect sqlDialect;
-		internal int IndentationWidth { get; private set; }
-
-		public class IndentationContext
-			: IDisposable
-		{
-			private readonly Sql92QueryFormatter parent;
-
-			public IndentationContext(Sql92QueryFormatter parent)
-			{
-				this.parent = parent;
-				this.parent.depth++;
-				this.parent.WriteLine();
-			}
-
-			public void Dispose()
-			{
-				this.parent.depth--;
-			}
-		}
-
+		
 		public IndentationContext AcquireIndentationContext()
 		{
 			return new IndentationContext(this);
 		}
 
-		public virtual void WriteLine()
-		{
-			this.commandText.AppendLine();
-			this.commandText.Append(' ', depth * this.IndentationWidth);
-		}
 
-		public virtual void WriteLine(object line)
-		{
-			this.commandText.Append(line);
-			this.commandText.AppendLine();
-			this.commandText.Append(' ', depth * this.IndentationWidth);
-		}
-
-		public override void Write(object value)
-		{
-			this.commandText.Append(value);
-		}
-
-		public override void WriteFormat(string format, params object[] args)
-		{
-			this.commandText.AppendFormat(format, args);
-		}
-
-		public Sql92QueryFormatter(Expression expression)
-			: this(expression, SqlQueryFormatterOptions.Default, null, null)
+		public Sql92QueryFormatter()
+			: this(SqlQueryFormatterOptions.Default, null, null)
 		{
 		}
 
-		public Sql92QueryFormatter(Expression expression, SqlQueryFormatterOptions options)
-			: this(expression, options, null, null)
+		public Sql92QueryFormatter(SqlQueryFormatterOptions options)
+			: this(options, null, null)
 		{
 		}
 
-		public Sql92QueryFormatter(Expression expression, SqlQueryFormatterOptions options, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect)
+		public Sql92QueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, char parameterIndicatorChar = SqlQueryFormatter.DefaultParameterIndicatorChar)
+			: base(new StringWriter(new StringBuilder()), parameterIndicatorChar)
 		{
 			this.options = options;
 
@@ -160,9 +102,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			this.identifierQuoteString = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
-
-			this.IndentationWidth = 2;
-			this.Expression = expression;
 		}
 
 		protected override Expression PreProcess(Expression expression)
@@ -197,23 +136,6 @@ namespace Shaolinq.Persistence.Linq
 			append(this.identifierQuoteString);
 			append(tableName);
 			append(this.identifierQuoteString);
-		}
-
-		public override SqlQueryFormatResult Format()
-		{
-			if (this.commandText == null)
-			{
-				commandText = new StringBuilder(512);
-				parameterValues = new List<Pair<Type, object>>();
-
-				Visit(this.PreProcess(this.Expression));
-			}
-			else
-			{
-				throw new InvalidOperationException("Formatter already used");
-			}
-
-			return new SqlQueryFormatResult(commandText.ToString(), parameterValues);
 		}
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
@@ -705,18 +627,6 @@ namespace Shaolinq.Persistence.Linq
 			this.Write(")");
 
 			return sqlAggregate;
-		}
-
-		protected void Indent(Indentation style)
-		{
-			if (style == Indentation.Inner)
-			{
-				this.depth++;
-			}
-			else if (style == Indentation.Outer)
-			{
-				this.depth--;
-			}
 		}
 
 		protected override Expression VisitSubquery(SqlSubqueryExpression subquery)
@@ -1323,9 +1233,20 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Write("CREATE TYPE ");
 			this.Visit(expression.SqlType);
-			this.Write(" AS ENUM (");
+			this.Write(" AS ");
+
+			this.Visit(expression.AsExpression);
 
 			this.Write(");");
+
+			return expression;
+		}
+
+		protected override Expression VisitEnumDefinition(SqlEnumDefinitionExpression expression)
+		{
+			this.Write("ENUM (");
+			//this.WriteDeliminatedListOfItems(expression.Labels, this.Write);
+			this.Write(")");
 
 			return expression;
 		}

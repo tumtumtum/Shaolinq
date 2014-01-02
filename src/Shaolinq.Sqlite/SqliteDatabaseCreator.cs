@@ -8,26 +8,26 @@ namespace Shaolinq.Sqlite
 	public class SqliteDatabaseCreator
 		: DatabaseCreator
 	{
-		private readonly SqliteSqlDatabaseContext connection;
+		private readonly SqliteSqlDatabaseContext sqlDatabaseContext;
 		
-		public SqliteDatabaseCreator(SqliteSqlDatabaseContext connection, DataAccessModel model)
+		public SqliteDatabaseCreator(SqliteSqlDatabaseContext sqlDatabaseContext, DataAccessModel model)
 			: base(model)
 		{
-			this.connection = connection;
+			this.sqlDatabaseContext = sqlDatabaseContext;
 		}
 
 		protected override bool CreateDatabaseOnly(bool overwrite)
 		{
 			var retval = false;
-			var path = this.connection.DatabaseName;
+			var path = this.sqlDatabaseContext.FileName;
 
-			if (String.Equals(this.connection.DatabaseName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
+			if (String.Equals(this.sqlDatabaseContext.FileName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
-				if (this.connection.inMemoryContext != null)
+				if (this.sqlDatabaseContext.inMemoryContext != null)
 				{
-					this.connection.inMemoryContext.RealDispose();
+					this.sqlDatabaseContext.inMemoryContext.RealDispose();
 
-					this.connection.inMemoryContext = null;
+					this.sqlDatabaseContext.inMemoryContext = null;
 				}
 
 				return true;

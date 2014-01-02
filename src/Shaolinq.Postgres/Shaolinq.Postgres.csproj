@@ -78,7 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PostgresConfiguration.cs" />
-    <Compile Include="PostgresDatabaseConnectionInfo.cs" />
+    <Compile Include="PostgresDatabaseContextInfo.cs" />
     <Compile Include="PostgresSqlDatabaseContext.cs" />
     <Compile Include="PostgresDatabaseCreator.cs" />
     <Compile Include="PostgresSqlDatabaseTransactionContext.cs" />

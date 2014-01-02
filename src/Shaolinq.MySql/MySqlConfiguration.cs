@@ -22,7 +22,7 @@ namespace Shaolinq.MySql
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
-					new MySqlDatabaseConnectionInfo()
+					new MySqlSqlDatabaseContextInfo()
 					{
 						DatabaseName = databaseName,
 						Categories = categories,

@@ -1,17 +1,17 @@
-﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
 using Platform.Xml.Serialization;
 ﻿using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres
+namespace Shaolinq.Postgres.DotConnect
 {
 	[XmlElement]
-	public class PostgresDatabaseConnectionInfo
+	public class PostgresDotConnectSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
-		public string DatabaseName{ get; set; }
+		public string DatabaseName { get; set; }
 
 		[XmlAttribute]
 		public string ServerName { get; set; }
@@ -40,17 +40,17 @@ namespace Shaolinq.Postgres
 		[XmlAttribute]
 		public DateTimeKind DateTimeKindIfUnspecified { get; set; }
 
-		public PostgresDatabaseConnectionInfo()
+		public PostgresDotConnectSqlDatabaseContextInfo()
 		{
 			this.Port = 5432;
 			this.Pooling = true;
 			this.MaxPoolSize = 100;
 			this.NativeUuids = true;
 		}
-		
+
 		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
-			return new PostgresSqlDatabaseContext(this.ServerName, this.UserId, this.Password, this.DatabaseName, this.Port, this.Pooling, this.MinPoolSize, this.MaxPoolSize, this.ConnectionTimeout, this.NativeUuids, this.CommandTimeout, this.TableNamePrefix, this.SchemaName, this.Categories, this.DateTimeKindIfUnspecified);
+			return PostgresDotConnectSqlDatabaseContext.Create(this);
 		}
 	}
 }

@@ -6,7 +6,7 @@
 namespace Shaolinq.MySql
 {
 	[XmlElement]
-	public class MySqlDatabaseConnectionInfo
+	public class MySqlSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
@@ -24,14 +24,14 @@ namespace Shaolinq.MySql
 		[XmlAttribute]
 		public bool PoolConnections { get; set; }
 
-		public MySqlDatabaseConnectionInfo()
+		public MySqlSqlDatabaseContextInfo()
 		{
 			this.PoolConnections = true;
 		}
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
-			return new MySqlSqlDatabaseContext(this.ServerName, this.DatabaseName, this.UserName, this.Password, this.PoolConnections, this.SchemaName, this.TableNamePrefix, this.Categories);
+			return new MySqlSqlDatabaseContext(this);
 		}
 	}
 }

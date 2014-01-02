@@ -10,15 +10,9 @@ namespace Shaolinq.Persistence
 		: SqlDatabaseContext
 	{
 		private readonly DbProviderFactory dBProviderFactory;
-
+		
 		public TimeSpan CommandTimeout { get; set; }
 		
-		/// <summary>
-		/// Opens a new <see cref="DbConnection"/>
-		/// </summary>
-		/// <returns>
-		/// The new <see cref="DbConnection"/>
-		/// </returns>
 		public virtual DbConnection OpenConnection()
 		{
 			var retval = this.dBProviderFactory.CreateConnection();
@@ -29,23 +23,15 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
-		protected SystemDataBasedSqlDatabaseContext(string databaseName, string schemaName, string tableNamePrefix, string categories, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
+		protected SystemDataBasedSqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlDatabaseContextInfo contextInfo)
+			: base(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
 		{
-			this.CommandTimeout = TimeSpan.FromSeconds(60);
-
-			this.SqlDialect = sqlDialect;
-			this.SqlDataTypeProvider = sqlDataTypeProvider;
-
-			this.DatabaseName = databaseName;
-			this.ContextCategories = categories == null ? new string[0] : categories.Split(',').Select(c => c.Trim()).ToArray();
-
-			this.SchemaName = EnvironmentSubstitutor.Substitute(schemaName);
-			this.TableNamePrefix = EnvironmentSubstitutor.Substitute(tableNamePrefix);
-
-			this.dBProviderFactory = this.NewDbProviderFactory();
+			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
+			this.ContextCategories = contextInfo.Categories == null ? new string[0] : contextInfo.Categories.Split(',').Select(c => c.Trim()).ToArray();
+			this.dBProviderFactory = this.CreateDbProviderFactory();
 		}
 		
 		public abstract string GetConnectionString();
-		public abstract DbProviderFactory NewDbProviderFactory();
+		public abstract DbProviderFactory CreateDbProviderFactory();
 	}
 }

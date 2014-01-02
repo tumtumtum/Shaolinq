@@ -6,7 +6,7 @@
 namespace Shaolinq.Sqlite
 {
 	[XmlElement]
-	public class SqliteDatabaseConnectionInfo
+	public class SqliteSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
@@ -14,7 +14,7 @@ namespace Shaolinq.Sqlite
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext()
 		{
-			return new SqliteSqlDatabaseContext(this.FileName, this.SchemaName, this.TableNamePrefix, this.Categories);
+			return new SqliteSqlDatabaseContext(this);
 		}
 	}
 }

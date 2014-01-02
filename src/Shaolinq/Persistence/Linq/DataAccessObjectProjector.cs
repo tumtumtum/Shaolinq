@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.DatabaseConnection))
+			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
 				var persistenceTransactionContext = (SqlDatabaseTransactionContext)acquisition.DatabaseTransactionContext;
 

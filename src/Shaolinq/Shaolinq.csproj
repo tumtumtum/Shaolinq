@@ -94,6 +94,7 @@
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="DatabaseTransactionContextWrapper.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
+    <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\DatabaseCreator.cs" />
     <Compile Include="Persistence\ForeignKeyColumnInfo.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAssignExpression.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpander.cs" />
     <Compile Include="Persistence\Linq\SqlForeignKeyConstraintToAlterAmmender.cs" />
+    <Compile Include="Persistence\SqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\Linq\SqlReferencesColumnDeferrabilityRemover.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\Linq\SqlMultiColumnPrimaryKeyCoalescer.cs" />

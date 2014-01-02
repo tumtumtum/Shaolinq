@@ -2,12 +2,10 @@
 
 using System;
 using System.Data.Common;
-using System.Linq.Expressions;
 using System.Transactions;
 using Npgsql;
 ﻿using Shaolinq.Persistence;
-using Shaolinq.Persistence.Linq;
-﻿using Shaolinq.Postgres.Shared;
+using Shaolinq.Postgres.Shared;
 
 ﻿namespace Shaolinq.Postgres
 {
@@ -17,7 +15,7 @@ using Shaolinq.Persistence.Linq;
 		public string Host { get; set; }
 		public string Userid { get; set; }
 		public string Password { get; set; }
-		public string Database { get; set; }
+		public string DatabaseName { get; set; }
 		public int Port { get; set; }
 		
 		public override string GetConnectionString()
@@ -28,18 +26,27 @@ using Shaolinq.Persistence.Linq;
 		internal readonly string connectionString;
 		internal readonly string databaselessConnectionString;
 
-		public PostgresSqlDatabaseContext(string host, string userid, string password, string database, int port, bool pooling, int minPoolSize, int maxPoolSize, int connectionTimeoutSeconds, bool nativeUuids, int commandTimeoutSeconds, string schemaName, string tableNamePrefix, string categories, DateTimeKind dateTimeKindIfUnspecifed)
-			: base(database, schemaName, tableNamePrefix, categories, PostgresSharedSqlDialect.Default, new PostgresSharedSqlDataTypeProvider(nativeUuids, dateTimeKindIfUnspecifed))
+		public static PostgresSqlDatabaseContext Create(PostgresDatabaseContextInfo contextInfo)
 		{
-			this.Host = host;
-			this.Userid = userid;
-			this.Password = password;
-			this.Database = database;
-			this.Port = port;
-			this.CommandTimeout = TimeSpan.FromSeconds(commandTimeoutSeconds);
+			var sqlDialect = PostgresSharedSqlDialect.Default;
+			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(contextInfo.NativeUuids, contextInfo.DateTimeKindIfUnspecified);
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
-			connectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", host, userid, password, database, port, pooling, minPoolSize, maxPoolSize, connectionTimeoutSeconds, commandTimeoutSeconds);
-			databaselessConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", host, userid, password, database, port, pooling, minPoolSize, maxPoolSize, connectionTimeoutSeconds, commandTimeoutSeconds);
+			return new PostgresSqlDatabaseContext(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
+		}
+
+		protected PostgresSqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDatabaseContextInfo contextInfo)
+			: base(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
+		{
+			this.Host = contextInfo.ServerName;
+			this.Userid = contextInfo.UserId;
+			this.Password = contextInfo.Password;
+			this.DatabaseName = contextInfo.DatabaseName;
+			this.Port = contextInfo.Port;
+			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
+
+			this.connectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
+			this.databaselessConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
 		}
 
 		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
@@ -47,12 +54,7 @@ using Shaolinq.Persistence.Linq;
 			return new PostgresSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
 
-		public override Sql92QueryFormatter NewQueryFormatter(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, Expression expression, SqlQueryFormatterOptions options)
-		{
-			return new PostgresSharedSqlQueryFormatter(dataAccessModel, this.SchemaName, sqlDataTypeProvider, sqlDialect, expression, options);
-		}
-
-		public override DbProviderFactory NewDbProviderFactory()
+		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return NpgsqlFactory.Instance;
 		}

@@ -35,7 +35,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public override string ToString()
 		{
-			return this.GetType().Name + ":" + new Sql92QueryFormatter(this).Format().CommandText;
+			return this.GetType().Name + ":" + new Sql92QueryFormatter().Format(this).CommandText;
 		}
 	}
 }

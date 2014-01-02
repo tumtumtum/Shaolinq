@@ -24,9 +24,9 @@ namespace Shaolinq.Tests
 			var dbConnection = this.model.GetCurrentSqlDatabaseContext();
 			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model, string.Empty);
 
-			var formatter = dbConnection.NewQueryFormatter(this.model, dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, dataDefinitionExpressions, SqlQueryFormatterOptions.Default);
+			var formatter = dbConnection.SqlQueryFormatterManager.CreateQueryFormatter();
 
-			Console.WriteLine(formatter.Format().CommandText);
+			Console.WriteLine(formatter.Format(dataDefinitionExpressions).CommandText);
 		}
 
 		[Test]
@@ -45,9 +45,9 @@ namespace Shaolinq.Tests
 
 			var createTableExpression = new SqlCreateTableExpression(new SqlTableExpression("Table1"), columnDefinitions, constraints);
 
-			var formatter = new Sql92QueryFormatter(createTableExpression);
+			var formatter = new Sql92QueryFormatter();
 
-			Console.WriteLine(formatter.Format().CommandText);
+			Console.WriteLine(formatter.Format(createTableExpression).CommandText);
 		}
 	}
 }

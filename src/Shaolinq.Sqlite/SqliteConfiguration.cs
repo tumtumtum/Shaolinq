@@ -17,7 +17,7 @@ namespace Shaolinq.Sqlite
 			{
 		       	SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
        			{
-       				new SqliteDatabaseConnectionInfo()
+       				new SqliteSqlDatabaseContextInfo()
        				{
        					Categories = categories,
        					FileName = fileName

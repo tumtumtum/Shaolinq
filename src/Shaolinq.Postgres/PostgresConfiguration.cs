@@ -22,7 +22,7 @@ namespace Shaolinq.Postgres
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
-					new PostgresDatabaseConnectionInfo()
+					new PostgresDatabaseContextInfo()
 					{
 						DatabaseName = databaseName,
 						Categories = categories,

@@ -81,7 +81,7 @@
   <ItemGroup>
     <Compile Include="PostgresDatabaseCreator.cs" />
     <Compile Include="PostgresDotConnectConfiguration.cs" />
-    <Compile Include="PostgresDotConnectDatabaseConnectionInfo.cs" />
+    <Compile Include="PostgresDotConnectSqlDatabaseContextInfo.cs" />
     <Compile Include="PostgresDotConnectSqlDatabaseContext.cs" />
     <Compile Include="PostgresDotConnectSqlDatabaseTransactionContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

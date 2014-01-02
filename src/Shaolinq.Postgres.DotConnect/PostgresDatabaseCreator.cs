@@ -8,19 +8,19 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectDatabaseCreator
 		: PostgresSharedDatabaseCreator
 	{
-		public PostgresDotConnectDatabaseCreator(PostgresDotConnectSqlDatabaseContext connection, DataAccessModel model)
-			: base(connection, model)
+		public PostgresDotConnectDatabaseCreator(PostgresDotConnectSqlDatabaseContext sqlDatabaseContext, DataAccessModel model)
+			: base(model, sqlDatabaseContext, sqlDatabaseContext.DatabaseName)
 		{
 		}
 
 		protected override string GetDatabaselessConnectionString()
 		{
-			return ((PostgresDotConnectSqlDatabaseContext)this.connection).databaselessConnectionString;
+			return ((PostgresDotConnectSqlDatabaseContext)this.sqlDatabaseContext).databaselessConnectionString;
 		}
 
 		protected override DbProviderFactory CreateDbProviderFactory()
 		{
-			return ((PostgresDotConnectSqlDatabaseContext)this.connection).NewDbProviderFactory();
+			return ((PostgresDotConnectSqlDatabaseContext)this.sqlDatabaseContext).CreateDbProviderFactory();
 		}
 	}
 }

@@ -39,9 +39,7 @@ namespace Shaolinq.Persistence
 					{
 						var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(sqlDatabaseContext.SqlDataTypeProvider, sqlDatabaseContext.SqlDialect, this.model, sqlDatabaseContext.TableNamePrefix);
 
-						var formatter = sqlDatabaseContext.NewQueryFormatter(this.model, sqlDatabaseContext.SqlDataTypeProvider, sqlDatabaseContext.SqlDialect, dataDefinitionExpressions, SqlQueryFormatterOptions.Default);
-
-						var result = formatter.Format();
+						var result = sqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
 
 						using (var command = ((SqlDatabaseTransactionContext)dataTransactionContext).CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
 						{
