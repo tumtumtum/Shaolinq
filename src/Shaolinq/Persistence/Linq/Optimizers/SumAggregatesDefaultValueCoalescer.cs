@@ -1,25 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class CoalesceSumAggregatesToZero
+	public class SumAggregatesDefaultValueCoalescer
 		: SqlExpressionVisitor
 	{
 		private SqlProjectionExpression currentProjection;
 
-		private CoalesceSumAggregatesToZero()
+		private SumAggregatesDefaultValueCoalescer()
 		{	
 		}
 
 		public static Expression Coalesce(Expression expression)
 		{
-			var coalescer = new CoalesceSumAggregatesToZero();
+			var coalescer = new SumAggregatesDefaultValueCoalescer();
 
 			return coalescer.Visit(expression);
 		}

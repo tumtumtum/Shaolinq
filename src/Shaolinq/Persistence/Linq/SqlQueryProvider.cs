@@ -196,7 +196,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = RedundantFunctionCallRemover.Remove(expression);
 			expression = ConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
-			expression = CoalesceSumAggregatesToZero.Coalesce(expression);
+			expression = SumAggregatesDefaultValueCoalescer.Coalesce(expression);
 
 			return expression;
 		}

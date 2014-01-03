@@ -1,13 +1,12 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-﻿using System.Linq;
-﻿using System.Linq.Expressions;
+using System.Linq;
+using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Optimizers;
 
-namespace Shaolinq.Persistence.Linq
+namespace Shaolinq.Persistence.Linq.Optimizers
 {
 	/// <summary>
 	/// Move order-bys to the outer most select
@@ -32,7 +31,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
-			bool saveIsOuterMostSelect = this.isOuterMostSelect;
+			var saveIsOuterMostSelect = this.isOuterMostSelect;
 
 			try
 			{

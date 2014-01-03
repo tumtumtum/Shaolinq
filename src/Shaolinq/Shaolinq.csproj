@@ -119,7 +119,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlUpdateExpression.cs" />
     <Compile Include="Persistence\Linq\GroupByCollator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AggregateFinder.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\CoalesceSumAggregatesToZero.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SumAggregatesDefaultValueCoalescer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpander.cs" />
     <Compile Include="Persistence\Linq\SqlForeignKeyConstraintToAlterAmmender.cs" />
@@ -216,7 +216,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlFunctionCallExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlFunction.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlBaseExpression.cs" />
-    <Compile Include="Persistence\Linq\OrderByRewriter.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\OrderByRewriter.cs" />
     <Compile Include="Persistence\Linq\ProjectionBuilder.cs" />
     <Compile Include="Persistence\Linq\QueryBinder.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlColumnDeclaration.cs" />
