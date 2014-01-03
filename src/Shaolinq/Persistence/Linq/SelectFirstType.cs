@@ -8,7 +8,6 @@
 		First,
 		FirstOrDefault,
 		Single,
-		DefaultIfEmpty,
 		SingleOrDefault
 	}
 }

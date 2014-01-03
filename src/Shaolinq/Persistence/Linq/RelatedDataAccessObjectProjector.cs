@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -11,8 +12,8 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : IDataAccessObject
 	{
-		public RelatedDataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, objectReader, relatedDataAccessObjectContext, selectFirstType, placeholderValues)
+		public RelatedDataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty, object[] placeholderValues)
+			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, objectReader, relatedDataAccessObjectContext, selectFirstType, sqlAggregateType, isDefaultIfEmpty, placeholderValues)
 		{
 		}
 
@@ -28,11 +29,6 @@ namespace Shaolinq.Persistence.Linq
 				{
 					while (dataReader.Read())
 					{
-						if (count == 1 && this.selectFirstType == SelectFirstType.SingleOrDefault || this.selectFirstType == SelectFirstType.DefaultIfEmpty)
-						{
-							throw new InvalidOperationException("Sequence contains more than one element");
-						}
-
 						T retval = this.objectReader(this, dataReader, this.placeholderValues);
 
 						if (this.relatedDataAccessObjectContext.InitializeDataAccessObject != null)

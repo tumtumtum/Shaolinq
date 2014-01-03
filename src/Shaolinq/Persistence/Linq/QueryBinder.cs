@@ -146,7 +146,7 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, Visit(checkItem), Visit(checkList));
 		}
 
-		private Expression BindFirst(Expression source, Expression defaultValueExpression, SelectFirstType selectFirstType)
+		private Expression BindFirst(Expression source, SelectFirstType selectFirstType)
 		{
 			var projection = this.VisitSequence(source);
 
@@ -169,15 +169,12 @@ namespace Shaolinq.Persistence.Linq
 				case SelectFirstType.SingleOrDefault:
 					limit = 2;
 					break;
-				case SelectFirstType.DefaultIfEmpty:
-					limit = 1;
-					break;
 				default:
 					limit = 1;
 					break;
 			}
 
-			return new SqlProjectionExpression(new SqlSelectExpression(select.Type, alias, pc.Columns, projection.Select, null, null, null, false, null, Expression.Constant(limit), select.ForUpdate), pc.Projector, null, false, selectFirstType, defaultValueExpression);
+			return new SqlProjectionExpression(new SqlSelectExpression(select.Type, alias, pc.Columns, projection.Select, null, null, null, false, null, Expression.Constant(limit), select.ForUpdate), pc.Projector, null, false, selectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 		}
 
 		private Expression BindTake(Expression source, Expression take)
@@ -736,7 +733,7 @@ namespace Shaolinq.Persistence.Linq
 					case "First":
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							var retval = this.BindFirst(methodCallExpression.Arguments[0], null, SelectFirstType.First);
+							var retval = this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.First);
 
 							return retval;
 						}
@@ -744,43 +741,43 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, null, SelectFirstType.First);
+							return this.BindFirst(where, SelectFirstType.First);
 						}
 						break;
 					case "FirstOrDefault":
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							return this.BindFirst(methodCallExpression.Arguments[0], null, SelectFirstType.FirstOrDefault);
+							return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.FirstOrDefault);
 						}
 						else if (methodCallExpression.Arguments.Count == 2)
 						{
 							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, null, SelectFirstType.FirstOrDefault);
+							return this.BindFirst(where, SelectFirstType.FirstOrDefault);
 						}
 						break;
 					case "Single":
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							return this.BindFirst(methodCallExpression.Arguments[0], null, SelectFirstType.Single);
+							return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.Single);
 						}
 						else if (methodCallExpression.Arguments.Count == 2)
 						{
 							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, null, SelectFirstType.Single);
+							return this.BindFirst(where, SelectFirstType.Single);
 						}
 						break;
 					case "SingleOrDefault":
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							return this.BindFirst(methodCallExpression.Arguments[0], null, SelectFirstType.SingleOrDefault);
+							return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.SingleOrDefault);
 						}
 						else if (methodCallExpression.Arguments.Count == 2)
 						{
 							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, null, SelectFirstType.SingleOrDefault);
+							return this.BindFirst(where, SelectFirstType.SingleOrDefault);
 						}
 						break;
 					case "DefaultIfEmpty":
@@ -788,13 +785,18 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
 
-							return projectionExpression.ToDefaultIfEmpty();
+							return projectionExpression.ToDefaultIfEmpty(null);
 						}
 						else if (methodCallExpression.Arguments.Count == 2)
 						{
-							return this.BindFirst(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], SelectFirstType.DefaultIfEmpty);
+							var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
+
+							return projectionExpression.ToDefaultIfEmpty(methodCallExpression.Arguments[1]);
 						}
-						break;
+						else
+						{
+							throw new NotSupportedException(methodCallExpression.ToString());
+						}
 					case "Contains":
 						if (methodCallExpression.Arguments.Count == 2)
 						{
@@ -1224,14 +1226,14 @@ namespace Shaolinq.Persistence.Linq
 
 				var aggregator = Expression.Lambda(Expression.Call(typeof(Enumerable), "Single", new Type[] { returnType }, parameterExpression), parameterExpression);
 
-				return new SqlProjectionExpression(select, new SqlColumnExpression(returnType, alias, ""), aggregator);
+				return new SqlProjectionExpression(select, new SqlColumnExpression(returnType, alias, ""), aggregator, false, SelectFirstType.None, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 			}
 
 			var subquery = new SqlSubqueryExpression(returnType, select);
 
 			// If we can find the corresponding group info then we can build a n
 			// AggregateSubquery node that will enable us to optimize the aggregate
-			// expression later using AggregateRewriter
+			// expression later using AggregateSubqueryRewriter
 
 			GroupByInfo info;
 

@@ -41,12 +41,12 @@ namespace Shaolinq
 
 		public virtual T Create()
 		{
-			return this.DataAccessModel.NewDataAccessObject<T>();
+			return this.DataAccessModel.CreateDataAccessObject<T>();
 		}
 
 		public virtual T Create(bool transient)
 		{
-			return this.DataAccessModel.NewDataAccessObject<T>(transient);
+			return this.DataAccessModel.CreateDataAccessObject<T>(transient);
 		}
 
 		IDataAccessObject IDataAccessObjectActivator.Create()

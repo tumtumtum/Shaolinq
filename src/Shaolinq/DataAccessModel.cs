@@ -296,7 +296,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = this.AssemblyBuildInfo.NewDataAccessObject<T>();
+				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>();
 
 				retval.SetIsNew(false);
 				retval.SetIsDeflatedReference(true);
@@ -421,20 +421,20 @@ namespace Shaolinq
 			return this.GetReferenceByPrimaryKey<T>(propertyInfoAndValues);
 		}
 
-		public virtual IDataAccessObject NewDataAccessObject(Type type)
+		public virtual IDataAccessObject CreateDataAccessObject(Type type)
 		{
-			return NewDataAccessObject(type, false);
+			return this.CreateDataAccessObject(type, false);
 		}
 
-		public virtual T NewDataAccessObject<T>()
+		public virtual T CreateDataAccessObject<T>()
 			where T : class, IDataAccessObject
 		{
-			return NewDataAccessObject<T>(false);
+			return this.CreateDataAccessObject<T>(false);
 		}
 
-		public virtual IDataAccessObject NewDataAccessObject(Type type, bool transient)
+		public virtual IDataAccessObject CreateDataAccessObject(Type type, bool transient)
 		{
-			var retval = this.AssemblyBuildInfo.NewDataAccessObject(type);
+			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type);
 
 			retval.SetIsNew(true);
 			retval.SetDataAccessModel(this);
@@ -451,10 +451,10 @@ namespace Shaolinq
 			return retval;
 		}
 
-		public virtual T NewDataAccessObject<T>(bool transient)
+		public virtual T CreateDataAccessObject<T>(bool transient)
 			where T : class, IDataAccessObject
 		{
-			var retval = this.AssemblyBuildInfo.NewDataAccessObject<T>();
+			var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>();
 
 			retval.SetIsNew(true);
 			retval.SetDataAccessModel(this);
@@ -535,7 +535,7 @@ namespace Shaolinq
 			this.SetCurrentTransactionDatabaseCategories("ReadOnly");
 		}
 
-		public virtual void Create()
+		public virtual void CreateIfNotExist()
 		{
 			this.Create(DatabaseCreationOptions.IfNotExist);
 		}

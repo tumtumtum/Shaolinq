@@ -197,7 +197,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			if (select != projectionExpression.Select || projector != projectionExpression.Projector || aggregator != projectionExpression.Aggregator)
 			{
-				return new SqlProjectionExpression(select, projector, aggregator, projectionExpression.IsElementTableProjection, projectionExpression.SelectFirstType, projectionExpression.DefaultValueExpression);
+				return new SqlProjectionExpression(select, projector, aggregator, projectionExpression.IsElementTableProjection, projectionExpression.SelectFirstType, projectionExpression.DefaultValueExpression, projectionExpression.IsDefaultIfEmpty);
 			}
 
 			return projectionExpression;
@@ -310,13 +310,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			var source = (SqlSelectExpression)Visit(projection.Select);
 
 			var projector = Visit(projection.Projector);
-
+			var defaulValueExpression = Visit(projection.DefaultValueExpression);
 			var aggregator = (LambdaExpression)Visit(projection.Aggregator);
 
-			if (source != projection.Select || projector != projection.Projector
-				|| aggregator != projection.Aggregator)
+			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValueExpression || aggregator != projection.Aggregator)
 			{
-				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.SelectFirstType, null);
+				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.SelectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 			}
 
 			return projection;

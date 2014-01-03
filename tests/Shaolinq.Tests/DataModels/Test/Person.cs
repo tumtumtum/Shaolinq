@@ -25,6 +25,9 @@ namespace Shaolinq.Tests.DataModels.Test
 		public abstract double Height { get; set; }
 
 		[PersistedMember]
+		public abstract double? Weight { get; set; }
+
+		[PersistedMember]
 		public abstract int FavouriteNumber { get; set; }
 
 		[PersistedMember]

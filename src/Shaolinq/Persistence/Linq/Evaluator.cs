@@ -33,8 +33,7 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static bool CanBeEvaluatedLocally(Expression expression)
 		{
-			if (!(expression.NodeType != ExpressionType.Parameter
-				   && (int)expression.NodeType < (int)SqlExpressionType.Table))
+			if (!(expression.NodeType != ExpressionType.Parameter && (int)expression.NodeType < (int)SqlExpressionType.Table))
 			{
 				return false;
 			}

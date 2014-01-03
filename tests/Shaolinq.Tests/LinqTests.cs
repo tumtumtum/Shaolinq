@@ -28,7 +28,7 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var school = model.Schools.Create();
-				
+
 				school.Name = "Bruce's Kung Fu School";
 
 				var tum = school.Students.Create();
@@ -74,13 +74,28 @@ namespace Shaolinq.Tests
 				chuck1.Address = address2;
 				chuck1.Height = 100000; // TODO: MySql support for Double.PositiveInfinity;
 				chuck1.FavouriteNumber = 8;
+				chuck1.Weight = 1000;
 
 				var chuck2 = school.Students.Create();
 
 				chuck2.Firstname = "Chuck";
 				chuck2.Lastname = "Yeager";
 				chuck2.Height = 182;
+				chuck2.Weight = 70;
 			
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Query_Select_DefaultIfEmpty_Sum()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Select(c => c.Weight).DefaultIfEmpty(777).Sum();
+
+				Assert.AreEqual(1070, result);
+
 				scope.Complete();
 			}
 		}
@@ -342,6 +357,29 @@ namespace Shaolinq.Tests
 				school = this.model.Schools.FirstOrDefault(c => x * 2 == y + y ? c.Id == 1 : c.Id == 2);
 
 				Assert.AreEqual(1, school.Id);
+			}
+		}
+
+
+		[Test]
+		public virtual void Test_Select_FirstOrDefault()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = model.Students.FirstOrDefault();
+
+				Assert.IsNotNull(student);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_To_List()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = model.Students.ToList();
+
+				Assert.Greater(students.Count, 0);
 			}
 		}
 

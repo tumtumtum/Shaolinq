@@ -27,7 +27,7 @@ namespace Shaolinq
 				}
 				else
 				{
-					return (T)this.dataAccessModel.NewDataAccessObject(typeof(T));
+					return (T)this.dataAccessModel.CreateDataAccessObject(typeof(T));
 				}
 			}
 			else

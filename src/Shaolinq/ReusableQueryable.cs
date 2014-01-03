@@ -41,7 +41,7 @@ namespace Shaolinq
 
 		public virtual IEnumerator<T> GetEnumerator()
 		{
-			return ((IEnumerable<T>)this.Provider.Execute(this.Expression)).GetEnumerator();
+			return this.PersistenceQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
 		}
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

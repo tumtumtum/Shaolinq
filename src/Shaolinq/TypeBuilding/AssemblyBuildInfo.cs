@@ -127,7 +127,7 @@ namespace Shaolinq.TypeBuilding
 			return ((Func<T>)constructor)();
 		}
 
-		public IDataAccessObject NewDataAccessObject(Type dataAccessObjectType)
+		public IDataAccessObject CreateDataAccessObject(Type dataAccessObjectType)
 		{
 			Delegate constructor;
 
@@ -157,7 +157,7 @@ namespace Shaolinq.TypeBuilding
 			return (IDataAccessObject)constructor.DynamicInvoke();
 		}
 
-		public T NewDataAccessObject<T>()
+		public T CreateDataAccessObject<T>()
 			where T : IDataAccessObject
 		{
 			Delegate constructor;

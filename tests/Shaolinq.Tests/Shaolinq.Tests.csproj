@@ -55,6 +55,7 @@
     <Compile Include="DataModels\Test\Address.cs" />
     <Compile Include="DataModels\Test\Cat.cs" />
     <Compile Include="DataModels\Test\Club.cs" />
+    <Compile Include="DataModels\Test\DefaultIfEmptyTestObject.cs" />
     <Compile Include="DataModels\Test\Dog.cs" />
     <Compile Include="DataModels\Test\Fraternity.cs" />
     <Compile Include="DataModels\Test\Lecture.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="DataModels\Test\Product.cs" />
     <Compile Include="DataModels\Test\School.cs" />
     <Compile Include="DataModels\Test\Student.cs" />
+    <Compile Include="DefaultIfEmptyTests.cs" />
     <Compile Include="DeflatedReferenceTests.cs" />
     <Compile Include="DeleteTests.cs" />
     <Compile Include="LinqTests.cs" />

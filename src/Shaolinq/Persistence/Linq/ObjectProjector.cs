@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -16,12 +17,16 @@ namespace Shaolinq.Persistence.Linq
 		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
 
 		protected int count = 0;
-		private readonly IQueryProvider provider;
+		protected readonly IQueryProvider provider;
 		protected SelectFirstType selectFirstType;
+		protected readonly SqlAggregateType? sqlAggregateType;
+		protected readonly bool isDefaultIfEmpty;
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty)
 		{
+			this.sqlAggregateType = sqlAggregateType;
+			this.isDefaultIfEmpty = isDefaultIfEmpty;
 			this.provider = provider;
 			this.DataAccessModel = dataAccessModel;
 			this.FormatResult = formatResult;
@@ -83,8 +88,8 @@ namespace Shaolinq.Persistence.Linq
 		protected readonly object[] placeholderValues;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, relatedDataAccessObjectContext, selectFirstType)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty, object[] placeholderValues)
+			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, relatedDataAccessObjectContext, selectFirstType, sqlAggregateType, isDefaultIfEmpty)
 		{
 			this.placeholderValues = placeholderValues;
 			this.objectReader = (Func<ObjectProjector, IDataReader, object[], U>)objectReader;
@@ -100,14 +105,31 @@ namespace Shaolinq.Persistence.Linq
 
 				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
 				{
-					while (dataReader.Read())
+					if (dataReader.Read())
 					{
-						if (count == 1 && this.selectFirstType == SelectFirstType.SingleOrDefault || this.selectFirstType == SelectFirstType.DefaultIfEmpty)
+						if (this.isDefaultIfEmpty && this.sqlAggregateType != null)
 						{
-							throw new InvalidOperationException("Sequence contains more than one element");
+							if (dataReader.FieldCount > 0 && dataReader.IsDBNull(0))
+							{
+								yield break;
+							}
+						}
+						else if (this.sqlAggregateType != SqlAggregateType.Sum && !typeof(T).IsNullableType())
+						{
+							if (dataReader.FieldCount > 0 && dataReader.IsDBNull(0))
+							{
+								throw new InvalidOperationException();
+							}
 						}
 
-						yield return this.objectReader(this,dataReader, placeholderValues);
+						yield return this.objectReader(this, dataReader, placeholderValues);
+
+						count++;
+					}
+
+					while (dataReader.Read())
+					{
+						yield return this.objectReader(this, dataReader, placeholderValues);
 
 						count++;
 					}

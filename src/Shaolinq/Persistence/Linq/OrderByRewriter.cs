@@ -47,7 +47,7 @@ namespace Shaolinq.Persistence.Linq
 					this.PrependOrderings(select.OrderBy.Select(c => (SqlOrderByExpression)c));
 				}
 
-				bool canHaveOrderBy = saveIsOuterMostSelect && AggregateFinder.Gather(select).Count == 0;
+				bool canHaveOrderBy = saveIsOuterMostSelect && AggregateSubqueryFinder.Find(select).Count == 0;
 
 				bool canPassOnOrderings = !saveIsOuterMostSelect;
 

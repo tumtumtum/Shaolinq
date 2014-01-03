@@ -40,6 +40,9 @@ namespace Shaolinq.Tests.DataModels.Test
 		public abstract DataAccessObjects<Fraternity> Fraternity { get; }
 
 		[DataAccessObjects]
+		public abstract DataAccessObjects<DefaultIfEmptyTestObject> DefaultIfEmptyTestObjects { get; }
+
+		[DataAccessObjects]
 		public abstract DataAccessObjects<ObjectWithCompositePrimaryKey> ObjectWithCompositePrimaryKeys { get; }
 
 		[DataAccessObjects]

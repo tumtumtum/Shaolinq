@@ -118,6 +118,8 @@
     <Compile Include="Persistence\Linq\Expressions\SqlTypeExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUpdateExpression.cs" />
     <Compile Include="Persistence\Linq\GroupByCollator.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\AggregateFinder.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\CoalesceSumAggregatesToZero.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpander.cs" />
     <Compile Include="Persistence\Linq\SqlForeignKeyConstraintToAlterAmmender.cs" />
@@ -170,8 +172,8 @@
     <Compile Include="Persistence\Linq\Expressions\SqlDeleteExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlObjectOperand.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlOrderByExpression.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\AggregateFinder.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\AggregateRewriter.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryFinder.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryRewriter.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAggregateSubqueryExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAggregateType.cs" />

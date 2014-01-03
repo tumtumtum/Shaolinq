@@ -138,9 +138,19 @@ namespace Shaolinq.Persistence.Linq
 			append(this.identifierQuoteString);
 		}
 
+		private bool currentProjectShouldBeDefaultIfEmpty;
+
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			return Visit(projection.Select);
+			var previousCurrentProjectShouldBeDefaultIfEmpty = this.currentProjectShouldBeDefaultIfEmpty;
+
+			currentProjectShouldBeDefaultIfEmpty = projection.IsDefaultIfEmpty;
+
+			var retval = Visit(projection.Select);
+
+			this.currentProjectShouldBeDefaultIfEmpty = previousCurrentProjectShouldBeDefaultIfEmpty;
+
+			return retval;
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
@@ -251,6 +261,8 @@ namespace Shaolinq.Persistence.Linq
 					};
 				case SqlFunction.In:
 					return new FunctionResolveResult("IN", true, arguments);
+				case SqlFunction.Coalesce:
+					return new FunctionResolveResult("COALESCE", false, arguments);
 				case SqlFunction.Like:
 					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
 				case SqlFunction.CompareObject:

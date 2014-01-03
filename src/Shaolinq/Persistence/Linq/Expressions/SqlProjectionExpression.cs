@@ -29,12 +29,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection)
-			: this(select, projector, aggregator, isElementTableProjection, SelectFirstType.None, null)
-		{
-		}
-
-		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, SelectFirstType selectFirstType, Expression defaultValueExpression)
-			: this(select, projector, aggregator, isElementTableProjection, selectFirstType, null, false)
+			: this(select, projector, aggregator, isElementTableProjection, SelectFirstType.None, null, false)
 		{
 		}
 
@@ -50,9 +45,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.IsDefaultIfEmpty = isDefaultIfEmpty;
 		}
 
-		public SqlProjectionExpression ToDefaultIfEmpty()
+		public SqlProjectionExpression ToDefaultIfEmpty(Expression defaultValueExpression)
 		{
-			return new SqlProjectionExpression(this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.SelectFirstType, this.DefaultValueExpression, true);
+			return new SqlProjectionExpression(this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.SelectFirstType, defaultValueExpression, true);
 		}
 	}
 }
