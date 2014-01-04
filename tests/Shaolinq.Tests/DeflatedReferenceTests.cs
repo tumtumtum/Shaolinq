@@ -9,9 +9,9 @@ using Shaolinq.Tests.DataModels.Test;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
-	[TestFixture("Sqlite")]
+	/*[TestFixture("Sqlite")]
 	[TestFixture("Postgres")]
-	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Postgres.DotConnect")]*/
 	public class DeflatedReferenceTests
 		: BaseTests
 	{

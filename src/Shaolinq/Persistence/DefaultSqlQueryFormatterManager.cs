@@ -36,6 +36,7 @@ namespace Shaolinq.Persistence
 		}
 
 		public DefaultSqlQueryFormatterManager(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterConstructorMethod constructorMethod)
+			: base(sqlDialect)
 		{
 			this.SqlDialect = sqlDialect;
 			this.SqlDataTypeProvider = sqlDataTypeProvider;			

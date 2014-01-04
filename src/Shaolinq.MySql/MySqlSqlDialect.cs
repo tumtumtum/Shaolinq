@@ -30,12 +30,17 @@ namespace Shaolinq.MySql
 
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
-			if (symbol == SqlSyntaxSymbol.IdentifierQuote)
+			switch (symbol)
 			{
-				return "`";
+				case SqlSyntaxSymbol.IdentifierQuote:
+					return "`";
+				case SqlSyntaxSymbol.ParameterPrefix:
+					return "?";
+				case SqlSyntaxSymbol.AutoIncrement:
+					return "AUTO_INCREMENT";
+				default:
+					return base.GetSyntaxSymbolString(symbol);
 			}
-
-			return base.GetSyntaxSymbolString(symbol);
 		}
 	}
 }

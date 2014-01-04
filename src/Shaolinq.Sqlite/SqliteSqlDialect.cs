@@ -32,7 +32,7 @@ namespace Shaolinq.Sqlite
 		
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
-			if (symbol == SqlSyntaxSymbol.AutoIncrementSuffix)
+			if (symbol == SqlSyntaxSymbol.AutoIncrement)
 			{
 				return "AUTOINCREMENT";
 			}

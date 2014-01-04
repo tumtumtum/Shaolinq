@@ -60,7 +60,6 @@ namespace Shaolinq.Persistence.Linq
 
 		private readonly SqlQueryFormatterOptions options;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
-		protected readonly SqlDialect sqlDialect;
 		
 		public IndentationContext AcquireIndentationContext()
 		{
@@ -78,8 +77,8 @@ namespace Shaolinq.Persistence.Linq
 		{
 		}
 
-		public Sql92QueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, char parameterIndicatorChar = SqlQueryFormatter.DefaultParameterIndicatorChar)
-			: base(new StringWriter(new StringBuilder()), parameterIndicatorChar)
+		public Sql92QueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
+			: base(sqlDialect, new StringWriter(new StringBuilder()))
 		{
 			this.options = options;
 
@@ -90,15 +89,6 @@ namespace Shaolinq.Persistence.Linq
 			else
 			{
 				this.sqlDataTypeProvider = sqlDataTypeProvider;
-			}
-
-			if (sqlDialect == null)
-			{
-				this.sqlDialect = SqlDialect.Default;
-			}
-			else
-			{
-				this.sqlDialect = sqlDialect;
 			}
 
 			this.identifierQuoteString = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
@@ -394,7 +384,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					for (int i = 0, n = result.argsBefore.Length - 1; i <= n; i++)
 					{
-						this.Write(this.ParameterIndicatorChar);
+						this.Write(this.ParameterIndicatorPrefix);
 						this.Write("param");
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsBefore[i].Left, result.argsBefore[i].Right));
@@ -420,7 +410,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					for (int i = 0, n = result.argsAfter.Length - 1; i <= n; i++)
 					{
-						Write(this.ParameterIndicatorChar);
+						Write(this.ParameterIndicatorPrefix);
 						Write("param");
 						Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsAfter[i].Left, result.argsAfter[i].Right));
@@ -525,7 +515,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					this.Write(this.ParameterIndicatorChar);
+					this.Write(this.ParameterIndicatorPrefix);
 					this.Write("param");
 					this.Write(parameterValues.Count);
 					parameterValues.Add(new Pair<Type, object>(constantExpression.Type, null));
@@ -538,7 +528,7 @@ namespace Shaolinq.Persistence.Linq
 				switch (Type.GetTypeCode(type))
 				{
 					case TypeCode.Boolean:
-						this.Write(this.ParameterIndicatorChar);
+						this.Write(this.ParameterIndicatorPrefix);
 						this.Write("param");
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
@@ -552,7 +542,7 @@ namespace Shaolinq.Persistence.Linq
 						}
 						else
 						{
-							this.Write(this.ParameterIndicatorChar);
+							this.Write(this.ParameterIndicatorPrefix);
 							this.Write("param");
 							this.Write(parameterValues.Count);
 
@@ -571,7 +561,7 @@ namespace Shaolinq.Persistence.Linq
 					default:
 						if (constantExpression.Type.IsEnum)
 						{
-							this.Write(this.ParameterIndicatorChar);
+							this.Write(this.ParameterIndicatorPrefix);
 							this.Write("param");
 							this.Write(parameterValues.Count);
 
@@ -579,7 +569,7 @@ namespace Shaolinq.Persistence.Linq
 						}
 						else
 						{
-							this.Write(this.ParameterIndicatorChar);
+							this.Write(this.ParameterIndicatorPrefix);
 							this.Write("param");
 							this.Write(parameterValues.Count);
 
@@ -1127,11 +1117,11 @@ namespace Shaolinq.Persistence.Linq
 
 					if (simpleConstraintExpression.Constraint == SqlSimpleConstraint.PrimaryKeyAutoIncrement)
 					{
-						var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrementSuffix);
+						var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement);
 
 						if (!string.IsNullOrEmpty(s))
 						{
-							this.Write(" " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrementSuffix));
+							this.Write(" " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement));
 						}
 					}
 

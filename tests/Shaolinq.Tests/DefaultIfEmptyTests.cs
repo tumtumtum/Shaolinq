@@ -38,12 +38,12 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Count()
+		public virtual void Test_Count_Empty()
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = queryable.Where(c => c.Id < 0).Count();
-				var expectedResult = queryable.ToList().Where(c => c.Id < 0).Count();
+				var result = this.queryable.Count(c => c.Id < 0);
+				var expectedResult = this.queryable.AsEnumerable().Count(c => c.Id < 0);
 
 				Assert.AreEqual(expectedResult, result);
 				Assert.AreEqual(0, result);
@@ -56,10 +56,37 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var result = queryable.Where(c => c.Id < 0).DefaultIfEmpty().Count();
-				var expectedResult = queryable.ToList().Where(c => c.Id < 0).DefaultIfEmpty().Count();
+				var expectedResult = queryable.AsEnumerable().Where(c => c.Id < 0).DefaultIfEmpty().Count();
 
 				Assert.AreEqual(expectedResult, result);
 				Assert.AreEqual(1, result);
+			}
+		}
+
+
+		[Test]
+		public virtual void Test_Nullable_Select_Then_Count_Empty()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Count();
+				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Count();
+
+				Assert.AreEqual(value, expectedValue);
+				Assert.AreEqual(0, value);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Integer_Select_Then_Count_Empty_Using_Nullable_Cast()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value = queryable.Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Count();
+				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Count();
+
+				Assert.AreEqual(value, expectedValue);
+				Assert.AreEqual(0, value);
 			}
 		}
 
@@ -245,12 +272,12 @@ namespace Shaolinq.Tests
 			{
 				Assert.Throws<InvalidOperationException>(()=>
 				{
-					var value = queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Max();
+					queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Max();
 				});
 
 				Assert.Throws<InvalidOperationException>(() =>
 				{
-					var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Max();
+					queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Max();
 				});
 			}
 		}

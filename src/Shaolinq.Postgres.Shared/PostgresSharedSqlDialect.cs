@@ -49,8 +49,6 @@ namespace Shaolinq.Postgres.Shared
 			{
 				case SqlSyntaxSymbol.Like:
 					return "ILIKE";
-				case SqlSyntaxSymbol.AutoIncrementSuffix:
-					return "";
 				default:
 					return base.GetSyntaxSymbolString(symbol);
 			}

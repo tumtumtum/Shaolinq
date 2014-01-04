@@ -55,7 +55,8 @@ namespace Shaolinq.Persistence.Linq
 		protected TextWriter writer;
 		protected List<Pair<Type, object>> parameterValues;
 		internal int IndentationWidth { get; private set; }
-		public char ParameterIndicatorChar { get; protected set; }
+		public string ParameterIndicatorPrefix { get; protected set; }
+		protected readonly SqlDialect sqlDialect;
 
 		public virtual SqlQueryFormatResult Format(Expression expression)
 		{
@@ -77,10 +78,11 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlQueryFormatResult(null, parameterValues);
 		}
 
-		protected SqlQueryFormatter(TextWriter writer, char parameterIndicatorChar)
+		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)
 		{
+			this.sqlDialect = sqlDialect ?? SqlDialect.Default;
 			this.writer = writer;
-			this.ParameterIndicatorChar = parameterIndicatorChar;
+			this.ParameterIndicatorPrefix = sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 			this.IndentationWidth = 2;
 		}
 

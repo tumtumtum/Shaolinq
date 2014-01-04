@@ -260,20 +260,16 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		internal static string FormatCommand(IDbCommand command)
+		internal string FormatCommand(IDbCommand command)
 		{
-			return FormatCommandRegex.Replace(command.CommandText, match => 
+			return this.SqlDatabaseContext.SqlQueryFormatterManager.Format(command.CommandText, c =>
 			{
-				var value = ((IDbDataParameter)command.Parameters[match.Value]).Value;
+				if (!command.Parameters.Contains(c))
+				{
+					return "[FormatCommandError!]";
+				}
 
-				if (value is string)
-				{
-					return "'" + value + "'";
-				}
-				else
-				{
-					return Convert.ToString(value);		
-				}
+				return ((IDbDataParameter)command.Parameters[c]);
 			});
 		}
 

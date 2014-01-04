@@ -4,7 +4,9 @@
 	{
 		Null,
 		Like,
+		StringQuote,
 		IdentifierQuote,
-		AutoIncrementSuffix
+		ParameterPrefix,
+		AutoIncrement
 	}
 }

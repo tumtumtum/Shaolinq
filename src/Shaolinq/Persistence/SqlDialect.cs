@@ -42,8 +42,10 @@ namespace Shaolinq.Persistence
 					return "LIKE";
 				case SqlSyntaxSymbol.IdentifierQuote:
 					return "\"";
-				case SqlSyntaxSymbol.AutoIncrementSuffix:
-					return "AUTO_INCREMENT";
+				case SqlSyntaxSymbol.ParameterPrefix:
+					return "@";
+				case SqlSyntaxSymbol.StringQuote:
+					return "\'";
 				default:
 					return "";
 			}

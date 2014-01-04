@@ -12,7 +12,7 @@ namespace Shaolinq.MySql
 		: Sql92QueryFormatter
 	{
 		public MySqlSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
-			: base(options, sqlDialect, sqlDataTypeProvider, '?')
+			: base(options, sqlDialect, sqlDataTypeProvider)
 		{
 		}
 
