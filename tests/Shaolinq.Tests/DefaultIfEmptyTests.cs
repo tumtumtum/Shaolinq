@@ -256,6 +256,19 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Integer_Select_Then_Max_Empty_Using_Nullable_Cast()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value = queryable.Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Max();
+				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Max();
+
+				Assert.AreEqual(value, expectedValue);
+				Assert.AreEqual(null, value);
+			}
+		}
+
+		[Test]
 		public virtual void Test_Integer_Select_DefaultIfEmpty_Then_Max()
 		{
 			using (var scope = new TransactionScope())

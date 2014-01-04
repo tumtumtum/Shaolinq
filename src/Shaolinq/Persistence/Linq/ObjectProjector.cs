@@ -119,7 +119,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							if (dataReader.FieldCount > 0 && dataReader.IsDBNull(0))
 							{
-								throw new InvalidOperationException();
+								throw new InvalidOperationException("Sequence contains no elements");
 							}
 						}
 						
