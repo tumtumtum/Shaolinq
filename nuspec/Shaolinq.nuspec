@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>$id$</id>
+    <id>Shaolinq</id>
     <version>$version$</version>
     <title>Shaolinq ORM and Linq provider</title>
     <summary>A thoughtful ORM and Linq provider for .NET</summary>

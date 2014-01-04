@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>$id$</id>
+    <id>Shaolinq.Postgres.DotConnect</id>
     <version>$version$</version>
     <title>Shaolinq ORM and Linq provider for Postgres (DotConnect)</title>
     <summary>A thoughtful ORM and Linq provider for .NET and Postgres (via the DotConnect Postgres provider)</summary>
