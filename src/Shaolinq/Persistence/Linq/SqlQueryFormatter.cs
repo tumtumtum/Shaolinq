@@ -82,7 +82,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.sqlDialect = sqlDialect ?? SqlDialect.Default;
 			this.writer = writer;
-			this.ParameterIndicatorPrefix = sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
+			this.ParameterIndicatorPrefix = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 			this.IndentationWidth = 2;
 		}
 
