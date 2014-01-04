@@ -114,11 +114,20 @@ namespace Shaolinq.Persistence.Linq
 								yield break;
 							}
 						}
-						else if (this.sqlAggregateType != SqlAggregateType.Sum && !typeof(T).IsNullableType())
+						
+						if (this.sqlAggregateType != SqlAggregateType.Sum && this.sqlAggregateType != SqlAggregateType.Count && !typeof(T).IsNullableType())
 						{
 							if (dataReader.FieldCount > 0 && dataReader.IsDBNull(0))
 							{
 								throw new InvalidOperationException();
+							}
+						}
+						
+						if (this.isDefaultIfEmpty && this.sqlAggregateType == SqlAggregateType.Count)
+						{
+							if (dataReader.FieldCount > 0 && dataReader.GetInt64(0) == 0)
+							{
+								yield return (T)Convert.ChangeType(1, typeof(T));
 							}
 						}
 

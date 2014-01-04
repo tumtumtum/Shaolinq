@@ -37,6 +37,32 @@ namespace Shaolinq.Tests
 			queryable = this.model.DefaultIfEmptyTestObjects;
 		}
 
+		[Test]
+		public virtual void Test_Count()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = queryable.Where(c => c.Id < 0).Count();
+				var expectedResult = queryable.ToList().Where(c => c.Id < 0).Count();
+
+				Assert.AreEqual(expectedResult, result);
+				Assert.AreEqual(0, result);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Count_With_DefaultIfEmpty()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = queryable.Where(c => c.Id < 0).DefaultIfEmpty().Count();
+				var expectedResult = queryable.ToList().Where(c => c.Id < 0).DefaultIfEmpty().Count();
+
+				Assert.AreEqual(expectedResult, result);
+				Assert.AreEqual(1, result);
+			}
+		}
+
 		/* Nullable & MAX */
 
 		[Test]
