@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Shaolinq.Postgres.Shared</id>
+    <id>$id$</id>
     <version>$version$</version>
     <title>Shared types used by the Shaolinq Postgres providers</title>
     <summary>Shaolinq is a thoughtful ORM and Linq provider for .NET</summary>

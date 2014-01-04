@@ -8,9 +8,8 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Shaolinq.Sqlite")]
-[assembly: AssemblyDescription("Shaolinq Sqlite Provider Library")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyDescription("Sqlite support for Shaolinq (the fast, thoughtful ORM and Linq provider)")]
+[assembly: AssemblyCompany("Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyProduct("Shaolinq.Sqlite")]
 [assembly: AssemblyCopyright("Copyright © 2007-2013 Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyTrademark("")]
@@ -34,5 +33,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("0.0.0.0")]
+[assembly: AssemblyFileVersion("0.0.0.0")]

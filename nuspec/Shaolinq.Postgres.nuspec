@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Shaolinq.Postgres</id>
+    <id>$id$</id>
     <version>$version$</version>
     <title>Shaolinq ORM and Linq provider for Postgres</title>
     <summary>A thoughtful ORM and Linq provider for .NET and Postgres</summary>
