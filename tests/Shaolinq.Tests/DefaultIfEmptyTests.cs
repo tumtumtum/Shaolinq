@@ -1,14 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.DataModels.Test;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres")]
+	[TestFixture("Postgres.DotConnect")]
 	public class DefaultIfEmptyTests
 		: BaseTests
 	{
