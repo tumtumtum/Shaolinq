@@ -15,7 +15,7 @@
     
     This library contains types used by Shaolinq.Postgres and Shaolinq.Postgres.DotCOnnect.
     </description>
-    <releaseNotes>Simplified persistence provider model (single database per data access model). Bug fixes.</releaseNotes>
+    <releaseNotes>$releasenotes$</releaseNotes>
     <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
     <tags>linq provider orm</tags>
     <dependencies>

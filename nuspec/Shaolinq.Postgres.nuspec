@@ -25,7 +25,7 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
 - Full support for server side date functions (Date.DayOfWeek etc).
 - Easily extensible with a simple interface for adding support for other ADO.NET compatible databases.
 - Open Source!</description>
-    <releaseNotes>Simplified persistence provider model (single database per data access model). Bug fixes.</releaseNotes>
+    <releaseNotes>$releasenotes$</releaseNotes>
     <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
     <tags>linq provider orm postgres sql database</tags>
     <dependencies>
