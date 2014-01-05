@@ -14,14 +14,9 @@ namespace Shaolinq.Persistence
 		private static readonly ConstructorInfo GuidConstructor = typeof(Guid).GetConstructor(new [] {typeof(string)});
 		private static readonly ConstructorInfo NullableGuidConstructor = typeof(Guid?).GetConstructor(new[] { typeof(Guid) });
 
-		public DefaultGuidSqlDataType(Type type)
-			: base(type)
+		public DefaultGuidSqlDataType(ConstraintDefaults constraintDefaults, Type type)
+			: base(constraintDefaults, type)
 		{
-		}
-
-		public override long GetDataLength(PropertyDescriptor propertyDescriptor)
-		{
-			return 32;
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)

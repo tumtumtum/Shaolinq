@@ -84,7 +84,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (sqlDataTypeProvider == null)
 			{
-				this.sqlDataTypeProvider = DefaultSqlDataTypeProvider.Instance;
+				this.sqlDataTypeProvider = new DefaultSqlDataTypeProvider(ConstraintDefaults.Default);
 			}
 			else
 			{

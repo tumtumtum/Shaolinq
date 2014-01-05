@@ -14,15 +14,10 @@ namespace Shaolinq.Persistence
 		
 		private readonly string sqlName;
 
-		public DefaultBlobSqlDataType(string sqlName)
-			: base(typeof(byte[]))
+		public DefaultBlobSqlDataType(ConstraintDefaults constraintDefaults, string sqlName)
+			: base(constraintDefaults, typeof(byte[]))
 		{
 			this.sqlName = sqlName;
-		}
-
-		public override long GetDataLength(PropertyDescriptor propertyDescriptor)
-		{
-			return Int64.MaxValue;
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)

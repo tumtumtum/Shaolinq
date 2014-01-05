@@ -1,38 +1,51 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-using System.Linq.Expressions;
+﻿using System.Linq;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
+﻿using Platform.Validation;
 
 namespace Shaolinq.Persistence
 {
 	public class DefaultStringEnumSqlDataType<T>
 		: DefaultStringSqlDataType
 	{
-		private const int SizePadding = 256;
-		private readonly int stringSize = 512;
-		
-		public DefaultStringEnumSqlDataType()
-			: base(typeof(T))
+		private static int GetRecommendedLength(Type enumType)
 		{
-			var type = this.UnderlyingType ?? this.SupportedType;
+			var type = Nullable.GetUnderlyingType(enumType) ?? enumType;
 
 			var names = Enum.GetNames(type);
 
-			foreach (var name in names)
-			{
-				while (stringSize - name.Length < SizePadding)
-				{
-					stringSize *= 2;
-				}
-			}
+			var maximumSize = names.Max(c => c.Length);
+
+			maximumSize = ((maximumSize / 16) + 1) * 16 + 8;
 
 			if (type.GetFirstCustomAttribute<FlagsAttribute>(true) != null)
 			{
-				stringSize = stringSize * Math.Max(1024, names.Length);
+				maximumSize = (maximumSize + 1) * names.Length;
 			}
+
+			return maximumSize;
+		}
+
+		private static ConstraintDefaults CreateConstraintDefaults(ConstraintDefaults defaults, Type type)
+		{
+			var length = GetRecommendedLength(type);
+
+			return new ConstraintDefaults(defaults)
+			{
+				StringMaximumLength = length,
+				StringPrimaryKeyMaximumLength = length,
+				StringSizeFlexibility = SizeFlexibility.Variable
+			};
+		}
+
+		public DefaultStringEnumSqlDataType(ConstraintDefaults constraintDefaults)
+			: base(CreateConstraintDefaults(constraintDefaults, typeof(T)), typeof(T))
+		{
 		}
         
 		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
@@ -98,11 +111,6 @@ namespace Shaolinq.Persistence
 			}
 
 			return Enum.Parse(this.SupportedType, (string)value);
-		}
-
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
-		{
-			return base.GetSqlName(propertyDescriptor, this.stringSize);
 		}
 	}
 }

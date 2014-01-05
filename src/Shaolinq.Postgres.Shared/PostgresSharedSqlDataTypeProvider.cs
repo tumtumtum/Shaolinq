@@ -8,15 +8,18 @@ namespace Shaolinq.Postgres.Shared
 	public class PostgresSharedSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
-		private static readonly SqlDataType BlobSqlDataType = new DefaultBlobSqlDataType("BYTEA");
+		private readonly SqlDataType blobSqlDataType;
 
 		protected override SqlDataType GetBlobDataType()
 		{
-			return BlobSqlDataType;
+			return blobSqlDataType;
 		}
 
-		public PostgresSharedSqlDataTypeProvider(bool nativeUuids, DateTimeKind dateTimeKindIfUnspecified)
+		public PostgresSharedSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, DateTimeKind dateTimeKindIfUnspecified)
+			: base(constraintDefaults)
 		{
+			this.blobSqlDataType = new DefaultBlobSqlDataType(constraintDefaults, "BYTEA");
+
 			DefineSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
 			DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
 			DefineSqlDataType(typeof(int), "INTEGER", "GetInt32");
@@ -31,14 +34,14 @@ namespace Shaolinq.Postgres.Shared
 			}
 			else
 			{
-				DefineSqlDataType(new PostgresSharedDateTimeDataType(false, dateTimeKindIfUnspecified));
-				DefineSqlDataType(new PostgresSharedDateTimeDataType(true, dateTimeKindIfUnspecified));
+				DefineSqlDataType(new PostgresSharedDateTimeDataType(this.ConstraintDefaults, false, dateTimeKindIfUnspecified));
+				DefineSqlDataType(new PostgresSharedDateTimeDataType(this.ConstraintDefaults, true, dateTimeKindIfUnspecified));
 			}
 
 			if (nativeUuids)
 			{
-				DefineSqlDataType(new PostgresSharedUuidSqlDataType(typeof(Guid)));
-				DefineSqlDataType(new PostgresSharedUuidSqlDataType(typeof(Guid?)));
+				DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
+				DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
 			}
 		}
 	}

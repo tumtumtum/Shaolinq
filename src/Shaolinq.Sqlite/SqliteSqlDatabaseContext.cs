@@ -18,9 +18,17 @@ namespace Shaolinq.Sqlite
 		}
 
 		private readonly string connectionString;
-		
-		public SqliteSqlDatabaseContext(SqliteSqlDatabaseContextInfo contextInfo)
-			: base(SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance, new DefaultSqlQueryFormatterManager(SqliteSqlDialect.Default, SqliteSqlDataTypeProvider.Instance, typeof(SqliteSqlQueryFormatter)), contextInfo)
+
+		public static SqliteSqlDatabaseContext Create(SqliteSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
+		{
+			var sqlDataTypeProvider = new SqliteSqlDataTypeProvider(constraintDefaults);
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(SqliteSqlDialect.Default, sqlDataTypeProvider, typeof(SqliteSqlQueryFormatter));
+
+			return new SqliteSqlDatabaseContext(contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
+		}
+
+		private SqliteSqlDatabaseContext(SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
+			: base(SqliteSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
 		{
 			this.FileName = contextInfo.FileName;
 
@@ -29,7 +37,7 @@ namespace Shaolinq.Sqlite
 
 		internal SqliteSqlDatabaseTransactionContext inMemoryContext;
 
-		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			if (String.Equals(this.FileName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
@@ -49,7 +57,7 @@ namespace Shaolinq.Sqlite
 			return new SQLiteFactory();
 		}
 
-		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
+		public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
 		{
 			return new SqliteDatabaseCreator(this, model);
 		}

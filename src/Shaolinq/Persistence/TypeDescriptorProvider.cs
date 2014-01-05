@@ -87,7 +87,7 @@ namespace Shaolinq.Persistence
 
 					if (dataAccessObjectAttribute != null)
 					{
-						if (!typeDescriptorsByType.ContainsKey(baseType) && !dataAccessObjectAttribute.Abstract)
+						if (!typeDescriptorsByType.ContainsKey(baseType) && !dataAccessObjectAttribute.NotPersisted)
 						{
 							if (!typeof(IDataAccessObject).IsAssignableFrom(baseType))
 							{

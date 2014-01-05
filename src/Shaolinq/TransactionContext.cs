@@ -80,7 +80,7 @@ namespace Shaolinq
 
 			if (this.Transaction == null)
 			{
-				retval = sqlDatabaseContext.NewDataTransactionContext(this.DataAccessModel, null);
+				retval = sqlDatabaseContext.CreateDatabaseTransactionContext(this.DataAccessModel, null);
 
 				return new PersistenceTransactionContextAcquisition(this, sqlDatabaseContext, retval);
 			}
@@ -94,7 +94,7 @@ namespace Shaolinq
 				}
 				else
 				{
-					retval = sqlDatabaseContext.NewDataTransactionContext(this.DataAccessModel, this.Transaction);
+					retval = sqlDatabaseContext.CreateDatabaseTransactionContext(this.DataAccessModel, this.Transaction);
 
 					persistenceTransactionContextsByStoreContexts[sqlDatabaseContext] = new TransactionEntry(retval);
 				}

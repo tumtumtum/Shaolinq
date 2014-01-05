@@ -7,19 +7,13 @@ namespace Shaolinq.MySql
 	public class MySqlSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
-		public new static MySqlSqlDataTypeProvider Instance { get; private set; }
-
-		static MySqlSqlDataTypeProvider()
-		{
-			MySqlSqlDataTypeProvider.Instance = new MySqlSqlDataTypeProvider();
-		}
-
 		protected override SqlDataType GetBlobDataType()
 		{
-			return new DefaultBlobSqlDataType("LONGBLOB");
+			return new DefaultBlobSqlDataType(this.ConstraintDefaults, "LONGBLOB");
 		}
 
-		public MySqlSqlDataTypeProvider()
+		public MySqlSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
+			: base(constraintDefaults)
 		{
 			DefineSqlDataType(typeof(byte), "UNSIGNED TINYINT", "GetByte");
 			DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");

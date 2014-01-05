@@ -9,7 +9,7 @@ namespace Shaolinq
 		: Attribute
 	{
 		public string Name { get; set; }
-		public bool Abstract { get; set; }
+		public bool NotPersisted { get; set; }
 
 		public string GetName(Type type)
 		{

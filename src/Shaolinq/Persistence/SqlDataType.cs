@@ -11,20 +11,11 @@ namespace Shaolinq.Persistence
 {
 	public abstract class SqlDataType
 	{
+		protected readonly ConstraintDefaults constraintDefaults;
 		protected static readonly MethodInfo IsDbNullMethod = DataRecordMethods.IsNullMethod;
 
 		public Type SupportedType { get; private set; }
-
-		/// <summary>
-		/// The underlying type if the <see cref="SupportedType"/> is a nullable type.
-		/// </summary>
 		public Type UnderlyingType { get; private set; }
-
-		public abstract long GetDataLength(PropertyDescriptor propertyDescriptor);
-
-		protected SqlDataType()
-		{
-		}
 
 		/// <summary>
 		/// Converts the given value for serializing to SQL.  The default
@@ -68,12 +59,9 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		/// <summary>
-		/// Constructs a new <see cref="SqlDataType"/>
-		/// </summary>
-		/// <param name="supportedType">The type </param>
-		protected SqlDataType(Type supportedType)
+		protected SqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
 		{
+			this.constraintDefaults = constraintDefaults;
 			this.SupportedType = supportedType;
 			this.UnderlyingType = Nullable.GetUnderlyingType(supportedType);
 		}

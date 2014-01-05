@@ -1,10 +1,10 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
- using System.Data.Common;
- using System.Transactions;
+using System;
+using System.Data.Common;
+using System.Transactions;
 ﻿using Shaolinq.Persistence;
- using Devart.Data.PostgreSql;
+using Devart.Data.PostgreSql;
 using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres.DotConnect
@@ -25,10 +25,10 @@ namespace Shaolinq.Postgres.DotConnect
             return connectionString;
         }
 
-		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo)
+		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
 		{
 			var sqlDialect = PostgresSharedSqlDialect.Default;
-			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(contextInfo.NativeUuids, contextInfo.DateTimeKindIfUnspecified);
+			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.DateTimeKindIfUnspecified);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
 			return new PostgresDotConnectSqlDatabaseContext(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
@@ -65,7 +65,7 @@ namespace Shaolinq.Postgres.DotConnect
             connectionString = sb.ConnectionString;
         }
 
-        public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+        public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
         {
             return new PostgresDotConnectSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
         }
@@ -75,7 +75,7 @@ namespace Shaolinq.Postgres.DotConnect
             return PgSqlProviderFactory.Instance;
         }
 		
-	    public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
+	    public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
 	    {
 		    return new PostgresDotConnectDatabaseCreator(this, model);
 	    }

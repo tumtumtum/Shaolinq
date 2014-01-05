@@ -13,8 +13,8 @@ namespace Shaolinq.Persistence
 	public class DefaultListSqlDataType<T>
 		: DefaultStringSqlDataType
 	{
-		public DefaultListSqlDataType(Type supportedType)
-			: base(supportedType)
+		public DefaultListSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
+			: base(constraintDefaults, supportedType)
 		{
 		}
 

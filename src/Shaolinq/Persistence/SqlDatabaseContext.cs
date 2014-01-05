@@ -21,8 +21,8 @@ namespace Shaolinq.Persistence
 		public SqlDataTypeProvider SqlDataTypeProvider { get; protected set; }
 		public SqlQueryFormatterManager SqlQueryFormatterManager { get; protected set; }
 
-		public abstract DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
-		public abstract DatabaseCreator NewDatabaseCreator(DataAccessModel model);
+		public abstract DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
+		public abstract DatabaseCreator CreateDatabaseCreator(DataAccessModel model);
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext);
 
 		protected SqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlDatabaseContextInfo contextInfo)
@@ -34,7 +34,7 @@ namespace Shaolinq.Persistence
 			this.TableNamePrefix = EnvironmentSubstitutor.Substitute(contextInfo.TableNamePrefix);
 		}
 
-		public virtual IPersistenceQueryProvider NewQueryProvider(DataAccessModel dataAccessModel)
+		public virtual IPersistenceQueryProvider CreateQueryProvider(DataAccessModel dataAccessModel)
 		{
 			return new SqlQueryProvider(dataAccessModel, this);
 		}

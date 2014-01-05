@@ -26,10 +26,10 @@ using Shaolinq.Postgres.Shared;
 		internal readonly string connectionString;
 		internal readonly string databaselessConnectionString;
 
-		public static PostgresSqlDatabaseContext Create(PostgresDatabaseContextInfo contextInfo)
+		public static PostgresSqlDatabaseContext Create(PostgresDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
 		{
 			var sqlDialect = PostgresSharedSqlDialect.Default;
-			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(contextInfo.NativeUuids, contextInfo.DateTimeKindIfUnspecified);
+			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.DateTimeKindIfUnspecified);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
 			return new PostgresSqlDatabaseContext(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
@@ -49,7 +49,7 @@ using Shaolinq.Postgres.Shared;
 			this.databaselessConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
 		}
 
-		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			return new PostgresSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
@@ -59,7 +59,7 @@ using Shaolinq.Postgres.Shared;
 			return NpgsqlFactory.Instance;
 		}
 
-		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
+		public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
 		{
 			return new PostgresDatabaseCreator(this, model);
 		}

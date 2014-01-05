@@ -24,8 +24,16 @@ using MySql.Data.MySqlClient;
 		internal readonly string connectionString;
 		internal readonly string databaselessConnectionString;
 
-		public MySqlSqlDatabaseContext(MySqlSqlDatabaseContextInfo contextInfo)
-			: base(MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance, new DefaultSqlQueryFormatterManager(MySqlSqlDialect.Default, MySqlSqlDataTypeProvider.Instance, typeof(MySqlSqlQueryFormatter)), contextInfo)
+		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
+		{
+			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(MySqlSqlDialect.Default, sqlDataTypeProvider, typeof(MySqlSqlQueryFormatter));
+
+			return new MySqlSqlDatabaseContext(sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
+		}
+
+		private MySqlSqlDatabaseContext(SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, MySqlSqlDatabaseContextInfo contextInfo)
+			: base(MySqlSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
 		{
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;
@@ -36,7 +44,7 @@ using MySql.Data.MySqlClient;
 			databaselessConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
 		}
 
-		public override DatabaseTransactionContext NewDataTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			return new MySqlSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
@@ -46,7 +54,7 @@ using MySql.Data.MySqlClient;
 			return new MySqlClientFactory();
 		}
 
-		public override DatabaseCreator NewDatabaseCreator(DataAccessModel model)
+		public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
 		{
 			return new MySqlDatabaseCreator(this, model);
 		}

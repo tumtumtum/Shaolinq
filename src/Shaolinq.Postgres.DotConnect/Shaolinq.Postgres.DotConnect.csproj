@@ -64,9 +64,9 @@
     <Reference Include="Devart.Data.PostgreSql">
       <HintPath>..\..\lib\Packages\dotConnect.Express.for.PostgreSQL.7.2.65\lib\Devart.Data.PostgreSql.dll</HintPath>
     </Reference>
-    <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.0.0.90, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.0.0.90\lib\35\Platform.dll</HintPath>
     </Reference>
     <Reference Include="Platform.Xml.Serialization">
       <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>

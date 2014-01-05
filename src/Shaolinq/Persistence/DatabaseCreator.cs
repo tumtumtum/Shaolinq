@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence
 
 			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
 			{
-				using (var dataTransactionContext = sqlDatabaseContext.NewDataTransactionContext(this.model, null))
+				using (var dataTransactionContext = sqlDatabaseContext.CreateDatabaseTransactionContext(this.model, null))
 				{
 					using (sqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{

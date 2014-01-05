@@ -9,37 +9,27 @@ namespace Shaolinq.Persistence
 	public class DefaultSqlDataTypeProvider
 		: SqlDataTypeProvider
 	{
-		public static DefaultSqlDataTypeProvider Instance
-		{
-			get;
-			private set;
-		}
-
 		private readonly Dictionary<Type, SqlDataType> sqlDataTypesByType;
 
-		static DefaultSqlDataTypeProvider()
-		{
-			DefaultSqlDataTypeProvider.Instance = new DefaultSqlDataTypeProvider();
-		}
-
-		protected virtual void DefineSqlDataType(SqlDataType sqlDataType)
+		protected void DefineSqlDataType(SqlDataType sqlDataType)
 		{
 			sqlDataTypesByType[sqlDataType.SupportedType] = sqlDataType;
 		}
         
-		protected virtual void DefineSqlDataType(Type type, string name, string getValueMethod)
+		protected void DefineSqlDataType(Type type, string name, string getValueMethod)
 		{
 			DefineSqlDataType(type, name, DataRecordMethods.GetMethod(getValueMethod));
 		}
 
-		protected virtual void DefineSqlDataType(Type type, string name, MethodInfo getValueMethod)
+		protected void DefineSqlDataType(Type type, string name, MethodInfo getValueMethod)
 		{
-			DefineSqlDataType(new PrimitiveSqlDataType(type, name, getValueMethod));
+			DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaults, type, name, getValueMethod));
 			type = typeof(Nullable<>).MakeGenericType(type);
-			DefineSqlDataType(new PrimitiveSqlDataType(type, name, getValueMethod));
+			DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaults, type, name, getValueMethod));
 		}
 
-		public DefaultSqlDataTypeProvider()
+		public DefaultSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
+			: base(constraintDefaults)
 		{
 			sqlDataTypesByType = new Dictionary<Type, SqlDataType>(PrimeNumbers.Prime43);
 
@@ -57,16 +47,16 @@ namespace Shaolinq.Persistence
 			DefineSqlDataType(typeof(float), "FLOAT", "GetFloat");
 			DefineSqlDataType(typeof(double), "DOUBLE", "GetDouble");
 			DefineSqlDataType(typeof(decimal), "NUMERIC", "GetDecimal");
-			DefineSqlDataType(new DefaultGuidSqlDataType(typeof(Guid)));
-			DefineSqlDataType(new DefaultGuidSqlDataType(typeof(Guid?)));
-			DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, typeof(TimeSpan)));
-			DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, typeof(TimeSpan?)));
-			DefineSqlDataType(new DefaultStringSqlDataType());
+			DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
+			DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
+			DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaults, typeof(TimeSpan)));
+			DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaults, typeof(TimeSpan?)));
+			DefineSqlDataType(new DefaultStringSqlDataType(this.ConstraintDefaults));
 		}
 
 		protected virtual SqlDataType GetBlobDataType()
 		{
-			return new DefaultBlobSqlDataType("BLOB");
+			return new DefaultBlobSqlDataType(this.ConstraintDefaults, "BLOB");
 		}
 
 		public override SqlDataType GetSqlDataType(Type type)
@@ -88,7 +78,7 @@ namespace Shaolinq.Persistence
 			// Support nullable enums
 			if (newType.IsEnum)
 			{
-				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultStringEnumSqlDataType<>).MakeGenericType(type));
+				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultStringEnumSqlDataType<>).MakeGenericType(type), this.ConstraintDefaults);
 
 				sqlDataTypesByType[type] = sqlDataType;
 

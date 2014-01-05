@@ -15,18 +15,11 @@ namespace Shaolinq.Persistence
 		public string SqlName { get; private set; }
 		public MethodInfo GetMethod { get; private set; }
 
-		public PrimitiveSqlDataType(Type type, string sqlName, MethodInfo getMethod)
-			: base(type)
+		public PrimitiveSqlDataType(ConstraintDefaults constraintDefaults, Type type, string sqlName, MethodInfo getMethod)
+			: base(constraintDefaults, type)
 		{
 			this.SqlName = sqlName;
 			this.GetMethod = getMethod;
-		}
-
-		public override long GetDataLength(PropertyDescriptor propertyDescriptor)
-		{
-			var type = this.UnderlyingType ?? this.SupportedType;
-
-			return Marshal.SizeOf(type);
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)

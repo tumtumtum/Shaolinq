@@ -58,12 +58,13 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MySql.Data">
-      <HintPath>..\..\lib\Packages\MySql.Data.6.7.4\lib\net40\MySql.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MySql.Data, Version=6.8.3.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
+      <HintPath>..\packages\MySql.Data.6.8.3\lib\net40\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Platform, Version=1.0.0.90, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Platform.NET.1.0.0.90\lib\35\Platform.dll</HintPath>
     </Reference>
     <Reference Include="Platform.Xml.Serialization">
       <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>

@@ -8,7 +8,7 @@ using Shaolinq.Persistence;
 namespace Shaolinq
 {
 	[Serializable]
-	[DataAccessObject(Abstract = true)]
+	[DataAccessObject(NotPersisted = true)]
     public abstract class DataAccessObject<T>
         : IDataAccessObject
 	{

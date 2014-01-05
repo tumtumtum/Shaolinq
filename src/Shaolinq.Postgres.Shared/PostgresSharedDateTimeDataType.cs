@@ -13,8 +13,8 @@ namespace Shaolinq.Postgres.Shared
 		private readonly DateTimeKind kind;
 		private static readonly MethodInfo SpecifyKindIfUnspecifiedMethod = typeof(PostgresSharedDateTimeDataType).GetMethod("SpecifyKindIfUnspecified", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(DateTime), typeof(DateTimeKind) }, null);
 
-		public PostgresSharedDateTimeDataType(bool nullable, DateTimeKind kind)
-			: base(nullable ? typeof(DateTime?) : typeof(DateTime), "TIMESTAMP", DataRecordMethods.GetMethod("GetDateTime"))
+		public PostgresSharedDateTimeDataType(ConstraintDefaults constraintDefaults, bool nullable, DateTimeKind kind)
+			: base(constraintDefaults, nullable ? typeof(DateTime?) : typeof(DateTime), "TIMESTAMP", DataRecordMethods.GetMethod("GetDateTime"))
 		{
 			this.kind = kind;
 		}

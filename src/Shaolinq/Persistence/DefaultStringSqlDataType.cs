@@ -10,66 +10,20 @@ namespace Shaolinq.Persistence
 	public class DefaultStringSqlDataType
 		: SqlDataType
 	{
-		public DefaultStringSqlDataType()
-			: base(typeof(string))
+		public DefaultStringSqlDataType(ConstraintDefaults constraintDefaults)
+			: base(constraintDefaults, typeof(string))
 		{
 		}
 
-		protected DefaultStringSqlDataType(Type type)
-			: base(type)
+		protected DefaultStringSqlDataType(ConstraintDefaults constraintDefaults, Type type)
+			: base(constraintDefaults, type)
 		{
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
-			return GetSqlName(propertyDescriptor, -1);
-		}
-
-		public override long GetDataLength(PropertyDescriptor propertyDescriptor)
-		{
-			return GetDataLength(propertyDescriptor, -1);
-		}
-
-		public virtual long GetDataLength(PropertyDescriptor propertyDescriptor, int hintLength)
-		{
-			var attribute = propertyDescriptor == null ? null : propertyDescriptor.PersistedMemberAttribute;
-			var sizeConstraintAttribute = propertyDescriptor == null ? null : propertyDescriptor.PropertyInfo.GetFirstCustomAttribute<SizeConstraintAttribute>(true);
-
-			if (attribute == null)
-			{
-				return hintLength < 0 ? SizeConstraintAttribute.DefaultMaximumLength : hintLength;
-			}
-
-			if (sizeConstraintAttribute != null)
-			{
-				switch (sizeConstraintAttribute.SizeFlexibility)
-				{
-					case SizeFlexibility.Fixed:
-						return sizeConstraintAttribute.MaximumLength;
-					case SizeFlexibility.Variable:
-						return sizeConstraintAttribute.MaximumLength;
-					case SizeFlexibility.LargeVariable:
-						return Int64.MaxValue;
-					default:
-						throw new NotSupportedException("SizeFlexibility: " + sizeConstraintAttribute.SizeFlexibility);
-				}
-			}
-			else
-			{
-				return hintLength < 0 ? SizeConstraintAttribute.DefaultMaximumLength : hintLength;
-			}
-		}
-
-		protected virtual string GetSqlName(PropertyDescriptor propertyDescriptor, int hintLength)
-		{
-			var attribute = propertyDescriptor == null ? null : propertyDescriptor.PersistedMemberAttribute;
 			var sizeConstraintAttribute = propertyDescriptor == null ? null : propertyDescriptor.PropertyInfo.GetFirstCustomAttribute<SizeConstraintAttribute>(true);
 			
-			if (attribute == null)
-			{
-				return "VARCHAR(" + (hintLength < 0 ? SizeConstraintAttribute.DefaultMaximumLength : hintLength) + ") ";
-			}
-
 			if (sizeConstraintAttribute != null)
 			{
 				switch (sizeConstraintAttribute.SizeFlexibility)
@@ -86,7 +40,14 @@ namespace Shaolinq.Persistence
 			}
 			else
 			{
-				return String.Concat("VARCHAR(", (hintLength < 0 ? SizeConstraintAttribute.DefaultMaximumLength : hintLength), ")");
+				if (propertyDescriptor.IsPrimaryKey)
+				{
+					return "VARCHAR(" + constraintDefaults.StringPrimaryKeyMaximumLength + ") ";
+				}
+				else
+				{
+					return "VARCHAR(" + constraintDefaults.StringMaximumLength + ") ";
+				}
 			}
 		}
 

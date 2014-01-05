@@ -5,7 +5,7 @@ using Platform.Validation;
 
 namespace Shaolinq.Tests.DataModels.Test
 {
-	[DataAccessObject(Abstract = true)]
+	[DataAccessObject(NotPersisted = true)]
 	public abstract class Person
 		: DataAccessObject<Guid>
 	{

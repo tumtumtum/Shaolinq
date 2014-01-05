@@ -57,12 +57,13 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="log4net">
-      <HintPath>..\..\lib\Packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="Platform, Version=1.0.0.87, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\lib\Packages\Platform.NET.1.0.0.87\lib\35\Platform.dll</HintPath>
+      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Platform, Version=1.0.0.90, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Platform.NET.1.0.0.90\lib\35\Platform.dll</HintPath>
     </Reference>
     <Reference Include="Platform.Xml.Serialization">
       <HintPath>..\..\lib\Packages\Platform.Xml.Serialization.1.0.0.78\lib\35\Platform.Xml.Serialization.dll</HintPath>
@@ -82,6 +83,7 @@
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
+    <Compile Include="ConstraintDefaults.cs" />
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />

@@ -10,26 +10,20 @@ namespace Shaolinq.Persistence
 	public class DefaultTimeSpanSqlDataType
 		: SqlDataType
 	{
+		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private static readonly MethodInfo GetValueMethod = DataRecordMethods.GetInt64Method;
 		private static readonly ConstructorInfo TimeSpanConstructor = typeof(TimeSpan).GetConstructor(new[] { typeof(long) });
 		private static readonly ConstructorInfo NullableTimeSpanConstructor = typeof(TimeSpan?).GetConstructor(new[] { typeof(TimeSpan) });
 
-		private readonly SqlDataTypeProvider provider;
-
-		public DefaultTimeSpanSqlDataType(SqlDataTypeProvider provider, Type type)
-			: base(type)
+		public DefaultTimeSpanSqlDataType(SqlDataTypeProvider sqlDataTypeProvider, ConstraintDefaults constraintDefaults, Type type)
+			: base(constraintDefaults, type)
 		{
-			this.provider = provider;
+			this.sqlDataTypeProvider = sqlDataTypeProvider;
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
-			return this.provider.GetSqlDataType(typeof(long)).GetSqlName(propertyDescriptor);
-		}
-
-		public override long GetDataLength(PropertyDescriptor propertyDescriptor)
-		{
-			return 8;
+			return this.sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(propertyDescriptor);
 		}
 
 		public override Pair<Type, object> ConvertForSql(object value)

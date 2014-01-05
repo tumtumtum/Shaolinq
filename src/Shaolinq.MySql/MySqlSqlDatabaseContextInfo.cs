@@ -29,9 +29,9 @@ namespace Shaolinq.MySql
 			this.PoolConnections = true;
 		}
 
-		public override SqlDatabaseContext CreateSqlDatabaseContext()
+		public override SqlDatabaseContext CreateSqlDatabaseContext(ConstraintDefaults constraintDefaults)
 		{
-			return new MySqlSqlDatabaseContext(this);
+			return MySqlSqlDatabaseContext.Create(this, constraintDefaults);
 		}
 	}
 }

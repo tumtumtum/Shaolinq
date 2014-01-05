@@ -13,16 +13,11 @@ namespace Shaolinq.Postgres.Shared
 	{
 		private static readonly ConstructorInfo NullableGuidConstructor = typeof(Guid?).GetConstructor(new[] { typeof(Guid) });
 
-		public PostgresSharedUuidSqlDataType(Type type)
-			: base(type)
+		public PostgresSharedUuidSqlDataType(ConstraintDefaults constraintDefaults, Type type)
+			: base(constraintDefaults, type)
 		{
 		}
-
-		public override long GetDataLength(PropertyDescriptor propertyDescriptor)
-		{
-			return 16;
-		}
-
+		
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
 			return "UUID";

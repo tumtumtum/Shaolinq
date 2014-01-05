@@ -80,5 +80,18 @@ namespace Shaolinq
 			get;
 			set;
 		}
+
+		[XmlElement("ConstraintDefaults")]
+		public ConstraintDefaults ConstraintDefaults
+		{
+			get;
+			set;
+		}
+
+		public DataAccessModelConfiguration()
+		{
+			this.SqlDatabaseContextInfos = new SqlDatabaseContextInfo[0];
+			this.ConstraintDefaults = ConstraintDefaults.Default;
+		}
 	}
 }

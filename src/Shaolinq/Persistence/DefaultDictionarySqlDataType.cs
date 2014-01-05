@@ -13,8 +13,8 @@ namespace Shaolinq.Persistence
 	public class DefaultDictionarySqlDataType<K, V>
 		: DefaultStringSqlDataType
 	{
-		public DefaultDictionarySqlDataType(Type supportedType)
-			: base(supportedType)
+		public DefaultDictionarySqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
+			: base(constraintDefaults, supportedType)
 		{
 		}
 
