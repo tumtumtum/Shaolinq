@@ -285,6 +285,7 @@
     <Compile Include="TypeBuilding\PropertyMethodType.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="TypeExtensions.cs" />
+    <Compile Include="UniqueKeyConstraintException.cs" />
     <Compile Include="VariableSubstitutor.cs" />
     <Compile Include="WriteOnlyDomainObjectException.cs" />
     <Compile Include="Xml\XmlSerializationExtensions.cs" />

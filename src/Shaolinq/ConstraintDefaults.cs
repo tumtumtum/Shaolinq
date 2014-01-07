@@ -17,7 +17,7 @@ namespace Shaolinq
 		}
 
 		[XmlAttribute]
-		public int StringPrimaryKeyMaximumLength
+		public int IndexedStringMaximumLength
 		{
 			get;
 			set;
@@ -32,14 +32,14 @@ namespace Shaolinq
 
 		public ConstraintDefaults()
 		{
-			this.StringMaximumLength = 256;
-			this.StringPrimaryKeyMaximumLength = 64;
+			this.StringMaximumLength = 512;
+			this.IndexedStringMaximumLength = 255;
 		}
 
 		public ConstraintDefaults(ConstraintDefaults original)
 		{
 			this.StringMaximumLength = original.StringMaximumLength;
-			this.StringPrimaryKeyMaximumLength = original.StringPrimaryKeyMaximumLength;
+			this.IndexedStringMaximumLength = original.IndexedStringMaximumLength;
 			this.StringSizeFlexibility = original.StringSizeFlexibility;
 		}
 	}

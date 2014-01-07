@@ -40,9 +40,9 @@ namespace Shaolinq.Persistence
 			}
 			else
 			{
-				if (propertyDescriptor.IsPrimaryKey)
+				if (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0)
 				{
-					return "VARCHAR(" + constraintDefaults.StringPrimaryKeyMaximumLength + ") ";
+					return "VARCHAR(" + constraintDefaults.IndexedStringMaximumLength + ") ";
 				}
 				else
 				{

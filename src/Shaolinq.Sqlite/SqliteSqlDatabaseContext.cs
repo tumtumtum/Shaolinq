@@ -11,6 +11,8 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDatabaseContext
 		: SystemDataBasedSqlDatabaseContext
 	{
+		private const int SQLITE_CONSTRAINT = 19;
+
 		public string FileName { get; private set; }
 		public override string GetConnectionString()
 		{
@@ -65,6 +67,25 @@ namespace Shaolinq.Sqlite
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
 		{
 			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
+		}
+
+		public override Exception DecorateException(Exception exception, string relatedQuery)
+		{
+			// http://www.sqlite.org/c3ref/c_abort.html
+
+			var sqliteException = exception as SQLiteException;
+
+			if (sqliteException == null)
+			{
+				return base.DecorateException(exception, relatedQuery);
+			}
+			
+			if (sqliteException.ErrorCode == SQLITE_CONSTRAINT)
+			{
+				return new UniqueKeyConstraintException(exception, relatedQuery);
+			}
+			
+			return new DataAccessException(exception, relatedQuery);
 		}
 	}
 }

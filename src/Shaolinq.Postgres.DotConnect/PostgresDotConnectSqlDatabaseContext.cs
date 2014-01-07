@@ -89,5 +89,26 @@ namespace Shaolinq.Postgres.DotConnect
 		{
 			PgSqlConnection.ClearAllPools();
 		}
+
+		public override Exception DecorateException(Exception exception, string relatedQuery)
+		{
+			var postgresException = exception as PgSqlException;
+
+			if (postgresException == null)
+			{
+				return base.DecorateException(exception, relatedQuery);
+			}
+
+			if (postgresException.ErrorCode == "40001")
+			{
+				return new ConcurrencyException(exception, relatedQuery);
+			}
+			else if (postgresException.ErrorCode == "23505")
+			{
+				throw new UniqueKeyConstraintException(exception, relatedQuery);
+			}
+
+			return new DataAccessException(exception, relatedQuery);
+		}
     }
 }

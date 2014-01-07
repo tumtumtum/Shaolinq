@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Shaolinq.Tests.DataModels.Test
+namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
 	public abstract class Address

@@ -9,7 +9,7 @@ namespace Shaolinq
 	{
 		public static void Flush(this TransactionScope scope, DataAccessModel dataAccessModel)
 		{
-			dataAccessModel.FlushCurrentTransaction();
+			dataAccessModel.Flush();
 		}
 
 		public static void SetReadOnly(this TransactionScope scope, DataAccessModel dataAccessModel)

@@ -19,16 +19,6 @@ namespace Shaolinq.Sqlite
 			}
 		}
 
-		protected override bool IsDataAccessException(Exception e)
-		{
-			return e is SQLiteException;
-		}
-        
-		protected override bool IsConcurrencyException(Exception e)
-		{
-			return false;
-		}
-
 		public SqliteSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
 			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{

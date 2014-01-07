@@ -62,18 +62,6 @@ namespace Shaolinq.Postgres.DotConnect
 			return retval;
 		}
         
-		protected override bool IsDataAccessException(Exception e)
-		{
-			return e is PgSqlException;
-		}
-
-		protected override bool IsConcurrencyException(Exception e)
-		{
-			var postgresException = e as PgSqlException;
-
-			return postgresException != null && postgresException.ErrorCode == "40001";
-		}
-
 		public override void Dispose()
 		{
 			if (this.dbTransaction != null)

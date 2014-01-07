@@ -21,7 +21,7 @@ namespace Shaolinq
 		public static void DeleteWhere<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : class, IDataAccessObject
 		{
-			queryable.DataAccessModel.FlushCurrentTransaction();
+			queryable.DataAccessModel.Flush();
 
 			var transactionContext = queryable.DataAccessModel.AmbientTransactionManager.GetCurrentContext(true);
 

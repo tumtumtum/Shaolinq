@@ -22,6 +22,7 @@ namespace Shaolinq.Persistence
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
+		private readonly List<PropertyDescriptor> propertyDescriptorsInOrder;
 		private readonly IDictionary<PropertyInfo, PropertyDescriptor> propertyDescriptorsByPropertyInfo;
 
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
@@ -237,7 +238,8 @@ namespace Shaolinq.Persistence
 			propertyDescriptorByColumnName = new Dictionary<string, PropertyDescriptor>();
 			propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
 			propertyDescriptorsByPropertyInfo = new Dictionary<PropertyInfo, PropertyDescriptor>();
-			
+			propertyDescriptorsInOrder = new List<PropertyDescriptor>();
+
 			var alreadyEnteredProperties = new HashSet<string>();
 
 			var referencedObjectPrimaryKeyProperties = new List<PropertyDescriptor>();
@@ -279,7 +281,9 @@ namespace Shaolinq.Persistence
 						throw new InvalidDataAccessObjectModelDefinition("The property {0} is not virtual or abstract", propertyInfo.Name);
 					}
 
-					
+
+					propertyDescriptorsInOrder.Add(propertyDescriptor);
+
 					propertyDescriptorsByPropertyInfo[propertyInfo] = propertyDescriptor;
 					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 					propertyDescriptorByColumnName[attribute.GetName(propertyInfo)] = propertyDescriptor;
@@ -403,7 +407,7 @@ namespace Shaolinq.Persistence
 			}
 
 			this.RelatedProperties = new ReadOnlyCollection<PropertyDescriptor>(relatedProperties);
-			this.PersistedProperties = new ReadOnlyCollection<PropertyDescriptor>(propertyDescriptorsByPropertyInfo.Values.ToList());
+			this.PersistedProperties = new ReadOnlyCollection<PropertyDescriptor>(propertyDescriptorsInOrder);
 			this.PrimaryKeyProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
 			this.ComputedTextProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
 

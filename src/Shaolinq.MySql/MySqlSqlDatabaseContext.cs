@@ -67,5 +67,24 @@ using MySql.Data.MySqlClient;
 		public override void DropAllConnections()
 		{
 		}
+
+		public override Exception DecorateException(Exception exception, string relatedQuery)
+		{
+			var mySqlException = exception as MySqlException;
+
+			if (mySqlException == null)
+			{
+				return base.DecorateException(exception, relatedQuery);
+			}
+
+			if (mySqlException.Number == 1062)
+			{
+				throw new UniqueKeyConstraintException(mySqlException, relatedQuery);
+			}
+			else
+			{
+				return new DataAccessException(exception, relatedQuery);
+			}
+		}
 	}
 }

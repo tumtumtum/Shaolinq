@@ -550,7 +550,7 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual void FlushCurrentTransaction()
+		public virtual void Flush()
 		{
 			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(true);
 

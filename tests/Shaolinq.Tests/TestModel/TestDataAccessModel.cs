@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-namespace Shaolinq.Tests.DataModels.Test
+namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessModel]
 	public abstract class TestDataAccessModel
@@ -37,7 +37,10 @@ namespace Shaolinq.Tests.DataModels.Test
 		public abstract DataAccessObjects<Lecturer> Lecturers { get; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Fraternity> Fraternity { get; }
+		public abstract DataAccessObjects<Fraternity> Fraternities { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<ObjectWithUniqueConstraint> ObjectWithUniqueConstraints { get; }
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<DefaultIfEmptyTestObject> DefaultIfEmptyTestObjects { get; }

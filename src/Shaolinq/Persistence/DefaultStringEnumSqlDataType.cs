@@ -38,7 +38,7 @@ namespace Shaolinq.Persistence
 			return new ConstraintDefaults(defaults)
 			{
 				StringMaximumLength = length,
-				StringPrimaryKeyMaximumLength = length,
+				IndexedStringMaximumLength = length,
 				StringSizeFlexibility = SizeFlexibility.Variable
 			};
 		}

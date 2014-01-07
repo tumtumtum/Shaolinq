@@ -7,7 +7,7 @@ namespace Shaolinq
 	[Flags]
 	public enum IndexType
 	{
-		Unique,
+		Default,
 		Hash,
 		BTree,
 		RTree

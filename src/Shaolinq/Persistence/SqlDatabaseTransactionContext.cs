@@ -98,12 +98,9 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected abstract bool IsDataAccessException(Exception e);
-		protected abstract bool IsConcurrencyException(Exception e);
-
 		protected virtual string GetRelatedSql(Exception e)
 		{
-			return string.Empty;
+			return null;
 		}
 
 		public IDbConnection DbConnection { get; set; }
@@ -245,15 +242,14 @@ namespace Shaolinq.Persistence
 			}
 			catch (Exception e)
 			{
+				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+
 				Logger.ErrorFormat(e.ToString());
 
-				if (IsConcurrencyException(e))
+				if (decoratedException != e)
 				{
-					throw new ConcurrencyException(e, GetRelatedSql(e));
-				}
-				else if (IsDataAccessException(e))
-				{
-					throw new DataAccessException(e, GetRelatedSql(e));
+					throw decoratedException;
 				}
 
 				throw;
@@ -295,15 +291,14 @@ namespace Shaolinq.Persistence
 			}
 			catch (Exception e)
 			{
+				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+
 				Logger.ErrorFormat(e.ToString());
 
-				if (IsConcurrencyException(e))
+				if (decoratedException != e)
 				{
-					throw new ConcurrencyException(e, GetRelatedSql(e));
-				}
-				else if (IsDataAccessException(e))
-				{
-					throw new DataAccessException(e, GetRelatedSql(e));
+					throw decoratedException;
 				}
 
 				throw;
@@ -343,15 +338,14 @@ namespace Shaolinq.Persistence
 					}
 					catch (Exception e)
 					{
+						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+						var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+
 						Logger.ErrorFormat(e.ToString());
 
-						if (IsConcurrencyException(e))
+						if (decoratedException != e)
 						{
-							throw new ConcurrencyException(e, GetRelatedSql(e));
-						}
-						else if (IsDataAccessException(e))
-						{
-							throw new DataAccessException(e, GetRelatedSql(e));
+							throw decoratedException;
 						}
 
 						throw;
@@ -417,15 +411,14 @@ namespace Shaolinq.Persistence
 					}
 					catch (Exception e)
 					{
+						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+						var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+
 						Logger.ErrorFormat(e.ToString());
 
-						if (IsConcurrencyException(e))
+						if (decoratedException != e)
 						{
-							throw new ConcurrencyException(e, GetRelatedSql(e));
-						}
-						else if (IsDataAccessException(e))
-						{
-							throw new DataAccessException(e, GetRelatedSql(e));
+							throw decoratedException;
 						}
 
 						throw;
@@ -673,15 +666,14 @@ namespace Shaolinq.Persistence
 				}
 				catch (Exception e)
 				{
+					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+					var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+
 					Logger.ErrorFormat(e.ToString());
 
-					if (IsConcurrencyException(e))
+					if (decoratedException != e)
 					{
-						throw new ConcurrencyException(e, GetRelatedSql(e));
-					}
-					else if (IsDataAccessException(e))
-					{
-						throw new DataAccessException(e, GetRelatedSql(e));
+						throw decoratedException;
 					}
 
 					throw;

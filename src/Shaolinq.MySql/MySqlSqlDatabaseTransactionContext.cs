@@ -18,16 +18,6 @@ namespace Shaolinq.MySql
 			}
 		}
 
-		protected override bool IsDataAccessException(Exception e)
-		{
-			return e is MySqlException;
-		}
-
-		protected override bool IsConcurrencyException(Exception e)
-		{
-			return false;
-		}
-
 		public MySqlSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
 			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{

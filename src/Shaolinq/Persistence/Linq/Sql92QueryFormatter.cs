@@ -968,6 +968,20 @@ namespace Shaolinq.Persistence.Linq
 			return tupleExpression;
 		}
 
+		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
+		{
+			this.Write("CREATE INDEX ");
+			this.WriteQuotedIdentifier(createIndexExpression.IndexName);
+			this.Write(" ON ");
+			this.Visit(createIndexExpression.Table);
+			this.Write("(");
+			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, this.Visit);
+			this.WriteLine(");");
+			this.WriteLine();
+
+			return base.VisitCreateIndex(createIndexExpression);
+		}
+
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
 			this.Write("CREATE TABLE ");
@@ -1247,7 +1261,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitEnumDefinition(SqlEnumDefinitionExpression expression)
 		{
 			this.Write("ENUM (");
-			//this.WriteDeliminatedListOfItems(expression.Labels, this.Write);
+			this.WriteDeliminatedListOfItems(expression.Labels, this.WriteQuotedIdentifier);
 			this.Write(")");
 
 			return expression;

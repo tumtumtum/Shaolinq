@@ -158,17 +158,23 @@ namespace Shaolinq.Persistence
 			{
 				if (indexAttribute.IndexName == null)
 				{
-					if (indexAttribute.LowercaseIndex)
+					var clone = (IndexAttribute)indexAttribute.Clone();
+
+					if (clone.LowercaseIndex)
 					{
-						indexAttribute.IndexName = this.PersistedName + "ToLower";
+						clone.IndexName = this.PersistedName + "ToLower";
 					}
 					else
 					{
-						indexAttribute.IndexName = this.PersistedName;
+						clone.IndexName = this.PersistedName;
 					}
-				}
 
-				indexAttributes.Add(indexAttribute);
+					indexAttributes.Add(clone);
+				}
+				else
+				{
+					indexAttributes.Add(indexAttribute);
+				}
 			}
 
 			this.IndexAttributes = new ReadOnlyCollection<IndexAttribute>(indexAttributes);

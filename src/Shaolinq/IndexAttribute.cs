@@ -6,7 +6,7 @@ namespace Shaolinq
 {
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
 	public class IndexAttribute
-		: Attribute
+		: Attribute, ICloneable
 	{
 		public bool Unique { get; set; }
 		public bool LowercaseIndex { get; set; }
@@ -28,6 +28,11 @@ namespace Shaolinq
 		{
 			this.IndexName = indexName;
 			this.Unique = unique;
+		}
+
+		public object Clone()
+		{
+			return this.MemberwiseClone();
 		}
 	}
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq.Tests.DataModels.Test
+﻿namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
 	public abstract class Lecture

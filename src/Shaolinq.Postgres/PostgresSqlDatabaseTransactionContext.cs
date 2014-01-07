@@ -36,22 +36,10 @@ namespace Shaolinq.Postgres
 
 			if (postgresException == null)
 			{
-				return "";
+				return base.GetRelatedSql(e);
 			}
 
 			return postgresException.ErrorSql;
-		}
-
-		protected override bool IsDataAccessException(Exception e)
-		{
-			return e is NpgsqlException;
-		}
-
-		protected override bool IsConcurrencyException(Exception e)
-		{
-			var postgresException = e as NpgsqlException;
-
-			return postgresException != null && postgresException.Code == "40001";
 		}
 
 		private static System.Data.IsolationLevel GetIsolationLevel(System.Transactions.IsolationLevel isolationLevel)

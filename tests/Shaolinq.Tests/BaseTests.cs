@@ -6,7 +6,7 @@
 ﻿using Shaolinq.Postgres;
 ﻿using Shaolinq.Postgres.DotConnect;
 ﻿using Shaolinq.Sqlite;
-using Shaolinq.Tests.DataModels.Test;
+using Shaolinq.Tests.TestModel;
 using log4net.Config;
 
 namespace Shaolinq.Tests

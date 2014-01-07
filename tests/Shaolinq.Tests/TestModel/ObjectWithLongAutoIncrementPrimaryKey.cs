@@ -1,14 +1,11 @@
 // Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq.Tests.DataModels.Test
+﻿namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
-	public abstract class ObjectWithLongNonAutoIncrementPrimaryKey
+	public abstract class ObjectWithLongAutoIncrementPrimaryKey
 		: DataAccessObject<long>
 	{
-		[AutoIncrement(false)]
-		public abstract override long Id { get; set; }
-
 		[PersistedMember]
 		public abstract string Name { get; set; }
 	}

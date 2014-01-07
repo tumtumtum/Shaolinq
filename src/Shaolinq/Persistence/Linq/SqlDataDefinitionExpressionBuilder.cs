@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -16,7 +17,6 @@ namespace Shaolinq.Persistence.Linq
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private readonly DataAccessModel model;
 		private readonly string tableNamePrefix;
-		private readonly List<Expression> createTableExpressions;
 		private List<Expression> currentTableConstraints;
 
 		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, string tableNamePrefix)
@@ -26,7 +26,6 @@ namespace Shaolinq.Persistence.Linq
 			this.tableNamePrefix = tableNamePrefix;
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 
-			this.createTableExpressions = new List<Expression>();
 			this.currentTableConstraints = new List<Expression>();
 		}
 
@@ -186,14 +185,45 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlCreateTableExpression(new SqlTableExpression(typeof(void), null, tableName), columnExpressions, currentTableConstraints);
 		}
 
+		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)
+		{
+			var unique = properties.Select(c => c.Item1).Any(c => c.Unique);
+			var lowercaseIndex = properties.Select(c => c.Item1).Any(c => c.LowercaseIndex);
+			var indexType = properties.Select(c => c.Item1.IndexType).FirstOrDefault(c => c != IndexType.Default);
+
+			// OrderBy is a stable sort
+			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
+
+			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, new ReadOnlyCollection<SqlColumnExpression>(sorted.Select(c => new SqlColumnExpression(c.Item2.PropertyType, null, c.Item2.PersistedName)).ToList()));
+		}
+
+		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
+		{
+			var allIndexAttributes = typeDescriptor.PersistedProperties.SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
+			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName).Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
+
+			var table = new SqlTableExpression(typeDescriptor.PersistedName);
+
+			foreach (var group in indexAttributesByName)
+			{
+				var indexName = group.Key;
+				var propertyDescriptors = group.ToArray();
+
+				yield return this.BuildIndexExpression(table, indexName, propertyDescriptors);
+			}
+		}
+
 		private Expression Build()
 		{
+			var expressions = new List<Expression>();
+
 			foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetQueryableTypeDescriptors(this.model))
 			{
-				this.createTableExpressions.Add(BuildCreateTableExpression(typeDescriptor));
+				expressions.Add(BuildCreateTableExpression(typeDescriptor));
+				expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
 			}
 
-			return new SqlStatementListExpression(new ReadOnlyCollection<Expression>(this.createTableExpressions));
+			return new SqlStatementListExpression(new ReadOnlyCollection<Expression>(expressions));
 		}
 
 		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, string tableNamePrefix)

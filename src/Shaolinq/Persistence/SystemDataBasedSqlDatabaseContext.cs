@@ -30,6 +30,16 @@ namespace Shaolinq.Persistence
 			this.ContextCategories = contextInfo.Categories == null ? new string[0] : contextInfo.Categories.Split(',').Select(c => c.Trim()).ToArray();
 			this.dBProviderFactory = this.CreateDbProviderFactory();
 		}
+
+		public virtual string GetRelatedSql(Exception e)
+		{
+			return null;
+		}
+
+		public virtual Exception DecorateException(Exception exception, string relatedQuery)
+		{
+			return exception;
+		}
 		
 		public abstract string GetConnectionString();
 		public abstract DbProviderFactory CreateDbProviderFactory();

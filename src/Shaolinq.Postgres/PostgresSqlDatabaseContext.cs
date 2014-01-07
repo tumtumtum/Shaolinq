@@ -73,5 +73,22 @@ using Shaolinq.Postgres.Shared;
 		{
 			NpgsqlConnection.ClearAllPools();
 		}
+
+		public override Exception DecorateException(Exception exception, string relatedQuery)
+		{
+			var typedException = exception as NpgsqlException;
+
+			if (typedException == null)
+			{
+				return base.DecorateException(exception, relatedQuery);
+			}
+
+			if (typedException.Code == "23505")
+			{
+				return new UniqueKeyConstraintException(typedException, relatedQuery);
+			}
+			
+			return new DataAccessException(typedException, relatedQuery);
+		}
 	}
 }
