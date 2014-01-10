@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
 using System.Transactions;
 using Shaolinq.Persistence.Linq;
 
@@ -10,9 +12,11 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseContext
 		: IDisposable
 	{
+		public TimeSpan CommandTimeout { get; protected set; }
+		
 		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default); 
-		internal volatile Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue>(SqlDatabaseTransactionContext.CommandKeyComparer.Default);
-		internal volatile Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<SqlDatabaseTransactionContext.SqlCommandKey, SqlDatabaseTransactionContext.SqlCommandValue>(SqlDatabaseTransactionContext.CommandKeyComparer.Default);
+		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
+		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
 		
 		public string SchemaName { get; protected set; }
 		public string[] ContextCategories { get; protected set; }
@@ -20,13 +24,32 @@ namespace Shaolinq.Persistence
 		public SqlDialect SqlDialect { get; protected set; }
 		public SqlDataTypeProvider SqlDataTypeProvider { get; protected set; }
 		public SqlQueryFormatterManager SqlQueryFormatterManager { get; protected set; }
-
-		public abstract DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
+		
+		public abstract SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
 		public abstract DatabaseCreator CreateDatabaseCreator(DataAccessModel model);
-		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext);
+		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext);
+
+
+		private readonly DbProviderFactory dBProviderFactory;
+
+		public virtual DbConnection OpenConnection()
+		{
+			var retval = this.dBProviderFactory.CreateConnection();
+
+			retval.ConnectionString = this.GetConnectionString();
+			retval.Open();
+
+			return retval;
+		}
+
+		public abstract string GetConnectionString();
+		public abstract DbProviderFactory CreateDbProviderFactory();
 
 		protected SqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlDatabaseContextInfo contextInfo)
 		{
+			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
+			this.ContextCategories = contextInfo.Categories == null ? new string[0] : contextInfo.Categories.Split(',').Select(c => c.Trim()).ToArray();
+			this.dBProviderFactory = this.CreateDbProviderFactory();
 			this.SqlDialect = sqlDialect;
 			this.SqlDataTypeProvider = sqlDataTypeProvider;
 			this.SqlQueryFormatterManager = sqlQueryFormatterManager;
@@ -37,6 +60,16 @@ namespace Shaolinq.Persistence
 		public virtual IPersistenceQueryProvider CreateQueryProvider(DataAccessModel dataAccessModel)
 		{
 			return new SqlQueryProvider(dataAccessModel, this);
+		}
+		
+		public virtual string GetRelatedSql(Exception e)
+		{
+			return null;
+		}
+
+		public virtual Exception DecorateException(Exception exception, string relatedQuery)
+		{
+			return exception;
 		}
 
 		public virtual void DropAllConnections()

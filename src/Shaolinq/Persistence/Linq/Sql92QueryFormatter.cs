@@ -970,7 +970,19 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
-			this.Write("CREATE INDEX ");
+			this.Write("CREATE ");
+			
+			if (createIndexExpression.Unique)
+			{
+				this.Write("UNIQUE ");
+			}
+
+			if (createIndexExpression.IfNotExist)
+			{
+				this.Write("IF NOT EXIST ");
+			}
+
+			this.Write("INDEX ");
 			this.WriteQuotedIdentifier(createIndexExpression.IndexName);
 			this.Write(" ON ");
 			this.Visit(createIndexExpression.Table);
@@ -979,7 +991,7 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteLine(");");
 			this.WriteLine();
 
-			return base.VisitCreateIndex(createIndexExpression);
+			return createIndexExpression;
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)

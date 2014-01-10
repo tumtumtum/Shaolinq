@@ -87,6 +87,68 @@ namespace Shaolinq.Tests
 			}
 		}
 
+
+		[Test, Ignore("NotSupported yet")]
+		public void Test_Select_Many_With_Non_Table()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.OrderBy(c => c.Id).SelectMany(c => this.model.Schools.OrderBy(d => d.Id), (x, y) => new
+				{
+					x,
+					y
+				}).ToList();
+
+				var result2 = (from x in this.model.Students.OrderBy(c => c.Id)
+							   from y in this.model.Schools.OrderBy(c => c.Id)
+							   select new
+							   {
+								   x,
+								   y
+							   }).ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Select_Many()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.SelectMany(c => this.model.Schools, (x, y) => new
+				{
+					x,
+					y
+				}).ToList();
+				var result2 = (from x in this.model.Students
+				               from y in this.model.Schools
+				               select new
+				               {
+					               x,
+					               y
+				               }).ToList();
+
+
+				var result3 = (from x in this.model.Students.ToList()
+							   from y in this.model.Schools.ToList()
+							   select new
+							   {
+								   x,
+								   y
+							   }).ToList();
+
+				Assert.Greater(result.Count(), 0);
+
+				Assert.IsTrue(result.Select(c => c.x).SequenceEqual(result2.Select(c => c.x)));
+				Assert.IsTrue(result.Select(c => c.y).SequenceEqual(result2.Select(c => c.y)));
+
+				Assert.IsTrue(result.Select(c => c.x).OrderBy(c => c.Id).SequenceEqual(result3.Select(c => c.x).OrderBy(c => c.Id)));
+				Assert.IsTrue(result.Select(c => c.y).OrderBy(c => c.Id).SequenceEqual(result3.Select(c => c.y).OrderBy(c => c.Id)));
+
+
+				scope.Complete();
+			}
+		}
+
 		[Test]
 		public void Test_Query_Select_DefaultIfEmpty_Sum()
 		{

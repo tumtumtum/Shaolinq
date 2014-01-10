@@ -10,7 +10,7 @@ using Shaolinq.Postgres.Shared;
 ﻿namespace Shaolinq.Postgres
 {
 	public class PostgresSqlDatabaseContext
-		: SystemDataBasedSqlDatabaseContext
+		: SqlDatabaseContext
 	{
 		public string Host { get; set; }
 		public string Userid { get; set; }
@@ -49,7 +49,7 @@ using Shaolinq.Postgres.Shared;
 			this.databaselessConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
 		}
 
-		public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			return new PostgresSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
@@ -64,14 +64,26 @@ using Shaolinq.Postgres.Shared;
 			return new PostgresDatabaseCreator(this, model);
 		}
 
-		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
 		{
-			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
+			return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
 		}
 
 		public override void DropAllConnections()
 		{
 			NpgsqlConnection.ClearAllPools();
+		}
+
+		public override string GetRelatedSql(Exception e)
+		{
+			var postgresException = e as NpgsqlException;
+
+			if (postgresException == null)
+			{
+				return base.GetRelatedSql(e);
+			}
+
+			return postgresException.ErrorSql;
 		}
 
 		public override Exception DecorateException(Exception exception, string relatedQuery)

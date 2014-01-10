@@ -100,7 +100,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (newSqlType != expression.SqlType || newAsExpression != expression.AsExpression)
 			{
-				return new SqlCreateTypeExpression(newSqlType, newAsExpression);
+				return new SqlCreateTypeExpression(newSqlType, newAsExpression, false);
 			}
 
 			return expression;
@@ -381,7 +381,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (newTable != createTableExpression.Table || createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
 			{
-				return new SqlCreateTableExpression(newTable, columnDefinitions, constraints);
+				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints);
 			}
 			else
 			{

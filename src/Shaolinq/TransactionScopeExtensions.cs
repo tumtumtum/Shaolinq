@@ -42,5 +42,10 @@ namespace Shaolinq
 				dataAccessObject.DataAccessModel.GetCurrentDataContext(true).ImportObject(dataAccessObject);
 			}
 		}
+
+		public static SqlDatabaseTransactionContext GetCurrentSqlDataTransactionContext(this TransactionScope scope, DataAccessModel model)
+		{
+			return model.GetCurrentSqlDatabaseTransactionContext();
+		}
 	}
 }

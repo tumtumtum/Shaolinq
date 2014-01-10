@@ -11,9 +11,9 @@ namespace Shaolinq.Postgres.Shared
 		: DatabaseCreator
 	{
 		public string DatabaseName { get; private set; }
-		protected readonly SystemDataBasedSqlDatabaseContext sqlDatabaseContext;
+		protected readonly SqlDatabaseContext sqlDatabaseContext;
 
-		protected PostgresSharedDatabaseCreator(DataAccessModel model,  SystemDataBasedSqlDatabaseContext sqlDatabaseContext, string databaseName)
+		protected PostgresSharedDatabaseCreator(DataAccessModel model, SqlDatabaseContext sqlDatabaseContext, string databaseName)
 			: base(model)
 		{
 			this.DatabaseName = databaseName;

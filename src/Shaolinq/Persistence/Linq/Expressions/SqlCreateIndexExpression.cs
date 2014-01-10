@@ -13,6 +13,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public bool Unique { get; set; }
 		public bool LowercaseIndex { get; set; }
 		public IndexType IndexType { get; set; }
+		public bool IfNotExist { get; set; }
 		public ReadOnlyCollection<SqlColumnExpression> Columns { get; set; }
 
 		public override ExpressionType NodeType
@@ -23,7 +24,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, ReadOnlyCollection<SqlColumnExpression> columns)
+		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, ReadOnlyCollection<SqlColumnExpression> columns)
 			: base(typeof(void))
 		{
 			this.IndexName = indexName;
@@ -31,6 +32,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Unique = unique;
 			this.LowercaseIndex = lowercaseIndex;
 			this.IndexType = indexType;
+			this.IfNotExist = ifNotExist;
 			this.Columns = columns;
 		}
 	}

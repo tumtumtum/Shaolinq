@@ -44,7 +44,7 @@ namespace Shaolinq.Tests
 					{
 						for (var j = 0; j < 50; j++)
 						{
-							Thread.Sleep(random.Next(0, 200));
+							Thread.Sleep(random.Next(0, 50));
 
 							var user = this.model.Schools.First();
 							Assert.IsNotNull(user);

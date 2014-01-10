@@ -9,7 +9,7 @@ using System.Transactions;
 namespace Shaolinq.Sqlite
 {
 	public class SqliteSqlDatabaseContext
-		: SystemDataBasedSqlDatabaseContext
+		: SqlDatabaseContext
 	{
 		private const int SQLITE_CONSTRAINT = 19;
 
@@ -39,7 +39,7 @@ namespace Shaolinq.Sqlite
 
 		internal SqliteSqlDatabaseTransactionContext inMemoryContext;
 
-		public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
 			if (String.Equals(this.FileName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
@@ -64,9 +64,9 @@ namespace Shaolinq.Sqlite
 			return new SqliteDatabaseCreator(this, model);
 		}
         
-		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
 		{
-			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
+			return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
 		}
 
 		public override Exception DecorateException(Exception exception, string relatedQuery)

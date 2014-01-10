@@ -5,18 +5,18 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public class PersistenceTransactionContextAcquisition
+	public class DatabaseTransactionContextAcquisition
 		: IDisposable
 	{
 		public TransactionContext TransactionContext { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
-		public DatabaseTransactionContext DatabaseTransactionContext { get; private set; }
+		public SqlDatabaseTransactionContext SqlDatabaseTransactionContext { get; private set; }
 
-		public PersistenceTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, DatabaseTransactionContext databaseTransactionContext)
+		public DatabaseTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
 		{
 			this.TransactionContext = transactionContext;
 			this.SqlDatabaseContext = sqlDatabaseContext;
-			this.DatabaseTransactionContext = databaseTransactionContext;
+			this.SqlDatabaseTransactionContext = sqlDatabaseTransactionContext;
 		}
 
 		public void SetWasError()
@@ -27,7 +27,7 @@ namespace Shaolinq
 		{
 			if (this.TransactionContext.Transaction == null)
 			{
-				this.DatabaseTransactionContext.Dispose();
+				this.SqlDatabaseTransactionContext.Dispose();
 			}
 		}
 	}

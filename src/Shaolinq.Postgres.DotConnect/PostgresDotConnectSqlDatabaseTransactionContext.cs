@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
-using System.Collections.Generic;
+using System;
 using System.Data;
 ﻿using System.Threading;
 using System.Transactions;
@@ -14,10 +13,10 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectSqlDatabaseTransactionContext
 		: PostgresSharedSqlDatabaseTransactionContext
 	{
+		private PgSqlTransaction dbTransaction; 
 		private readonly Transaction transaction;
-        private PgSqlTransaction dbTransaction;
 
-		public PostgresDotConnectSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+		public PostgresDotConnectSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
 			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;

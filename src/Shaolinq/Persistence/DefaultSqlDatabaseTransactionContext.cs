@@ -8,8 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Transactions;
 using Shaolinq.Persistence.Linq;
@@ -20,8 +18,8 @@ using Platform;
 
 namespace Shaolinq.Persistence
 {
-	public abstract class SqlDatabaseTransactionContext
-		: DatabaseTransactionContext
+	public class DefaultSqlDatabaseTransactionContext
+		: SqlDatabaseTransactionContext
 	{
 		protected int disposed = 0;
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
@@ -98,30 +96,23 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected virtual string GetRelatedSql(Exception e)
-		{
-			return null;
-		}
-
-		public IDbConnection DbConnection { get; set; }
 		public DataAccessModel DataAccessModel { get; private set; }
-		public SystemDataBasedSqlDatabaseContext SqlDatabaseContext { get; private set; }
+		
+		protected readonly string tableNamePrefix;
+		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
+		internal static readonly MethodInfo DeleteHelperMethod = typeof(DefaultSqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
+		protected readonly string parameterIndicatorPrefix;
 
-		private readonly string tableNamePrefix;
-		private readonly SqlDataTypeProvider sqlDataTypeProvider;
-		private static readonly Regex FormatCommandRegex = new Regex(@"[@\?\$\%\#\!]param[0-9]+", RegexOptions.Compiled);
-		internal static readonly MethodInfo DeleteHelperMethod = typeof(SqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
-
-		protected SqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+		public DefaultSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection())
 		{
 			this.DataAccessModel = dataAccessModel; 
-			this.SqlDatabaseContext = sqlDatabaseContext;
 			this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
-			this.DbConnection = sqlDatabaseContext.OpenConnection();
-			this.tableNamePrefix =sqlDatabaseContext.TableNamePrefix;
+			this.tableNamePrefix = sqlDatabaseContext.TableNamePrefix;
+			this.parameterIndicatorPrefix = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 		}
 
-		~SqlDatabaseTransactionContext()
+		~DefaultSqlDatabaseTransactionContext()
 		{
 			Dispose();
 		}
@@ -138,12 +129,6 @@ namespace Shaolinq.Persistence
 				GC.SuppressFinalize(this);
 			}
 		}
-
-		/// <summary>
-		/// Returns the character used to indicate a parameter within an
-		/// sql string.  Examples include '@' for sql server and '?' for mysql.
-		/// </summary>
-		protected abstract char ParameterIndicatorChar { get; }
 
 		private static DbType GetDbType(Type type)
 		{
@@ -197,20 +182,6 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual IDbCommand CreateCommand()
-		{
-			return CreateCommand(SqlCreateCommandOptions.Default);
-		}
-
-		public virtual IDbCommand CreateCommand(SqlCreateCommandOptions options)
-		{
-			var retval = this.DbConnection.CreateCommand();
-
-			retval.CommandTimeout = (int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds;
-
-			return retval;
-		}
-
 		public virtual IDataReader ExecuteReader(string sql, IEnumerable<Pair<Type, object>> parameters)
 		{
 			var x = 0;
@@ -220,7 +191,7 @@ namespace Shaolinq.Persistence
 			{
 				var parameter = command.CreateParameter();
 
-				parameter.ParameterName = this.ParameterIndicatorChar + "param" + x;
+				parameter.ParameterName = this.parameterIndicatorPrefix + "param" + x;
 				parameter.DbType = GetDbType(value.Left);
 				parameter.Value = value.Right;
 
@@ -462,20 +433,12 @@ namespace Shaolinq.Persistence
 
 			return new InsertResults(listToFixup, listToRetry);
 		}
-
-		protected void AppendParameter(IDbCommand command, StringBuilder commandText, Type type, object value)
-		{
-			commandText.Append(this.ParameterIndicatorChar).Append("param").Append(command.Parameters.Count);
-
-			
-			AddParameter(command, type, value, true);
-		}
         
 		private IDbDataParameter AddParameter(IDbCommand command, Type type, object value, bool convertForSql)
 		{
 			var parameter = command.CreateParameter();
 
-			parameter.ParameterName = this.ParameterIndicatorChar + "param" + command.Parameters.Count;
+			parameter.ParameterName = this.parameterIndicatorPrefix + "param" + command.Parameters.Count;
 
 			if (value == null)
 			{

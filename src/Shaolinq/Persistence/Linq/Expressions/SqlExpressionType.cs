@@ -25,6 +25,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		AlterTable,
 		ConstraintAction,
 		ColumnDefinition,
+		IndexedColumnExpression,
 		CreateTable,
 		CreateType, 
 		CreateIndex,

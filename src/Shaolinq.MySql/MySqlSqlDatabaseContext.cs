@@ -9,7 +9,7 @@ using MySql.Data.MySqlClient;
 ﻿namespace Shaolinq.MySql
 {
 	public class MySqlSqlDatabaseContext
-		: SystemDataBasedSqlDatabaseContext
+		: SqlDatabaseContext
 	{
 		public string DatabaseName { get; protected set; }
 		public string ServerName { get; private set; }
@@ -44,9 +44,9 @@ using MySql.Data.MySqlClient;
 			databaselessConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
 		}
 
-		public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{
-			return new MySqlSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
+			return new DefaultSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
@@ -59,9 +59,9 @@ using MySql.Data.MySqlClient;
 			return new MySqlDatabaseCreator(this, model);
 		}
 
-		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
 		{
-			return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
+			return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
 		}
 
 		public override void DropAllConnections()

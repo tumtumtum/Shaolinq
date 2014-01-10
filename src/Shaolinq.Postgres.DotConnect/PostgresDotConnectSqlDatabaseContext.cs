@@ -10,7 +10,7 @@ using Shaolinq.Postgres.Shared;
 namespace Shaolinq.Postgres.DotConnect
 {
     public class PostgresDotConnectSqlDatabaseContext
-        : SystemDataBasedSqlDatabaseContext
+		: SqlDatabaseContext
     {
 		public int Port { get; set; }
 		public string Host { get; set; }
@@ -65,7 +65,7 @@ namespace Shaolinq.Postgres.DotConnect
             connectionString = sb.ConnectionString;
         }
 
-        public override DatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+        public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
         {
             return new PostgresDotConnectSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
         }
@@ -80,9 +80,9 @@ namespace Shaolinq.Postgres.DotConnect
 		    return new PostgresDotConnectDatabaseCreator(this, model);
 	    }
 
-        public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(DatabaseTransactionContext databaseTransactionContext)
+        public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
         {
-            return new DisabledForeignKeyCheckContext(databaseTransactionContext);	
+            return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
         }
 
 		public override void DropAllConnections()

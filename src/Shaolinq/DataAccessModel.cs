@@ -130,6 +130,11 @@ namespace Shaolinq
 			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(forWrite).CurrentDataContext;
 		}
 
+		public SqlDatabaseTransactionContext GetCurrentSqlDatabaseTransactionContext()
+		{
+			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(true).GetCurrentDatabaseTransactionContext(this.GetCurrentSqlDatabaseContext());
+		}
+
 		private void SetAssemblyBuildInfo(AssemblyBuildInfo value)
 		{
 			this.AssemblyBuildInfo = value;

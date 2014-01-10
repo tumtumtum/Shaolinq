@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence
 
 						var result = sqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
 
-						using (var command = ((SqlDatabaseTransactionContext)dataTransactionContext).CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
+						using (var command = ((DefaultSqlDatabaseTransactionContext)dataTransactionContext).CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
 						{
 							command.Transaction = null;
 							command.CommandText = result.CommandText;

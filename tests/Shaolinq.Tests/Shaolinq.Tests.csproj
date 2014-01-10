@@ -49,11 +49,13 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTests.cs" />
     <Compile Include="ConstraintTests.cs" />
+    <Compile Include="DirectAccessTests.cs" />
     <Compile Include="TestModel\Address.cs" />
     <Compile Include="TestModel\Cat.cs" />
     <Compile Include="TestModel\Club.cs" />

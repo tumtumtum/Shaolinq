@@ -11,7 +11,7 @@ using Npgsql;
 namespace Shaolinq.Postgres
 {
 	/// <summary>
-	/// A Postgres specific <see cref="SqlDatabaseTransactionContext"/>.
+	/// A Postgres specific <see cref="DefaultSqlDatabaseTransactionContext"/>.
 	/// </summary>
 	public class PostgresSqlDatabaseTransactionContext
 		: PostgresSharedSqlDatabaseTransactionContext
@@ -19,7 +19,7 @@ namespace Shaolinq.Postgres
 		private readonly Transaction transaction;
 		private NpgsqlTransaction dbTransaction;
 
-		public PostgresSqlDatabaseTransactionContext(SystemDataBasedSqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+		public PostgresSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
 			: base(sqlDatabaseContext, dataAccessModel, transaction)
 		{
 			this.transaction = transaction;
@@ -28,18 +28,6 @@ namespace Shaolinq.Postgres
 			{
 				dbTransaction = (NpgsqlTransaction)this.DbConnection.BeginTransaction(GetIsolationLevel(this.transaction.IsolationLevel));
 			}
-		}
-
-		protected override string GetRelatedSql(Exception e)
-		{
-			var postgresException = e as NpgsqlException;
-
-			if (postgresException == null)
-			{
-				return base.GetRelatedSql(e);
-			}
-
-			return postgresException.ErrorSql;
 		}
 
 		private static System.Data.IsolationLevel GetIsolationLevel(System.Transactions.IsolationLevel isolationLevel)

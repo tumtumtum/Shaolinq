@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -182,7 +181,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
 
-			return new SqlCreateTableExpression(new SqlTableExpression(typeof(void), null, tableName), columnExpressions, currentTableConstraints);
+			return new SqlCreateTableExpression(new SqlTableExpression(typeof(void), null, tableName), false, columnExpressions, this.currentTableConstraints);
 		}
 
 		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)
@@ -191,10 +190,9 @@ namespace Shaolinq.Persistence.Linq
 			var lowercaseIndex = properties.Select(c => c.Item1).Any(c => c.LowercaseIndex);
 			var indexType = properties.Select(c => c.Item1.IndexType).FirstOrDefault(c => c != IndexType.Default);
 
-			// OrderBy is a stable sort
 			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
 
-			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, new ReadOnlyCollection<SqlColumnExpression>(sorted.Select(c => new SqlColumnExpression(c.Item2.PropertyType, null, c.Item2.PersistedName)).ToList()));
+			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, new ReadOnlyCollection<SqlColumnExpression>(sorted.Select(c => new SqlColumnExpression(c.Item2.PropertyType, null, c.Item2.PersistedName)).ToList()));
 		}
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
