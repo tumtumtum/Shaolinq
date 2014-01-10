@@ -55,13 +55,13 @@
     <Compile Include="PostgresSharedSqlDatabaseTransactionContext.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">
       <Project>{0C8321D6-4DF6-4B90-AF5A-92537D4A7E54}</Project>
       <Name>Shaolinq</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
