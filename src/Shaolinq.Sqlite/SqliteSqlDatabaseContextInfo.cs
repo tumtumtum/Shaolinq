@@ -14,7 +14,14 @@ namespace Shaolinq.Sqlite
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
-			return SqliteSqlDatabaseContext.Create(this, model);
+			if (SqliteSqlDatabaseContext.IsRunningMono())
+			{
+				return SqliteMonoSqlDatabaseContext.Create(this, model);
+			}
+			else
+			{
+				return SqliteWindowsSqlDatabaseContext.Create(this, model);
+			}
 		}
 	}
 }

@@ -91,6 +91,8 @@
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="SqliteConfiguration.cs" />
     <Compile Include="SqliteErrorCodes.cs" />
+    <Compile Include="SqliteMonoSqlDatabaseContext.cs" />
+    <Compile Include="SqliteMonoSqlDatabaseSchemaManager.cs" />
     <Compile Include="SqliteSqlDatabaseContextInfo.cs" />
     <Compile Include="SqliteSqlDatabaseSchemaManager.cs" />
     <Compile Include="SqliteSqlDialect.cs" />
@@ -99,6 +101,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqliteSqlDatabaseContext.cs" />
     <Compile Include="SqliteSqlQueryFormatter.cs" />
+    <Compile Include="SqliteWindowsSqlDatabaseContext.cs" />
+    <Compile Include="SqliteWindowsSqlDatabaseSchemaManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

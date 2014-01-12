@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Data.SQLite;
 using System.IO;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
 {
-	public class SqliteSqlDatabaseSchemaManager
+	public abstract class SqliteSqlDatabaseSchemaManager
 		: SqlDatabaseSchemaManager
 	{
-		public SqliteSqlDatabaseSchemaManager(SqliteSqlDatabaseContext sqlDatabaseContext)
+		protected SqliteSqlDatabaseSchemaManager(SqliteSqlDatabaseContext sqlDatabaseContext)
 			: base(sqlDatabaseContext)
 		{
 		}
+
+		protected abstract void CreateFile(string path);
 
 		protected override bool CreateDatabaseOnly(bool overwrite)
 		{
@@ -49,7 +50,7 @@ namespace Shaolinq.Sqlite
 				{
 					try
 					{
-						SQLiteConnection.CreateFile(path);
+						this.CreateFile(path);
 
 						break;
 					}
@@ -84,7 +85,7 @@ namespace Shaolinq.Sqlite
 					{
 						try
 						{
-							SQLiteConnection.CreateFile(path);
+							this.CreateFile(path);
 
 							break;
 						}
