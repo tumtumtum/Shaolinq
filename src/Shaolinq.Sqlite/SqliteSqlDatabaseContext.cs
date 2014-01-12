@@ -11,15 +11,7 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		private const int SQLITE_CONSTRAINT = 19;
-
 		public string FileName { get; private set; }
-		public override string GetConnectionString()
-		{
-			return connectionString;
-		}
-
-		private readonly string connectionString;
 
 		public static SqliteSqlDatabaseContext Create(SqliteSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
 		{
@@ -34,7 +26,7 @@ namespace Shaolinq.Sqlite
 		{
 			this.FileName = contextInfo.FileName;
 
-			connectionString = "Data Source=" + this.FileName + ";foreign keys=True";
+			this.ConnectionString = "Data Source=" + this.FileName + ";foreign keys=True";
 		}
 
 		internal SqliteSqlDatabaseTransactionContext inMemoryContext;
@@ -80,7 +72,7 @@ namespace Shaolinq.Sqlite
 				return base.DecorateException(exception, relatedQuery);
 			}
 			
-			if (sqliteException.ErrorCode == SQLITE_CONSTRAINT)
+			if (sqliteException.ErrorCode == SqliteErrorCodes.SqliteConstraint)
 			{
 				return new UniqueKeyConstraintException(exception, relatedQuery);
 			}

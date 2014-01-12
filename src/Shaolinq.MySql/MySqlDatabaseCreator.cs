@@ -21,7 +21,7 @@ namespace Shaolinq.MySql
 
 			using (var dbConnection = factory.CreateConnection())
 			{
-				dbConnection.ConnectionString = this.sqlDatabaseContext.databaselessConnectionString;
+				dbConnection.ConnectionString = this.sqlDatabaseContext.ServerConnectionString;
 
 				dbConnection.Open();
 

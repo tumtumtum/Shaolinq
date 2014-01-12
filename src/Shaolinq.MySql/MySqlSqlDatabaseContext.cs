@@ -16,14 +16,6 @@ using MySql.Data.MySqlClient;
 		public string Username { get; private set; }
 		public string Password { get; private set; }
 
-		public override string GetConnectionString()
-		{
-			return connectionString;
-		}
-
-		internal readonly string connectionString;
-		internal readonly string databaselessConnectionString;
-
 		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
 		{
 			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
@@ -40,8 +32,8 @@ using MySql.Data.MySqlClient;
 			this.Password = contextInfo.Password;
 			this.DatabaseName = contextInfo.DatabaseName;
 
-			connectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections);
-			databaselessConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
+			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections);
+			this.ServerConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
 		}
 
 		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)

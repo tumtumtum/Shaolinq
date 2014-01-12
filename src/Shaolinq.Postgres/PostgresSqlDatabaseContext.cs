@@ -18,14 +18,6 @@ using Shaolinq.Postgres.Shared;
 		public string DatabaseName { get; set; }
 		public int Port { get; set; }
 		
-		public override string GetConnectionString()
-		{
-			return connectionString;
-		}
-
-		internal readonly string connectionString;
-		internal readonly string databaselessConnectionString;
-
 		public static PostgresSqlDatabaseContext Create(PostgresDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
 		{
 			var sqlDialect = PostgresSharedSqlDialect.Default;
@@ -45,8 +37,8 @@ using Shaolinq.Postgres.Shared;
 			this.Port = contextInfo.Port;
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 
-			this.connectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
-			this.databaselessConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
+			this.ConnectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
+			this.ServerConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
 		}
 
 		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
@@ -61,7 +53,7 @@ using Shaolinq.Postgres.Shared;
 
 		public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
 		{
-			return new PostgresDatabaseCreator(this, model);
+			return new PostgresSharedDatabaseCreator(this, model, this.DatabaseName);
 		}
 
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)

@@ -60,6 +60,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mono.Data.Sqlite">
+      <HintPath>..\..\lib\Mono.Data.Sqlite.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Platform, Version=1.0.0.90, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Platform.NET.1.0.0.90\lib\35\Platform.dll</HintPath>
@@ -86,6 +90,7 @@
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="SqliteConfiguration.cs" />
+    <Compile Include="SqliteErrorCodes.cs" />
     <Compile Include="SqliteSqlDatabaseContextInfo.cs" />
     <Compile Include="SqliteDatabaseCreator.cs" />
     <Compile Include="SqliteSqlDialect.cs" />

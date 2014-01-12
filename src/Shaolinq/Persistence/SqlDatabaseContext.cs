@@ -13,7 +13,9 @@ namespace Shaolinq.Persistence
 		: IDisposable
 	{
 		public TimeSpan CommandTimeout { get; protected set; }
-		
+
+
+		private readonly DbProviderFactory dBProviderFactory;
 		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default); 
 		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
 		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
@@ -24,26 +26,23 @@ namespace Shaolinq.Persistence
 		public SqlDialect SqlDialect { get; protected set; }
 		public SqlDataTypeProvider SqlDataTypeProvider { get; protected set; }
 		public SqlQueryFormatterManager SqlQueryFormatterManager { get; protected set; }
-		
+		public virtual string ConnectionString { get; protected set; }
+		public virtual string ServerConnectionString { get; protected set; }
+			
+		public abstract DbProviderFactory CreateDbProviderFactory();
+		public abstract DatabaseCreator CreateDatabaseCreator(DataAccessModel model); 
 		public abstract SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
-		public abstract DatabaseCreator CreateDatabaseCreator(DataAccessModel model);
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext);
-
-
-		private readonly DbProviderFactory dBProviderFactory;
 
 		public virtual DbConnection OpenConnection()
 		{
 			var retval = this.dBProviderFactory.CreateConnection();
 
-			retval.ConnectionString = this.GetConnectionString();
+			retval.ConnectionString = this.ConnectionString;
 			retval.Open();
 
 			return retval;
 		}
-
-		public abstract string GetConnectionString();
-		public abstract DbProviderFactory CreateDbProviderFactory();
 
 		protected SqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlDatabaseContextInfo contextInfo)
 		{

@@ -17,14 +17,7 @@ namespace Shaolinq.Postgres.DotConnect
 	    public string UserId { get; set; }
 	    public string Password { get; set; }
 	    public string DatabaseName { get; set; }
-	    internal readonly string connectionString;
-		internal readonly string databaselessConnectionString;
-
-		public override string GetConnectionString()
-        {
-            return connectionString;
-        }
-
+	    
 		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
 		{
 			var sqlDialect = PostgresSharedSqlDialect.Default;
@@ -59,10 +52,10 @@ namespace Shaolinq.Postgres.DotConnect
 				DefaultCommandTimeout = contextInfo.CommandTimeout
 			};
 
-            databaselessConnectionString = sb.ConnectionString;
+            this.ServerConnectionString = sb.ConnectionString;
 
 			sb.Database = contextInfo.DatabaseName;
-            connectionString = sb.ConnectionString;
+            this.ConnectionString = sb.ConnectionString;
         }
 
         public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
@@ -77,7 +70,7 @@ namespace Shaolinq.Postgres.DotConnect
 		
 	    public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
 	    {
-		    return new PostgresDotConnectDatabaseCreator(this, model);
+		    return new PostgresSharedDatabaseCreator(this, model, this.DatabaseName);
 	    }
 
         public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)

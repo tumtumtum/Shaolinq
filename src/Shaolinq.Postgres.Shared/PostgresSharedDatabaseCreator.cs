@@ -2,39 +2,33 @@
 
 using System;
 using System.Data;
-using System.Data.Common;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
 {
-	public abstract class PostgresSharedDatabaseCreator
+	public class PostgresSharedDatabaseCreator
 		: DatabaseCreator
 	{
 		public string DatabaseName { get; private set; }
 		protected readonly SqlDatabaseContext sqlDatabaseContext;
 
-		protected PostgresSharedDatabaseCreator(DataAccessModel model, SqlDatabaseContext sqlDatabaseContext, string databaseName)
+		public PostgresSharedDatabaseCreator(SqlDatabaseContext sqlDatabaseContext, DataAccessModel model, string databaseName)
 			: base(model)
 		{
 			this.DatabaseName = databaseName;
 			this.sqlDatabaseContext = sqlDatabaseContext;
 		}
 
-		#region CreateDatabaseOnly
-
-		protected abstract string GetDatabaselessConnectionString();
-		protected abstract DbProviderFactory CreateDbProviderFactory();
-
 		protected override bool CreateDatabaseOnly(bool overwrite)
 		{
 			var retval = false;
-			var factory = this.CreateDbProviderFactory();
+			var factory = this.sqlDatabaseContext.CreateDbProviderFactory();
 
 			this.sqlDatabaseContext.DropAllConnections();
 
 			using (var dbConnection = factory.CreateConnection())
 			{
-				dbConnection.ConnectionString = this.GetDatabaselessConnectionString();
+				dbConnection.ConnectionString = this.sqlDatabaseContext.ServerConnectionString;
 				dbConnection.Open();
 
 				IDbCommand command;
@@ -101,7 +95,5 @@ namespace Shaolinq.Postgres.Shared
 
 			return retval;
 		}
-
-		#endregion
 	}
 }
