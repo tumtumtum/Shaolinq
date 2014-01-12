@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Data.Common;
 using System.Data.SQLite;
 using Shaolinq.Persistence;

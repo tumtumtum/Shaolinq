@@ -1,4 +1,6 @@
-﻿using Mono.Data.Sqlite;
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
+using Mono.Data.Sqlite;
 
 namespace Shaolinq.Sqlite
 {

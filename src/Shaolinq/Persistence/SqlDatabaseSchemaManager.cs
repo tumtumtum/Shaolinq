@@ -1,4 +1,6 @@
-﻿using System.Transactions;
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Transactions;
 using Shaolinq.Persistence.Linq;
 using log4net;
 
