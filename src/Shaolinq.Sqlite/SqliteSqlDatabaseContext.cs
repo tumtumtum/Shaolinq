@@ -3,6 +3,7 @@
 using System;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.IO;
 using System.Transactions;
 ﻿using Shaolinq.Persistence;
 
@@ -13,37 +14,39 @@ namespace Shaolinq.Sqlite
 	{
 		public string FileName { get; private set; }
 
-		public static SqliteSqlDatabaseContext Create(SqliteSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
+		public static SqliteSqlDatabaseContext Create(SqliteSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
+			var constraintDefaults = model.Configuration.ConstraintDefaults;
 			var sqlDataTypeProvider = new SqliteSqlDataTypeProvider(constraintDefaults);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(SqliteSqlDialect.Default, sqlDataTypeProvider, typeof(SqliteSqlQueryFormatter));
 
-			return new SqliteSqlDatabaseContext(contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
+			return new SqliteSqlDatabaseContext(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
 		}
 
-		private SqliteSqlDatabaseContext(SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
-			: base(SqliteSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
+		private SqliteSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
+			: base(model, SqliteSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, Path.GetFileNameWithoutExtension(contextInfo.FileName), contextInfo)
 		{
 			this.FileName = contextInfo.FileName;
 
 			this.ConnectionString = "Data Source=" + this.FileName + ";foreign keys=True";
+			this.SchemaManager = new SqliteSqlDatabaseSchemaManager(this);
 		}
 
 		internal SqliteSqlDatabaseTransactionContext inMemoryContext;
 
-		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction)
 		{
 			if (String.Equals(this.FileName, ":memory:", StringComparison.InvariantCultureIgnoreCase))
 			{
 				if (inMemoryContext == null)
 				{
-					inMemoryContext = new SqliteSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
+					inMemoryContext = new SqliteSqlDatabaseTransactionContext(this, transaction);
 				}
 
 				return inMemoryContext;
 			}
 
-			return new SqliteSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
+			return new SqliteSqlDatabaseTransactionContext(this, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
@@ -51,11 +54,6 @@ namespace Shaolinq.Sqlite
 			return new SQLiteFactory();
 		}
 
-		public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
-		{
-			return new SqliteDatabaseCreator(this, model);
-		}
-        
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
 		{
 			return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	

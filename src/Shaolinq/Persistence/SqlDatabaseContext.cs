@@ -19,19 +19,21 @@ namespace Shaolinq.Persistence
 		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default); 
 		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
 		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
-		
+
+		public string DatabaseName { get; private set; }
 		public string SchemaName { get; protected set; }
 		public string[] ContextCategories { get; protected set; }
 		public string TableNamePrefix { get; protected set; }
+		public DataAccessModel DataAccessModel { get; private set; }
 		public SqlDialect SqlDialect { get; protected set; }
 		public SqlDataTypeProvider SqlDataTypeProvider { get; protected set; }
+		public SqlDatabaseSchemaManager SchemaManager { get; protected set; }
 		public SqlQueryFormatterManager SqlQueryFormatterManager { get; protected set; }
-		public virtual string ConnectionString { get; protected set; }
-		public virtual string ServerConnectionString { get; protected set; }
-			
+		public string ConnectionString { get; protected set; }
+		public string ServerConnectionString { get; protected set; }
+		
 		public abstract DbProviderFactory CreateDbProviderFactory();
-		public abstract DatabaseCreator CreateDatabaseCreator(DataAccessModel model); 
-		public abstract SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction);
+		public abstract SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction);
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext);
 
 		public virtual DbConnection OpenConnection()
@@ -44,8 +46,10 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
-		protected SqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlDatabaseContextInfo contextInfo)
+		protected SqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, string databaseName, SqlDatabaseContextInfo contextInfo)
 		{
+			this.DatabaseName = databaseName;
+			this.DataAccessModel = model; 
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 			this.ContextCategories = contextInfo.Categories == null ? new string[0] : contextInfo.Categories.Split(',').Select(c => c.Trim()).ToArray();
 			this.dBProviderFactory = this.CreateDbProviderFactory();
@@ -56,9 +60,9 @@ namespace Shaolinq.Persistence
 			this.TableNamePrefix = EnvironmentSubstitutor.Substitute(contextInfo.TableNamePrefix);
 		}
 
-		public virtual IPersistenceQueryProvider CreateQueryProvider(DataAccessModel dataAccessModel)
+		public virtual IPersistenceQueryProvider CreateQueryProvider()
 		{
-			return new SqlQueryProvider(dataAccessModel, this);
+			return new SqlQueryProvider(this.DataAccessModel, this);
 		}
 		
 		public virtual string GetRelatedSql(Exception e)

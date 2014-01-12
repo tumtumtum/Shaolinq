@@ -145,7 +145,7 @@ namespace Shaolinq
 			foreach (var contextInfo in this.Configuration.SqlDatabaseContextInfos)
 			{
 				SqlDatabaseContextsInfo info;
-				var newSqlDatabaseContext = contextInfo.CreateSqlDatabaseContext(this.Configuration.ConstraintDefaults);
+				var newSqlDatabaseContext = contextInfo.CreateSqlDatabaseContext(this);
 
 				if (newSqlDatabaseContext.ContextCategories.Length == 0)
 				{
@@ -478,7 +478,7 @@ namespace Shaolinq
 
 		internal IPersistenceQueryProvider NewQueryProvider()
 		{
-			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider(this);
+			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider();
 		}
 
 		public virtual SqlDatabaseContext GetCurrentSqlDatabaseContext()
@@ -549,7 +549,7 @@ namespace Shaolinq
 		{
 			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
 			{
-				this.GetCurrentSqlDatabaseContext().CreateDatabaseCreator(this).Create((options & DatabaseCreationOptions.DeleteExisting) != 0);
+				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema((options & DatabaseCreationOptions.DeleteExisting) != 0);
 
 				scope.Complete();
 			}

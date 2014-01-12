@@ -226,7 +226,7 @@ namespace Shaolinq.TypeBuilding
 
 			if (pass == 2)
 			{
-				// Create default constructor
+				// CreateDatabaseAndSchema default constructor
 
 				// Call base constructor in constructor
 				constructorGenerator = constructorBuilder.GetILGenerator();
@@ -677,7 +677,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc_0);
 			generator.Emit(OpCodes.Brtrue, returnLabel);
 
-			// Create RelatedDataAccessObjects
+			// CreateDatabaseAndSchema RelatedDataAccessObjects
 			generator.Emit(OpCodes.Newobj, constructorInfo);
 			generator.Emit(OpCodes.Stloc_0);
 
@@ -847,7 +847,7 @@ namespace Shaolinq.TypeBuilding
 						relatedIdPropertyBuilder = typeBuilder.DefineProperty(name, propertyDescriptor.PropertyInfo.Attributes, innerPropertyType, null, null, null, null, null);
 						propertyBuilders[name] = relatedIdPropertyBuilder;
                         
-						// Create PropertyInfo cache
+						// CreateDatabaseAndSchema PropertyInfo cache
 						var propertyInfoField = typeBuilder.DefineField("$$PropertyInfo_" + propertyInfo.Name + propertyDescriptor.PropertyName, typeof(PropertyInfo), FieldAttributes.Public | FieldAttributes.Static);
 						cctorGenerator.Emit(OpCodes.Ldtoken, propertyTypeTypeDescriptor.Type);
 						cctorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
@@ -1143,7 +1143,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
 						generator.Emit(OpCodes.Brtrue, returnLabel); 
                         
-						// Create a new ShaolinqList and store in field
+						// CreateDatabaseAndSchema a new ShaolinqList and store in field
 
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -1160,7 +1160,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
 						generator.Emit(OpCodes.Brtrue, returnLabel);
 
-						// Create a new ShaolinqList and store in field
+						// CreateDatabaseAndSchema a new ShaolinqList and store in field
 
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);

@@ -16,8 +16,8 @@ namespace Shaolinq.Postgres.DotConnect
 		private PgSqlTransaction dbTransaction; 
 		private readonly Transaction transaction;
 
-		public PostgresDotConnectSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(sqlDatabaseContext, dataAccessModel, transaction)
+		public PostgresDotConnectSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
+			: base(sqlDatabaseContext, transaction)
 		{
 			this.transaction = transaction;
 

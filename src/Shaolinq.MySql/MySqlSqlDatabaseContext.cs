@@ -11,44 +11,40 @@ using MySql.Data.MySqlClient;
 	public class MySqlSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		public string DatabaseName { get; protected set; }
-		public string ServerName { get; private set; }
 		public string Username { get; private set; }
 		public string Password { get; private set; }
-
-		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
+		public string ServerName { get; private set; }
+		
+		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
+			var constraintDefaults = model.Configuration.ConstraintDefaults;
 			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(MySqlSqlDialect.Default, sqlDataTypeProvider, typeof(MySqlSqlQueryFormatter));
 
-			return new MySqlSqlDatabaseContext(sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
+			return new MySqlSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
 
-		private MySqlSqlDatabaseContext(SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, MySqlSqlDatabaseContextInfo contextInfo)
-			: base(MySqlSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
+		private MySqlSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, MySqlSqlDatabaseContextInfo contextInfo)
+			: base(model, MySqlSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
-			this.DatabaseName = contextInfo.DatabaseName;
-
+			
 			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections);
 			this.ServerConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
+
+			this.SchemaManager = new MySqlSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction)
 		{
-			return new DefaultSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
+			return new DefaultSqlDatabaseTransactionContext(this, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return new MySqlClientFactory();
-		}
-
-		public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
-		{
-			return new MySqlDatabaseCreator(this, model);
 		}
 
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)

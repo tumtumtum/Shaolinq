@@ -16,24 +16,23 @@ namespace Shaolinq.Postgres.DotConnect
 		public string Host { get; set; }
 	    public string UserId { get; set; }
 	    public string Password { get; set; }
-	    public string DatabaseName { get; set; }
 	    
-		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
+		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
+			var constraintDefaults = model.Configuration.ConstraintDefaults;
 			var sqlDialect = PostgresSharedSqlDialect.Default;
 			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.DateTimeKindIfUnspecified);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
-			return new PostgresDotConnectSqlDatabaseContext(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
+			return new PostgresDotConnectSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
 
-		protected PostgresDotConnectSqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDotConnectSqlDatabaseContextInfo contextInfo)
-			: base(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
+		protected PostgresDotConnectSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDotConnectSqlDatabaseContextInfo contextInfo)
+			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
         {
             this.Host = contextInfo.ServerName;
             this.UserId = contextInfo.UserId;
             this.Password = contextInfo.Password;
-			this.DatabaseName = contextInfo.DatabaseName;
 			this.Port = contextInfo.Port;
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 			
@@ -56,11 +55,12 @@ namespace Shaolinq.Postgres.DotConnect
 
 			sb.Database = contextInfo.DatabaseName;
             this.ConnectionString = sb.ConnectionString;
+			this.SchemaManager = new PostgresSharedSqlDatabaseSchemaManager(this);
         }
 
-        public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+        public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction)
         {
-            return new PostgresDotConnectSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
+            return new PostgresDotConnectSqlDatabaseTransactionContext(this, transaction);
         }
 
 		public override DbProviderFactory CreateDbProviderFactory()
@@ -68,12 +68,7 @@ namespace Shaolinq.Postgres.DotConnect
             return PgSqlProviderFactory.Instance;
         }
 		
-	    public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
-	    {
-		    return new PostgresSharedDatabaseCreator(this, model, this.DatabaseName);
-	    }
-
-        public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
+	    public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
         {
             return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
         }

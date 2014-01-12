@@ -66,7 +66,7 @@ namespace Shaolinq.TypeBuilding
 					// Generate the field for the queryable
 					var fieldBuilder = typeBuilder.DefineField("m$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
 
-					// Create new queryable and assign to field
+					// CreateDatabaseAndSchema new queryable and assign to field
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Newobj, propertyInfo.PropertyType.GetConstructor(new Type[0]));
 					initialiseGenerator.Emit(OpCodes.Stfld, fieldBuilder);
@@ -145,7 +145,7 @@ namespace Shaolinq.TypeBuilding
 			var constructorPrep = typeof(DataAccessObjects<>).GetConstructor(new Type[0]);
 			var constructor = TypeBuilder.GetConstructor(typeof(DataAccessObjects<>).MakeGenericType(genericParameters[0]), constructorPrep);
 
-			// Create new queryable
+			// CreateDatabaseAndSchema new queryable
 			generator.Emit(OpCodes.Newobj, constructor);
 			generator.Emit(OpCodes.Stloc, typedLocal);
 

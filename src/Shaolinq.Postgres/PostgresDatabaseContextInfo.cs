@@ -48,9 +48,9 @@ namespace Shaolinq.Postgres
 			this.NativeUuids = true;
 		}
 		
-		public override SqlDatabaseContext CreateSqlDatabaseContext(ConstraintDefaults constraintDefaults)
+		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
-			return PostgresSqlDatabaseContext.Create(this, constraintDefaults);
+			return PostgresSqlDatabaseContext.Create(this, model);
 		}
 	}
 }

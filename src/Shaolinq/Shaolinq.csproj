@@ -97,7 +97,7 @@
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
-    <Compile Include="Persistence\DatabaseCreator.cs" />
+    <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />
     <Compile Include="Persistence\ForeignKeyColumnInfo.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlIndexedColumnExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAssignExpression.cs" />

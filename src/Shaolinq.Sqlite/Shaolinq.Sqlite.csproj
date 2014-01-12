@@ -92,7 +92,7 @@
     <Compile Include="SqliteConfiguration.cs" />
     <Compile Include="SqliteErrorCodes.cs" />
     <Compile Include="SqliteSqlDatabaseContextInfo.cs" />
-    <Compile Include="SqliteDatabaseCreator.cs" />
+    <Compile Include="SqliteSqlDatabaseSchemaManager.cs" />
     <Compile Include="SqliteSqlDialect.cs" />
     <Compile Include="SqliteSqlDatabaseTransactionContext.cs" />
     <Compile Include="SqliteSqlDataTypeProvider.cs" />

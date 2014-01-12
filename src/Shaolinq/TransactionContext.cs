@@ -11,8 +11,8 @@ namespace Shaolinq
 	public class TransactionContext
 		: IEnlistmentNotification, IDisposable
 	{
-		public Transaction Transaction { get; set; }
-		public SqlDatabaseContext SqlDatabaseContext { get; set; }
+		public Transaction Transaction { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
 		public DataAccessModel DataAccessModel { get; private set; }
 		internal readonly IDictionary<SqlDatabaseContext, TransactionEntry> persistenceTransactionContextsByStoreContexts;
 
@@ -90,7 +90,7 @@ namespace Shaolinq
 
 			if (this.Transaction == null)
 			{
-				retval = sqlDatabaseContext.CreateDatabaseTransactionContext(this.DataAccessModel, null);
+				retval = sqlDatabaseContext.CreateDatabaseTransactionContext(null);
 
 				return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, retval);
 			}
@@ -104,7 +104,7 @@ namespace Shaolinq
 				}
 				else
 				{
-					retval = sqlDatabaseContext.CreateDatabaseTransactionContext(this.DataAccessModel, this.Transaction);
+					retval = sqlDatabaseContext.CreateDatabaseTransactionContext(this.Transaction);
 
 					persistenceTransactionContextsByStoreContexts[sqlDatabaseContext] = new TransactionEntry(retval);
 				}

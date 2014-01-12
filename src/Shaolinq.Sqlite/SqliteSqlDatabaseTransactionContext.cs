@@ -9,8 +9,8 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDatabaseTransactionContext
 		: DefaultSqlDatabaseTransactionContext
 	{
-		public SqliteSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
-			: base(sqlDatabaseContext, dataAccessModel, transaction)
+		public SqliteSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
+			: base(sqlDatabaseContext, transaction)
 		{
 		}
 

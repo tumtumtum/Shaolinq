@@ -12,9 +12,9 @@ namespace Shaolinq.Sqlite
 		[XmlAttribute]
 		public string FileName { get; set; }
 
-		public override SqlDatabaseContext CreateSqlDatabaseContext(ConstraintDefaults constraintDefaults)
+		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
-			return SqliteSqlDatabaseContext.Create(this, constraintDefaults);
+			return SqliteSqlDatabaseContext.Create(this, model);
 		}
 	}
 }

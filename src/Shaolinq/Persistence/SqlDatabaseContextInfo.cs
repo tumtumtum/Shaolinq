@@ -31,6 +31,6 @@ namespace Shaolinq.Persistence
 			this.Categories = "";
 		}
 
-		public abstract SqlDatabaseContext CreateSqlDatabaseContext(ConstraintDefaults constraintDefaults);
+		public abstract SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model);
 	}
 }

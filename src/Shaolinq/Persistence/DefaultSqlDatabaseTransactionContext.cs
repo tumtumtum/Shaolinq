@@ -103,10 +103,10 @@ namespace Shaolinq.Persistence
 		internal static readonly MethodInfo DeleteHelperMethod = typeof(DefaultSqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
 		protected readonly string parameterIndicatorPrefix;
 
-		public DefaultSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, DataAccessModel dataAccessModel, Transaction transaction)
+		public DefaultSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
 			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection())
 		{
-			this.DataAccessModel = dataAccessModel; 
+			this.DataAccessModel = sqlDatabaseContext.DataAccessModel; 
 			this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
 			this.tableNamePrefix = sqlDatabaseContext.TableNamePrefix;
 			this.parameterIndicatorPrefix = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);

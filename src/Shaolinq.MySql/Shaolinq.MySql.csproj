@@ -86,7 +86,7 @@
     <Compile Include="MySqlSqlDialect.cs" />
     <Compile Include="MySqlSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MySqlDatabaseCreator.cs" />
+    <Compile Include="MySqlSqlDatabaseSchemaManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

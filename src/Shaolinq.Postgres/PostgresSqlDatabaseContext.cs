@@ -12,48 +12,44 @@ using Shaolinq.Postgres.Shared;
 	public class PostgresSqlDatabaseContext
 		: SqlDatabaseContext
 	{
+		public int Port { get; set; }
 		public string Host { get; set; }
 		public string Userid { get; set; }
 		public string Password { get; set; }
-		public string DatabaseName { get; set; }
-		public int Port { get; set; }
 		
-		public static PostgresSqlDatabaseContext Create(PostgresDatabaseContextInfo contextInfo, ConstraintDefaults constraintDefaults)
+		public static PostgresSqlDatabaseContext Create(PostgresDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
+			var constraintDefaults = model.Configuration.ConstraintDefaults;
 			var sqlDialect = PostgresSharedSqlDialect.Default;
 			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.DateTimeKindIfUnspecified);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
-			return new PostgresSqlDatabaseContext(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
+			return new PostgresSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
 
-		protected PostgresSqlDatabaseContext(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDatabaseContextInfo contextInfo)
-			: base(sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo)
+		protected PostgresSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDatabaseContextInfo contextInfo)
+			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
 			this.Host = contextInfo.ServerName;
 			this.Userid = contextInfo.UserId;
 			this.Password = contextInfo.Password;
-			this.DatabaseName = contextInfo.DatabaseName;
 			this.Port = contextInfo.Port;
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 
 			this.ConnectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
 			this.ServerConnectionString = String.Format("Host={0};User Id={1};Password={2};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
+
+			this.SchemaManager = new PostgresSharedSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
+		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction)
 		{
-			return new PostgresSqlDatabaseTransactionContext(this, dataAccessModel, transaction);
+			return new PostgresSqlDatabaseTransactionContext(this, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return NpgsqlFactory.Instance;
-		}
-
-		public override DatabaseCreator CreateDatabaseCreator(DataAccessModel model)
-		{
-			return new PostgresSharedDatabaseCreator(this, model, this.DatabaseName);
 		}
 
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
