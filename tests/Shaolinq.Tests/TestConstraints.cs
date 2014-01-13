@@ -46,7 +46,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Size_Constraint_NotOk()
 		{
-			if (this.ProviderName == "Sqlite")
+			if (this.ProviderName.StartsWith("Sqlite"))
 			{
 				return;
 			}
