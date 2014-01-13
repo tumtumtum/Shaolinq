@@ -101,7 +101,7 @@ namespace Shaolinq.Persistence.Linq
 
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
-				var persistenceTransactionContext = (DefaultSqlDatabaseTransactionContext)acquisition.SqlDatabaseTransactionContext;
+				var persistenceTransactionContext = (DefaultSqlTransactionalCommandsContext)acquisition.SqlDatabaseCommandsContext;
 
 				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
 				{

@@ -819,7 +819,7 @@ namespace Shaolinq.Persistence.Linq
 						break;
 				}
 			}
-			else if (methodCallExpression.Method.DeclaringType == typeof(DefaultSqlDatabaseTransactionContext))
+			else if (methodCallExpression.Method.DeclaringType == typeof(DefaultSqlTransactionalCommandsContext))
 			{
 				switch (methodCallExpression.Method.Name)
 				{

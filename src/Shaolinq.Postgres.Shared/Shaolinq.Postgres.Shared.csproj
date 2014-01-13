@@ -56,7 +56,6 @@
     <Compile Include="PostgresSharedSqlDialect.cs" />
     <Compile Include="PostgresSharedSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PostgresSharedSqlDatabaseTransactionContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

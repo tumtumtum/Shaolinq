@@ -36,7 +36,7 @@ namespace Shaolinq.Postgres.DotConnect
 			this.Port = contextInfo.Port;
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 			
-            var sb = new PgSqlConnectionStringBuilder
+            var connectionStringBuilder = new PgSqlConnectionStringBuilder
 			{
 				Host = contextInfo.ServerName,
 				UserId = contextInfo.UserId,
@@ -51,16 +51,16 @@ namespace Shaolinq.Postgres.DotConnect
 				DefaultCommandTimeout = contextInfo.CommandTimeout
 			};
 
-            this.ServerConnectionString = sb.ConnectionString;
+            this.ServerConnectionString = connectionStringBuilder.ConnectionString;
 
-			sb.Database = contextInfo.DatabaseName;
-            this.ConnectionString = sb.ConnectionString;
+			connectionStringBuilder.Database = contextInfo.DatabaseName;
+            this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.SchemaManager = new PostgresSharedSqlDatabaseSchemaManager(this);
         }
 
-        public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction)
+        public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
         {
-            return new PostgresDotConnectSqlDatabaseTransactionContext(this, transaction);
+            return new PostgresDotConnectSqlTransactionalCommandsContext(this, transaction);
         }
 
 		public override DbProviderFactory CreateDbProviderFactory()
@@ -68,9 +68,9 @@ namespace Shaolinq.Postgres.DotConnect
             return PgSqlProviderFactory.Instance;
         }
 		
-	    public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
+	    public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
         {
-            return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
+            return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);	
         }
 
 		public override void DropAllConnections()

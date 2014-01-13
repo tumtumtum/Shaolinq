@@ -85,7 +85,6 @@
     <Compile Include="PostgresConfiguration.cs" />
     <Compile Include="PostgresDatabaseContextInfo.cs" />
     <Compile Include="PostgresSqlDatabaseContext.cs" />
-    <Compile Include="PostgresSqlDatabaseTransactionContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

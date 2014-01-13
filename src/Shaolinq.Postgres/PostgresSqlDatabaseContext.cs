@@ -12,10 +12,10 @@ using Shaolinq.Postgres.Shared;
 	public class PostgresSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		public int Port { get; set; }
-		public string Host { get; set; }
-		public string Userid { get; set; }
-		public string Password { get; set; }
+		public int Port { get; private set; }
+		public string Host { get; private set; }
+		public string UserId { get; private set; }
+		public string Password { get; private set; }
 		
 		public static PostgresSqlDatabaseContext Create(PostgresDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
@@ -31,7 +31,7 @@ using Shaolinq.Postgres.Shared;
 			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
 			this.Host = contextInfo.ServerName;
-			this.Userid = contextInfo.UserId;
+			this.UserId = contextInfo.UserId;
 			this.Password = contextInfo.Password;
 			this.Port = contextInfo.Port;
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
@@ -42,9 +42,9 @@ using Shaolinq.Postgres.Shared;
 			this.SchemaManager = new PostgresSharedSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction)
+		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
 		{
-			return new PostgresSqlDatabaseTransactionContext(this, transaction);
+			return new DefaultSqlTransactionalCommandsContext(this, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
@@ -52,9 +52,9 @@ using Shaolinq.Postgres.Shared;
 			return NpgsqlFactory.Instance;
 		}
 
-		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
 		{
-			return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
+			return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);	
 		}
 
 		public override void DropAllConnections()

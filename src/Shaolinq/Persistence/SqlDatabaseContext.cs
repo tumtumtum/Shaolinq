@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Transactions;
@@ -14,11 +15,10 @@ namespace Shaolinq.Persistence
 	{
 		public TimeSpan CommandTimeout { get; protected set; }
 
-
-		private readonly DbProviderFactory dBProviderFactory;
+		protected readonly DbProviderFactory dbProviderFactory;
 		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default); 
-		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
-		internal volatile Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlDatabaseTransactionContext.SqlCommandKey, DefaultSqlDatabaseTransactionContext.SqlCommandValue>(DefaultSqlDatabaseTransactionContext.CommandKeyComparer.Default);
+		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
+		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 
 		public string DatabaseName { get; private set; }
 		public string SchemaName { get; protected set; }
@@ -33,14 +33,24 @@ namespace Shaolinq.Persistence
 		public string ServerConnectionString { get; protected set; }
 		
 		public abstract DbProviderFactory CreateDbProviderFactory();
-		public abstract SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction);
-		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext);
+		public abstract SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction);
+		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
 
-		public virtual DbConnection OpenConnection()
+		public virtual IDbConnection OpenConnection()
 		{
-			var retval = this.dBProviderFactory.CreateConnection();
+			var retval = this.dbProviderFactory.CreateConnection();
 
 			retval.ConnectionString = this.ConnectionString;
+			retval.Open();
+
+			return retval;
+		}
+
+		public virtual IDbConnection OpenServerConnection()
+		{
+			var retval = this.dbProviderFactory.CreateConnection();
+
+			retval.ConnectionString = this.ServerConnectionString;
 			retval.Open();
 
 			return retval;
@@ -52,7 +62,7 @@ namespace Shaolinq.Persistence
 			this.DataAccessModel = model; 
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 			this.ContextCategories = contextInfo.Categories == null ? new string[0] : contextInfo.Categories.Split(',').Select(c => c.Trim()).ToArray();
-			this.dBProviderFactory = this.CreateDbProviderFactory();
+			this.dbProviderFactory = this.CreateDbProviderFactory();
 			this.SqlDialect = sqlDialect;
 			this.SqlDataTypeProvider = sqlDataTypeProvider;
 			this.SqlQueryFormatterManager = sqlQueryFormatterManager;
@@ -81,6 +91,8 @@ namespace Shaolinq.Persistence
 
 		public virtual void Dispose()
 		{
+			this.SchemaManager.Dispose();
+
 			DropAllConnections();
 		}
 	}

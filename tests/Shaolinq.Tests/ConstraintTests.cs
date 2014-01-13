@@ -3,8 +3,10 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("Sqlite")]
 	[TestFixture("MySql")]
+	[TestFixture("Sqlite")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	public class ConstraintTests

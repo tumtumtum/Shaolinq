@@ -96,6 +96,7 @@
     <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
     <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
+    <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />
     <Compile Include="Persistence\ForeignKeyColumnInfo.cs" />
@@ -248,7 +249,7 @@
     <Compile Include="ObjectAlreadyInitializedException.cs" />
     <Compile Include="Persistence\IPersistenceQueryable.cs" />
     <Compile Include="Persistence\SqlDatabaseContext.cs" />
-    <Compile Include="SqlDatabaseTransactionContext.cs" />
+    <Compile Include="SqlTransactionalCommandsContext.cs" />
     <Compile Include="DataAccessModelConfiguration.cs" />
     <Compile Include="DataAccessObject.cs" />
     <Compile Include="DataAccessModel.cs" />
@@ -262,7 +263,7 @@
     <Compile Include="DataAccessObjectsAttribute.cs" />
     <Compile Include="RelatedDataAccessObjects.cs" />
     <Compile Include="RelatedDataAccessObjectsAttribute.cs" />
-    <Compile Include="Persistence\DefaultSqlDatabaseTransactionContext.cs" />
+    <Compile Include="Persistence\DefaultSqlTransactionalCommandsContext.cs" />
     <Compile Include="Persistence\SqlDataType.cs" />
     <Compile Include="Persistence\SqlDataTypeProvider.cs" />
     <Compile Include="ReusableQueryProvider.cs" />

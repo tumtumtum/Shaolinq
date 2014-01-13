@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Shaolinq.Persistence;
 using Platform;
-using TypeAndTcx = Platform.Pair<System.Type, Shaolinq.SqlDatabaseTransactionContext>;
+using TypeAndTcx = Platform.Pair<System.Type, Shaolinq.SqlTransactionalCommandsContext>;
 
 namespace Shaolinq
 {
@@ -753,7 +753,7 @@ namespace Shaolinq
 			{
 				foreach (var j in cache.objectsDeleted)
 				{
-					acquisition.SqlDatabaseTransactionContext.Delete(j.Key, j.Value.Values);
+					acquisition.SqlDatabaseCommandsContext.Delete(j.Key, j.Value.Values);
 				}
 			}
 
@@ -761,7 +761,7 @@ namespace Shaolinq
 			{
 				foreach (var j in cache.objectsDeletedComposite)
 				{
-					acquisition.SqlDatabaseTransactionContext.Delete(j.Key, j.Value.Values);
+					acquisition.SqlDatabaseCommandsContext.Delete(j.Key, j.Value.Values);
 				}
 			}
 		}
@@ -797,14 +797,14 @@ namespace Shaolinq
 
 			foreach (var j in cache.objectsByIdCache)
 			{
-				acquisition.SqlDatabaseTransactionContext.Update(j.Key, j.Value.Values);
+				acquisition.SqlDatabaseCommandsContext.Update(j.Key, j.Value.Values);
 			}
 
 			if (cache.objectsByIdCacheComposite != null)
 			{
 				foreach (var j in cache.objectsByIdCacheComposite)
 				{
-					acquisition.SqlDatabaseTransactionContext.Update(j.Key, j.Value.Values);
+					acquisition.SqlDatabaseCommandsContext.Update(j.Key, j.Value.Values);
 				}
 			}
 		}
@@ -838,7 +838,7 @@ namespace Shaolinq
 
 			acquisitions.Add(acquisition);
 
-			var persistenceTransactionContext = acquisition.SqlDatabaseTransactionContext;
+			var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
 
 			foreach (var j in cache.newObjects)
 			{

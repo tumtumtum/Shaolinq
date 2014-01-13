@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
@@ -9,6 +9,8 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	public class DeleteTests
@@ -39,7 +41,6 @@ namespace Shaolinq.Tests
 					scope.Flush(model);
 
 					var student1 = school.Students.Create();
-
 
 					student1Id = student1.Id;
 					student2Id = student2.Id;

@@ -25,6 +25,16 @@ namespace Shaolinq.Tests
 			return SqliteConfiguration.Create(databaseName + ".db");
 		}
 
+		protected DataAccessModelConfiguration CreateSqliteInMemoryConfiguration(string databaseName)
+		{
+			return SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared");
+		}
+
+		protected DataAccessModelConfiguration CreateSqliteClassicInMemoryConfiguration(string databaseName)
+		{
+			return SqliteConfiguration.Create(":memory:");	
+		}
+
 		protected DataAccessModelConfiguration CreatePostgresConfiguration(string databaseName)
 		{
 			return PostgresConfiguration.Create(databaseName, "localhost", "postgres", "postgres");

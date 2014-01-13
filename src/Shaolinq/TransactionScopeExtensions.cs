@@ -43,7 +43,7 @@ namespace Shaolinq
 			}
 		}
 
-		public static SqlDatabaseTransactionContext GetCurrentSqlDataTransactionContext(this TransactionScope scope, DataAccessModel model)
+		public static SqlTransactionalCommandsContext GetCurrentSqlDataTransactionContext(this TransactionScope scope, DataAccessModel model)
 		{
 			return model.GetCurrentSqlDatabaseTransactionContext();
 		}

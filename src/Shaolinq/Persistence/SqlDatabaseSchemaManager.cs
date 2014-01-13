@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Transactions;
 using Shaolinq.Persistence.Linq;
 using log4net;
@@ -7,6 +8,7 @@ using log4net;
 namespace Shaolinq.Persistence
 {
 	public abstract class SqlDatabaseSchemaManager
+		: IDisposable
 	{
 		private static readonly ILog Log = LogManager.GetLogger(typeof(SqlDatabaseSchemaManager).Name);
 
@@ -33,7 +35,7 @@ namespace Shaolinq.Persistence
 		{
 			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
 			{
-				using (var dataTransactionContext = this.sqlDatabaseContext.CreateDatabaseTransactionContext(null))
+				using (var dataTransactionContext = this.sqlDatabaseContext.CreateSqlTransactionalCommandsContext(null))
 				{
 					using (sqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{
@@ -41,9 +43,8 @@ namespace Shaolinq.Persistence
 
 						var result = sqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
 
-						using (var command = ((DefaultSqlDatabaseTransactionContext)dataTransactionContext).CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
+						using (var command = dataTransactionContext.CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
 						{
-							command.Transaction = null;
 							command.CommandText = result.CommandText;
 
 							if (Log.IsDebugEnabled)
@@ -58,6 +59,10 @@ namespace Shaolinq.Persistence
 
 				scope.Complete();
 			}
+		}
+
+		public virtual void Dispose()
+		{
 		}
 	}
 }

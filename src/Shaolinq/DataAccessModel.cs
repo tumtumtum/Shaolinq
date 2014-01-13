@@ -86,11 +86,11 @@ namespace Shaolinq
 
 		public virtual void Dispose()
 		{
-			this.CloseAllConnections();
+			this.DisposeAllSqlDatabaseContexts();
 
 			if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
 			{
-				this.CloseAllConnections();
+				this.DisposeAllSqlDatabaseContexts();
 
 				this.OnDisposed(EventArgs.Empty);
 
@@ -130,7 +130,7 @@ namespace Shaolinq
 			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(forWrite).CurrentDataContext;
 		}
 
-		public SqlDatabaseTransactionContext GetCurrentSqlDatabaseTransactionContext()
+		public SqlTransactionalCommandsContext GetCurrentSqlDatabaseTransactionContext()
 		{
 			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(true).GetCurrentDatabaseTransactionContext(this.GetCurrentSqlDatabaseContext());
 		}
@@ -267,7 +267,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Flushes and closes all connections for the DataAccessModel associated with the current thread.
 		/// </summary>
-		public virtual void CloseAllConnections()
+		private void DisposeAllSqlDatabaseContexts()
 		{
 			DataAccessModelTransactionManager.GetAmbientTransactionManager(this).FlushConnections();
 
@@ -275,7 +275,7 @@ namespace Shaolinq
 			{
 				foreach (var context in this.sqlDatabaseContextsByCategory[key].databaseContexts)
 				{
-					context.DropAllConnections();
+					context.Dispose();
 				}
 			}
 		}

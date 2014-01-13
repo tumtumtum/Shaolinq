@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 using System.Transactions;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -18,8 +17,8 @@ using Platform;
 
 namespace Shaolinq.Persistence
 {
-	public class DefaultSqlDatabaseTransactionContext
-		: SqlDatabaseTransactionContext
+	public class DefaultSqlTransactionalCommandsContext
+		: SqlTransactionalCommandsContext
 	{
 		protected int disposed = 0;
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
@@ -88,46 +87,17 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override bool IsClosed
-		{
-			get
-			{
-				return this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
-			}
-		}
-
-		public DataAccessModel DataAccessModel { get; private set; }
-		
 		protected readonly string tableNamePrefix;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
-		internal static readonly MethodInfo DeleteHelperMethod = typeof(DefaultSqlDatabaseTransactionContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
+		internal static readonly MethodInfo DeleteHelperMethod = typeof(DefaultSqlTransactionalCommandsContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
 		protected readonly string parameterIndicatorPrefix;
 
-		public DefaultSqlDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
-			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection())
+		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
+			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection(), transaction)
 		{
-			this.DataAccessModel = sqlDatabaseContext.DataAccessModel; 
 			this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
 			this.tableNamePrefix = sqlDatabaseContext.TableNamePrefix;
 			this.parameterIndicatorPrefix = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
-		}
-
-		~DefaultSqlDatabaseTransactionContext()
-		{
-			Dispose();
-		}
-
-		public override void Dispose()
-		{
-			if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
-			{
-				if (this.DbConnection != null)
-				{
-					this.DbConnection.Close();
-				}
-
-				GC.SuppressFinalize(this);
-			}
 		}
 
 		private static DbType GetDbType(Type type)

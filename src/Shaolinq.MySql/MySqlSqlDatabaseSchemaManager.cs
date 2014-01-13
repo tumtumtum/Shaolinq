@@ -22,53 +22,54 @@ namespace Shaolinq.MySql
 
 				dbConnection.Open();
 
-				var command = dbConnection.CreateCommand();
-
-				if (overwrite)
+				using (var command = dbConnection.CreateCommand())
 				{
-					var drop = false;
-
-					command.CommandText = String.Format("SHOW DATABASES;", this.sqlDatabaseContext.DatabaseName);
-
-					using (var reader = command.ExecuteReader())
+					if (overwrite)
 					{
-						while (reader.Read())
+						var drop = false;
+
+						command.CommandText = String.Format("SHOW DATABASES;", this.sqlDatabaseContext.DatabaseName);
+
+						using (var reader = command.ExecuteReader())
 						{
-							var s = reader.GetString(0);
-
-							if (s.Equals(this.sqlDatabaseContext.DatabaseName) ||
-								s.Equals(this.sqlDatabaseContext.DatabaseName.ToLower()))
+							while (reader.Read())
 							{
-								drop = true;
+								var s = reader.GetString(0);
 
-								break;
+								if (s.Equals(this.sqlDatabaseContext.DatabaseName) ||
+								    s.Equals(this.sqlDatabaseContext.DatabaseName.ToLower()))
+								{
+									drop = true;
+
+									break;
+								}
 							}
 						}
-					}
 
-					if (drop)
-					{
-						command.CommandText = String.Concat("DROP DATABASE ", this.sqlDatabaseContext.DatabaseName);
-						command.ExecuteNonQuery();
-					}
+						if (drop)
+						{
+							command.CommandText = String.Concat("DROP DATABASE ", this.sqlDatabaseContext.DatabaseName);
+							command.ExecuteNonQuery();
+						}
 
-					command.CommandText = String.Concat("CREATE DATABASE ", this.sqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
-					command.ExecuteNonQuery();
-
-					retval = true;
-				}
-				else
-				{
-					try
-					{
 						command.CommandText = String.Concat("CREATE DATABASE ", this.sqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
 						command.ExecuteNonQuery();
 
 						retval = true;
 					}
-					catch
+					else
 					{
-						retval = false;
+						try
+						{
+							command.CommandText = String.Concat("CREATE DATABASE ", this.sqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+							command.ExecuteNonQuery();
+
+							retval = true;
+						}
+						catch
+						{
+							retval = false;
+						}
 					}
 				}
 			}

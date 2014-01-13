@@ -10,13 +10,13 @@ namespace Shaolinq
 	{
 		public TransactionContext TransactionContext { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
-		public SqlDatabaseTransactionContext SqlDatabaseTransactionContext { get; private set; }
+		public SqlTransactionalCommandsContext SqlDatabaseCommandsContext { get; private set; }
 
-		public DatabaseTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
+		public DatabaseTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
 		{
 			this.TransactionContext = transactionContext;
 			this.SqlDatabaseContext = sqlDatabaseContext;
-			this.SqlDatabaseTransactionContext = sqlDatabaseTransactionContext;
+			this.SqlDatabaseCommandsContext = sqlDatabaseCommandsContext;
 		}
 
 		public void SetWasError()
@@ -27,7 +27,7 @@ namespace Shaolinq
 		{
 			if (this.TransactionContext.Transaction == null)
 			{
-				this.SqlDatabaseTransactionContext.Dispose();
+				this.SqlDatabaseCommandsContext.Dispose();
 			}
 		}
 	}

@@ -24,6 +24,11 @@ namespace Shaolinq.Sqlite
 		{
 		}
 
+		public override void DropAllConnections()
+		{
+			SqliteConnection.ClearAllPools();
+		}
+
 		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return new SqliteFactory();

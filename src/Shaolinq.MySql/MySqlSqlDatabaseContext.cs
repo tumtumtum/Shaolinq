@@ -30,16 +30,16 @@ using MySql.Data.MySqlClient;
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
-			
-			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections);
-			this.ServerConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;Uid=", this.Username, ";Pwd=", this.Password);
+
+			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; AutoEnlist=false; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections);
+			this.ServerConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;AutoEnlist=false;Uid=", this.Username, ";Pwd=", this.Password);
 
 			this.SchemaManager = new MySqlSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlDatabaseTransactionContext CreateDatabaseTransactionContext(Transaction transaction)
+		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
 		{
-			return new DefaultSqlDatabaseTransactionContext(this, transaction);
+			return new DefaultSqlTransactionalCommandsContext(this, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
@@ -47,9 +47,9 @@ using MySql.Data.MySqlClient;
 			return new MySqlClientFactory();
 		}
 
-		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlDatabaseTransactionContext sqlDatabaseTransactionContext)
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
 		{
-			return new DisabledForeignKeyCheckContext(sqlDatabaseTransactionContext);	
+			return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);	
 		}
 
 		public override void DropAllConnections()
