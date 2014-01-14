@@ -25,7 +25,7 @@ namespace Shaolinq.Sqlite
 			var connectionStringBuilder = new SqliteConnectionStringBuilder()
 			{
 				Enlist = false,
-				Uri = contextInfo.FileName
+				DataSource = contextInfo.FileName
 			};
 
 			connectionStringBuilder.Add("ForeignKeys", true);

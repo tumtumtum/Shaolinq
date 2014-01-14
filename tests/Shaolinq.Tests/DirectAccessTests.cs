@@ -5,10 +5,10 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
 	public class DirectAccessTests
 		: BaseTests
 	{

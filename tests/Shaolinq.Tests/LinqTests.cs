@@ -10,12 +10,12 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("Sqlite")]
 	[TestFixture("MySql")]
-	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("Sqlite")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
 	public class LinqTests
 		: BaseTests
 	{

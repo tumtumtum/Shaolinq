@@ -1,9 +1,7 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Text;
 using System.Transactions;
 using NUnit.Framework;
 
@@ -11,10 +9,10 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
 	public class TransactionTests
 		: BaseTests
 	{

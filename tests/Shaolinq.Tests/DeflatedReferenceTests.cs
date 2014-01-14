@@ -10,7 +10,7 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
 	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Postgres")]
