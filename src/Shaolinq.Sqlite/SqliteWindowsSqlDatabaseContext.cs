@@ -22,6 +22,15 @@ namespace Shaolinq.Sqlite
 		public SqliteWindowsSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager)
 		{
+			var connectionStringBuilder = new SQLiteConnectionStringBuilder()
+			{
+				Enlist = false,
+				ForeignKeys = true,
+				FullUri = contextInfo.FileName
+			};
+
+			this.ConnectionString = connectionStringBuilder.ConnectionString;
+			this.ServerConnectionString = this.ConnectionString;
 		}
 
 		public override void DropAllConnections()

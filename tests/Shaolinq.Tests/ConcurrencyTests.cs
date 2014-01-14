@@ -11,7 +11,7 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteInMemory", Category = "IgnoreOnMono")]
 	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]

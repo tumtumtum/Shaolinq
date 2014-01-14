@@ -50,16 +50,6 @@ namespace Shaolinq.Sqlite
 			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName);
 			this.IsInMemoryConnection = IsMemoryConnectionRegex.IsMatch(this.FileName);
 
-			var connectionStringBuilder = new SQLiteConnectionStringBuilder()
-			{
-				Enlist = false,
-				ForeignKeys = true,
-				FullUri = contextInfo.FileName
-			};
-
-			this.ConnectionString = connectionStringBuilder.ConnectionString;
-			this.ServerConnectionString = this.ConnectionString;
-
 			if (SqliteSqlDatabaseContext.IsRunningMono())
 			{
 				this.SchemaManager = new SqliteMonoSqlDatabaseSchemaManager(this);

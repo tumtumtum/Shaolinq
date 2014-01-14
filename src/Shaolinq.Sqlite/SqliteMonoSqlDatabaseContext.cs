@@ -22,6 +22,16 @@ namespace Shaolinq.Sqlite
 		public SqliteMonoSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager)
 		{
+			var connectionStringBuilder = new SqliteConnectionStringBuilder()
+			{
+				Enlist = false,
+				Uri = contextInfo.FileName
+			};
+
+			connectionStringBuilder.Add("ForeignKeys", true);
+
+			this.ConnectionString = connectionStringBuilder.ConnectionString;
+			this.ServerConnectionString = this.ConnectionString;
 		}
 
 		public override void DropAllConnections()
