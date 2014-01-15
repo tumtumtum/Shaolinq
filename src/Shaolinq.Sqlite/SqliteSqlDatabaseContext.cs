@@ -2,8 +2,6 @@
 
 using System;
 using System.Data;
-using System.Data.Common;
-using System.Data.SQLite;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Transactions;
