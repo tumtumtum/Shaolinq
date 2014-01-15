@@ -44,7 +44,7 @@ namespace Shaolinq.Sqlite
 
 							if (string.Equals(codeBase.Scheme, "file", StringComparison.InvariantCultureIgnoreCase))
 							{
-								var fileName = Path.Combine(Path.GetDirectoryName(codeBase.LocalPath), "Mono", "System.Data.SQLite.Mono.dll");
+								var fileName = Path.Combine(Path.GetDirectoryName(codeBase.LocalPath), "Mono", "System.Data.SQLite.Standard.dll");
 
 								bytes = File.ReadAllBytes(fileName);
 							}

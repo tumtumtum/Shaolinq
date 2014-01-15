@@ -131,7 +131,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Mono\System.Data.SQLite.Mono.dll">
+    <Content Include="Mono\System.Data.SQLite.Standard.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="x64\SQLite.Interop.dll">
