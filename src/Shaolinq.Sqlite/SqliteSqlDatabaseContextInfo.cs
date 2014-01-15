@@ -2,13 +2,13 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Threading;
 using Platform.Xml.Serialization;
-﻿using Shaolinq.Persistence;
-﻿
+using Shaolinq.Persistence;
+
 namespace Shaolinq.Sqlite
 {
 	[XmlElement]
@@ -30,7 +30,9 @@ namespace Shaolinq.Sqlite
 			}
 			else
 			{
-				if (SqliteSqlDatabaseContext.IsRunningMono())
+				var useEmbeddedAssembly = SqliteSqlDatabaseContext.IsRunningMono();
+
+				if (useEmbeddedAssembly)
 				{
 					if (Interlocked.CompareExchange(ref MonoLibraryAlreadyLoaded, 1, 0) == 0)
 					{
@@ -39,26 +41,34 @@ namespace Shaolinq.Sqlite
 
 						if (assembly == null)
 						{
-							byte[] bytes;
-							var codeBase = new Uri(this.GetType().Assembly.CodeBase);
-
-							if (string.Equals(codeBase.Scheme, "file", StringComparison.InvariantCultureIgnoreCase))
+							using (var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Shaolinq.Sqlite.Embedded.System.Data.SQLite.Standard.dll.gz"))
 							{
-								var fileName = Path.Combine(Path.GetDirectoryName(codeBase.LocalPath), "Mono", "System.Data.SQLite.Standard.dll");
+								using (var stream = new GZipStream(resourceStream, CompressionMode.Decompress))
+								{
+									var buffer = new byte[1024];
 
-								bytes = File.ReadAllBytes(fileName);
-							}
-							else
-							{
-								throw new NotSupportedException("Sqlite Provider requires application to be located on a local file system");
-							}
+									using (var uncompressData = new MemoryStream())
+									{
+										int read;
 
-							Assembly.Load(bytes);
+										while ((read = stream.Read(buffer, 0, 1024)) > 0)
+										{
+											uncompressData.Write(buffer, 0, read);
+										}
+
+										// This totally relies on Mono currently loading all assemblies into the same "load context" 
+
+										Assembly.Load(uncompressData.ToArray());
+									}
+								}
+							}
 						}
 					}
 				}
 
-				return SqliteWindowsSqlDatabaseContext.Create(this, model);
+				var retval =  SqliteWindowsSqlDatabaseContext.Create(this, model);
+
+				return retval;
 			}
 		}
 	}
