@@ -10,11 +10,10 @@ namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
-	[TestFixture("SqliteClassicInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
 	public class DeflatedReferenceTests
 		: BaseTests
 	{

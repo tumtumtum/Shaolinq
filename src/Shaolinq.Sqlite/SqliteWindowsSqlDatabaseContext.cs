@@ -31,6 +31,7 @@ namespace Shaolinq.Sqlite
 
 			this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.ServerConnectionString = this.ConnectionString;
+			this.SchemaManager = new SqliteWindowsSqlDatabaseSchemaManager(this);
 		}
 
 		public override void DropAllConnections()

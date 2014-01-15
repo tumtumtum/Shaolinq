@@ -9,11 +9,11 @@ using Shaolinq.Persistence.Linq.Expressions;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
-	[TestFixture("Sqlite")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
-	[TestFixture("SqliteClassicInMemory")]
-	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
+	[TestFixture("Sqlite", Category = "SupportstSqlite")]
+	[TestFixture("SqliteInMemory", Category = "SupportstSqlite")]
+	[TestFixture("SqliteClassicInMemory", Category = "SupportstSqlite")]
 	public class SqlFormatterTests
 		: BaseTests
 	{

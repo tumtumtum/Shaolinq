@@ -6,11 +6,11 @@ using NUnit.Framework;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
-	[TestFixture("Sqlite")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
-	[TestFixture("SqliteClassicInMemory")]
-	[TestFixture("SqliteInMemory", Category = "SupportsSqliteSharedCache")]
+	[TestFixture("Sqlite", Category = "SupportstSqlite")]
+	[TestFixture("SqliteInMemory", Category = "SupportstSqlite")]
+	[TestFixture("SqliteClassicInMemory", Category = "SupportstSqlite")]
 	public class TestConstraints
 		: BaseTests
 	{
@@ -58,7 +58,7 @@ namespace Shaolinq.Tests
 					var school = this.model.Schools.Create();
 					var student = school.Students.Create();
 
-					student.Email = new string('A', 65);
+					student.Email = new string('B', 65);
 
 					scope.Complete();
 				}

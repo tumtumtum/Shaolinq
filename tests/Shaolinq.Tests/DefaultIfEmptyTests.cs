@@ -7,9 +7,11 @@ using Shaolinq.Tests.TestModel;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
-	[TestFixture("Sqlite")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Sqlite", Category = "SupportstSqlite")]
+	[TestFixture("SqliteInMemory", Category = "SupportstSqlite")]
+	[TestFixture("SqliteClassicInMemory", Category = "SupportstSqlite")]
 	public class DefaultIfEmptyTests
 		: BaseTests
 	{

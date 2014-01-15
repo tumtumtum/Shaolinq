@@ -49,15 +49,6 @@ namespace Shaolinq.Sqlite
 			this.FileName = contextInfo.FileName;
 			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName);
 			this.IsInMemoryConnection = IsMemoryConnectionRegex.IsMatch(this.FileName);
-
-			if (SqliteSqlDatabaseContext.IsRunningMono())
-			{
-				this.SchemaManager = new SqliteMonoSqlDatabaseSchemaManager(this);
-			}
-			else
-			{
-				this.SchemaManager = new SqliteWindowsSqlDatabaseSchemaManager(this);
-			}
 		}
 
 		internal static bool IsRunningMono()
