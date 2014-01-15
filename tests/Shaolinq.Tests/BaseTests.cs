@@ -2,7 +2,8 @@
 
  using System;
 ﻿using System.Reflection;
-﻿using Shaolinq.MySql;
+ using NUnit.Framework;
+ using Shaolinq.MySql;
 ﻿using Shaolinq.Postgres;
 ﻿using Shaolinq.Postgres.DotConnect;
 ﻿using Shaolinq.Sqlite;
@@ -79,6 +80,12 @@ namespace Shaolinq.Tests
 
 				throw;
 			}
+		}
+
+		[TearDown]
+		public virtual void TearDown()
+		{
+			model.Dispose();
 		}
 	}
 }
