@@ -92,8 +92,6 @@ namespace Shaolinq.Persistence
 		public virtual void Dispose()
 		{
 			this.SchemaManager.Dispose();
-
-			DropAllConnections();
 		}
 	}
 }
