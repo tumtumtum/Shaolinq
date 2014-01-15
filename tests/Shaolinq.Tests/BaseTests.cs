@@ -82,8 +82,8 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[TearDown]
-		public virtual void TearDown()
+		[TestFixtureTearDown]
+		public virtual void Dispose()
 		{
 			model.Dispose();
 		}
