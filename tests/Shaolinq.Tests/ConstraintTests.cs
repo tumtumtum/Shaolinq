@@ -6,9 +6,9 @@ namespace Shaolinq.Tests
 	[TestFixture("MySql")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
-	[TestFixture("Sqlite", Category = "SupportstSqlite")]
-	[TestFixture("SqliteInMemory", Category = "SupportstSqlite")]
-	[TestFixture("SqliteClassicInMemory", Category = "SupportstSqlite")]
+	[TestFixture("Sqlite", Category = "SupportsSqlite")]
+	[TestFixture("SqliteInMemory", Category = "SupportsSqlite")]
+	[TestFixture("SqliteClassicInMemory", Category = "SupportsSqlite")]
 	public class ConstraintTests
 			: BaseTests
 	{
