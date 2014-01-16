@@ -23,15 +23,12 @@ namespace Shaolinq.Sqlite
 		{
 			if (this.inMemoryConnection != null)
 			{
-				if (this.inMemoryConnection.State != ConnectionState.Closed)
+				try
 				{
-					try
-					{
-						this.inMemoryConnection.Close();
-					}
-					catch (ObjectDisposedException)
-					{	
-					}
+					this.inMemoryConnection.Close();
+				}
+				catch (ObjectDisposedException)
+				{	
 				}
 
 				this.inMemoryConnection = null;

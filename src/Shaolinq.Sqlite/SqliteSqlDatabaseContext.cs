@@ -12,9 +12,9 @@ namespace Shaolinq.Sqlite
 	public abstract class SqliteSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		public string FileName { get; private set; }
-		public bool IsInMemoryConnection { get; private set; }
-		public bool IsSharedCacheConnection { get; private set; }
+		public string FileName { get; protected set; }
+		public bool IsInMemoryConnection { get; protected set; }
+		public bool IsSharedCacheConnection { get; protected set; }
 		
 		private IDbConnection connection;
 

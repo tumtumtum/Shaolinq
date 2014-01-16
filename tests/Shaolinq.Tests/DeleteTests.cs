@@ -7,12 +7,12 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
-	///[TestFixture("MySql")]
-	//[TestFixture("Postgres")]
-	//[TestFixture("Postgres.DotConnect")]
-	[TestFixture("Sqlite", Category = "SupportsSqlite")]
-	//[TestFixture("SqliteInMemory", Category = "SupportsSqlite")]
-	//[TestFixture("SqliteClassicInMemory", Category = "SupportsSqlite")]
+	[TestFixture("MySql")]
+	[TestFixture("Postgres")]
+	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Sqlite")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	public class DeleteTests
 		: BaseTests
 	{

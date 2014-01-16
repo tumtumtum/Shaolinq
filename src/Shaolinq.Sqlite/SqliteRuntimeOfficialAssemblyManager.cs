@@ -6,11 +6,15 @@ using System.IO.Compression;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
+using Shaolinq.Persistence.Linq;
+using log4net;
 
 namespace Shaolinq.Sqlite
 {
 	internal class SqliteRuntimeOfficialAssemblyManager
 	{
+		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
+
 		private static Assembly officialAssembly = null;
 
 		public static void Init()
@@ -83,9 +87,13 @@ namespace Shaolinq.Sqlite
 						var memberInitExpression = Expression.MemberInit(newExpression, bindings.ToArray());
 						var body = Expression.Property(memberInitExpression, "ConnectionString");
 
-						SqliteRuntimeOfficialAssemblyManager.buildConnectionString = Expression.Lambda<Func<string, string>>(body, uriParam).Compile();
+						buildConnectionString = Expression.Lambda<Func<string, string>>(body, uriParam).Compile();
+
+						getSqliteVersion = Expression.Lambda<Func<string>>(Expression.Property(null, sqliteConnectionType.GetProperty("SQLiteVersion", BindingFlags.Public | BindingFlags.Static))).Compile();
 
 						Thread.MemoryBarrier();
+
+						Logger.Debug("Shaolinq using Sqlite version: " + GetSqliteVersion());
 
 						SqliteRuntimeOfficialAssemblyManager.officialAssembly = loadedAssembly;
 					}
@@ -98,6 +106,7 @@ namespace Shaolinq.Sqlite
 		private static Action clearAllPools;
 		private static Type sqliteExceptionType; 
 		private static Action<string> createFile;
+		private static Func<string> getSqliteVersion; 
 		private static Func<Exception, int> getExceptionErrorCode;
 		private static Func<string, string> buildConnectionString; 
 		private static Func<DbProviderFactory> newDbProviderFactory;
@@ -105,6 +114,11 @@ namespace Shaolinq.Sqlite
 		public static void CreateFile(string path)
 		{
 			SqliteRuntimeOfficialAssemblyManager.createFile(path);
+		}
+
+		public static string GetSqliteVersion()
+		{
+			return SqliteRuntimeOfficialAssemblyManager.getSqliteVersion();
 		}
 
 		public static void ClearAllPools()
