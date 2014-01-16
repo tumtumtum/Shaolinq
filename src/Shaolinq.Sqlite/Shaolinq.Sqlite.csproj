@@ -79,6 +79,7 @@
     <Reference Include="System.Data.SQLite, Version=1.0.90.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.Data.SQLite.1.0.90.0\lib\net40\System.Data.SQLite.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="System.Data.SQLite.Linq, Version=1.0.90.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -93,6 +94,7 @@
     <Compile Include="SqliteErrorCodes.cs" />
     <Compile Include="SqliteMonoSqlDatabaseContext.cs" />
     <Compile Include="SqliteMonoSqlDatabaseSchemaManager.cs" />
+    <Compile Include="SqliteOfficialAssemblyReference.cs" />
     <Compile Include="SqlitePersistentDbConnection.cs" />
     <Compile Include="SqliteRuntimeOfficialAssemblyManager.cs" />
     <Compile Include="SqliteSqlDatabaseContextInfo.cs" />
