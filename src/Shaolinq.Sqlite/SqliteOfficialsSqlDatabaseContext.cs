@@ -107,7 +107,7 @@ namespace Shaolinq.Sqlite
 
 			if (Version.TryParse(versionString, out version))
 			{
-				if (version.Major < 3 && version.Minor < 7 && version.MinorRevision < 7)
+				if (version < new Version(3, 7, 7))
 				{
 					bool isInMemory;
 					var uri = contextInfo.FileName;
