@@ -2,12 +2,13 @@
 
 using System;
 using System.Data.Common;
-using System.Data.SQLite;
+using System.Linq.Expressions;
+using System.Reflection;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
 {
-	public class SqliteWindowsSqlDatabaseContext
+	public class SqliteOfficialsSqlDatabaseContext
 		: SqliteSqlDatabaseContext
 	{
 		public static SqliteSqlDatabaseContext Create(SqliteSqlDatabaseContextInfo contextInfo, DataAccessModel model)
@@ -16,46 +17,37 @@ namespace Shaolinq.Sqlite
 			var sqlDataTypeProvider = new SqliteSqlDataTypeProvider(constraintDefaults);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(SqliteSqlDialect.Default, sqlDataTypeProvider, typeof(SqliteSqlQueryFormatter));
 
-			return new SqliteWindowsSqlDatabaseContext(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
+			return new SqliteOfficialsSqlDatabaseContext(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
 		}
 
-		public SqliteWindowsSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
+		public SqliteOfficialsSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager)
 		{
-			var connectionStringBuilder = new SQLiteConnectionStringBuilder()
-			{
-				Enlist = false,
-				ForeignKeys = true,
-				FullUri = contextInfo.FileName
-			};
-
-			this.ConnectionString = connectionStringBuilder.ConnectionString;
+			this.ConnectionString = SqliteRuntimeOfficialAssemblyManager.BuildConnectionString(contextInfo.FileName);
 			this.ServerConnectionString = this.ConnectionString;
-			this.SchemaManager = new SqliteWindowsSqlDatabaseSchemaManager(this);
+			this.SchemaManager = new SqliteOfficialSqlDatabaseSchemaManager(this);
 		}
 
 		public override void DropAllConnections()
 		{
-			SQLiteConnection.ClearAllPools();
+			SqliteRuntimeOfficialAssemblyManager.ClearAllPools();
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
 		{
-			return new SQLiteFactory();
+			return SqliteRuntimeOfficialAssemblyManager.NewDbProviderFactory();
 		}
 
 		public override Exception DecorateException(Exception exception, string relatedQuery)
 		{
 			// http://www.sqlite.org/c3ref/c_abort.html
 
-			var sqliteException = exception as SQLiteException;
-
-			if (sqliteException == null)
-			{
+			if (!SqliteRuntimeOfficialAssemblyManager.IsSqLiteExceptionType(exception))
+			{	
 				return base.DecorateException(exception, relatedQuery);
 			}
 
-			if (sqliteException.ErrorCode == SqliteErrorCodes.SqliteConstraint)
+			if (SqliteRuntimeOfficialAssemblyManager.GetExceptionErrorCode(exception) == SqliteErrorCodes.SqliteConstraint)
 			{
 				return new UniqueKeyConstraintException(exception, relatedQuery);
 			}

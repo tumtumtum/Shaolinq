@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence
 	{
 		public TimeSpan CommandTimeout { get; protected set; }
 
-		protected readonly DbProviderFactory dbProviderFactory;
+		protected DbProviderFactory dbProviderFactory;
 		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default); 
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
@@ -38,6 +38,11 @@ namespace Shaolinq.Persistence
 
 		public virtual IDbConnection OpenConnection()
 		{
+			if (this.dbProviderFactory == null)
+			{
+				this.dbProviderFactory = this.CreateDbProviderFactory();
+			}
+
 			var retval = this.dbProviderFactory.CreateConnection();
 
 			retval.ConnectionString = this.ConnectionString;
@@ -48,6 +53,11 @@ namespace Shaolinq.Persistence
 
 		public virtual IDbConnection OpenServerConnection()
 		{
+			if (this.dbProviderFactory == null)
+			{
+				this.dbProviderFactory = this.CreateDbProviderFactory();
+			}
+
 			var retval = this.dbProviderFactory.CreateConnection();
 
 			retval.ConnectionString = this.ServerConnectionString;
@@ -62,7 +72,6 @@ namespace Shaolinq.Persistence
 			this.DataAccessModel = model; 
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 			this.ContextCategories = contextInfo.Categories == null ? new string[0] : contextInfo.Categories.Split(',').Select(c => c.Trim()).ToArray();
-			this.dbProviderFactory = this.CreateDbProviderFactory();
 			this.SqlDialect = sqlDialect;
 			this.SqlDataTypeProvider = sqlDataTypeProvider;
 			this.SqlQueryFormatterManager = sqlQueryFormatterManager;
