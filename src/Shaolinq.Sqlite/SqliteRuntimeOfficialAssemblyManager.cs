@@ -30,7 +30,7 @@ namespace Shaolinq.Sqlite
 
 						var useEmbeddedAssembly = SqliteSqlDatabaseContext.IsRunningMono();
 
-						if (useEmbeddedAssembly || true)
+						if (useEmbeddedAssembly)
 						{
 							using (var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Shaolinq.Sqlite.Embedded.System.Data.SQLite.Standard.dll.gz"))
 							{
