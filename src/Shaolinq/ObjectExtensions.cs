@@ -4,7 +4,7 @@
 
 namespace Shaolinq
 {
-	public static class ObjectExtensions
+	internal static class ObjectExtensions
 	{
 		public static void PopulateFrom<T, U>(this T value, U source)
 		{

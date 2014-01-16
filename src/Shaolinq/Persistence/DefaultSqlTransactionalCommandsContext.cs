@@ -161,7 +161,7 @@ namespace Shaolinq.Persistence
 			{
 				var parameter = command.CreateParameter();
 
-				parameter.ParameterName = this.parameterIndicatorPrefix + "param" + x;
+				parameter.ParameterName = this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + x;
 				parameter.DbType = GetDbType(value.Left);
 				parameter.Value = value.Right;
 
@@ -206,7 +206,7 @@ namespace Shaolinq.Persistence
 					return "[FormatCommandError!]";
 				}
 
-				return ((IDbDataParameter)command.Parameters[c]);
+				return ((IDbDataParameter)command.Parameters[c]).Value;
 			});
 		}
 
@@ -408,7 +408,7 @@ namespace Shaolinq.Persistence
 		{
 			var parameter = command.CreateParameter();
 
-			parameter.ParameterName = this.parameterIndicatorPrefix + "param" + command.Parameters.Count;
+			parameter.ParameterName = this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + command.Parameters.Count;
 
 			if (value == null)
 			{

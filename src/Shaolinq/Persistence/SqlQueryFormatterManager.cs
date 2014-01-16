@@ -32,12 +32,12 @@ namespace Shaolinq.Persistence
 		{
 			if (formatCommandRegex == null)
 			{
-				formatCommandRegex = new Regex(string.Format(@"[^\\](\{0}param[0-9]+)", this.parameterPrefix ), RegexOptions.Compiled);
+				formatCommandRegex = new Regex(string.Format(@"\{0}" + Sql92QueryFormatter.ParamNamePrefix + "[0-9]+", this.parameterPrefix), RegexOptions.Compiled);
 			}
 
 			return formatCommandRegex.Replace(commandText, match =>
 			{
-				var value = paramNameToValue(match.Groups[1].Value);
+				var value = paramNameToValue(match.Value);
 
 				if (value == null)
 				{
@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence
 
 					return this.stringQuote + dateTime.ToString("yyyy-MM-dd HH:mm:ss.fffff zz") + this.stringQuote;
 				}
-				
+
 				return Convert.ToString(value);
 			});
 		}

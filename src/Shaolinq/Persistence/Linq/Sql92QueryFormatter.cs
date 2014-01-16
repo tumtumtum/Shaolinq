@@ -17,6 +17,8 @@ namespace Shaolinq.Persistence.Linq
 	public class Sql92QueryFormatter
 		: SqlQueryFormatter
 	{
+		internal static readonly string ParamNamePrefix = "PaRaM";
+
 		public struct FunctionResolveResult
 		{
 			public static Pair<Type, object>[] MakeArguments(params object[] args)
@@ -385,7 +387,7 @@ namespace Shaolinq.Persistence.Linq
 					for (int i = 0, n = result.argsBefore.Length - 1; i <= n; i++)
 					{
 						this.Write(this.ParameterIndicatorPrefix);
-						this.Write("param");
+						this.Write("PaRaM");
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsBefore[i].Left, result.argsBefore[i].Right));
 
@@ -411,7 +413,7 @@ namespace Shaolinq.Persistence.Linq
 					for (int i = 0, n = result.argsAfter.Length - 1; i <= n; i++)
 					{
 						Write(this.ParameterIndicatorPrefix);
-						Write("param");
+						Write(Sql92QueryFormatter.ParamNamePrefix);
 						Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsAfter[i].Left, result.argsAfter[i].Right));
 
@@ -511,12 +513,12 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if ((this.options & SqlQueryFormatterOptions.OptimiseOutConstantNulls) != 0)
 				{
-					this.Write("NULL");
+					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null));
 				}
 				else
 				{
 					this.Write(this.ParameterIndicatorPrefix);
-					this.Write("param");
+					this.Write(Sql92QueryFormatter.ParamNamePrefix);
 					this.Write(parameterValues.Count);
 					parameterValues.Add(new Pair<Type, object>(constantExpression.Type, null));
 				}
@@ -529,7 +531,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					case TypeCode.Boolean:
 						this.Write(this.ParameterIndicatorPrefix);
-						this.Write("param");
+						this.Write(Sql92QueryFormatter.ParamNamePrefix);
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
 						break;
@@ -543,7 +545,7 @@ namespace Shaolinq.Persistence.Linq
 						else
 						{
 							this.Write(this.ParameterIndicatorPrefix);
-							this.Write("param");
+							this.Write(Sql92QueryFormatter.ParamNamePrefix);
 							this.Write(parameterValues.Count);
 
 							var value = constantExpression.Value as Guid?;
@@ -562,7 +564,7 @@ namespace Shaolinq.Persistence.Linq
 						if (constantExpression.Type.IsEnum)
 						{
 							this.Write(this.ParameterIndicatorPrefix);
-							this.Write("param");
+							this.Write(Sql92QueryFormatter.ParamNamePrefix);
 							this.Write(parameterValues.Count);
 
 							parameterValues.Add(new Pair<Type, object>(typeof(string), Enum.GetName(constantExpression.Type, constantExpression.Value)));
@@ -570,7 +572,7 @@ namespace Shaolinq.Persistence.Linq
 						else
 						{
 							this.Write(this.ParameterIndicatorPrefix);
-							this.Write("param");
+							this.Write(Sql92QueryFormatter.ParamNamePrefix);
 							this.Write(parameterValues.Count);
 
 							parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));

@@ -17,6 +17,8 @@ namespace Shaolinq
 		[PersistedMember(Name = "$(TYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)")]
 		public abstract T Id { get; set; }
 
+		public virtual DataAccessModel DataAccessModel { get; private set; }
+
 		public virtual bool IsDeflatedReference
 		{
 			get
@@ -48,6 +50,11 @@ namespace Shaolinq
 			((IDataAccessObject)this).SetIsDeflatedReference(false);
 		}
 
+		public virtual U As<U>()
+		{
+			throw new NotImplementedException();
+		}
+
 		protected void RemoveFromCache()
 		{	
 		}
@@ -61,8 +68,6 @@ namespace Shaolinq
 
 			return true;
 		}
-
-		public virtual DataAccessModel DataAccessModel { get; private set; }
 
 		TypeDescriptor IDataAccessObject.TypeDescriptor
 		{
