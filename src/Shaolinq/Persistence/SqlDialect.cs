@@ -27,11 +27,6 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual string GetColumnDataTypeName(PropertyDescriptor propertyDescriptor, SqlDataType sqlDataType, bool foreignKey)
-		{
-			return sqlDataType.GetSqlName(propertyDescriptor);
-		}
-
 		public virtual string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
 			switch (symbol)

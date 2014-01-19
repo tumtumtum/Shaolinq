@@ -11,9 +11,9 @@ namespace Shaolinq.Persistence
 		: SqlDataType
 	{
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
-		private static readonly MethodInfo GetValueMethod = DataRecordMethods.GetInt64Method;
-		private static readonly ConstructorInfo TimeSpanConstructor = typeof(TimeSpan).GetConstructor(new[] { typeof(long) });
-		private static readonly ConstructorInfo NullableTimeSpanConstructor = typeof(TimeSpan?).GetConstructor(new[] { typeof(TimeSpan) });
+		private static readonly MethodInfo getValueMethod = DataRecordMethods.GetInt64Method;
+		private static readonly ConstructorInfo timeSpanConstructor = typeof(TimeSpan).GetConstructor(new[] { typeof(long) });
+		private static readonly ConstructorInfo nullableTimeSpanConstructor = typeof(TimeSpan?).GetConstructor(new[] { typeof(TimeSpan) });
 
 		public DefaultTimeSpanSqlDataType(SqlDataTypeProvider sqlDataTypeProvider, ConstraintDefaults constraintDefaults, Type type)
 			: base(constraintDefaults, type)
@@ -48,8 +48,8 @@ namespace Shaolinq.Persistence
 					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
 					Expression.New
 					(
-						TimeSpanConstructor,
-						Expression.Call(dataReader, GetValueMethod, Expression.Constant(ordinal))
+						timeSpanConstructor,
+						Expression.Call(dataReader, getValueMethod, Expression.Constant(ordinal))
 					)
 				);
 			}
@@ -61,11 +61,11 @@ namespace Shaolinq.Persistence
 					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
 					Expression.New
 					(
-						NullableTimeSpanConstructor,
+						nullableTimeSpanConstructor,
 						Expression.New
 						(
-							TimeSpanConstructor,
-							Expression.Call(dataReader, GetValueMethod, Expression.Constant(ordinal))
+							timeSpanConstructor,
+							Expression.Call(dataReader, getValueMethod, Expression.Constant(ordinal))
 						)
 					)
 				);

@@ -1382,7 +1382,6 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties.Filter(c => !c.PropertyType.IsDataAccessObjectType()))
 			{
-				var ordinal = columns.Count;
 				var columnName = propertyDescriptor.PersistedName;
 				var columnType = propertyDescriptor.PropertyType;
 				var propertyInfo = propertyDescriptor.PropertyInfo;

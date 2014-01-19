@@ -60,7 +60,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					newColumnExpressions.Add(new SqlColumnDefinitionExpression(columnDefinition.ColumnName, columnDefinition.ColumnTypeName, newConstraints));
+					newColumnExpressions.Add(new SqlColumnDefinitionExpression(columnDefinition.ColumnName, columnDefinition.ColumnType, newConstraints));
 				}
 			}
 

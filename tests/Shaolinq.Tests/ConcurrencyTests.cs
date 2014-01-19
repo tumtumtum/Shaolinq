@@ -9,12 +9,12 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
-	//[TestFixture("MySql")]
+	[TestFixture("MySql")]
 	[TestFixture("Postgres")]
-//	[TestFixture("Postgres.DotConnect")]
-	//[TestFixture("Sqlite", Category = "SupportsSqlite")]
-	//[TestFixture("SqliteInMemory", Category = "SupportsSqlite")]
-	//[TestFixture("SqliteClassicInMemory", Category = "SupportsSqlite")]
+	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Sqlite")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	public class ConcurrencyTests
 		: BaseTests
 	{

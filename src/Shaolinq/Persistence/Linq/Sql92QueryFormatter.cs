@@ -1165,7 +1165,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.WriteQuotedIdentifier(columnDefinitionExpression.ColumnName);
 			this.Write(' ');
-			this.Visit(columnDefinitionExpression.ColumnTypeName);
+			this.Visit(columnDefinitionExpression.ColumnType);
 
 
 			if (columnDefinitionExpression.ConstraintExpressions.Count > 0)

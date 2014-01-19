@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public string ColumnName { get; private set; }
-		public Expression ColumnTypeName { get; private set; }
+		public Expression ColumnType { get; private set; }
 		public ReadOnlyCollection<Expression> ConstraintExpressions { get; private set; }
 
 		public override ExpressionType NodeType
@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			: base(typeof(void))
 		{
 			this.ColumnName = columnName;
-			this.ColumnTypeName = columnTypeName;
+			this.ColumnType = columnTypeName;
 			this.ConstraintExpressions = new ReadOnlyCollection<Expression>(constraintExpressions);
 		}
 	}

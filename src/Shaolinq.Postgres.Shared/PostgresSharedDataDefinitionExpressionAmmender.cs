@@ -44,7 +44,7 @@ namespace Shaolinq.Postgres.Shared
 			{
 				var longTypeSqlName = sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
 
-				if (((SqlTypeExpression)columnDefinitionExpression.ColumnTypeName).TypeName == longTypeSqlName)
+				if (((SqlTypeExpression)columnDefinitionExpression.ColumnType).TypeName == longTypeSqlName)
 				{
 					retval = new SqlColumnDefinitionExpression(retval.ColumnName, new SqlTypeExpression("BIGSERIAL"), retval.ConstraintExpressions);
 				}

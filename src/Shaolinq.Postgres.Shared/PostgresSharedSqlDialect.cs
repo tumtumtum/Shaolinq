@@ -29,20 +29,6 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
-		public override string GetColumnDataTypeName(PropertyDescriptor propertyDescriptor, SqlDataType sqlDataType, bool isForiegnKey)
-		{
-			var type = sqlDataType.UnderlyingType ?? sqlDataType.SupportedType;
-
-			if (!isForiegnKey && propertyDescriptor.IsAutoIncrement && type.IsIntegerType())
-			{
-				return "SERIAL";
-			}
-			else
-			{
-				return base.GetColumnDataTypeName(propertyDescriptor, sqlDataType, isForiegnKey);
-			}
-		}
-
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
 			switch (symbol)

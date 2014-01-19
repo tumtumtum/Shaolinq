@@ -107,7 +107,7 @@ namespace Shaolinq.Persistence.Linq
 
 					newConstraints.Add(referencesColumnExpression);
 
-					retval = new SqlColumnDefinitionExpression(retval.ColumnName, retval.ColumnTypeName, newConstraints);
+					retval = new SqlColumnDefinitionExpression(retval.ColumnName, retval.ColumnType, newConstraints);
 				}
 
 				yield return retval;
