@@ -93,6 +93,7 @@ namespace Shaolinq.Persistence.Linq
 				this.sqlDataTypeProvider = sqlDataTypeProvider;
 			}
 
+			this.stringQuote = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote);
 			this.identifierQuoteString = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
 		}
 
@@ -550,14 +551,7 @@ namespace Shaolinq.Persistence.Linq
 
 							var value = constantExpression.Value as Guid?;
 
-							if (this.sqlDataTypeProvider != null)
-							{
-								parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(value));
-							}
-							else
-							{
-								parameterValues.Add(new Pair<Type, object>(constantExpression.Type, value));
-							}
+							parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(value));
 						}
 						break;
 					default:
@@ -567,7 +561,7 @@ namespace Shaolinq.Persistence.Linq
 							this.Write(Sql92QueryFormatter.ParamNamePrefix);
 							this.Write(parameterValues.Count);
 
-							parameterValues.Add(new Pair<Type, object>(typeof(string), Enum.GetName(constantExpression.Type, constantExpression.Value)));
+							parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(constantExpression.Value));
 						}
 						else
 						{
@@ -911,6 +905,7 @@ namespace Shaolinq.Persistence.Linq
 		protected string ignoreAlias;
 		protected string replaceAlias;
 		protected readonly string identifierQuoteString;
+		private readonly string stringQuote;
 
 		protected virtual void WriteTableName(string tableName)
 		{
@@ -991,7 +986,6 @@ namespace Shaolinq.Persistence.Linq
 			this.Write("(");
 			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, this.Visit);
 			this.WriteLine(");");
-			this.WriteLine();
 
 			return createIndexExpression;
 		}
@@ -1005,20 +999,11 @@ namespace Shaolinq.Persistence.Linq
 			
 			using (AcquireIndentationContext())
 			{
-				var i = 0;
+				this.WriteDeliminatedListOfItems(createTableExpression.ColumnDefinitionExpressions, this.Visit, () => this.WriteLine(","));
 
-				foreach (var expression in createTableExpression.ColumnDefinitionExpressions)
+				if (createTableExpression.ColumnDefinitionExpressions.Count > 0 && createTableExpression.TableConstraints.Count > 0)
 				{
-					this.Visit(expression);
-
-					if (i != createTableExpression.ColumnDefinitionExpressions.Count - 1
-						|| createTableExpression.TableConstraints.Count > 0)
-					{
-						this.Write(",");
-						this.WriteLine();
-					}
-
-					i++;
+					this.Write(",");
 				}
 
 				this.WriteDeliminatedListOfItems(createTableExpression.TableConstraints, this.Visit);
@@ -1026,7 +1011,6 @@ namespace Shaolinq.Persistence.Linq
 
 			this.WriteLine();
 			this.WriteLine(");");
-			this.WriteLine();
 
 			return createTableExpression;
 		}
@@ -1075,6 +1059,15 @@ namespace Shaolinq.Persistence.Linq
 			this.Write(identifierQuoteString);
 
 			return identifierName;
+		}
+
+		protected virtual string WriteQuotedString(string value)
+		{
+			this.Write(stringQuote);
+			this.Write(value);
+			this.Write(stringQuote);
+
+			return value;
 		}
 
 		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
@@ -1172,7 +1165,8 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.WriteQuotedIdentifier(columnDefinitionExpression.ColumnName);
 			this.Write(' ');
-			this.Write(columnDefinitionExpression.ColumnTypeName);
+			this.Visit(columnDefinitionExpression.ColumnTypeName);
+
 
 			if (columnDefinitionExpression.ConstraintExpressions.Count > 0)
 			{
@@ -1267,7 +1261,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(expression.AsExpression);
 
-			this.Write(");");
+			this.WriteLine(";");
 
 			return expression;
 		}
@@ -1275,7 +1269,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitEnumDefinition(SqlEnumDefinitionExpression expression)
 		{
 			this.Write("ENUM (");
-			this.WriteDeliminatedListOfItems(expression.Labels, this.WriteQuotedIdentifier);
+			this.WriteDeliminatedListOfItems(expression.Labels, this.WriteQuotedString);
 			this.Write(")");
 
 			return expression;
@@ -1283,9 +1277,33 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitType(SqlTypeExpression expression)
 		{
-			this.WriteTypeName(expression.TypeName);
+			if (expression.UserDefinedType)
+			{
+				this.WriteQuotedIdentifier(expression.TypeName);
+			}
+			else
+			{
+				this.Write(expression.TypeName);
+			}
 
 			return expression;
+		}
+
+		protected override Expression VisitStatementList(SqlStatementListExpression statementListExpression)
+		{
+			var i = 0;
+
+			foreach (var statement in statementListExpression.Statements)
+			{
+				this.Visit(statement);
+
+				if (i != statementListExpression.Statements.Count - 1)
+				{
+					this.WriteLine();
+				}
+			}
+
+			return statementListExpression;
 		}
 	}
 }

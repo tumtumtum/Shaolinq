@@ -13,8 +13,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public Expression Target { get; set; }
-		public Expression Value { get; set; }
+		public Expression Target { get; private set; }
+		public Expression Value { get; private set; }
 		
 		public SqlAssignExpression(Expression target, Expression value)
 			: base(target.Type)

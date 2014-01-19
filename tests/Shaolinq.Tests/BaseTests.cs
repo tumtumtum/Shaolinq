@@ -38,7 +38,15 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreatePostgresConfiguration(string databaseName)
 		{
-			return PostgresConfiguration.Create(databaseName, "localhost", "postgres", "postgres");
+			return PostgresConfiguration.Create(new PostgresSqlDatabaseContextInfo()
+			{
+				DatabaseName = databaseName,
+				ServerName = "localhost",
+				UserId = "postgres",
+				Password = "postgres",
+				NativeEnums = true,
+				Categories = null
+			});
 		}
 
 		protected DataAccessModelConfiguration CreatePostgresDotConnectConfiguration(string databaseName)

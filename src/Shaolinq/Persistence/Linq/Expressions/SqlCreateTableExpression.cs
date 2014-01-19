@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlCreateTableExpression
 		: SqlBaseExpression
 	{
-		public bool IfNotExist { get; set; }
-		public Expression Table { get; set; }
+		public bool IfNotExist { get; private set; }
+		public Expression Table { get; private set; }
 		public ReadOnlyCollection<Expression> TableConstraints { get; private set; }
 		public ReadOnlyCollection<Expression> ColumnDefinitionExpressions { get; private set; }
 

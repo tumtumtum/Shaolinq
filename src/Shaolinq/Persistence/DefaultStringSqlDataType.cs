@@ -42,11 +42,11 @@ namespace Shaolinq.Persistence
 			{
 				if (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0)
 				{
-					return "VARCHAR(" + constraintDefaults.IndexedStringMaximumLength + ") ";
+					return "VARCHAR(" + constraintDefaults.IndexedStringMaximumLength + ")";
 				}
 				else
 				{
-					return "VARCHAR(" + constraintDefaults.StringMaximumLength + ") ";
+					return "VARCHAR(" + constraintDefaults.StringMaximumLength + ")";
 				}
 			}
 		}

@@ -2,7 +2,9 @@
 
 using System;
 using System.Data;
+using System.Linq.Expressions;
 using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Postgres.Shared
 {
@@ -12,6 +14,18 @@ namespace Shaolinq.Postgres.Shared
 		public PostgresSharedSqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
 			: base(sqlDatabaseContext)
 		{
+		}
+
+		protected override SqlDataDefinitionBuilderFlags GetBuilderFlags()
+		{
+			var retval = base.GetBuilderFlags();
+
+			if (((PostgresSharedSqlDataTypeProvider)this.sqlDatabaseContext.SqlDataTypeProvider).NativeEnums)
+			{
+				retval |= SqlDataDefinitionBuilderFlags.BuildEnums;
+			}
+
+			return retval;
 		}
 
 		protected override bool CreateDatabaseOnly(bool overwrite)

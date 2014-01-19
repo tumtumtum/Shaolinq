@@ -7,8 +7,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlConstantPlaceholderExpression
 		: SqlBaseExpression
 	{
-		public int Index { get; set; }
-		public ConstantExpression ConstantExpression { get; set; }
+		public int Index { get; private set; }
+		public ConstantExpression ConstantExpression { get; private set; }
 
 		public override ExpressionType NodeType
 		{

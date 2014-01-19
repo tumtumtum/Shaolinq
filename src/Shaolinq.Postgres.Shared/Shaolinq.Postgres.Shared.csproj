@@ -47,9 +47,12 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PostgresSharedEnumSqlDataType.cs" />
+    <Compile Include="PostgresSharedSqlDatabaseContextInfo.cs" />
     <Compile Include="PostgresSharedSqlDatabaseSchemaManager.cs" />
     <Compile Include="PostgresSharedDataDefinitionExpressionAmmender.cs" />
     <Compile Include="PostgresSharedDateTimeDataType.cs" />
+    <Compile Include="PostgresSharedSqlTransactionalCommandsContext.cs" />
     <Compile Include="PostgresSharedUuidSqlDataType.cs" />
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="PostgresSharedSqlDataTypeProvider.cs" />

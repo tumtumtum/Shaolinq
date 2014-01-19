@@ -85,6 +85,7 @@
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
     <Compile Include="ConstraintDefaults.cs" />
+    <Compile Include="DataAccessTypeAttribute.cs" />
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
@@ -98,6 +99,8 @@
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
+    <Compile Include="Persistence\EnumTypeDescriptor.cs" />
+    <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />
     <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />
     <Compile Include="Persistence\ForeignKeyColumnInfo.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlIndexedColumnExpression.cs" />

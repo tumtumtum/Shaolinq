@@ -16,6 +16,7 @@ namespace Shaolinq.Persistence
 
 		public Type SupportedType { get; private set; }
 		public Type UnderlyingType { get; private set; }
+		public bool IsUserDefinedType { get; private set; }
 
 		/// <summary>
 		/// Converts the given value for serializing to SQL.  The default
@@ -59,10 +60,17 @@ namespace Shaolinq.Persistence
 			}
 		}
 
+
 		protected SqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
+			: this(constraintDefaults, supportedType, false)
+		{	
+		}
+
+		protected SqlDataType(ConstraintDefaults constraintDefaults, Type supportedType, bool isUserDefinedType)
 		{
 			this.constraintDefaults = constraintDefaults;
 			this.SupportedType = supportedType;
+			this.IsUserDefinedType = isUserDefinedType;
 			this.UnderlyingType = Nullable.GetUnderlyingType(supportedType);
 		}
 
@@ -72,11 +80,6 @@ namespace Shaolinq.Persistence
 		/// <param name="propertyDescriptor">The proeprty whose return type is to be serialized</param>
 		/// <returns>The SQL type name</returns>
 		public abstract string GetSqlName(PropertyDescriptor propertyDescriptor);
-
-		public virtual string GetMigrationSqlName(PropertyDescriptor propertyDescriptor)
-		{
-			return GetSqlName(propertyDescriptor);
-		}
 
 		/// <summary>
 		/// Gets an expression to perform reading of a column.

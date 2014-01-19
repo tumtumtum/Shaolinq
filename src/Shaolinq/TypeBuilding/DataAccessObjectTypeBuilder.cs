@@ -12,13 +12,13 @@ using Platform.Reflection;
 
 namespace Shaolinq.TypeBuilding
 {
-	public class 
-		DataAccessObjectTypeBuilder
+	public class DataAccessObjectTypeBuilder
 	{
 		internal static readonly string ForceSetPrefix = "ForceSet";
 		internal static readonly string ObjectDataFieldName = "data";
 		internal static readonly string HasChangedSuffix = "Changed";
 
+		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly Type baseType;
 		private TypeBuilder typeBuilder;
 		private FieldInfo dataObjectField;
@@ -41,8 +41,9 @@ namespace Shaolinq.TypeBuilding
 		public ModuleBuilder ModuleBuilder { get; private set; }
 		public AssemblyBuildContext AssemblyBuildContext { get; private set; }
 
-		public DataAccessObjectTypeBuilder(AssemblyBuildContext assemblyBuildContext, ModuleBuilder moduleBuilder, Type baseType)
+		public DataAccessObjectTypeBuilder(TypeDescriptorProvider typeDescriptorProvider, AssemblyBuildContext assemblyBuildContext, ModuleBuilder moduleBuilder, Type baseType)
 		{
+			this.typeDescriptorProvider = typeDescriptorProvider;
 			this.baseType = baseType;
 			this.ModuleBuilder = moduleBuilder;
 			this.AssemblyBuildContext = assemblyBuildContext;
@@ -54,7 +55,7 @@ namespace Shaolinq.TypeBuilding
 
 		private TypeDescriptor GetTypeDescriptor(Type type)
 		{
-			return TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(type);
+			return this.typeDescriptorProvider.GetTypeDescriptor(type);
 		}
 
 		public void BuildFirstPhase(int pass)
@@ -334,7 +335,6 @@ namespace Shaolinq.TypeBuilding
 				if (propertyDescriptor.PropertyType.IsValueType)
 				{
 					generator.Emit(OpCodes.Ldarg_0);
-					//generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyDescriptor.PropertyName].GetGetMethod());
 					generator.Emit(OpCodes.Ldfld, dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueFields[propertyDescriptor.PropertyName]);
 					

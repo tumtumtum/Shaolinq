@@ -8,7 +8,7 @@ using Devart.Data.PostgreSql;
 namespace Shaolinq.Postgres.DotConnect
 {
 	public class PostgresDotConnectSqlTransactionalCommandsContext
-		: DefaultSqlTransactionalCommandsContext
+		: PostgresSharedSqlTransactionalCommandsContext
 	{
 		public PostgresDotConnectSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
 			: base(sqlDatabaseContext, transaction)

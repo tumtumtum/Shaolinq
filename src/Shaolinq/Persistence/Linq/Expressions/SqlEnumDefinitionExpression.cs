@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Linq.Expressions;
 using System.Collections.ObjectModel;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -6,7 +8,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlEnumDefinitionExpression
 		: SqlBaseExpression
 	{
-		public ReadOnlyCollection<string> Labels { get; set; }
+		public ReadOnlyCollection<string> Labels { get; private set; }
 
 		public override ExpressionType NodeType
 		{

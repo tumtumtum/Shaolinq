@@ -8,10 +8,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlInsertIntoExpression
 		: SqlBaseExpression
 	{
-		public string TableName { get; set; }
-		public ReadOnlyCollection<string> ColumnNames { get; set; }
-		public string ReturningAutoIncrementColumnName { get; set; }
-		public ReadOnlyCollection<Expression> ValueExpressions { get; set; }
+		public string TableName { get; private set; }
+		public ReadOnlyCollection<string> ColumnNames { get; private set; }
+		public string ReturningAutoIncrementColumnName { get; private set; }
+		public ReadOnlyCollection<Expression> ValueExpressions { get; private set; }
 
 		public override ExpressionType NodeType
 		{

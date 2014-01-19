@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -8,10 +7,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlCreateTypeExpression
 		: SqlBaseExpression
 	{
-		public Expression SqlType { get; set; }
-		public Expression AsExpression { get; set; }
-		public bool IfNotExist { get; set; }
-
+		public bool IfNotExist { get; private set; }
+		public Expression SqlType { get; private set; }
+		public Expression AsExpression { get; private set; }
+		
 		public override ExpressionType NodeType
 		{
 			get

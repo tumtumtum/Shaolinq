@@ -59,6 +59,13 @@ namespace Shaolinq.Persistence
 			return new DefaultBlobSqlDataType(this.ConstraintDefaults, "BLOB");
 		}
 
+		protected virtual SqlDataType GetEnumDataType(Type type)
+		{
+			var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultStringEnumSqlDataType<>).MakeGenericType(type), this.ConstraintDefaults);
+
+			return sqlDataType;
+		}
+
 		public override SqlDataType GetSqlDataType(Type type)
 		{
 			SqlDataType value;
@@ -68,23 +75,18 @@ namespace Shaolinq.Persistence
 				return value;
 			}
 
-			var newType = type;
+			var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 			
-			if (Nullable.GetUnderlyingType(type) != null)
-			{
-				newType = Nullable.GetUnderlyingType(type);
-			}
-
 			// Support nullable enums
-			if (newType.IsEnum)
+			if (underlyingType.IsEnum)
 			{
-				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultStringEnumSqlDataType<>).MakeGenericType(type), this.ConstraintDefaults);
+				var sqlDataType = this.GetEnumDataType(type);
 
 				sqlDataTypesByType[type] = sqlDataType;
 
 				return sqlDataType;
 			}
-			else if (newType.IsArray && newType == typeof(byte[]))
+			else if (underlyingType.IsArray && underlyingType == typeof(byte[]))
 			{
 				var sqlDataType = GetBlobDataType();
 
@@ -92,27 +94,27 @@ namespace Shaolinq.Persistence
 
 				return sqlDataType;
 			}
-			else if (newType.IsGenericType && 
-				(newType.GetGenericTypeDefinition() == typeof(ShoalinqDictionary<,>)
-				|| newType.GetGenericTypeDefinition() == typeof(IDictionary<,>)))
+			else if (underlyingType.IsGenericType && 
+				(underlyingType.GetGenericTypeDefinition() == typeof(ShoalinqDictionary<,>)
+				|| underlyingType.GetGenericTypeDefinition() == typeof(IDictionary<,>)))
 			{
-				var args = newType.GetGenericArguments();
+				var args = underlyingType.GetGenericArguments();
 
-				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultDictionarySqlDataType<,>).MakeGenericType(args[0], args[1]), newType);
+				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultDictionarySqlDataType<,>).MakeGenericType(args[0], args[1]), underlyingType);
 
-				sqlDataTypesByType[newType] = sqlDataType;
+				sqlDataTypesByType[underlyingType] = sqlDataType;
 
 				return sqlDataType;
 			}
-			else if (newType.IsGenericType && 
-				(newType.GetGenericTypeDefinition() == typeof(ShaolinqList<>)
-				|| newType.GetGenericTypeDefinition() == typeof(IList<>)))
+			else if (underlyingType.IsGenericType && 
+				(underlyingType.GetGenericTypeDefinition() == typeof(ShaolinqList<>)
+				|| underlyingType.GetGenericTypeDefinition() == typeof(IList<>)))
 			{
-				var args = newType.GetGenericArguments();
+				var args = underlyingType.GetGenericArguments();
 
-				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultListSqlDataType<>).MakeGenericType(args[0]), newType);
+				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultListSqlDataType<>).MakeGenericType(args[0]), underlyingType);
 
-				sqlDataTypesByType[newType] = sqlDataType;
+				sqlDataTypesByType[underlyingType] = sqlDataType;
 
 				return sqlDataType;
 			}

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
@@ -11,12 +12,14 @@ namespace Shaolinq.Persistence
 	public class ModelTypeDescriptor
 	{
 		public Type Type { get; private set; }
+		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public DataAccessModelAttribute DataAccessModelAttribute { get; private set; }
-		
+		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptors; 
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptors = new Dictionary<Type, TypeDescriptor>();
 		
-		public ModelTypeDescriptor(Type type)
+		public ModelTypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
+			TypeDescriptorProvider = typeDescriptorProvider;
 			this.Type = type;
 
 			this.DataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
@@ -48,9 +51,7 @@ namespace Shaolinq.Persistence
 					throw new ArgumentException("The DataAccessObjects queryable has no generic type");
 				}
 
-				var provider = TypeDescriptorProvider.GetProvider(genericType.Assembly);
-
-				var typeDescriptor = provider.GetTypeDescriptor(genericType);
+				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(genericType);
 
 				if (typeDescriptor == null)
 				{
@@ -59,19 +60,28 @@ namespace Shaolinq.Persistence
 
 				this.typeDescriptors[typeDescriptor.Type] = typeDescriptor;
 			}
+
+			var allEnumTypes = this.GetPersistedObjectTypeDescriptors()
+			                       .SelectMany(c => c.PersistedProperties)
+			                       .Where(c => (Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType).IsEnum)
+								   .Select(c => (Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType));
+
+			enumTypeDescriptors = allEnumTypes.ToDictionary(c => c, c => new EnumTypeDescriptor(c));
+
+			this.TypeDescriptorProvider.AddEnumTypeDescriptors(enumTypeDescriptors.Values);
 		}
 
-		public IEnumerable<Type> GetQueryableTypes()
+		public IEnumerable<EnumTypeDescriptor> GetPersistedEnumTypeDescriptors()
 		{
-			return this.typeDescriptors.Keys;
+			return enumTypeDescriptors.Values.Sorted((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
 		}
 
-		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model)
+		public IEnumerable<TypeDescriptor> GetPersistedObjectTypeDescriptors()
 		{
-			return this.typeDescriptors.Values.Sorted((x, y) => String.Compare(x.PersistedName, y.PersistedName, System.StringComparison.Ordinal));
+			return this.typeDescriptors.Values.Sorted((x, y) => String.Compare(x.PersistedName, y.PersistedName, StringComparison.Ordinal));
 		}
 
-		public TypeDescriptor GetQueryableTypeDescriptor(Type type)
+		public TypeDescriptor GetTypeDescriptor(Type type)
 		{
 			TypeDescriptor retval;
 
@@ -81,11 +91,6 @@ namespace Shaolinq.Persistence
 			}
 
 			return retval;
-		}
-
-		public IEnumerable<TypeDescriptor> GetQueryableTypeDescriptors(DataAccessModel model, Predicate<TypeDescriptor> accept)
-		{
-			return this.typeDescriptors.Values.Filter(accept);
 		}
 	}
 }

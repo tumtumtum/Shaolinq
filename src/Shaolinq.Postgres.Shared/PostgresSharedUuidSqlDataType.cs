@@ -23,11 +23,6 @@ namespace Shaolinq.Postgres.Shared
 			return "UUID";
 		}
 
-		public override string GetMigrationSqlName(PropertyDescriptor propertyDescriptor)
-		{
-			return String.Format("UUID USING CAST(\"{0}\" AS UUID)", propertyDescriptor.PropertyName);
-		}
-
 		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
 		{
 			if (this.UnderlyingType == null)

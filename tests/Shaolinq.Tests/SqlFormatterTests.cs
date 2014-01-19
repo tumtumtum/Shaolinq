@@ -26,7 +26,7 @@ namespace Shaolinq.Tests
 		public void Test_DataDefinitionBuilder()
 		{
 			var dbConnection = this.model.GetCurrentSqlDatabaseContext();
-			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model, string.Empty);
+			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model, string.Empty, SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes);
 
 			var formatter = dbConnection.SqlQueryFormatterManager.CreateQueryFormatter();
 
@@ -38,7 +38,7 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new List<Expression>
 			{
-				new SqlColumnDefinitionExpression("Column1", "INTEGER", new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
+				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
 			};
 
 			var constraints = new List<Expression>

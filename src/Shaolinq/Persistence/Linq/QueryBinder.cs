@@ -39,7 +39,7 @@ namespace Shaolinq.Persistence.Linq
 			this.DataAccessModel = dataAccessModel;
 			this.rootExpression = rootExpression;
 			this.extraCondition = extraCondition;
-			this.typeDescriptorProvider = TypeDescriptorProvider.GetProvider(dataAccessModel.DefinitionAssembly);
+			this.typeDescriptorProvider = dataAccessModel.TypeDescriptorProvider;
 
 			expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
 			groupByMap = new Dictionary<Expression, GroupByInfo>();
@@ -296,16 +296,14 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (!right.Type.IsEnum)
 				{
-					right = Expression.Call(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type), right), MethodInfoFastRef.ObjectToStringMethod);
-					left = Expression.Call(left, MethodInfoFastRef.ObjectToStringMethod);
+					right = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type), right), left.Type);
 				}
 			}
 			else if (right.Type.IsEnum)
 			{
 				if (!left.Type.IsEnum)
 				{
-					left = Expression.Call(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type), left), MethodInfoFastRef.ObjectToStringMethod);
-					right = Expression.Call(right, MethodInfoFastRef.ObjectToStringMethod);
+					left = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type), left), right.Type);
 				}
 			}
 

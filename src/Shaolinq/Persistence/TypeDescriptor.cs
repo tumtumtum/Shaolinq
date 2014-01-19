@@ -13,6 +13,7 @@ namespace Shaolinq.Persistence
 	public class TypeDescriptor
 	{
 		public Type Type { get; private set; }
+		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public ICollection<PropertyDescriptor> RelatedProperties { get; private set; }
 		public ICollection<PropertyDescriptor> PrimaryKeyProperties { get; private set; }
 		public ICollection<PropertyDescriptor> PersistedProperties { get; private set; }
@@ -228,9 +229,10 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public TypeDescriptor(Type type)
+		public TypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
 			this.Type = type;
+			this.TypeDescriptorProvider = typeDescriptorProvider;
 
 			this.DataAccessObjectAttribute = type.GetFirstCustomAttribute<DataAccessObjectAttribute>(true);
 			

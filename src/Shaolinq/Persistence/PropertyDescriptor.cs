@@ -12,6 +12,14 @@ namespace Shaolinq.Persistence
 {
 	public class PropertyDescriptor
 	{
+		public TypeDescriptorProvider TypeDescriptorProvider
+		{
+			get
+			{
+				return this.DeclaringTypeDescriptor.TypeDescriptorProvider;
+			}
+		}
+
 		public Type OwnerType { get; private set; }
 		public bool IsPrimaryKey { get; private set; }
 		public string PersistedName { get; private set; }

@@ -380,6 +380,23 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Update_Enum()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.Sex == Sex.Male);
+
+				student.Sex = Sex.Female;
+
+				scope.Flush(this.model);
+
+				student = this.model.Students.First(c => c.Id == student.Id);
+
+				Assert.AreEqual(Sex.Female, student.Sex);
+			}
+		}
+
+		[Test]
 		public virtual void Test_Get_Advanced_Computed_Property_With_AutoIncrement_Guid()
 		{
 			using (var scope = new TransactionScope())

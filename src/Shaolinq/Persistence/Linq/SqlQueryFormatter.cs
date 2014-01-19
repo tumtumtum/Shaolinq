@@ -163,5 +163,20 @@ namespace Shaolinq.Persistence.Linq
 				action(item);
 			}
 		}
+
+		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Func<T, object> action, Action deliminationAction)
+		{
+			var i = 0;
+
+			foreach (var item in listOfItems)
+			{
+				if (i++ > 0)
+				{
+					deliminationAction();
+				}
+
+				action(item);
+			}
+		}
 	}
 }

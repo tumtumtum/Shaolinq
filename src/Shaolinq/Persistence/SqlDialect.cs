@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence
 				case SqlSyntaxSymbol.ParameterPrefix:
 					return "@";
 				case SqlSyntaxSymbol.StringQuote:
-					return "\'";
+					return "'";
 				default:
 					return "";
 			}

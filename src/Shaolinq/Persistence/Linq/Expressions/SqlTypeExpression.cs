@@ -7,7 +7,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlTypeExpression
 		: SqlBaseExpression
 	{
-		public string TypeName { get; set; }
+		public string TypeName { get; private set; }
+		public bool UserDefinedType { get; private set; }
 
 		public override ExpressionType NodeType
 		{
@@ -18,9 +19,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlTypeExpression(string typeName)
+			: this(typeName, false)
+		{	
+		}
+
+		public SqlTypeExpression(string typeName, bool userDefinedType)
 			: base(typeof(void))
 		{
 			this.TypeName = typeName;
+			this.UserDefinedType = userDefinedType;
 		}
 	}
 }

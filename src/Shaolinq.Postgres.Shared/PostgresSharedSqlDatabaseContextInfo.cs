@@ -1,13 +1,11 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
-
 ﻿using System;
 using Platform.Xml.Serialization;
-﻿using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.DotConnect
+namespace Shaolinq.Postgres.Shared
 {
 	[XmlElement]
-	public class PostgresDotConnectSqlDatabaseContextInfo
+	public abstract class PostgresSharedSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
@@ -38,19 +36,18 @@ namespace Shaolinq.Postgres.DotConnect
 		public bool NativeUuids { get; set; }
 
 		[XmlAttribute]
+		public bool NativeEnums { get; set; }
+
+		[XmlAttribute]
 		public DateTimeKind DateTimeKindIfUnspecified { get; set; }
 
-		public PostgresDotConnectSqlDatabaseContextInfo()
+		protected PostgresSharedSqlDatabaseContextInfo()
 		{
 			this.Port = 5432;
 			this.Pooling = true;
-			this.MaxPoolSize = 100;
+			this.MaxPoolSize = 50;
 			this.NativeUuids = true;
-		}
-
-		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
-		{
-			return PostgresDotConnectSqlDatabaseContext.Create(this, model);
+			this.NativeEnums = false;
 		}
 	}
 }

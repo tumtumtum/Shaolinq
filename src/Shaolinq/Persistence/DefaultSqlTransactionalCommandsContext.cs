@@ -100,7 +100,7 @@ namespace Shaolinq.Persistence
 			this.parameterIndicatorPrefix = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 		}
 
-		private static DbType GetDbType(Type type)
+		protected virtual DbType GetDbType(Type type)
 		{
 			type = Nullable.GetUnderlyingType(type) ?? type;
 

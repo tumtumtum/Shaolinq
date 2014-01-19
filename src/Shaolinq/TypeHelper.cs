@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Shaolinq
 {
-	public class TypeHelper
+	internal class TypeHelper
 	{
 		public static readonly Type ListType = typeof(List<>);
 		public static readonly Type IListType = typeof(IList<>);

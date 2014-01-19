@@ -1,6 +1,9 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq.Expressions;
 using System.Transactions;
 using Shaolinq.Persistence.Linq;
 using log4net;
@@ -29,8 +32,17 @@ namespace Shaolinq.Persistence
 			this.CreateDatabaseSchema();
 		}
 
+		protected virtual SqlDataDefinitionBuilderFlags GetBuilderFlags()
+		{
+			return SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes;
+		}
+
 		protected abstract bool CreateDatabaseOnly(bool overwrite);
-		
+		protected virtual Expression BuildDataDefinitonExpressions()
+		{
+			return SqlDataDefinitionExpressionBuilder.Build(sqlDatabaseContext.SqlDataTypeProvider, sqlDatabaseContext.SqlDialect, this.sqlDatabaseContext.DataAccessModel, sqlDatabaseContext.TableNamePrefix, this.GetBuilderFlags());
+		}
+
 		protected virtual void CreateDatabaseSchema()
 		{
 			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
@@ -39,7 +51,7 @@ namespace Shaolinq.Persistence
 				{
 					using (sqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{
-						var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(sqlDatabaseContext.SqlDataTypeProvider, sqlDatabaseContext.SqlDialect, this.sqlDatabaseContext.DataAccessModel, sqlDatabaseContext.TableNamePrefix);
+						var dataDefinitionExpressions = this.BuildDataDefinitonExpressions();
 
 						var result = sqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
 

@@ -10,14 +10,30 @@ namespace Shaolinq.Postgres.Shared
 	{
 		private readonly SqlDataType blobSqlDataType;
 
+		public bool NativeUuids { get; private set; }
+		public bool NativeEnums { get; private set; }
+
 		protected override SqlDataType GetBlobDataType()
 		{
 			return blobSqlDataType;
 		}
 
-		public PostgresSharedSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, DateTimeKind dateTimeKindIfUnspecified)
+		protected override SqlDataType GetEnumDataType(Type type)
+		{
+			if (!this.NativeEnums)
+			{
+				return base.GetEnumDataType(type);
+			}
+
+			return new PostgresSharedEnumSqlDataType(this.ConstraintDefaults, type);
+		}
+
+		public PostgresSharedSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, bool nativeEnums, DateTimeKind dateTimeKindIfUnspecified)
 			: base(constraintDefaults)
 		{
+			this.NativeUuids = nativeUuids;
+			this.NativeEnums = nativeEnums;
+			
 			this.blobSqlDataType = new DefaultBlobSqlDataType(constraintDefaults, "BYTEA");
 
 			DefineSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");

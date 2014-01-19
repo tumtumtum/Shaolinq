@@ -12,11 +12,12 @@ namespace Shaolinq.Persistence
 {
 	public class TypeDescriptorProvider
 	{
-		private static IDictionary<Assembly, TypeDescriptorProvider> TypeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
+		private static IDictionary<Assembly, TypeDescriptorProvider> typeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
 		
 		public Assembly Assembly { get; private set; }
 		private readonly List<Type> dataAccessModelTypes = new List<Type>();
-		private Dictionary<Type, ModelTypeDescriptor> modelTypeDescriptorsByType;
+		private Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType = new Dictionary<Type,EnumTypeDescriptor>();
+		private Dictionary<Type, ModelTypeDescriptor> modelTypeDescriptorsByType = new Dictionary<Type, ModelTypeDescriptor>();
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptorsByType = new Dictionary<Type, TypeDescriptor>();
 		
 		public static TypeDescriptorProvider GetProvider(Assembly assembly)
@@ -25,26 +26,26 @@ namespace Shaolinq.Persistence
 
 			assembly = DataAccessModelAssemblyBuilder.Default.GetDefinitionAssembly(assembly);
 
-			if (TypeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
+			if (typeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
 			{
 				return retval;
 			}
 
 			lock (typeof(TypeDescriptorProvider))
 			{
-				if (!TypeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
+				if (!typeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
 				{
 					retval = new TypeDescriptorProvider(assembly);
 
 					var newTypeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
 
-					foreach (var kvp in TypeDescriptorProvidersByAssembly)
+					foreach (var kvp in typeDescriptorProvidersByAssembly)
 					{
 						newTypeDescriptorProvidersByAssembly[kvp.Key] = kvp.Value;
 					}
 
 					newTypeDescriptorProvidersByAssembly[assembly] = retval;
-					TypeDescriptorProvidersByAssembly = newTypeDescriptorProvidersByAssembly;
+					typeDescriptorProvidersByAssembly = newTypeDescriptorProvidersByAssembly;
 				}
 
 				return retval;
@@ -55,10 +56,10 @@ namespace Shaolinq.Persistence
 		{
 			this.Assembly = assembly;
 
-			Parse();
+			this.Process();
 		}
 
-		private void Parse()
+		private void Process()
 		{
 			foreach (var type in this.Assembly.GetTypes())
 			{
@@ -94,7 +95,7 @@ namespace Shaolinq.Persistence
 								throw new InvalidDataAccessObjectModelDefinition("The type {0} is decorated with a [DataAccessObject] attribute but does not extend DataAccessObject<T>", baseType.Name);
 							}
 
-							var typeDescriptor = new TypeDescriptor(baseType);
+							var typeDescriptor = new TypeDescriptor(this, baseType);
 
 							if (typeDescriptor.PrimaryKeyProperties.Count(c => c.PropertyType.IsNullableType()) > 0)
 							{
@@ -168,16 +169,33 @@ namespace Shaolinq.Persistence
 					}
 				}
 			}
-		}
 
-		private void BuildModelTypeDescriptors()
-		{
-			modelTypeDescriptorsByType = new Dictionary<Type, ModelTypeDescriptor>();
-
-			foreach (var modelTypeDescriptor in this.dataAccessModelTypes.Select(dataAccessModelType => new ModelTypeDescriptor(dataAccessModelType)))
+			foreach (var modelTypeDescriptor in this.dataAccessModelTypes.Select(dataAccessModelType => new ModelTypeDescriptor(this, dataAccessModelType)))
 			{
 				this.modelTypeDescriptorsByType[modelTypeDescriptor.Type] = modelTypeDescriptor;
 			}
+		}
+
+		public IEnumerable<Type> GetEnumTypes()
+		{
+			return enumTypeDescriptorsByType.Keys;
+		}
+
+		public IEnumerable<EnumTypeDescriptor> GetEnumTypeDescriptors()
+		{
+			return enumTypeDescriptorsByType.Values;
+		}
+
+		public EnumTypeDescriptor GetEnumTypeDescriptor(Type type)
+		{
+			EnumTypeDescriptor retval;
+
+			if (enumTypeDescriptorsByType.TryGetValue(type, out retval))
+			{
+				return retval;
+			}
+
+			return null;
 		}
 
 		public IEnumerable<Type> GetTypes()
@@ -185,19 +203,9 @@ namespace Shaolinq.Persistence
 			return typeDescriptorsByType.Keys;
 		}
 
-		public IEnumerable<Type> GetTypes(Predicate<Type> accept)
-		{
-			return typeDescriptorsByType.Keys.Filter(accept);
-		}
-
 		public IEnumerable<TypeDescriptor> GetTypeDescriptors()
 		{
 			return typeDescriptorsByType.Values;
-		}
-
-		public IEnumerable<TypeDescriptor> GetTypeDescriptors(Predicate<TypeDescriptor> accept)
-		{
-			return typeDescriptorsByType.Values.Filter(accept);
 		}
 
 		public TypeDescriptor GetTypeDescriptor(Type type)
@@ -214,11 +222,6 @@ namespace Shaolinq.Persistence
 
 		public IEnumerable<ModelTypeDescriptor> GetModelTypeDescriptors()
 		{
-			if (modelTypeDescriptorsByType == null)
-			{
-				BuildModelTypeDescriptors();
-			}
-
 			return this.modelTypeDescriptorsByType.Values;
 		}
 
@@ -226,17 +229,20 @@ namespace Shaolinq.Persistence
 		{
 			ModelTypeDescriptor retval;
 
-			if (modelTypeDescriptorsByType == null)
-			{
-				BuildModelTypeDescriptors();
-			}
-
 			if (modelTypeDescriptorsByType.TryGetValue(type, out retval))
 			{
 				return retval;
 			}
 
 			return null;
+		}
+
+		internal void AddEnumTypeDescriptors(IEnumerable<EnumTypeDescriptor> values)
+		{
+			foreach (var value in values)
+			{
+				this.enumTypeDescriptorsByType[value.EnumType] = value;
+			}
 		}
 	}
 }

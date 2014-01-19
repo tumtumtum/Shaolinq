@@ -20,7 +20,7 @@ namespace Shaolinq
 		public AssemblyBuildInfo AssemblyBuildInfo { get; private set; }
 		public DataAccessModelConfiguration Configuration { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
-		public virtual ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
+		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 		internal DataAccessObjectProjectionContext DataAccessObjectProjectionContext { get; private set; }
 
 		private struct SqlDatabaseContextsInfo
@@ -110,7 +110,7 @@ namespace Shaolinq
 
 		public virtual TypeDescriptor GetTypeDescriptor(Type type)
 		{
-			return TypeDescriptorProvider.GetProvider(type.Assembly).GetTypeDescriptor(this.GetDefinitionTypeFromConcreteType(type));
+			return this.TypeDescriptorProvider.GetTypeDescriptor(this.GetDefinitionTypeFromConcreteType(type));
 		}
 
 		public virtual U TranslateTo<U>(IDataAccessObject dataAccessObject)

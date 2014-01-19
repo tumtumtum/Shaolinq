@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public string TableName { get; private set; }
-		public ReadOnlyCollection<Expression> Assignments { get; set; }
 		public Expression Where { get; private set; }
+		public ReadOnlyCollection<Expression> Assignments { get; private set; }
 		
 		public override ExpressionType NodeType
 		{

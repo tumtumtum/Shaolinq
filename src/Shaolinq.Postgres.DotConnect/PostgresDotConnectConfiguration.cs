@@ -22,7 +22,7 @@ namespace Shaolinq.Postgres.DotConnect
             {
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
-                    new PostgresDotConnectSqlDatabaseContextInfo()
+                    new PostgresDotConnectSqlSqlDatabaseContextInfo()
                     {
                         Categories = categories,
 						DatabaseName = databaseName,

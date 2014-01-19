@@ -18,19 +18,24 @@ namespace Shaolinq.Postgres
 
 		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections, string categories)
 		{
-			return new DataAccessModelConfiguration()
+			return Create(new PostgresSqlDatabaseContextInfo
+			{
+				DatabaseName = databaseName,
+				Categories = categories,
+				ServerName = serverName,
+				Pooling = true,
+				UserId = userId,
+				Password = password
+			});
+		}
+
+		public static DataAccessModelConfiguration Create(PostgresSqlDatabaseContextInfo contextInfo)
+		{
+			return new DataAccessModelConfiguration
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
-					new PostgresDatabaseContextInfo()
-					{
-						DatabaseName = databaseName,
-						Categories = categories,
-						ServerName = serverName,
-						Pooling = true,
-						UserId = userId,
-						Password = password
-					},
+					contextInfo
 				}
 			};
 		}

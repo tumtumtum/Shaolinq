@@ -44,13 +44,13 @@ namespace Shaolinq.Postgres.Shared
 			{
 				var longTypeSqlName = sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
 
-				if (columnDefinitionExpression.ColumnTypeName == longTypeSqlName)
+				if (((SqlTypeExpression)columnDefinitionExpression.ColumnTypeName).TypeName == longTypeSqlName)
 				{
-					retval = new SqlColumnDefinitionExpression(retval.ColumnName, "BIGSERIAL", retval.ConstraintExpressions);
+					retval = new SqlColumnDefinitionExpression(retval.ColumnName, new SqlTypeExpression("BIGSERIAL"), retval.ConstraintExpressions);
 				}
 				else
 				{
-					retval = new SqlColumnDefinitionExpression(retval.ColumnName, "SERIAL", retval.ConstraintExpressions);
+					retval = new SqlColumnDefinitionExpression(retval.ColumnName, new SqlTypeExpression("SERIAL"), retval.ConstraintExpressions);
 				}
 			}
 

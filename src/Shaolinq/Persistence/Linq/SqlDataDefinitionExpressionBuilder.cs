@@ -17,12 +17,14 @@ namespace Shaolinq.Persistence.Linq
 		private readonly DataAccessModel model;
 		private readonly string tableNamePrefix;
 		private List<Expression> currentTableConstraints;
-
-		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, string tableNamePrefix)
+		private readonly SqlDataDefinitionBuilderFlags flags;
+		
+		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
 		{
 			this.model = model;
 			this.sqlDialect = sqlDialect;
 			this.tableNamePrefix = tableNamePrefix;
+			this.flags = flags;
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 
 			this.currentTableConstraints = new List<Expression>();
@@ -87,7 +89,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ForeignKeyColumnInfo[] columnNamesAndReferencedTypeProperties)
 		{
-			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(referencingProperty.PropertyType);
+			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetTypeDescriptor(referencingProperty.PropertyType);
 			var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
 
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required);
@@ -145,7 +147,7 @@ namespace Shaolinq.Persistence.Linq
 			var columnDataTypeName = sqlDataType.GetSqlName(propertyDescriptor);
 			var constraints = this.BuildColumnConstraints(propertyDescriptor, new[] { columnName }, foreignKeyReferencingProperty);
 
-			yield return new SqlColumnDefinitionExpression(columnName, columnDataTypeName, constraints);
+			yield return new SqlColumnDefinitionExpression(columnName, new SqlTypeExpression(columnDataTypeName, sqlDataType.IsUserDefinedType), constraints);
 		}
 
 		private IEnumerable<Expression> BuildRelatedColumnDefinitions(TypeDescriptor typeDescriptor)
@@ -154,7 +156,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
-					var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetQueryableTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
+					var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
 					var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
 					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, relatedPropertyTypeDescriptor, referencedTableName);
 
@@ -215,18 +217,55 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var expressions = new List<Expression>();
 
-			foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetQueryableTypeDescriptors(this.model))
+			if ((flags & SqlDataDefinitionBuilderFlags.BuildEnums) != 0)
 			{
-				expressions.Add(BuildCreateTableExpression(typeDescriptor));
-				expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
+				foreach (var enumTypeDescriptor in this.model.ModelTypeDescriptor.GetPersistedEnumTypeDescriptors())
+				{
+					expressions.Add(BuildCreateEnumTypeExpression(enumTypeDescriptor));
+				}
+			}
+
+			if ((flags & (SqlDataDefinitionBuilderFlags.BuildIndexes | SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
+			{
+				foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetPersistedObjectTypeDescriptors())
+				{
+					expressions.Add(BuildCreateTableExpression(typeDescriptor));
+					expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
+				}
+			}
+			else
+			{
+				if ((flags & (SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
+				{
+					foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetPersistedObjectTypeDescriptors())
+					{
+						expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
+					}
+				}
+
+				if ((flags & (SqlDataDefinitionBuilderFlags.BuildTables)) != 0)
+				{
+					foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetPersistedObjectTypeDescriptors())
+					{
+						expressions.Add(BuildCreateTableExpression(typeDescriptor));
+					}
+				}
 			}
 
 			return new SqlStatementListExpression(new ReadOnlyCollection<Expression>(expressions));
 		}
 
-		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, string tableNamePrefix)
+		private Expression BuildCreateEnumTypeExpression(EnumTypeDescriptor enumTypeDescriptor)
 		{
-			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model, tableNamePrefix);
+			var sqlTypeExpression = new SqlTypeExpression(enumTypeDescriptor.Name);
+			var asExpression = new SqlEnumDefinitionExpression(new ReadOnlyCollection<string>(enumTypeDescriptor.GetValues()));
+
+			return new SqlCreateTypeExpression(sqlTypeExpression, asExpression, true);
+		}
+
+		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		{
+			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model, tableNamePrefix, flags);
 
 			var retval = builder.Build();
 

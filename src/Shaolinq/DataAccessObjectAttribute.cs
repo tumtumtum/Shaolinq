@@ -6,14 +6,8 @@ namespace Shaolinq
 {
 	[AttributeUsage(AttributeTargets.Class)]
 	public class DataAccessObjectAttribute
-		: Attribute
+		: DataAccessTypeAttribute
 	{
-		public string Name { get; set; }
 		public bool NotPersisted { get; set; }
-
-		public string GetName(Type type)
-		{
-			return this.Name ?? type.Name;
-		}
 	}
 }
