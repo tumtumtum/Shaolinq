@@ -2,7 +2,6 @@
 
 using System;
 using System.Data;
-using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
@@ -20,7 +19,7 @@ namespace Shaolinq.Postgres.Shared
 		{
 			var retval = base.GetBuilderFlags();
 
-			if (((PostgresSharedSqlDataTypeProvider)this.sqlDatabaseContext.SqlDataTypeProvider).NativeEnums)
+			if (((PostgresSharedSqlDataTypeProvider)this.SqlDatabaseContext.SqlDataTypeProvider).NativeEnums)
 			{
 				retval |= SqlDataDefinitionBuilderFlags.BuildEnums;
 			}
@@ -31,21 +30,21 @@ namespace Shaolinq.Postgres.Shared
 		protected override bool CreateDatabaseOnly(bool overwrite)
 		{
 			var retval = false;
-			var factory = this.sqlDatabaseContext.CreateDbProviderFactory();
-			var databaseName = this.sqlDatabaseContext.DatabaseName;
+			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
+			var databaseName = this.SqlDatabaseContext.DatabaseName;
 
-			this.sqlDatabaseContext.DropAllConnections();
+			this.SqlDatabaseContext.DropAllConnections();
 
 			using (var dbConnection = factory.CreateConnection())
 			{
-				dbConnection.ConnectionString = this.sqlDatabaseContext.ServerConnectionString;
+				dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
 				dbConnection.Open();
 
 				IDbCommand command;
 
 				if (overwrite)
 				{
-					bool drop = false;
+					var drop = false;
 
 					using (command = dbConnection.CreateCommand())
 					{
@@ -55,7 +54,7 @@ namespace Shaolinq.Postgres.Shared
 						{
 							while (reader.Read())
 							{
-								string s = reader.GetString(0);
+								var s = reader.GetString(0);
 
 								if (s.Equals(databaseName))
 								{

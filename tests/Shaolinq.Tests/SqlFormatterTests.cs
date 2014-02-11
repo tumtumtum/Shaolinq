@@ -2,24 +2,37 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("MySql")]
-	[TestFixture("Postgres")]
-	[TestFixture("Postgres.DotConnect")]
+	//[TestFixture("MySql")]
+	//[TestFixture("Postgres")]
+	//[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
+	//[TestFixture("SqliteInMemory")]
+	//[TestFixture("SqliteClassicInMemory")]
 	public class SqlFormatterTests
 		: BaseTests
 	{
 		public SqlFormatterTests(string providerName)
 			: base(providerName)
 		{	
+		}
+
+		[Test]
+		public void Test_SqlServerDataDefinitionBuilder()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var builder = model.GetCurrentSqlDatabaseContext().SchemaManager.ServerSqlDataDefinitionExpressionBuilder;
+
+				builder.Build();
+			}
 		}
 
 		[Test]

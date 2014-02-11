@@ -40,7 +40,7 @@ namespace Shaolinq.Sqlite
 		protected override bool CreateDatabaseOnly(bool overwrite)
 		{
 			var retval = false;
-			var sqliteSqlDatabaseContext = (SqliteSqlDatabaseContext)this.sqlDatabaseContext;
+			var sqliteSqlDatabaseContext = (SqliteSqlDatabaseContext)this.SqlDatabaseContext;
 			
 			var path = sqliteSqlDatabaseContext.FileName;
 

@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PostgresSharedEnumSqlDataType.cs" />
+    <Compile Include="PostgresSharedServerSqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="PostgresSharedSqlDatabaseContextInfo.cs" />
     <Compile Include="PostgresSharedSqlDatabaseSchemaManager.cs" />
     <Compile Include="PostgresSharedDataDefinitionExpressionAmmender.cs" />

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Linq.Expressions;
 using System.Transactions;
 using Shaolinq.Persistence.Linq;
@@ -13,13 +11,14 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseSchemaManager
 		: IDisposable
 	{
+		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
+		public ServerSqlDataDefinitionExpressionBuilder ServerSqlDataDefinitionExpressionBuilder { get; private set; } 
 		private static readonly ILog Log = LogManager.GetLogger(typeof(SqlDatabaseSchemaManager).Name);
 
-		protected readonly SqlDatabaseContext sqlDatabaseContext;
-	
 		protected SqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
 		{
-			this.sqlDatabaseContext = sqlDatabaseContext;
+			this.SqlDatabaseContext = sqlDatabaseContext;
+			this.ServerSqlDataDefinitionExpressionBuilder = new ServerSqlDataDefinitionExpressionBuilder(this);
 		}
 
 		public virtual void CreateDatabaseAndSchema(bool overwrite)
@@ -40,20 +39,20 @@ namespace Shaolinq.Persistence
 		protected abstract bool CreateDatabaseOnly(bool overwrite);
 		protected virtual Expression BuildDataDefinitonExpressions()
 		{
-			return SqlDataDefinitionExpressionBuilder.Build(sqlDatabaseContext.SqlDataTypeProvider, sqlDatabaseContext.SqlDialect, this.sqlDatabaseContext.DataAccessModel, sqlDatabaseContext.TableNamePrefix, this.GetBuilderFlags());
+			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, this.SqlDatabaseContext.TableNamePrefix, this.GetBuilderFlags());
 		}
 
 		protected virtual void CreateDatabaseSchema()
 		{
 			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
 			{
-				using (var dataTransactionContext = this.sqlDatabaseContext.CreateSqlTransactionalCommandsContext(null))
+				using (var dataTransactionContext = this.SqlDatabaseContext.CreateSqlTransactionalCommandsContext(null))
 				{
-					using (sqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
+					using (this.SqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{
 						var dataDefinitionExpressions = this.BuildDataDefinitonExpressions();
 
-						var result = sqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
+						var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
 
 						using (var command = dataTransactionContext.CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
 						{

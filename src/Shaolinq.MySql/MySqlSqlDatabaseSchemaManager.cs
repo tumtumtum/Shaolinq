@@ -14,11 +14,11 @@ namespace Shaolinq.MySql
 		protected override bool CreateDatabaseOnly(bool overwrite)
 		{
 			var retval = false;
-			var factory = this.sqlDatabaseContext.CreateDbProviderFactory();
+			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
 
 			using (var dbConnection = factory.CreateConnection())
 			{
-				dbConnection.ConnectionString = this.sqlDatabaseContext.ServerConnectionString;
+				dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
 
 				dbConnection.Open();
 
@@ -28,7 +28,7 @@ namespace Shaolinq.MySql
 					{
 						var drop = false;
 
-						command.CommandText = String.Format("SHOW DATABASES;", this.sqlDatabaseContext.DatabaseName);
+						command.CommandText = String.Format("SHOW DATABASES;", this.SqlDatabaseContext.DatabaseName);
 
 						using (var reader = command.ExecuteReader())
 						{
@@ -36,8 +36,8 @@ namespace Shaolinq.MySql
 							{
 								var s = reader.GetString(0);
 
-								if (s.Equals(this.sqlDatabaseContext.DatabaseName) ||
-								    s.Equals(this.sqlDatabaseContext.DatabaseName.ToLower()))
+								if (s.Equals(this.SqlDatabaseContext.DatabaseName) ||
+									s.Equals(this.SqlDatabaseContext.DatabaseName.ToLower()))
 								{
 									drop = true;
 
@@ -48,11 +48,11 @@ namespace Shaolinq.MySql
 
 						if (drop)
 						{
-							command.CommandText = String.Concat("DROP DATABASE ", this.sqlDatabaseContext.DatabaseName);
+							command.CommandText = String.Concat("DROP DATABASE ", this.SqlDatabaseContext.DatabaseName);
 							command.ExecuteNonQuery();
 						}
 
-						command.CommandText = String.Concat("CREATE DATABASE ", this.sqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+						command.CommandText = String.Concat("CREATE DATABASE ", this.SqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
 						command.ExecuteNonQuery();
 
 						retval = true;
@@ -61,7 +61,7 @@ namespace Shaolinq.MySql
 					{
 						try
 						{
-							command.CommandText = String.Concat("CREATE DATABASE ", this.sqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+							command.CommandText = String.Concat("CREATE DATABASE ", this.SqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
 							command.ExecuteNonQuery();
 
 							retval = true;
