@@ -23,7 +23,7 @@ namespace Shaolinq.Sqlite
 			DefineSqlDataType(typeof(DateTime), "TEXT", "GetDateTime");
 			DefineSqlDataType(typeof(float), "REAL", "GetFloat");
 			DefineSqlDataType(typeof(double), "REAL", "GetDouble");
-			DefineSqlDataType(typeof(double), "REAL", "GetDecimal");
+			DefineSqlDataType(typeof(decimal), "TEXT", "GetDecimal");
 		}
 	}
 }
