@@ -68,6 +68,7 @@
     <Compile Include="TestModel\Fraternity.cs" />
     <Compile Include="TestModel\Lecture.cs" />
     <Compile Include="TestModel\ObjectWithCompositePrimaryKey.cs" />
+    <Compile Include="TestModel\ObjectWithManyTypes.cs" />
     <Compile Include="TestModel\Paper.cs" />
     <Compile Include="TestModel\TestDataAccessModel.cs" />
     <Compile Include="TestModel\ObjectWithGuidNonAutoIncrementPrimaryKey.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="SqlFormatterTests.cs" />
     <Compile Include="TestConstraints.cs" />
     <Compile Include="TransactionTests.cs" />
+    <Compile Include="TypeTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
