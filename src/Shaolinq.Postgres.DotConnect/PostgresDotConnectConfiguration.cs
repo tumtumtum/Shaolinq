@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.DotConnect
@@ -34,5 +35,16 @@ namespace Shaolinq.Postgres.DotConnect
 				}
             };
         }
+
+		public static DataAccessModelConfiguration Create(PostgresDotConnectSqlSqlDatabaseContextInfo contextInfo)
+		{
+			return new DataAccessModelConfiguration
+			{
+				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				{
+					contextInfo
+				}
+			};
+		}
     }
 }
