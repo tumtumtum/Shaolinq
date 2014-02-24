@@ -117,6 +117,8 @@ namespace Shaolinq.Persistence
 					return DbType.DateTime;
 				case TypeCode.Decimal:
 					return DbType.Decimal;
+				case TypeCode.Single:
+					return DbType.Single;
 				case TypeCode.Double:
 					return DbType.Double;
 				case TypeCode.Int16:
@@ -131,7 +133,11 @@ namespace Shaolinq.Persistence
 				case TypeCode.String:
 					return DbType.AnsiString;
 				default:
-					if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+					if (type == typeof (Guid))
+					{
+						return DbType.Guid;
+					}
+					else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IDictionary<,>))
 					{
 						return DbType.AnsiString;
 					}
