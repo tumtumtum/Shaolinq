@@ -48,7 +48,8 @@ namespace Shaolinq.Postgres.DotConnect
 				Charset = "UTF8",
 				Unicode = true,
 				MaxPoolSize = contextInfo.MaxPoolSize,
-				DefaultCommandTimeout = contextInfo.CommandTimeout
+				DefaultCommandTimeout = contextInfo.CommandTimeout,
+				UnpreparedExecute = contextInfo.UnpreparedExecute
 			};
 
             this.ServerConnectionString = connectionStringBuilder.ConnectionString;
