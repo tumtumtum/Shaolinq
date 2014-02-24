@@ -39,6 +39,11 @@ namespace Shaolinq.Postgres.Shared
 			DefineSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
 			DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
 			DefineSqlDataType(typeof(int), "INTEGER", "GetInt32");
+
+			DefineSqlDataType(typeof(ushort), "SMALLINT", "GetUInt16");
+			DefineSqlDataType(typeof(uint), "INTEGER", "GetUInt32");
+			DefineSqlDataType(typeof(ulong), "BIGINT", "GetUInt64");
+
 			DefineSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
 			DefineSqlDataType(typeof(byte), "SMALLINT", "GetByte");
 			DefineSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
