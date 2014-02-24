@@ -38,7 +38,7 @@ namespace Shaolinq.Persistence
 			DefineSqlDataType(typeof(sbyte), "BYTE", "GetByte");
 			DefineSqlDataType(typeof(char), "CHAR", "GetChar");
 			DefineSqlDataType(typeof(int), "INT", "GetInt32");
-			DefineSqlDataType(typeof(uint), "UNSIGNED INT", "GetInt32");
+			DefineSqlDataType(typeof(uint), "UNSIGNED INT", "GetUInt32");
 			DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
 			DefineSqlDataType(typeof(ushort), "UNSIGNED SMALLINT", "GetUInt16");
 			DefineSqlDataType(typeof(long), "BIGINT", "GetInt64");
