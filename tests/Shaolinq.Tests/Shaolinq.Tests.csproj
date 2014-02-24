@@ -85,7 +85,7 @@
     <Compile Include="DeleteTests.cs" />
     <Compile Include="LinqTests.cs" />
     <Compile Include="ConcurrencyTests.cs" />
-    <Compile Include="ObjectWithUniqueConstraint.cs" />
+    <Compile Include="TestModel\ObjectWithUniqueConstraint.cs" />
     <Compile Include="PrimaryKeyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RelatedObjectsTests.cs" />

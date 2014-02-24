@@ -9,6 +9,7 @@ namespace Shaolinq.Tests
 	[TestFixture("MySql")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]

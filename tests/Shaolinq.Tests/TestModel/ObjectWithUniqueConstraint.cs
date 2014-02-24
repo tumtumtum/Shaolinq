@@ -1,6 +1,6 @@
 ﻿using Platform.Validation;
 
-namespace Shaolinq.Tests
+namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
 	public abstract class ObjectWithUniqueConstraint
