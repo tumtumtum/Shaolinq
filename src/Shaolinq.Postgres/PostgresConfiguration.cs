@@ -23,7 +23,7 @@ namespace Shaolinq.Postgres
 				DatabaseName = databaseName,
 				Categories = categories,
 				ServerName = serverName,
-				Pooling = true,
+				Pooling = poolConnections,
 				UserId = userId,
 				Password = password
 			});
