@@ -77,8 +77,16 @@ namespace Shaolinq.Tests
 
 			try
 			{
-				configuration = this.Create(providerName, this.GetType().Name);
-				model = DataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
+				if (providerName == "default")
+				{
+					model = DataAccessModel.BuildDataAccessModel<TestDataAccessModel>();
+				}
+				else
+				{
+					configuration = this.Create(providerName, this.GetType().Name);
+					model = DataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
+				}
+
 				model.Create(DatabaseCreationOptions.DeleteExisting);
 			}
 			catch (Exception e)

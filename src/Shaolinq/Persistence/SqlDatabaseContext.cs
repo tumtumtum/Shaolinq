@@ -71,7 +71,8 @@ namespace Shaolinq.Persistence
 			this.DatabaseName = databaseName;
 			this.DataAccessModel = model; 
 			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
-			this.ContextCategories = contextInfo.Categories == null ? new string[0] : contextInfo.Categories.Split(',').Select(c => c.Trim()).ToArray();
+			var categories = contextInfo.Categories ?? "";
+			this.ContextCategories = categories.Trim().Length == 0 ? new string[0] : categories.Split(',').Select(c => c.Trim()).ToArray();
 			this.SqlDialect = sqlDialect;
 			this.SqlDataTypeProvider = sqlDataTypeProvider;
 			this.SqlQueryFormatterManager = sqlQueryFormatterManager;

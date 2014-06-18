@@ -14,8 +14,6 @@ namespace Shaolinq
 		public class SqlDatabaseContextInfoDynamicTypeProvider
 			: IXmlListElementDynamicTypeProvider
 		{
-			private static readonly Regex NameRegex = new Regex("([a-zA-Z0-9]+?)(Sql)?(DatabaseContext)?", RegexOptions.Compiled);
-
 			public SqlDatabaseContextInfoDynamicTypeProvider(SerializationMemberInfo memberInfo, TypeSerializerCache cache, SerializerOptions options)
 			{
 			}
@@ -27,19 +25,18 @@ namespace Shaolinq
 
 				if (String.IsNullOrEmpty(typeName = reader.GetAttribute("Type")))
 				{
-					var match = NameRegex.Match(reader.Name);
-					var provider = match.Groups[1].Value;
+					var provider = reader.Name;
 					var namespaceName = "Shaolinq." + provider;
 
-					type = Type.GetType(String.Concat(namespaceName, ".", reader.Name, "Info"), false);
+					type = Type.GetType(String.Concat(namespaceName, ".", provider, "SqlDatabaseContextInfo"), false);
 
 					if (type != null)
 					{
 						return type;
 					}
 
-					var fullname = String.Concat(namespaceName, ".", reader.Name, "Info, ", namespaceName);
-					
+					var fullname = String.Concat(namespaceName, ".", provider, "SqlDatabaseContextInfo", ", ", namespaceName);
+
 					type = Type.GetType(fullname, false);
 
 					if (type != null)
@@ -47,7 +44,7 @@ namespace Shaolinq
 						return type;
 					}
 
-					throw new NotSupportedException(String.Format("ContextProviderType: {0}, tried: {1}", reader.Name, fullname));
+					throw new NotSupportedException(String.Format("ContextProviderType: {0}, tried: {1}", fullname, provider));
 				}
 				else
 				{

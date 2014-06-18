@@ -162,7 +162,7 @@ namespace Shaolinq
 				{
 					foreach (var category in newSqlDatabaseContext.ContextCategories)
 					{
-						if (!this.sqlDatabaseContextsByCategory.TryGetValue(".", out info))
+						if (!this.sqlDatabaseContextsByCategory.TryGetValue(category, out info))
 						{
 							info = SqlDatabaseContextsInfo.Create();
 
