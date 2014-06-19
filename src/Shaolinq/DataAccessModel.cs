@@ -227,25 +227,6 @@ namespace Shaolinq
 				}
 			}
 
-			if (!string.IsNullOrEmpty(this.GetType().Namespace))
-			{
-				var namespaceTail = this.GetType().Namespace.SplitAroundCharFromRight('.').Right;
-
-				configuration = DataAccessModel.GetConfiguration(namespaceTail);
-
-				if (configuration != null)
-				{
-					return configuration;
-				}
-
-				configuration = DataAccessModel.GetConfiguration(namespaceTail + "/DataAccessModel");
-
-				if (configuration != null)
-				{
-					return configuration;
-				}
-			}
-
 			return null;
 		}
 
