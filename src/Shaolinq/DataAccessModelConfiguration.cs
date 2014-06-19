@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Text.RegularExpressions;
@@ -25,26 +25,28 @@ namespace Shaolinq
 
 				if (String.IsNullOrEmpty(typeName = reader.GetAttribute("Type")))
 				{
-					var provider = reader.Name;
-					var namespaceName = "Shaolinq." + provider;
+					var classPrefix = reader.Name.Replace("-", "");
+					var namespaceName = "Shaolinq." + reader.Name.Replace("-", ".");
 
-					type = Type.GetType(String.Concat(namespaceName, ".", provider, "SqlDatabaseContextInfo"), false);
+					typeName = namespaceName + "." + classPrefix + "SqlDatabaseContextInfo";
 
-					if (type != null)
-					{
-						return type;
-					}
-
-					var fullname = String.Concat(namespaceName, ".", provider, "SqlDatabaseContextInfo", ", ", namespaceName);
-
-					type = Type.GetType(fullname, false);
+					type = Type.GetType(typeName, false);
 
 					if (type != null)
 					{
 						return type;
 					}
 
-					throw new NotSupportedException(String.Format("ContextProviderType: {0}, tried: {1}", fullname, provider));
+					typeName = typeName + ", " + namespaceName;
+
+					type = Type.GetType(typeName, false);
+
+					if (type != null)
+					{
+						return type;
+					}
+
+					throw new NotSupportedException(String.Format("ContextProviderType: {0}, tried: {1}", reader.Name, typeName));
 				}
 				else
 				{

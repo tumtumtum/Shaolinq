@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data.Common;
@@ -17,7 +17,7 @@ namespace Shaolinq.Postgres.DotConnect
 	    public string UserId { get; set; }
 	    public string Password { get; set; }
 	    
-		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlSqlDatabaseContextInfo contextInfo, DataAccessModel model)
+		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaults;
 			var sqlDialect = PostgresSharedSqlDialect.Default;
@@ -27,7 +27,7 @@ namespace Shaolinq.Postgres.DotConnect
 			return new PostgresDotConnectSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
 
-		protected PostgresDotConnectSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDotConnectSqlSqlDatabaseContextInfo contextInfo)
+		protected PostgresDotConnectSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDotConnectSqlDatabaseContextInfo contextInfo)
 			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
         {
             this.Host = contextInfo.ServerName;

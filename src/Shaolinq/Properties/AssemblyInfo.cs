@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("A thoughtful, fast ORM and Linq provider")]
 [assembly: AssemblyCompany("Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyProduct("Shaolinq")]
-[assembly: AssemblyCopyright("Copyright © 2007-2013 Thong Nguyen (tumtumtum@gmail.com)")]
+[assembly: AssemblyCopyright("Copyright © 2007-2014 Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
