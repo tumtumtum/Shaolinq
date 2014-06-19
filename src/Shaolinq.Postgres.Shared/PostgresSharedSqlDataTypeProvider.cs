@@ -28,7 +28,7 @@ namespace Shaolinq.Postgres.Shared
 			return new PostgresSharedEnumSqlDataType(this.ConstraintDefaults, type);
 		}
 
-		public PostgresSharedSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, bool nativeEnums, DateTimeKind dateTimeKindIfUnspecified)
+		public PostgresSharedSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, bool nativeEnums)
 			: base(constraintDefaults)
 		{
 			this.NativeUuids = nativeUuids;
@@ -49,15 +49,8 @@ namespace Shaolinq.Postgres.Shared
 			DefineSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
 			DefineSqlDataType(typeof(decimal), "NUMERIC(60, 30)", "GetDecimal");
 
-			if (dateTimeKindIfUnspecified == DateTimeKind.Unspecified)
-			{
-				DefineSqlDataType(typeof(DateTime), "TIMESTAMP", "GetDateTime");
-			}
-			else
-			{
-				DefineSqlDataType(new PostgresSharedDateTimeDataType(this.ConstraintDefaults, false, dateTimeKindIfUnspecified));
-				DefineSqlDataType(new PostgresSharedDateTimeDataType(this.ConstraintDefaults, true, dateTimeKindIfUnspecified));
-			}
+			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, false));
+			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, true));
 
 			if (nativeUuids)
 			{

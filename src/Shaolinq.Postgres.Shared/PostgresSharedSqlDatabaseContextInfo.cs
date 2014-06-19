@@ -38,9 +38,6 @@ namespace Shaolinq.Postgres.Shared
 		[XmlAttribute]
 		public bool NativeEnums { get; set; }
 
-		[XmlAttribute]
-		public DateTimeKind DateTimeKindIfUnspecified { get; set; }
-
 		protected PostgresSharedSqlDatabaseContextInfo()
 		{
 			this.Port = 5432;

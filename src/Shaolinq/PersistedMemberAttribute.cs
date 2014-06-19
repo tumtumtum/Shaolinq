@@ -2,6 +2,7 @@
 
 ﻿using System;
 using System.Reflection;
+﻿using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -12,17 +13,17 @@ namespace Shaolinq
 		public string Name { get; set; }
 		public string ShortName { get; set; }
 
-		public string GetShortName(MemberInfo memberInfo)
+		public string GetShortName(MemberInfo memberInfo, TypeDescriptor typeDescriptor)
 		{
-			return GetName(memberInfo, this.ShortName ?? this.Name);
+			return GetName(memberInfo, this.ShortName ?? this.Name, typeDescriptor);
 		}
 
-		public string GetName(MemberInfo memberInfo)
+		public string GetName(MemberInfo memberInfo, TypeDescriptor typeDescriptor)
 		{
-			return GetName(memberInfo, this.Name);
+			return GetName(memberInfo, this.Name, typeDescriptor);
 		}
 
-		private string GetName(MemberInfo memberInfo, string autoNamePattern)
+		private string GetName(MemberInfo memberInfo, string autoNamePattern, TypeDescriptor typeDescriptor)
 		{
 			if (autoNamePattern == null)
 			{
@@ -33,6 +34,10 @@ namespace Shaolinq
 			{
 				switch (value)
 				{
+					case "$(PERSISTEDTYPENAME)":
+						return typeDescriptor.PersistedName;
+					case "$(PERSISTEDTYPENAME_LOWER)":
+						return memberInfo.ReflectedType.Name.ToLower();
 					case "$(TYPENAME)":
 						return memberInfo.ReflectedType.Name;
 					case "$(TYPENAME_LOWER)":

@@ -62,9 +62,9 @@ namespace Shaolinq.Persistence
 				
 				if (type == typeof(DateTime))
 				{
-					var dateTime = (DateTime)value;
+					var dateTime = ((DateTime)value).ToUniversalTime();
 
-					return this.stringQuote + dateTime.ToString("yyyy-MM-dd HH:mm:ss.fffff zz") + this.stringQuote;
+					return this.stringQuote + dateTime.ToString("yyyy-MM-dd HH:mm:ss.fffff") + this.stringQuote;
 				}
 
 				return Convert.ToString(value);

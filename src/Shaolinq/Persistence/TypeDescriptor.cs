@@ -288,7 +288,7 @@ namespace Shaolinq.Persistence
 
 					propertyDescriptorsByPropertyInfo[propertyInfo] = propertyDescriptor;
 					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
-					propertyDescriptorByColumnName[attribute.GetName(propertyInfo)] = propertyDescriptor;
+					propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
 				}
 
 				var referencedPrimaryKeyAttribute = propertyInfo.GetFirstCustomAttribute<ReferencedObjectPrimaryKeyPropertyAttribute>(true);

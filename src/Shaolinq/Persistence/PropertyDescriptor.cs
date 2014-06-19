@@ -146,8 +146,8 @@ namespace Shaolinq.Persistence
 
 			if (this.PersistedMemberAttribute != null)
 			{
-				this.PersistedName = this.PersistedMemberAttribute.GetName(this.PropertyInfo);
-				this.PersistedShortName = this.PersistedMemberAttribute.GetShortName(this.PropertyInfo);
+				this.PersistedName = this.PersistedMemberAttribute.GetName(this.PropertyInfo, declaringTypeDescriptor);
+				this.PersistedShortName = this.PersistedMemberAttribute.GetShortName(this.PropertyInfo, this.DeclaringTypeDescriptor);
 			}
 			else if (this.BackReferenceAttribute != null)
 			{

@@ -14,7 +14,7 @@ namespace Shaolinq
 	{
 		[PrimaryKey]
 		[AutoIncrement]
-		[PersistedMember(Name = "$(TYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)")]
+		[PersistedMember(Name = "$(PERSISTEDTYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)")]
 		public abstract T Id { get; set; }
 
 		public virtual DataAccessModel DataAccessModel { get; private set; }

@@ -6,7 +6,7 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("MySql")]
+	/*[TestFixture("MySql")]*/
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
@@ -185,7 +185,7 @@ namespace Shaolinq.Tests
 				Assert.That(dbObj.Float, Is.EqualTo(@float));
 				Assert.That(dbObj.Double, Is.EqualTo(@double));
 				Assert.That(dbObj.Bool, Is.EqualTo(@bool));
-				Assert.That(dbObj.DateTime, Is.EqualTo(dateTime));
+				Assert.That(dbObj.DateTime.ToUniversalTime(), Is.EqualTo(dateTime.ToUniversalTime()));
 				Assert.That(dbObj.TimeSpan, Is.EqualTo(timeSpan));
 				Assert.That(dbObj.Enum, Is.EqualTo(@enum));
 				//Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));

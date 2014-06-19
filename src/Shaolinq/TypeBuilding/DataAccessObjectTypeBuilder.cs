@@ -751,6 +751,10 @@ namespace Shaolinq.TypeBuilding
 				{
 					switch (value)
 					{
+						case "$(PERSISTEDTYPENAME)":
+							return typeDescriptor.PersistedName;
+						case "$(PERSISTEDTYPENAME_LOWER)":
+							return typeDescriptor.PersistedName.ToLower();
 						case "$(TYPENAME)":
 							return typeDescriptor.Type.Name;
 						case "$(TYPENAME_LOWER)":
