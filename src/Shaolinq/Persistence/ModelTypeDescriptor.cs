@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence
 			                       .Where(c => (Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType).IsEnum)
 								   .Select(c => (Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType));
 
-			enumTypeDescriptors = allEnumTypes.ToDictionary(c => c, c => new EnumTypeDescriptor(c));
+			enumTypeDescriptors = allEnumTypes.DistinctSorted().ToDictionary(c => c, c => new EnumTypeDescriptor(c));
 
 			this.TypeDescriptorProvider.AddEnumTypeDescriptors(enumTypeDescriptors.Values);
 		}

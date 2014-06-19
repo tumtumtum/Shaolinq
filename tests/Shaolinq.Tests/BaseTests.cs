@@ -51,7 +51,28 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreatePostgresDotConnectConfiguration(string databaseName)
 		{
-			return PostgresDotConnectConfiguration.Create("DotConnect" + databaseName, "localhost", "postgres", "postgres");
+			return PostgresDotConnectConfiguration.Create(new PostgresDotConnectSqlSqlDatabaseContextInfo
+			{
+				DatabaseName = "DotConnect" + databaseName,
+				ServerName = "localhost",
+				UserId = "postgres",
+				Password = "postgres",
+				Categories = null,
+				UnpreparedExecute = false
+			});
+		}
+
+		protected DataAccessModelConfiguration CreatePostgresDotConnectUnpreparedConfiguration(string databaseName)
+		{
+			return PostgresDotConnectConfiguration.Create(new PostgresDotConnectSqlSqlDatabaseContextInfo
+			{
+				DatabaseName = "DotConnectUnprepared" + databaseName,
+				ServerName = "localhost",
+				UserId = "postgres",
+				Password = "postgres",
+				Categories = null,
+				UnpreparedExecute = true
+			});
 		}
 
 		protected DataAccessModelConfiguration Create(string providerName, string databaseName)
@@ -92,7 +113,6 @@ namespace Shaolinq.Tests
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
-				Console.WriteLine(e.StackTrace);
 
 				throw;
 			}

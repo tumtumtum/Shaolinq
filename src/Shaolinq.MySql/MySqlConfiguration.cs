@@ -27,7 +27,7 @@ namespace Shaolinq.MySql
 						DatabaseName = databaseName,
 						Categories = categories,
 						ServerName = serverName,
-						PoolConnections = true,
+						PoolConnections = poolConnections,
 						UserName = userName,
 						Password = password
 					},
