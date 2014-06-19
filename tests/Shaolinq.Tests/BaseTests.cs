@@ -51,7 +51,15 @@ namespace Shaolinq.Tests
 
         protected DataAccessModelConfiguration CreatePostgresDotConnectConfiguration(string databaseName)
         {
-            return DataAccessModel.GetConfiguration("TestDataAccessModelPostgresDotConnect");
+	        return PostgresDotConnectConfiguration.Create(new PostgresDotConnectSqlDatabaseContextInfo
+            {
+                DatabaseName = "DotConnectPrepared" + databaseName,
+                ServerName = "localhost",
+                UserId = "postgres",
+                Password = "postgres",
+                Categories = null,
+                UnpreparedExecute = true
+            });
         }
 
         protected DataAccessModelConfiguration CreatePostgresDotConnectUnpreparedConfiguration(string databaseName)

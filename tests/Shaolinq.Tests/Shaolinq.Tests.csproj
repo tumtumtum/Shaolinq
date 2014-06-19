@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTests.cs" />
+    <Compile Include="ConfigurationTests.cs" />
     <Compile Include="ConstraintTests.cs" />
     <Compile Include="DirectAccessTests.cs" />
     <Compile Include="TestModel\Address.cs" />

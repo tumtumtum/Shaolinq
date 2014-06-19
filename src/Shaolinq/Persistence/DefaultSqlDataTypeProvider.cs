@@ -34,15 +34,15 @@ namespace Shaolinq.Persistence
 			sqlDataTypesByType = new Dictionary<Type, SqlDataType>(PrimeNumbers.Prime43);
 
 			DefineSqlDataType(typeof(bool), "TINYINT", "GetBoolean");
-			DefineSqlDataType(typeof(byte), "UNSIGNED BYTE", "GetByte");
+			DefineSqlDataType(typeof(byte), "BYTE UNSIGNED ", "GetByte");
 			DefineSqlDataType(typeof(sbyte), "BYTE", "GetByte");
 			DefineSqlDataType(typeof(char), "CHAR", "GetChar");
 			DefineSqlDataType(typeof(int), "INT", "GetInt32");
-			DefineSqlDataType(typeof(uint), "UNSIGNED INT", "GetUInt32");
+			DefineSqlDataType(typeof(uint), "INT UNSIGNED ", "GetUInt32");
 			DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
-			DefineSqlDataType(typeof(ushort), "UNSIGNED SMALLINT", "GetUInt16");
+			DefineSqlDataType(typeof(ushort), "SMALLINT UNSIGNED ", "GetUInt16");
 			DefineSqlDataType(typeof(long), "BIGINT", "GetInt64");
-			DefineSqlDataType(typeof(ulong), "UNSIGNED BIGINT", "GetUInt64");
+			DefineSqlDataType(typeof(ulong), "BIGINT UNSIGNED", "GetUInt64");
 			DefineSqlDataType(typeof(DateTime), "DATETIME", "GetDateTime");
 			DefineSqlDataType(typeof(float), "FLOAT", "GetFloat");
 			DefineSqlDataType(typeof(double), "DOUBLE", "GetDouble");

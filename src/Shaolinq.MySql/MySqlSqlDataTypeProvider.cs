@@ -15,7 +15,7 @@ namespace Shaolinq.MySql
 		public MySqlSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
 			: base(constraintDefaults)
 		{
-			DefineSqlDataType(typeof(byte), "UNSIGNED TINYINT", "GetByte");
+			DefineSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
 			DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
 			DefineSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
 		}
