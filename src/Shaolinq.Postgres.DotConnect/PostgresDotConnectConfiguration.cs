@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using Shaolinq.Persistence;
@@ -23,7 +23,7 @@ namespace Shaolinq.Postgres.DotConnect
             {
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
-                    new PostgresDotConnectSqlSqlDatabaseContextInfo()
+                    new PostgresDotConnectSqlDatabaseContextInfo()
                     {
                         Categories = categories,
 						DatabaseName = databaseName,
@@ -36,7 +36,7 @@ namespace Shaolinq.Postgres.DotConnect
             };
         }
 
-		public static DataAccessModelConfiguration Create(PostgresDotConnectSqlSqlDatabaseContextInfo contextInfo)
+		public static DataAccessModelConfiguration Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo)
 		{
 			return new DataAccessModelConfiguration
 			{

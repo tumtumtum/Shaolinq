@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using Platform.Xml.Serialization;
 
