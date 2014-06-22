@@ -128,12 +128,14 @@ namespace Shaolinq.Sqlite
 			}
 
 			var connectionStringBuilder = new SQLiteConnectionStringBuilder();
+
 			connectionStringBuilder.FullUri = this.FileName;
 			connectionStringBuilder.Enlist = false;
 			connectionStringBuilder.ForeignKeys = true;
 
 			this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.ServerConnectionString = this.ConnectionString;
+
 			this.SchemaManager = new SqliteOfficialSqlDatabaseSchemaManager(this);
 		}
 
