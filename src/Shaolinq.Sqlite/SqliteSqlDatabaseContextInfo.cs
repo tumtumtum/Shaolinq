@@ -19,22 +19,24 @@ namespace Shaolinq.Sqlite
 			internal static extern int sqlite3_config_int(int op, int value);
 		}
 
-		private static bool useMonoData;
+		private static readonly bool useMonoData;
 
 		static SqliteSqlDatabaseContextInfo()
 		{
 			useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_USE_MONO_DATA_SQLITE"));
+			var nonSerialized = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_SQLITE_NONSERIALIZED"));
 
 			if (SqliteSqlDatabaseContext.IsRunningMono())
 			{
-				if (!useMonoData)
+				if (!useMonoData && !nonSerialized)
 				{
 					try
 					{
 						NativeMethods.sqlite3_config_int(NativeMethods.SQLITE_CONFIG_SERIALIZED, 1);
 					}
-					catch (Exception)
+					catch
 					{
+						Console.Error.WriteLine("Warning: Could not configure native sqlite library to run in serialized mode");
 					}
 				}
 			}
