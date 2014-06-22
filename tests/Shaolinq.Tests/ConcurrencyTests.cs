@@ -9,6 +9,7 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("default")]
 	[TestFixture("MySql")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
