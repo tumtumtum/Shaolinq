@@ -19,6 +19,20 @@ namespace Shaolinq.Sqlite
 			internal static extern int sqlite3_config_int(int op, int value);
 		}
 
+		static SqliteSqlDatabaseContextInfo()
+		{
+			if (SqliteSqlDatabaseContext.IsRunningMono())
+			{
+				try
+				{
+					NativeMethods.sqlite3_config_int(NativeMethods.SQLITE_CONFIG_SERIALIZED, 1);
+				}
+				catch (Exception)
+				{
+				}
+			}
+		}
+
 		[XmlAttribute]
 		public string FileName { get; set; }
 
@@ -32,17 +46,6 @@ namespace Shaolinq.Sqlite
 			}
 			else
 			{
-				if (SqliteSqlDatabaseContext.IsRunningMono())
-				{
-					try
-					{
-						NativeMethods.sqlite3_config_int(NativeMethods.SQLITE_CONFIG_SERIALIZED, 1);
-					}
-					catch (Exception)
-					{
-					}
-				}		
-
 				return SqliteOfficialsSqlDatabaseContext.Create(this, model);
 			}
 		}
