@@ -16,7 +16,7 @@ namespace Shaolinq.Sqlite
 			internal const int SQLITE_CONFIG_SERIALIZED = 3;
 
 			[DllImport("sqlite3", CallingConvention = CallingConvention.Cdecl, EntryPoint = "sqlite3_config")]
-			internal static extern int sqlite3_config_int(int op, int value);
+			internal static extern int sqlite3_config_none(int op);
 		}
 
 		private static readonly bool useMonoData;
@@ -32,7 +32,12 @@ namespace Shaolinq.Sqlite
 				{
 					try
 					{
-						NativeMethods.sqlite3_config_int(NativeMethods.SQLITE_CONFIG_SERIALIZED, 1);
+						var result = NativeMethods.sqlite3_config_none(NativeMethods.SQLITE_CONFIG_SERIALIZED);
+
+						if (result != 0)
+						{
+							Console.Error.WriteLine("Warning: Could not configure native sqlite library to run in serialized mode. Result=" + result);
+						}
 					}
 					catch
 					{
