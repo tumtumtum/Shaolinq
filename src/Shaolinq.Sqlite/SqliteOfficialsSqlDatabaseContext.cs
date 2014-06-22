@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Shaolinq.Persistence;
@@ -103,7 +104,7 @@ namespace Shaolinq.Sqlite
 			: base(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager)
 		{
 			Version version;
-			var versionString = SqliteRuntimeOfficialAssemblyManager.GetSqliteVersion();
+			var versionString = SQLiteConnection.SQLiteVersion;
 
 			if (Version.TryParse(versionString, out version))
 			{
@@ -126,31 +127,36 @@ namespace Shaolinq.Sqlite
 				Logger.WarnFormat("Cannot parse sqlite version: {0}", versionString);
 			}
 
-			this.ConnectionString = SqliteRuntimeOfficialAssemblyManager.BuildConnectionString(this.FileName);
+			var connectionStringBuilder = new SQLiteConnectionStringBuilder();
+			connectionStringBuilder.FullUri = this.FileName;
+			connectionStringBuilder.Enlist = false;
+			connectionStringBuilder.ForeignKeys = true;
+
+			this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.ServerConnectionString = this.ConnectionString;
 			this.SchemaManager = new SqliteOfficialSqlDatabaseSchemaManager(this);
 		}
 
 		public override void DropAllConnections()
 		{
-			SqliteRuntimeOfficialAssemblyManager.ClearAllPools();
+			SQLiteConnection.ClearAllPools();
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
 		{
-			return SqliteRuntimeOfficialAssemblyManager.NewDbProviderFactory();
+			return new SQLiteFactory();
 		}
 
 		public override Exception DecorateException(Exception exception, string relatedQuery)
 		{
 			// http://www.sqlite.org/c3ref/c_abort.html
 
-			if (!SqliteRuntimeOfficialAssemblyManager.IsSqLiteExceptionType(exception))
+			if (!(exception is SQLiteException))
 			{	
 				return base.DecorateException(exception, relatedQuery);
 			}
 
-			if (SqliteRuntimeOfficialAssemblyManager.GetExceptionErrorCode(exception) == SqliteErrorCodes.SqliteConstraint)
+			if (((SQLiteException)exception).ErrorCode == SqliteErrorCodes.SqliteConstraint)
 			{
 				return new UniqueKeyConstraintException(exception, relatedQuery);
 			}

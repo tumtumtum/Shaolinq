@@ -16,8 +16,8 @@ namespace Shaolinq.Persistence
 		
 		public Assembly Assembly { get; private set; }
 		private readonly List<Type> dataAccessModelTypes = new List<Type>();
-		private Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType = new Dictionary<Type,EnumTypeDescriptor>();
-		private Dictionary<Type, ModelTypeDescriptor> modelTypeDescriptorsByType = new Dictionary<Type, ModelTypeDescriptor>();
+		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType = new Dictionary<Type,EnumTypeDescriptor>();
+		private readonly Dictionary<Type, ModelTypeDescriptor> modelTypeDescriptorsByType = new Dictionary<Type, ModelTypeDescriptor>();
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptorsByType = new Dictionary<Type, TypeDescriptor>();
 		
 		public static TypeDescriptorProvider GetProvider(Assembly assembly)

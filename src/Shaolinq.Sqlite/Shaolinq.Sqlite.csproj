@@ -100,7 +100,6 @@
     <Compile Include="SqliteMonoSqlDatabaseSchemaManager.cs" />
     <Compile Include="SqliteOfficialAssemblyReference.cs" />
     <Compile Include="SqlitePersistentDbConnection.cs" />
-    <Compile Include="SqliteRuntimeOfficialAssemblyManager.cs" />
     <Compile Include="SqliteSqlDatabaseContextInfo.cs" />
     <Compile Include="SqliteSqlDatabaseSchemaManager.cs" />
     <Compile Include="SqliteSqlDialect.cs" />
@@ -135,8 +134,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Embedded\System.Data.SQLite.Standard.dll.gz" />
     <None Include="packages.config" />
+    <None Include="Mono\System.Data.SQLite.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="x64\SQLite.Interop.dll">
@@ -146,6 +147,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

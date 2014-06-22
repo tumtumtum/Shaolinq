@@ -58,7 +58,7 @@ namespace Shaolinq.Persistence
 		{
 			get
 			{
-				var typeDescriptor = TypeDescriptorProvider.GetProvider(referencedObjectPrimaryKeyPropertyInfo.ReflectedType.Assembly).GetTypeDescriptor(referencedObjectPrimaryKeyPropertyInfo.ReflectedType);
+				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(referencedObjectPrimaryKeyPropertyInfo.ReflectedType);
 
 				return typeDescriptor.GetPropertyDescriptorByPropertyName(referencedObjectPrimaryKeyPropertyInfo.Name);
 			}

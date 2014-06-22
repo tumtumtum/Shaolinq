@@ -20,12 +20,11 @@ namespace Shaolinq.Persistence
 		public ICollection<PropertyDescriptor> ComputedTextProperties { get; private set; }
 		public ICollection<PropertyDescriptor> ReferencedObjectPrimaryKeyProperties { get; private set; }
 
+		private readonly List<PropertyDescriptor> propertyDescriptorsInOrder;
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
-		private readonly List<PropertyDescriptor> propertyDescriptorsInOrder;
 		private readonly IDictionary<PropertyInfo, PropertyDescriptor> propertyDescriptorsByPropertyInfo;
-
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
 
 		public string TypeName
@@ -236,11 +235,11 @@ namespace Shaolinq.Persistence
 
 			this.DataAccessObjectAttribute = type.GetFirstCustomAttribute<DataAccessObjectAttribute>(true);
 			
-			relationshipInfos = new Dictionary<TypeDescriptor, TypeRelationshipInfo>();
-			propertyDescriptorByColumnName = new Dictionary<string, PropertyDescriptor>();
-			propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
-			propertyDescriptorsByPropertyInfo = new Dictionary<PropertyInfo, PropertyDescriptor>();
-			propertyDescriptorsInOrder = new List<PropertyDescriptor>();
+			this.relationshipInfos = new Dictionary<TypeDescriptor, TypeRelationshipInfo>();
+			this.propertyDescriptorByColumnName = new Dictionary<string, PropertyDescriptor>();
+			this.propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
+			this.propertyDescriptorsByPropertyInfo = new Dictionary<PropertyInfo, PropertyDescriptor>();
+			this.propertyDescriptorsInOrder = new List<PropertyDescriptor>();
 
 			var alreadyEnteredProperties = new HashSet<string>();
 

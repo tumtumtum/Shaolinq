@@ -27,11 +27,7 @@ namespace Shaolinq.Sqlite
 			}
 			else
 			{
-				SqliteRuntimeOfficialAssemblyManager.Init();
-
-				var retval = SqliteOfficialsSqlDatabaseContext.Create(this, model);
-
-				return retval;
+				return SqliteOfficialsSqlDatabaseContext.Create(this, model);
 			}
 		}
 	}
