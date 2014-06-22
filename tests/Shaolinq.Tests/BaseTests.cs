@@ -71,7 +71,7 @@ namespace Shaolinq.Tests
                 UserId = "postgres",
                 Password = "postgres",
                 Categories = null,
-                UnpreparedExecute = true
+                UnpreparedExecute = false
             });
         }
 
@@ -112,7 +112,9 @@ namespace Shaolinq.Tests
             }
             catch (Exception e)
             {
+	            Console.WriteLine("Exception while configuring provider: " + providerName);
                 Console.WriteLine(e);
+				Console.WriteLine(e.StackTrace);
 
                 throw;
             }
