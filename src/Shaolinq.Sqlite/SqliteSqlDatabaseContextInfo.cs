@@ -19,16 +19,23 @@ namespace Shaolinq.Sqlite
 			internal static extern int sqlite3_config_int(int op, int value);
 		}
 
+		private static bool useMonoData;
+
 		static SqliteSqlDatabaseContextInfo()
 		{
+			useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_USE_MONO_DATA_SQLITE"));
+
 			if (SqliteSqlDatabaseContext.IsRunningMono())
 			{
-				try
+				if (!useMonoData)
 				{
-					NativeMethods.sqlite3_config_int(NativeMethods.SQLITE_CONFIG_SERIALIZED, 1);
-				}
-				catch (Exception)
-				{
+					try
+					{
+						NativeMethods.sqlite3_config_int(NativeMethods.SQLITE_CONFIG_SERIALIZED, 1);
+					}
+					catch (Exception)
+					{
+					}
 				}
 			}
 		}
@@ -38,9 +45,7 @@ namespace Shaolinq.Sqlite
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
-			var useMonoData = Environment.GetEnvironmentVariable("SHAOLINQ_USE_MONO_DATA_SQLITE");
-
-			if (!string.IsNullOrEmpty(useMonoData) && SqliteSqlDatabaseContext.IsRunningMono())
+			if (useMonoData && SqliteSqlDatabaseContext.IsRunningMono())
 			{
 				return SqliteMonoSqlDatabaseContext.Create(this, model);
 			}
