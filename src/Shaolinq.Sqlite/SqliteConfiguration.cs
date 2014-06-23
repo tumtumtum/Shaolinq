@@ -6,12 +6,7 @@ namespace Shaolinq.Sqlite
 {
 	public static class SqliteConfiguration
 	{
-		public static DataAccessModelConfiguration Create(string fileName)
-		{
-			return Create(fileName, null);
-		}
-
-		public static DataAccessModelConfiguration Create(string fileName, string categories)
+		public static DataAccessModelConfiguration Create(string fileName, string categories = null, bool useMonoData = false)
 		{
 			return new DataAccessModelConfiguration
 			{
@@ -20,7 +15,8 @@ namespace Shaolinq.Sqlite
        				new SqliteSqlDatabaseContextInfo()
        				{
        					Categories = categories,
-       					FileName = fileName
+       					FileName = fileName,
+						UseMonoData = useMonoData
        				},
        			}
 			};

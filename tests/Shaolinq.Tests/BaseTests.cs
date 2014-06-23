@@ -15,25 +15,31 @@ namespace Shaolinq.Tests
     public class BaseTests
     {
         protected TestDataAccessModel model;
+	    private static readonly bool useMonoData;
 
-        protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)
+	    static BaseTests()
+	    {
+		    useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_USING_MONODATA"));
+	    }
+
+	    protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)
         {
             return MySqlConfiguration.Create(databaseName, "localhost", "root", "root");
         }
 
         protected DataAccessModelConfiguration CreateSqliteConfiguration(string databaseName)
         {
-            return SqliteConfiguration.Create(databaseName + ".db");
+            return SqliteConfiguration.Create(databaseName + ".db", null, useMonoData);
         }
 
-        protected DataAccessModelConfiguration CreateSqliteInMemoryConfiguration(string databaseName)
+		protected DataAccessModelConfiguration CreateSqliteInMemoryConfiguration(string databaseName)
         {
-            return SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared");
+            return SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
         }
 
         protected DataAccessModelConfiguration CreateSqliteClassicInMemoryConfiguration(string databaseName)
         {
-            return SqliteConfiguration.Create(":memory:");
+            return SqliteConfiguration.Create(":memory:", null, useMonoData);
         }
 
         protected DataAccessModelConfiguration CreatePostgresConfiguration(string databaseName)

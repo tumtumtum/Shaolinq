@@ -14,11 +14,12 @@ namespace Shaolinq.Sqlite
 		[XmlAttribute]
 		public string FileName { get; set; }
 
+		[XmlAttribute]
+		public bool UseMonoData { get; set; }
+
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
-			var useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_USE_MONO_DATA_SQLITE"));
-
-			if (useMonoData && SqliteSqlDatabaseContext.IsRunningMono())
+			if (this.UseMonoData)
 			{
 				return SqliteMonoSqlDatabaseContext.Create(this, model);
 			}
