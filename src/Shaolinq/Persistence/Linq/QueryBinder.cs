@@ -80,27 +80,6 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		public static ForeignKeyColumnInfo[] ExpandPropertyIntoForeignKeyColumns(DataAccessModel model, TypeDescriptor typeDescriptor, string namePrefix)
-		{
-			var retval = new ForeignKeyColumnInfo[typeDescriptor.PrimaryKeyProperties.Count];
-
-			var i = 0;
-
-			foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
-			{
-				retval[i] = new ForeignKeyColumnInfo
-				{
-					ForeignType = typeDescriptor,
-					ColumnName = namePrefix + relatedPropertyDescriptor.PersistedShortName,
-					KeyPropertyOnForeignType = relatedPropertyDescriptor
-				};
-
-				i++;
-			}
-
-			return retval;
-		}
-
 		public static ForeignKeyColumnInfo[] ExpandPropertyIntoForeignKeyColumns(DataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
 		{
 			if (propertyDescriptor.IsBackReferenceProperty || propertyDescriptor.PersistedMemberAttribute != null && propertyDescriptor.PropertyType.IsDataAccessObjectType())

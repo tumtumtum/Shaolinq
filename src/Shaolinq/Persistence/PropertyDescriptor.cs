@@ -151,8 +151,8 @@ namespace Shaolinq.Persistence
 			}
 			else if (this.BackReferenceAttribute != null)
 			{
-				this.PersistedName = propertyInfo.Name;
-				this.PersistedShortName = propertyInfo.Name;
+				this.PersistedName = this.BackReferenceAttribute.GetName(this.PropertyInfo, declaringTypeDescriptor);
+				this.PersistedShortName = this.PersistedName;
 			}
 			else if (this.RelatedDataAccessObjectsAttribute != null)
 			{

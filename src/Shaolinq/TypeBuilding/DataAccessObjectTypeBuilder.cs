@@ -983,7 +983,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				propertyName = propertyInfo.Name;
 			}
-
+			
 			Type returnType;
 			Type[] parameters;
 			MethodBuilder methodBuilder;
@@ -1071,7 +1071,7 @@ namespace Shaolinq.TypeBuilding
 					generator.MarkLabel(label);
 
 					var returnLabel = generator.DefineLabel();
-                    
+
 					if (relationshipProperty != null)
 					{
 						var labelfrp = generator.DefineLabel();
@@ -1095,7 +1095,7 @@ namespace Shaolinq.TypeBuilding
 
 						generator.MarkLabel(loadReferenceLabel);
 
-						
+
 						var propertyTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyInfo.PropertyType);
 
 						foreach (var propertyDescriptor in propertyTypeDescriptor.PrimaryKeyProperties)
@@ -1115,7 +1115,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + "ForeignKeys"].GetGetMethod());
-						generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetReferenceByPrimaryKey", BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(PropertyInfoAndValue[])}, null).MakeGenericMethod(propertyInfo.PropertyType));
+						generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetReferenceByPrimaryKey", BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(PropertyInfoAndValue[]) }, null).MakeGenericMethod(propertyInfo.PropertyType));
 						generator.Emit(OpCodes.Castclass, local.LocalType);
 						generator.Emit(OpCodes.Stloc, local);
 
@@ -1124,7 +1124,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
 						generator.Emit(OpCodes.Ldloc, local);
 						generator.Emit(OpCodes.Stfld, valueFields[propertyInfo.Name]);
-						
+
 						// this.PropertyIsSet = true
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -1145,8 +1145,8 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
 						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-						generator.Emit(OpCodes.Brtrue, returnLabel); 
-                        
+						generator.Emit(OpCodes.Brtrue, returnLabel);
+
 						// CreateDatabaseAndSchema a new ShaolinqList and store in field
 
 						generator.Emit(OpCodes.Ldarg_0);
@@ -1192,7 +1192,7 @@ namespace Shaolinq.TypeBuilding
 
 					// If (PrimaryKey && AutoIncrement)
 
-					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey)// && currentPropertyDescriptor.IsAutoIncrement)
+					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey) // && currentPropertyDescriptor.IsAutoIncrement)
 					{
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -1231,13 +1231,13 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Throw);
 
 					generator.MarkLabel(notDeletedLabel);
-					
+
 					// Skip setting if value is the same as the previous value
 
 					if ((propertyBuilder.PropertyType.IsPrimitive
-						|| propertyBuilder.PropertyType == typeof(string)
-						|| propertyBuilder.PropertyType == typeof(Guid)
-						|| propertyBuilder.PropertyType == typeof(decimal))
+						    || propertyBuilder.PropertyType == typeof(string)
+						    || propertyBuilder.PropertyType == typeof(Guid)
+						    || propertyBuilder.PropertyType == typeof(decimal))
 						|| propertyBuilder.PropertyType.IsDataAccessObjectType())
 					{
 						if (!isForiegnProperty && propertyBuilder.PropertyType.IsDataAccessObjectType())
@@ -1245,7 +1245,7 @@ namespace Shaolinq.TypeBuilding
 							var innerLabel = generator.DefineLabel();
 							var outerLabel = generator.DefineLabel();
 							var hasChangedLocal = generator.DeclareLocal(typeof(bool));
-							
+
 							generator.Emit(OpCodes.Ldc_I4_0);
 							generator.Emit(OpCodes.Stloc, hasChangedLocal);
 
@@ -1256,20 +1256,20 @@ namespace Shaolinq.TypeBuilding
 							generator.Emit(OpCodes.Ldfld, dataObjectField);
 							generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
 							generator.Emit(OpCodes.Brfalse, outerLabel);
-                            
+
 							// if (this.data.PropertyValue.IsNew) skip
-							
+
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Ldfld, dataObjectField);
 							generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
 							generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalIsNewProperty.GetGetMethod());
-							generator.Emit(OpCodes.Brtrue, outerLabel);							
+							generator.Emit(OpCodes.Brtrue, outerLabel);
 
 							var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[propertyBuilder.PropertyType];
-							
+
 							foreach (var referencedPropertyDescriptor in referencedTypeBuilder.typeDescriptor.PrimaryKeyProperties)
 							{
-								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PersistedShortName + referencedPropertyDescriptor.PersistedShortName];
+								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
 								var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
 								var referencedObjectValueField = referencedTypeBuilder.valueFields[referencedPropertyDescriptor.PropertyName];
 
@@ -1323,7 +1323,7 @@ namespace Shaolinq.TypeBuilding
 								generator.Emit(OpCodes.Callvirt, referencedPropertyDescriptor.PropertyInfo.GetGetMethod());
 
 								EmitCompareEquals(generator, referencedValueField.FieldType);
-                                
+
 								generator.Emit(OpCodes.Brfalse, innerLabel);
 
 
@@ -1537,7 +1537,7 @@ namespace Shaolinq.TypeBuilding
 
 					var computeLabel = privateGenerator.DefineLabel();
 					var isNullLabel = privateGenerator.DefineLabel();
-					
+
 					if (propertyInfo.PropertyType.IsDataAccessObjectType())
 					{
 
@@ -1559,7 +1559,7 @@ namespace Shaolinq.TypeBuilding
 
 							if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.NonNullableType() != typeof(Guid))
 							{
-								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PersistedShortName + propertyDescriptor.PersistedShortName];
+								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PropertyName + propertyDescriptor.PersistedShortName];
 								var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
 								var referencedObjectValueIsSetField = referencedTypeBuilder.valueIsSetFields[propertyDescriptor.PropertyName];
 
@@ -1576,7 +1576,7 @@ namespace Shaolinq.TypeBuilding
 							privateGenerator.Emit(OpCodes.Br, nextPropertyLabel);
 
 							privateGenerator.MarkLabel(setToNullLabel);
-							
+
 							privateGenerator.Emit(OpCodes.Ldarg_0);
 							this.GenerateNullOrDefault(privateGenerator, propertyDescriptor.PropertyType);
 							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
@@ -1586,7 +1586,7 @@ namespace Shaolinq.TypeBuilding
 
 						privateGenerator.Emit(OpCodes.Br, computeLabel);
 						privateGenerator.MarkLabel(isNullLabel);
-					
+
 						foreach (var propertyDescriptor in innerTypeDescriptor.PrimaryKeyProperties)
 						{
 							privateGenerator.Emit(OpCodes.Ldarg_0);
@@ -2650,7 +2650,7 @@ namespace Shaolinq.TypeBuilding
 
 					foreach (var referencedPropertyDescriptor in referencedTypeDescriptor.PrimaryKeyProperties)
 					{
-						var referencedValueField = this.relatedIdFields[propertyDescriptor.PersistedShortName + referencedPropertyDescriptor.PersistedShortName];
+						var referencedValueField = this.relatedIdFields[propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
 
 						emitPropertyValue(referencedPropertyDescriptor, referencedValueField, valueField, true, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PropertyName);
 					}
@@ -2793,7 +2793,7 @@ namespace Shaolinq.TypeBuilding
 					foreach (var referencedPropertyDescriptor in referencedTypeDescriptor.PrimaryKeyProperties)
 					{
 						var innerInnerLabel = generator.DefineLabel();
-						var referencedValueField = this.relatedIdFields[propertyDescriptor.PersistedShortName + referencedPropertyDescriptor.PersistedShortName];
+						var referencedValueField = this.relatedIdFields[propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
 						var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
 						var referencedObjectValueField = referencedTypeBuilder.valueFields[referencedPropertyDescriptor.PropertyName];
                         
@@ -2904,9 +2904,9 @@ namespace Shaolinq.TypeBuilding
 					
 					foreach (var referencedPropertyDescriptor in referencedTypeDescriptor.PrimaryKeyProperties)
 					{
-						var referencedValueField = this.relatedIdFields[propertyDescriptor.PersistedShortName + referencedPropertyDescriptor.PersistedShortName];
+						var referencedValueField = this.relatedIdFields[propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
 
-						emitPropertyValue(referencedPropertyDescriptor, referencedValueField, valueField, true, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PropertyName);
+						emitPropertyValue(referencedPropertyDescriptor, referencedValueField, valueField, true, propertyDescriptor.PersistedName + referencedPropertyDescriptor.PersistedShortName, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName);
 					}
 				}
 				else

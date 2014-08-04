@@ -14,5 +14,11 @@
 
 		[PersistedMember]
 		public abstract Dog Companion { get; set; }
+
+		[BackReference("ParentCatFoo")]
+		public abstract Cat Parent { get; set; }
+
+		[RelatedDataAccessObjects]
+		public abstract RelatedDataAccessObjects<Cat> Kittens { get; }
 	}
 }

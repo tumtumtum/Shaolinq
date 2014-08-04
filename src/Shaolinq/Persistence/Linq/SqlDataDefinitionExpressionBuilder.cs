@@ -156,9 +156,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
-					var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetTypeDescriptor(typeRelationshipInfo.ReferencingProperty.PropertyType);
-					var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
-					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, relatedPropertyTypeDescriptor, referencedTableName);
+					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, typeRelationshipInfo.ReferencingProperty);
 
 					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
 					{

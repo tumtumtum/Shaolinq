@@ -249,8 +249,8 @@ namespace Shaolinq.Persistence.Linq
 			foreach (var primaryKey in typeDescriptor.PrimaryKeyProperties)
 			{
 				var type = this.dataAccessModel.GetConcreteTypeFromDefinitionType(assignment.Member.ReflectedType);
-				var propertyInfo = type.GetProperties().FirstOrDefault(c => c.Name == ownerPropertyDescriptor.PersistedName + primaryKey.PersistedShortName);
-				
+				var propertyInfo = type.GetProperties().FirstOrDefault(c => c.Name == ownerPropertyDescriptor.PropertyName + primaryKey.PersistedShortName);
+
 				yield return Expression.Bind(propertyInfo, this.Visit(sqlObjectOperand.ExpressionsInOrder[i]));
 
 				i++;

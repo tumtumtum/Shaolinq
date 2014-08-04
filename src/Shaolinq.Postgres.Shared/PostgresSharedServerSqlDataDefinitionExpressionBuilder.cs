@@ -21,7 +21,6 @@ namespace Shaolinq.Postgres.Shared
 
 		protected virtual List<Expression> BuildCreateTableExpressions()
 		{
-			var retval = false;
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
 			var databaseName = this.SqlDatabaseContext.DatabaseName;
 

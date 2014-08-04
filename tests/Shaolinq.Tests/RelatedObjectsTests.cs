@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using System.Transactions;
 using NUnit.Framework;
 
@@ -20,6 +21,50 @@ namespace Shaolinq.Tests
 		public RelatedObjectTests(string providerName)
 			: base(providerName)
 		{
+		}
+
+		[Test]
+		public void Test_Self_Referencing_One_To_Many_Relationship()
+		{
+			long marsId;
+			long parentCatId;
+
+			using (var scope = new TransactionScope())
+			{
+				var cat = this.model.Cats.Create();
+				var parentCat = this.model.Cats.Create();
+
+				cat.Name = "Mars";
+				cat.Parent = parentCat;
+
+				var neighbourhoodCat = parentCat.Kittens.Create();
+				neighbourhoodCat.Name = "Fluffy";
+
+				scope.Flush(this.model);
+
+				marsId = cat.Id;
+				parentCatId = parentCat.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var cat = this.model.Cats.FirstOrDefault(c => c.Id == marsId);
+				
+				Assert.AreEqual("Mars", cat.Name);
+				Assert.AreEqual(parentCatId, cat.Parent.Id);
+
+				var parentCat = cat.Parent;
+
+				Assert.AreEqual(2, parentCat.Kittens.Count());
+
+				var kittens =  parentCat.Kittens.OrderBy(c => c.Name).Select(c => c.Name).ToList();
+
+				Assert.That(kittens, Is.EquivalentTo(new [] {"Fluffy", "Mars"}));
+				
+				scope.Complete();
+			}
 		}
 
 		[Test]
