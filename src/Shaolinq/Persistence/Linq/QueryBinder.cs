@@ -374,7 +374,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
 			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
-
+			
 			AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
 			var outerKeyExpr = this.Visit(outerKey.Body);
 			AddExpressionByParameter(innerKey.Parameters[0], innerProjection.Projector);
@@ -1425,11 +1425,19 @@ namespace Shaolinq.Persistence.Linq
 
 		protected static bool IsTable(Type type)
 		{
+			Console.WriteLine("IsTable with type: {0}", type);
+
 			if (type.IsGenericType)
 			{
 				var genericType = type.GetGenericTypeDefinition();
 
-				return genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType || genericType == TypeHelper.IQueryableType && type.GetGenericArguments()[0].IsDataAccessObjectType();
+				Console.WriteLine("genericType: {0}", type);
+
+				var retval = genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType || (genericType == TypeHelper.IQueryableType && type.GetGenericArguments()[0].IsDataAccessObjectType());
+
+				Console.WriteLine("retval {0}", retval);
+
+				return retval;
 			}
 
 			return false;
@@ -1437,11 +1445,20 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			if (IsTable(constantExpression.Type))
+			var type = constantExpression.Type;
+
+			if (constantExpression.Value != null)
 			{
-				return GetTableProjection(constantExpression.Type);
+				type = constantExpression.Value.GetType();
 			}
-			else if (constantExpression.Type.IsDataAccessObjectType() && !this.isWithinClientSideCode)
+
+			if (IsTable(type))
+			{
+				var retval = GetTableProjection(type);
+
+				return retval;
+			}
+			else if (type.IsDataAccessObjectType() && !this.isWithinClientSideCode)
 			{
 				return CreateSqlObjectOperand(constantExpression);
 			}
