@@ -581,6 +581,11 @@ namespace Shaolinq
 			var t = this.ToString();
 			var s = this.GetDataAccessObjects<T>();
 
+			if (!obj.IsDeflatedReference)
+			{
+				return obj;
+			}
+
 			return this.GetDataAccessObjects<T>().First(c => c == obj);
 		}
 	}

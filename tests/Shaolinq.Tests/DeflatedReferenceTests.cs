@@ -24,6 +24,41 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Preloading_Reference()
+		{
+			long schoolId;
+			const string schoolName = "Oxford";
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				school.Name = schoolName;
+				var student = school.Students.Create();
+				student.Firstname = "Laurie";
+				scope.Flush(this.model);
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var schoolAndStudent = 
+					(from school in this.model.Schools
+					join student in this.model.Students
+ 					on school equals student.School
+					select new {school, student}).ToList();
+
+				var firstStudent = schoolAndStudent.FirstOrDefault().student;
+
+				Assert.IsFalse(firstStudent.School.IsDeflatedReference);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Set_Related_Parent_Using_Deflated_Reference()
 		{
 			long schoolId;

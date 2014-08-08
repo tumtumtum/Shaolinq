@@ -38,7 +38,7 @@ namespace Shaolinq.Persistence.Linq
 
 						retval.ResetModified();
 
-						yield return (T)this.DataAccessModel.GetCurrentDataContext(false).CacheObject(retval, false);
+						yield return retval;
 
 						count++;
 					}

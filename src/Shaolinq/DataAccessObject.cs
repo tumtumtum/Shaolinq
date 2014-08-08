@@ -320,5 +320,10 @@ namespace Shaolinq
 		}
 
 		#endregion
+
+		IDataAccessObject IDataAccessObject.SubmitToCache()
+		{
+			return this.DataAccessModel.GetCurrentDataContext(false).CacheObject(this, false);
+		}
 	}
 }

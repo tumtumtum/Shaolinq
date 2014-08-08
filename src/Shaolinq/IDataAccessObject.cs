@@ -197,5 +197,7 @@ namespace Shaolinq
 		/// AutoIncrement properties that will be set by the underlying RDBMS.
 		/// </summary>
 		bool PrimaryKeyIsCommitReady { get; }
+
+		IDataAccessObject SubmitToCache();
 	}
 }

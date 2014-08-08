@@ -63,15 +63,17 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
-			var previousCyrrentNewExpressionType = currentNewExpressionType;
+			var previousCurrentNewExpressionType = currentNewExpressionType;
 
 			currentNewExpressionType = expression.NewExpression.Type;
 
 			var retval = base.VisitMemberInit(expression);
 
-			currentNewExpressionType = previousCyrrentNewExpressionType;
+			currentNewExpressionType = previousCurrentNewExpressionType;
 
-			return retval;
+			var method = typeof(IDataAccessObject).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+
+			return Expression.Convert(Expression.Call(retval, method), retval.Type);
 		}
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
