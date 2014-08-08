@@ -1425,17 +1425,11 @@ namespace Shaolinq.Persistence.Linq
 
 		protected static bool IsTable(Type type)
 		{
-			Console.WriteLine("IsTable with type: {0}", type);
-
 			if (type.IsGenericType)
 			{
 				var genericType = type.GetGenericTypeDefinition();
 
-				Console.WriteLine("genericType: {0}", type);
-
 				var retval = genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType || (genericType == TypeHelper.IQueryableType && type.GetGenericArguments()[0].IsDataAccessObjectType());
-
-				Console.WriteLine("retval {0}", retval);
 
 				return retval;
 			}
