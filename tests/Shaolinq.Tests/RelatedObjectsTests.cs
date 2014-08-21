@@ -83,10 +83,10 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var schools = (from s in this.model.Schools select s);
+				var firstSchool = (from s in this.model.Schools select s).First();
 
 				var results = from student in this.model.Students
-							  where student.School == schools.First()
+							  where student.School == firstSchool
 							  select student;
 
 				var resultsArray = results.ToArray();

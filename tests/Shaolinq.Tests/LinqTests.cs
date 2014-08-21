@@ -332,7 +332,46 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Query_With_Take()
+		public virtual void Test_Query_With_Skip_No_Select()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = this.model.Students.Skip(0);
+
+				Assert.Greater(results.ToList().Count, 0);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_Take_No_Select()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = this.model.Students.Take(1);
+
+				Assert.AreEqual(1, results.ToList().Count);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_Skip_Take_No_Select()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = this.model.Students.Skip(0).Take(1);
+
+				Assert.AreEqual(1, results.ToList().Count);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_OrderBy_And_Take()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -347,7 +386,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Query_With_Skip_Take()
+		public virtual void Test_Query_With_OrderBy_And_Skip_Take()
 		{
 			using (var scope = new TransactionScope())
 			{

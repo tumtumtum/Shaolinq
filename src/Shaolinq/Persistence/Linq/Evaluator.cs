@@ -58,12 +58,6 @@ namespace Shaolinq.Persistence.Linq
 				if (((MethodCallExpression)expression).Method.DeclaringType == typeof(Enumerable)
 					|| ((MethodCallExpression)expression).Method.DeclaringType == typeof(Queryable))
 				{
-					if (((MethodCallExpression)expression).Method.Name != "DefaultIfEmpty"
-						&& CanBeEvaluatedLocally(((MethodCallExpression)expression).Arguments[0]))
-					{
-						return true;
-					}
-
 					return false;
 				}
 			}
