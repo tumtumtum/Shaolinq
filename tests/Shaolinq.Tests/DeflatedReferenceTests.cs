@@ -24,6 +24,18 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		[ExpectedException(typeof(MissingDataAccessObjectException))]
+		public void Test_Inflate_Nonexistent_Object()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var foo = this.model.Schools.ReferenceTo(999);
+
+				foo.Inflate();
+			}
+		}
+
+		[Test]
 		public void Test_Preloading_Reference()
 		{
 			long schoolId;
