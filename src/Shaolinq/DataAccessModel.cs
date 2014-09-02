@@ -578,15 +578,19 @@ namespace Shaolinq
 		public virtual T Inflate<T>(T obj)
 			where T : class, IDataAccessObject
 		{
-			var t = this.ToString();
-			var s = this.GetDataAccessObjects<T>();
-
 			if (!obj.IsDeflatedReference)
 			{
 				return obj;
 			}
 
-			return this.GetDataAccessObjects<T>().First(c => c == obj);
+			var retval = this.GetDataAccessObjects<T>().FirstOrDefault(c => c == obj);
+			
+			if (retval == null)
+			{
+				throw new MissingDataAccessObjectException(obj);
+			}
+
+			return retval;
 		}
 	}
 }

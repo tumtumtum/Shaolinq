@@ -10,5 +10,15 @@
 	public class MissingDataAccessObjectException
 		: InvalidDataAccessObjectAccessException
 	{
+		public object RelatedObject { get; private set; }
+
+		public MissingDataAccessObjectException()
+		{	
+		}
+
+		public MissingDataAccessObjectException(object relatedObject)
+		{
+			this.RelatedObject = relatedObject;
+		}
 	}
 }
