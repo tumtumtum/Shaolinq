@@ -627,11 +627,38 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Query_Check_Has_Changed()
+		public void Test_Query_Check_Has_Changed1()
 		{
 			var student = model.Students.First();
 
 			Assert.IsFalse(((IDataAccessObject)student).HasObjectChanged);
+		}
+
+		[Test]
+		public void Test_Query_Check_Has_Changed2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = model.Students.First();
+
+				student.Sex = student.Sex;
+				student.School = student.School;
+				student.Fraternity = student.Fraternity;
+				student.BestFriend = student.BestFriend;
+				student.Address = student.Address;
+
+				student.Firstname = student.Firstname;
+				student.Email = student.Email;
+				student.Lastname = student.Lastname;
+				student.Nickname = student.Nickname;
+				student.Height = student.Height;
+				student.Weight = student.Weight;
+				student.FavouriteNumber = student.FavouriteNumber;
+				student.Birthdate = student.Birthdate;
+
+				Assert.That(((IDataAccessObject) student).GetChangedProperties(), Is.Empty);
+				Assert.IsFalse(((IDataAccessObject)student).HasObjectChanged);
+			}
 		}
 
 		[Test]
