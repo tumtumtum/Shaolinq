@@ -14,7 +14,9 @@ namespace Shaolinq.Postgres
 			string password,
 			bool poolConnections = PostgresSharedSqlDatabaseContextInfo.DefaultPooling,
 			string categories = null,
-			int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort
+			int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort,
+			int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout,
+			int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout
 			)
 		{
 			return Create(new PostgresSqlDatabaseContextInfo
@@ -25,7 +27,9 @@ namespace Shaolinq.Postgres
 				Port = port,
 				Pooling = poolConnections,
 				UserId = userId,
-				Password = password
+				Password = password,
+				CommandTimeout = commandTimeout,
+				ConnectionTimeout = connectionTimeout
 			});
 		}
 

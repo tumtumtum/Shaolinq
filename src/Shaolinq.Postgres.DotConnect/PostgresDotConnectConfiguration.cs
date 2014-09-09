@@ -15,7 +15,9 @@ namespace Shaolinq.Postgres.DotConnect
 			bool poolConnections = PostgresSharedSqlDatabaseContextInfo.DefaultPooling,
 			string categories = null,
 			int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort,
-			bool unpreparedExecute = PostgresDotConnectSqlDatabaseContextInfo.DefaultUnpreparedExecute
+			bool unpreparedExecute = PostgresDotConnectSqlDatabaseContextInfo.DefaultUnpreparedExecute,
+			int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout,
+			int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout
 			)
 		{
 			return Create(new PostgresDotConnectSqlDatabaseContextInfo()
@@ -27,7 +29,9 @@ namespace Shaolinq.Postgres.DotConnect
 				UserId = userId,
 				Password = password,
 				Pooling = poolConnections,
-				UnpreparedExecute = unpreparedExecute
+				UnpreparedExecute = unpreparedExecute,
+				CommandTimeout = commandTimeout,
+				ConnectionTimeout = connectionTimeout
 			});
 		}
 

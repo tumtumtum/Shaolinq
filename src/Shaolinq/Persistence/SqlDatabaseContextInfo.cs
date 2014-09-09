@@ -22,10 +22,13 @@ namespace Shaolinq.Persistence
 		[XmlAttribute]
 		public string SchemaName { get; set; }
 
+		public const int DefaultCommandTimeout = 120;
+		public const int DefaultConnectionTimeout = 60;
+
 		protected SqlDatabaseContextInfo()
 		{
-			this.CommandTimeout = 120;
-			this.ConnectionTimeout = 60;
+			this.CommandTimeout = DefaultCommandTimeout;
+			this.ConnectionTimeout = DefaultConnectionTimeout;
 			this.SchemaName = ""; 
 			this.TableNamePrefix = "";
 			this.Categories = "";
