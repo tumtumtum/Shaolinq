@@ -38,9 +38,11 @@ namespace Shaolinq.Postgres.Shared
 		[XmlAttribute]
 		public bool NativeEnums { get; set; }
 
+		public const int DefaultPostgresPort = 5432;
+
 		protected PostgresSharedSqlDatabaseContextInfo()
 		{
-			this.Port = 5432;
+			this.Port = DefaultPostgresPort;
 			this.Pooling = true;
 			this.MaxPoolSize = 50;
 			this.NativeUuids = true;

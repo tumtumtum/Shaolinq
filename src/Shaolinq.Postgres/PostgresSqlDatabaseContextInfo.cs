@@ -13,7 +13,7 @@ namespace Shaolinq.Postgres
 	{
 		public PostgresSqlDatabaseContextInfo()
 		{
-			this.Port = 5432;
+			this.Port = DefaultPostgresPort;
 			this.Pooling = true;
 			this.MaxPoolSize = 100;
 			this.NativeUuids = true;
