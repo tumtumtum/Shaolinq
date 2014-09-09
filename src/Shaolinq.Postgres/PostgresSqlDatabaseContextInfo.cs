@@ -11,14 +11,6 @@ namespace Shaolinq.Postgres
 	public class PostgresSqlDatabaseContextInfo
 		: PostgresSharedSqlDatabaseContextInfo
 	{
-		public PostgresSqlDatabaseContextInfo()
-		{
-			this.Port = DefaultPostgresPort;
-			this.Pooling = true;
-			this.MaxPoolSize = 100;
-			this.NativeUuids = true;
-		}
-		
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
 			return PostgresSqlDatabaseContext.Create(this, model);

@@ -1,5 +1,4 @@
-﻿using System;
-using Platform.Xml.Serialization;
+﻿using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
@@ -39,14 +38,18 @@ namespace Shaolinq.Postgres.Shared
 		public bool NativeEnums { get; set; }
 
 		public const int DefaultPostgresPort = 5432;
+		public const bool DefaultPooling = true;
+		public const int DefaultMaxPoolSize = 50;
+		public const bool DefaultNativeUuids = true;
+		public const bool DefaultNativeEnums = false;
 
 		protected PostgresSharedSqlDatabaseContextInfo()
 		{
 			this.Port = DefaultPostgresPort;
-			this.Pooling = true;
-			this.MaxPoolSize = 50;
-			this.NativeUuids = true;
-			this.NativeEnums = false;
+			this.Pooling = DefaultPooling;
+			this.MaxPoolSize = DefaultMaxPoolSize;
+			this.NativeUuids = DefaultNativeUuids;
+			this.NativeEnums = DefaultNativeEnums;
 		}
 	}
 }

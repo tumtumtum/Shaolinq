@@ -5,52 +5,31 @@ using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres.DotConnect
 {
-    public static class PostgresDotConnectConfiguration
-    {
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password)
+	public static class PostgresDotConnectConfiguration
+	{
+		public static DataAccessModelConfiguration Create(
+			string databaseName,
+			string serverName,
+			string userId,
+			string password,
+			bool poolConnections = PostgresSharedSqlDatabaseContextInfo.DefaultPooling,
+			string categories = null,
+			int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort,
+			bool unpreparedExecute = PostgresDotConnectSqlDatabaseContextInfo.DefaultUnpreparedExecute
+			)
 		{
-			return Create(databaseName, serverName, userId, password, true);
+			return Create(new PostgresDotConnectSqlDatabaseContextInfo()
+			{
+				Categories = categories,
+				DatabaseName = databaseName,
+				ServerName = serverName,
+				Port = port,
+				UserId = userId,
+				Password = password,
+				Pooling = poolConnections,
+				UnpreparedExecute = unpreparedExecute
+			});
 		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, int port, string userId, string password)
-		{
-			return Create(databaseName, serverName, port, userId, password, true);
-		}
-
-        public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password,  bool poolConnections)
-        {
-			return Create(databaseName, serverName, userId, password, poolConnections, null);
-        }
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, int port, string userId, string password, bool poolConnections)
-		{
-			return Create(databaseName, serverName, port, userId, password, poolConnections, null);
-		}
-
-	    public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections, string categories)
-	    {
-			return Create(databaseName, serverName, PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort, userId, password, poolConnections, categories);
-	    }
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, int port, string userId, string password, bool poolConnections, string categories)
-        {
-            return new DataAccessModelConfiguration()
-            {
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
-				{
-                    new PostgresDotConnectSqlDatabaseContextInfo()
-                    {
-                        Categories = categories,
-						DatabaseName = databaseName,
-                        ServerName = serverName,
-						Port = port,
-                        Pooling = poolConnections,
-                        UserId = userId,
-                        Password = password
-                    }
-				}
-            };
-        }
 
 		public static DataAccessModelConfiguration Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo)
 		{
@@ -62,5 +41,5 @@ namespace Shaolinq.Postgres.DotConnect
 				}
 			};
 		}
-    }
+	}
 }

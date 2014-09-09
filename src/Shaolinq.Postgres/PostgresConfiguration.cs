@@ -7,32 +7,15 @@ namespace Shaolinq.Postgres
 {
 	public static class PostgresConfiguration
 	{
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password)
-		{
-			return Create(databaseName, serverName, userId, password, true);
-		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, int port, string userId, string password)
-		{
-			return Create(databaseName, serverName, port, userId, password, true);
-		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections)
-		{
-			return Create(databaseName, serverName, userId, password, poolConnections, null);
-		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, int port, string userId, string password, bool poolConnections)
-		{
-			return Create(databaseName, serverName, port, userId, password, poolConnections, null);
-		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections, string categories)
-		{
-			return Create(databaseName, serverName, PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort, userId, password, poolConnections, categories);
-		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, int port, string userId, string password, bool poolConnections, string categories)
+		public static DataAccessModelConfiguration Create(
+			string databaseName,
+			string serverName,
+			string userId,
+			string password,
+			bool poolConnections = PostgresSharedSqlDatabaseContextInfo.DefaultPooling,
+			string categories = null,
+			int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort
+			)
 		{
 			return Create(new PostgresSqlDatabaseContextInfo
 			{
