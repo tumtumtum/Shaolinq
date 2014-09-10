@@ -1,31 +1,35 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using Shaolinq.Persistence;
+using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres
 {
 	public static class PostgresConfiguration
 	{
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password)
-		{
-			return Create(databaseName, serverName, userId, password, true);
-		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections)
-		{
-			return Create(databaseName, serverName, userId, password, poolConnections, null);
-		}
-
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections, string categories)
+		public static DataAccessModelConfiguration Create(
+			string databaseName,
+			string serverName,
+			string userId,
+			string password,
+			bool poolConnections = PostgresSharedSqlDatabaseContextInfo.DefaultPooling,
+			string categories = null,
+			int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort,
+			int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout,
+			int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout
+			)
 		{
 			return Create(new PostgresSqlDatabaseContextInfo
 			{
 				DatabaseName = databaseName,
 				Categories = categories,
 				ServerName = serverName,
+				Port = port,
 				Pooling = poolConnections,
 				UserId = userId,
-				Password = password
+				Password = password,
+				CommandTimeout = commandTimeout,
+				ConnectionTimeout = connectionTimeout
 			});
 		}
 

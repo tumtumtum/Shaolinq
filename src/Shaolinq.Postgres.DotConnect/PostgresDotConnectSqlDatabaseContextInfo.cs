@@ -13,9 +13,11 @@ namespace Shaolinq.Postgres.DotConnect
 		[XmlAttribute]
 		public bool UnpreparedExecute { get; set; }
 
+		public const bool DefaultUnpreparedExecute = false;
+
 		public PostgresDotConnectSqlDatabaseContextInfo()
 		{
-			this.UnpreparedExecute = false;
+			this.UnpreparedExecute = DefaultUnpreparedExecute;
 		}
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
