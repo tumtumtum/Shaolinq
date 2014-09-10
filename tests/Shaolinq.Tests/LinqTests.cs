@@ -634,7 +634,7 @@ namespace Shaolinq.Tests
 			Assert.IsFalse(((IDataAccessObject)student).HasObjectChanged);
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_Query_Check_Has_Changed2()
 		{
 			using (var scope = new TransactionScope())
