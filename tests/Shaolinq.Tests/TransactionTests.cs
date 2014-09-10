@@ -87,5 +87,57 @@ namespace Shaolinq.Tests
 				Assert.Catch<InvalidOperationException>(() => model.Students.First(c => c.Firstname == "StudentThatShouldNotExist"));
 			}
 		}
+
+		[Test]
+		public void Test_Multiple_Updates_In_Single_Transaction()
+		{
+			var address1Name = Guid.NewGuid().ToString();
+			var address2Name = Guid.NewGuid().ToString();
+
+			// Create some objects
+			using (var scope = new TransactionScope())
+			{
+				var address1 = this.model.Address.Create();
+				address1.Country = address1Name;
+
+				var address2 = this.model.Address.Create();
+				address2.Country = address2Name;
+
+				scope.Flush(model);
+
+				Console.WriteLine("Address1 Id: {0}", address1.Id);
+				Console.WriteLine("Address2 Id: {0}", address2.Id);
+				
+				scope.Complete();
+			}
+
+			// Update them
+			using (var scope = new TransactionScope())
+			{
+				var address1 = this.model.Address.Single(x => x.Country == address1Name);
+				var address2 = this.model.Address.Single(x => x.Country == address2Name);
+
+				Console.WriteLine("Address1 Id: {0}", address1.Id);
+				Console.WriteLine("Address2 Id: {0}", address2.Id);
+
+				address1.Street = "Street1";
+				address2.Street = "Street2";
+
+				Console.WriteLine("Address1 changed: {0}", ((IDataAccessObject)address1).HasObjectChanged);
+				Console.WriteLine("Address2 changed: {0}", ((IDataAccessObject)address2).HasObjectChanged);
+
+				scope.Complete();
+			}
+
+			// Check they were both updated
+			using (var scope = new TransactionScope())
+			{
+				var address1 = this.model.Address.Single(x => x.Country == address1Name);
+				var address2 = this.model.Address.Single(x => x.Country == address2Name);
+
+				Assert.That(address1.Street, Is.EqualTo("Street1"));
+				Assert.That(address2.Street, Is.EqualTo("Street2"));
+			}
+		}
 	}
 }
