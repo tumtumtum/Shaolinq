@@ -252,7 +252,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override int Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
+		public override void Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
@@ -277,11 +277,11 @@ namespace Shaolinq.Persistence
 						Logger.Debug(FormatCommand(command));
 					}
 
-					int retval;
+					int result;
 
 					try
 					{
-						retval = command.ExecuteNonQuery();
+						result = command.ExecuteNonQuery();
 					}
 					catch (Exception e)
 					{
@@ -298,18 +298,14 @@ namespace Shaolinq.Persistence
 						throw;
 					}
 
-					if (retval == 0)
+					if (result == 0)
 					{
 						throw new MissingDataAccessObjectException();
 					}
 
 					dataAccessObject.ResetModified();
-
-					return retval;
 				}
 			}
-
-			return 0;
 		}
 
 		public override InsertResults Insert(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
