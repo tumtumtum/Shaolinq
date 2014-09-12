@@ -28,7 +28,7 @@ namespace Shaolinq.Sqlite
 				DataSource = contextInfo.FileName
 			};
 
-			connectionStringBuilder.Add("Foreign Keys", true);
+			connectionStringBuilder.Add("foreign keys", 1);
 
 			this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.ServerConnectionString = this.ConnectionString;
