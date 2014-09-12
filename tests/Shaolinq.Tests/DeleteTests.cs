@@ -122,6 +122,21 @@ namespace Shaolinq.Tests
 				Assert.IsNull(model.Schools.FirstOrDefault(c => c.Id == schoolId));
 			}
 		}
+
+		[Test]
+		public void Test_Delete_Object_With_Invalid_Deflated_Reference()
+		{
+			long schoolId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.GetReferenceByPrimaryKey<School>(100000);
+
+				school.Delete();
+
+				scope.Complete();
+			}
+		}
 	
 		[Test]
 		public void Test_Object_Deleted_Flushed_Still_Deleted()

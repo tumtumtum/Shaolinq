@@ -22,13 +22,13 @@ namespace Shaolinq.Sqlite
 		public SqliteMonoSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager)
 		{
-			var connectionStringBuilder = new SqliteConnectionStringBuilder()
+			var connectionStringBuilder = new SqliteConnectionStringBuilder
 			{
 				Enlist = false,
 				DataSource = contextInfo.FileName
 			};
 
-			connectionStringBuilder.Add("ForeignKeys", true);
+			connectionStringBuilder.Add("Foreign Keys", true);
 
 			this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.ServerConnectionString = this.ConnectionString;
