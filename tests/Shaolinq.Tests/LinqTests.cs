@@ -634,12 +634,14 @@ namespace Shaolinq.Tests
 			Assert.IsFalse(((IDataAccessObject)student).HasObjectChanged);
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Query_Check_Has_Changed2()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var student = model.Students.First();
+
+				Assert.That(((IDataAccessObject)student).GetChangedProperties(), Is.Empty);
 
 				student.Sex = student.Sex;
 				student.School = student.School;

@@ -595,6 +595,11 @@ namespace Shaolinq.Persistence
 					this.AddParameter(command, value.Left, value.Right, false);
 				}
 
+				if (Logger.IsDebugEnabled)
+				{
+					Logger.Debug(FormatCommand(command));
+				}
+
 				try
 				{
 					command.ExecuteNonQuery();

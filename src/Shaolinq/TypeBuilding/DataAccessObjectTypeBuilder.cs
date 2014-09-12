@@ -939,7 +939,7 @@ namespace Shaolinq.TypeBuilding
 
 		private static void EmitCompareEquals(ILGenerator generator, Type operandType)
 		{
-			if (operandType.IsPrimitive)
+			if (operandType.IsPrimitive || operandType.IsEnum)
 			{	
 				generator.Emit(OpCodes.Ceq);
 			}
@@ -1232,13 +1232,39 @@ namespace Shaolinq.TypeBuilding
 
 					generator.MarkLabel(notDeletedLabel);
 
+					var skipLabel = generator.DefineLabel();
+
+					// Skip setting if value is reference equal
+
+					if (propertyBuilder.PropertyType.IsClass)
+					{
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Ldfld, dataObjectField);
+						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
+						generator.Emit(OpCodes.Ldarg_1);
+						generator.Emit(OpCodes.Ceq);
+						generator.Emit(OpCodes.Brfalse, skipLabel);
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Ldfld, dataObjectField);
+						generator.Emit(OpCodes.Ldc_I4_1);
+						generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
+						generator.Emit(OpCodes.Ret);
+					}
+
+					generator.MarkLabel(skipLabel);
+
 					// Skip setting if value is the same as the previous value
 
-					if ((propertyBuilder.PropertyType.IsPrimitive
-						    || propertyBuilder.PropertyType == typeof(string)
-						    || propertyBuilder.PropertyType == typeof(Guid)
-						    || propertyBuilder.PropertyType == typeof(decimal))
-						|| propertyBuilder.PropertyType.IsDataAccessObjectType())
+					var unwrappedNullableType = propertyBuilder.PropertyType.GetUnwrappedNullableType();
+
+					if ((unwrappedNullableType.IsPrimitive
+							|| unwrappedNullableType.IsEnum
+							|| unwrappedNullableType == typeof(string)
+							|| unwrappedNullableType == typeof(Guid)
+							|| unwrappedNullableType == typeof(DateTime)
+							|| unwrappedNullableType == typeof(TimeSpan)
+							|| unwrappedNullableType == typeof(decimal))
+							|| unwrappedNullableType.IsDataAccessObjectType())
 					{
 						if (!isForiegnProperty && propertyBuilder.PropertyType.IsDataAccessObjectType())
 						{

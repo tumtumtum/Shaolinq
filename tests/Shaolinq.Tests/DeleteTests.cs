@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -79,6 +80,46 @@ namespace Shaolinq.Tests
 				Assert.IsNull(student1.BestFriend);
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Delete_Object_With_Deflated_Reference()
+		{
+			long schoolId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.Create();
+
+				scope.Flush(model);
+
+				Assert.IsEmpty(((IDataAccessObject)school).GetChangedProperties());
+				Assert.IsFalse(((IDataAccessObject)school).HasObjectChanged);
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.GetReferenceByPrimaryKey<School>(schoolId);
+
+				school.Delete();
+
+				Assert.IsTrue(((IDataAccessObject)school).IsDeleted);
+
+				scope.Flush(model);
+
+				Assert.IsNull(model.Schools.FirstOrDefault(c => c.Id == schoolId));
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				Assert.IsNull(model.Schools.FirstOrDefault(c => c.Id == schoolId));
 			}
 		}
 	
