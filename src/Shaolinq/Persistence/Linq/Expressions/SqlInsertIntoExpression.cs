@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string TableName { get; private set; }
 		public ReadOnlyCollection<string> ColumnNames { get; private set; }
-		public string ReturningAutoIncrementColumnName { get; private set; }
+		public ReadOnlyCollection<string> ReturningAutoIncrementColumnNames { get; private set; }
 		public ReadOnlyCollection<Expression> ValueExpressions { get; private set; }
 
 		public override ExpressionType NodeType
@@ -21,12 +21,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlInsertIntoExpression(string tableName, ReadOnlyCollection<string> columnNames, string returningAutoIncrementColumnName, ReadOnlyCollection<Expression> valueExpressions)
+		public SqlInsertIntoExpression(string tableName, ReadOnlyCollection<string> columnNames, ReadOnlyCollection<string> returningAutoIncrementColumnNames, ReadOnlyCollection<Expression> valueExpressions)
 			: base(typeof(void))
 		{
 			this.TableName = tableName;
 			this.ColumnNames = columnNames;
-			this.ReturningAutoIncrementColumnName = returningAutoIncrementColumnName;
+			this.ReturningAutoIncrementColumnNames = returningAutoIncrementColumnNames;
 			this.ValueExpressions = valueExpressions;
 		}
 	}

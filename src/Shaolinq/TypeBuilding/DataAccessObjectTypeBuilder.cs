@@ -272,7 +272,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod();
 			this.BuildGetChangedPropertiesMethod();
 			this.BuildObjectStateProperty();
-			this.BuildDefinesAnyAutoIncrementIntegerProperties();
+			this.BuildDefinesAnyPropertiesGeneratedOnTheServerSide();
 			this.BuildSwapDataMethod();
 			this.BuildHasPropertyChangedMethod();
 			this.BuildSetIsNewMethod();
@@ -282,8 +282,8 @@ namespace Shaolinq.TypeBuilding
 			this.BuildGetHashCodeMethod();
 			this.BuildEqualsMethod();
 			this.BuildIsMissingAnyAutoIncrementIntegerPrimaryKeyValues();
-			this.BuildSetAutoIncrementKeyValueMethod();
-			this.BuildGetIntegerAutoIncrementPropertyInfosMethod();
+			this.BuildSetPropertiesGeneratedOnTheServerSideValuesMethod();
+			this.BuildGetPropertiesGeneratedOnTheServerSidePropertyInfosMethod();
 
 			typeBuilder.CreateType();
 		}
@@ -394,9 +394,9 @@ namespace Shaolinq.TypeBuilding
 
 		protected virtual void BuildSetIntegerAutoIncrementValues()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIntegerAutoIncrementValues");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPropertiesGeneratedOnTheServerSide");
 
-			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()).ToList();
+			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)).ToList();
 
 			var i = 0;
 
@@ -429,11 +429,11 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildGetIntegerAutoIncrementPropertyInfosMethod()
+		private void BuildGetPropertiesGeneratedOnTheServerSidePropertyInfosMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetIntegerAutoIncrementPropertyInfos");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPropertiesGeneratedOnTheServerSide");
 
-			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()).ToList();
+			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 
 			var arrayLocal = generator.DeclareLocal(typeof(PropertyInfo[]));
 
@@ -1515,11 +1515,53 @@ namespace Shaolinq.TypeBuilding
 
 							generator.MarkLabel(skip2);
 
-							generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
-							generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
-							generator.Emit(OpCodes.Throw);
+							if (currentPropertyDescriptor.IsAutoIncrement && currentPropertyDescriptor.IsPrimaryKey)
+							{
+								generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
+								generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
+								generator.Emit(OpCodes.Throw);
+								generator.Emit(OpCodes.Ret);
+							}
+							else if (currentPropertyDescriptor.IsPrimaryKey)
+							{
+								var skipThrowException = generator.DefineLabel();
 
-							generator.Emit(OpCodes.Ret);
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldfld, dataObjectField);
+								generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyInfo.Name]);
+								generator.Emit(OpCodes.Brfalse, skipThrowException);
+
+								generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
+								generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
+								generator.Emit(OpCodes.Throw);
+								generator.Emit(OpCodes.Ret);
+
+								generator.MarkLabel(skipThrowException);
+
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldfld, dataObjectField);
+								generator.Emit(OpCodes.Ldarg_1);
+								generator.Emit(OpCodes.Stfld, valueFields[propertyName]);
+
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldfld, dataObjectField);
+								generator.Emit(OpCodes.Ldc_I4_1);
+								generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
+								generator.Emit(OpCodes.Ret);
+							}
+							else
+							{
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldfld, dataObjectField);
+								generator.Emit(OpCodes.Ldarg_1);
+								generator.Emit(OpCodes.Stfld, valueFields[propertyName]);
+
+								generator.Emit(OpCodes.Ldarg_0);
+								generator.Emit(OpCodes.Ldfld, dataObjectField);
+								generator.Emit(OpCodes.Ldc_I4_1);
+								generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
+								generator.Emit(OpCodes.Ret);
+							}
 						}
 						else
 						{
@@ -1909,7 +1951,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfIntegerAutoIncrementPrimaryKeys");
 
-			generator.Emit(OpCodes.Ldc_I4, typeDescriptor.PrimaryKeyProperties.Count(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()));
+			generator.Emit(OpCodes.Ldc_I4, typeDescriptor.PrimaryKeyProperties.Count(c => c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)));
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2109,11 +2151,13 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildSetAutoIncrementKeyValueMethod()
+		protected virtual void BuildSetPropertiesGeneratedOnTheServerSideValuesMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetAutoIncrementKeyValue");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPropertiesGeneratedOnTheServerSideValues");
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement))
+			var index = 0;
+
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Filter(c => c.IsPropertyThatIsCreatedOnTheServerSide))
 			{
 				var valueField = valueFields[propertyDescriptor.PropertyName];
 
@@ -2122,6 +2166,8 @@ namespace Shaolinq.TypeBuilding
 				
 				// Convert.ChangeType(value, typeof(PropertyType))
 				generator.Emit(OpCodes.Ldarg_1);
+				generator.Emit(OpCodes.Ldc_I4, index);
+				generator.Emit(OpCodes.Ldelem);
 				generator.Emit(OpCodes.Ldtoken, propertyDescriptor.PropertyType);
 				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
 				generator.Emit(OpCodes.Call, MethodInfoFastRef.ConvertChangeTypeMethod);
@@ -2152,14 +2198,15 @@ namespace Shaolinq.TypeBuilding
 
 				EmitUpdatedComputedPropertes(generator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
 
-				generator.Emit(OpCodes.Ret);
-
-				return;
+				index++;
 			}
 
-			generator.Emit(OpCodes.Ldstr, "No autoincrement property defined on type: " + typeBuilder.Name);
-			generator.Emit(OpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(new [] {typeof(string)}));
-			generator.Emit(OpCodes.Throw);
+			if (index == 0)
+			{
+				generator.Emit(OpCodes.Ldstr, "No autoincrement property defined on type: " + typeBuilder.Name);
+				generator.Emit(OpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) }));
+				generator.Emit(OpCodes.Throw);
+			}
 		}
 
 		protected virtual void BuildEqualsMethod()
@@ -2583,7 +2630,7 @@ namespace Shaolinq.TypeBuilding
 
 			var count = this.typeDescriptor.PersistedProperties.Count;
 
-			count -= this.typeDescriptor.PrimaryKeyProperties.Count(c => (c.IsAutoIncrement && c.PropertyType.IsIntegerType()));
+			count -= this.typeDescriptor.PrimaryKeyProperties.Count(c => (c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)));
 
 			count += this.typeDescriptor.GetRelationshipInfos().Fold(c => c.RelatedTypeTypeDescriptor.PrimaryKeyCount, Operations.Add);
 
@@ -2699,7 +2746,7 @@ namespace Shaolinq.TypeBuilding
 
 			var count = this.typeDescriptor.PersistedProperties.Count;
 
-			count -= this.typeDescriptor.PrimaryKeyProperties.Count(c => (c.IsAutoIncrement && c.PropertyType.IsIntegerType()));
+			count -= this.typeDescriptor.PrimaryKeyProperties.Count(c => (c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)));
 
 			count += this.typeDescriptor.GetRelationshipInfos().Fold(c => c.RelatedTypeTypeDescriptor.PrimaryKeyCount, Operations.Add);
 
@@ -2783,12 +2830,23 @@ namespace Shaolinq.TypeBuilding
 
 			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Concat(this.typeDescriptor.RelatedProperties.Filter(c => c.BackReferenceAttribute != null)))
 			{
-				if (propertyDescriptor.IsPrimaryKey && (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType()))
+				if (propertyDescriptor.IsPrimaryKey && (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true)))
 				{ 
 					continue;
 				}
 
 				var label = generator.DefineLabel();
+
+				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true))
+				{
+					var valueSetField = this.valueIsSetFields[propertyDescriptor.PropertyName];
+
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueSetField);
+					generator.Emit(OpCodes.Brfalse, label);
+				}
+				
 				var valueField = this.valueFields[propertyDescriptor.PropertyName];
 				var valueChangedField = this.valueChangedFields[propertyDescriptor.PropertyName];
 				var synthetic = propertyDescriptor.PropertyType.IsDataAccessObjectType();
@@ -2951,7 +3009,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("IsMissingAnyAutoIncrementIntegerPrimaryKeyValues");
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()))
+			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)))
 			{
 				var valueField = valueFields[propertyDescriptor.PropertyName];
 
@@ -3012,11 +3070,11 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildDefinesAnyAutoIncrementIntegerProperties()
+		protected virtual void BuildDefinesAnyPropertiesGeneratedOnTheServerSide()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("DefinesAnyAutoIncrementIntegerProperties");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("DefinesAnyPropertiesGeneratedOnTheServerSide");
 
-			if (this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement && c.PropertyType.NonNullableType().IsIntegerType()).Any())
+			if (this.typeDescriptor.PersistedProperties.Filter(c => c.IsPropertyThatIsCreatedOnTheServerSide).Any())
 			{
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Ret);

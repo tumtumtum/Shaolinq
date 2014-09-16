@@ -94,6 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
+    <Compile Include="SqliteDataDefinitionExpressionAmmender.cs" />
     <Compile Include="SqliteConfiguration.cs" />
     <Compile Include="SqliteErrorCodes.cs" />
     <Compile Include="SqliteMonoSqlDatabaseContext.cs" />

@@ -179,7 +179,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.DefinesAnyAutoIncrementIntegerProperties
+		bool IDataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide
 		{
 			get
 			{
@@ -269,7 +269,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		void IDataAccessObject.SetAutoIncrementKeyValue(object value)
+		void IDataAccessObject.SetPropertiesGeneratedOnTheServerSideValues(object[] value)
 		{
 			throw new NotImplementedException();
 		}
@@ -299,13 +299,13 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		PropertyInfo[] IDataAccessObject.GetIntegerAutoIncrementPropertyInfos()
+		PropertyInfo[] IDataAccessObject.GetPropertiesGeneratedOnTheServerSide()
 		{
 			throw new NotImplementedException();
 		}
 
 		[ReflectionEmitted]
-		void IDataAccessObject.SetIntegerAutoIncrementValues(object[] values)
+		void IDataAccessObject.SetPropertiesGeneratedOnTheServerSide(object[] values)
 		{
 			throw new NotImplementedException();
 		}

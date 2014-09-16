@@ -346,11 +346,11 @@ namespace Shaolinq.Persistence
 						Logger.Debug(FormatCommand(command));
 					}
 					
-					object result;
+					IDataReader reader;
 
 					try
 					{
-						result = command.ExecuteScalar();
+						reader = command.ExecuteReader();
 					}
 					catch (Exception e)
 					{
@@ -368,24 +368,35 @@ namespace Shaolinq.Persistence
 					}
 
 					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foriegn keys
-					
-					if (dataAccessObject.DefinesAnyAutoIncrementIntegerProperties)
+
+					if (dataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide
+					    && reader != null)
 					{
-						var propertyInfos = dataAccessObject.GetIntegerAutoIncrementPropertyInfos();
-
-						Debug.Assert(dataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys == 1);
-						
-						if (result != null && result.GetType() != propertyInfos[0].PropertyType)
+						using (reader)
 						{
-							result = Convert.ChangeType(result, propertyInfos[0].PropertyType);
-						}
+							if (reader.Read())
+							{
+								var propertyInfos = dataAccessObject.GetPropertiesGeneratedOnTheServerSide();
 
-						dataAccessObject.SetAutoIncrementKeyValue(result);
+								var values = new object[propertyInfos.Length];
+
+								for (var i = 0; i < reader.FieldCount; i++)
+								{
+									values[i] = Convert.ChangeType(reader.GetValue(i), propertyInfos[i].PropertyType);
+								}
+
+								dataAccessObject.SetPropertiesGeneratedOnTheServerSide(values);
+							}
+						}
 
 						if (dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
-							Update(type, new [] { dataAccessObject });
+							Update(type, new[] { dataAccessObject });
 						}
+					}
+					else
+					{
+						reader.Close();
 					}
 
 					dataAccessObject.ResetModified();
@@ -525,21 +536,19 @@ namespace Shaolinq.Persistence
 
 				return command;
 			}
+			
+			ReadOnlyCollection<string> returningAutoIncrementColumnNames = null;
 
-			string returningAutoIncrementColumnName = null;
-
-			if (dataAccessObject.DefinesAnyAutoIncrementIntegerProperties)
+			if (dataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide)
 			{
-				var propertyDescriptors = typeDescriptor.PrimaryKeyProperties.Where(c => c.IsAutoIncrement && c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
+				var propertyDescriptors = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 
-				Debug.Assert(propertyDescriptors.Count == 1);
-
-				returningAutoIncrementColumnName = propertyDescriptors[0].PersistedName;
+				returningAutoIncrementColumnNames = new ReadOnlyCollection<string>(propertyDescriptors.Select(c => c.PersistedName).ToList());
 			}
 
 			var columnNames = new ReadOnlyCollection<string>(updatedProperties.Select(c => c.persistedName).ToList());
 			var valueExpressions = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.value)).ToList());
-			var expression = new SqlInsertIntoExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnName, valueExpressions);
+			var expression = new SqlInsertIntoExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 

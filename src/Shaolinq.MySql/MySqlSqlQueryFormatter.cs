@@ -18,7 +18,7 @@ namespace Shaolinq.MySql
 
 		protected override Expression PreProcess(Expression expression)
 		{
-			return SqlReferencesColumnDeferrabilityRemover.Remove(expression);
+			return MySqlDataDefinitionExpressionAmmender.Ammend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
 		}
 
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunction function, ReadOnlyCollection<Expression> arguments)
@@ -51,7 +51,8 @@ namespace Shaolinq.MySql
 
 		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
 		{
-			if (string.IsNullOrEmpty(expression.ReturningAutoIncrementColumnName))
+			if (expression.ReturningAutoIncrementColumnNames == null
+				|| expression.ReturningAutoIncrementColumnNames.Count == 0)
 			{
 				return;
 			}

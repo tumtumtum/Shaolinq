@@ -90,7 +90,7 @@ namespace Shaolinq
 		/// </summary>
 		//bool DefinesAutoIncrementKey { get; }
 
-		bool DefinesAnyAutoIncrementIntegerProperties { get; }
+		bool DefinesAnyPropertiesGeneratedOnTheServerSide { get; }
 
 		/// <summary>
 		/// Returns True if the object is missing any auto increment integer primary keys
@@ -151,7 +151,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Sets the AutoIncrement key value of this object.
 		/// </summary>
-		void SetAutoIncrementKeyValue(object value);
+		void SetPropertiesGeneratedOnTheServerSideValues(object[] values);
 
 		/// <summary>
 		/// Returns true if the property with the given name has been changed since the object was loaded or created.
@@ -160,9 +160,9 @@ namespace Shaolinq
 
 		object DataObject { get; }
 
-		PropertyInfo[] GetIntegerAutoIncrementPropertyInfos();
+		PropertyInfo[] GetPropertiesGeneratedOnTheServerSide();
 
-		void SetIntegerAutoIncrementValues(object[] values);
+		void SetPropertiesGeneratedOnTheServerSide(object[] values);
 
 		/// <summary>
 		/// Gets an array of the primary keys and their values.

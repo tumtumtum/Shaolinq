@@ -107,13 +107,14 @@ namespace Shaolinq.Postgres.Shared
 
 		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
 		{
-			if (string.IsNullOrEmpty(expression.ReturningAutoIncrementColumnName))
+			if (expression.ReturningAutoIncrementColumnNames == null
+				|| expression.ReturningAutoIncrementColumnNames.Count == 0)
 			{
 				return;
 			}
 
 			this.Write(" RETURNING ");
-			this.WriteQuotedIdentifier(expression.ReturningAutoIncrementColumnName);
+			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, (Func<string, string>)this.WriteQuotedIdentifier, ",");
 		}
 
 		public override void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)

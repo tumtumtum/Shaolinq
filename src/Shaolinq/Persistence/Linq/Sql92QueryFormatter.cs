@@ -115,13 +115,15 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
 		{
-			if (expression.ReturningAutoIncrementColumnName == null)
+			if (expression.ReturningAutoIncrementColumnNames == null
+				||  expression.ReturningAutoIncrementColumnNames.Count == 0)
 			{
 				return;
 			}
 
-			this.Write(" RETURNING ");
-			this.WriteQuotedIdentifier(expression.ReturningAutoIncrementColumnName);
+			this.Write(" RETURNING (");
+			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, (Func<string, string>)this.WriteQuotedIdentifier, ",");
+			this.Write(")");
 		}
 
 		public virtual void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)

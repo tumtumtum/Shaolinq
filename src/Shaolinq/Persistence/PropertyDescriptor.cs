@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence
 		{
 			get
 			{
-				return this.IsAutoIncrement && this.PropertyType.IsIntegerType();
+				return this.IsAutoIncrement && this.PropertyType.IsIntegerType(true);
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace Shaolinq.Persistence
 			this.ReferencedObjectPrimaryKeyPropertyAttribute = propertyInfo.GetFirstCustomAttribute<ReferencedObjectPrimaryKeyPropertyAttribute>(true);
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 
-			if (this.PropertyType.IsIntegerType() || this.PropertyType == typeof(Guid))
+			if (this.PropertyType.IsIntegerType(true) || this.PropertyType.GetUnwrappedNullableType() == typeof(Guid))
 			{
 				this.AutoIncrementAttribute = propertyInfo.GetFirstCustomAttribute<AutoIncrementAttribute>(true);
 			}

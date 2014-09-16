@@ -16,6 +16,13 @@ namespace Shaolinq.Sqlite
 		{
 		}
 
+		protected override Expression PreProcess(Expression expression)
+		{
+			expression = SqliteDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), sqlDataTypeProvider);
+
+			return expression;
+		}
+
 		protected override void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)
 		{
 			switch (deferrability)
@@ -112,7 +119,8 @@ namespace Shaolinq.Sqlite
 
 		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
 		{
-			if (string.IsNullOrEmpty(expression.ReturningAutoIncrementColumnName))
+			if (expression.ReturningAutoIncrementColumnNames == null
+				|| expression.ReturningAutoIncrementColumnNames.Count == 0)
 			{
 				return;
 			}

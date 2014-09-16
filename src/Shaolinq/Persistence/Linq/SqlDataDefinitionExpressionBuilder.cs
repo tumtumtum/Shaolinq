@@ -64,7 +64,7 @@ namespace Shaolinq.Persistence.Linq
 					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
 				}
 
-				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType())
+				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true))
 				{
 					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.AutoIncrement));
 				}

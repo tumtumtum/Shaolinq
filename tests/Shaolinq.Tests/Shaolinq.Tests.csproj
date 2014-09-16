@@ -93,6 +93,7 @@
     <Compile Include="RelatedObjectsTests.cs" />
     <Compile Include="SqlFormatterTests.cs" />
     <Compile Include="TestConstraints.cs" />
+    <Compile Include="TestNonPrimaryAutoIncrement.cs" />
     <Compile Include="TransactionTests.cs" />
     <Compile Include="TypeTests.cs" />
   </ItemGroup>
