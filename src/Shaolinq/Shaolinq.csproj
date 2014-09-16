@@ -140,6 +140,7 @@
     <Compile Include="Persistence\SqlSyntaxSymbol.cs" />
     <Compile Include="Persistence\UniversalTimeNormalisingDateTimeSqlDateType.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
+    <Compile Include="SortOrder.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
     <Compile Include="DataAccessObjectsQueryableExtensions.cs" />

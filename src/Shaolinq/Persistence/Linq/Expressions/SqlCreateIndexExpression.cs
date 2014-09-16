@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq.Expressions;
 using System.Collections.ObjectModel;
 
@@ -8,13 +9,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlCreateIndexExpression
 		: SqlBaseExpression
 	{
-		public string IndexName { get; set; }
-		public SqlTableExpression Table { get; set; }
-		public bool Unique { get; set; }
-		public bool LowercaseIndex { get; set; }
-		public IndexType IndexType { get; set; }
-		public bool IfNotExist { get; set; }
-		public ReadOnlyCollection<SqlColumnExpression> Columns { get; set; }
+		public string IndexName { get; private set; }
+		public SqlTableExpression Table { get; private set; }
+		public bool Unique { get; private set; }
+		public bool LowercaseIndex { get; private set; }
+		public IndexType IndexType { get; private set; }
+		public bool IfNotExist { get; private set; }
+		public ReadOnlyCollection<SqlIndexedColumnExpression> Columns { get; private set; }
 
 		public override ExpressionType NodeType
 		{
@@ -24,7 +25,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, ReadOnlyCollection<SqlColumnExpression> columns)
+		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, ReadOnlyCollection<SqlIndexedColumnExpression> columns)
 			: base(typeof(void))
 		{
 			this.IndexName = indexName;

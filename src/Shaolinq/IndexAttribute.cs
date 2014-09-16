@@ -13,6 +13,7 @@ namespace Shaolinq
 		public int CompositeOrder { get; set; }
 		public string IndexName { get; set; }
 		public IndexType IndexType { get; set; }
+		public SortOrder SortOrder { get; set; }
 
 		public IndexAttribute()
 			: this(null, false)

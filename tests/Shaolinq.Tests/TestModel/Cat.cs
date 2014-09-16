@@ -8,7 +8,7 @@
 		[PersistedMember]
 		public abstract string Name { get; set; }
 
-		[Index(IndexName = "Index")]
+		[Index(IndexName = "Index", SortOrder = SortOrder.Descending)]
 		[PersistedMember]
 		public abstract int LivesRemaining { get; set; }
 

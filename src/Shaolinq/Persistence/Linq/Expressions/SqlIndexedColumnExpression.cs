@@ -5,22 +5,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlIndexedColumnExpression
 		: SqlBaseExpression
 	{
-		public bool Ascending { get; set; }
-		public SqlColumnExpression Column { get; set; }
+		public SortOrder SortOrder { get; private set; }
+		public SqlColumnExpression Column { get; private set; }
 		
 		public override ExpressionType NodeType
 		{
 			get
 			{
-				return (ExpressionType)SqlExpressionType.IndexedColumnExpression;
+				return (ExpressionType)SqlExpressionType.IndexedColumn;
 			}
 		}
 
-		public SqlIndexedColumnExpression(SqlColumnExpression column, bool ascending)
+		public SqlIndexedColumnExpression(SqlColumnExpression column, SortOrder sortOrder)
 			: base(typeof(void))
 		{
 			this.Column = column;
-			this.Ascending = @ascending;
+			this.SortOrder = sortOrder;
 		}
 	}
 }

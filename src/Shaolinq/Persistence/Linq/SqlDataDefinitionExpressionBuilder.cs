@@ -191,7 +191,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
 
-			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, new ReadOnlyCollection<SqlColumnExpression>(sorted.Select(c => new SqlColumnExpression(c.Item2.PropertyType, null, c.Item2.PersistedName)).ToList()));
+			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, new ReadOnlyCollection<SqlIndexedColumnExpression>(sorted.Select(c => new SqlIndexedColumnExpression(new SqlColumnExpression(c.Item2.PropertyType, null, c.Item2.PersistedName), c.Item1.SortOrder)).ToList()));
 		}
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)

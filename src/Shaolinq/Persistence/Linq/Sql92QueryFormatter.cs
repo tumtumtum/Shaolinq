@@ -1304,5 +1304,24 @@ namespace Shaolinq.Persistence.Linq
 
 			return statementListExpression;
 		}
+
+		protected override Expression VisitIndexedColumn(SqlIndexedColumnExpression indexedColumnExpression)
+		{
+			this.Visit(indexedColumnExpression.Column);
+
+			switch (indexedColumnExpression.SortOrder )
+			{
+			case SortOrder.Descending:
+				this.Write(" DESC");
+				break;
+			case SortOrder.Ascending:
+				this.Write(" ASC");
+				break;
+			case SortOrder.Unspecified:
+				break;
+			}
+
+			return indexedColumnExpression;
+		}
 	}
 }

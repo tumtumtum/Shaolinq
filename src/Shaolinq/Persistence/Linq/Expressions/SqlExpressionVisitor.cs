@@ -56,6 +56,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					return this.VisitColumnDefinition((SqlColumnDefinitionExpression)expression);
 				case SqlExpressionType.CreateIndex:
 					return this.VisitCreateIndex((SqlCreateIndexExpression)expression);
+				case SqlExpressionType.IndexedColumn:
+					return this.VisitIndexedColumn((SqlIndexedColumnExpression)expression);
 				case SqlExpressionType.CreateTable:
 					return this.VisitCreateTable((SqlCreateTableExpression)expression);
 				case SqlExpressionType.ForeignKeyConstraint:
@@ -464,6 +466,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				return foreignKeyConstraintExpression;
 			}
+		}
+
+		protected virtual Expression VisitIndexedColumn(SqlIndexedColumnExpression indexedColumnExpression)
+		{
+			var newColumn = (SqlColumnExpression)this.Visit(indexedColumnExpression.Column);
+
+			if (newColumn != indexedColumnExpression.Column)
+			{
+				return new SqlIndexedColumnExpression(newColumn, indexedColumnExpression.SortOrder);
+			}
+
+			return indexedColumnExpression;
 		}
 	}
 }
