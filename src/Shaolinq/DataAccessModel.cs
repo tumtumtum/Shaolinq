@@ -180,6 +180,31 @@ namespace Shaolinq
 			}
 		}
 
+		public static DataAccessModel BuildDataAccessModel(Type dataAccessModelType)
+		{
+			return BuildDataAccessModel(dataAccessModelType, null);
+		}
+
+		public static DataAccessModel BuildDataAccessModel(Type dataAccessModelType, DataAccessModelConfiguration configuration)
+		{
+			if (!dataAccessModelType.IsSubclassOf(typeof (DataAccessModel)))
+			{
+				throw new ArgumentException("Data access model type must derive from DataAccessModel", "dataAccessModelType");
+			}
+
+			var builder = DataAccessModelAssemblyBuilder.Default;
+			var buildInfo = builder.GetOrBuildConcreteAssembly(dataAccessModelType.Assembly);
+
+			var retval = buildInfo.NewDataAccessModel(dataAccessModelType);
+
+			retval.SetConfiguration(configuration);
+			retval.SetAssemblyBuildInfo(buildInfo);
+
+			retval.Initialise();
+
+			return retval;
+		}
+
 		public static T BuildDataAccessModel<T>()
 			where T : DataAccessModel
 		{
