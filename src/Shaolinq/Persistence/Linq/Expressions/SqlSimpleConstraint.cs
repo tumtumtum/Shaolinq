@@ -8,6 +8,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		Unique,
 		DefaultValue,
 		PrimaryKey,
-		PrimaryKeyAutoIncrement
+		AutoIncrement
 	}
 }

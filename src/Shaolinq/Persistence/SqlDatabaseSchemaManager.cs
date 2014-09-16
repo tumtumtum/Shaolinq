@@ -37,6 +37,7 @@ namespace Shaolinq.Persistence
 		}
 
 		protected abstract bool CreateDatabaseOnly(bool overwrite);
+
 		protected virtual Expression BuildDataDefinitonExpressions()
 		{
 			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, this.SqlDatabaseContext.TableNamePrefix, this.GetBuilderFlags());

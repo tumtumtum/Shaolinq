@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -10,7 +11,7 @@ namespace Shaolinq.Postgres.Shared
 		: SqlExpressionVisitor
 	{
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
-		private bool foundPrimaryKeyAutoIncrementColumnConstraint;
+		private bool currentIsPrimaryKey;
 
 		private PostgresSharedDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
 		{
@@ -26,9 +27,9 @@ namespace Shaolinq.Postgres.Shared
 		
 		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
 		{
-			if (simpleConstraintExpression.Constraint == SqlSimpleConstraint.PrimaryKeyAutoIncrement)
+			if (currentIsPrimaryKey && simpleConstraintExpression.Constraint == SqlSimpleConstraint.AutoIncrement)
 			{
-				this.foundPrimaryKeyAutoIncrementColumnConstraint = true;
+				return null;
 			}
 
 			return base.VisitSimpleConstraint(simpleConstraintExpression);
@@ -36,11 +37,17 @@ namespace Shaolinq.Postgres.Shared
 
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
 		{
-			this.foundPrimaryKeyAutoIncrementColumnConstraint = false;
+			this.currentIsPrimaryKey = columnDefinitionExpression.ConstraintExpressions
+				.OfType<SqlSimpleConstraintExpression>()
+				.Any(c => c.Constraint == SqlSimpleConstraint.PrimaryKey);
+
+			var isAutoIncrement = columnDefinitionExpression.ConstraintExpressions
+				.OfType<SqlSimpleConstraintExpression>()
+				.Any(c => c.Constraint == SqlSimpleConstraint.AutoIncrement);
 
 			var retval = (SqlColumnDefinitionExpression)base.VisitColumnDefinition(columnDefinitionExpression);
 
-			if (this.foundPrimaryKeyAutoIncrementColumnConstraint)
+			if (isAutoIncrement)
 			{
 				var longTypeSqlName = sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
 

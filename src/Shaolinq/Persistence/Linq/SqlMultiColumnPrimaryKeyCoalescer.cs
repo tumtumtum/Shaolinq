@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (SqlColumnDefinitionExpression columnDefinition in createTableExpression.ColumnDefinitionExpressions)
 			{
-				if (columnDefinition.ConstraintExpressions.OfType<SqlSimpleConstraintExpression>().Any(simpleConstraint => simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey || simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKeyAutoIncrement))
+				if (columnDefinition.ConstraintExpressions.OfType<SqlSimpleConstraintExpression>().Any(simpleConstraint => simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey))
 				{
 					count++;
 
@@ -51,7 +51,7 @@ namespace Shaolinq.Persistence.Linq
 						return true;
 					}
 
-					return !(simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey || simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKeyAutoIncrement);
+					return simpleConstraint.Constraint != SqlSimpleConstraint.PrimaryKey;
 				});
 
 				if (newConstraints == columnDefinition.ConstraintExpressions)

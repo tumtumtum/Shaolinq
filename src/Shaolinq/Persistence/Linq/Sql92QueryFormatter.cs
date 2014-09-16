@@ -1118,44 +1118,42 @@ namespace Shaolinq.Persistence.Linq
 		{
 			switch (simpleConstraintExpression.Constraint)
 			{
-				case SqlSimpleConstraint.DefaultValue:
-					if (simpleConstraintExpression.Value != null)
-					{
-						this.Write("DEFAULT");
-						this.Write(simpleConstraintExpression.Value);
-					}
-					break;
-				case SqlSimpleConstraint.NotNull:
-					this.Write("NOT NULL");
-					break;
-				case SqlSimpleConstraint.PrimaryKey:
-				case SqlSimpleConstraint.PrimaryKeyAutoIncrement:
-					this.Write("PRIMARY KEY");
-					if (simpleConstraintExpression.ColumnNames != null)
-					{
-						this.WriteDeliminatedListOfItems(simpleConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
-					}
+			case SqlSimpleConstraint.DefaultValue:
+				if (simpleConstraintExpression.Value != null)
+				{
+					this.Write("DEFAULT");
+					this.Write(simpleConstraintExpression.Value);
+				}
+				break;
+			case SqlSimpleConstraint.NotNull:
+				this.Write("NOT NULL");
+				break;
+			case SqlSimpleConstraint.AutoIncrement:
+			{
+				var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement);
 
-					if (simpleConstraintExpression.Constraint == SqlSimpleConstraint.PrimaryKeyAutoIncrement)
-					{
-						var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement);
-
-						if (!string.IsNullOrEmpty(s))
-						{
-							this.Write(" " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement));
-						}
-					}
-
-					break;
-				case SqlSimpleConstraint.Unique:
-					this.Write("UNIQUE");
-					if (simpleConstraintExpression.ColumnNames != null)
-					{
-						this.Write("(");
-						this.WriteDeliminatedListOfItems(simpleConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
-						this.Write(")");
-					}
-					break;
+				if (!string.IsNullOrEmpty(s))
+				{
+					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement));
+				}
+				break;
+			}
+			case SqlSimpleConstraint.PrimaryKey:
+				this.Write("PRIMARY KEY");
+				if (simpleConstraintExpression.ColumnNames != null)
+				{
+					this.WriteDeliminatedListOfItems(simpleConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
+				}
+				break;
+			case SqlSimpleConstraint.Unique:
+				this.Write("UNIQUE");
+				if (simpleConstraintExpression.ColumnNames != null)
+				{
+					this.Write("(");
+					this.WriteDeliminatedListOfItems(simpleConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
+					this.Write(")");
+				}
+				break;
 			}
 
 			return simpleConstraintExpression;
@@ -1166,7 +1164,6 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteQuotedIdentifier(columnDefinitionExpression.ColumnName);
 			this.Write(' ');
 			this.Visit(columnDefinitionExpression.ColumnType);
-
 
 			if (columnDefinitionExpression.ConstraintExpressions.Count > 0)
 			{

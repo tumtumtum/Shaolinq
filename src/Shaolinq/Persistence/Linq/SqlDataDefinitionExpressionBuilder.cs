@@ -61,14 +61,12 @@ namespace Shaolinq.Persistence.Linq
 
 				if (propertyDescriptor.IsPrimaryKey)
 				{
-					if (propertyDescriptor.PropertyType.IsIntegerType() && propertyDescriptor.IsAutoIncrement)
-					{
-						retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKeyAutoIncrement));
-					}
-					else
-					{
-						retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
-					}
+					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
+				}
+
+				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType())
+				{
+					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.AutoIncrement));
 				}
 
 				if (propertyDescriptor.HasUniqueAttribute && propertyDescriptor.UniqueAttribute.Unique)
@@ -76,6 +74,7 @@ namespace Shaolinq.Persistence.Linq
 					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique));
 				}
 
+				
 				var defaultValueAttribute = propertyDescriptor.DefaultValueAttribute;
 
 				if (defaultValueAttribute != null)
