@@ -24,26 +24,5 @@ namespace Shaolinq.MySql
 
 			return processor.Visit(expression);
 		}
-		
-		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
-		{
-			if (!this.currentIsPrimaryKey && simpleConstraintExpression.Constraint == SqlSimpleConstraint.AutoIncrement)
-			{
-				return null;
-			}
-
-			return base.VisitSimpleConstraint(simpleConstraintExpression);
-		}
-
-		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
-		{
-			this.currentIsPrimaryKey = columnDefinitionExpression.ConstraintExpressions
-				.OfType<SqlSimpleConstraintExpression>()
-				.Any(c => c.Constraint == SqlSimpleConstraint.PrimaryKey);
-
-			var retval = (SqlColumnDefinitionExpression)base.VisitColumnDefinition(columnDefinitionExpression);
-			
-			return retval;
-		}
 	}
 }

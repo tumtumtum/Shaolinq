@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using Platform.Validation;
+using System;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.TestModel
 {

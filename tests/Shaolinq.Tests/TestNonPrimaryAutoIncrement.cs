@@ -1,9 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
@@ -18,28 +20,31 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Non_Primary_Auto_Increment()
 		{
-			long dog1Id, dog2Id;
+			Guid student1Id, student2Id;
 
 			using (var scope = new TransactionScope())
 			{
-				var dog1 = this.model.Dogs.Create();
-				scope.Flush(this.model);
-				dog1Id = dog1.Id;
+				var school = this.model.Schools.Create();
 
-				var dog2 = this.model.Dogs.Create();
+				var student1 = school.Students.Create();
+
 				scope.Flush(this.model);
-				dog2Id = dog2.Id;
+				student1Id = student1.Id;
+
+				var student2 = school.Students.Create();
+				scope.Flush(this.model);
+				student2Id = student2.Id;
 
 				scope.Complete();
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				var dog1 = this.model.Dogs.FirstOrDefault(c => c.Id == dog1Id);
-				var dog2 = this.model.Dogs.FirstOrDefault(c => c.Id == dog2Id);
+				var student1 = this.model.Students.FirstOrDefault(c => c.Id == student1Id);
+				var student2 = this.model.Students.FirstOrDefault(c => c.Id == student2Id);
 
-				Assert.AreNotEqual(dog1.SerialNumber, dog2.SerialNumber);
-				Assert.AreNotEqual(dog1.FavouriteGuid, dog2.FavouriteGuid);
+				Assert.AreNotEqual(student1.SerialNumber, student2.SerialNumber);
+				Assert.AreNotEqual(student1.RandomGuid, student2.RandomGuid);
 
 				scope.Complete();
 			}
@@ -48,38 +53,39 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Non_Primary_Auto_Increment_And_Explicitly_Set()
 		{
-			long dog1Id, dog2Id, dog3Id;
+			Guid student1Id, student2Id, student3Id;
 
 			using (var scope = new TransactionScope())
 			{
-				var dog1 = this.model.Dogs.Create();
-				scope.Flush(this.model);
-				dog1Id = dog1.Id;
-				//Assert.AreNotEqual(0, dog1.SerialNumber);
+				var school = this.model.Schools.Create();
 
-				var dog2 = this.model.Dogs.Create();
-				dog2.SerialNumber = 1001;
+				var student1 = school.Students.Create();
 				scope.Flush(this.model);
-				dog2Id = dog2.Id;
-				Assert.AreNotEqual(0, dog2.SerialNumber);
+				student1Id = student1.Id;
+				
+				var student2 = school.Students.Create();
+				student2.SerialNumber = 1001;
+				scope.Flush(this.model);
+				student2Id = student2.Id;
+				Assert.AreNotEqual(0, student2.SerialNumber);
 
-				var dog3 = this.model.Dogs.Create();
+				var student3 = school.Students.Create();
 				scope.Flush(this.model);
-				dog3Id = dog3.Id;
-				Assert.AreNotEqual(0, dog3.SerialNumber);
+				student3Id = student3.Id;
+				Assert.AreNotEqual(0, student3.SerialNumber);
 
 				scope.Complete();
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				var dog1 = this.model.Dogs.FirstOrDefault(c => c.Id == dog1Id);
-				var dog2 = this.model.Dogs.FirstOrDefault(c => c.Id == dog2Id);
-				var dog3 = this.model.Dogs.FirstOrDefault(c => c.Id == dog3Id);
+				var student1 = this.model.Students.FirstOrDefault(c => c.Id == student1Id);
+				var student2 = this.model.Students.FirstOrDefault(c => c.Id == student2Id);
+				var student3 = this.model.Students.FirstOrDefault(c => c.Id == student3Id);
 
-				Assert.AreNotEqual(dog1.SerialNumber, dog2.SerialNumber);
-				Assert.AreEqual(1001, dog2.SerialNumber);
-				Assert.AreNotEqual(dog1.SerialNumber, dog3.SerialNumber);
+				Assert.AreNotEqual(student1.SerialNumber, student2.SerialNumber);
+				Assert.AreEqual(1001, student2.SerialNumber);
+				Assert.AreNotEqual(student1.SerialNumber, student3.SerialNumber);
 
 				scope.Complete();
 			}

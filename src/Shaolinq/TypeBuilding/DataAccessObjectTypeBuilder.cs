@@ -227,8 +227,6 @@ namespace Shaolinq.TypeBuilding
 
 			if (pass == 2)
 			{
-				// CreateDatabaseAndSchema default constructor
-
 				// Call base constructor in constructor
 				constructorGenerator = constructorBuilder.GetILGenerator();
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
@@ -2198,6 +2196,8 @@ namespace Shaolinq.TypeBuilding
 
 				EmitUpdatedComputedPropertes(generator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
 
+				generator.Emit(OpCodes.Nop);
+
 				index++;
 			}
 
@@ -2585,7 +2585,6 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			generator.MarkLabel(label);
-			generator.Emit(OpCodes.Ret);
 		}
 
 		protected virtual void BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod()

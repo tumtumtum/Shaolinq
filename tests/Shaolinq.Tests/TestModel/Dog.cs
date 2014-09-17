@@ -7,17 +7,9 @@ namespace Shaolinq.Tests.TestModel
 	public abstract class Dog
 		: DataAccessObject<long>
 	{
+		[Index(SortOrder = SortOrder.Ascending)]
 		[PersistedMember]
 		public abstract string Name { get; set; }
-
-		[Unique]
-		[AutoIncrement]
-		[PersistedMember]
-		public abstract long SerialNumber { get; set; }
-
-		[AutoIncrement]
-		[PersistedMember]
-		public abstract Guid FavouriteGuid { get; set; }
 
 		[PersistedMember]
 		public abstract Cat CompanionCat { get; set; }
