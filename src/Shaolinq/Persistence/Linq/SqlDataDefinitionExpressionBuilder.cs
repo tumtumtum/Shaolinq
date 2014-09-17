@@ -191,12 +191,49 @@ namespace Shaolinq.Persistence.Linq
 
 			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
 
-			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, new ReadOnlyCollection<SqlIndexedColumnExpression>(sorted.Select(c => new SqlIndexedColumnExpression(new SqlColumnExpression(c.Item2.PropertyType, null, c.Item2.PersistedName), c.Item1.SortOrder)).ToList()));
+			var indexedColumns = new List<SqlIndexedColumnExpression>();
+
+			foreach (var attributeAndProperty in sorted)
+			{
+				if (attributeAndProperty.Item2.PropertyType.IsDataAccessObjectType())
+				{
+					foreach (var info in QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, attributeAndProperty.Item2))
+					{
+						indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(info.KeyPropertyOnForeignType.PropertyType, null, info.ColumnName), attributeAndProperty.Item1.SortOrder));
+					}
+				}
+				else
+				{
+					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(attributeAndProperty.Item2.PropertyType, null, attributeAndProperty.Item2.PersistedName), attributeAndProperty.Item1.SortOrder));
+				}
+			}
+				
+			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, new ReadOnlyCollection<SqlIndexedColumnExpression>(indexedColumns));
 		}
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
 		{
-			var allIndexAttributes = typeDescriptor.PersistedProperties.SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
+			var allIndexAttributes = typeDescriptor.PersistedProperties.Append(typeDescriptor.RelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
+
+			var expandedAllIndexAttributes = new List<Tuple<IndexAttribute, PropertyDescriptor>>();
+
+			foreach (var attributePair in allIndexAttributes)
+			{
+				if (attributePair.Item2.PropertyType.IsDataAccessObjectType())
+				{
+					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(model, attributePair.Item2);
+
+					foreach (var foriegnKeyColumn in foreignKeyColumns)
+					{
+						//expandedAllIndexAttributes.Add(foriegnKeyColumn.prop)
+					}
+				}
+				else
+				{
+					expandedAllIndexAttributes.Add(attributePair);
+				}
+			}
+
 			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName).Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
 
 			var table = new SqlTableExpression(typeDescriptor.PersistedName);
