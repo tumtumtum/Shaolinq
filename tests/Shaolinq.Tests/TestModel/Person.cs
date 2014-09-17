@@ -37,11 +37,6 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract DateTime? Birthdate { get; set; }
 
-		[Unique]
-		[AutoIncrement]
-		[PersistedMember]
-		public abstract long SerialNumber { get; set; }
-
 		[DependsOnProperty("Id")]
 		protected virtual string CompactIdString
 		{
@@ -50,11 +45,6 @@ namespace Shaolinq.Tests.TestModel
 				return this.Id.ToString("N");
 			}
 		}
-
-		[AutoIncrement]
-		[PersistedMember]
-		public abstract Guid RandomGuid { get; set; }
-
 		[PersistedMember]
 		[ComputedTextMember("urn:$(TYPENAME_LOWER):{CompactIdString}")]
 		public abstract string Urn { get; set; }

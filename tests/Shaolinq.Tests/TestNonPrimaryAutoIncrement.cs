@@ -20,31 +20,29 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Non_Primary_Auto_Increment()
 		{
-			Guid student1Id, student2Id;
+			Guid object1Id, object2Id;
 
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.Create();
-
-				var student1 = school.Students.Create();
+				var object1 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
 
 				scope.Flush(this.model);
-				student1Id = student1.Id;
+				object1Id = object1.Id;
 
-				var student2 = school.Students.Create();
+				var object2 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
 				scope.Flush(this.model);
-				student2Id = student2.Id;
+				object2Id = object2.Id;
 
 				scope.Complete();
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				var student1 = this.model.Students.FirstOrDefault(c => c.Id == student1Id);
-				var student2 = this.model.Students.FirstOrDefault(c => c.Id == student2Id);
+				var object1 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.FirstOrDefault(c => c.Id == object1Id);
+				var object2 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.FirstOrDefault(c => c.Id == object2Id);
 
-				Assert.AreNotEqual(student1.SerialNumber, student2.SerialNumber);
-				Assert.AreNotEqual(student1.RandomGuid, student2.RandomGuid);
+				Assert.AreNotEqual(object1.SerialNumber, object2.SerialNumber);
+				Assert.AreNotEqual(object1.RandomGuid, object2.RandomGuid);
 
 				scope.Complete();
 			}
@@ -53,39 +51,37 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Non_Primary_Auto_Increment_And_Explicitly_Set()
 		{
-			Guid student1Id, student2Id, student3Id;
+			Guid object1Id, object2Id, object3Id;
 
 			using (var scope = new TransactionScope())
 			{
-				var school = this.model.Schools.Create();
+				var object1 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
+				scope.Flush(this.model);
+				object1Id = object1.Id;
 
-				var student1 = school.Students.Create();
+				var object2 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
+				object2.SerialNumber = 1001;
 				scope.Flush(this.model);
-				student1Id = student1.Id;
-				
-				var student2 = school.Students.Create();
-				student2.SerialNumber = 1001;
-				scope.Flush(this.model);
-				student2Id = student2.Id;
-				Assert.AreNotEqual(0, student2.SerialNumber);
+				object2Id = object2.Id;
+				Assert.AreNotEqual(0, object2.SerialNumber);
 
-				var student3 = school.Students.Create();
+				var object3 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
 				scope.Flush(this.model);
-				student3Id = student3.Id;
-				Assert.AreNotEqual(0, student3.SerialNumber);
+				object3Id = object3.Id;
+				Assert.AreNotEqual(0, object3.SerialNumber);
 
 				scope.Complete();
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				var student1 = this.model.Students.FirstOrDefault(c => c.Id == student1Id);
-				var student2 = this.model.Students.FirstOrDefault(c => c.Id == student2Id);
-				var student3 = this.model.Students.FirstOrDefault(c => c.Id == student3Id);
+				var object1 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.FirstOrDefault(c => c.Id == object1Id);
+				var object2 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.FirstOrDefault(c => c.Id == object2Id);
+				var object3 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.FirstOrDefault(c => c.Id == object3Id);
 
-				Assert.AreNotEqual(student1.SerialNumber, student2.SerialNumber);
-				Assert.AreEqual(1001, student2.SerialNumber);
-				Assert.AreNotEqual(student1.SerialNumber, student3.SerialNumber);
+				Assert.AreNotEqual(object1.SerialNumber, object2.SerialNumber);
+				Assert.AreEqual(1001, object2.SerialNumber);
+				Assert.AreNotEqual(object1.SerialNumber, object3.SerialNumber);
 
 				scope.Complete();
 			}
