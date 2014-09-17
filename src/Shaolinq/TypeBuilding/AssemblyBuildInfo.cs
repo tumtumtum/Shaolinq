@@ -95,36 +95,50 @@ namespace Shaolinq.TypeBuilding
 
 			return TypeHelper.IEnumerableType.MakeGenericType(type);
 		}
-      
+
+		public DataAccessModel NewDataAccessModel(Type dataAccessModelType)
+		{
+			var constructor = GetDataAccessModelConstructor(dataAccessModelType);
+
+			return (DataAccessModel) constructor.DynamicInvoke();
+		}
+
 		public T NewDataAccessModel<T>()
 			where T : DataAccessModel
 		{
+			var constructor = GetDataAccessModelConstructor(typeof (T));
+
+			return ((Func<T>) constructor)();
+		}
+
+		private Delegate GetDataAccessModelConstructor(Type dataAccessModelType)
+		{
 			Delegate constructor;
-			
-			if (!this.dataAccessModelConstructors.TryGetValue(typeof(T), out constructor))
+
+			if (!this.dataAccessModelConstructors.TryGetValue(dataAccessModelType, out constructor))
 			{
 				Type type;
 
-				if (typeof(T).Assembly == this.concreteAssembly || typeof(T).Assembly == this.definitionAssembly)
+				if (dataAccessModelType.Assembly == this.concreteAssembly || dataAccessModelType.Assembly == this.definitionAssembly)
 				{
-					if (!this.concreteModelTypesByModelType.TryGetValue(typeof(T), out type))
+					if (!this.concreteModelTypesByModelType.TryGetValue(dataAccessModelType, out type))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("Could not find metadata for {0}", typeof(T));
+						throw new InvalidDataAccessObjectModelDefinition("Could not find metadata for {0}", dataAccessModelType);
 					}
 				}
 				else
 				{
-					var b = DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(typeof(T).Assembly);
+					var b = DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(dataAccessModelType.Assembly);
 
-					type = b.concreteTypesByType[typeof(T)];
+					type = b.concreteTypesByType[dataAccessModelType];
 				}
 
-				constructor = Expression.Lambda(Expression.Convert(Expression.New(type), typeof(T))).Compile();
+				constructor = Expression.Lambda(Expression.Convert(Expression.New(type), dataAccessModelType)).Compile();
 
-				this.dataAccessModelConstructors[typeof(T)] = constructor;
+				this.dataAccessModelConstructors[dataAccessModelType] = constructor;
 			}
 
-			return ((Func<T>)constructor)();
+			return constructor;
 		}
 
 		public IDataAccessObject CreateDataAccessObject(Type dataAccessObjectType)
