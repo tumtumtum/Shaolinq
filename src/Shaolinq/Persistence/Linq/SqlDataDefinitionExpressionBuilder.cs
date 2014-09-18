@@ -236,13 +236,13 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var allIndexAttributes = typeDescriptor.PersistedProperties.Append(typeDescriptor.RelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
 
-			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName).Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
+			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName ?? typeDescriptor.PersistedName + "_" + c.Item2.PersistedName + "_idx").Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
 
 			var table = new SqlTableExpression(typeDescriptor.PersistedName);
 
 			foreach (var group in indexAttributesByName)
 			{
-				var indexName = typeDescriptor.PersistedName + "_" + group.Key + "_idx";
+				var indexName = group.Key;
 
 				var propertyDescriptors = group.ToArray();
 

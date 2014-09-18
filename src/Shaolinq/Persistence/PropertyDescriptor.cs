@@ -3,7 +3,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Reflection;
+﻿using System.Linq;
+﻿using System.Reflection;
 using Platform;
 using Platform.Reflection;
 using Platform.Validation;
@@ -160,32 +161,7 @@ namespace Shaolinq.Persistence
 				this.PersistedShortName = propertyInfo.Name;
 			}
 
-			var indexAttributes = new List<IndexAttribute>();
-
-			foreach (IndexAttribute indexAttribute in this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true))
-			{
-				if (indexAttribute.IndexName == null)
-				{
-					var clone = (IndexAttribute)indexAttribute.Clone();
-
-					if (clone.LowercaseIndex)
-					{
-						clone.IndexName = this.PersistedName + "ToLower";
-					}
-					else
-					{
-						clone.IndexName = this.PersistedName;
-					}
-
-					indexAttributes.Add(clone);
-				}
-				else
-				{
-					indexAttributes.Add(indexAttribute);
-				}
-			}
-
-			this.IndexAttributes = new ReadOnlyCollection<IndexAttribute>(indexAttributes);
+			this.IndexAttributes = new ReadOnlyCollection<IndexAttribute>(this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToList());
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
 		}
 
