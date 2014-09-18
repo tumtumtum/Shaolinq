@@ -105,9 +105,9 @@ namespace Shaolinq.Tests
 
 				obj.Id = Guid.NewGuid();
 
-				// Should not be able to set primary key twice
+				// Should be able to set primary key twice
 
-				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj.Id = Guid.NewGuid());
+				obj.Id = Guid.NewGuid();
 
 				scope.Complete();
 			}
@@ -217,7 +217,7 @@ namespace Shaolinq.Tests
 				obj.Id = 999;
 				obj.Name = name;
 
-				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj.Id = 1);
+				obj.Id = 1;
 
 				scope.Complete();
 			}
@@ -225,7 +225,7 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				Assert.AreEqual(1, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Count(c => c.Name == name));
-				Assert.AreEqual(999, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.FirstOrDefault(c => c.Name == name).Id);
+				Assert.AreEqual(1, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.FirstOrDefault(c => c.Name == name).Id);
 
 				scope.Complete();
 			}
