@@ -13,6 +13,10 @@ namespace Shaolinq.Tests.TestModel
 
 		[PrimaryKey, PersistedMember, SizeConstraint(MaximumLength = 128)]
 		public abstract string SecondaryKey { get; set; }
+	
+		[Index]
+		[PersistedMember]
+		public abstract Student Student { get; set; }
 
 		[PersistedMember]
 		public abstract string Name { get; set; }

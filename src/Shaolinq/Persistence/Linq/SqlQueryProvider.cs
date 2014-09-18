@@ -187,11 +187,11 @@ namespace Shaolinq.Persistence.Linq
 			expression = AggregateSubqueryRewriter.Rewrite(expression);
 			expression = UnusedColumnRemover.Remove(expression);
 			expression = RedundantColumnRemover.Remove(expression);
+			expression = ObjectOperandComparisonExpander.Expand(dataAccessModel, expression);
 			expression = RedundantSubqueryRemover.Remove(expression);
 			expression = FunctionCoalescer.Coalesce(expression);
 			//expression = OrderByRewriter.Rewrite(expression);
 			expression = RedundantBinaryExpressionsRemover.Remove(expression);
-			expression = ObjectOperandComparisonExpander.Expand(expression);
 			expression = Evaluator.PartialEval(dataAccessModel, expression);
 			expression = RedundantFunctionCallRemover.Remove(expression);
 			expression = ConditionalEliminator.Eliminate(expression);

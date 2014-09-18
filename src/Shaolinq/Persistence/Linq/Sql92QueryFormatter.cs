@@ -1008,6 +1008,7 @@ namespace Shaolinq.Persistence.Linq
 					this.Write(",");
 				}
 
+				this.WriteLine();
 				this.WriteDeliminatedListOfItems(createTableExpression.TableConstraints, this.Visit);
 			}
 
@@ -1144,7 +1145,9 @@ namespace Shaolinq.Persistence.Linq
 				this.Write("PRIMARY KEY");
 				if (simpleConstraintExpression.ColumnNames != null)
 				{
+					this.Write("(");
 					this.WriteDeliminatedListOfItems(simpleConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
+					this.Write(")");
 				}
 				break;
 			case SqlSimpleConstraint.Unique:

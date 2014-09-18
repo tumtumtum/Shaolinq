@@ -400,6 +400,8 @@ namespace Shaolinq
 
 				foreach (var property in typeDescriptor.PrimaryKeyProperties)
 				{
+					var isObjectType = property.PropertyType.IsDataAccessObjectType();
+
 					Expression valueExpression;
 
 					if (isSimpleType)
@@ -413,7 +415,15 @@ namespace Shaolinq
 
 					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
 
-					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo), Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
+					var newExpression = Expression.New
+					(
+						constructor,
+						Expression.Constant(propertyInfo),
+						isObjectType ? (Expression)Expression.Convert(valueExpression, propertyInfo.PropertyType) : (Expression)Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), 
+						Expression.Constant(property.PropertyName),
+						Expression.Constant(property.PersistedName),
+						Expression.Constant(false),
+						Expression.Constant(property.PropertyName.GetHashCode()));
 
 					initializers.Add(newExpression);
 				}

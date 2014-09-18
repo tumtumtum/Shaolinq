@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -21,6 +22,26 @@ namespace Shaolinq.Tests
 		public PrimaryKeyTests(string providerName)
 			: base(providerName)
 		{
+		}
+
+		[Test]
+		public void Test_Composite_PrimaryKey_With_RelatedObject()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.Create();
+				var student = school.Students.Create();
+
+				scope.Flush(model);
+
+				var obj1 = model.ObjectWithCompositePrimaryKeys.Create();
+				
+				obj1.Id = 10;
+				obj1.SecondaryKey = "a";
+				obj1.Student = student;
+
+				scope.Complete();
+			}
 		}
 
 		[Test]
@@ -235,22 +256,34 @@ namespace Shaolinq.Tests
 		public void Test_Create_Object_With_Composite_Primary_Keys()
 		{
 			var secondaryKey = new StackTrace().GetFrame(0).GetMethod().Name;
+			Guid studentId;
 
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Create();
+				var school = this.model.Schools.Create();
+				var student = school.Students.Create();
 
+				scope.Flush(model);
+
+				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Create();
+				
 				// Can access non auto increment
 				Console.WriteLine(obj1.Id);
-				
+
 				obj1.Id = 1;
 				obj1.SecondaryKey = secondaryKey;
 				obj1.Name = "Obj1";
+				obj1.Student = student;
 
 				var obj2 = this.model.ObjectWithCompositePrimaryKeys.Create();
 				obj2.Id = 2;
 				obj2.SecondaryKey = secondaryKey;
 				obj2.Name = "Obj2";
+				obj2.Student = student;
+
+				scope.Flush(model);
+
+				studentId = student.Id;
 
 				scope.Complete();
 			}
@@ -266,10 +299,13 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
+				var student = model.GetReferenceByPrimaryKey<Student>(studentId);
+
 				var obj = this.model.ObjectWithCompositePrimaryKeys.ReferenceTo(new
 				{
 					Id = 1,
-					SecondaryKey = secondaryKey
+					SecondaryKey = secondaryKey,
+					Student = student
 				});
 
 				Assert.IsTrue(obj.IsDeflatedReference);
@@ -283,10 +319,13 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
+				var student = this.model.GetReferenceByPrimaryKey<Student>(studentId);
+
 				var obj1 = this.model.ObjectWithCompositePrimaryKeys.ReferenceTo(new
 				{
 					Id = 1,
-					SecondaryKey = secondaryKey
+					SecondaryKey = secondaryKey,
+					Student = student
 				});
 
 				Assert.IsTrue(obj1.IsDeflatedReference);

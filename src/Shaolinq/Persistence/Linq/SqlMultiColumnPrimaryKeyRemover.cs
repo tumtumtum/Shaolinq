@@ -7,12 +7,12 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class SqlMultiColumnPrimaryKeyCoalescer
+	public class SqlMultiColumnPrimaryKeyRemover
 		: SqlExpressionVisitor
 	{
-		public static Expression Coalesce(Expression expression)
+		public static Expression Remove(Expression expression)
 		{
-			return new SqlMultiColumnPrimaryKeyCoalescer().Visit(expression);
+			return new SqlMultiColumnPrimaryKeyRemover().Visit(expression);
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
@@ -63,6 +63,8 @@ namespace Shaolinq.Persistence.Linq
 					newColumnExpressions.Add(new SqlColumnDefinitionExpression(columnDefinition.ColumnName, columnDefinition.ColumnType, newConstraints));
 				}
 			}
+
+			
 
 			return new SqlCreateTableExpression(createTableExpression.Table, false, newColumnExpressions, newTableConstraintExpressions);
 		}

@@ -670,7 +670,7 @@ namespace Shaolinq.Persistence
 			
 			expression = Evaluator.PartialEval(this.DataAccessModel, expression);
 			expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
-			expression = ObjectOperandComparisonExpander.Expand(expression);
+			expression = ObjectOperandComparisonExpander.Expand(this.DataAccessModel, expression);
 			expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression);
 
 			Delete((SqlDeleteExpression)expression);

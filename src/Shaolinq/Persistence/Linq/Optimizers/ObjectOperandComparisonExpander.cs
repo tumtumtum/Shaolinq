@@ -1,7 +1,8 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-using System.Linq.Expressions;
+﻿using System.Linq;
+﻿using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -14,15 +15,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class ObjectOperandComparisonExpander
 		: SqlExpressionVisitor
 	{
-		private bool inProjector;
-
-		private ObjectOperandComparisonExpander()
+		private bool inProjector; 
+		private readonly DataAccessModel model;
+		
+		private ObjectOperandComparisonExpander(DataAccessModel model)
 		{
+			this.model = model;
 		}
 
-		public static Expression Expand(Expression expression)
+		public static Expression Expand(DataAccessModel model, Expression expression)
 		{
-			var fixer = new ObjectOperandComparisonExpander();
+			var fixer = new ObjectOperandComparisonExpander(model);
 
 			return fixer.Visit(expression);
 		}
@@ -112,8 +115,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				for (int i = 0, count = leftOperand.ExpressionsInOrder.Count; i < count; i++)
 				{
 					Expression current;
-					var left = leftOperand.ExpressionsInOrder[i];
-					var right = rightOperand.ExpressionsInOrder[i];
+					var left = this.Visit(leftOperand.ExpressionsInOrder[i]);
+					var right = this.Visit(rightOperand.ExpressionsInOrder[i]);
 					
 					switch (binaryExpression.NodeType)
 					{

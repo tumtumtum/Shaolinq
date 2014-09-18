@@ -9,6 +9,7 @@ namespace Shaolinq
 		: Attribute
 	{
 		public bool IsPrimaryKey { get; set; }
+		public int CompositeOrder { get; set; }
 
 		public PrimaryKeyAttribute()
 		{

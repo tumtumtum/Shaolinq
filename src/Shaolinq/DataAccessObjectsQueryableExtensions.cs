@@ -31,7 +31,7 @@ namespace Shaolinq
 
 				expression = Evaluator.PartialEval(queryable.DataAccessModel, expression);
 				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, queryable.ExtraCondition);
-				expression = ObjectOperandComparisonExpander.Expand(expression);
+				expression = ObjectOperandComparisonExpander.Expand(queryable.DataAccessModel, expression);
 				expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression);
 
 				acquisition.SqlDatabaseCommandsContext.Delete((SqlDeleteExpression)expression);

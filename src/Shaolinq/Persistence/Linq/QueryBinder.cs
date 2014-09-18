@@ -94,7 +94,7 @@ namespace Shaolinq.Persistence.Linq
 					retval[i] = new ForeignKeyColumnInfo
 					{
 						ForeignType = typeDescriptor,
-						OjbectPropertyOnReferencingType = propertyDescriptor,
+						ObjectPropertyOnReferencingType = propertyDescriptor,
 						ColumnName = propertyDescriptor.PersistedName + relatedPropertyDescriptor.PersistedShortName,
 						KeyPropertyOnForeignType = relatedPropertyDescriptor
 					};
@@ -1395,10 +1395,23 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var propertyDescriptor in typeDescriptor.PrimaryKeyProperties)
 			{
-				var expression = new SqlColumnExpression(propertyDescriptor.PropertyType, selectAlias, propertyDescriptor.PersistedName);
+				if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
+				{
+					foreach (var v in QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.DataAccessModel, propertyDescriptor))
+					{
+						var expression = new SqlColumnExpression(v.KeyPropertyOnForeignType.PropertyType, selectAlias, v.ColumnName);
 
-				primaryKeyPropertyNames.Add(propertyDescriptor.PropertyName);
-				primaryKeyColumnExpressions.Add(expression);
+						primaryKeyPropertyNames.Add(propertyDescriptor.PropertyName + v.KeyPropertyOnForeignType.PropertyName);
+						primaryKeyColumnExpressions.Add(expression);
+					}
+				}
+				else
+				{
+					var expression = new SqlColumnExpression(propertyDescriptor.PropertyType, selectAlias, propertyDescriptor.PersistedName);
+
+					primaryKeyPropertyNames.Add(propertyDescriptor.PropertyName);
+					primaryKeyColumnExpressions.Add(expression);
+				}
 			}
 
 			primaryKeyObjectOperand = new SqlObjectOperand(typeDescriptor.Type, primaryKeyColumnExpressions, primaryKeyPropertyNames);
@@ -1472,7 +1485,7 @@ namespace Shaolinq.Persistence.Linq
 			return p;
 		}
 
-		protected Expression CreateSqlObjectOperand(Expression expression)
+		protected SqlObjectOperand CreateSqlObjectOperand(Expression expression)
 		{
 			var type = expression.Type;
 			var propertyNames = new List<string>();
@@ -1481,10 +1494,21 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var primaryKey in typeDescriptor.PrimaryKeyProperties)
 			{
-				var newExpression = Expression.Property(expression, primaryKey.PropertyInfo);
+				if (primaryKey.PropertyType.IsDataAccessObjectType())
+				{
+					foreach (var propertyExpression in CreateSqlObjectOperand(Expression.Property(expression, primaryKey.PropertyInfo)).ExpressionsInOrder)
+					{
+						propertyNames.Add(primaryKey.PropertyName);
+						columnExpressions.Add(propertyExpression);
+					}
+				}
+				else
+				{
+					var propertyExpression = Expression.Property(expression, primaryKey.PropertyInfo);
 
-				propertyNames.Add(primaryKey.PropertyName);
-				columnExpressions.Add(newExpression);
+					propertyNames.Add(primaryKey.PropertyName);
+					columnExpressions.Add(propertyExpression);
+				}
 			}
 
 			return new SqlObjectOperand(type, columnExpressions, propertyNames);

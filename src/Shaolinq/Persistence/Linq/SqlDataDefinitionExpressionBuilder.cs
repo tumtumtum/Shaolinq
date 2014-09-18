@@ -180,6 +180,27 @@ namespace Shaolinq.Persistence.Linq
 
 			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
 
+			var primaryKeys = typeDescriptor.PersistedProperties.Where(c => c.IsPrimaryKey).ToList();
+
+			if (primaryKeys.Count > 1)
+			{
+				var columnNames = primaryKeys.OrderBy(c => c.PrimaryKeyAttribute.CompositeOrder).SelectMany(c =>
+				{
+					if (c.PropertyType.IsDataAccessObjectType())
+					{
+						return QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, c).Select(d => d.ColumnName).ToArray();
+					}
+					else
+					{
+						return new [] { c.PersistedName };
+					}
+				}).ToArray();
+
+				var compositePrimaryKeyConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames);
+
+				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
+			}
+
 			return new SqlCreateTableExpression(new SqlTableExpression(typeof(void), null, tableName), false, columnExpressions, this.currentTableConstraints);
 		}
 
@@ -215,32 +236,14 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var allIndexAttributes = typeDescriptor.PersistedProperties.Append(typeDescriptor.RelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
 
-			var expandedAllIndexAttributes = new List<Tuple<IndexAttribute, PropertyDescriptor>>();
-
-			foreach (var attributePair in allIndexAttributes)
-			{
-				if (attributePair.Item2.PropertyType.IsDataAccessObjectType())
-				{
-					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(model, attributePair.Item2);
-
-					foreach (var foriegnKeyColumn in foreignKeyColumns)
-					{
-						//expandedAllIndexAttributes.Add(foriegnKeyColumn.prop)
-					}
-				}
-				else
-				{
-					expandedAllIndexAttributes.Add(attributePair);
-				}
-			}
-
 			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName).Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
 
 			var table = new SqlTableExpression(typeDescriptor.PersistedName);
 
 			foreach (var group in indexAttributesByName)
 			{
-				var indexName = group.Key;
+				var indexName = typeDescriptor.PersistedName + "_" + group.Key + "_idx";
+
 				var propertyDescriptors = group.ToArray();
 
 				yield return this.BuildIndexExpression(table, indexName, propertyDescriptors);
@@ -303,7 +306,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var retval = builder.Build();
 
-			retval = SqlMultiColumnPrimaryKeyCoalescer.Coalesce(retval);
+			retval = SqlMultiColumnPrimaryKeyRemover.Remove(retval);
 
 			return retval;
 		}
