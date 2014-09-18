@@ -1522,9 +1522,10 @@ namespace Shaolinq.TypeBuilding
 							}
 							else if (currentPropertyDescriptor.IsPrimaryKey)
 							{
+								/*
 								var skipThrowException = generator.DefineLabel();
 
-								generator.Emit(OpCodes.Ldarg_0);
+								 * generator.Emit(OpCodes.Ldarg_0);
 								generator.Emit(OpCodes.Ldfld, dataObjectField);
 								generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyInfo.Name]);
 								generator.Emit(OpCodes.Brfalse, skipThrowException);
@@ -1534,7 +1535,7 @@ namespace Shaolinq.TypeBuilding
 								generator.Emit(OpCodes.Throw);
 								generator.Emit(OpCodes.Ret);
 
-								generator.MarkLabel(skipThrowException);
+								generator.MarkLabel(skipThrowException);*/
 
 								generator.Emit(OpCodes.Ldarg_0);
 								generator.Emit(OpCodes.Ldfld, dataObjectField);
