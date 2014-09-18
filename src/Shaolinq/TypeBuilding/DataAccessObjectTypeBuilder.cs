@@ -1190,7 +1190,7 @@ namespace Shaolinq.TypeBuilding
 
 					// If (PrimaryKey && AutoIncrement)
 
-					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey) // && currentPropertyDescriptor.IsAutoIncrement)
+					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey && currentPropertyDescriptor.IsAutoIncrement)
 					{
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);

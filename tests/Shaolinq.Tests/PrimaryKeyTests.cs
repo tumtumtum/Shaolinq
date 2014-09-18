@@ -240,7 +240,8 @@ namespace Shaolinq.Tests
 			{
 				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Create();
 
-				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(obj1.Id));
+				// Can access non auto increment
+				Console.WriteLine(obj1.Id);
 				
 				obj1.Id = 1;
 				obj1.SecondaryKey = secondaryKey;
