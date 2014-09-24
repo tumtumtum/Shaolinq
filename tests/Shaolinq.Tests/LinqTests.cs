@@ -1230,5 +1230,37 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(1, this.model.Students.Count(c => c.Firstname == "Tum"));
 			}
 		}
+
+		[Test]
+		public void Test_Implicit_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						student in model.Students
+					where
+						student.Sex == Sex.Male &&
+						student.School.Name.EndsWith("School")
+					select
+						new
+						{
+							School = student.School,
+							MaleStudents = student
+						};
+
+				var studentsBySchool = query.ToLookup(x => x.School, x => x.MaleStudents);
+
+				Assert.That(studentsBySchool.Count, Is.EqualTo(2));
+
+				foreach (var schoolStudents in studentsBySchool)
+				{
+					foreach (var student in schoolStudents)
+					{
+						Assert.That(student.Sex, Is.EqualTo(Sex.Male));
+					}
+				}
+			}
+		}
 	}
 }
