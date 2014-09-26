@@ -9,11 +9,15 @@ using System.Reflection.Emit;
 using Shaolinq.Persistence;
 using Platform;
 using Platform.Reflection;
+ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.TypeBuilding
 {
 	public class DataAccessObjectTypeBuilder
 	{
+		private static readonly MethodInfo ObjectPropertyValueListAddMethod = typeof(List<ObjectPropertyValue>).GetMethod("Add");
+		
+
 		internal static readonly string ForceSetPrefix = "ForceSet";
 		internal static readonly string ObjectDataFieldName = "data";
 		internal static readonly string HasChangedSuffix = "Changed";
@@ -140,7 +144,7 @@ namespace Shaolinq.TypeBuilding
 							throw new InvalidDataAccessObjectModelDefinition("Type '{0}' defines a property '{1}' that is not declared as virtual or abstract", propertyInfo.Name, typeDescriptor.Type.Name);
 						}
 
-						BuildPersistedProperty(propertyInfo, null, pass);
+						BuildPersistedProperty(propertyInfo, pass);
 
 						if (pass == 1)
 						{
@@ -152,14 +156,20 @@ namespace Shaolinq.TypeBuilding
 					}
 					else if (persistedMemberAttribute != null && propertyInfo.PropertyType.IsDataAccessObjectType())
 					{
-						this.BuildRelatedObjectHelperProperty(propertyInfo, EntityRelationshipType.OneToOne, pass);
-						this.BuildForeignKeysValidProperty(propertyInfo, pass);
+						var propertyDescriptor = GetTypeDescriptor(this.baseType).GetPropertyDescriptorByPropertyName(propertyInfo.Name);
+
+						BuildPersistedProperty(propertyInfo, pass);
+
+						this.BuildForeignKeysValidProperty(propertyDescriptor, pass);
 						this.BuildRelatedObjectForeignKeysProperty(propertyInfo, pass);
 					}
 					else if (relatedObjectAttribute != null)
 					{
-						this.BuildRelatedObjectHelperProperty(propertyInfo, EntityRelationshipType.ChildOfOneToMany, pass);
-						this.BuildForeignKeysValidProperty(propertyInfo, pass);
+						var propertyDescriptor = GetTypeDescriptor(this.baseType).GetPropertyDescriptorByPropertyName(propertyInfo.Name);
+
+						BuildPersistedProperty(propertyInfo, pass);
+
+						this.BuildForeignKeysValidProperty(propertyDescriptor, pass);
 						this.BuildRelatedObjectForeignKeysProperty(propertyInfo, pass);
 					}
 					else if (relatedObjectsAttribute != null)
@@ -256,19 +266,20 @@ namespace Shaolinq.TypeBuilding
 		private void ImplementDataAccessObjectMethods()
 		{
 			this.BuildHasObjectChangedProperty();
-			this.BuildDataObjectProperty();
 			this.BuildKeyTypeProperty();
 			this.BuildPrimaryKeyIsCommitReadyProperty();
 			this.BuildNumberOfPrimaryKeysProperty();
 			this.BuildNumberOfIntegerAutoIncrementPrimaryKeysProperty();
-			this.BuildSetIntegerAutoIncrementValues();
 			this.BuildCompositeKeyTypesProperty();
 			this.BuildGetPrimaryKeysMethod();
+			this.BuildGetRelatedObjectPropertiesMethod();
 			this.BuildSetPrimaryKeysMethod();
+			this.BuildGetPrimaryKeysFlattenedMethod();
 			this.BuildResetModified();
 			this.BuildGetAllPropertiesMethod();
 			this.BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod();
 			this.BuildGetChangedPropertiesMethod();
+			this.BuildGetChangedPropertiesMethodFlattenedMethod();
 			this.BuildObjectStateProperty();
 			this.BuildDefinesAnyPropertiesGeneratedOnTheServerSide();
 			this.BuildSwapDataMethod();
@@ -280,8 +291,8 @@ namespace Shaolinq.TypeBuilding
 			this.BuildGetHashCodeMethod();
 			this.BuildEqualsMethod();
 			this.BuildIsMissingAnyAutoIncrementIntegerPrimaryKeyValues();
-			this.BuildSetPropertiesGeneratedOnTheServerSideValuesMethod();
-			this.BuildGetPropertiesGeneratedOnTheServerSidePropertyInfosMethod();
+			this.BuildSetPropertiesGeneratedOnTheServerSideMethod();
+			this.BuildGetPropertiesGeneratedOnTheServerSideMethod();
 
 			typeBuilder.CreateType();
 		}
@@ -390,137 +401,41 @@ namespace Shaolinq.TypeBuilding
 	
 		}
 
-		protected virtual void BuildSetIntegerAutoIncrementValues()
-		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPropertiesGeneratedOnTheServerSide");
-
-			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)).ToList();
-
-			var i = 0;
-
-			foreach (var propertyDescriptor in integerAutoIncrementProperties)
-			{
-				var propertyType = propertyDescriptor.PropertyType;
-				
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldarg_1);
-				generator.Emit(OpCodes.Ldc_I4, i);
-				generator.Emit(OpCodes.Ldelem, typeof(object));
-
-				if (propertyType.IsValueType)
-				{
-					generator.Emit(OpCodes.Unbox_Any, propertyType);
-				}
-
-				var prefix = "";
-
-				if (propertyDescriptor.IsPrimaryKey)
-				{
-					prefix = ForceSetPrefix;
-				}
-
-				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[prefix + propertyDescriptor.PropertyName].GetSetMethod());
-
-				i++;
-			}
-
-			generator.Emit(OpCodes.Ret);
-		}
-
-		private void BuildGetPropertiesGeneratedOnTheServerSidePropertyInfosMethod()
+		private void BuildGetPropertiesGeneratedOnTheServerSideMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPropertiesGeneratedOnTheServerSide");
 
-			var integerAutoIncrementProperties = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
+			var columnInfos = QueryBinder
+				.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, this.typeDescriptor, c => c.IsPropertyThatIsCreatedOnTheServerSide);
 
-			var arrayLocal = generator.DeclareLocal(typeof(PropertyInfo[]));
+			var arrayLocal = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
-			generator.Emit(OpCodes.Ldc_I4, integerAutoIncrementProperties.Count);
+			generator.Emit(OpCodes.Ldc_I4, columnInfos.Length);
 			generator.Emit(OpCodes.Newarr, typeof(PropertyInfo));
 			generator.Emit(OpCodes.Stloc, arrayLocal);
 
-			var i = 0;
+			var index = 0;
 
-			foreach (var propertyDescriptor in integerAutoIncrementProperties)
+			foreach (var columnInfoValue in columnInfos)
 			{
-				var fieldInfo = valueFields[propertyDescriptor.PropertyName];
+				var columnInfo = columnInfoValue;
+				var skipLabel = generator.DefineLabel();
 
-				// Load array reference and index
-				generator.Emit(OpCodes.Ldloc, arrayLocal);
-				generator.Emit(OpCodes.Ldc_I4, i);
+				EmitPropertyValue(generator, arrayLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++,
+					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, true));
 
-				// Load PropertyInfo
-				generator.Emit(OpCodes.Ldsfld, this.propertyInfoFields[propertyDescriptor.PropertyInfo.Name]);
-
-				// Store in array
-				generator.Emit(OpCodes.Stelem, typeof(PropertyInfo));
-
-				i++;
+				generator.MarkLabel(skipLabel);
 			}
 
 			generator.Emit(OpCodes.Ldloc, arrayLocal);
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildForeignKeysValidProperty(PropertyInfo propertyInfo, int pass)
-		{
-			PropertyBuilder propertyBuilder;
-			var propertyName = propertyInfo.Name + "ForeignKeysValid";
-			var propertyType = typeof(bool);
-
-			if (pass == 1)
-			{
-				propertyBuilder = typeBuilder.DefineProperty(propertyName, propertyInfo.Attributes, propertyType, null, null, null, null, null);
-
-				this.propertyBuilders[propertyName] = propertyBuilder;
-
-				const MethodAttributes methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Public;
-
-				var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName, methodAttributes, CallingConventions.Standard, propertyType, Type.EmptyTypes);
-
-				propertyBuilder.SetGetMethod(methodBuilder);
-
-				propertyBuilders[propertyInfo.Name + "ForeignKeysValid"] = propertyBuilder;
-			}
-			else
-			{
-				propertyBuilder = this.propertyBuilders[propertyName];
-				var propertyTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyInfo.PropertyType);
-
-				var methodBuilder = (MethodBuilder)propertyBuilder.GetGetMethod();
-
-				var generator = methodBuilder.GetILGenerator();
-
-				foreach (var propertyDescriptor in propertyTypeDescriptor.PrimaryKeyProperties)
-				{
-					var nextLabel = generator.DefineLabel();
-					var fieldInfo = valueFields[propertyInfo.Name + propertyDescriptor.PropertyInfo.Name];
-				
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, fieldInfo);
-
-					EmitDefaultValue(generator, fieldInfo.FieldType);
-					EmitCompareEquals(generator, fieldInfo.FieldType);
-
-					generator.Emit(OpCodes.Brfalse, nextLabel);
-					generator.Emit(OpCodes.Ldc_I4_0);
-					generator.Emit(OpCodes.Ret);
-
-					generator.MarkLabel(nextLabel);
-				}
-
-				// Return array
-				generator.Emit(OpCodes.Ldc_I4_1);
-				generator.Emit(OpCodes.Ret);
-			}
-		}
-
 		private void BuildRelatedObjectForeignKeysProperty(PropertyInfo propertyInfo, int pass)
 		{
 			PropertyBuilder propertyBuilder;
 			var propertyName = propertyInfo.Name + "ForeignKeys";
-			var propertyType = typeof(PropertyInfoAndValue[]);
+			var propertyType = typeof(ObjectPropertyValue[]);
 
 			if (pass == 1)
 			{
@@ -544,7 +459,7 @@ namespace Shaolinq.TypeBuilding
 				var generator = methodBuilder.GetILGenerator();
 
 				var count = propertyTypeDescriptor.PrimaryKeyProperties.Count();
-				var arrayLocal = generator.DeclareLocal(typeof(PropertyInfoAndValue[]));
+				var arrayLocal = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
 				generator.Emit(OpCodes.Ldc_I4, count);
 				generator.Emit(OpCodes.Newarr, arrayLocal.LocalType.GetElementType());
@@ -552,6 +467,7 @@ namespace Shaolinq.TypeBuilding
 
 				var i = 0;
 				
+				/*
 				foreach (var propertyDescriptor in propertyTypeDescriptor.PrimaryKeyProperties)
 				{
 					var fieldInfo = valueFields[propertyInfo.Name + propertyDescriptor.PropertyInfo.Name];
@@ -585,46 +501,18 @@ namespace Shaolinq.TypeBuilding
 					// Load the property name hashcode
 					generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.PropertyName.GetHashCode());
 
-					generator.Emit(OpCodes.Newobj, PropertyInfoAndValueConstructor);
+					generator.Emit(OpCodes.Newobj, ConstructorInfoFastRef.ObjectPropertyValueConstructor);
 
 					// Store in array
-					generator.Emit(OpCodes.Stelem, typeof(PropertyInfoAndValue));
+					generator.Emit(OpCodes.Stelem, typeof(ObjectPropertyValue));
 
 					i++;
-				}
+				}*/
 			
 				// Return array
 				generator.Emit(OpCodes.Ldloc, arrayLocal);
 				generator.Emit(OpCodes.Ret);
 			}
-		}
-
-		private void BuildRelatedObjectHelperProperty(PropertyInfo propertyInfo, EntityRelationshipType relationshipType, int pass)
-		{
-			PropertyBuilder propertyBuilder;
-			FieldBuilder currentFieldInDataObject; 
-			var propertyName = propertyInfo.Name + "RelationshipHelperProperty";
-			var propertyType = typeof(RelatedDataAccessObjects<>).MakeGenericType(propertyInfo.PropertyType);
-			
-			if (pass == 1)
-			{
-				propertyBuilder = typeBuilder.DefineProperty(propertyName, propertyInfo.Attributes, propertyType, null, null, null, null, null);
-
-				var attributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
-				currentFieldInDataObject = dataObjectTypeTypeBuilder.DefineField(propertyName, propertyType, FieldAttributes.Public);
-				currentFieldInDataObject.SetCustomAttribute(attributeBuilder);
-				this.propertyBuilders[propertyName] = propertyBuilder;
-				this.valueFields[propertyName] = currentFieldInDataObject;
-			}
-			else
-			{
-				propertyBuilder = this.propertyBuilders[propertyName];
-				currentFieldInDataObject = valueFields[propertyName];
-
-				propertyBuilder.SetGetMethod(BuildRelatedDataAccessObjectsMethod(propertyName, MethodAttributes.Public, CallingConventions.Standard, propertyType, typeBuilder, dataObjectField, currentFieldInDataObject, propertyType.GetConstructor(Type.EmptyTypes), relationshipType, propertyInfo));
-			}
-
-			BuildPersistedProperty(propertyInfo, propertyBuilder, pass);
 		}
 
 		private void BuildRelatedDataAccessObjectsProperty(PropertyInfo propertyInfo, int pass)
@@ -816,64 +704,13 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		private void BuildPersistedProperty(PropertyInfo propertyInfo, PropertyInfo relationshipProperty, int pass)
+		private void BuildPersistedProperty(PropertyInfo propertyInfo, int pass)
 		{
+			PropertyBuilder propertyBuilder;
 			FieldBuilder currentFieldInDataObject;
-
-			if (propertyInfo.PropertyType.IsDataAccessObjectType())
-			{
-				// For DataAccessObject property types we need to generate additional fields.
-				// One field for each primary key in the referenced property.
-
-				var propertyTypeTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyInfo.PropertyType);
-
-				foreach (var propertyDescriptor in propertyTypeTypeDescriptor.PrimaryKeyProperties)
-				{
-					var innerPropertyType = propertyDescriptor.PropertyType;
-					var name = propertyInfo.Name + propertyDescriptor.PersistedShortName;
-
-					PropertyBuilder relatedIdPropertyBuilder;
-					FieldBuilder relatedIdField, relatedValueIsSetFieldInDataObject;
-
-					if (pass == 1)
-					{
-						relatedIdField = dataObjectTypeTypeBuilder.DefineField(name, innerPropertyType, FieldAttributes.Public);
-						relatedIdFields[propertyInfo.Name + propertyDescriptor.PersistedShortName] = relatedIdField;
-
-						relatedValueIsSetFieldInDataObject = dataObjectTypeTypeBuilder.DefineField(name + "IsSet", typeof(bool), FieldAttributes.Public);
-						var relatedValueIsSetAttributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
-						relatedValueIsSetFieldInDataObject.SetCustomAttribute(relatedValueIsSetAttributeBuilder);
-						valueIsSetFields.Add(name, relatedValueIsSetFieldInDataObject);
-						valueFields[propertyInfo.Name + propertyDescriptor.PersistedShortName] = relatedIdField;
-
-						relatedIdPropertyBuilder = typeBuilder.DefineProperty(name, propertyDescriptor.PropertyInfo.Attributes, innerPropertyType, null, null, null, null, null);
-						propertyBuilders[name] = relatedIdPropertyBuilder;
-                        
-						// CreateDatabaseAndSchema PropertyInfo cache
-						var propertyInfoField = typeBuilder.DefineField("$$PropertyInfo_" + propertyInfo.Name + propertyDescriptor.PropertyName, typeof(PropertyInfo), FieldAttributes.Public | FieldAttributes.Static);
-						cctorGenerator.Emit(OpCodes.Ldtoken, propertyTypeTypeDescriptor.Type);
-						cctorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
-						cctorGenerator.Emit(OpCodes.Ldstr, propertyDescriptor.PropertyName);
-						cctorGenerator.Emit(OpCodes.Call, typeof(DataAccessObjectTypeBuilder).GetMethod("GetPropertyInfo", BindingFlags.Static | BindingFlags.Public));
-						cctorGenerator.Emit(OpCodes.Stsfld, propertyInfoField);
-
-						this.propertyInfoFields[propertyInfo.Name + propertyDescriptor.PropertyName] = propertyInfoField;
-					}
-					else
-					{
-						relatedIdField = relatedIdFields[propertyInfo.Name + propertyDescriptor.PersistedShortName];
-						relatedValueIsSetFieldInDataObject = valueIsSetFields[name];
-						relatedIdPropertyBuilder = propertyBuilders[name];
-					}
-
-					BuildPropertyMethod(PropertyMethodType.Set, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true, pass);
-					BuildPropertyMethod(PropertyMethodType.Get, relatedIdPropertyBuilder.Name, propertyDescriptor.PropertyInfo, relatedIdPropertyBuilder, relatedIdField, null, null, true, pass);
-				}
-			}
+			FieldBuilder valueChangedFieldInDataObject;
 
 			var propertyType = propertyInfo.PropertyType;
-			PropertyBuilder propertyBuilder;
-			FieldBuilder valueChangedFieldInDataObject, valueIsSetFieldInDataObject;
 
 			if (pass == 1)
 			{
@@ -886,7 +723,7 @@ namespace Shaolinq.TypeBuilding
 				var valueChangedAttributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
 				valueChangedFieldInDataObject.SetCustomAttribute(valueChangedAttributeBuilder);
 
-				valueIsSetFieldInDataObject = dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name + "IsSet", typeof(bool), FieldAttributes.Public);
+				var valueIsSetFieldInDataObject = dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name + "IsSet", typeof(bool), FieldAttributes.Public);
 				var valueIsSetAttributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
 				valueIsSetFieldInDataObject.SetCustomAttribute(valueIsSetAttributeBuilder);
 				valueIsSetFields.Add(propertyInfo.Name, valueIsSetFieldInDataObject);
@@ -899,25 +736,11 @@ namespace Shaolinq.TypeBuilding
 			{
 				currentFieldInDataObject = valueFields[propertyInfo.Name];
 				valueChangedFieldInDataObject = valueChangedFields[propertyInfo.Name];
-				valueIsSetFieldInDataObject = valueIsSetFields[propertyInfo.Name];
 				propertyBuilder = propertyBuilders[propertyInfo.Name];
 			}
             
-			if (pass == 1)
-			{
-				var propertyInfoField = typeBuilder.DefineField("$$PropertyInfo_" + propertyInfo.Name, typeof(PropertyInfo), FieldAttributes.Public | FieldAttributes.Static);
-				
-				cctorGenerator.Emit(OpCodes.Ldtoken, typeBuilder);
-				cctorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
-				cctorGenerator.Emit(OpCodes.Ldstr, propertyInfo.Name);
-				cctorGenerator.Emit(OpCodes.Call, typeof(DataAccessObjectTypeBuilder).GetMethod("GetPropertyInfo", BindingFlags.Static | BindingFlags.Public));
-				cctorGenerator.Emit(OpCodes.Stsfld, propertyInfoField);
-
-				this.propertyInfoFields[propertyInfo.Name] = propertyInfoField;
-			}
-
-			BuildPropertyMethod(PropertyMethodType.Set, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false, pass);
-			BuildPropertyMethod(PropertyMethodType.Get, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, relationshipProperty, false, pass);
+			BuildPropertyMethod(PropertyMethodType.Set, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, pass);
+			BuildPropertyMethod(PropertyMethodType.Get, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, pass);
 		}
 
 		public static readonly MethodInfo GenericStaticAreEqualMethod = typeof(DataAccessObjectTypeBuilder).GetMethod("AreEqual");
@@ -967,25 +790,21 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		/// <summary>
-		/// Builds the getter or setter method for a property.
-		/// </summary>
-		/// <param name="propertyMethodType">Either "get" or "set"</param>
-		/// <param name="propertyName">The name of the property to build (or null to use the propertyInfo name)</param>
-		/// <param name="propertyInfo">The property whose get or set method to build</param>
-		/// <param name="currentFieldInDataObject">The field inside the dataobject that stores the property's value</param>
-		/// <param name="valueChangedFieldInDataObject">The field inside the dataobject that stores whether the property has changed</param>
-		protected virtual void BuildPropertyMethod(PropertyMethodType propertyMethodType, string propertyName, PropertyInfo propertyInfo, PropertyBuilder propertyBuilder, FieldInfo currentFieldInDataObject, FieldInfo valueChangedFieldInDataObject, PropertyInfo relationshipProperty, bool isForiegnProperty, int pass)
+		protected virtual void BuildPropertyMethod(PropertyMethodType propertyMethodType, string propertyName, PropertyInfo propertyInfo, PropertyBuilder propertyBuilder, FieldInfo currentFieldInDataObject, FieldInfo valueChangedFieldInDataObject, int pass)
 		{
 			if (propertyName == null)
 			{
 				propertyName = propertyInfo.Name;
 			}
-			
+
 			Type returnType;
 			Type[] parameters;
 			MethodBuilder methodBuilder;
+			MethodBuilder forcePropertySetMethod = null;
 
+			var currentPropertyDescriptor = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName);
+			var shouldBuildForceMethods = currentPropertyDescriptor.IsAutoIncrement || currentPropertyDescriptor.IsPrimaryKey;
+			
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyInfo.GetGetMethod().Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 
 			switch (propertyMethodType)
@@ -1010,10 +829,19 @@ namespace Shaolinq.TypeBuilding
 				{
 					case PropertyMethodType.Get:
 						propertyBuilder.SetGetMethod(methodBuilder);
-						return;
+						break;
 					case PropertyMethodType.Set:
 						propertyBuilder.SetSetMethod(methodBuilder);
-						return;
+
+						if (shouldBuildForceMethods)
+						{
+							var forcePropertyBuilder = typeBuilder.DefineProperty(ForceSetPrefix + propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
+							forcePropertySetMethod = typeBuilder.DefineMethod("set_" + ForceSetPrefix + propertyInfo.Name, methodAttributes, returnType, parameters);
+
+							forcePropertyBuilder.SetSetMethod(forcePropertySetMethod);
+							propertyBuilders[ForceSetPrefix + propertyInfo.Name] = forcePropertyBuilder;
+						}
+						break;
 				}
 
 				return;
@@ -1024,9 +852,14 @@ namespace Shaolinq.TypeBuilding
 				{
 					case PropertyMethodType.Get:
 						methodBuilder = (MethodBuilder)propertyBuilder.GetGetMethod();
+						
 						break;
 					case PropertyMethodType.Set:
 						methodBuilder = (MethodBuilder)propertyBuilder.GetSetMethod();
+						if (shouldBuildForceMethods)
+						{
+							forcePropertySetMethod = (MethodBuilder)propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod();
+						}
 						break;
 					default:
 						return;
@@ -1035,32 +868,23 @@ namespace Shaolinq.TypeBuilding
 
 			var generator = methodBuilder.GetILGenerator();
 			var label = generator.DefineLabel();
-			var currentPropertyDescriptor = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName);
-
+			
 			switch (propertyMethodType)
 			{
 				case PropertyMethodType.Get:
-					generator.DeclareLocal(methodBuilder.ReturnType);
-
 					if (currentPropertyDescriptor == null || !currentPropertyDescriptor.IsPrimaryKey)
 					{
-						// If the object is not write only then just return the value
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("IsDeflatedReference", BindingFlags.Public | BindingFlags.Instance).GetGetMethod(true));
 						generator.Emit(OpCodes.Brfalse, label);
 
 						if (valueChangedFieldInDataObject != null)
 						{
-							// The object is write only so jump to return only if there is a value (value has changed)
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Ldfld, dataObjectField);
 							generator.Emit(OpCodes.Ldfld, valueChangedFieldInDataObject);
 							generator.Emit(OpCodes.Brtrue, label);
 
-							// Throw an exception
-							//generator.Emit(OpCodes.Ldarg_0);
-							//generator.Emit(OpCodes.Newobj, ConstructorInfoFastRef.WriteOnlyDataAccessObjectExceptionConstructor);
-							//generator.Emit(OpCodes.Throw);
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Callvirt, this.typeDescriptor.Type.GetMethod("Inflate", BindingFlags.Instance | BindingFlags.Public));
 						}
@@ -1068,117 +892,14 @@ namespace Shaolinq.TypeBuilding
 
 					generator.MarkLabel(label);
 
-					var returnLabel = generator.DefineLabel();
-
-					if (relationshipProperty != null)
-					{
-						var labelfrp = generator.DefineLabel();
-						var local = generator.DeclareLocal(propertyInfo.PropertyType);
-
-						// if (this.data.PropertyIsSet) return this.data.value
-
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyInfo.Name]);
-						generator.Emit(OpCodes.Brtrue, labelfrp);
-
-						// if (!ForeignKeysValid) return null;
-						var loadReferenceLabel = generator.DefineLabel();
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyName + "ForeignKeysValid"].GetGetMethod());
-						generator.Emit(OpCodes.Brtrue, loadReferenceLabel);
-
-						generator.Emit(OpCodes.Ldnull);
-						generator.Emit(OpCodes.Ret);
-
-						generator.MarkLabel(loadReferenceLabel);
-
-
-						var propertyTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyInfo.PropertyType);
-
-						foreach (var propertyDescriptor in propertyTypeDescriptor.PrimaryKeyProperties)
-						{
-							var nextForLoopLabel = generator.DefineLabel();
-
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyInfo.Name + propertyDescriptor.PersistedShortName]);
-							generator.Emit(OpCodes.Brtrue, nextForLoopLabel);
-							generator.Emit(OpCodes.Ldnull);
-							generator.Emit(OpCodes.Ret);
-							generator.MarkLabel(nextForLoopLabel);
-						}
-
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + "ForeignKeys"].GetGetMethod());
-						generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetReferenceByPrimaryKey", BindingFlags.Instance | BindingFlags.Public, null, new Type[] { typeof(PropertyInfoAndValue[]) }, null).MakeGenericMethod(propertyInfo.PropertyType));
-						generator.Emit(OpCodes.Castclass, local.LocalType);
-						generator.Emit(OpCodes.Stloc, local);
-
-						// this.data.Property = local
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldloc, local);
-						generator.Emit(OpCodes.Stfld, valueFields[propertyInfo.Name]);
-
-						// this.PropertyIsSet = true
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldc_I4_1);
-						generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyInfo.Name]);
-
-						// return local
-						generator.Emit(OpCodes.Ldloc, local);
-						generator.Emit(OpCodes.Ret);
-
-						generator.MarkLabel(labelfrp);
-					}
-
-					if (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IList<>))
-					{
-						var elementType = propertyInfo.PropertyType.GetGenericArguments()[0];
-
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-						generator.Emit(OpCodes.Brtrue, returnLabel);
-
-						// CreateDatabaseAndSchema a new ShaolinqList and store in field
-
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Newobj, typeof(ShaolinqList<>).MakeGenericType(elementType).GetConstructor(Type.EmptyTypes));
-						generator.Emit(OpCodes.Stfld, currentFieldInDataObject);
-					}
-					else if (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
-					{
-						var keyType = propertyInfo.PropertyType.GetGenericArguments()[0];
-						var valueType = propertyInfo.PropertyType.GetGenericArguments()[1];
-
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-						generator.Emit(OpCodes.Brtrue, returnLabel);
-
-						// CreateDatabaseAndSchema a new ShaolinqList and store in field
-
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Newobj, typeof(ShoalinqDictionary<,>).MakeGenericType(keyType, valueType).GetConstructor(Type.EmptyTypes));
-						generator.Emit(OpCodes.Stfld, currentFieldInDataObject);
-					}
-
-					generator.MarkLabel(returnLabel);
-
-					var pd = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyInfo.Name);
+					var propertyDescriptor = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyInfo.Name);
 
 					var loadAndReturnLabel = generator.DefineLabel();
 
-					if (pd.IsComputedTextMember)
+					if (propertyDescriptor.IsComputedTextMember)
 					{
 						// if (!this.data.PropertyIsSet)
+
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
 						generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyInfo.Name]);
@@ -1214,11 +935,17 @@ namespace Shaolinq.TypeBuilding
 
 					break;
 				case PropertyMethodType.Set:
+					if (currentPropertyDescriptor.DeclaringTypeDescriptor.TypeName == "Student")
+					{
+						Console.WriteLine();
+					}
+
 					ILGenerator privateGenerator;
 					var continueLabel = generator.DefineLabel();
 					var notDeletedLabel = generator.DefineLabel();
 
 					// Throw if object has been deleted
+
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, dataObjectField);
 					generator.Emit(OpCodes.Ldfld, partialObjectStateField);
@@ -1264,116 +991,17 @@ namespace Shaolinq.TypeBuilding
 							|| unwrappedNullableType == typeof(decimal))
 							|| unwrappedNullableType.IsDataAccessObjectType())
 					{
-						if (!isForiegnProperty && propertyBuilder.PropertyType.IsDataAccessObjectType())
-						{
-							var innerLabel = generator.DefineLabel();
-							var outerLabel = generator.DefineLabel();
-							var hasChangedLocal = generator.DeclareLocal(typeof(bool));
+						// Load the new  value
+						generator.Emit(OpCodes.Ldarg_1);
 
-							generator.Emit(OpCodes.Ldc_I4_0);
-							generator.Emit(OpCodes.Stloc, hasChangedLocal);
+						// Load the old value
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Ldfld, dataObjectField);
+						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
 
-							Debug.Assert(currentFieldInDataObject.FieldType.IsClass);
-
-							// if (this.data.PropertyValue == null) skip
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-							generator.Emit(OpCodes.Brfalse, outerLabel);
-
-							// if (this.data.PropertyValue.IsNew) skip
-
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-							generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalIsNewProperty.GetGetMethod());
-							generator.Emit(OpCodes.Brtrue, outerLabel);
-
-							var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[propertyBuilder.PropertyType];
-
-							foreach (var referencedPropertyDescriptor in referencedTypeBuilder.typeDescriptor.PrimaryKeyProperties)
-							{
-								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
-								var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
-								var referencedObjectValueField = referencedTypeBuilder.valueFields[referencedPropertyDescriptor.PropertyName];
-
-								Debug.Assert(referencedValueField.FieldType == referencedObjectValueField.FieldType);
-
-								// if (this.data.PropertyValueId != this.data.PropertyValue.Id)
-
-								// Load this.data.PropertyValueId
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldfld, referencedValueField);
-
-								// Load this.data.PropertyValue
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-
-								// Load this.data.PropertyValue.Id
-								generator.Emit(OpCodes.Ldfld, referencedObjectDataField);
-								generator.Emit(OpCodes.Ldfld, referencedObjectValueField);
-
-								EmitCompareEquals(generator, referencedValueField.FieldType);
-
-								generator.Emit(OpCodes.Brfalse, innerLabel);
-
-								// if (value != null && this.data.PropertyValueId != value.Id)
-
-								if (!propertyInfo.PropertyType.IsValueType)
-								{
-									generator.Emit(OpCodes.Ldarg_1);
-									generator.Emit(OpCodes.Brfalse, innerLabel);
-								}
-
-								if (referencedPropertyDescriptor.IsAutoIncrement && referencedPropertyDescriptor.PropertyType.NonNullableType() != typeof(Guid))
-								{
-									// Don't access value.data.Id unless it's set (it's ok if it's a Guid cause they are created on first access)
-
-									generator.Emit(OpCodes.Ldarg_1);
-									generator.Emit(OpCodes.Ldfld, referencedObjectDataField);
-									generator.Emit(OpCodes.Ldfld, referencedTypeBuilder.valueIsSetFields[referencedPropertyDescriptor.PropertyName]);
-									generator.Emit(OpCodes.Brfalse, innerLabel);
-								}
-
-								// Load this.data.PropertyValueId
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldfld, referencedValueField);
-
-								// Load value.PropertyValue
-								generator.Emit(OpCodes.Ldarg_1);
-								generator.Emit(OpCodes.Callvirt, referencedPropertyDescriptor.PropertyInfo.GetGetMethod());
-
-								EmitCompareEquals(generator, referencedValueField.FieldType);
-
-								generator.Emit(OpCodes.Brfalse, innerLabel);
-
-
-								generator.Emit(OpCodes.Ldc_I4_1);
-								generator.Emit(OpCodes.Stloc, hasChangedLocal);
-
-								generator.MarkLabel(innerLabel);
-							}
-
-							generator.MarkLabel(outerLabel);
-							generator.Emit(OpCodes.Ldloc, hasChangedLocal);
-						}
-						else
-						{
-							// Load the new  value
-							generator.Emit(OpCodes.Ldarg_1);
-
-							// Load the old value
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-
-							// Compare and load true or false
-							EmitCompareEquals(generator, propertyBuilder.PropertyType);
-						}
-
+						// Compare and load true or false
+						EmitCompareEquals(generator, propertyBuilder.PropertyType);
+					
 						generator.Emit(OpCodes.Brfalse, continueLabel);
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -1387,198 +1015,104 @@ namespace Shaolinq.TypeBuilding
 
 					generator.MarkLabel(continueLabel);
 
-					var storeInField = true;
-
-					if (!isForiegnProperty)
+					if (shouldBuildForceMethods)
 					{
-						if (propertyBuilder.PropertyType.IsGenericType && propertyBuilder.PropertyType.GetGenericTypeDefinition() == typeof(IList<>))
+						if (currentPropertyDescriptor.DeclaringTypeDescriptor.TypeName == "Student")
 						{
-							var elementType = currentPropertyDescriptor.PropertyType.GetGenericArguments()[0];
-							var smartListType = typeof(ShaolinqList<>).MakeGenericType(elementType);
-
-							var privatelabel1 = generator.DefineLabel();
-							var privatelabel2 = generator.DefineLabel();
-
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Isinst, smartListType);
-							generator.Emit(OpCodes.Brfalse, privatelabel1);
-
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Stfld, currentFieldInDataObject);
-							generator.Emit(OpCodes.Br, privatelabel2);
-
-							generator.MarkLabel(privatelabel1);
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Newobj, smartListType.GetConstructor(new[] { currentPropertyDescriptor.PropertyType }));
-							generator.Emit(OpCodes.Stfld, currentFieldInDataObject);
-							generator.MarkLabel(privatelabel2);
-
-							storeInField = false;
-
-							privateGenerator = generator;
+							Console.WriteLine();
 						}
-						else if (propertyBuilder.PropertyType.IsGenericType && propertyBuilder.PropertyType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+
+						var skip1 = generator.DefineLabel();
+						var skip2 = generator.DefineLabel();
+
+						privateGenerator = forcePropertySetMethod.GetILGenerator();
+						
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("IsTransient").GetGetMethod());
+						generator.Emit(OpCodes.Brfalse, skip1);
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Ldarg_1);
+						generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetMethod("ComputeServerGeneratedIdDependentComputedTextProperties"));
+						generator.Emit(OpCodes.Pop);
+						generator.Emit(OpCodes.Ret);
+
+						generator.MarkLabel(skip1);
+
+						if (!currentPropertyDescriptor.IsAutoIncrement)
 						{
-							var keyType = currentPropertyDescriptor.PropertyType.GetGenericArguments()[0];
-							var valueType = currentPropertyDescriptor.PropertyType.GetGenericArguments()[1];
-							var smartDictionaryType = typeof(ShoalinqDictionary<,>).MakeGenericType(keyType, valueType);
-
-							var privatelabel1 = generator.DefineLabel();
-							var privatelabel2 = generator.DefineLabel();
-
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Isinst, smartDictionaryType);
-							generator.Emit(OpCodes.Brfalse, privatelabel1);
+							var skipCachingObjectLabel = generator.DefineLabel();
 
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Stfld, currentFieldInDataObject);
-							generator.Emit(OpCodes.Br, privatelabel2);
-
-							generator.MarkLabel(privatelabel1);
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, dataObjectField);
-							generator.Emit(OpCodes.Ldarg_1);
-							generator.Emit(OpCodes.Newobj, ShoalinqDictionary.GetCopyConstructor(keyType, valueType));
-							generator.Emit(OpCodes.Stfld, currentFieldInDataObject);
-							generator.MarkLabel(privatelabel2);
-
-							storeInField = false;
-
-							privateGenerator = generator;
-						}
-						else if (currentPropertyDescriptor.IsAutoIncrement || currentPropertyDescriptor.IsPrimaryKey)
-						{
-							var skip1 = generator.DefineLabel();
-							var skip2 = generator.DefineLabel();
-
-							var propertyBuilder2 = typeBuilder.DefineProperty(ForceSetPrefix + propertyInfo.Name, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
-							var privateSetMethodBuilder = typeBuilder.DefineMethod("set_" + ForceSetPrefix + propertyInfo.Name, methodAttributes, returnType, parameters);
-
-							propertyBuilder2.SetSetMethod(privateSetMethodBuilder);
-							privateGenerator = privateSetMethodBuilder.GetILGenerator();
-							propertyBuilders[ForceSetPrefix + propertyInfo.Name] = propertyBuilder2;
-
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("IsTransient").GetGetMethod());
-							generator.Emit(OpCodes.Brfalse, skip1);
+							generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
+							generator.Emit(OpCodes.Brtrue, skip2);
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Ldarg_1);
 							generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
 							generator.Emit(OpCodes.Ldarg_0);
 							generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetMethod("ComputeServerGeneratedIdDependentComputedTextProperties"));
 							generator.Emit(OpCodes.Pop);
+
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("PrimaryKeyIsCommitReady").GetGetMethod());
+							generator.Emit(OpCodes.Brfalse, skipCachingObjectLabel);
+
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Callvirt, typeDescriptor.Type.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
+
+							generator.Emit(OpCodes.Ldc_I4_0);
+							generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetCurrentDataContext", BindingFlags.Public | BindingFlags.Instance));
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldc_I4_0);
+							generator.Emit(OpCodes.Callvirt, typeof(DataAccessObjectDataContext).GetMethod("CacheObject", BindingFlags.Public | BindingFlags.Instance));
+							generator.Emit(OpCodes.Pop);
+
+							generator.MarkLabel(skipCachingObjectLabel);
+
 							generator.Emit(OpCodes.Ret);
+						}
 
-							generator.MarkLabel(skip1);
+						generator.MarkLabel(skip2);
 
-							if (!currentPropertyDescriptor.IsAutoIncrement)
-							{
-								var skipCachingObjectLabel = generator.DefineLabel();
+						if (currentPropertyDescriptor.IsAutoIncrement && currentPropertyDescriptor.IsPrimaryKey)
+						{
+							generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
+							generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
+							generator.Emit(OpCodes.Throw);
+							generator.Emit(OpCodes.Ret);
+						}
+						else if (currentPropertyDescriptor.IsPrimaryKey)
+						{
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldfld, dataObjectField);
+							generator.Emit(OpCodes.Ldarg_1);
+							generator.Emit(OpCodes.Stfld, valueFields[propertyName]);
 
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
-								generator.Emit(OpCodes.Brtrue, skip2);
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldarg_1);
-								generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyName].GetSetMethod());
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetMethod("ComputeServerGeneratedIdDependentComputedTextProperties"));
-								generator.Emit(OpCodes.Pop);
-
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("PrimaryKeyIsCommitReady").GetGetMethod());
-								generator.Emit(OpCodes.Brfalse, skipCachingObjectLabel);
-
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Callvirt, typeDescriptor.Type.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
-
-								generator.Emit(OpCodes.Ldc_I4_0);
-								generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetCurrentDataContext", BindingFlags.Public | BindingFlags.Instance));
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldc_I4_0);
-								generator.Emit(OpCodes.Callvirt, typeof(DataAccessObjectDataContext).GetMethod("CacheObject", BindingFlags.Public | BindingFlags.Instance));
-								generator.Emit(OpCodes.Pop);
-
-								generator.MarkLabel(skipCachingObjectLabel);
-
-								generator.Emit(OpCodes.Ret);
-							}
-
-							generator.MarkLabel(skip2);
-
-							if (currentPropertyDescriptor.IsAutoIncrement && currentPropertyDescriptor.IsPrimaryKey)
-							{
-								generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
-								generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
-								generator.Emit(OpCodes.Throw);
-								generator.Emit(OpCodes.Ret);
-							}
-							else if (currentPropertyDescriptor.IsPrimaryKey)
-							{
-								/*
-								var skipThrowException = generator.DefineLabel();
-
-								 * generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyInfo.Name]);
-								generator.Emit(OpCodes.Brfalse, skipThrowException);
-
-								generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
-								generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
-								generator.Emit(OpCodes.Throw);
-								generator.Emit(OpCodes.Ret);
-
-								generator.MarkLabel(skipThrowException);*/
-
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldarg_1);
-								generator.Emit(OpCodes.Stfld, valueFields[propertyName]);
-
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldc_I4_1);
-								generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
-								generator.Emit(OpCodes.Ret);
-							}
-							else
-							{
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldarg_1);
-								generator.Emit(OpCodes.Stfld, valueFields[propertyName]);
-
-								generator.Emit(OpCodes.Ldarg_0);
-								generator.Emit(OpCodes.Ldfld, dataObjectField);
-								generator.Emit(OpCodes.Ldc_I4_1);
-								generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
-								generator.Emit(OpCodes.Ret);
-							}
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldfld, dataObjectField);
+							generator.Emit(OpCodes.Ldc_I4_1);
+							generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
+							generator.Emit(OpCodes.Ret);
 						}
 						else
 						{
-							privateGenerator = generator;
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldfld, dataObjectField);
+							generator.Emit(OpCodes.Ldarg_1);
+							generator.Emit(OpCodes.Stfld, valueFields[propertyName]);
+
+							generator.Emit(OpCodes.Ldarg_0);
+							generator.Emit(OpCodes.Ldfld, dataObjectField);
+							generator.Emit(OpCodes.Ldc_I4_1);
+							generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
+							generator.Emit(OpCodes.Ret);
 						}
 					}
 					else
 					{
 						privateGenerator = generator;
-					}
-
-					if (storeInField)
-					{
-						// Store value in field
-						privateGenerator.Emit(OpCodes.Ldarg_0);
-						privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
-						privateGenerator.Emit(OpCodes.Ldarg_1);
-						privateGenerator.Emit(OpCodes.Stfld, currentFieldInDataObject);
 					}
 
 					if (valueChangedFieldInDataObject != null)
@@ -1602,69 +1136,11 @@ namespace Shaolinq.TypeBuilding
 					privateGenerator.Emit(OpCodes.Ldc_I4_1);
 					privateGenerator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
 
-					var computeLabel = privateGenerator.DefineLabel();
-					var isNullLabel = privateGenerator.DefineLabel();
-
-					if (propertyInfo.PropertyType.IsDataAccessObjectType())
-					{
-
-						if (!propertyInfo.PropertyType.IsValueType)
-						{
-							privateGenerator.Emit(OpCodes.Ldarg_1);
-							privateGenerator.Emit(OpCodes.Brfalse, isNullLabel);
-						}
-
-						var innerTypeDescriptor = TypeDescriptorProvider.GetProvider(this.AssemblyBuildContext.SourceAssembly).GetTypeDescriptor(propertyBuilder.PropertyType);
-						var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[propertyBuilder.PropertyType];
-
-						foreach (var propertyDescriptor in innerTypeDescriptor.PrimaryKeyProperties)
-						{
-							var setToNullLabel = privateGenerator.DefineLabel();
-							var nextPropertyLabel = privateGenerator.DefineLabel();
-							var name = propertyInfo.Name + propertyDescriptor.PersistedShortName;
-							var relatedIdField = relatedIdFields[name];
-
-							if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.NonNullableType() != typeof(Guid))
-							{
-								var referencedValueField = this.relatedIdFields[currentPropertyDescriptor.PropertyName + propertyDescriptor.PersistedShortName];
-								var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
-								var referencedObjectValueIsSetField = referencedTypeBuilder.valueIsSetFields[propertyDescriptor.PropertyName];
-
-								privateGenerator.Emit(OpCodes.Ldarg_1);
-								privateGenerator.Emit(OpCodes.Ldfld, referencedObjectDataField);
-								privateGenerator.Emit(OpCodes.Ldfld, referencedObjectValueIsSetField);
-								privateGenerator.Emit(OpCodes.Brfalse, setToNullLabel);
-							}
-
-							privateGenerator.Emit(OpCodes.Ldarg_0);
-							privateGenerator.Emit(OpCodes.Ldarg_1);
-							privateGenerator.Emit(OpCodes.Callvirt, propertyDescriptor.PropertyInfo.GetGetMethod());
-							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
-							privateGenerator.Emit(OpCodes.Br, nextPropertyLabel);
-
-							privateGenerator.MarkLabel(setToNullLabel);
-
-							privateGenerator.Emit(OpCodes.Ldarg_0);
-							this.GenerateNullOrDefault(privateGenerator, propertyDescriptor.PropertyType);
-							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
-
-							privateGenerator.MarkLabel(nextPropertyLabel);
-						}
-
-						privateGenerator.Emit(OpCodes.Br, computeLabel);
-						privateGenerator.MarkLabel(isNullLabel);
-
-						foreach (var propertyDescriptor in innerTypeDescriptor.PrimaryKeyProperties)
-						{
-							privateGenerator.Emit(OpCodes.Ldarg_0);
-
-							this.GenerateNullOrDefault(privateGenerator, propertyDescriptor.PropertyType);
-
-							privateGenerator.Emit(OpCodes.Callvirt, propertyBuilders[propertyInfo.Name + propertyDescriptor.PersistedShortName].GetSetMethod());
-						}
-
-						privateGenerator.MarkLabel(computeLabel);
-					}
+					// Set the value field
+					privateGenerator.Emit(OpCodes.Ldarg_0);
+					privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
+					privateGenerator.Emit(OpCodes.Ldarg_1);
+					privateGenerator.Emit(OpCodes.Stfld, valueFields[propertyName]);
 
 					EmitUpdatedComputedPropertes(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
 
@@ -1674,7 +1150,7 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		private void GenerateNullOrDefault(ILGenerator generator, Type type)
+		public static void GenerateNullOrDefault(ILGenerator generator, Type type)
 		{
 			if (type.IsValueType)
 			{
@@ -1769,68 +1245,10 @@ namespace Shaolinq.TypeBuilding
 				
 				generator.MarkLabel(jumpTable[i]);
 
-				if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(IList<>))
-				{
-					var retlabel = generator.DefineLabel();
-					var elementType = property.PropertyType.GetGenericArguments()[0];
-					var smartListType = typeof(ShaolinqList<>).MakeGenericType(elementType);
-
-					generator.Emit(OpCodes.Ldc_I4_0);
-					generator.Emit(OpCodes.Stloc, local);
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueFields[property.PropertyName]);
-					generator.Emit(OpCodes.Castclass, smartListType);
-					generator.Emit(OpCodes.Callvirt, ShaolinqList.GetChangedProperty(elementType).GetGetMethod());
-					generator.Emit(OpCodes.Stloc, local);
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Brtrue, retlabel);
-					
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueChangedFields[property.PropertyName]);
-					generator.Emit(OpCodes.Stloc, local);
-
-					generator.MarkLabel(retlabel);
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Ret);
-				}
-				else if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
-				{
-					var retlabel = generator.DefineLabel();
-					var keyType = property.PropertyType.GetGenericArguments()[0];
-					var valueType = property.PropertyType.GetGenericArguments()[1];
-					var smartDictionaryType = typeof(ShoalinqDictionary<,>).MakeGenericType(keyType, valueType);
-
-					generator.Emit(OpCodes.Ldc_I4_0);
-					generator.Emit(OpCodes.Stloc, local);
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueFields[property.PropertyName]);
-					generator.Emit(OpCodes.Castclass, smartDictionaryType);
-					generator.Emit(OpCodes.Callvirt, ShoalinqDictionary.GetChangedProperty(keyType, valueType).GetGetMethod());
-					generator.Emit(OpCodes.Stloc, local);
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Brtrue, retlabel);
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueChangedFields[property.PropertyName]);
-					generator.Emit(OpCodes.Stloc, local);
-
-					generator.MarkLabel(retlabel);
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Ret);
-				}
-				else
-				{
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueChangedFields[property.PropertyName]);
-					generator.Emit(OpCodes.Ret);
-				}
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, dataObjectField);
+				generator.Emit(OpCodes.Ldfld, valueChangedFields[property.PropertyName]);
+				generator.Emit(OpCodes.Ret);
 			}
 
 			generator.MarkLabel(exceptionLabel);
@@ -1860,12 +1278,12 @@ namespace Shaolinq.TypeBuilding
 				// Load array value
 				generator.Emit(OpCodes.Ldarg_1);
 				generator.Emit(OpCodes.Ldc_I4, i);
-				generator.Emit(OpCodes.Ldelema, typeof(PropertyInfoAndValue));
+				generator.Emit(OpCodes.Ldelema, typeof(ObjectPropertyValue));
 
-				generator.Emit(OpCodes.Ldobj, typeof(PropertyInfoAndValue));
+				generator.Emit(OpCodes.Ldobj, typeof(ObjectPropertyValue));
 
 				// Get the "value" field
-				generator.Emit(OpCodes.Ldfld, FieldInfoFastRef.PropertyInfoAndValueValueField);
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.ObjectPropertyValueValueProperty.GetGetMethod());
 
 				var propertyName = ForceSetPrefix + propertyDescriptor.PropertyName;
 
@@ -1884,65 +1302,6 @@ namespace Shaolinq.TypeBuilding
 				i++;
 			}
 
-			generator.Emit(OpCodes.Ret);
-		}
-
-		protected virtual void BuildGetPrimaryKeysMethod()
-		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPrimaryKeys");
-
-			var count = typeDescriptor.PrimaryKeyProperties.Count();
-			var arrayLocal = generator.DeclareLocal(typeof(PropertyInfoAndValue[]));
-			
-			generator.Emit(OpCodes.Ldc_I4, count);
-			generator.Emit(OpCodes.Newarr, arrayLocal.LocalType.GetElementType());
-			generator.Emit(OpCodes.Stloc, arrayLocal);
-            
-			var i = 0;
-
-			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties)
-			{
-				var fieldInfo = valueFields[propertyDescriptor.PropertyInfo.Name];
-
-				// Load array reference and index
-				generator.Emit(OpCodes.Ldloc, arrayLocal);
-				generator.Emit(OpCodes.Ldc_I4, i);
-
-				// Load PropertyInfo
-                generator.Emit(OpCodes.Ldsfld, this.propertyInfoFields[propertyDescriptor.PropertyInfo.Name]);
-				
-				// Load property value
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, dataObjectField);
-				generator.Emit(OpCodes.Ldfld, fieldInfo);
-
-				if (fieldInfo.FieldType.IsValueType)
-				{
-					generator.Emit(OpCodes.Box, fieldInfo.FieldType);
-				}
-				
-				// Load property name
-				generator.Emit(OpCodes.Ldstr, String.Intern(propertyDescriptor.PropertyInfo.Name));
-                
-				// Load persisted name
-				generator.Emit(OpCodes.Ldstr, String.Intern(propertyDescriptor.PersistedName));
-
-				// Load is synthetic
-				generator.Emit(OpCodes.Ldc_I4_0);
-
-				// Load the property name hashcode
-				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.PropertyName.GetHashCode());
-
-				generator.Emit(OpCodes.Newobj, PropertyInfoAndValueConstructor);
-
-				// Store in array
-				generator.Emit(OpCodes.Stelem, typeof(PropertyInfoAndValue));
-
-				i++;
-			}
-
-			// Return array
-			generator.Emit(OpCodes.Ldloc, arrayLocal);
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2030,59 +1389,6 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("HasObjectChanged");
             
-			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties)
-			{
-				if (propertyDescriptor.PropertyType.IsGenericType && propertyDescriptor.PropertyType.GetGenericTypeDefinition() == typeof(IList<>))
-				{
-					var nextLabel = generator.DefineLabel();
-					var elementType = propertyDescriptor.PropertyType.GetGenericArguments()[0];
-					var smartListType = typeof(ShaolinqList<>).MakeGenericType(elementType);
-					var field = valueFields[propertyDescriptor.PropertyName];
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, field);
-					generator.Emit(OpCodes.Brfalse, nextLabel);
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, field);
-					generator.Emit(OpCodes.Castclass, smartListType);
-					generator.Emit(OpCodes.Callvirt, ShaolinqList.GetChangedProperty(elementType).GetGetMethod());
-					generator.Emit(OpCodes.Brfalse, nextLabel);
-
-					generator.Emit(OpCodes.Ldc_I4_1);
-					generator.Emit(OpCodes.Ret);
-
-					generator.MarkLabel(nextLabel);
-				}
-				else if (propertyDescriptor.PropertyType.IsGenericType && propertyDescriptor.PropertyType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
-				{
-					var nextLabel = generator.DefineLabel();
-					var keyType = propertyDescriptor.PropertyType.GetGenericArguments()[0];
-					var valueType = propertyDescriptor.PropertyType.GetGenericArguments()[1];
-					var smartListType = typeof(ShoalinqDictionary<,>).MakeGenericType(keyType, valueType);
-					var field = valueFields[propertyDescriptor.PropertyName];
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, field);
-					generator.Emit(OpCodes.Brfalse, nextLabel);
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, field);
-					generator.Emit(OpCodes.Castclass, smartListType);
-					generator.Emit(OpCodes.Callvirt, ShoalinqDictionary.GetChangedProperty(keyType, valueType).GetGetMethod());
-					generator.Emit(OpCodes.Brfalse, nextLabel);
-
-					generator.Emit(OpCodes.Ldc_I4_1);
-					generator.Emit(OpCodes.Ret);
-
-					generator.MarkLabel(nextLabel);
-				}
-			}
-
 			// Get and return changed field
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -2150,54 +1456,116 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildSetPropertiesGeneratedOnTheServerSideValuesMethod()
+		protected virtual void BuildSetPropertiesGeneratedOnTheServerSideMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPropertiesGeneratedOnTheServerSideValues");
-
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPropertiesGeneratedOnTheServerSide");
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Filter(c => c.IsPropertyThatIsCreatedOnTheServerSide))
+			if (this.typeDescriptor.TypeName == "ObjectWithCompositePrimaryKey")
 			{
-				var valueField = valueFields[propertyDescriptor.PropertyName];
+				Console.WriteLine();
+			}
+
+			var primaryKeyColumnInfos = QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, this.typeDescriptor, c => c.IsPropertyThatIsCreatedOnTheServerSide);
+
+			var primaryKeysByParent = primaryKeyColumnInfos
+				.GroupBy(c => c.VisitedProperties, ArrayEqualityComparer<PropertyDescriptor>.Default)
+				.OrderBy(c => c.Key.Length);
+
+			foreach (var grouping in primaryKeysByParent)
+			{
+				var justThis = true;
+				var visitedProperties = grouping.Key;
+				var lastType = this.typeDescriptor.Type;
 
 				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				
-				// Convert.ChangeType(value, typeof(PropertyType))
-				generator.Emit(OpCodes.Ldarg_1);
-				generator.Emit(OpCodes.Ldc_I4, index);
-				generator.Emit(OpCodes.Ldelem);
-				generator.Emit(OpCodes.Ldtoken, propertyDescriptor.PropertyType);
-				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
-				generator.Emit(OpCodes.Call, MethodInfoFastRef.ConvertChangeTypeMethod);
-
-				if (propertyDescriptor.PropertyType.IsValueType)
+				foreach (var visited in visitedProperties
+					.Select(c => new Tuple<PropertyInfo, string>(c.PropertyInfo, c.PropertyName)))
 				{
-					generator.Emit(OpCodes.Unbox_Any, propertyDescriptor.PropertyType);
+					justThis = false;
+
+					var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[visited.Item1.ReflectedType];
+					var property = referencedTypeBuilder.propertyBuilders[visited.Item2];
+					
+					generator.Emit(OpCodes.Callvirt, property.GetGetMethod());
+					lastType = property.PropertyType;
+				}
+
+				var nextLoopLabel = generator.DefineLabel();
+				var createNewLabel = generator.DefineLabel();
+				var value = generator.DeclareLocal(lastType);
+
+				generator.Emit(OpCodes.Stloc, value);
+
+				if (!justThis)
+				{
+					generator.Emit(OpCodes.Ldloc, value);
+					generator.Emit(OpCodes.Brfalse, createNewLabel);
+					generator.Emit(OpCodes.Ldloc, value);
+				}
+
+				foreach (var columnInfo in grouping)
+				{
+					var currentTypeBuilder = this.AssemblyBuildContext.TypeBuilders[lastType];
+					var property = currentTypeBuilder.propertyBuilders[ForceSetPrefix + columnInfo.DefinitionProperty.PropertyName];
+
+					generator.Emit(OpCodes.Ldloc, value);
+
+					generator.Emit(OpCodes.Ldarg_1);
+					generator.Emit(OpCodes.Ldc_I4, index);
+					generator.Emit(OpCodes.Ldelem, typeof(object));
+
+					generator.Emit(OpCodes.Ldtoken, columnInfo.DefinitionProperty.PropertyType);
+					generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+					generator.Emit(OpCodes.Call, MethodInfoFastRef.ConvertChangeTypeMethod);
+
+					if (columnInfo.DefinitionProperty.PropertyType.IsValueType)
+					{
+						generator.Emit(OpCodes.Unbox_Any, columnInfo.DefinitionProperty.PropertyType);
+					}
+					else
+					{
+						generator.Emit(OpCodes.Castclass, columnInfo.DefinitionProperty.PropertyType);
+					}
+
+					generator.Emit(OpCodes.Callvirt, property.GetSetMethod());
+				}
+
+				generator.Emit(OpCodes.Br, nextLoopLabel);
+				generator.MarkLabel(createNewLabel);
+
+
+				generator.MarkLabel(nextLoopLabel);
+
+				/*
+				if (columnInfo.DefinitionProperty.PropertyType.IsValueType)
+				{
+					generator.Emit(OpCodes.Unbox_Any, columnInfo.DefinitionProperty.PropertyType);
 				}
 				else
 				{
-					generator.Emit(OpCodes.Castclass, propertyDescriptor.PropertyType);
+					generator.Emit(OpCodes.Castclass, columnInfo.DefinitionProperty.PropertyType);
 				}
 
 				// this.Id = Convert.ChangeType(value, typeof(PropertyType))
 				generator.Emit(OpCodes.Stfld, valueField);
 
-				// this.IdModified = true
+				// this.IsModified = true
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldc_I4_1);
-				generator.Emit(OpCodes.Stfld, valueChangedFields[propertyDescriptor.PropertyName]);
+				generator.Emit(OpCodes.Stfld, valueChangedFields[columnInfo.DefinitionProperty.PropertyName]);
 
 				// this.IsSet = true
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldc_I4_1);
-				generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyDescriptor.PropertyName]);
+				generator.Emit(OpCodes.Stfld, valueIsSetFields[columnInfo.DefinitionProperty.PropertyName]);
 
-				EmitUpdatedComputedPropertes(generator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
+				EmitUpdatedComputedPropertes(generator, columnInfo.DefinitionProperty.PropertyName, columnInfo.DefinitionProperty.IsPrimaryKey);
+				*/
 
-				generator.Emit(OpCodes.Nop);
 
 				index++;
 			}
@@ -2207,6 +1575,10 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldstr, "No autoincrement property defined on type: " + typeBuilder.Name);
 				generator.Emit(OpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) }));
 				generator.Emit(OpCodes.Throw);
+			}
+			else
+			{
+				generator.Emit(OpCodes.Ret);
 			}
 		}
 
@@ -2449,10 +1821,6 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private static readonly ConstructorInfo PropertyInfoAndValueConstructor = typeof(PropertyInfoAndValue).GetConstructor(new[] { typeof(PropertyInfo), typeof(object), typeof(string), typeof(string), typeof(bool), typeof(int) });
-		private static readonly MethodInfo PropertyInfoAndValueListAddMethod = typeof(List<PropertyInfoAndValue>).GetMethod("Add");
-		private static readonly ConstructorInfo PropertyInfoAndValueListCtor = typeof(List<PropertyInfoAndValue>).GetConstructor(new [] { typeof(int) });
-		
 		protected virtual void BuildSetIsNewMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsNew");
@@ -2492,15 +1860,6 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
 			generator.Emit(OpCodes.Ldfld, this.isDeflatedReferenceField);
-			generator.Emit(OpCodes.Ret);
-		}
-
-		protected virtual void BuildDataObjectProperty()
-		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("DataObject");
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, dataObjectField);
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2622,355 +1981,290 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		protected virtual void EmitPropertyValue(ILGenerator generator, LocalBuilder result, Type valueType, string propertyName, string persistedName, int index, Action loadValue)
+		{
+			var value = generator.DeclareLocal(typeof(object));
+
+			// Load value
+			loadValue();
+
+			if (valueType.IsValueType)
+			{
+				generator.Emit(OpCodes.Box, valueType);
+			}
+
+			generator.Emit(OpCodes.Stloc, value);
+
+			// Load retval
+			generator.Emit(OpCodes.Ldloc, result);
+
+			if (result.LocalType.IsArray)
+			{
+				// Load index
+				generator.Emit(OpCodes.Ldc_I4, index);
+			}
+
+			// Load type
+			generator.Emit(OpCodes.Ldtoken, valueType);
+			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+
+			// Load property name
+			generator.Emit(OpCodes.Ldstr, String.Intern(propertyName));
+
+			// Load persisted name
+			generator.Emit(OpCodes.Ldstr, String.Intern(persistedName));
+
+			// Load the property name hashcode
+			generator.Emit(OpCodes.Ldc_I4, propertyName.GetHashCode());
+
+			// Load the value
+			generator.Emit(OpCodes.Ldloc, value);
+
+			// Construct the ObjectPropertyValue
+			generator.Emit(OpCodes.Newobj, ConstructorInfoFastRef.ObjectPropertyValueConstructor);
+
+			if (result.LocalType.IsArray)
+			{
+				generator.Emit(OpCodes.Stelem, typeof(ObjectPropertyValue));
+			}
+			else
+			{
+				generator.Emit(OpCodes.Callvirt, ObjectPropertyValueListAddMethod);
+			}
+		}
+
+		protected virtual void BuildGetRelatedObjectPropertiesMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetRelatedObjectProperties");
+
+			var propertyDescriptors = typeDescriptor
+				.PersistedAndRelatedObjectProperties
+				.Where(c => c.PropertyType.IsDataAccessObjectType())
+				.ToList();
+
+			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
+
+			generator.Emit(OpCodes.Ldc_I4, propertyDescriptors.Count);
+			generator.Emit(OpCodes.Newarr, retval.LocalType.GetElementType());
+			generator.Emit(OpCodes.Stloc, retval);
+
+			var index = 0;
+
+			foreach (var propertyDescriptor in propertyDescriptors)
+			{
+				var valueField = valueFields[propertyDescriptor.PropertyName];
+
+				EmitPropertyValue(generator, retval, propertyDescriptor.PropertyType, propertyDescriptor.PropertyName, propertyDescriptor.PersistedName, index++, () =>
+				{
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueField);
+				});
+			}
+
+			// Return array
+			generator.Emit(OpCodes.Ldloc, retval);
+			generator.Emit(OpCodes.Ret);
+		}
+
+		protected virtual void BuildGetPrimaryKeysMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPrimaryKeys");
+
+			var count = typeDescriptor.PrimaryKeyProperties.Count();
+			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
+
+			generator.Emit(OpCodes.Ldc_I4, count);
+			generator.Emit(OpCodes.Newarr, retval.LocalType.GetElementType());
+			generator.Emit(OpCodes.Stloc, retval);
+
+			var index = 0;
+
+			foreach (var propertyDescriptor in typeDescriptor.PrimaryKeyProperties)
+			{
+				var valueField = valueFields[propertyDescriptor.PropertyName];
+
+				EmitPropertyValue(generator, retval, propertyDescriptor.PropertyType, propertyDescriptor.PropertyName, propertyDescriptor.PersistedName, index++, () =>
+				{
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueField);
+				});
+			}
+
+			// Return array
+			generator.Emit(OpCodes.Ldloc, retval);
+			generator.Emit(OpCodes.Ret);
+		}
+
+		protected virtual void BuildGetPrimaryKeysFlattenedMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPrimaryKeysFlattened");
+			var columnInfos = QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, this.typeDescriptor);
+
+			var count = columnInfos.Length;
+
+			var arrayLocal = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
+
+			generator.Emit(OpCodes.Ldc_I4, count);
+			generator.Emit(OpCodes.Newarr, arrayLocal.LocalType.GetElementType());
+			generator.Emit(OpCodes.Stloc, arrayLocal);
+
+			var index = 0;
+
+			foreach (var columnInfoValue in columnInfos)
+			{
+				var columnInfo = columnInfoValue;
+				var skipLabel = generator.DefineLabel();
+
+				EmitPropertyValue(generator, arrayLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, 
+					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, true));
+
+				generator.MarkLabel(skipLabel);
+			}
+
+			generator.Emit(OpCodes.Ldloc, arrayLocal);
+			generator.Emit(OpCodes.Ret);
+		}
+
+		private void EmitGetValueRecursive(ColumnInfo columnInfo, ILGenerator generator, Label skipLabel, bool defaultIfNotAvailable)
+		{
+			var first = true;
+			generator.Emit(OpCodes.Ldarg_0);
+
+			foreach (var visited in columnInfo
+				.VisitedProperties
+				.Select(c => new Tuple<PropertyInfo, string>(c.PropertyInfo, c.PropertyName))
+				.Append(new Tuple<PropertyInfo, string>(columnInfo.DefinitionProperty.PropertyInfo, columnInfo.DefinitionProperty.PropertyName)))
+			{
+				var loadValueLabel = generator.DefineLabel();
+				var readValueLabel = generator.DefineLabel();
+				var gotValueLabel = generator.DefineLabel();
+				var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[visited.Item1.ReflectedType];
+				var valueChangedField = referencedTypeBuilder.valueChangedFields[visited.Item2];
+				var valueIsSetField = referencedTypeBuilder.valueIsSetFields[visited.Item2];
+				var localDataObjectField = referencedTypeBuilder.dataObjectField;
+				var localValueField = referencedTypeBuilder.valueFields[visited.Item2];
+				var currentObject = generator.DeclareLocal(referencedTypeBuilder.typeBuilder);
+				var value = generator.DeclareLocal(localValueField.FieldType);
+
+				generator.Emit(OpCodes.Stloc, currentObject);
+
+				if (currentObject.LocalType.IsClass && !localValueField.FieldType.IsClass && !first)
+				{
+					generator.Emit(OpCodes.Ldloc, currentObject);
+					generator.Emit(OpCodes.Ldnull);
+					generator.Emit(OpCodes.Ceq);
+					generator.Emit(OpCodes.Brfalse, readValueLabel);
+
+					EmitDefaultValue(generator, localValueField.FieldType);
+
+					generator.Emit(OpCodes.Stloc, value);
+					generator.Emit(OpCodes.Br, gotValueLabel);
+				}
+
+				first = false;
+
+				generator.MarkLabel(readValueLabel);
+
+				generator.Emit(OpCodes.Ldloc, currentObject);
+				generator.Emit(OpCodes.Ldfld, localDataObjectField);
+				generator.Emit(OpCodes.Ldfld, valueChangedField);
+				generator.Emit(OpCodes.Brtrue, loadValueLabel);
+
+				generator.Emit(OpCodes.Ldloc, currentObject);
+				generator.Emit(OpCodes.Ldfld, localDataObjectField);
+				generator.Emit(OpCodes.Ldfld, valueIsSetField);
+				generator.Emit(OpCodes.Brtrue, loadValueLabel);
+
+				generator.Emit(OpCodes.Ldloc, currentObject);
+				generator.Emit(OpCodes.Ldfld, localDataObjectField);
+				generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
+				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
+				generator.Emit(OpCodes.Ceq);
+				generator.Emit(OpCodes.Brtrue, loadValueLabel);
+
+				if (defaultIfNotAvailable)
+				{
+					EmitDefaultValue(generator, localValueField.FieldType);
+					generator.Emit(OpCodes.Stloc, value);
+					generator.Emit(OpCodes.Br, gotValueLabel);
+				}
+				else
+				{
+					generator.Emit(OpCodes.Br, skipLabel);
+				}
+
+				generator.MarkLabel(loadValueLabel);
+				generator.Emit(OpCodes.Ldloc, currentObject);
+				generator.Emit(OpCodes.Ldfld, localDataObjectField);
+				generator.Emit(OpCodes.Ldfld, localValueField);
+				generator.Emit(OpCodes.Stloc, value);
+				
+				generator.MarkLabel(gotValueLabel);
+				generator.Emit(OpCodes.Ldloc, value);
+			}
+		}
+
 		protected virtual void BuildGetAllPropertiesMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetAllProperties");
-
-			var listLocal = generator.DeclareLocal(typeof(List<PropertyInfoAndValue>));
+			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
 			var count = this.typeDescriptor.PersistedProperties.Count;
 
-			count -= this.typeDescriptor.PrimaryKeyProperties.Count(c => (c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)));
-
-			count += this.typeDescriptor.GetRelationshipInfos().Fold(c => c.RelatedTypeTypeDescriptor.PrimaryKeyCount, Operations.Add);
-
 			generator.Emit(OpCodes.Ldc_I4, count);
-			generator.Emit(OpCodes.Newobj, PropertyInfoAndValueListCtor);
-			generator.Emit(OpCodes.Stloc, listLocal);
+			generator.Emit(OpCodes.Newarr, typeof(ObjectPropertyValue));
+			generator.Emit(OpCodes.Stloc, retval);
 
-			System.Action<PropertyDescriptor, FieldInfo, FieldInfo, bool, string, string> emitPropertyValue = (propertyDescriptor, valueField, nullCheckField, synthetic, persistedName, propertyName) =>
-			{
-				// Load list
-				generator.Emit(OpCodes.Ldloc, listLocal);
+			var index = 0;
 
-				// Load PropertyInfo
-				generator.Emit(OpCodes.Ldsfld, this.propertyInfoFields[propertyName]);
-
-				if (nullCheckField == null)
-				{
-					// Load value
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-
-					if (valueField.FieldType.IsValueType)
-					{
-						generator.Emit(OpCodes.Box, valueField.FieldType);
-					}
-				}
-				else
-				{
-					var label1 = generator.DefineLabel();
-					var label2 = generator.DefineLabel();
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, nullCheckField);
-					generator.Emit(OpCodes.Brtrue, label1);
-
-					// Load value
-					generator.Emit(OpCodes.Ldnull);
-					generator.Emit(OpCodes.Castclass, typeof(object));
-
-					generator.Emit(OpCodes.Br, label2);
-
-					generator.MarkLabel(label1);
-
-					// Load value
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-
-					if (valueField.FieldType.IsValueType)
-					{
-						generator.Emit(OpCodes.Box, valueField.FieldType);
-					}
-
-					generator.Emit(OpCodes.Castclass, typeof(object));
-
-					generator.MarkLabel(label2);
-				}
-
-				// Load property name
-				generator.Emit(OpCodes.Ldstr, String.Intern(propertyDescriptor.PropertyName));
-
-				// Load persisted name
-				generator.Emit(OpCodes.Ldstr, String.Intern(persistedName));
-
-				// Load is synthetic
-				generator.Emit(synthetic ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-
-				// Load the property name hashcode
-				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.PropertyName.GetHashCode());
-
-				// Construct the PropertyInfoValue
-				generator.Emit(OpCodes.Newobj, PropertyInfoAndValueConstructor);
-
-				// Call List.Add
-				generator.Emit(OpCodes.Call, PropertyInfoAndValueListAddMethod);
-			};
-
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Concat(this.typeDescriptor.RelatedProperties.Filter(c => c.BackReferenceAttribute != null)).OrderBy(c => c.PropertyName))
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
 			{
 				var valueField = this.valueFields[propertyDescriptor.PropertyName];
-				var synthetic = propertyDescriptor.PropertyType.IsDataAccessObjectType();
-				
-				if (synthetic)
+
+				EmitPropertyValue(generator, retval, propertyDescriptor.PropertyType, propertyDescriptor.PropertyName, propertyDescriptor.PersistedName, index++, () =>
 				{
-					var referencedTypeDescriptor = GetTypeDescriptor(propertyDescriptor.PropertyType);
-
-					emitPropertyValue(propertyDescriptor, valueField, valueField, false, propertyDescriptor.PersistedName, propertyDescriptor.PropertyName);
-
-					foreach (var referencedPropertyDescriptor in referencedTypeDescriptor.PrimaryKeyProperties)
-					{
-						var referencedValueField = this.relatedIdFields[propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
-
-						emitPropertyValue(referencedPropertyDescriptor, referencedValueField, valueField, true, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PropertyName);
-					}
-				}
-				else
-				{
-					emitPropertyValue(propertyDescriptor, valueField, null, false, propertyDescriptor.PersistedName, propertyDescriptor.PropertyName);
-				}
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueField);
+				});
 			}
 
-			generator.Emit(OpCodes.Ldloc, listLocal);
+			generator.Emit(OpCodes.Ldloc, retval);
 			generator.Emit(OpCodes.Ret);
 		}
 
 		protected virtual void BuildGetChangedPropertiesMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedProperties");
+			var count = this.typeDescriptor.PersistedProperties.Count + this.typeDescriptor.RelatedProperties.Count(c => c.BackReferenceAttribute != null);
 
-			var listLocal = generator.DeclareLocal(typeof(List<PropertyInfoAndValue>));
-
-			var count = this.typeDescriptor.PersistedProperties.Count;
-
-			count -= this.typeDescriptor.PrimaryKeyProperties.Count(c => (c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)));
-
-			count += this.typeDescriptor.GetRelationshipInfos().Fold(c => c.RelatedTypeTypeDescriptor.PrimaryKeyCount, Operations.Add);
+			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
 
 			generator.Emit(OpCodes.Ldc_I4, count);
-			generator.Emit(OpCodes.Newobj, PropertyInfoAndValueListCtor);
+			generator.Emit(OpCodes.Newobj, ConstructorInfoFastRef.ObjectPropertyValueListConstructor);
 			generator.Emit(OpCodes.Stloc, listLocal);
 
-			System.Action<PropertyDescriptor, FieldInfo, FieldInfo, bool, string, string> emitPropertyValue = (propertyDescriptor, valueField, nullCheckField, synthetic, persistedName, propertyName) =>
-    		{
-				// Load list
-				generator.Emit(OpCodes.Ldloc, listLocal);
-				
-				// Load PropertyInfo
-				generator.Emit(OpCodes.Ldsfld, this.propertyInfoFields[propertyName]);
-
-				if (nullCheckField == null)
-				{
-					// Load value
-					generator.Emit(OpCodes.Ldarg_0);
-
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-
-					if (valueField.FieldType.IsValueType)
-					{
-						generator.Emit(OpCodes.Box, valueField.FieldType);
-					}
-				}
-				else
-				{
-					var label1 = generator.DefineLabel();
-					var label2 = generator.DefineLabel();
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, nullCheckField);
-					generator.Emit(OpCodes.Brtrue, label1);
-                    
-					// Load value
-					generator.Emit(OpCodes.Ldnull);
-					generator.Emit(OpCodes.Castclass, typeof(object));
-
-					generator.Emit(OpCodes.Br, label2);
-					
-					generator.MarkLabel(label1);
-
-					// Load value
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					
-					if (valueField.FieldType.IsValueType)
-					{
-						generator.Emit(OpCodes.Box, valueField.FieldType);
-					}
-					
-					generator.Emit(OpCodes.Castclass, typeof(object));
-                    
-					generator.MarkLabel(label2);
-				}
-
-				// Load property name
-    			generator.Emit(OpCodes.Ldstr, String.Intern(propertyDescriptor.PropertyName));
-
-				// Load persisted name
-    			generator.Emit(OpCodes.Ldstr, String.Intern(persistedName));
-				
-    			// Load is synthetic
-				generator.Emit(synthetic ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-
-				// Load the property name hashcode
-    			generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.PropertyName.GetHashCode());
-
-				// Construct the PropertyInfoValue
-				generator.Emit(OpCodes.Newobj, PropertyInfoAndValueConstructor);
-
-				// Call List.Add
-				generator.Emit(OpCodes.Call, PropertyInfoAndValueListAddMethod);
-    		};
+			var index = 0;
 
 			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Concat(this.typeDescriptor.RelatedProperties.Filter(c => c.BackReferenceAttribute != null)))
 			{
-				if (propertyDescriptor.IsPrimaryKey && (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true)))
+				if (propertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
 				{ 
 					continue;
 				}
 
 				var label = generator.DefineLabel();
+				var label2 = generator.DefineLabel();
 
-				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true))
-				{
-					var valueSetField = this.valueIsSetFields[propertyDescriptor.PropertyName];
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueSetField);
-					generator.Emit(OpCodes.Brfalse, label);
-				}
-				
 				var valueField = this.valueFields[propertyDescriptor.PropertyName];
 				var valueChangedField = this.valueChangedFields[propertyDescriptor.PropertyName];
-				var synthetic = propertyDescriptor.PropertyType.IsDataAccessObjectType();
-				var isRelatedObjectProperty = propertyDescriptor.IsBackReferenceProperty;
-
+				
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, valueChangedField);
-
-				if (synthetic || isRelatedObjectProperty)
-				{
-					var innerLabel = generator.DefineLabel();
-					
-					// if (this.data.PropertyValue != null)
-					//   this.data.PropertyValueId = this.data.ProviderValue.data.Id
-
-					// Load value
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Brfalse, innerLabel);
-
-					// Update the current id properties with the one from the referenced object
-
-					var referencedTypeDescriptor = GetTypeDescriptor(propertyDescriptor.PropertyType);
-					var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[propertyDescriptor.PropertyType];
-
-					foreach (var referencedPropertyDescriptor in referencedTypeDescriptor.PrimaryKeyProperties)
-					{
-						var innerInnerLabel = generator.DefineLabel();
-						var referencedValueField = this.relatedIdFields[propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
-						var referencedObjectDataField = referencedTypeBuilder.dataObjectField;
-						var referencedObjectValueField = referencedTypeBuilder.valueFields[referencedPropertyDescriptor.PropertyName];
-                        
-						// if (this.data.PropertyValueId != this.data.PropertyValue.Id)
-
-						// Load this.data.PropertyValueId
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldfld, referencedValueField);
-
-						// Load this.data.PropertyValue
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldfld, valueField);
-
-						
-						// Load this.data.PropertyValue.Id
-						//generator.Emit(OpCodes.Ldfld, referencedObjectDataField);
-						//generator.Emit(OpCodes.Ldfld, referencedObjectValueField);
-						generator.Emit(OpCodes.Callvirt, referencedTypeBuilder.propertyBuilders[referencedPropertyDescriptor.PropertyName].GetGetMethod());
-
-						EmitCompareEquals(generator, referencedObjectValueField.FieldType);
-                        
-						generator.Emit(OpCodes.Brtrue, innerInnerLabel);
-                        
-						// Load this.data (for field storage later)
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-
-						// Load this.data.PropertyValue
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldfld, valueField);
-
-						// Load this.data.PropertyValue.Id
-						// generator.Emit(OpCodes.Ldfld, referencedObjectDataField);
-						// generator.Emit(OpCodes.Ldfld, referencedObjectValueField);
-						generator.Emit(OpCodes.Callvirt, referencedTypeBuilder.propertyBuilders[referencedPropertyDescriptor.PropertyName].GetGetMethod());
-
-						// Store in field (this.data.PropertyValue.Id)
-						generator.Emit(OpCodes.Stfld, referencedValueField);
-
-						generator.MarkLabel(innerInnerLabel);
-					}
-
-					generator.Emit(OpCodes.Br, innerLabel);
-
-					// PropertyValue == null
-					generator.MarkLabel(innerLabel);
-				}
-                
-				var label2 = generator.DefineLabel();
-
 				generator.Emit(OpCodes.Brtrue, label2);
-
-				var label3 = generator.DefineLabel();
-
-				// Check if the list has changed
-                if (propertyDescriptor.PropertyType.IsGenericType && propertyDescriptor.PropertyType.GetGenericTypeDefinition() == typeof(IList<>))
-				{
-					var elementType = propertyDescriptor.PropertyType.GetGenericArguments()[0];
-                    
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Brfalse, label3);
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Castclass, typeof(ShaolinqList<>).MakeGenericType(elementType));
-					generator.Emit(OpCodes.Callvirt, ShaolinqList.GetChangedProperty(elementType).GetGetMethod());
-					generator.Emit(OpCodes.Brtrue, label2);
-				}
-				else if (propertyDescriptor.PropertyType.IsGenericType && propertyDescriptor.PropertyType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
-				{
-					var keyType = propertyDescriptor.PropertyType.GetGenericArguments()[0];
-					var valueType = propertyDescriptor.PropertyType.GetGenericArguments()[1];
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Brfalse, label3);
-
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Castclass, typeof(ShoalinqDictionary<,>).MakeGenericType(keyType, valueType));
-					generator.Emit(OpCodes.Callvirt, ShoalinqDictionary.GetChangedProperty(keyType, valueType).GetGetMethod());
-					generator.Emit(OpCodes.Brtrue, label2);
-				}
-				
-				generator.MarkLabel(label3);
 
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -2982,22 +2276,13 @@ namespace Shaolinq.TypeBuilding
 
 				generator.MarkLabel(label2);
 
-				if (synthetic)
+				EmitPropertyValue(generator, listLocal, propertyDescriptor.PropertyType, propertyDescriptor.PropertyName, propertyDescriptor.PersistedName, index++, () =>
 				{
-					var referencedTypeDescriptor = GetTypeDescriptor(propertyDescriptor.PropertyType);
-					
-					foreach (var referencedPropertyDescriptor in referencedTypeDescriptor.PrimaryKeyProperties)
-					{
-						var referencedValueField = this.relatedIdFields[propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName];
-
-						emitPropertyValue(referencedPropertyDescriptor, referencedValueField, valueField, true, propertyDescriptor.PersistedName + referencedPropertyDescriptor.PersistedShortName, propertyDescriptor.PropertyName + referencedPropertyDescriptor.PersistedShortName);
-					}
-				}
-				else
-				{
-					emitPropertyValue(propertyDescriptor, valueField, null, false, propertyDescriptor.PersistedName, propertyDescriptor.PropertyName);
-				}
-
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, dataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueField);
+				});
+				
 				generator.MarkLabel(label);
 			}
 			
@@ -3005,56 +2290,115 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		protected virtual void BuildGetChangedPropertiesMethodFlattenedMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedPropertiesFlattened");
+			var properties = this.typeDescriptor
+				.PersistedProperties
+				.Concat(this.typeDescriptor.RelatedProperties.Where(c => c.IsBackReferenceProperty))
+				.Where(c => !c.IsPropertyThatIsCreatedOnTheServerSide)
+				.ToList();
+
+			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, properties);
+
+			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
+
+			generator.Emit(OpCodes.Ldc_I4, columnInfos.Length);
+			generator.Emit(OpCodes.Newobj, ConstructorInfoFastRef.ObjectPropertyValueListConstructor);
+			generator.Emit(OpCodes.Stloc, listLocal);
+
+			var index = 0;
+
+			foreach (var columnInfoValue in columnInfos)
+			{
+				var columnInfo = columnInfoValue;
+				var skipLabel = generator.DefineLabel();
+
+				EmitPropertyValue(generator, listLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, 
+					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, false));
+
+				generator.MarkLabel(skipLabel);
+			}
+
+			generator.Emit(OpCodes.Ldloc, listLocal);
+			generator.Emit(OpCodes.Ret);
+		}
+
+
+		private void BuildForeignKeysValidProperty(PropertyDescriptor propertyDescriptor, int pass)
+		{
+			PropertyBuilder propertyBuilder;
+			var propertyName = propertyDescriptor.PropertyName + "ForeignKeysValid";
+			var propertyType = typeof(bool);
+
+			if (pass == 1)
+			{
+				propertyBuilder = typeBuilder.DefineProperty(propertyName, propertyDescriptor.PropertyInfo.Attributes, propertyType, null, null, null, null, null);
+
+				this.propertyBuilders[propertyName] = propertyBuilder;
+
+				const MethodAttributes methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.Public;
+
+				var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName, methodAttributes, CallingConventions.Standard, propertyType, Type.EmptyTypes);
+
+				propertyBuilder.SetGetMethod(methodBuilder);
+
+				propertyBuilders[propertyName] = propertyBuilder;
+			}
+			else
+			{
+				propertyBuilder = this.propertyBuilders[propertyName];
+				var methodBuilder = (MethodBuilder)propertyBuilder.GetGetMethod();
+
+				var generator = methodBuilder.GetILGenerator();
+				
+				foreach (var columnInfoValue in QueryBinder.GetColumnInfos(this.typeDescriptorProvider, propertyDescriptor))
+				{
+					var nextLabel = generator.DefineLabel();
+				
+					EmitGetValueRecursive(columnInfoValue, generator, nextLabel, true);
+
+					EmitDefaultValue(generator, columnInfoValue.DefinitionProperty.PropertyType);
+					EmitCompareEquals(generator, columnInfoValue.DefinitionProperty.PropertyType);
+
+					generator.Emit(OpCodes.Brfalse, nextLabel);
+					generator.Emit(OpCodes.Ldc_I4_0);
+					generator.Emit(OpCodes.Ret);
+
+					generator.MarkLabel(nextLabel);
+				}
+
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Ret);
+			}
+		}
+
 		protected virtual void BuildIsMissingAnyAutoIncrementIntegerPrimaryKeyValues()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("IsMissingAnyAutoIncrementIntegerPrimaryKeyValues");
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties.Filter(c => c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)))
+			foreach (var columnInfo in QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, this.typeDescriptor, c => c.IsPropertyThatIsCreatedOnTheServerSide))
 			{
-				var valueField = valueFields[propertyDescriptor.PropertyName];
+				this.EmitGetValueRecursive(columnInfo, generator, new Label(), true);
 
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, dataObjectField);
-				
-				if (propertyDescriptor.PropertyType.IsValueType)
+				switch (Type.GetTypeCode(columnInfo.DefinitionProperty.PropertyType))
 				{
-					switch (Type.GetTypeCode(propertyDescriptor.PropertyType))
-					{
-						case TypeCode.Int32:
-							generator.Emit(OpCodes.Ldfld, valueField);
-							generator.Emit(OpCodes.Ldc_I4_0);
-							generator.Emit(OpCodes.Ceq);
-							break;
-						case TypeCode.Byte:
-						case TypeCode.Int16:
-							generator.Emit(OpCodes.Ldfld, valueField);
-							generator.Emit(OpCodes.Ldc_I4_S, 0);
-							generator.Emit(OpCodes.Ceq);
-							break;
-						case TypeCode.Int64:
-							generator.Emit(OpCodes.Ldfld, valueField);
-							generator.Emit(OpCodes.Ldc_I8, 0L);
-							generator.Emit(OpCodes.Ceq);
-							break;
-						default:
-							if (propertyDescriptor.PropertyType == typeof(Guid))
-							{
-								generator.Emit(OpCodes.Ldflda, valueField);
-								generator.Emit(OpCodes.Ldsfld, FieldInfoFastRef.GuidEmptyGuid);
-								generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidEqualsMethod);
-							}
-							else
-							{
-								throw new NotSupportedException(propertyDescriptor.PropertyType.ToString());
-							}
-							break;
-					}
-				}
-				else
-				{
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Ldnull);
-					generator.Emit(OpCodes.Ceq);
+
+					case TypeCode.Byte:
+					case TypeCode.Int16:
+						generator.Emit(OpCodes.Ldc_I4_S, 0);
+						generator.Emit(OpCodes.Ceq);
+						break;
+					case TypeCode.Int32:
+						generator.Emit(OpCodes.Ldc_I4_0);
+						generator.Emit(OpCodes.Ceq);
+						break;
+					case TypeCode.Int64:
+						generator.Emit(OpCodes.Ldc_I8, 0L);
+						generator.Emit(OpCodes.Ceq);
+						break;
+					default:
+						throw new NotSupportedException(columnInfo.DefinitionProperty.PropertyType.ToString());
 				}
 
 				var label = generator.DefineLabel();

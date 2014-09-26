@@ -34,7 +34,7 @@ namespace Shaolinq
 
 				for (int i = 0, n = x.keyValues.Length; i < n; i++)
 				{
-					if (x.keyValues[i] != y.keyValues[i])
+					if (!object.Equals(x.keyValues[i], y.keyValues[i]))
 					{
 						return false;
 					}
@@ -58,9 +58,9 @@ namespace Shaolinq
 
 		protected internal struct CompositePrimaryKey
 		{
-			internal readonly PropertyInfoAndValue[] keyValues;
+			internal readonly ObjectPropertyValue[] keyValues;
 
-			public CompositePrimaryKey(PropertyInfoAndValue[] keyValues)
+			public CompositePrimaryKey(ObjectPropertyValue[] keyValues)
 			{
 				this.keyValues = keyValues;
 			}
@@ -200,7 +200,7 @@ namespace Shaolinq
 				}
 			}
 
-			public DataAccessObject<T> Get(Type type, PropertyInfoAndValue[] primaryKeys)
+			public DataAccessObject<T> Get(Type type, ObjectPropertyValue[] primaryKeys)
 			{
 				IDataAccessObject outValue;
 
@@ -236,7 +236,7 @@ namespace Shaolinq
 						return null;
 					}
 
-					if (subcache.TryGetValue((T)primaryKeys[0].value, out outValue))
+					if (subcache.TryGetValue((T)primaryKeys[0].Value, out outValue))
 					{
 						return (DataAccessObject<T>)outValue;
 					}
@@ -546,7 +546,7 @@ namespace Shaolinq
 
 			foreach (var propertyInfoAndValue in value.GetAllProperties())
 			{
-				var propertyValue = propertyInfoAndValue.value as IDataAccessObject;
+				var propertyValue = propertyInfoAndValue.Value as IDataAccessObject;
 
 				if (propertyValue != null && !alreadyVisited.Contains(propertyValue))
 				{
@@ -557,14 +557,14 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual IDataAccessObject GetObject(Type type, PropertyInfoAndValue[] primaryKeys)
+		public virtual IDataAccessObject GetObject(Type type, ObjectPropertyValue[] primaryKeys)
 		{
 			if (this.DisableCache)
 			{
 				return null;
 			}
 
-			var keyType = primaryKeys[0].propertyInfo.PropertyType;
+			var keyType = primaryKeys[0].PropertyType;
 
 			switch (Type.GetTypeCode(keyType))
 			{

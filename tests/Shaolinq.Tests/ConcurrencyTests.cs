@@ -22,13 +22,20 @@ namespace Shaolinq.Tests
 		public ConcurrencyTests(string providerName)
 			: base(providerName)
 		{
-			using (var scope = new TransactionScope())
+			try
 			{
-				var school = this.model.Schools.Create();
+				using (var scope = new TransactionScope())
+				{
+					var school = this.model.Schools.Create();
 
-				school.Name = "Lee's Kung Fu School";
+					school.Name = "Lee's Kung Fu School";
 
-				scope.Complete();
+					scope.Complete();
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
 			}
 		}
 

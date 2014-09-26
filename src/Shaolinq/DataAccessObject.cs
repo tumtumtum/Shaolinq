@@ -16,25 +16,15 @@ namespace Shaolinq
 		[AutoIncrement]
 		[PersistedMember(Name = "$(PERSISTEDTYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)")]
 		public abstract T Id { get; set; }
-
-		public virtual DataAccessModel DataAccessModel { get; private set; }
-
-		public virtual bool IsDeflatedReference
-		{
-			get
-			{
-				return ((IDataAccessObject)this).IsDeflatedReference;
-			}
-		}
-
-		public virtual bool IsDeleted
-		{
-			get
-			{
-				return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0;
-			}
-		}
 		
+		public virtual DataAccessModel DataAccessModel { get; private set; }
+		public virtual bool IsDeflatedReference { get { return ((IDataAccessObject)this).IsDeflatedReference; } }
+		bool IDataAccessObject.IsNew { get { return (((IDataAccessObject)this).ObjectState & ObjectState.New) != 0; } }
+		public SqlDatabaseContext DatabaseConnection { get { return this.DataAccessModel.GetCurrentSqlDatabaseContext(); } }
+		Type IDataAccessObject.DefinitionType { get { return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
+		TypeDescriptor IDataAccessObject.TypeDescriptor { get { return this.DataAccessModel.GetTypeDescriptor(this.GetType()); } }
+		public virtual bool IsDeleted { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0; } }
+
 		public virtual void Inflate()
 		{
 			if (!((IDataAccessObject)this).IsDeflatedReference)
@@ -50,16 +40,11 @@ namespace Shaolinq
 			((IDataAccessObject)this).SetIsDeflatedReference(false);
 		}
 
-		public virtual U As<U>()
-		{
-			throw new NotImplementedException();
-		}
-
 		protected void RemoveFromCache()
 		{	
 		}
 
-		protected bool CanHaveNewPrimaryKey(PropertyInfoAndValue[] primaryKey)
+		protected bool CanHaveNewPrimaryKey(ObjectPropertyValue[] primaryKey)
 		{
 			if (this.DataAccessModel.GetCurrentDataContext(false).GetObject(this.GetType(), primaryKey) != null)
 			{
@@ -67,38 +52,6 @@ namespace Shaolinq
 			}
 
 			return true;
-		}
-
-		TypeDescriptor IDataAccessObject.TypeDescriptor
-		{
-			get
-			{
-				return this.DataAccessModel.GetTypeDescriptor(this.GetType());
-			}
-		}
-
-		Type IDataAccessObject.DefinitionType
-		{
-			get
-			{
-				return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType());
-			}
-		}
-
-		public SqlDatabaseContext DatabaseConnection
-		{
-			get
-			{
-				return this.DataAccessModel.GetCurrentSqlDatabaseContext();
-			}
-		}
-
-		bool IDataAccessObject.IsNew
-		{
-			get
-			{
-				return (((IDataAccessObject)this).ObjectState & ObjectState.New) != 0;
-			}
 		}
 
 		public virtual U TranslateTo<U>()
@@ -150,42 +103,33 @@ namespace Shaolinq
 		public abstract bool HasPropertyChanged(string propertyName);
 
 		[ReflectionEmitted]
-		public abstract PropertyInfoAndValue[] GetPrimaryKeys();
+		public abstract ObjectPropertyValue[] GetPrimaryKeys();
 
 		[ReflectionEmitted]
-		public abstract List<PropertyInfoAndValue> GetChangedProperties();
+		public abstract ObjectPropertyValue[] GetPrimaryKeysFlattened();
 
 		[ReflectionEmitted]
-		public abstract List<PropertyInfoAndValue> GetAllProperties();
+		public abstract ObjectPropertyValue[] GetAllProperties();
+		
+		[ReflectionEmitted]
+		public abstract ObjectPropertyValue[] GetRelatedObjectProperties();
+
+		[ReflectionEmitted]
+		public abstract List<ObjectPropertyValue> GetChangedProperties();
+
+		[ReflectionEmitted]
+		public abstract List<ObjectPropertyValue> GetChangedPropertiesFlattened();
 
 		#region Reflection emitted explicit interface implementations
 
 		[ReflectionEmitted]
-		Type IDataAccessObject.KeyType
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		Type IDataAccessObject.KeyType { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		ObjectState IDataAccessObject.ObjectState
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		ObjectState IDataAccessObject.ObjectState { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		bool IDataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
 		bool IDataAccessObject.HasObjectChanged
@@ -197,64 +141,25 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.IsMissingAnyAutoIncrementIntegerPrimaryKeyValues 
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		bool IDataAccessObject.IsMissingAnyAutoIncrementIntegerPrimaryKeyValues { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		Type[] IDataAccessObject.CompositeKeyTypes
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		Type[] IDataAccessObject.CompositeKeyTypes { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		int IDataAccessObject.NumberOfPrimaryKeys
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		int IDataAccessObject.NumberOfPrimaryKeys { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		int IDataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}	
-		}
+		int IDataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		void IDataAccessObject.SetPrimaryKeys(PropertyInfoAndValue[] primaryKeys)
+		void IDataAccessObject.SetPrimaryKeys(ObjectPropertyValue[] primaryKeys)
 		{
 			throw new NotImplementedException();
 		}
 
 		[ReflectionEmitted]
-		object IDataAccessObject.DataObject
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		[ReflectionEmitted]
-		bool IDataAccessObject.IsDeflatedReference
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		bool IDataAccessObject.IsDeflatedReference { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
 		void IDataAccessObject.ResetModified()
@@ -264,12 +169,6 @@ namespace Shaolinq
 
 		[ReflectionEmitted]
 		void IDataAccessObject.SwapData(IDataAccessObject source, bool transferChangedProperties)
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		void IDataAccessObject.SetPropertiesGeneratedOnTheServerSideValues(object[] value)
 		{
 			throw new NotImplementedException();
 		}
@@ -299,7 +198,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		PropertyInfo[] IDataAccessObject.GetPropertiesGeneratedOnTheServerSide()
+		ObjectPropertyValue[] IDataAccessObject.GetPropertiesGeneratedOnTheServerSide()
 		{
 			throw new NotImplementedException();
 		}
@@ -311,13 +210,7 @@ namespace Shaolinq
 		}
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.PrimaryKeyIsCommitReady
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		bool IDataAccessObject.PrimaryKeyIsCommitReady { get { throw new NotImplementedException(); } }
 
 		#endregion
 

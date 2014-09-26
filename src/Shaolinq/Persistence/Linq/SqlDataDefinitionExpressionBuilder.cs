@@ -86,7 +86,7 @@ namespace Shaolinq.Persistence.Linq
 			return retval;
 		}
 
-		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ForeignKeyColumnInfo[] columnNamesAndReferencedTypeProperties)
+		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ColumnInfo[] columnNamesAndReferencedTypeProperties)
 		{
 			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetTypeDescriptor(referencingProperty.PropertyType);
 			var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
@@ -96,11 +96,11 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var foreignKeyColumn in columnNamesAndReferencedTypeProperties)
 			{
-				var retval = (SqlColumnDefinitionExpression)this.BuildColumnDefinitions(foreignKeyColumn.KeyPropertyOnForeignType, foreignKeyColumn.ColumnName, referencingProperty).First();
+				var retval = (SqlColumnDefinitionExpression)this.BuildColumnDefinitions(foreignKeyColumn.DefinitionProperty, foreignKeyColumn.ColumnName, referencingProperty).First();
 
 				if (columnNamesAndReferencedTypeProperties.Length == 1 && supportsInlineForeignKeys)
 				{
-					var names = new ReadOnlyCollection<string>(new[] { foreignKeyColumn.KeyPropertyOnForeignType.PersistedName });
+					var names = new ReadOnlyCollection<string>(new[] { foreignKeyColumn.DefinitionProperty.PersistedName });
 					var newConstraints = new List<Expression>(retval.ConstraintExpressions);
 					var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, names, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
 
@@ -115,7 +115,7 @@ namespace Shaolinq.Persistence.Linq
 			if (columnNamesAndReferencedTypeProperties.Length > 1 || !supportsInlineForeignKeys)
 			{
 				var currentTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.ColumnName).ToList());
-				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.KeyPropertyOnForeignType.PersistedName).ToList());
+				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnNamesAndReferencedTypeProperties.Select(c => c.DefinitionProperty.PersistedName).ToList());
 				var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, referencedTableColumnNames, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
 				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
 
@@ -132,7 +132,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
 			{
-				var foreignKeyColumn = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, propertyDescriptor);
+				var foreignKeyColumn = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, propertyDescriptor);
 				
 				foreach (var result in this.BuildForeignKeyColumnDefinitions(propertyDescriptor, foreignKeyColumn))
 				{
@@ -155,7 +155,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
 				{
-					var foreignKeyColumns = QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, typeRelationshipInfo.ReferencingProperty);
+					var foreignKeyColumns = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeRelationshipInfo.ReferencingProperty);
 
 					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
 					{
@@ -180,21 +180,11 @@ namespace Shaolinq.Persistence.Linq
 
 			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
 
-			var primaryKeys = typeDescriptor.PersistedProperties.Where(c => c.IsPrimaryKey).ToList();
+			var primaryKeys = QueryBinder.GetPrimaryKeyColumnInfos(this.model.TypeDescriptorProvider, typeDescriptor);
 
-			if (primaryKeys.Count > 1)
+			if (primaryKeys.Length > 1)
 			{
-				var columnNames = primaryKeys.OrderBy(c => c.PrimaryKeyAttribute.CompositeOrder).SelectMany(c =>
-				{
-					if (c.PropertyType.IsDataAccessObjectType())
-					{
-						return QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, c).Select(d => d.ColumnName).ToArray();
-					}
-					else
-					{
-						return new [] { c.PersistedName };
-					}
-				}).ToArray();
+				var columnNames = primaryKeys.Select(c => c.ColumnName).ToArray();
 
 				var compositePrimaryKeyConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames);
 
@@ -216,16 +206,9 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var attributeAndProperty in sorted)
 			{
-				if (attributeAndProperty.Item2.PropertyType.IsDataAccessObjectType())
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
 				{
-					foreach (var info in QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.model, attributeAndProperty.Item2))
-					{
-						indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(info.KeyPropertyOnForeignType.PropertyType, null, info.ColumnName), attributeAndProperty.Item1.SortOrder));
-					}
-				}
-				else
-				{
-					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(attributeAndProperty.Item2.PropertyType, null, attributeAndProperty.Item2.PersistedName), attributeAndProperty.Item1.SortOrder));
+					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName), attributeAndProperty.Item1.SortOrder));
 				}
 			}
 				

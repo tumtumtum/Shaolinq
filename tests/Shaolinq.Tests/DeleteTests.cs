@@ -94,7 +94,7 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				Assert.IsEmpty(((IDataAccessObject)school).GetChangedProperties());
+				Assert.IsEmpty(((IDataAccessObject)school).GetChangedPropertiesFlattened());
 				Assert.IsFalse(((IDataAccessObject)school).HasObjectChanged);
 
 				schoolId = school.Id;

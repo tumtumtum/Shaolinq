@@ -115,8 +115,6 @@ namespace Shaolinq.Persistence.Linq
 
 					foreach (var propertyDescriptor in typeDescriptor.PrimaryKeyProperties)
 					{
-						var columnType = propertyDescriptor.PropertyType;
-
 						foreach (var binding in newMemberInit.Bindings)
 						{
 							var memberAssignment = binding as MemberAssignment;

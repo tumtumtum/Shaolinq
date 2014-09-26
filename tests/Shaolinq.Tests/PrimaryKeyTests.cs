@@ -339,6 +339,8 @@ namespace Shaolinq.Tests
 
 				Assert.That(objs.Count(), Is.GreaterThan(1));
 
+				obj1.Name = "new name";
+
 				scope.Complete();
 			}
 		}

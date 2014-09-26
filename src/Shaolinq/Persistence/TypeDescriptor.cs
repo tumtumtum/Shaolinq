@@ -17,6 +17,7 @@ namespace Shaolinq.Persistence
 		public ICollection<PropertyDescriptor> RelatedProperties { get; private set; }
 		public ICollection<PropertyDescriptor> PrimaryKeyProperties { get; private set; }
 		public ICollection<PropertyDescriptor> PersistedProperties { get; private set; }
+		public ICollection<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
 		public ICollection<PropertyDescriptor> ComputedTextProperties { get; private set; }
 		public ICollection<PropertyDescriptor> ReferencedObjectPrimaryKeyProperties { get; private set; }
 
@@ -186,12 +187,6 @@ namespace Shaolinq.Persistence
 			if (underlyingType != null)
 			{
 				return IsValidDataType(underlyingType);
-			}
-
-			if (type.IsGenericType)
-			{
-				return type.GetGenericTypeDefinition() == typeof(IList<>)
-				       || type.GetGenericTypeDefinition() == typeof(IDictionary<,>);
 			}
 
 			return type.IsPrimitive
@@ -411,6 +406,7 @@ namespace Shaolinq.Persistence
 			this.PersistedProperties = new ReadOnlyCollection<PropertyDescriptor>(propertyDescriptorsInOrder);
 			this.PrimaryKeyProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
 			this.ComputedTextProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
+			this.PersistedAndRelatedObjectProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToList());
 
 			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)
 			{

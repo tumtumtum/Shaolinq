@@ -41,7 +41,7 @@ namespace Shaolinq
 
 		private Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>(); 
 		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
-		private readonly Dictionary<Type, Func<Object, PropertyInfoAndValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, PropertyInfoAndValue[]>>();
+		private readonly Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 		
 		[ReflectionEmitted]
 		protected abstract void Initialise();
@@ -286,12 +286,12 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual T GetReferenceByPrimaryKey<T>(PropertyInfoAndValue[] primaryKey)
+		public virtual T GetReferenceByPrimaryKey<T>(ObjectPropertyValue[] primaryKey)
 			where T : class, IDataAccessObject
 		{
 			foreach (var keyValue in primaryKey)
 			{
-				if (keyValue.value == null)
+				if (keyValue.Value == null)
 				{
 					return null;
 				}
@@ -336,14 +336,14 @@ namespace Shaolinq
 			}
 
 			var objectType = typeof(object[]);
-			Func<object, PropertyInfoAndValue[]> func;
+			Func<object, ObjectPropertyValue[]> func;
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
 				var parameter = Expression.Parameter(typeof(object));
-				var constructor = typeof(PropertyInfoAndValue).GetConstructor(new Type[] { typeof(PropertyInfo), typeof(object), typeof(string), typeof(string), typeof(bool), typeof(int) });
+				var constructor = typeof(ObjectPropertyValue).GetConstructor(new [] { typeof(Type), typeof(string), typeof(string), typeof(object), typeof(bool), typeof(int) });
 
 				var index = 0;
 				var initializers = new List<Expression>();
@@ -352,17 +352,17 @@ namespace Shaolinq
 				{
 					var valueExpression = Expression.Convert(Expression.ArrayIndex(Expression.Convert(parameter, typeof(object[])), Expression.Constant(index)), typeof(object));
 					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
-					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo), Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
+					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo.PropertyType), Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
 
 					initializers.Add(newExpression);
 					index++;
 				}
 
-				var body = Expression.NewArrayInit(typeof(PropertyInfoAndValue), initializers);
+				var body = Expression.NewArrayInit(typeof(ObjectPropertyValue), initializers);
 
-				var lambdaExpression = Expression.Lambda(typeof(Func<object, PropertyInfoAndValue[]>), body, parameter);
+				var lambdaExpression = Expression.Lambda(typeof(Func<object, ObjectPropertyValue[]>), body, parameter);
 
-				func = (Func<object, PropertyInfoAndValue[]>)lambdaExpression.Compile();
+				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
 				propertyInfoAndValueGetterFuncByType[objectType] = func;
 			}
@@ -381,7 +381,7 @@ namespace Shaolinq
 			}
 
 			var objectType = primaryKey.GetType();
-			Func<object, PropertyInfoAndValue[]> func;
+			Func<object, ObjectPropertyValue[]> func;
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
@@ -394,7 +394,7 @@ namespace Shaolinq
 				}
 
 				var parameter = Expression.Parameter(typeof(object));
-				var constructor = typeof(PropertyInfoAndValue).GetConstructor(new Type[] { typeof(PropertyInfo), typeof(object), typeof(string), typeof(string), typeof(bool), typeof(int) });
+				var constructor = typeof(ObjectPropertyValue).GetConstructor(new Type[] { typeof(PropertyInfo), typeof(object), typeof(string), typeof(string), typeof(bool), typeof(int) });
 
 				var initializers = new List<Expression>();
 
@@ -428,11 +428,11 @@ namespace Shaolinq
 					initializers.Add(newExpression);
 				}
 
-				var body = Expression.NewArrayInit(typeof(PropertyInfoAndValue), initializers);
+				var body = Expression.NewArrayInit(typeof(ObjectPropertyValue), initializers);
 				
-				var lambdaExpression = Expression.Lambda(typeof(Func<object, PropertyInfoAndValue[]>), body, parameter);
+				var lambdaExpression = Expression.Lambda(typeof(Func<object, ObjectPropertyValue[]>), body, parameter);
 
-				func = (Func<object, PropertyInfoAndValue[]>)lambdaExpression.Compile();
+				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
 				propertyInfoAndValueGetterFuncByType[objectType] = func;
 			}

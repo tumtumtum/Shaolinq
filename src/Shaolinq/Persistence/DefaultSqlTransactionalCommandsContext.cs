@@ -31,9 +31,9 @@ namespace Shaolinq.Persistence
 		protected internal struct SqlCommandKey
 		{
 			public readonly Type dataAccessObjectType;
-			public readonly List<PropertyInfoAndValue> changedProperties;
+			public readonly List<ObjectPropertyValue> changedProperties;
 
-			public SqlCommandKey(Type dataAccessObjectType, List<PropertyInfoAndValue> changedProperties)
+			public SqlCommandKey(Type dataAccessObjectType, List<ObjectPropertyValue> changedProperties)
 			{
 				this.dataAccessObjectType = dataAccessObjectType;
 				this.changedProperties = changedProperties;
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence
 
 				for (int i = 0, n = x.changedProperties.Count; i < n; i++)
 				{
-					if (!Object.ReferenceEquals(x.changedProperties[i].persistedName, y.changedProperties[i].persistedName))
+					if (!Object.ReferenceEquals(x.changedProperties[i].PersistedName, y.changedProperties[i].PersistedName))
 					{
 						return false;
 					}
@@ -75,11 +75,11 @@ namespace Shaolinq.Persistence
 
 				if (count > 0)
 				{
-					retval ^= obj.changedProperties[0].propertyNameHashCode;
+					retval ^= obj.changedProperties[0].PropertyNameHashCode;
 
 					if (count > 1)
 					{
-						retval ^= obj.changedProperties[count - 1].propertyNameHashCode;
+						retval ^= obj.changedProperties[count - 1].PropertyNameHashCode;
 					}
 				}
 
@@ -136,14 +136,6 @@ namespace Shaolinq.Persistence
 					if (type == typeof (Guid))
 					{
 						return DbType.Guid;
-					}
-					else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IDictionary<,>))
-					{
-						return DbType.AnsiString;
-					}
-					else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IList<>))
-					{
-						return DbType.AnsiString;
 					}
 					else if (type.IsArray && type.GetElementType() == typeof(byte))
 					{
@@ -266,7 +258,7 @@ namespace Shaolinq.Persistence
 					{
 						if (Logger.IsDebugEnabled)
 						{
-							Logger.ErrorFormat("Object {0} is reported as changed but GetChangedProperties returns an empty list", dataAccessObject.ToString());
+							Logger.ErrorFormat("Object {0} is reported as changed but GetChangedProperties returns an empty list", dataAccessObject);
 						}
 
 						continue;
@@ -445,18 +437,18 @@ namespace Shaolinq.Persistence
 			return parameter;
 		}
 
-		private void FillParameters(IDbCommand command, List<PropertyInfoAndValue> changedProperties, PropertyInfoAndValue[] primaryKeys)
+		private void FillParameters(IDbCommand command, List<ObjectPropertyValue> changedProperties, ObjectPropertyValue[] primaryKeys)
 		{
 			foreach (var infoAndValue in changedProperties)
 			{
-				AddParameter(command, infoAndValue.propertyInfo.PropertyType, infoAndValue.value, true);
+				AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value, true);
 			}
 
 			if (primaryKeys != null)
 			{
 				foreach (var infoAndValue in primaryKeys)
 				{
-					AddParameter(command, infoAndValue.propertyInfo.PropertyType, infoAndValue.value, true);
+					AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value, true);
 				}
 			}
 		}
@@ -465,14 +457,14 @@ namespace Shaolinq.Persistence
 		{
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
-			var updatedProperties = dataAccessObject.GetChangedProperties();
+			var updatedProperties = dataAccessObject.GetChangedPropertiesFlattened();
 			
 			if (updatedProperties.Count == 0)
 			{
 				return null;
 			}
 
-			var primaryKeys = dataAccessObject.GetPrimaryKeys();
+			var primaryKeys = dataAccessObject.GetPrimaryKeysFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
@@ -484,7 +476,7 @@ namespace Shaolinq.Persistence
 				return command;
 			}
 			
-			var assignments = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.propertyInfo.PropertyType, null, c.persistedName), Expression.Constant(c.value))).ToList());
+			var assignments = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.PropertyType, null, c.PersistedName), Expression.Constant(c.Value))).ToList());
 
 			Expression where = null;
 
@@ -494,8 +486,8 @@ namespace Shaolinq.Persistence
 
 			foreach (var primaryKey in primaryKeys)
 			{
-				var currentExpression = Expression.Equal(new SqlColumnExpression(primaryKey.propertyInfo.PropertyType, null, primaryKey.persistedName), Expression.Constant(primaryKey.value));
-
+				var currentExpression = Expression.Equal(new SqlColumnExpression(primaryKey.PropertyType, null, primaryKey.PersistedName), Expression.Constant(primaryKey.Value));
+				
 				if (where == null)
 				{
 					where = currentExpression;
@@ -509,6 +501,9 @@ namespace Shaolinq.Persistence
 			}
 
 			var expression = new SqlUpdateExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), assignments, where);
+
+			expression = (SqlUpdateExpression)ObjectOperandComparisonExpander.Expand(this.DataAccessModel, expression);
+
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
 			command = CreateCommand();
@@ -524,8 +519,8 @@ namespace Shaolinq.Persistence
 		{
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
-			
-			var updatedProperties = dataAccessObject.GetChangedProperties();
+
+			var updatedProperties = dataAccessObject.GetChangedPropertiesFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))
@@ -546,8 +541,8 @@ namespace Shaolinq.Persistence
 				returningAutoIncrementColumnNames = new ReadOnlyCollection<string>(propertyDescriptors.Select(c => c.PersistedName).ToList());
 			}
 
-			var columnNames = new ReadOnlyCollection<string>(updatedProperties.Select(c => c.persistedName).ToList());
-			var valueExpressions = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.value)).ToList());
+			var columnNames = new ReadOnlyCollection<string>(updatedProperties.Select(c => c.PersistedName).ToList());
+			var valueExpressions = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToList());
 			var expression = new SqlInsertIntoExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);

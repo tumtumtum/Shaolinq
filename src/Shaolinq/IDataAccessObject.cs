@@ -136,7 +136,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Sets the primary key(s)
 		/// </summary>
-		void SetPrimaryKeys(PropertyInfoAndValue[] primaryKeys);
+		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
 
 		/// <summary>
 		/// Sets the associated model of this object.
@@ -149,40 +149,67 @@ namespace Shaolinq
 		void SwapData(IDataAccessObject source, bool transferChangedProperties);
 
 		/// <summary>
-		/// Sets the AutoIncrement key value of this object.
-		/// </summary>
-		void SetPropertiesGeneratedOnTheServerSideValues(object[] values);
-
-		/// <summary>
 		/// Returns true if the property with the given name has been changed since the object was loaded or created.
 		/// </summary>
 		bool HasPropertyChanged(string propertyName);
 
-		object DataObject { get; }
-
-		PropertyInfo[] GetPropertiesGeneratedOnTheServerSide();
-
+		/// <summary>
+		/// Sets the properties generated on the server side. The order of the values must be the same order
+		/// as that returned by <see cref="GetPropertiesGeneratedOnTheServerSide"/>
+		/// </summary>
+		/// <param name="values">An array of values to set. Must be in the same order as the properties returned 
+		/// by <see cref="GetPropertiesGeneratedOnTheServerSide"/>
+		/// </param>
 		void SetPropertiesGeneratedOnTheServerSide(object[] values);
 
 		/// <summary>
 		/// Gets an array of the primary keys and their values.
-		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="PropertyInfoAndValue"/>
+		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="ObjectPropertyValue"/>
 		/// are guaranteed to be interned.
 		/// </summary>
-		PropertyInfoAndValue[] GetPrimaryKeys();
+		ObjectPropertyValue[] GetPrimaryKeys();
+
+		/// <summary>
+		/// Gets an array of the primary keys and their values.
+		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="ObjectPropertyValue"/>
+		/// are guaranteed to be interned.
+		/// </summary>
+		ObjectPropertyValue[] GetPrimaryKeysFlattened();
+
+		/// <summary>
+		/// Gets an array of properties generated on the server side. Does not return values.
+		/// </summary>
+		ObjectPropertyValue[] GetPropertiesGeneratedOnTheServerSide();
+
+		/// <summary>
+		/// Gets an array of all the properties on this object
+		/// </summary>
+		ObjectPropertyValue[] GetAllProperties();
+
+		/// <summary>
+		/// Gets an array of all the properties that are DataAccessObjects on this object
+		/// </summary>
+		ObjectPropertyValue[] GetRelatedObjectProperties();
 
 		/// <summary>
 		/// Gets a list of all the properties on this object that have changed since the object was loaded or created.
-		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="PropertyInfoAndValue"/>
+		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="ObjectPropertyValue"/>
 		/// are guaranteed to be interned.
 		/// </summary>
-		List<PropertyInfoAndValue> GetChangedProperties();
+		List<ObjectPropertyValue> GetChangedProperties();
 
 		/// <summary>
-		/// Gets a list of all the properties on this object
+		/// Gets a list of all the properties on this object that have changed since the object was loaded or created.
+		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="ObjectPropertyValue"/>
+		/// are guaranteed to be interned. Properties that are DataAccessObjects will be returned as individual primary key
+		/// properties.
 		/// </summary>
-		List<PropertyInfoAndValue> GetAllProperties();
+		List<ObjectPropertyValue> GetChangedPropertiesFlattened();
 
+		/// <summary>
+		/// Update all properties that rely on server side generated properties.
+		/// </summary>
+		/// <returns></returns>
 		bool ComputeServerGeneratedIdDependentComputedTextProperties();
 
 		/// <summary>
@@ -198,6 +225,10 @@ namespace Shaolinq
 		/// </summary>
 		bool PrimaryKeyIsCommitReady { get; }
 
+		/// <summary>
+		/// Submits this object into the cache and then returns itself.
+		/// </summary>
+		/// <returns>The current object</returns>
 		IDataAccessObject SubmitToCache();
 	}
 }

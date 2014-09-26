@@ -9,6 +9,11 @@ namespace Shaolinq.Tests.TestModel
 	public abstract class Student
 		: Person
 	{
+		[PrimaryKey]
+		[AutoIncrement]
+		[PersistedMember]
+		public abstract int SecondaryKey { get; set; }
+
 		[PersistedMember]
 		public abstract Sex Sex { get; set; }
 

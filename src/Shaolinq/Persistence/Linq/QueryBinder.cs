@@ -80,34 +80,80 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		public static ForeignKeyColumnInfo[] ExpandPropertyIntoForeignKeyColumns(DataAccessModel dataAccessModel, PropertyDescriptor propertyDescriptor)
+
+		public static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor)
 		{
-			if (propertyDescriptor.IsBackReferenceProperty || propertyDescriptor.PersistedMemberAttribute != null && propertyDescriptor.PropertyType.IsDataAccessObjectType())
+			return GetPrimaryKeyColumnInfos(typeDescriptorProvider, typeDescriptor, c => true);
+		}
+
+		public static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor, Predicate<PropertyDescriptor> accept)
+		{
+			return GetPrimaryKeyColumnInfos(typeDescriptorProvider, typeDescriptor, accept, new List<PropertyDescriptor>(0));
+		}
+
+		protected static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor, Predicate<PropertyDescriptor> accept, List<PropertyDescriptor> visitedProperties)
+		{
+			return GetColumnInfos(typeDescriptorProvider, typeDescriptor.PrimaryKeyProperties, accept, new List<PropertyDescriptor>(0));
+		}
+
+		public static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, IEnumerable<PropertyDescriptor> properties)
+		{
+			return GetColumnInfos(typeDescriptorProvider, properties, c => true, new List<PropertyDescriptor>(0));
+		}
+
+		public static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, params PropertyDescriptor[] properties)
+		{
+			return GetColumnInfos(typeDescriptorProvider, properties, c => true, new List<PropertyDescriptor>(0));
+		}
+
+		protected static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, IEnumerable<PropertyDescriptor> properties, Predicate<PropertyDescriptor> accept, List<PropertyDescriptor> visitedProperties)
+		{
+			var retval = new List<ColumnInfo>();
+
+			foreach (var property in properties)
 			{
-				var i = 0;
-				var typeDescriptor = dataAccessModel.GetTypeDescriptor(propertyDescriptor.PropertyType);
-
-				var retval = new ForeignKeyColumnInfo[typeDescriptor.PrimaryKeyProperties.Count];
-
-				foreach (var relatedPropertyDescriptor in typeDescriptor.PrimaryKeyProperties)
+				if (property.PropertyType.IsDataAccessObjectType())
 				{
-					retval[i] = new ForeignKeyColumnInfo
+					var foreignTypeDescriptor = typeDescriptorProvider.GetTypeDescriptor(property.PropertyType);
+
+					var prefix = string.Concat(visitedProperties.Select(c => c.PersistedName)) + property.PropertyName;
+
+					var newVisited = new List<PropertyDescriptor>(visitedProperties.Count + 1);
+
+					newVisited.AddRange(visitedProperties);
+					newVisited.Add(property);
+
+					var newVisitedArray = newVisited.ToArray();
+
+					foreach (var relatedColumnInfo in GetColumnInfos(typeDescriptorProvider, foreignTypeDescriptor.PrimaryKeyProperties, accept, newVisited))
 					{
-						ForeignType = typeDescriptor,
-						ObjectPropertyOnReferencingType = propertyDescriptor,
-						ColumnName = propertyDescriptor.PersistedName + relatedPropertyDescriptor.PersistedShortName,
-						KeyPropertyOnForeignType = relatedPropertyDescriptor
-					};
-
-					i++;
+						retval.Add(new ColumnInfo
+						{
+							ForeignType = foreignTypeDescriptor,
+							ColumnName = prefix + relatedColumnInfo.ColumnName,
+							DefinitionProperty = relatedColumnInfo.DefinitionProperty,
+							VisitedProperties = newVisitedArray
+						});
+					}
 				}
+				else
+				{
+					if (!accept(property))
+					{
+						continue;
+					}
 
-				return retval;
+					retval.Add(new ColumnInfo
+					{
+						ColumnName =  visitedProperties.Count == 0 ? property.PersistedName : property.PersistedShortName,
+						ForeignType = null,
+						DefinitionProperty = property,
+						VisitedProperties = new PropertyDescriptor[0],
+					});
+				}
 			}
-			else
-			{
-				throw new InvalidOperationException();
-			}
+
+			return retval.ToArray();
 		}
 
 		private string GetNextAlias()
@@ -1375,13 +1421,13 @@ namespace Shaolinq.Persistence.Linq
 				var columnExpressions = new List<Expression>();
 				var propertyNames = new List<string>();
 				
-				foreach (var v in QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.DataAccessModel, propertyDescriptor))
+				foreach (var v in QueryBinder.GetColumnInfos(typeDescriptorProvider, propertyDescriptor))
 				{
-					var expression = new SqlColumnExpression(v.KeyPropertyOnForeignType.PropertyType, selectAlias, v.ColumnName);
+					var expression = new SqlColumnExpression(v.DefinitionProperty.PropertyType, selectAlias, v.ColumnName);
 
 					columnExpressions.Add(expression);
-					propertyNames.Add(v.KeyPropertyOnForeignType.PropertyName);
-					columns.Add(new SqlColumnDeclaration(v.ColumnName, new SqlColumnExpression(v.KeyPropertyOnForeignType.PropertyType, tableAlias, v.ColumnName)));
+					propertyNames.Add(v.GetFullPropertyName());
+					columns.Add(new SqlColumnDeclaration(v.ColumnName, new SqlColumnExpression(v.DefinitionProperty.PropertyType, tableAlias, v.ColumnName)));
 				}
 
 				var objectOperand = new SqlObjectOperand(columnType, columnExpressions, propertyNames);
@@ -1393,25 +1439,13 @@ namespace Shaolinq.Persistence.Linq
 			var primaryKeyColumnExpressions = new List<Expression>();
 			SqlObjectOperand primaryKeyObjectOperand = null;
 
-			foreach (var propertyDescriptor in typeDescriptor.PrimaryKeyProperties)
+			foreach (var columnInfo in QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, typeDescriptor))
 			{
-				if (propertyDescriptor.PropertyType.IsDataAccessObjectType())
-				{
-					foreach (var v in QueryBinder.ExpandPropertyIntoForeignKeyColumns(this.DataAccessModel, propertyDescriptor))
-					{
-						var expression = new SqlColumnExpression(v.KeyPropertyOnForeignType.PropertyType, selectAlias, v.ColumnName);
+				var expression = new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, selectAlias,columnInfo.ColumnName);
 
-						primaryKeyPropertyNames.Add(propertyDescriptor.PropertyName + v.KeyPropertyOnForeignType.PropertyName);
-						primaryKeyColumnExpressions.Add(expression);
-					}
-				}
-				else
-				{
-					var expression = new SqlColumnExpression(propertyDescriptor.PropertyType, selectAlias, propertyDescriptor.PersistedName);
+				primaryKeyPropertyNames.Add(columnInfo.GetFullPropertyName());
 
-					primaryKeyPropertyNames.Add(propertyDescriptor.PropertyName);
-					primaryKeyColumnExpressions.Add(expression);
-				}
+				primaryKeyColumnExpressions.Add(expression);
 			}
 
 			primaryKeyObjectOperand = new SqlObjectOperand(typeDescriptor.Type, primaryKeyColumnExpressions, primaryKeyPropertyNames);

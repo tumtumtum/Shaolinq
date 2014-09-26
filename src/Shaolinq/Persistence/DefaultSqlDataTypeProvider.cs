@@ -94,30 +94,6 @@ namespace Shaolinq.Persistence
 
 				return sqlDataType;
 			}
-			else if (underlyingType.IsGenericType && 
-				(underlyingType.GetGenericTypeDefinition() == typeof(ShoalinqDictionary<,>)
-				|| underlyingType.GetGenericTypeDefinition() == typeof(IDictionary<,>)))
-			{
-				var args = underlyingType.GetGenericArguments();
-
-				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultDictionarySqlDataType<,>).MakeGenericType(args[0], args[1]), underlyingType);
-
-				sqlDataTypesByType[underlyingType] = sqlDataType;
-
-				return sqlDataType;
-			}
-			else if (underlyingType.IsGenericType && 
-				(underlyingType.GetGenericTypeDefinition() == typeof(ShaolinqList<>)
-				|| underlyingType.GetGenericTypeDefinition() == typeof(IList<>)))
-			{
-				var args = underlyingType.GetGenericArguments();
-
-				var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultListSqlDataType<>).MakeGenericType(args[0]), underlyingType);
-
-				sqlDataTypesByType[underlyingType] = sqlDataType;
-
-				return sqlDataType;
-			}
 			
 			throw new NotSupportedException(this.GetType().Name + " does not support " + type.Name);
 		}

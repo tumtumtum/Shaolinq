@@ -62,13 +62,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MySql.Data.6.8.3\lib\net40\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Platform, Version=1.0.0.136, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.0.0.142, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.NET.1.0.0.136\lib\35\Platform.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.0.0.142\lib\35\Platform.dll</HintPath>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.0.0.136, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform.Xml.Serialization, Version=1.0.0.142, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.Xml.Serialization.1.0.0.136\lib\35\Platform.Xml.Serialization.dll</HintPath>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.0.0.142\lib\35\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">

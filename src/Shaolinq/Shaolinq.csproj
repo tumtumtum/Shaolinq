@@ -61,13 +61,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Platform, Version=1.0.0.136, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.NET.1.0.0.136\lib\35\Platform.dll</HintPath>
+    <Reference Include="Platform">
+      <HintPath>..\packages\Platform.NET.1.0.0.142\lib\35\Platform.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.0.0.136, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform.Xml.Serialization, Version=1.0.0.142, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.Xml.Serialization.1.0.0.136\lib\35\Platform.Xml.Serialization.dll</HintPath>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.0.0.142\lib\35\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -103,7 +103,7 @@
     <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />
     <Compile Include="Persistence\ServerSqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />
-    <Compile Include="Persistence\ForeignKeyColumnInfo.cs" />
+    <Compile Include="Persistence\ColumnInfo.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlIndexedColumnExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAssignExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstraintActionExpression.cs" />
@@ -166,9 +166,7 @@
     <Compile Include="Persistence\SqlDatabaseContextInfo.cs" />
     <Compile Include="Persistence\DataRecordMethods.cs" />
     <Compile Include="Persistence\DefaultBlobSqlDataType.cs" />
-    <Compile Include="Persistence\DefaultDictionarySqlDataType.cs" />
     <Compile Include="Persistence\DefaultGuidSqlDataType.cs" />
-    <Compile Include="Persistence\DefaultListSqlDataType.cs" />
     <Compile Include="Persistence\DefaultSqlDataTypeProvider.cs" />
     <Compile Include="Persistence\DefaultTimeSpanSqlDataType.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderExpression.cs" />
@@ -213,7 +211,7 @@
     <Compile Include="Persistence\InsertResults.cs" />
     <Compile Include="Persistence\SqlDialect.cs" />
     <Compile Include="PrimeNumbers.cs" />
-    <Compile Include="PropertyInfoAndValue.cs" />
+    <Compile Include="ObjectPropertyValue.cs" />
     <Compile Include="PropertyInfoFastRef.cs" />
     <Compile Include="QueryableExtensions.cs" />
     <Compile Include="ReflectionEmittedAttribute.cs" />
@@ -273,8 +271,6 @@
     <Compile Include="Persistence\SqlDataType.cs" />
     <Compile Include="Persistence\SqlDataTypeProvider.cs" />
     <Compile Include="ReusableQueryProvider.cs" />
-    <Compile Include="ShoalinqDictionary.cs" />
-    <Compile Include="ShaolinqList.cs" />
     <Compile Include="ShaolinqStringExtensions.cs" />
     <Compile Include="TransactionContext.cs" />
     <Compile Include="TransactionScopeExtensions.cs" />
