@@ -20,6 +20,10 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Complex_Primary_Key()
 		{
+			long shopId;
+			long addressId;
+			long regionId;
+			
 			using (var scope = new TransactionScope())
 			{
 				var shop = this.model.Shops.Create();
@@ -28,6 +32,25 @@ namespace Shaolinq.Tests
 				shop.Address.Region.Name = "City of London";
 
 				shop.Name = "Apple Store";
+
+				scope.Flush(model);
+
+				shopId = shop.Id;
+				addressId = shop.Address.Id;
+				regionId = shop.Address.Region.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var shop = this.model.Shops.FirstOrDefault(c => c.Id == shopId);
+
+				Assert.IsNotNull(shop);
+				Assert.IsNotNull(shop.Address);
+				Assert.IsNotNull(shop.Address.Region);
+				Assert.AreEqual(addressId, shop.Address.Id);
+				Assert.AreEqual(regionId, shop.Address.Region.Id);
 
 				scope.Complete();
 			}

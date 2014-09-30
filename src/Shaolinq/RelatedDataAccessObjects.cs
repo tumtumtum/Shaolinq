@@ -49,10 +49,8 @@ namespace Shaolinq
 				{
 					var param = Expression.Parameter(typeof(T), "param");
 
-					var relatedDataAccessObjectType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType());
 					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
-					var relatedTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(relatedDataAccessObjectType);
-                    
+					
 					Expression cond = null;
 
 					var prop = newObjectTypeDescriptor.GetRelatedProperty(this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType()));
@@ -99,33 +97,34 @@ namespace Shaolinq
 
 					var relatedDataAccessObjectType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType());
 					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
-					var relatedTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(relatedDataAccessObjectType);
-
+					
 					var leftExpressions = new List<Expression>();
 					var rightExpressions = new List<Expression>();
 
-					var leftPropertyNames = new Dictionary<string, Expression>();
-					var rightPropertyNames = new Dictionary<string, Expression>();
-					var leftPropertyNamesByExpression = new Dictionary<Expression, string>();
-					var rightPropertyNamesByExpression = new Dictionary<Expression, string>();
-
+					var leftPropertyNames = new List<string>();
+					var rightPropertyNames = new List<string>();
+					
 					var concreteType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(relatedDataAccessObjectType);
 
 					foreach (var primaryKey in newObjectTypeDescriptor.PrimaryKeyProperties)
 					{
-						var keyProp = concreteType.GetProperties().FirstOrDefault(c => c.Name == this.PropertyName + primaryKey.PersistedShortName);
-						
-						rightExpressions.Add(Expression.Constant(keyProp.GetValue(this.RelatedDataAccessObject, null)));
-						leftExpressions.Add(Expression.Property(param, primaryKey.PropertyInfo));
+						var keyProp = concreteType.GetProperties().First(c => c.Name == this.PropertyName + primaryKey.PersistedShortName);
 
-						leftPropertyNames[primaryKey.PropertyName] = leftExpressions[leftExpressions.Count - 1];
-						rightPropertyNames[keyProp.Name] = rightExpressions[rightExpressions.Count - 1];
+						var left = Expression.Property(param, primaryKey.PropertyInfo); 
+						var right = Expression.Constant(keyProp.GetValue(this.RelatedDataAccessObject, null));
 
-						leftPropertyNamesByExpression[leftExpressions[leftExpressions.Count - 1]] = primaryKey.PropertyName;
-						rightPropertyNamesByExpression[rightExpressions[rightExpressions.Count - 1]] = keyProp.Name;
+						leftExpressions.Add(left);
+						rightExpressions.Add(right);
+
+						leftPropertyNames.Add(primaryKey.PropertyName);
+						rightPropertyNames.Add(keyProp.Name);
 					}
 
-					var body = Expression.Equal(new SqlObjectOperand(typeof(T), leftExpressions, leftPropertyNames, leftPropertyNamesByExpression), new SqlObjectOperand(typeof(T), rightExpressions, rightPropertyNames, rightPropertyNamesByExpression));
+					var body = Expression.Equal
+					(
+						new SqlObjectOperand(typeof(T), leftExpressions, leftPropertyNames),
+						new SqlObjectOperand(typeof(T), rightExpressions, rightPropertyNames)
+					);
 
 					return Expression.Lambda(body, param);
 				}
@@ -156,8 +155,7 @@ namespace Shaolinq
 				{
 					var relatedDataAccessObjectType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType());
 					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
-					var relatedTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(relatedDataAccessObjectType);
-
+					
 					var newParam = Expression.Parameter(typeof(IDataAccessObject), "newobj");
 					var relatedParam = Expression.Parameter(typeof(IDataAccessObject), "related");
 

@@ -41,13 +41,5 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				this.PropertyNamesByExpression[expressionsInOrder[i]] = propertyNames[i];
 			}
 		}
-        
-		public SqlObjectOperand(Type type, IList<Expression> expressionsInOrder, Dictionary<string, Expression> expressionByPropertyName, Dictionary<Expression, string> propertyNamesByExpression)
-			: base(type)
-		{
-			this.ExpressionsInOrder = expressionsInOrder as ReadOnlyCollection<Expression> ?? new ReadOnlyCollection<Expression>(expressionsInOrder);
-			this.ExpressionsByPropertyName = expressionByPropertyName;
-			this.PropertyNamesByExpression = propertyNamesByExpression;
-		}
 	}
 }

@@ -342,13 +342,6 @@ namespace Shaolinq.Persistence
 
 					try
 					{
-						if (type.Name == "Shop")
-						{
-							var changed = dataAccessObject.GetChangedPropertiesFlattened();
-
-							Console.WriteLine();
-						}
-			
 						reader = command.ExecuteReader();
 					}
 					catch (Exception e)

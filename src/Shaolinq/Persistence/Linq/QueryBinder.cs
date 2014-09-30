@@ -62,7 +62,6 @@ namespace Shaolinq.Persistence.Linq
 				case (ExpressionType)SqlExpressionType.Subquery:
 				case (ExpressionType)SqlExpressionType.AggregateSubquery:
 				case (ExpressionType)SqlExpressionType.Aggregate:
-					return true;
 				case (ExpressionType)SqlExpressionType.ObjectOperand:
 					return true;
 				default:
@@ -172,9 +171,9 @@ namespace Shaolinq.Persistence.Linq
 			return "T" + (aliasCount++);
 		}
 
-		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand, params string[] existingAliases)
+		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(this.DataAccessModel, QueryBinder.CanBeColumn, expression, newAlias, memberInitBySqlObjectOperand, existingAliases);
+			return ColumnProjector.ProjectColumns(this.DataAccessModel, QueryBinder.CanBeColumn, expression, newAlias, this.objectOperandByMemberInit, existingAliases);
 		}
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
@@ -190,7 +189,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = this.GetNextAlias();
 
-			var pc = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var pc = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 
 			int limit;
 
@@ -223,7 +222,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = this.GetNextAlias();
 
-			var pc = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var pc = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 
 			return new SqlProjectionExpression(new SqlSelectExpression(select.Type, alias, pc.Columns, projection.Select, null, null, null, false, null, take, select.ForUpdate), pc.Projector, null);
 		}
@@ -236,7 +235,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var select = projection.Select;
 			var alias = this.GetNextAlias();
-			var pc = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var pc = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 
 			return new SqlProjectionExpression(new SqlSelectExpression(select.Type, alias, pc.Columns, projection.Select, null, null, null, false, skip, null, select.ForUpdate), pc.Projector, null);
 		}
@@ -422,7 +421,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var alias = this.GetNextAlias();
-			var pc = ProjectColumns(expression, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var pc = ProjectColumns(expression, alias, projection.Select.Alias);
 
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
@@ -475,7 +474,7 @@ namespace Shaolinq.Persistence.Linq
 			
 			var alias = this.GetNextAlias();
 
-			var projectedColumns = ProjectColumns(resultExpr, alias, this.objectOperandByMemberInit,  outerProjection.Select.Alias, innerProjection.Select.Alias);
+			var projectedColumns = ProjectColumns(resultExpr, alias, outerProjection.Select.Alias, innerProjection.Select.Alias);
 
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, join, null, null, outerProjection.Select.ForUpdate || innerProjection.Select.ForUpdate), projectedColumns.Projector, null);
 		}
@@ -504,7 +503,7 @@ namespace Shaolinq.Persistence.Linq
             
 			if (resultSelector == null)
 			{
-				projectedColumns = ProjectColumns(collectionProjection.Projector, alias, this.objectOperandByMemberInit, projection.Select.Alias, collectionProjection.Select.Alias);
+				projectedColumns = ProjectColumns(collectionProjection.Projector, alias, projection.Select.Alias, collectionProjection.Select.Alias);
 			}
 			else
 			{
@@ -513,7 +512,7 @@ namespace Shaolinq.Persistence.Linq
 				
 				var resultExpression = this.Visit(resultSelector.Body);
 
-				projectedColumns = ProjectColumns(resultExpression, alias, this.objectOperandByMemberInit, projection.Select.Alias, collectionProjection.Select.Alias);				
+				projectedColumns = ProjectColumns(resultExpression, alias, projection.Select.Alias, collectionProjection.Select.Alias);				
 			}
 
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, join, null, null, false), projectedColumns.Projector, null);
@@ -536,7 +535,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			// Use ProjectColumns to get group-by expressions from key expression
-			var keyProjection = ProjectColumns(keyExpression, projection.Select.Alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var keyProjection = ProjectColumns(keyExpression, projection.Select.Alias, projection.Select.Alias);
 			var groupExprs = new[] { keyExpression };
 
 			// Make duplicate of source query as basis of element subquery by visiting the source again
@@ -547,7 +546,7 @@ namespace Shaolinq.Persistence.Linq
 			var subqueryKey = this.Visit(keySelector.Body);
 
 			// Ise same projection trick to get group by expressions based on subquery
-			var subQueryProjectedColumns = ProjectColumns(subqueryKey, subqueryBasis.Select.Alias, this.objectOperandByMemberInit, subqueryBasis.Select.Alias);
+			var subQueryProjectedColumns = ProjectColumns(subqueryKey, subqueryBasis.Select.Alias, subqueryBasis.Select.Alias);
 			var subqueryGroupExprs = new[] { subqueryKey };// CHANGED TO ALLOW FUNCTION CALL GROUPBY subQueryProjectedColumns.Columns.Select(c => c.Expression);
 			var subqueryCorrelation = BuildPredicateWithNullsEqual(subqueryGroupExprs, groupExprs);
 
@@ -564,7 +563,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var elementAlias = this.GetNextAlias();
 
-			var elementProjectedColumns = ProjectColumns(subqueryElemExpr, elementAlias, this.objectOperandByMemberInit, subqueryBasis.Select.Alias);
+			var elementProjectedColumns = ProjectColumns(subqueryElemExpr, elementAlias, subqueryBasis.Select.Alias);
 			
 			var elementSubquery = new SqlProjectionExpression
 			(
@@ -610,7 +609,7 @@ namespace Shaolinq.Persistence.Linq
 				resultExpression = Expression.New(typeof(Grouping<,>).MakeGenericType(keyExpression.Type, subqueryElemExpr.Type).GetConstructors()[0], new Expression[] { keyExpression, elementSubquery });
 			}
 
-			var pc = ProjectColumns(resultExpression, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var pc = ProjectColumns(resultExpression, alias, projection.Select.Alias);
 
 			// Make it possible to tie aggregates back to this Group By
 
@@ -1060,7 +1059,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var alias = this.GetNextAlias();
-			var projectedColumns = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var projectedColumns = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 			
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, projection.Select, null, orderings.AsReadOnly(), projection.Select.ForUpdate), projectedColumns.Projector, null);
 		}
@@ -1087,7 +1086,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = this.GetNextAlias();
 
-			var pc = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, GetExistingAlias(projection.Select));
+			var pc = ProjectColumns(projection.Projector, alias, GetExistingAlias(projection.Select));
 
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, forUpdate), pc.Projector, null);
 		}
@@ -1098,7 +1097,7 @@ namespace Shaolinq.Persistence.Linq
 			var select = projection.Select;
 			var alias = this.GetNextAlias();
 
-			var projectedColumns = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var projectedColumns = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, projection.Select, null, null, null, true, null, null, select.ForUpdate), projectedColumns.Projector, null);
 		}
@@ -1239,7 +1238,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = this.GetNextAlias();
 
-			var projectedColumns = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var projectedColumns = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 			var aggregateExpression = new SqlAggregateExpression(returnType, aggregateType, argumentExpression, isDistinct);
 			var selectType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(returnType);
 
@@ -1328,7 +1327,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var alias = this.GetNextAlias();
-			var pc = ProjectColumns(expression, alias, this.objectOperandByMemberInit, projection.Select.Alias);
+			var pc = ProjectColumns(expression, alias, projection.Select.Alias);
 
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
@@ -1416,7 +1415,7 @@ namespace Shaolinq.Persistence.Linq
 			var bindings = new List<MemberBinding>();
 			var columns = new List<SqlColumnDeclaration>();
 
-			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties.Filter(c => !c.PropertyType.IsDataAccessObjectType()))
+			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties.Where(c => !c.PropertyType.IsDataAccessObjectType()))
 			{
 				var columnName = propertyDescriptor.PersistedName;
 				var columnType = propertyDescriptor.PropertyType;
@@ -1426,7 +1425,7 @@ namespace Shaolinq.Persistence.Linq
 				columns.Add(new SqlColumnDeclaration(columnName, new SqlColumnExpression(columnType, tableAlias, columnName)));
 			}
 
-			foreach (var propertyDescriptor in typeDescriptor.RelatedProperties.Filter(c => c.IsBackReferenceProperty).Concat(typeDescriptor.PersistedProperties.Filter(c => c.PropertyType.IsDataAccessObjectType())))
+			foreach (var propertyDescriptor in typeDescriptor.PersistedAndRelatedObjectProperties.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
 				var columnType = propertyDescriptor.PropertyType;
 				var columnExpressions = new List<Expression>();
@@ -1473,7 +1472,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var where = this.Visit(this.extraCondition.Body);
 				var alias = this.GetNextAlias();
-				var pc = ProjectColumns(projection.Projector, alias, this.objectOperandByMemberInit, GetExistingAlias(projection.Select));
+				var pc = ProjectColumns(projection.Projector, alias, GetExistingAlias(projection.Select));
 
 				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, false), pc.Projector, null);
 			}

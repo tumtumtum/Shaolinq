@@ -1,10 +1,10 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
-using Platform;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -74,16 +74,16 @@ namespace Shaolinq.Persistence.Linq
 		private readonly HashSet<string> columnNames; 
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
-		private readonly Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand;
+		private readonly Dictionary<MemberInitExpression, SqlObjectOperand> sqlObjectOperandByMemberInit;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand, params string[] existingAliases)
+		internal ColumnProjector(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> sqlObjectOperandByMemberInit, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
 			mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 
-			this.memberInitBySqlObjectOperand = memberInitBySqlObjectOperand;
+			this.sqlObjectOperandByMemberInit = sqlObjectOperandByMemberInit;
 			this.dataAccessModel = dataAccessModel;
 			this.newAlias = newAlias;
 			this.existingAliases = existingAliases;
@@ -106,7 +106,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (retval != expression && newMemberInit != null)
 			{
-				if (this.memberInitBySqlObjectOperand.ContainsKey(expression))
+				if (this.sqlObjectOperandByMemberInit.ContainsKey(expression))
 				{
 					var newExpressions = new List<Expression>();
 					var newPropertyNames = new List<string>();
@@ -115,27 +115,23 @@ namespace Shaolinq.Persistence.Linq
 
 					foreach (var propertyDescriptor in typeDescriptor.PrimaryKeyProperties)
 					{
-						foreach (var binding in newMemberInit.Bindings)
-						{
-							var memberAssignment = binding as MemberAssignment;
+						var localPropertyDescriptor = propertyDescriptor;
 
-							if (memberAssignment != null)
-							{
-								if (memberAssignment.Expression is SqlColumnExpression)
-								{
-									if (((SqlColumnExpression)memberAssignment.Expression).Name == propertyDescriptor.PersistedName)
-									{
-										newExpressions.Add(memberAssignment.Expression);
-										newPropertyNames.Add(propertyDescriptor.PersistedName);
-									}
-								}
-							}
+						foreach (var memberAssignmentExpression in newMemberInit
+							.Bindings
+							.OfType<MemberAssignment>()
+							.Select(c => c.Expression)
+							.OfType<SqlColumnExpression>()
+							.Where(c => c.Name == localPropertyDescriptor.PersistedName))
+						{
+							newExpressions.Add(memberAssignmentExpression);
+							newPropertyNames.Add(propertyDescriptor.PersistedName);
 						}
 					}
 
 					var sqlObjectOperand = new SqlObjectOperand(newMemberInit.Type, newExpressions, newPropertyNames);
 
-					this.memberInitBySqlObjectOperand[expression] = sqlObjectOperand;
+					this.sqlObjectOperandByMemberInit[expression] = sqlObjectOperand;
 				}
 			}
 
@@ -175,8 +171,7 @@ namespace Shaolinq.Persistence.Linq
 			else
 			{
 				var columnName = GetNextColumnName();
-				var ordinal = columns.Count;
-
+				
 				columns.Add(new SqlColumnDeclaration(columnName, expression));
 
 				return new SqlColumnExpression(expression.Type, newAlias, columnName);
@@ -223,8 +218,8 @@ namespace Shaolinq.Persistence.Linq
 
 		private string GetUniqueColumnName(string name)
 		{
-			int suffix = 1; 
-			string baseName = name;
+			var suffix = 1; 
+			var baseName = name;
 
 			while (IsColumnNameInUse(name))
 			{
