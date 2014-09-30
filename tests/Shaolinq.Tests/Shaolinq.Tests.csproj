@@ -58,6 +58,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTests.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\Address.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\ComplexPrimaryKeyDataAccessModel.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\Region.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\Shop.cs" />
+    <Compile Include="ComplexPrimaryKeyTests.cs" />
     <Compile Include="ConfigurationTests.cs" />
     <Compile Include="ConstraintTests.cs" />
     <Compile Include="DirectAccessTests.cs" />

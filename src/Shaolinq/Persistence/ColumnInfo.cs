@@ -33,5 +33,10 @@ namespace Shaolinq.Persistence
 
 			return fullPropertyName;
 		}
+
+		public override string ToString()
+		{
+			return this.ColumnName;
+		}
 	}
 }

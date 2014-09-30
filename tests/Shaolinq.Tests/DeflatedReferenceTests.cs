@@ -16,7 +16,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class DeflatedReferenceTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public DeflatedReferenceTests(string providerName)
 			: base(providerName)

@@ -24,7 +24,11 @@ namespace Shaolinq
 		Type IDataAccessObject.DefinitionType { get { return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
 		TypeDescriptor IDataAccessObject.TypeDescriptor { get { return this.DataAccessModel.GetTypeDescriptor(this.GetType()); } }
 		public virtual bool IsDeleted { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0; } }
+		bool IDataAccessObject.IsTransient { get { return this.isTransient; } }
+		bool IDataAccessObject.HasCompositeKey { get { return ((IDataAccessObject)this).NumberOfPrimaryKeys > 1; } }
+		bool IDataAccessObject.HasObjectChanged { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Changed) != 0; } }
 
+		
 		public virtual void Inflate()
 		{
 			if (!((IDataAccessObject)this).IsDeflatedReference)
@@ -66,23 +70,7 @@ namespace Shaolinq
 			((IDataAccessObject)this).SetIsDeleted(true);
 		}
 
-		bool IDataAccessObject.HasCompositeKey
-		{
-			get
-			{
-				return ((IDataAccessObject)this).NumberOfPrimaryKeys > 1;
-			}
-		}
-
 		private bool isTransient;
-
-		bool IDataAccessObject.IsTransient
-		{
-			get
-			{
-				return this.isTransient;
-			}
-		}
 
 		void IDataAccessObject.SetTransient(bool transient)
 		{
@@ -99,6 +87,7 @@ namespace Shaolinq
 			this.DataAccessModel = dataAccessModel;
 		}
 
+		
 		[ReflectionEmitted]
 		public abstract bool HasPropertyChanged(string propertyName);
 
@@ -130,15 +119,6 @@ namespace Shaolinq
 
 		[ReflectionEmitted]
 		bool IDataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		bool IDataAccessObject.HasObjectChanged
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
 
 		[ReflectionEmitted]
 		bool IDataAccessObject.IsMissingAnyAutoIncrementIntegerPrimaryKeyValues { get { throw new NotImplementedException(); } }

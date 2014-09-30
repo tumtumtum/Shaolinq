@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -16,7 +17,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class RelatedObjectTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public RelatedObjectTests(string providerName)
 			: base(providerName)

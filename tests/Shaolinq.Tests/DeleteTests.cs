@@ -16,7 +16,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class DeleteTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public DeleteTests(string providerName)
 			: base(providerName)

@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -18,7 +19,7 @@ namespace Shaolinq.Tests
 	//[TestFixture("SqliteInMemory")]
 	//[TestFixture("SqliteClassicInMemory")]
 	public class SqlFormatterTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public SqlFormatterTests(string providerName)
 			: base(providerName)

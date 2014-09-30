@@ -14,7 +14,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class TypeTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public TypeTests(string providerName)
 			: base(providerName)

@@ -250,7 +250,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				if (dataAccessObject.HasObjectChanged || (dataAccessObject.ObjectState & (ObjectState.Changed | ObjectState.MissingForeignKeys | ObjectState.MissingUnconstrainedForeignKeys)) != 0)
+				if (dataAccessObject.HasObjectChanged || (dataAccessObject.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingUnconstrainedForeignKeys)) != 0)
 				{
 					var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
 
@@ -304,7 +304,7 @@ namespace Shaolinq.Persistence
 		{
 			var listToFixup = new List<IDataAccessObject>();
 			var listToRetry = new List<IDataAccessObject>();
-			
+
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
 				var objectState = dataAccessObject.ObjectState;
@@ -320,7 +320,7 @@ namespace Shaolinq.Persistence
 						throw new NotSupportedException("Changed state not supported");
 				}
 
-				if ((objectState & ObjectState.MissingForeignKeys) == 0)
+				if ((objectState & ObjectState.MissingConstrainedForeignKeys) == 0)
 				{
 					// We can insert if it is not missing foreign keys
 					// (could be missing some unconstrained foreign keys)
@@ -342,6 +342,13 @@ namespace Shaolinq.Persistence
 
 					try
 					{
+						if (type.Name == "Shop")
+						{
+							var changed = dataAccessObject.GetChangedPropertiesFlattened();
+
+							Console.WriteLine();
+						}
+			
 						reader = command.ExecuteReader();
 					}
 					catch (Exception e)
@@ -358,6 +365,10 @@ namespace Shaolinq.Persistence
 
 						throw;
 					}
+
+
+					dataAccessObject.ResetModified();
+					dataAccessObject.SetIsNew(false);
 
 					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foriegn keys
 
@@ -390,9 +401,6 @@ namespace Shaolinq.Persistence
 					{
 						reader.Close();
 					}
-
-					dataAccessObject.ResetModified();
-					dataAccessObject.SetIsNew(false);
 				}
 				else
 				{

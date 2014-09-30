@@ -31,21 +31,26 @@ namespace Shaolinq
 		NewChanged = 2 | Changed,
 
 		/// <summary>
+		/// The object has just been commited.
+		/// </summary>
+		ServerSidePropertiesHydrated = 4,
+
+		/// <summary>
 		/// The object is missing some contrained foreign keys and cannot be
 		/// persisted until those foreign keys have been realised.
 		/// </summary>
-		MissingForeignKeys = 4,
+		MissingConstrainedForeignKeys = 8,
 
 		/// <summary>
 		/// The object is missing some unconstrained foreign keys and may be
 		/// persisted and will need to be updated with the foreign keys once
 		/// they are realised.
 		/// </summary>
-		MissingUnconstrainedForeignKeys = 8,
+		MissingUnconstrainedForeignKeys = 16,
 
 		/// <summary>
 		/// The object has been deleted
 		/// </summary>
-		Deleted = 16
+		Deleted = 256
 	}
 }

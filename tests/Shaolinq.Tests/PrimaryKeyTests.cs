@@ -17,7 +17,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory", Category = "SupportsSqlite")]
 	[TestFixture("SqliteClassicInMemory", Category = "SupportsSqlite")]
 	public class PrimaryKeyTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public PrimaryKeyTests(string providerName)
 			: base(providerName)

@@ -7,14 +7,14 @@ using Shaolinq.MySql;
 ﻿using Shaolinq.Postgres;
 ﻿using Shaolinq.Postgres.DotConnect;
 ﻿using Shaolinq.Sqlite;
-using Shaolinq.Tests.TestModel;
 using log4net.Config;
 
 namespace Shaolinq.Tests
 {
-    public class BaseTests
+    public class BaseTests<T>
+		where T : DataAccessModel
     {
-        protected TestDataAccessModel model;
+        protected T model;
 	    private static readonly bool useMonoData;
 
 	    static BaseTests()
@@ -106,12 +106,12 @@ namespace Shaolinq.Tests
             {
                 if (providerName == "default")
                 {
-                    model = DataAccessModel.BuildDataAccessModel<TestDataAccessModel>();
+                    model = DataAccessModel.BuildDataAccessModel<T>();
                 }
                 else
                 {
                     configuration = this.Create(providerName, this.GetType().Name);
-                    model = DataAccessModel.BuildDataAccessModel<TestDataAccessModel>(configuration);
+                    model = DataAccessModel.BuildDataAccessModel<T>(configuration);
                 }
 
                 model.Create(DatabaseCreationOptions.DeleteExisting);

@@ -83,30 +83,35 @@ namespace Shaolinq.Persistence.Linq
 
 		public static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor)
 		{
-			return GetPrimaryKeyColumnInfos(typeDescriptorProvider, typeDescriptor, c => true);
+			return GetPrimaryKeyColumnInfos(typeDescriptorProvider, typeDescriptor, (c, d) => true, (c, d) => true);
 		}
 
-		public static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor, Predicate<PropertyDescriptor> accept)
+		public static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor, Func<PropertyDescriptor, int, bool> follow, Func<PropertyDescriptor, int, bool> include)
 		{
-			return GetPrimaryKeyColumnInfos(typeDescriptorProvider, typeDescriptor, accept, new List<PropertyDescriptor>(0));
+			return GetPrimaryKeyColumnInfos(typeDescriptorProvider, typeDescriptor, follow, include, new List<PropertyDescriptor>(0));
 		}
 
-		protected static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor, Predicate<PropertyDescriptor> accept, List<PropertyDescriptor> visitedProperties)
+		protected static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor, Func<PropertyDescriptor, int, bool> follow, Func<PropertyDescriptor, int, bool> include, List<PropertyDescriptor> visitedProperties)
 		{
-			return GetColumnInfos(typeDescriptorProvider, typeDescriptor.PrimaryKeyProperties, accept, new List<PropertyDescriptor>(0));
+			return GetColumnInfos(typeDescriptorProvider, typeDescriptor.PrimaryKeyProperties, follow, include, new List<PropertyDescriptor>(0));
 		}
 
 		public static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, IEnumerable<PropertyDescriptor> properties)
 		{
-			return GetColumnInfos(typeDescriptorProvider, properties, c => true, new List<PropertyDescriptor>(0));
+			return GetColumnInfos(typeDescriptorProvider, properties, (c, d) => true, (c, d) => true, new List<PropertyDescriptor>(0));
 		}
 
 		public static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, params PropertyDescriptor[] properties)
 		{
-			return GetColumnInfos(typeDescriptorProvider, properties, c => true, new List<PropertyDescriptor>(0));
+			return GetColumnInfos(typeDescriptorProvider, properties, (c, d) => true, (c, d) => true, new List<PropertyDescriptor>(0));
 		}
 
-		protected static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, IEnumerable<PropertyDescriptor> properties, Predicate<PropertyDescriptor> accept, List<PropertyDescriptor> visitedProperties)
+		public static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, IEnumerable<PropertyDescriptor> properties, Func<PropertyDescriptor, int, bool> follow, Func<PropertyDescriptor, int, bool> include)
+		{
+			return GetColumnInfos(typeDescriptorProvider, properties, follow, include, new List<PropertyDescriptor>(0));
+		}
+
+		protected static ColumnInfo[] GetColumnInfos(TypeDescriptorProvider typeDescriptorProvider, IEnumerable<PropertyDescriptor> properties, Func<PropertyDescriptor, int, bool> follow, Func<PropertyDescriptor, int, bool> include, List<PropertyDescriptor> visitedProperties, int depth = 0)
 		{
 			var retval = new List<ColumnInfo>();
 
@@ -114,9 +119,14 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (property.PropertyType.IsDataAccessObjectType())
 				{
+					if (!follow(property, depth))
+					{
+						continue;
+					}
+
 					var foreignTypeDescriptor = typeDescriptorProvider.GetTypeDescriptor(property.PropertyType);
 
-					var prefix = string.Concat(visitedProperties.Select(c => c.PersistedName)) + property.PropertyName;
+					var prefix = string.Concat(visitedProperties.Select(c => c.PersistedName)) + property.PersistedName;
 
 					var newVisited = new List<PropertyDescriptor>(visitedProperties.Count + 1);
 
@@ -125,30 +135,31 @@ namespace Shaolinq.Persistence.Linq
 
 					var newVisitedArray = newVisited.ToArray();
 
-					foreach (var relatedColumnInfo in GetColumnInfos(typeDescriptorProvider, foreignTypeDescriptor.PrimaryKeyProperties, accept, newVisited))
+					foreach (var relatedColumnInfo in GetColumnInfos(typeDescriptorProvider, foreignTypeDescriptor.PrimaryKeyProperties, follow, include, newVisited, depth + 1))
 					{
 						retval.Add(new ColumnInfo
 						{
 							ForeignType = foreignTypeDescriptor,
 							ColumnName = prefix + relatedColumnInfo.ColumnName,
 							DefinitionProperty = relatedColumnInfo.DefinitionProperty,
-							VisitedProperties = newVisitedArray
+							VisitedProperties = relatedColumnInfo.VisitedProperties
 						});
 					}
+
 				}
 				else
 				{
-					if (!accept(property))
+					if (!include(property, depth))
 					{
 						continue;
 					}
 
 					retval.Add(new ColumnInfo
 					{
-						ColumnName =  visitedProperties.Count == 0 ? property.PersistedName : property.PersistedShortName,
+						ColumnName = visitedProperties.Count == 0 ? property.PersistedName : property.PersistedShortName,
 						ForeignType = null,
 						DefinitionProperty = property,
-						VisitedProperties = new PropertyDescriptor[0],
+						VisitedProperties = visitedProperties.ToArray()
 					});
 				}
 			}

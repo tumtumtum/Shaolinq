@@ -14,7 +14,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class DefaultIfEmptyTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		private readonly DataAccessObjects<DefaultIfEmptyTestObject> queryable;
 	

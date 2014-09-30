@@ -1,5 +1,6 @@
 ﻿using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -11,7 +12,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class DirectAccessTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public DirectAccessTests(string providerName)
 			: base(providerName)

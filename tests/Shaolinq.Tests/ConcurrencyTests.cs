@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -17,7 +18,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class ConcurrencyTests
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public ConcurrencyTests(string providerName)
 			: base(providerName)

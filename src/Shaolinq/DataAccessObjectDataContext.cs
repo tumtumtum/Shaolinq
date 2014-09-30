@@ -97,9 +97,12 @@ namespace Shaolinq
 				{
 					if (kvp.Value.Count > 0)
 					{
-						var obj = kvp.Value.First();
+						if (kvp.Value.Any(c => !c.PrimaryKeyIsCommitReady))
+						{
+							var obj = kvp.Value.First();
 
-						throw new MissingOrInvalidPrimaryKeyException(string.Format("The object {0} is missing a primary key", obj.ToString()));
+							throw new MissingOrInvalidPrimaryKeyException(string.Format("The object {0} is missing a primary key", obj.ToString()));
+						}
 					}
 				}
 			}

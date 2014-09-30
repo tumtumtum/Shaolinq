@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -10,7 +11,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
 	public class TestNonPrimaryAutoIncrement
-		: BaseTests
+		: BaseTests<TestDataAccessModel>
 	{
 		public TestNonPrimaryAutoIncrement(string providerName)
 			: base(providerName)
