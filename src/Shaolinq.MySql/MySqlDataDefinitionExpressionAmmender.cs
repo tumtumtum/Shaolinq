@@ -10,12 +10,8 @@ namespace Shaolinq.MySql
 	public class MySqlDataDefinitionExpressionAmmender
 		: SqlExpressionVisitor
 	{
-		private readonly SqlDataTypeProvider sqlDataTypeProvider;
-		private bool currentIsPrimaryKey;
-
 		private MySqlDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
 		{
-			this.sqlDataTypeProvider = sqlDataTypeProvider;
 		}
 
 		public static Expression Ammend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)

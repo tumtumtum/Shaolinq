@@ -113,18 +113,6 @@ namespace Shaolinq
 			return this.TypeDescriptorProvider.GetTypeDescriptor(this.GetDefinitionTypeFromConcreteType(type));
 		}
 
-		public virtual U TranslateTo<U>(IDataAccessObject dataAccessObject)
-		{
-			if (dataAccessObject == null)
-			{
-				return default(U);
-			}
-
-			var proxyFunction = ObjectToObjectProjectionProxyFunctionCache<U>.GetProxyFunction(dataAccessObject.GetType());
-
-			return proxyFunction(this.DataAccessObjectProjectionContext, dataAccessObject);
-		}
-
 		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
 			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(forWrite).CurrentDataContext;

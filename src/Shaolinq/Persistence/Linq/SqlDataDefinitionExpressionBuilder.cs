@@ -178,7 +178,7 @@ namespace Shaolinq.Persistence.Linq
 			columnInfos = QueryBinder.GetColumnInfos
 			(
 				this.model.TypeDescriptorProvider,
-				typeDescriptor.PersistedAndRelatedObjectProperties,
+				typeDescriptor.PersistedProperties,
 				(c, d) => d == 0 ? !c.IsPrimaryKey : c.IsPrimaryKey,
 				(c, d) => d == 0 ? !c.IsPrimaryKey : c.IsPrimaryKey
 			);

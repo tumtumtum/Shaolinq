@@ -58,11 +58,6 @@ namespace Shaolinq
 			return true;
 		}
 
-		public virtual U TranslateTo<U>()
-		{
-			return this.DataAccessModel.TranslateTo<U>(this);
-		}
-
 		public virtual void Delete()
 		{
 			this.DataAccessModel.GetCurrentDataContext(true).Deleted(this);
@@ -87,7 +82,8 @@ namespace Shaolinq
 			this.DataAccessModel = dataAccessModel;
 		}
 
-		
+		bool IDataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObject)this).NumberOfDirectPropertiesGeneratedOnTheServerSide > 0; } }
+
 		[ReflectionEmitted]
 		public abstract bool HasPropertyChanged(string propertyName);
 
@@ -118,10 +114,7 @@ namespace Shaolinq
 		ObjectState IDataAccessObject.ObjectState { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		bool IDataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		bool IDataAccessObject.IsMissingAnyAutoIncrementIntegerPrimaryKeyValues { get { throw new NotImplementedException(); } }
+		bool IDataAccessObject.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
 		Type[] IDataAccessObject.CompositeKeyTypes { get { throw new NotImplementedException(); } }
@@ -130,7 +123,7 @@ namespace Shaolinq
 		int IDataAccessObject.NumberOfPrimaryKeys { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		int IDataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys { get { throw new NotImplementedException(); } }
+		int IDataAccessObject.NumberOfPrimaryKeysGeneratedOnServerSide { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
 		void IDataAccessObject.SetPrimaryKeys(ObjectPropertyValue[] primaryKeys)
@@ -191,6 +184,9 @@ namespace Shaolinq
 
 		[ReflectionEmitted]
 		bool IDataAccessObject.PrimaryKeyIsCommitReady { get { throw new NotImplementedException(); } }
+
+		[ReflectionEmitted]
+		int IDataAccessObject.NumberOfDirectPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
 
 		#endregion
 

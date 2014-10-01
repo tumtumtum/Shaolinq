@@ -126,8 +126,6 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Delete_Object_With_Invalid_Deflated_Reference()
 		{
-			long schoolId;
-
 			using (var scope = new TransactionScope())
 			{
 				var school = model.GetReferenceByPrimaryKey<School>(100000);

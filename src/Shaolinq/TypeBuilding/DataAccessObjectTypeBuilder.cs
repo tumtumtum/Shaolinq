@@ -265,7 +265,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildKeyTypeProperty();
 			this.BuildPrimaryKeyIsCommitReadyProperty();
 			this.BuildNumberOfPrimaryKeysProperty();
-			this.BuildNumberOfIntegerAutoIncrementPrimaryKeysProperty();
+			this.BuildNumberOfPrimaryKeysGeneratedOnServerSideProperty();
 			this.BuildCompositeKeyTypesProperty();
 			this.BuildGetPrimaryKeysMethod();
 			this.BuildGetRelatedObjectPropertiesMethod();
@@ -277,7 +277,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildGetChangedPropertiesMethod();
 			this.BuildGetChangedPropertiesMethodFlattenedMethod();
 			this.BuildObjectStateProperty();
-			this.BuildDefinesAnyPropertiesGeneratedOnTheServerSide();
+			this.BuildNumberOfDirectPropertiesGeneratedOnTheServerSideProperty();
 			this.BuildSwapDataMethod();
 			this.BuildHasPropertyChangedMethod();
 			this.BuildSetIsNewMethod();
@@ -286,7 +286,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildSetIsDeletedMethod();
 			this.BuildGetHashCodeMethod();
 			this.BuildEqualsMethod();
-			this.BuildIsMissingAnyAutoIncrementIntegerPrimaryKeyValues();
+			this.BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod();
 			this.BuildSetPropertiesGeneratedOnTheServerSideMethod();
 			this.BuildGetPropertiesGeneratedOnTheServerSideMethod();
 
@@ -482,9 +482,9 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Newarr, arrayLocal.LocalType.GetElementType());
 				generator.Emit(OpCodes.Stloc, arrayLocal);
 
+				/*
 				var i = 0;
 				
-				/*
 				foreach (var propertyDescriptor in propertyTypeDescriptor.PrimaryKeyProperties)
 				{
 					var fieldInfo = valueFields[propertyInfo.Name + propertyDescriptor.PropertyInfo.Name];
@@ -525,7 +525,7 @@ namespace Shaolinq.TypeBuilding
 
 					i++;
 				}*/
-			
+
 				// Return array
 				generator.Emit(OpCodes.Ldloc, arrayLocal);
 				generator.Emit(OpCodes.Ret);
@@ -1326,11 +1326,11 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildNumberOfIntegerAutoIncrementPrimaryKeysProperty()
+		protected virtual void BuildNumberOfPrimaryKeysGeneratedOnServerSideProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfIntegerAutoIncrementPrimaryKeys");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfPrimaryKeysGeneratedOnServerSide");
 
-			generator.Emit(OpCodes.Ldc_I4, typeDescriptor.PrimaryKeyProperties.Count(c => c.IsAutoIncrement && c.PropertyType.IsIntegerType(true)));
+			generator.Emit(OpCodes.Ldc_I4, this.typeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide));
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2014,7 +2014,7 @@ namespace Shaolinq.TypeBuilding
 				var skipLabel = generator.DefineLabel();
 
 				EmitPropertyValue(generator, arrayLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, 
-					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, true));
+					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, false, true));
 
 				generator.MarkLabel(skipLabel);
 			}
@@ -2023,7 +2023,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void EmitGetValueRecursive(ColumnInfo columnInfo, ILGenerator generator, Label skipLabel, bool defaultIfNotAvailable)
+		private void EmitGetValueRecursive(ColumnInfo columnInfo, ILGenerator generator, Label skipLabel, bool checkChanged, bool defaultIfNotAvailable)
 		{
 			var first = true;
 			generator.Emit(OpCodes.Ldarg_0);
@@ -2053,7 +2053,7 @@ namespace Shaolinq.TypeBuilding
 
 				generator.Emit(OpCodes.Stloc, currentObject);
 
-				if (currentObject.LocalType.IsClass && !localValueField.FieldType.IsClass && !first)
+				if (currentObject.LocalType.IsClass && !first)
 				{
 					generator.Emit(OpCodes.Ldloc, currentObject);
 					generator.Emit(OpCodes.Ldnull);
@@ -2070,10 +2070,13 @@ namespace Shaolinq.TypeBuilding
 
 				generator.MarkLabel(readValueLabel);
 
-				generator.Emit(OpCodes.Ldloc, currentObject);
-				generator.Emit(OpCodes.Ldfld, localDataObjectField);
-				generator.Emit(OpCodes.Ldfld, valueChangedField);
-				generator.Emit(OpCodes.Brtrue, loadValueLabel);
+				if (checkChanged)
+				{
+					generator.Emit(OpCodes.Ldloc, currentObject);
+					generator.Emit(OpCodes.Ldfld, localDataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueChangedField);
+					generator.Emit(OpCodes.Brtrue, loadValueLabel);
+				}
 
 				generator.Emit(OpCodes.Ldloc, currentObject);
 				generator.Emit(OpCodes.Ldfld, localDataObjectField);
@@ -2240,7 +2243,7 @@ namespace Shaolinq.TypeBuilding
 				var skipLabel = generator.DefineLabel();
 
 				EmitPropertyValue(generator, listLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, 
-					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, false));
+					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, true, false));
 
 				generator.MarkLabel(skipLabel);
 			}
@@ -2281,7 +2284,7 @@ namespace Shaolinq.TypeBuilding
 				{
 					var nextLabel = generator.DefineLabel();
 				
-					EmitGetValueRecursive(columnInfoValue, generator, nextLabel, true);
+					EmitGetValueRecursive(columnInfoValue, generator, nextLabel, false, true);
 
 					EmitDefaultValue(generator, columnInfoValue.DefinitionProperty.PropertyType);
 					EmitCompareEquals(generator, columnInfoValue.DefinitionProperty.PropertyType);
@@ -2298,9 +2301,9 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		protected virtual void BuildIsMissingAnyAutoIncrementIntegerPrimaryKeyValues()
+		protected virtual void BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("IsMissingAnyAutoIncrementIntegerPrimaryKeyValues");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys");
 
 			var columnInfos = QueryBinder.GetColumnInfos
 			(
@@ -2312,7 +2315,7 @@ namespace Shaolinq.TypeBuilding
 		
 			foreach (var columnInfo in columnInfos)
 			{
-				this.EmitGetValueRecursive(columnInfo, generator, new Label(), true);
+				this.EmitGetValueRecursive(columnInfo, generator, new Label(), false, true);
 
 				switch (Type.GetTypeCode(columnInfo.DefinitionProperty.PropertyType))
 				{
@@ -2347,19 +2350,13 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		protected virtual void BuildDefinesAnyPropertiesGeneratedOnTheServerSide()
+		protected virtual void BuildNumberOfDirectPropertiesGeneratedOnTheServerSideProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("DefinesAnyPropertiesGeneratedOnTheServerSide");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfDirectPropertiesGeneratedOnTheServerSide");
 
-			if (this.typeDescriptor.PersistedProperties.Filter(c => c.IsPropertyThatIsCreatedOnTheServerSide).Any())
-			{
-				generator.Emit(OpCodes.Ldc_I4_1);
-				generator.Emit(OpCodes.Ret);
+			var count = this.typeDescriptor.PersistedProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 
-				return;
-			}
-
-			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Ldc_I4, count);
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2410,7 +2407,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
-				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalIsMissingAnyAutoIncrementIntegerPrimaryKeyValues.GetGetMethod());
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternaIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys.GetGetMethod());
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
@@ -2428,7 +2425,7 @@ namespace Shaolinq.TypeBuilding
 			var breakLabel2 = generator.DefineLabel();
 
 			// Go through persisted properties that are object references
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Filter(c => c.PropertyType.IsDataAccessObjectType()))
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
 				var innerLabel1 = generator.DefineLabel();
 				var fieldInfo = this.valueFields[propertyDescriptor.PropertyName];
@@ -2439,15 +2436,15 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
-				// if (PropertyValue.IsNew) { retval |= MissingUnconstrainedForeignKeys; break }
+				// if (PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys) { retval |= MissingUnconstrainedForeignKeys; break }
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
-				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternalIsMissingAnyAutoIncrementIntegerPrimaryKeyValues.GetGetMethod());
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternaIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys.GetGetMethod());
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.MissingConstrainedForeignKeys : (int)ObjectState.MissingUnconstrainedForeignKeys);
+				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.MissingServerGeneratedPrimaryKeys : (int)ObjectState.MissingUnconstrainedForeignKeys);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 				generator.Emit(OpCodes.Br, breakLabel2);

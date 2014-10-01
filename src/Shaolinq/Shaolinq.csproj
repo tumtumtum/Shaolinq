@@ -94,12 +94,11 @@
     <Compile Include="MissingDataAccessObjectException.cs" />
     <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
     <Compile Include="MutableTuple.cs" />
-    <Compile Include="ObjectToObjectProjectionFunctionCache.cs" />
-    <Compile Include="ObjectToObjectProjectionProxyFunctionCache.cs" />
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlObjectReference.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />
     <Compile Include="Persistence\ServerSqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />
@@ -158,7 +157,6 @@
     <Compile Include="InvalidPrimaryKeyPropertyAccessException.cs" />
     <Compile Include="InvalidPropertyAccessException.cs" />
     <Compile Include="IRelatedDataAccessObjectContext.cs" />
-    <Compile Include="ObjectExtensions.cs" />
     <Compile Include="ObjectState.cs" />
     <Compile Include="InvalidDataAccessModelDefinition.cs" />
     <Compile Include="DatabaseTransactionContextAcquisition.cs" />

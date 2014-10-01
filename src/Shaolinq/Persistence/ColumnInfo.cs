@@ -28,7 +28,7 @@ namespace Shaolinq.Persistence
 		{
 			if (fullPropertyName == null)
 			{
-				fullPropertyName = this.GetFullParentName() + "." + this.DefinitionProperty.PropertyName;
+				fullPropertyName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName).Concat(new [] { this.DefinitionProperty.PropertyName }));
 			}
 
 			return fullPropertyName;

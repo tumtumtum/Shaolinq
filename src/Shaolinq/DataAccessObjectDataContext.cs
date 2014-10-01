@@ -285,8 +285,8 @@ namespace Shaolinq
 						{
 							subcache.Remove(value);
 						}
-						
-						if (dataAccessObject.NumberOfIntegerAutoIncrementPrimaryKeys > 0)
+
+						if (dataAccessObject.NumberOfPrimaryKeysGeneratedOnServerSide > 0)
 						{
 							return value;
 						}

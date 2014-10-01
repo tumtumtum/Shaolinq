@@ -250,7 +250,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				if (dataAccessObject.HasObjectChanged || (dataAccessObject.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingUnconstrainedForeignKeys)) != 0)
+				if (dataAccessObject.HasObjectChanged || (dataAccessObject.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedPrimaryKeys | ObjectState.MissingUnconstrainedForeignKeys)) != 0)
 				{
 					var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
 
@@ -320,7 +320,7 @@ namespace Shaolinq.Persistence
 						throw new NotSupportedException("Changed state not supported");
 				}
 
-				if ((objectState & ObjectState.MissingConstrainedForeignKeys) == 0)
+				if ((objectState & (ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingConstrainedForeignKeys)) == 0)
 				{
 					// We can insert if it is not missing foreign keys
 					// (could be missing some unconstrained foreign keys)
@@ -365,8 +365,7 @@ namespace Shaolinq.Persistence
 
 					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foriegn keys
 
-					if (dataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide
-					    && reader != null)
+					if (reader != null && dataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 					{
 						using (reader)
 						{
@@ -535,7 +534,7 @@ namespace Shaolinq.Persistence
 			
 			ReadOnlyCollection<string> returningAutoIncrementColumnNames = null;
 
-			if (dataAccessObject.DefinesAnyPropertiesGeneratedOnTheServerSide)
+			if (dataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 			{
 				var propertyDescriptors = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 

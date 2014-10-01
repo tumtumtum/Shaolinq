@@ -49,6 +49,11 @@ namespace Shaolinq
 		MissingUnconstrainedForeignKeys = 16,
 
 		/// <summary>
+		/// The object is missing server generated primary keys
+		/// </summary>
+		MissingServerGeneratedPrimaryKeys = 32,
+
+		/// <summary>
 		/// The object has been deleted
 		/// </summary>
 		Deleted = 256
