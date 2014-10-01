@@ -315,6 +315,10 @@ namespace Shaolinq
 			return this.GetReferenceByPrimaryKey<T>(new { Id = primaryKey });
 		}
 
+		private class ContainerType<T>
+		{	
+		}
+
 		public virtual T GetReferenceByPrimaryKey<T>(object[] primaryKeyValues)
 			where T : class, IDataAccessObject
 		{
@@ -323,7 +327,7 @@ namespace Shaolinq
 				throw new ArgumentNullException("primaryKeyValues");
 			}
 
-			var objectType = typeof(object[]);
+			var objectType = typeof(ContainerType<T>);
 			Func<object, ObjectPropertyValue[]> func;
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
@@ -331,16 +335,28 @@ namespace Shaolinq
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
 				var parameter = Expression.Parameter(typeof(object));
-				var constructor = typeof(ObjectPropertyValue).GetConstructor(new [] { typeof(Type), typeof(string), typeof(string), typeof(object), typeof(bool), typeof(int) });
+				var constructor = typeof(ObjectPropertyValue).GetConstructor(new[] { typeof(Type), typeof(string), typeof(string), typeof(int), typeof(object)});
 
 				var index = 0;
 				var initializers = new List<Expression>();
 
 				foreach (var property in typeDescriptor.PrimaryKeyProperties)
 				{
+					Expression convertedValue;
+
 					var valueExpression = Expression.Convert(Expression.ArrayIndex(Expression.Convert(parameter, typeof(object[])), Expression.Constant(index)), typeof(object));
 					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
-					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo.PropertyType), Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(false), Expression.Constant(property.PropertyName.GetHashCode()));
+					
+					if (property.PropertyType.IsDataAccessObjectType())
+					{
+						convertedValue = valueExpression;
+					}
+					else
+					{
+						convertedValue = Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType));
+					}
+
+					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo.PropertyType), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(property.PropertyName.GetHashCode()), convertedValue);
 
 					initializers.Add(newExpression);
 					index++;

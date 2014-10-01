@@ -176,7 +176,6 @@
     <Compile Include="Persistence\Linq\ProjectorFormatter.cs" />
     <Compile Include="Persistence\Linq\SqlQueryFormatterOptions.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlDeleteExpression.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlObjectOperand.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlOrderByExpression.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryRewriter.cs" />

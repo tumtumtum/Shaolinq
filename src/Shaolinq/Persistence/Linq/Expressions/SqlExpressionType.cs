@@ -18,7 +18,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		Aggregate,
 		AggregateSubquery,
 		Subquery,
-		ObjectOperand,
 		ConstantPlaceholder,
 		Tuple,
 		Type,
@@ -36,6 +35,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		StatementList,
 		InsertInto,
 		Update,
-		Assign
+		Assign,
+		ObjectReference
 	}
 }

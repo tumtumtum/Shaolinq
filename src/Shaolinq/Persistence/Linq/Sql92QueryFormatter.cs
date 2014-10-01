@@ -949,13 +949,13 @@ namespace Shaolinq.Persistence.Linq
 			return memberExpression;
 		}
 
-		protected override Expression VisitObjectOperand(SqlObjectOperand objectOperand)
+		protected override Expression VisitObjectReference(SqlObjectReference objectReference)
 		{
-			this.Write("Obj(");
-			this.Write(objectOperand.Type.Name);
+			this.Write("ObjectReference(");
+			this.Write(objectReference.Type.Name);
 			this.Write(")");
 
-			return objectOperand;
+			return objectReference;
 		}
 
 		protected override Expression VisitTuple(SqlTupleExpression tupleExpression)

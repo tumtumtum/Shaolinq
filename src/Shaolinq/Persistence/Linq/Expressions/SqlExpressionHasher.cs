@@ -249,9 +249,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		protected override Expression VisitObjectOperand(SqlObjectOperand objectOperand)
+		protected override Expression VisitObjectReference(SqlObjectReference objectReference)
 		{
-			return base.VisitObjectOperand(objectOperand);
+			return base.VisitObjectReference(objectReference);
 		}
 
 		protected override Expression VisitJoin(SqlJoinExpression join)

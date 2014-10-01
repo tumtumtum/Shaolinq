@@ -165,9 +165,21 @@ namespace Shaolinq.Persistence
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
 		}
 
+		public override int GetHashCode()
+		{
+			return this.PropertyInfo.GetHashCode();
+		}
+
+		public override bool Equals(object obj)
+		{
+			var value = obj as PropertyDescriptor;
+
+			return value != null && value.PropertyInfo == this.PropertyInfo;
+		}
+
 		public override string ToString()
 		{
-			return string.Format("PropertyDescriptor: {0}.{1}", this.DeclaringTypeDescriptor.TypeName, this.PropertyName);
+			return string.Format("PropertyDescriptor({0}.{1})", this.DeclaringTypeDescriptor.TypeName, this.PropertyName);
 		}
 	}
 }

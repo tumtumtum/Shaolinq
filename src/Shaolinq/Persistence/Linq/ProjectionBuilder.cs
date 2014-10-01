@@ -219,11 +219,11 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected override Expression VisitObjectOperand(SqlObjectOperand objectOperand)
+		protected override Expression VisitObjectReference(SqlObjectReference sqlObjectReference)
 		{
-			var arrayOfValues = Expression.NewArrayInit(typeof(object), objectOperand.ExpressionsInOrder.Select(c => (Expression)Expression.Convert(this.Visit(c), typeof(object))).ToArray());
+			var arrayOfValues = Expression.NewArrayInit(typeof(object), sqlObjectReference.Bindings.OfType<MemberAssignment>().Select(c => (Expression)Expression.Convert(this.Visit(c.Expression), typeof(object))).ToArray());
 
-			var method = MethodInfoFastRef.BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(objectOperand.Type);
+			var method = MethodInfoFastRef.BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(sqlObjectReference.Type);
 
 			return Expression.Call(Expression.Property(this.objectProjector, "DataAccessModel"), method, arrayOfValues);
 		}
@@ -237,10 +237,11 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery)), projection.Type);
 		}
 
+		/****
 		private IEnumerable<MemberAssignment> CreateMemberAssignments(MemberAssignment assignment)
 		{
 			// Assignments of related objects are converted to multiple assignments of the foriegn key values
-
+			
 			var i = 0;
 			var sqlObjectOperand = (SqlObjectOperand) assignment.Expression;
 			var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(assignment.Expression.Type);
@@ -257,8 +258,8 @@ namespace Shaolinq.Persistence.Linq
 
 				i++;
 			}
-		}
-
+		}*/
+		/*
 		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
 		{
 			List<MemberBinding> list = null;
@@ -319,6 +320,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return original;
-		}
+		}*/
 	}
 }

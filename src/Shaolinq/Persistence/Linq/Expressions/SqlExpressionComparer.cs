@@ -612,25 +612,30 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return constantPlaceholder;
 		}
 
-		protected override Expression VisitObjectOperand(SqlObjectOperand objectOperand)
+		protected override Expression VisitObjectReference(SqlObjectReference objectReference)
 		{
-			SqlObjectOperand current;
+			SqlObjectReference current;
 
-			if (!TryGetCurrent(objectOperand, out current))
+			if (!TryGetCurrent(objectReference, out current))
 			{
-				return objectOperand;
+				return objectReference;
 			}
 
-			result &= current.ExpressionsInOrder.Count == objectOperand.ExpressionsInOrder.Count;
+			if (Object.Equals(current.Type, objectReference.Type))
+			{
+				return objectReference;
+			}
+
+			result &= current.Bindings.Count == objectReference.Bindings.Count;
 
 			if (result)
 			{
-				currentObject = current.ExpressionsInOrder;
-				VisitExpressionList(objectOperand.ExpressionsInOrder);
+				currentObject = current.Bindings;
+				VisitBindingList(objectReference.Bindings);
 				currentObject = current;
 			}
 
-			return objectOperand;
+			return objectReference;
 		}
 
 		protected override Expression VisitJoin(SqlJoinExpression join)
@@ -657,7 +662,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 				currentObject = current;
 			}
-
 
 			return join;
 		}

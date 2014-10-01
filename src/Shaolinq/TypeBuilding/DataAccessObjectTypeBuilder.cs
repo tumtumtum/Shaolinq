@@ -1300,11 +1300,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_1);
 				generator.Emit(OpCodes.Ldc_I4, i);
 				generator.Emit(OpCodes.Ldelema, typeof(ObjectPropertyValue));
-
-				generator.Emit(OpCodes.Ldobj, typeof(ObjectPropertyValue));
-
-				// Get the "value" field
-				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.ObjectPropertyValueValueProperty.GetGetMethod());
+				generator.Emit(OpCodes.Call, PropertyInfoFastRef.ObjectPropertyValueValueProperty.GetGetMethod());
 
 				var propertyName = ForceSetPrefix + propertyDescriptor.PropertyName;
 
@@ -1316,7 +1312,7 @@ namespace Shaolinq.TypeBuilding
 				{
 					generator.Emit(OpCodes.Castclass, propertyDescriptor.PropertyType);
 				}
-
+				
 				// Call set_PrimaryField metho
 				generator.Emit(OpCodes.Callvirt, propertyBuilders[propertyName].GetSetMethod());
 				

@@ -74,25 +74,25 @@ namespace Shaolinq.Persistence.Linq
 		private readonly HashSet<string> columnNames; 
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
-		private readonly Dictionary<MemberInitExpression, SqlObjectOperand> sqlObjectOperandByMemberInit;
+		private readonly Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> sqlObjectOperandByMemberInit, params string[] existingAliases)
+		internal ColumnProjector(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
 			mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 
-			this.sqlObjectOperandByMemberInit = sqlObjectOperandByMemberInit;
+			this.sqlObjectReferenceByMemberInit = sqlObjectReferenceByMemberInit;
 			this.dataAccessModel = dataAccessModel;
 			this.newAlias = newAlias;
 			this.existingAliases = existingAliases;
 			this.candidates = Nominator.Nominate(canBeColumn, expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectOperand> memberInitBySqlObjectOperand, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
-			var projector = new ColumnProjector(dataAccessModel, canBeColumn, expression, newAlias, memberInitBySqlObjectOperand, existingAliases);
+			var projector = new ColumnProjector(dataAccessModel, canBeColumn, expression, newAlias, sqlObjectReferenceByMemberInit, existingAliases);
 
 			expression = projector.Visit(expression);
 
@@ -106,32 +106,29 @@ namespace Shaolinq.Persistence.Linq
 
 			if (retval != expression && newMemberInit != null)
 			{
-				if (this.sqlObjectOperandByMemberInit.ContainsKey(expression))
+				if (this.sqlObjectReferenceByMemberInit.ContainsKey(expression))
 				{
-					var newExpressions = new List<Expression>();
-					var newPropertyNames = new List<string>();
-
+					var newBindings = new List<MemberBinding>();
 					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(expression.Type);
 
 					foreach (var propertyDescriptor in typeDescriptor.PrimaryKeyProperties)
 					{
 						var localPropertyDescriptor = propertyDescriptor;
 
-						foreach (var memberAssignmentExpression in newMemberInit
+						foreach (var memberAssignmentExpressionExpression in newMemberInit
 							.Bindings
 							.OfType<MemberAssignment>()
 							.Select(c => c.Expression)
 							.OfType<SqlColumnExpression>()
-							.Where(c => c.Name == localPropertyDescriptor.PersistedName))
+							.Where(c => c.Name == localPropertyDescriptor.PropertyName))
 						{
-							newExpressions.Add(memberAssignmentExpression);
-							newPropertyNames.Add(propertyDescriptor.PersistedName);
+							newBindings.Add(Expression.Bind(propertyDescriptor.PropertyInfo, memberAssignmentExpressionExpression));
 						}
 					}
 
-					var sqlObjectOperand = new SqlObjectOperand(newMemberInit.Type, newExpressions, newPropertyNames);
+					var objectReference = new SqlObjectReference(newMemberInit.Type, newBindings);
 
-					this.sqlObjectOperandByMemberInit[expression] = sqlObjectOperand;
+					this.sqlObjectReferenceByMemberInit[expression] = objectReference;
 				}
 			}
 
@@ -182,9 +179,10 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (candidates.Contains(expression))
 			{
-				if (expression.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
+				if (expression.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 				{
-					var listExpression =  (SqlObjectOperand)expression;
+					/*
+					var listExpression = (SqlObjectReference)expression;
 					var newList = new List<Expression>();
 					var newPropertyNames = new List<string>();
 
@@ -198,7 +196,9 @@ namespace Shaolinq.Persistence.Linq
 						newPropertyNames.Add(key);
 					}
 
-					return new SqlObjectOperand(listExpression.Type, newList, newPropertyNames);
+					return new SqlObjectOperand(listExpression.Type, newList, newPropertyNames);*/
+
+					return base.Visit(expression);
 				}
 				else
 				{

@@ -23,7 +23,7 @@ namespace Shaolinq.Tests
 			long shopId;
 			long addressId;
 			long regionId;
-			
+
 			using (var scope = new TransactionScope())
 			{
 				var shop = this.model.Shops.Create();
@@ -45,6 +45,8 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var shop = this.model.Shops.FirstOrDefault(c => c.Id == shopId);
+
+				
 
 				Assert.IsNotNull(shop);
 				Assert.IsNotNull(shop.Address);

@@ -70,17 +70,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (functionCallExpression.Arguments.Count == 1)
 			{
-				if (functionCallExpression.Arguments[0] is SqlObjectOperand)
+				if (functionCallExpression.Arguments[0] is SqlObjectReference)
 				{
 					Expression retval = null;
-					var operand = (SqlObjectOperand)functionCallExpression.Arguments[0];
+					var operand = (SqlObjectReference)functionCallExpression.Arguments[0];
 
-					for (int i = 0, count = operand.ExpressionsInOrder.Count; i < count; i++)
+					foreach (var current in operand
+						.Bindings
+						.OfType<MemberAssignment>()
+						.Select(c => c.Expression)
+						.Select(c => new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, c)))
 					{
-						var left = operand.ExpressionsInOrder[i];
-
-						var current = new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, left);
-
 						if (retval == null)
 						{
 							retval = current;
@@ -105,18 +105,18 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return binaryExpression;
 			}
 
-			if (binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand
-				&& binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
+			if (binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference
+				&& binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 			{
 				Expression retval = null;
-				var leftOperand = (SqlObjectOperand)binaryExpression.Left;
-				var rightOperand = (SqlObjectOperand)binaryExpression.Right;
+				var leftOperand = (SqlObjectReference)binaryExpression.Left;
+				var rightOperand = (SqlObjectReference)binaryExpression.Right;
 
-				for (int i = 0, count = leftOperand.ExpressionsInOrder.Count; i < count; i++)
+				foreach (var value in leftOperand.Bindings.OfType<MemberAssignment>().Zip(rightOperand.Bindings.OfType<MemberAssignment>(), (left, right) => new { Left = right, Right = right }))
 				{
 					Expression current;
-					var left = this.Visit(leftOperand.ExpressionsInOrder[i]);
-					var right = this.Visit(rightOperand.ExpressionsInOrder[i]);
+					var left = this.Visit(value.Left.Expression);
+					var right = this.Visit(value.Right.Expression);
 					
 					switch (binaryExpression.NodeType)
 					{

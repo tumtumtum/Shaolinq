@@ -43,6 +43,8 @@ namespace Shaolinq
 
 		private LambdaExpression GetExtraCondition()
 		{
+			throw new NotSupportedException();
+			/*
 			switch (this.RelationshipType)
 			{
 				case EntityRelationshipType.ParentOfOneToMany:
@@ -132,7 +134,7 @@ namespace Shaolinq
 				{
 					throw new NotSupportedException(this.RelationshipType.ToString());
 				}
-			}
+			}*/
 		}
 		
 		private void BuildInitializeRelatedMethod()

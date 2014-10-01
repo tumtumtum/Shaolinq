@@ -3,6 +3,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -54,7 +56,7 @@ namespace Shaolinq.Persistence.Linq
 			return queryBinder.Visit(expandedExpression);
 		}
 
-		private static bool CanBeColumn(Expression expression)
+		public static bool RequiresColumnProjection(Expression expression)
 		{
 			switch (expression.NodeType)
 			{
@@ -62,7 +64,7 @@ namespace Shaolinq.Persistence.Linq
 				case (ExpressionType)SqlExpressionType.Subquery:
 				case (ExpressionType)SqlExpressionType.AggregateSubquery:
 				case (ExpressionType)SqlExpressionType.Aggregate:
-				case (ExpressionType)SqlExpressionType.ObjectOperand:
+				case (ExpressionType)SqlExpressionType.ObjectReference:
 					return true;
 				default:
 					return false;
@@ -173,7 +175,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(this.DataAccessModel, QueryBinder.CanBeColumn, expression, newAlias, this.objectOperandByMemberInit, existingAliases);
+			return ColumnProjector.ProjectColumns(this.DataAccessModel, QueryBinder.RequiresColumnProjection, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
 		}
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
@@ -319,12 +321,12 @@ namespace Shaolinq.Persistence.Linq
 
 			if (left.NodeType == ExpressionType.MemberInit)
 			{
-				left = objectOperandByMemberInit[(MemberInitExpression)left];
+				left = this.objectReferenceByMemberInit[(MemberInitExpression)left];
 			}
 
 			if (right.NodeType == ExpressionType.MemberInit)
 			{
-				right = objectOperandByMemberInit[(MemberInitExpression)right];
+				right = this.objectReferenceByMemberInit[(MemberInitExpression)right];
 			}
 			
 			if (left.Type.IsEnum)
@@ -351,19 +353,19 @@ namespace Shaolinq.Persistence.Linq
 					return Expression.Coalesce(left, right, conversion as LambdaExpression);
 				}
 
-				if (left.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand && right.NodeType == (ExpressionType)SqlExpressionType.Projection)
+				if (left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference && right.NodeType == (ExpressionType)SqlExpressionType.Projection)
 				{
-					var objectOperandExpression = (SqlObjectOperand)left;
-					var tupleExpression = new SqlTupleExpression(objectOperandExpression.ExpressionsInOrder);
+					var objectOperandExpression = (SqlObjectReference)left;
+					var tupleExpression = new SqlTupleExpression(objectOperandExpression.Bindings.OfType<MemberAssignment>().Select(c => c.Expression));
 					var selector = MakeSelectorForPrimaryKeys(left.Type, tupleExpression.Type);
 					var rightWithSelect = BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)right, selector, false);
 
 					return Expression.MakeBinary(binaryExpression.NodeType, tupleExpression, rightWithSelect, binaryExpression.IsLiftedToNull, binaryExpression.Method);
 				}
-				else if (left.NodeType == (ExpressionType)SqlExpressionType.Projection && right.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
+				else if (left.NodeType == (ExpressionType)SqlExpressionType.Projection && right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 				{
-					var objectOperandExpression = (SqlObjectOperand)right;
-					var tupleExpression = new SqlTupleExpression(objectOperandExpression.ExpressionsInOrder);
+					var objectOperandExpression = (SqlObjectReference)right;
+					var tupleExpression = new SqlTupleExpression(objectOperandExpression.Bindings.OfType<MemberAssignment>().Select(c => c.Expression));
 					var selector = MakeSelectorForPrimaryKeys(right.Type, tupleExpression.Type);
 					var leftWithSelect = BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)right, selector, false);
 
@@ -438,12 +440,12 @@ namespace Shaolinq.Persistence.Linq
 
 			if (outerKeyExpr.NodeType == ExpressionType.MemberInit)
 			{
-				outerKeyExpr = objectOperandByMemberInit[(MemberInitExpression)outerKeyExpr];
+				outerKeyExpr = this.objectReferenceByMemberInit[(MemberInitExpression)outerKeyExpr];
 			}
 
 			if (innerKeyExpression.NodeType == ExpressionType.MemberInit)
 			{
-				innerKeyExpression = objectOperandByMemberInit[(MemberInitExpression)innerKeyExpression];
+				innerKeyExpression = this.objectReferenceByMemberInit[(MemberInitExpression)innerKeyExpression];
 			}
 
 			AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);
@@ -1028,7 +1030,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else if (methodCallExpression.Method.ReturnType.IsDataAccessObjectType())
 			{
-				return CreateSqlObjectOperand(methodCallExpression);
+				return CreateObjectReference(methodCallExpression);
 			}
 
 			return base.VisitMethodCall(methodCallExpression);
@@ -1359,7 +1361,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return new SqlDeleteExpression(tableExpression.Name, projection.Select.Alias, expression);
 		}
-        
+
 		private static string GetExistingAlias(Expression source)
 		{
 			switch ((SqlExpressionType)source.NodeType)
@@ -1389,7 +1391,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		private readonly Dictionary<MemberInitExpression, SqlObjectOperand> objectOperandByMemberInit = new Dictionary<MemberInitExpression, SqlObjectOperand>(MemberInitEqualityComparer.Default);
+		private readonly Dictionary<MemberInitExpression, SqlObjectReference> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReference>(MemberInitEqualityComparer.Default);
 
 		private SqlProjectionExpression GetTableProjection(Type type)
 		{
@@ -1412,59 +1414,60 @@ namespace Shaolinq.Persistence.Linq
 			var tableAlias = this.GetNextAlias();
 			var selectAlias = this.GetNextAlias();
 
-			var bindings = new List<MemberBinding>();
-			var columns = new List<SqlColumnDeclaration>();
+			var rootBindings = new List<MemberBinding>();
+			var tableColumns = new List<SqlColumnDeclaration>();
 
-			foreach (var propertyDescriptor in typeDescriptor.PersistedProperties.Where(c => !c.PropertyType.IsDataAccessObjectType()))
+			var columnInfos = QueryBinder.GetColumnInfos
+			(
+				this.typeDescriptorProvider,
+				typeDescriptor.PersistedAndRelatedObjectProperties,
+				(c, d) => d == 0 || c.IsPrimaryKey,
+				(c, d) => d == 0 || c.IsPrimaryKey
+			);
+
+			var groupedColumnInfos = columnInfos
+				.GroupBy(c => c.VisitedProperties, ArrayEqualityComparer<PropertyDescriptor>.Default)
+				.OrderBy(c => c.Key.Length);
+
+			var bindingsForKey = groupedColumnInfos
+				.ToDictionary(c => c.Key, c => c.Key.Length == 0 ? rootBindings : new List<MemberBinding>(), ArrayEqualityComparer<PropertyDescriptor>.Default);
+
+			var parentBindingsForKey = bindingsForKey
+				.Where(c => c.Key.Length > 0)
+				.ToDictionary(c => c.Key, c => bindingsForKey[c.Key.Take(c.Key.Length - 1).ToArray()], ArrayEqualityComparer<PropertyDescriptor>.Default);
+
+			var rootPrimaryKeyProperties = new HashSet<string>(typeDescriptor.PrimaryKeyProperties.Select(c => c.PropertyName));
+
+			foreach (var groupedColumnInfo in groupedColumnInfos)
 			{
-				var columnName = propertyDescriptor.PersistedName;
-				var columnType = propertyDescriptor.PropertyType;
-				var propertyInfo = propertyDescriptor.PropertyInfo;
+				var currentBindings = bindingsForKey[groupedColumnInfo.Key];
 
-				bindings.Add(Expression.Bind(propertyInfo, new SqlColumnExpression(columnType, selectAlias, columnName)));
-				columns.Add(new SqlColumnDeclaration(columnName, new SqlColumnExpression(columnType, tableAlias, columnName)));
-			}
-
-			foreach (var propertyDescriptor in typeDescriptor.PersistedAndRelatedObjectProperties.Where(c => c.PropertyType.IsDataAccessObjectType()))
-			{
-				var columnType = propertyDescriptor.PropertyType;
-				var columnExpressions = new List<Expression>();
-				var propertyNames = new List<string>();
-				
-				foreach (var v in QueryBinder.GetColumnInfos(typeDescriptorProvider, propertyDescriptor))
+				foreach (var value in groupedColumnInfo)
 				{
-					var expression = new SqlColumnExpression(v.DefinitionProperty.PropertyType, selectAlias, v.ColumnName);
+					var propertyInfo = value.DefinitionProperty.PropertyInfo;
+					var columnExpression = new SqlColumnExpression(propertyInfo.PropertyType, selectAlias, value.ColumnName);
 
-					columnExpressions.Add(expression);
-					propertyNames.Add(v.GetFullPropertyName());
-					columns.Add(new SqlColumnDeclaration(v.ColumnName, new SqlColumnExpression(v.DefinitionProperty.PropertyType, tableAlias, v.ColumnName)));
+					currentBindings.Add(Expression.Bind(propertyInfo, columnExpression));
+					tableColumns.Add(new SqlColumnDeclaration(value.ColumnName, new SqlColumnExpression(propertyInfo.PropertyType, tableAlias, value.ColumnName)));
 				}
-
-				var objectOperand = new SqlObjectOperand(columnType, columnExpressions, propertyNames);
-
-				bindings.Add(Expression.Bind(propertyDescriptor.PropertyInfo, objectOperand));
 			}
 
-			var primaryKeyPropertyNames = new List<string>();
-			var primaryKeyColumnExpressions = new List<Expression>();
-			SqlObjectOperand primaryKeyObjectOperand = null;
-
-			foreach (var columnInfo in QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, typeDescriptor))
+			foreach (var value in groupedColumnInfos.Where(c => c.Key.Length > 0).OrderByDescending(c => c.Key.Length))
 			{
-				var expression = new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, selectAlias,columnInfo.ColumnName);
+				var property = value.Key[value.Key.Length - 1];
+				var objectReferenceType = property.PropertyType;
+				var parentBindings = parentBindingsForKey[value.Key];
+				var objectReference = new SqlObjectReference(objectReferenceType, bindingsForKey[value.Key]);
 
-				primaryKeyPropertyNames.Add(columnInfo.GetFullPropertyName());
-
-				primaryKeyColumnExpressions.Add(expression);
+				parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
 			}
 
-			primaryKeyObjectOperand = new SqlObjectOperand(typeDescriptor.Type, primaryKeyColumnExpressions, primaryKeyPropertyNames);
-
-			var projectorExpression = Expression.MemberInit(Expression.New(elementType), bindings);
-			objectOperandByMemberInit[projectorExpression] = primaryKeyObjectOperand;
+			var rootObjectReference = new SqlObjectReference(typeDescriptor.Type, rootBindings.Where(c => rootPrimaryKeyProperties.Contains(c.Member.Name)));
+			var projectorExpression = Expression.MemberInit(Expression.New(elementType), rootBindings);
+			this.objectReferenceByMemberInit[projectorExpression] = rootObjectReference;
 
 			var resultType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(elementType);
-			var projection = new SqlProjectionExpression(new SqlSelectExpression(resultType, selectAlias, columns, new SqlTableExpression(resultType, tableAlias, typeDescriptor.PersistedName), null, null, false), projectorExpression, null);
+			var projection = new SqlProjectionExpression(new SqlSelectExpression(resultType, selectAlias, tableColumns, new SqlTableExpression(resultType, tableAlias, typeDescriptor.PersistedName), null, null, false), projectorExpression, null);
 
 			if ((conditionType == elementType || (conditionType != null && conditionType.IsAssignableFrom(elementType))) && extraCondition != null)
 			{
@@ -1511,7 +1514,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else if (type.IsDataAccessObjectType() && !this.isWithinClientSideCode)
 			{
-				return CreateSqlObjectOperand(constantExpression);
+				return CreateObjectReference(constantExpression);
 			}
 
 			return constantExpression;
@@ -1529,33 +1532,61 @@ namespace Shaolinq.Persistence.Linq
 			return p;
 		}
 
-		protected SqlObjectOperand CreateSqlObjectOperand(Expression expression)
+		protected SqlObjectReference CreateObjectReference(Expression expression)
 		{
-			var type = expression.Type;
-			var propertyNames = new List<string>();
-			var columnExpressions = new List<Expression>();
-			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
+			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(expression.Type);
 
-			foreach (var primaryKey in typeDescriptor.PrimaryKeyProperties)
+			var columnInfos = QueryBinder.GetColumnInfos
+			(
+				this.typeDescriptorProvider,
+				typeDescriptor.PersistedAndRelatedObjectProperties,
+				(c, d) => c.IsPrimaryKey,
+				(c, d) => c.IsPrimaryKey
+			);
+
+			var groupedColumnInfos = columnInfos
+				.GroupBy(c => c.VisitedProperties, ArrayEqualityComparer<PropertyDescriptor>.Default)
+				.OrderBy(c => c.Key.Length);
+
+			var expressionForKey = new Dictionary<PropertyDescriptor[], Expression>(ArrayEqualityComparer<PropertyDescriptor>.Default);
+			
+			var bindings = new List<MemberBinding>();
+
+			foreach (var groupedColumnInfo in groupedColumnInfos)
 			{
-				if (primaryKey.PropertyType.IsDataAccessObjectType())
+				Expression parentExpression;
+				PropertyDescriptor propertyDefinition = null;
+
+				if (groupedColumnInfo.Key.Length == 0)
 				{
-					foreach (var propertyExpression in CreateSqlObjectOperand(Expression.Property(expression, primaryKey.PropertyInfo)).ExpressionsInOrder)
-					{
-						propertyNames.Add(primaryKey.PropertyName);
-						columnExpressions.Add(propertyExpression);
-					}
+					parentExpression = expression;
 				}
 				else
 				{
-					var propertyExpression = Expression.Property(expression, primaryKey.PropertyInfo);
+					parentExpression = Expression.Property(expressionForKey[groupedColumnInfo.Key.Take(groupedColumnInfo.Key.Length - 1).ToArray()], groupedColumnInfo.Key[groupedColumnInfo.Key.Length - 1].PropertyInfo);
+				}
 
-					propertyNames.Add(primaryKey.PropertyName);
-					columnExpressions.Add(propertyExpression);
+				expressionForKey[groupedColumnInfo.Key] = parentExpression;
+
+				foreach (var value in groupedColumnInfo)
+				{
+					var propertyInfo = value.DefinitionProperty.PropertyInfo;
+					var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
+
+					bindings.Add(Expression.Bind(propertyInfo, propertyAccess));
+					
+					if (propertyDefinition == null)
+					{
+						propertyDefinition = value.DefinitionProperty;
+					}
+					else
+					{
+						Debug.Assert(object.ReferenceEquals(propertyDefinition, value.DefinitionProperty));
+					}
 				}
 			}
 
-			return new SqlObjectOperand(type, columnExpressions, propertyNames);
+			return new SqlObjectReference(expression.Type, bindings);
 		}
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
@@ -1605,7 +1636,7 @@ namespace Shaolinq.Persistence.Linq
 
 					if (memberExpression.Type.IsDataAccessObjectType())
 					{
-						return CreateSqlObjectOperand(memberExpression);
+						return CreateObjectReference(memberExpression);
 					}
 					else if (IsTable(memberExpression.Type))
 					{
@@ -1751,14 +1782,14 @@ namespace Shaolinq.Persistence.Linq
 
 				return arg;
 			}
-			else if (source != null && source.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
+			else if (source != null && source.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 			{
-				Expression expression;
-				var objectOperandExpression = (SqlObjectOperand)source;
+				var objectOperandExpression = (SqlObjectReference)source;
+				var binding = objectOperandExpression.Bindings.OfType<MemberAssignment>().FirstOrDefault(c => c.Member.Name == memberInfo.Name);
 
-				if (objectOperandExpression.ExpressionsByPropertyName.TryGetValue(memberInfo.Name, out expression))
+				if (binding != null)
 				{
-					return expression;
+					return binding.Expression;
 				}
 			}
 
@@ -1813,7 +1844,7 @@ namespace Shaolinq.Persistence.Linq
 					return expression;
 				case (ExpressionType)SqlExpressionType.Column:
 					return expression;
-				case (ExpressionType)SqlExpressionType.ObjectOperand:
+				/*case (ExpressionType)SqlExpressionType.ObjectOperand:
 					SqlObjectOperand operand;
 					List<Expression> newExpressions = null;
 					List<string> newPropertyNames = null;
@@ -1858,7 +1889,7 @@ namespace Shaolinq.Persistence.Linq
 					else
 					{
 						return expression;
-					}
+					}*/
 			}
 
 			return base.Visit(expression);

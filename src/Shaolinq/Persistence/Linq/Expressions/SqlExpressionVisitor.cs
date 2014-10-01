@@ -40,8 +40,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					return this.VisitSubquery((SqlSubqueryExpression)expression);
 				case SqlExpressionType.AggregateSubquery:
 					return this.VisitAggregateSubquery((SqlAggregateSubqueryExpression)expression);
-				case SqlExpressionType.ObjectOperand:
-					return this.VisitObjectOperand((SqlObjectOperand)expression);
+				case SqlExpressionType.ObjectReference:
+					return this.VisitObjectReference((SqlObjectReference)expression);
 				case SqlExpressionType.OrderBy:
 					return this.VisitOrderBy((SqlOrderByExpression)expression);
 				case SqlExpressionType.Tuple:
@@ -158,26 +158,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return new SqlConstantPlaceholderExpression(constantPlaceholder.Index, (ConstantExpression)result);
 		}
 
-		protected virtual Expression VisitObjectOperand(SqlObjectOperand objectOperand)
+		protected virtual Expression VisitObjectReference(SqlObjectReference objectReference)
 		{
-			var expression = VisitExpressionList(objectOperand.ExpressionsInOrder);
+			var newBindings = this.VisitBindingList(objectReference.Bindings);
 
-			if (objectOperand.ExpressionsInOrder != expression)
+			if (!Object.ReferenceEquals(newBindings, objectReference.Bindings))
 			{
-				var newPropertyNames = new List<string>();
-				
-				foreach (var operandExpression in objectOperand.ExpressionsInOrder)
-				{
-					var key = objectOperand.PropertyNamesByExpression[operandExpression];
-
-					newPropertyNames.Add(key);
-				}
-
-				return new SqlObjectOperand(objectOperand.Type, expression, newPropertyNames);
+				return new SqlObjectReference(objectReference.Type, newBindings);
 			}
 			else
 			{
-				return objectOperand;
+				return objectReference;
 			}
 		}
 

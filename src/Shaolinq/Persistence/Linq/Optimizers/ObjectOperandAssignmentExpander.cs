@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			return new ObjectOperandAssignmentExpander(dataAccessModel, sqlDatabaseContext).Visit(expression);
 		}
-
+		/*
 		private IEnumerable<MemberAssignment> CreateMemberAssignments(MemberAssignment assignment)
 		{
 			var i = 0;
@@ -108,6 +108,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			return original;
-		}
+		}*/
 	}
 }
