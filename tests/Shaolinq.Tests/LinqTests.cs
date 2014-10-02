@@ -1247,7 +1247,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_Implicit_Join()
 		{
 			using (var scope = new TransactionScope())
