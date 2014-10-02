@@ -226,6 +226,7 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				Assert.AreEqual(1, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Count(c => c.Name == name));
+				Assert.AreEqual(1, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.First(c => c.Name == name).Id);
 				Assert.AreEqual(1, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.FirstOrDefault(c => c.Name == name).Id);
 
 				scope.Complete();

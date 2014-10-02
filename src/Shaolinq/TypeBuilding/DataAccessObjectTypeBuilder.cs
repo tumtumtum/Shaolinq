@@ -238,14 +238,24 @@ namespace Shaolinq.TypeBuilding
 				constructorGenerator.Emit(OpCodes.Newobj, dataConstructorBuilder);
 				constructorGenerator.Emit(OpCodes.Stfld, dataObjectField);
 
-				foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Where(c => c.IsAutoIncrement && c.PropertyType.NonNullableType() == typeof(Guid)))
+				foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties)
 				{
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
-					constructorGenerator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyDescriptor.PropertyName].GetSetMethod());
+					if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.NonNullableType() == typeof(Guid))
+					{
+						constructorGenerator.Emit(OpCodes.Ldarg_0);
+						constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
+						constructorGenerator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyDescriptor.PropertyName].GetSetMethod());
 
-					EmitUpdatedComputedPropertes(constructorGenerator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
+						EmitUpdatedComputedPropertes(constructorGenerator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
+					}
+					else if (propertyDescriptor.PropertyType.IsValueType && Nullable.GetUnderlyingType(propertyDescriptor.PropertyType) == null && !propertyDescriptor.IsPrimaryKey)
+					{
+						constructorGenerator.Emit(OpCodes.Ldarg_0);
+						EmitDefaultValue(constructorGenerator, propertyDescriptor.PropertyType);
+						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
+					}
 				}
+
 				
 				constructorGenerator.Emit(OpCodes.Ret);
 
