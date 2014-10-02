@@ -41,37 +41,73 @@ namespace Shaolinq.Persistence
 			return reader.GetString(ordinal);
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull)
 		{
 			if (this.UnderlyingType == null)
 			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue(), this.SupportedType), this.SupportedType),
-					Expression.New
+				if (asObjectKeepNull)
+				{
+					return Expression.Condition
 					(
-						GuidConstructor,
-						Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
-					)
-				);
-			}
-			else
-			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(null, typeof(Guid?)), this.SupportedType),
-					Expression.New
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Constant(null, typeof(object)),
+						Expression.Convert(Expression.New
+						(
+							GuidConstructor,
+							Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
+						), typeof(object))
+					);
+				}
+				else
+				{ 
+					return Expression.Condition
 					(
-						NullableGuidConstructor,
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue(), this.SupportedType), this.SupportedType),
 						Expression.New
 						(
 							GuidConstructor,
 							Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 						)
-					)
-				);
+					);
+				}
+			}
+			else
+			{
+				if (asObjectKeepNull)
+				{
+					return Expression.Condition
+					(
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Constant(null, typeof(object)),
+						Expression.Convert(Expression.New
+						(
+							NullableGuidConstructor,
+							Expression.New
+							(
+								GuidConstructor,
+								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
+							)
+						), typeof(object))
+					);
+				}
+				else
+				{ 
+					return Expression.Condition
+					(
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Convert(Expression.Constant(null, typeof(Guid?)), this.SupportedType),
+						Expression.New
+						(
+							NullableGuidConstructor,
+							Expression.New
+							(
+								GuidConstructor,
+								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
+							)
+						)
+					);
+				}
 			}
 		}
 	}

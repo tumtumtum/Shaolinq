@@ -2,7 +2,8 @@
 
  using System;
 using System.Collections.Generic;
-using System.Reflection;
+ using System.Linq;
+ using System.Reflection;
 using System.Reflection.Emit;
 using Shaolinq.Persistence;
 using Platform;
@@ -113,7 +114,6 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			var typeProvider = TypeDescriptorProvider.GetProvider(assembly);
-
 			var typeDescriptors = typeProvider.GetTypeDescriptors();
             
 			foreach (var typeDescriptor in typeDescriptors)

@@ -373,7 +373,7 @@ namespace Shaolinq.Persistence
 
 								values = new object[propertyInfos.Length];
 
-								for (var i = 0; i < reader.FieldCount; i++)
+								for (var i = 0; i < propertyInfos.Length; i++)
 								{
 									values[i] = Convert.ChangeType(reader.GetValue(i), propertyInfos[i].PropertyType);
 								}

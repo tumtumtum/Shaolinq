@@ -76,7 +76,7 @@ namespace Shaolinq.Tests
 				Assert.IsNull(this.model.Students.FirstOrDefault(c => c.Id == student2Id));
 
 				var student1 = model.Students.First(c => c.Id == student1Id);
-				
+
 				Assert.IsNull(student1.BestFriend);
 
 				scope.Complete();

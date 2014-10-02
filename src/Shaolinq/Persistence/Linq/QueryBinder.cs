@@ -1555,8 +1555,7 @@ namespace Shaolinq.Persistence.Linq
 			foreach (var groupedColumnInfo in groupedColumnInfos)
 			{
 				Expression parentExpression;
-				PropertyDescriptor propertyDefinition = null;
-
+				
 				if (groupedColumnInfo.Key.Length == 0)
 				{
 					parentExpression = expression;
@@ -1574,15 +1573,6 @@ namespace Shaolinq.Persistence.Linq
 					var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
 
 					bindings.Add(Expression.Bind(propertyInfo, propertyAccess));
-					
-					if (propertyDefinition == null)
-					{
-						propertyDefinition = value.DefinitionProperty;
-					}
-					else
-					{
-						Debug.Assert(object.ReferenceEquals(propertyDefinition, value.DefinitionProperty));
-					}
 				}
 			}
 

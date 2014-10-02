@@ -198,6 +198,11 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
+			return this.VisitColumn(column, false);
+		}
+
+		protected virtual Expression VisitColumn(SqlColumnExpression column, bool asObjectKeepNull)
+		{
 			// Replace all column accesses with the appropriate IDataReader call
 
 			if (column.Type.IsDataAccessObjectType())
@@ -210,18 +215,21 @@ namespace Shaolinq.Persistence.Linq
 
 				if (!this.columnIndexes.ContainsKey(column.Name))
 				{
-					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, 0);
+					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, 0, asObjectKeepNull);
 				}
 				else
 				{
-					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, this.columnIndexes[column.Name]);
+					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, this.columnIndexes[column.Name], asObjectKeepNull);
 				}
 			}
 		}
 
 		protected override Expression VisitObjectReference(SqlObjectReference sqlObjectReference)
 		{
-			var arrayOfValues = Expression.NewArrayInit(typeof(object), sqlObjectReference.Bindings.OfType<MemberAssignment>().Select(c => (Expression)Expression.Convert(this.Visit(c.Expression), typeof(object))).ToArray());
+			var arrayOfValues = Expression.NewArrayInit(typeof(object), sqlObjectReference
+				.Bindings
+				.OfType<MemberAssignment>()
+				.Select(c => (Expression)Expression.Convert(c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? this.VisitColumn((SqlColumnExpression)c.Expression, true) : this.Visit(c.Expression), typeof(object))).ToArray());
 
 			var method = MethodInfoFastRef.BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(sqlObjectReference.Type);
 

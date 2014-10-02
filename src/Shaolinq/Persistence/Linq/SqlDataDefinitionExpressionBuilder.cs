@@ -178,7 +178,7 @@ namespace Shaolinq.Persistence.Linq
 			columnInfos = QueryBinder.GetColumnInfos
 			(
 				this.model.TypeDescriptorProvider,
-				typeDescriptor.PersistedProperties,
+				typeDescriptor.PersistedProperties.Where(c => !c.PropertyType.IsDataAccessObjectType()),
 				(c, d) => d == 0 ? !c.IsPrimaryKey : c.IsPrimaryKey,
 				(c, d) => d == 0 ? !c.IsPrimaryKey : c.IsPrimaryKey
 			);
@@ -188,7 +188,27 @@ namespace Shaolinq.Persistence.Linq
 				columnExpressions.Add(this.BuildColumnDefinition(columnInfo));
 			}
 
+			foreach (var property in typeDescriptor.PersistedProperties
+				.Where(c => c.PropertyType.IsDataAccessObjectType() && !c.IsPrimaryKey))
+			{
+				if (typeDescriptor.PersistedName == "Student")
+				{
+					Console.WriteLine();
+				}
+
+				columnInfos = QueryBinder.GetColumnInfos
+				(
+					this.model.TypeDescriptorProvider,
+					new [] { property },
+					(c, d) => d == 0 || c.IsPrimaryKey,
+					(c, d) => c.IsPrimaryKey
+				);
+
+				columnExpressions.AddRange(this.BuildForeignKeyColumnDefinitions(property, columnInfos));
+			}
+
 			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
+
 
 			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
 

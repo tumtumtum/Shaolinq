@@ -38,37 +38,73 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull)
 		{
 			if (Nullable.GetUnderlyingType(this.SupportedType) == null)
 			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
-					Expression.New
+				if (asObjectKeepNull)
+				{
+					return Expression.Condition
 					(
-						timeSpanConstructor,
-						Expression.Call(dataReader, getValueMethod, Expression.Constant(ordinal))
-					)
-				);
-			}
-			else
-			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
-					Expression.New
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Constant(null, typeof(object)),
+						Expression.Constant(Expression.New
+						(
+							timeSpanConstructor,
+							Expression.Call(dataReader, getValueMethod, Expression.Constant(ordinal))
+						), typeof(object))
+					);
+				}
+				else 
+				{ 
+					return Expression.Condition
 					(
-						nullableTimeSpanConstructor,
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
 						Expression.New
 						(
 							timeSpanConstructor,
 							Expression.Call(dataReader, getValueMethod, Expression.Constant(ordinal))
 						)
-					)
-				);
+					);
+				}
+			}
+			else
+			{
+				if (asObjectKeepNull)
+				{
+					return Expression.Condition
+					(
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Constant(null, typeof(object)),
+						Expression.Convert(Expression.New
+						(
+							nullableTimeSpanConstructor,
+							Expression.New
+							(
+								timeSpanConstructor,
+								Expression.Call(dataReader, getValueMethod, Expression.Constant(ordinal))
+							)
+						), typeof(object))
+					);
+				}
+				else
+				{
+					return Expression.Condition
+					(
+						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+						Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
+						Expression.New
+						(
+							nullableTimeSpanConstructor,
+							Expression.New
+							(
+								timeSpanConstructor,
+								Expression.Call(dataReader, getValueMethod, Expression.Constant(ordinal))
+							)
+						)
+					);
+				}
 			}
 		}
 	}

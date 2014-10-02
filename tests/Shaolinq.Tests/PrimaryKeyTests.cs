@@ -25,26 +25,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Composite_PrimaryKey_With_RelatedObject()
-		{
-			using (var scope = new TransactionScope())
-			{
-				var school = model.Schools.Create();
-				var student = school.Students.Create();
-
-				scope.Flush(model);
-
-				var obj1 = model.ObjectWithCompositePrimaryKeys.Create();
-				
-				obj1.Id = 10;
-				obj1.SecondaryKey = "a";
-				obj1.Student = student;
-
-				scope.Complete();
-			}
-		}
-
-		[Test]
 		public void Test_AutoIncrement_PrimaryKey()
 		{
 			using (var scope = new TransactionScope())

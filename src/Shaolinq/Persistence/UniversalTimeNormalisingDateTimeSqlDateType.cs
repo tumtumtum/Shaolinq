@@ -53,11 +53,23 @@ namespace Shaolinq.Persistence
 			return dateTime.Value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(dateTime.Value, kind) : dateTime;
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull)
 		{
-			var expression = base.GetReadExpression(objectProjector, dataReader, ordinal);
+			var expression = base.GetReadExpression(objectProjector, dataReader, ordinal, asObjectKeepNull);
 
-			return Expression.Call(specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+			if (asObjectKeepNull)
+			{
+				return Expression.IfThenElse
+				(
+					Expression.Equal(expression, Expression.Constant(null, typeof(object))),
+					Expression.Constant(null, typeof(object)),
+					Expression.Convert(Expression.Call(specifyKindMethod, Expression.Convert(expression, this.SupportedType), Expression.Constant(DateTimeKind.Utc)), typeof(object))
+				);
+			}
+			else
+			{
+				return Expression.Call(specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+			}
 		}
 	}
 }

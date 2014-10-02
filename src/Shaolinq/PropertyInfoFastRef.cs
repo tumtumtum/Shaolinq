@@ -6,6 +6,7 @@ namespace Shaolinq
 {
 	public static class PropertyInfoFastRef
 	{
+		public static readonly PropertyInfo DataAccessObjectObjectState = typeof(IDataAccessObject).GetProperty("ObjectState");
 		public static readonly PropertyInfo DataAccessObjectInternalIsNewProperty = typeof(IDataAccessObject).GetProperty("IsNew", BindingFlags.Public | BindingFlags.Instance);
 		public static readonly PropertyInfo DataAccessObjectInternaIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys = typeof(IDataAccessObject).GetProperty("IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys", BindingFlags.Public | BindingFlags.Instance);
 		public static readonly PropertyInfo ObjectPropertyValueValueProperty = typeof(ObjectPropertyValue).GetProperty("Value", BindingFlags.Instance | BindingFlags.Public);

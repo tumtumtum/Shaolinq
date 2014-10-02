@@ -327,6 +327,11 @@ namespace Shaolinq
 				throw new ArgumentNullException("primaryKeyValues");
 			}
 
+			if (primaryKeyValues.All(c => c == null))
+			{
+				return null;
+			}
+
 			var objectType = typeof(ContainerType<T>);
 			Func<object, ObjectPropertyValue[]> func;
 
@@ -335,7 +340,7 @@ namespace Shaolinq
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
 				var parameter = Expression.Parameter(typeof(object));
-				var constructor = typeof(ObjectPropertyValue).GetConstructor(new[] { typeof(Type), typeof(string), typeof(string), typeof(int), typeof(object)});
+				var constructor = ConstructorInfoFastRef.ObjectPropertyValueConstructor;
 
 				var index = 0;
 				var initializers = new List<Expression>();
@@ -398,7 +403,7 @@ namespace Shaolinq
 				}
 
 				var parameter = Expression.Parameter(typeof(object));
-				var constructor = typeof(ObjectPropertyValue).GetConstructor(new Type[] { typeof(PropertyInfo), typeof(object), typeof(string), typeof(string), typeof(bool), typeof(int) });
+				var constructor = ConstructorInfoFastRef.ObjectPropertyValueConstructor;
 
 				var initializers = new List<Expression>();
 
@@ -422,12 +427,12 @@ namespace Shaolinq
 					var newExpression = Expression.New
 					(
 						constructor,
-						Expression.Constant(propertyInfo),
-						isObjectType ? (Expression)Expression.Convert(valueExpression, propertyInfo.PropertyType) : (Expression)Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType)), 
+						Expression.Constant(propertyInfo.PropertyType),
 						Expression.Constant(property.PropertyName),
 						Expression.Constant(property.PersistedName),
-						Expression.Constant(false),
-						Expression.Constant(property.PropertyName.GetHashCode()));
+						Expression.Constant(property.PropertyName.GetHashCode()),
+						isObjectType ? (Expression)Expression.Convert(valueExpression, propertyInfo.PropertyType) : (Expression)Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType))
+					);
 
 					initializers.Add(newExpression);
 				}

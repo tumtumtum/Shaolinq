@@ -203,7 +203,7 @@ namespace Shaolinq.Persistence
 			return typeDescriptorsByType.Keys;
 		}
 
-		public IEnumerable<TypeDescriptor> GetTypeDescriptors()
+		public ICollection<TypeDescriptor> GetTypeDescriptors()
 		{
 			return typeDescriptorsByType.Values;
 		}
@@ -220,7 +220,7 @@ namespace Shaolinq.Persistence
 			return null;
 		}
 
-		public IEnumerable<ModelTypeDescriptor> GetModelTypeDescriptors()
+		public ICollection<ModelTypeDescriptor> GetModelTypeDescriptors()
 		{
 			return this.modelTypeDescriptorsByType.Values;
 		}
