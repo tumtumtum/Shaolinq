@@ -1534,7 +1534,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected SqlObjectReference CreateObjectReference(Expression expression)
 		{
-			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(expression.Type);
+			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(expression.Type));
 
 			var columnInfos = QueryBinder.GetColumnInfos
 			(

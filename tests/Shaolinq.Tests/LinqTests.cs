@@ -23,7 +23,12 @@ namespace Shaolinq.Tests
 		public LinqTests(string providerName)
 			: base(providerName)
 		{
-			this.CreateObjects();
+		}
+
+		[TestFixtureSetUp]
+		public void SetupFixture()
+		{
+			this.CreateObjects();	
 		}
 
 		private void CreateObjects()
@@ -38,7 +43,15 @@ namespace Shaolinq.Tests
 
 				school.Name = "Bruce's Kung Fu School";
 
+				scope.Flush(this.model);
+
 				var tum = school.Students.Create();
+
+				scope.Flush(this.model);
+
+				var count = school.Students.Count();
+
+
 
 				var address = this.model.Address.Create();
 				address.Number = 178;
@@ -70,6 +83,9 @@ namespace Shaolinq.Tests
 				school.Name = "Brandon's Kung Fu School";
 
 				var chuck1 = school.Students.Create();
+
+
+				scope.Flush(this.model);
 
 				var address2 = this.model.Address.Create();
 				address2.Number = 1799;
@@ -643,7 +659,7 @@ namespace Shaolinq.Tests
 
 				Assert.That(((IDataAccessObject)student).GetChangedPropertiesFlattened(), Is.Empty);
 
-				student.Sex = student.Sex;
+				student.Sex = student.Sex;	
 				student.School = student.School;
 				student.Fraternity = student.Fraternity;
 				student.BestFriend = student.BestFriend;

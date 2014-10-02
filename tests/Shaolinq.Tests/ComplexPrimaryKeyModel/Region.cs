@@ -7,5 +7,8 @@
 		[PrimaryKey]
 		[PersistedMember]
 		public abstract string Name { get; set; }
+
+		[PersistedMember]
+		public abstract float Diameter { get; set; }
 	}
 }

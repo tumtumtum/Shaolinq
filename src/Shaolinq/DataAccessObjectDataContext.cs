@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Shaolinq.Persistence;
 using Platform;
-using TypeAndTcx = Platform.Pair<System.Type, Shaolinq.SqlTransactionalCommandsContext>;
+using TypeAndTransactionalCommandsContext = Platform.Pair<System.Type, Shaolinq.SqlTransactionalCommandsContext>;
 
 namespace Shaolinq
 {
@@ -116,17 +116,30 @@ namespace Shaolinq
 				}
 			}
 
-			public void UpdateNewToUpdated()
+			public void ProcessAfterCommit()
 			{
-				foreach (var list in newObjects.Values)
+				foreach (var value in this.newObjects.Values.SelectMany(c => c))
 				{
-					foreach (DataAccessObject<T> value in list)
-					{
-						Debug.Assert(!((IDataAccessObject)value).IsNew);
+					value.SetIsNew(false);
+					value.ResetModified();
 
-						Cache(value, false);
+					this.Cache((DataAccessObject<T>)value, false);
+				}
+
+				foreach (var obj in this.objectsByIdCache.SelectMany(j => j.Value.Values))
+				{
+					obj.ResetModified();
+				}
+
+				if (this.objectsByIdCacheComposite != null)
+				{
+					foreach (var obj in this.objectsByIdCacheComposite.SelectMany(j => j.Value.Values))
+					{
+						obj.ResetModified();
 					}
 				}
+
+				this.newObjects.Clear();
 			}
 
 			public void Deleted(DataAccessObject<T> value)
@@ -700,27 +713,24 @@ namespace Shaolinq
 				CommitUpdated(acquisitions, transactionContext);
 				CommitDeleted(acquisitions, transactionContext);
 				
-				if (forFlush)
+				if (this.cacheByInt != null)
 				{
-					if (this.cacheByInt != null)
-					{
-						this.cacheByInt.UpdateNewToUpdated();
-					}
+					this.cacheByInt.ProcessAfterCommit();
+				}
 					
-					if (this.cacheByLong != null)
-					{
-						this.cacheByLong.UpdateNewToUpdated();
-					}
+				if (this.cacheByLong != null)
+				{
+					this.cacheByLong.ProcessAfterCommit();
+				}
 
-					if (this.cacheByGuid != null)
-					{
-						this.cacheByGuid.UpdateNewToUpdated();
-					}
+				if (this.cacheByGuid != null)
+				{
+					this.cacheByGuid.ProcessAfterCommit();
+				}
 
-					if (this.cacheByString != null)
-					{
-						this.cacheByString.UpdateNewToUpdated();
-					}
+				if (this.cacheByString != null)
+				{
+					this.cacheByString.ProcessAfterCommit();
 				}
 			}
 			catch (Exception)
@@ -844,7 +854,7 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitNewPhase1<T>(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, ObjectsByIdCache<T> cache, TransactionContext transactionContext, Dictionary<TypeAndTcx, InsertResults> insertResultsByType, Dictionary<TypeAndTcx, IList<IDataAccessObject>> fixups)
+		private static void CommitNewPhase1<T>(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, ObjectsByIdCache<T> cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IList<IDataAccessObject>> fixups)
 		{
 			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
 
@@ -854,7 +864,7 @@ namespace Shaolinq
 
 			foreach (var j in cache.newObjects)
 			{
-				var key = new TypeAndTcx(j.Key, persistenceTransactionContext);
+				var key = new TypeAndTransactionalCommandsContext(j.Key, persistenceTransactionContext);
 
 				var currentInsertResults = persistenceTransactionContext.Insert(j.Key, j.Value);
 
@@ -872,8 +882,8 @@ namespace Shaolinq
 
 		private void CommitNew(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			var fixups = new Dictionary<TypeAndTcx, IList<IDataAccessObject>>();
-			var insertResultsByType = new Dictionary<TypeAndTcx, InsertResults>();
+			var fixups = new Dictionary<TypeAndTransactionalCommandsContext, IList<IDataAccessObject>>();
+			var insertResultsByType = new Dictionary<TypeAndTransactionalCommandsContext, InsertResults>();
 
 			if (this.cacheByInt != null)
 			{
@@ -896,7 +906,7 @@ namespace Shaolinq
 			}
 
 			var currentInsertResultsByType = insertResultsByType;
-			var newInsertResultsByType = new Dictionary<TypeAndTcx, InsertResults>();
+			var newInsertResultsByType = new Dictionary<TypeAndTransactionalCommandsContext, InsertResults>();
 
 			while (true)
 			{
@@ -916,7 +926,7 @@ namespace Shaolinq
 
 					didRetry = true;
 
-					newInsertResultsByType[new TypeAndTcx(type, persistenceTransactionContext)] = persistenceTransactionContext.Insert(type, retryListForType);
+					newInsertResultsByType[new TypeAndTransactionalCommandsContext(type, persistenceTransactionContext)] = persistenceTransactionContext.Insert(type, retryListForType);
 				}
 
 				if (!didRetry)

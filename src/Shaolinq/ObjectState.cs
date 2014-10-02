@@ -28,7 +28,7 @@ namespace Shaolinq
 		/// <summary>
 		/// The object is new and has changed.
 		/// </summary>
-		NewChanged = 2 | Changed,
+		NewChanged = New | Changed,
 
 		/// <summary>
 		/// The object has just been commited.
@@ -51,7 +51,7 @@ namespace Shaolinq
 		/// <summary>
 		/// The object is missing server generated primary keys
 		/// </summary>
-		MissingServerGeneratedPrimaryKeys = 32,
+		MissingServerGeneratedForeignPrimaryKeys = 32,
 
 		/// <summary>
 		/// The object has been deleted

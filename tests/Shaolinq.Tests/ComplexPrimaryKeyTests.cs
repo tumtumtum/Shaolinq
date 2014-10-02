@@ -46,7 +46,18 @@ namespace Shaolinq.Tests
 			{
 				var shop = this.model.Shops.FirstOrDefault(c => c.Id == shopId);
 
-				
+				Assert.IsNotNull(shop);
+				Assert.IsNotNull(shop.Address);
+				Assert.IsNotNull(shop.Address.Region);
+				Assert.AreEqual(addressId, shop.Address.Id);
+				Assert.AreEqual(regionId, shop.Address.Region.Id);
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var shop = this.model.Shops.FirstOrDefault(c => c.Address.Region.Id == regionId);
 
 				Assert.IsNotNull(shop);
 				Assert.IsNotNull(shop.Address);

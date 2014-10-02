@@ -250,7 +250,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				if (dataAccessObject.HasObjectChanged || (dataAccessObject.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedPrimaryKeys | ObjectState.MissingUnconstrainedForeignKeys)) != 0)
+				if (dataAccessObject.HasObjectChanged || (dataAccessObject.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys | ObjectState.MissingUnconstrainedForeignKeys)) != 0)
 				{
 					var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
 
@@ -320,7 +320,7 @@ namespace Shaolinq.Persistence
 						throw new NotSupportedException("Changed state not supported");
 				}
 
-				if ((objectState & (ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingConstrainedForeignKeys)) == 0)
+				if ((objectState & (ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys)) == 0)
 				{
 					// We can insert if it is not missing foreign keys
 					// (could be missing some unconstrained foreign keys)
@@ -359,21 +359,19 @@ namespace Shaolinq.Persistence
 						throw;
 					}
 
-
-					dataAccessObject.ResetModified();
-					dataAccessObject.SetIsNew(false);
-
 					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foriegn keys
 
-					if (reader != null && dataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+					if (dataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 					{
+						object[] values = null;
+
 						using (reader)
 						{
 							if (reader.Read())
 							{
 								var propertyInfos = dataAccessObject.GetPropertiesGeneratedOnTheServerSide();
 
-								var values = new object[propertyInfos.Length];
+								values = new object[propertyInfos.Length];
 
 								for (var i = 0; i < reader.FieldCount; i++)
 								{
@@ -384,26 +382,26 @@ namespace Shaolinq.Persistence
 							}
 						}
 
-						if (dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties())
+						if (values != null && dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
-							Update(type, new[] { dataAccessObject });
+							this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
+							dataAccessObject.SetPropertiesGeneratedOnTheServerSide(values);
 						}
 					}
 					else
 					{
 						reader.Close();
 					}
+
+					if ((objectState & ObjectState.MissingUnconstrainedForeignKeys) != 0)
+					{
+						listToFixup.Add(dataAccessObject);
+					}
 				}
 				else
 				{
 					listToRetry.Add(dataAccessObject);
  				}
-				
-				if ((objectState & ObjectState.MissingUnconstrainedForeignKeys) != 0)
-				{
-					// Add to fix-ups if it is missing some unconstrained foreign keys
-					listToFixup.Add(dataAccessObject);
-				}
 			}
 
 			return new InsertResults(listToFixup, listToRetry);

@@ -4,7 +4,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
+ using System.Linq.Expressions;
+ using System.Reflection;
 using System.Reflection.Emit;
 using Shaolinq.Persistence;
 using Platform;
@@ -1498,8 +1499,6 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Stfld, this.valueIsSetFields[columnInfo.DefinitionProperty.PropertyName]);
 
-				EmitUpdatedComputedPropertes(generator, columnInfo.DefinitionProperty.PropertyName, columnInfo.DefinitionProperty.IsPrimaryKey);
-
 				index++;
 			}
 
@@ -2022,15 +2021,16 @@ namespace Shaolinq.TypeBuilding
 		private void EmitGetValueRecursive(ColumnInfo columnInfo, ILGenerator generator, Label skipLabel, bool checkChanged, bool defaultIfNotAvailable)
 		{
 			var first = true;
+			
 			generator.Emit(OpCodes.Ldarg_0);
 
-			if (columnInfo.ColumnName == "AddressAddressRegionId")
-			{
-				Console.WriteLine();
-			}
-
 			var last = new Tuple<PropertyInfo, string>(columnInfo.DefinitionProperty.PropertyInfo, columnInfo.DefinitionProperty.PropertyName);
+
+			var isNew = generator.DeclareLocal(typeof(bool));
 			
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Stloc, isNew);
+					
 			foreach (var visited in columnInfo
 				.VisitedProperties
 				.Select(c => new Tuple<PropertyInfo, string>(c.PropertyInfo, c.PropertyName))
@@ -2056,10 +2056,33 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ceq);
 					generator.Emit(OpCodes.Brfalse, readValueLabel);
 
-					EmitDefaultValue(generator, localValueField.FieldType);
+					if (defaultIfNotAvailable)
+					{
+						EmitDefaultValue(generator, localValueField.FieldType);
 
-					generator.Emit(OpCodes.Stloc, value);
-					generator.Emit(OpCodes.Br, gotValueLabel);
+						generator.Emit(OpCodes.Stloc, value);
+						generator.Emit(OpCodes.Br, gotValueLabel);
+					}
+					else
+					{
+						generator.Emit(OpCodes.Br, skipLabel);
+					}
+				}
+
+				if (first)
+				{
+					var l1 = generator.DefineLabel();
+
+					generator.Emit(OpCodes.Ldloc, currentObject);
+					generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("ObjectState").GetGetMethod());
+					generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.New));
+					generator.Emit(OpCodes.And);
+					generator.Emit(OpCodes.Ldc_I4_0);
+					generator.Emit(OpCodes.Ceq);
+					generator.Emit(OpCodes.Brtrue, l1);
+					generator.Emit(OpCodes.Ldc_I4_1);
+					generator.Emit(OpCodes.Stloc, isNew);
+					generator.MarkLabel(l1);
 				}
 
 				first = false;
@@ -2068,24 +2091,34 @@ namespace Shaolinq.TypeBuilding
 
 				if (checkChanged)
 				{
+					
 					generator.Emit(OpCodes.Ldloc, currentObject);
 					generator.Emit(OpCodes.Ldfld, localDataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueChangedField);
 					generator.Emit(OpCodes.Brtrue, loadValueLabel);
 				}
+				else
+				{
+					generator.Emit(OpCodes.Ldloc, currentObject);
+					generator.Emit(OpCodes.Ldfld, localDataObjectField);
+					generator.Emit(OpCodes.Ldfld, valueIsSetField);
+					generator.Emit(OpCodes.Brtrue, loadValueLabel);
+				}
+
+				var l2 = generator.DefineLabel();
 
 				generator.Emit(OpCodes.Ldloc, currentObject);
-				generator.Emit(OpCodes.Ldfld, localDataObjectField);
-				generator.Emit(OpCodes.Ldfld, valueIsSetField);
-				generator.Emit(OpCodes.Brtrue, loadValueLabel);
-
-				generator.Emit(OpCodes.Ldloc, currentObject);
-				generator.Emit(OpCodes.Ldfld, localDataObjectField);
-				generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
-				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.New));
+				generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetProperty("ObjectState").GetGetMethod());
+				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.New | ObjectState.Changed));
 				generator.Emit(OpCodes.And);
-				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.New));
+				generator.Emit(OpCodes.Ldc_I4_0);
 				generator.Emit(OpCodes.Ceq);
+
+				generator.Emit(OpCodes.Brtrue, l2);
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Stloc, isNew);
+				generator.MarkLabel(l2);
+				generator.Emit(OpCodes.Ldloc, isNew);
 				generator.Emit(OpCodes.Brtrue, loadValueLabel);
 
 				if (localValueField.FieldType.IsDataAccessObjectType())
@@ -2384,7 +2417,7 @@ namespace Shaolinq.TypeBuilding
 
 			var breakLabel1 = generator.DefineLabel();
 
-			// Go through foriegn keys properties and change local to include missing foreign
+			// Go through foreign keys properties and change local to include missing foreign
 			// key flag if necessary
 
 			foreach (var propertyDescriptor in this.typeDescriptor.RelatedProperties.Filter(c => c.IsBackReferenceProperty))
@@ -2440,7 +2473,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.MissingServerGeneratedPrimaryKeys : (int)ObjectState.MissingUnconstrainedForeignKeys);
+				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.MissingServerGeneratedForeignPrimaryKeys : (int)ObjectState.MissingUnconstrainedForeignKeys);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 				generator.Emit(OpCodes.Br, breakLabel2);

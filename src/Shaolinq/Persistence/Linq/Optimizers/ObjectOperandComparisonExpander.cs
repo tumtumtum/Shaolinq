@@ -112,7 +112,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var leftOperand = (SqlObjectReference)binaryExpression.Left;
 				var rightOperand = (SqlObjectReference)binaryExpression.Right;
 
-				foreach (var value in leftOperand.Bindings.OfType<MemberAssignment>().Zip(rightOperand.Bindings.OfType<MemberAssignment>(), (left, right) => new { Left = right, Right = right }))
+				foreach (var value in leftOperand.GetBindingsFlattened().OfType<MemberAssignment>().Zip(rightOperand.GetBindingsFlattened().OfType<MemberAssignment>(), (left, right) => new { Left = left, Right = right }))
 				{
 					Expression current;
 					var left = this.Visit(value.Left.Expression);
