@@ -1,13 +1,13 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 
-namespace Shaolinq.TypeBuilding
+namespace Shaolinq
 {
 	public static class MethodInfoFastRef
 	{
@@ -16,6 +16,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableJoinMethod;
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod;
 		public static readonly MethodInfo ExpressionGenericLambdaMethod;
+		public static readonly MethodInfo EnumParseMethod = typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null);
 		public static readonly MethodInfo BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod;
 		public static readonly MethodInfo GuidEqualsMethod = typeof(Guid).GetMethod("Equals", new Type[] { typeof(Guid) });
 		public static readonly MethodInfo GuidNewGuid = typeof(Guid).GetMethod("NewGuid", BindingFlags.Public | BindingFlags.Static);

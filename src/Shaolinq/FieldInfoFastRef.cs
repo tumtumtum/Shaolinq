@@ -3,7 +3,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Shaolinq.TypeBuilding
+namespace Shaolinq
 {
 	public class FieldInfoFastRef
 	{

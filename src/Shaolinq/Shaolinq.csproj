@@ -179,7 +179,7 @@
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
     <Compile Include="DataAccessObjectsQueryableExtensions.cs" />
-    <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
+    <Compile Include="FieldInfoFastRef.cs" />
     <Compile Include="DatabaseReadMode.cs" />
     <Compile Include="DataAccessModelAttribute.cs" />
     <Compile Include="DataAccessObjectProjectionContext.cs" />
@@ -235,7 +235,7 @@
     <Compile Include="Persistence\Linq\RelatedDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\SelectFirstType.cs" />
     <Compile Include="Persistence\Linq\SqlJoinType.cs" />
-    <Compile Include="TypeBuilding\MethodInfoFastRef.cs" />
+    <Compile Include="MethodInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\Optimizers\FunctionCoalescer.cs" />
     <Compile Include="Persistence\DefaultStringEnumSqlDataType.cs" />
     <Compile Include="Persistence\DefaultStringSqlDataType.cs" />

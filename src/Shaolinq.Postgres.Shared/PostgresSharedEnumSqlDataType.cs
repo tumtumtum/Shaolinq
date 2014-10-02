@@ -39,7 +39,7 @@ namespace Shaolinq.Postgres.Shared
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								MethodInfoFastRef.EnumParseMethod,
 								Expression.Constant(this.SupportedType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),
@@ -57,7 +57,7 @@ namespace Shaolinq.Postgres.Shared
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								MethodInfoFastRef.EnumParseMethod,
 								Expression.Constant(this.SupportedType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),
@@ -78,7 +78,7 @@ namespace Shaolinq.Postgres.Shared
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								MethodInfoFastRef.EnumParseMethod,
 								Expression.Constant(this.UnderlyingType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),
@@ -96,7 +96,7 @@ namespace Shaolinq.Postgres.Shared
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								MethodInfoFastRef.EnumParseMethod,
 								Expression.Constant(this.UnderlyingType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),
