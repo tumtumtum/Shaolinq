@@ -295,15 +295,13 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>();
+				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, false);
 
-				retval.SetIsNew(false);
 				retval.SetIsDeflatedReference(true);
-				retval.SetDataAccessModel(this);
 				retval.SetPrimaryKeys(propertyInfoAndValues);
 				retval.ResetModified();
-
-				this.GetCurrentDataContext(false).CacheObject(retval, false);
+				retval.FinishedInitializing();
+				retval.SubmitToCache();
 
 				return retval;
 			}
@@ -464,17 +462,16 @@ namespace Shaolinq
 
 		public virtual IDataAccessObject CreateDataAccessObject(Type type, bool transient)
 		{
-			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type);
-
-			retval.SetIsNew(true);
-			retval.SetDataAccessModel(this);
+			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
 
 			if (!transient)
 			{
-				this.GetCurrentDataContext(false).CacheObject(retval, false);
+				retval.FinishedInitializing();
+				retval.SubmitToCache();
 			}
 			else
 			{
+				retval.FinishedInitializing();
 				retval.SetTransient(true);
 			}
 
@@ -484,14 +481,12 @@ namespace Shaolinq
 		public virtual T CreateDataAccessObject<T>(bool transient)
 			where T : class, IDataAccessObject
 		{
-			var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>();
-
-			retval.SetIsNew(true);
-			retval.SetDataAccessModel(this);
+			var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
 
 			if (!transient)
 			{
-				this.GetCurrentDataContext(false).CacheObject(retval, false);
+				retval.FinishedInitializing();
+				retval.SubmitToCache();
 			}
 			else
 			{

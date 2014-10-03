@@ -55,9 +55,7 @@ namespace Shaolinq.Tests
 			{
 				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
-				// Should not be able to set AutoIncrement property
-
-				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj.Id = Guid.NewGuid());
+				obj.Id = Guid.NewGuid();
 
 				scope.Complete();
 			}
@@ -78,7 +76,7 @@ namespace Shaolinq.Tests
 
 				Assert.IsTrue(obj.Id != Guid.Empty);
 
-				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj.Id = Guid.NewGuid());
+				obj.Id = Guid.NewGuid();
 
 				scope.Complete();
 			}
@@ -140,7 +138,7 @@ namespace Shaolinq.Tests
 
 				// Should not be able to set AutoIncrement properties
 
-				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj.Id = 1);
+				obj.Id = 1000;
 
 				scope.Complete();
 			}
@@ -159,10 +157,8 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(1, obj1.Id);
 				Assert.AreEqual(2, obj2.Id);
 
-				// Should not be able to set AutoIncrement properties
-				
-				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj1.Id = 10);
-				Assert.Throws<InvalidPrimaryKeyPropertyAccessException>(() => obj2.Id = 20);
+				obj1.Id = 100;
+				obj2.Id = 200;
 
 				scope.Complete();
 			}

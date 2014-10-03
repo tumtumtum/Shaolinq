@@ -36,7 +36,7 @@ namespace Shaolinq.Persistence.Linq
 							this.relatedDataAccessObjectContext.InitializeDataAccessObject(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObject)retval);
 						}
 
-						retval.ResetModified();
+						//retval.ResetModified();
 
 						yield return retval;
 

@@ -71,9 +71,11 @@ namespace Shaolinq.Persistence.Linq
 
 			currentNewExpressionType = previousCurrentNewExpressionType;
 
-			var method = typeof(IDataAccessObject).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+			var submitToCacheMethod = typeof(IDataAccessObject).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+			var resetModifiedMethod = typeof(IDataAccessObject).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+			var finishedInitializingMethod = typeof(IDataAccessObject).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 
-			return Expression.Convert(Expression.Call(retval, method), retval.Type);
+			return Expression.Convert(Expression.Call(Expression.Call(Expression.Call(retval, finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
 		}
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
@@ -92,7 +94,7 @@ namespace Shaolinq.Persistence.Linq
 					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(currentNewExpressionType);
 					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
 
-					if (propertyDescriptor.IsAutoIncrement || propertyDescriptor.IsPrimaryKey)
+					if (propertyDescriptor.IsComputedTextMember)
 					{
 						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(currentNewExpressionType);
 						var propertyInfo = concreteType.GetProperty(DataAccessObjectTypeBuilder.ForceSetPrefix + assignment.Member.Name);
@@ -124,8 +126,8 @@ namespace Shaolinq.Persistence.Linq
 
 				return Expression.New
 				(
-					this.dataAccessModel.GetConcreteTypeFromDefinitionType(expression.Type).GetConstructor(new [] { typeof(DataAccessModel) }),
-					new Expression[] { Expression.Property(this.objectProjector, "DataAccessModel") }
+					this.dataAccessModel.GetConcreteTypeFromDefinitionType(expression.Type).GetConstructor(new [] { typeof(DataAccessModel), typeof(bool) }),
+					new Expression[] { Expression.Property(this.objectProjector, "DataAccessModel"), Expression.Constant(false) }
 				);
 			}
 
@@ -244,90 +246,5 @@ namespace Shaolinq.Persistence.Linq
 
 			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery)), projection.Type);
 		}
-
-		/****
-		private IEnumerable<MemberAssignment> CreateMemberAssignments(MemberAssignment assignment)
-		{
-			// Assignments of related objects are converted to multiple assignments of the foriegn key values
-			
-			var i = 0;
-			var sqlObjectOperand = (SqlObjectOperand) assignment.Expression;
-			var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(assignment.Expression.Type);
-
-			var ownerTypeDescriptor = this.dataAccessModel.GetTypeDescriptor(assignment.Member.ReflectedType);
-			var ownerPropertyDescriptor = ownerTypeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
-
-			foreach (var primaryKey in typeDescriptor.PrimaryKeyProperties)
-			{
-				var type = this.dataAccessModel.GetConcreteTypeFromDefinitionType(assignment.Member.ReflectedType);
-				var propertyInfo = type.GetProperties().FirstOrDefault(c => c.Name == ownerPropertyDescriptor.PropertyName + primaryKey.PersistedShortName);
-
-				yield return Expression.Bind(propertyInfo, this.Visit(sqlObjectOperand.ExpressionsInOrder[i]));
-
-				i++;
-			}
-		}*/
-		/*
-		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
-		{
-			List<MemberBinding> list = null;
-
-			for (int i = 0, n = original.Count; i < n; i++)
-			{
-				if (original[i].BindingType == MemberBindingType.Assignment)
-				{
-					var assignment = (MemberAssignment)original[i];
-
-					if (assignment.Expression.NodeType == (ExpressionType)SqlExpressionType.ObjectOperand)
-					{
-						foreach (var subAssignment in CreateMemberAssignments(assignment))
-						{
-							if (list != null)
-							{
-								list.Add(subAssignment);
-							}
-							else
-							{
-								list = new List<MemberBinding>(n);
-
-								for (var j = 0; j < i; j++)
-								{
-									list.Add(original[j]);
-								}
-
-								list.Add(subAssignment);
-							}
-						}
-
-						continue;
-					}
-				}
-
-				var b = VisitBinding(original[i]);
-
-				if (list != null)
-				{
-					list.Add(b);
-				}
-				else if (b != original[i])
-				{
-					list = new List<MemberBinding>(n);
-
-					for (var j = 0; j < i; j++)
-					{
-						list.Add(original[j]);
-					}
-
-					list.Add(b);
-				}
-			}
-
-			if (list != null)
-			{
-				return list;
-			}
-
-			return original;
-		}*/
 	}
 }

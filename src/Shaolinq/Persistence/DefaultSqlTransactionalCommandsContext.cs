@@ -462,7 +462,7 @@ namespace Shaolinq.Persistence
 				return null;
 			}
 
-			var primaryKeys = dataAccessObject.GetPrimaryKeysFlattened();
+			var primaryKeys = dataAccessObject.GetPrimaryKeysForUpdateFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))

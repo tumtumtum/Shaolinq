@@ -94,6 +94,9 @@ namespace Shaolinq
 		public abstract ObjectPropertyValue[] GetPrimaryKeysFlattened();
 
 		[ReflectionEmitted]
+		public abstract ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened();
+		
+		[ReflectionEmitted]
 		public abstract ObjectPropertyValue[] GetAllProperties();
 		
 		[ReflectionEmitted]
@@ -135,7 +138,13 @@ namespace Shaolinq
 		bool IDataAccessObject.IsDeflatedReference { get { throw new NotImplementedException(); } }
 
 		[ReflectionEmitted]
-		void IDataAccessObject.ResetModified()
+		IDataAccessObject IDataAccessObject.ResetModified()
+		{
+			throw new NotImplementedException();
+		}
+
+		[ReflectionEmitted]
+		IDataAccessObject IDataAccessObject.FinishedInitializing()
 		{
 			throw new NotImplementedException();
 		}

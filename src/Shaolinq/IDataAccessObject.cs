@@ -82,7 +82,13 @@ namespace Shaolinq
 		/// Resets the modified status of all the properties that aren't unrealised
 		/// foreign key references.
 		/// </summary>
-		void ResetModified();
+		IDataAccessObject ResetModified();
+
+		/// <summary>
+		/// Called when an object has finished being loaded from the database
+		/// </summary>
+		/// <returns></returns>
+		IDataAccessObject FinishedInitializing();
 
 		/// <summary>
 		/// Returns True if this object defines any direct properties that are generated on
@@ -174,6 +180,13 @@ namespace Shaolinq
 		/// are guaranteed to be interned.
 		/// </summary>
 		ObjectPropertyValue[] GetPrimaryKeysFlattened();
+
+		/// <summary>
+		/// Gets an array of the primary keys and their values.
+		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="ObjectPropertyValue"/>
+		/// are guaranteed to be interned.
+		/// </summary>
+		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened();
 
 		/// <summary>
 		/// Gets an array of properties generated on the server side. Does not return values.
