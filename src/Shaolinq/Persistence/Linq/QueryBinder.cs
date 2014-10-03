@@ -180,6 +180,8 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
 		{
+			const string columnName = "CONTAINS";
+
 			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, Visit(checkItem), Visit(checkList));
 
 			var alias = this.GetNextAlias();
@@ -189,36 +191,28 @@ namespace Shaolinq.Persistence.Linq
 			(
 				selectType,
 				alias,
-				new[] { new SqlColumnDeclaration("exists", functionExpression) },
+				new[] { new SqlColumnDeclaration(columnName, functionExpression) },
 				null,
 				null,
 				null,
 				false
 			);
 
-			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, "exists"), null);
+			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
 		}
 
 		private Expression BindFirst(Expression source, SelectFirstType selectFirstType)
 		{
-			var projection = this.VisitSequence(source);
-
-			var select = projection.Select;
-
-			var alias = this.GetNextAlias();
-
-			var pc = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
-
 			int limit;
+
+			var projection = this.VisitSequence(source);
+			var select = projection.Select;
+			var alias = this.GetNextAlias();
+			var pc = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 
 			switch (selectFirstType)
 			{
-				case SelectFirstType.FirstOrDefault:
-					limit = 1;
-					break;
 				case SelectFirstType.Single:
-					limit = 2;
-					break;
 				case SelectFirstType.SingleOrDefault:
 					limit = 2;
 					break;
@@ -1274,7 +1268,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var parameterExpression = Expression.Parameter(selectType, "PARAM");
 
-				var aggregator = Expression.Lambda(Expression.Call(typeof(Enumerable), "Single", new Type[] { returnType }, parameterExpression), parameterExpression);
+				var aggregator = Expression.Lambda(Expression.Call(typeof(Enumerable), "Single", new[] { returnType }, parameterExpression), parameterExpression);
 
 				return new SqlProjectionExpression(select, new SqlColumnExpression(returnType, alias, ""), aggregator, false, SelectFirstType.None, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 			}

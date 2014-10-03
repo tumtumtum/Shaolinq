@@ -1,8 +1,10 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
+﻿using System.Linq;
+﻿using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -24,10 +26,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlFunctionCallExpression(Type type, SqlFunction function, params Expression[] arguments)
+			: this(type, function, (IEnumerable<Expression>)arguments)
+		{	
+		}
+
+		public SqlFunctionCallExpression(Type type, SqlFunction function, IEnumerable<Expression> arguments)
 			: base(type)
 		{
 			this.Function = function;
-			this.Arguments = new ReadOnlyCollection<Expression>(arguments);
+			this.Arguments = new ReadOnlyCollection<Expression>(arguments.ToArray());
 		}
 	}
 }

@@ -30,7 +30,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<SqlOrderByExpression> orderBy, bool forUpdate)
+		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate)
 			: this(type, alias, columns, from, where, orderBy, null, false, null, null, forUpdate)
 		{
 		}

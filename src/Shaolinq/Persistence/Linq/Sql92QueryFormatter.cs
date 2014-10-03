@@ -256,6 +256,11 @@ namespace Shaolinq.Persistence.Linq
 					};
 				case SqlFunction.In:
 					return new FunctionResolveResult("IN", true, arguments);
+				case SqlFunction.Exists:
+					return new FunctionResolveResult("EXISTSOPERATOR", true, arguments)
+					{
+						functionPrefix = "EXISTS"
+					};
 				case SqlFunction.Coalesce:
 					return new FunctionResolveResult("COALESCE", false, arguments);
 				case SqlFunction.Like:

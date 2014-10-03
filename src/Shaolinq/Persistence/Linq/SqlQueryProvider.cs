@@ -190,6 +190,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = ObjectOperandComparisonExpander.Expand(dataAccessModel, expression);
 			expression = RedundantSubqueryRemover.Remove(expression);
 			expression = FunctionCoalescer.Coalesce(expression);
+			expression = ExistsSubqueryOptimizer.Optimize(expression);
 			//expression = OrderByRewriter.Rewrite(expression);
 			expression = RedundantBinaryExpressionsRemover.Remove(expression);
 			expression = Evaluator.PartialEval(dataAccessModel, expression);

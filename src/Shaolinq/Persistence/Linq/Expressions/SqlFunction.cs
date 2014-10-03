@@ -125,6 +125,11 @@
 		/// </summary>
 		In,
 
+		/// <summary>
+		/// "In" function
+		/// </summary>
+		Exists,
+
         /// <summary>
         /// Round function for floating point numbers. 
         /// </summary>
