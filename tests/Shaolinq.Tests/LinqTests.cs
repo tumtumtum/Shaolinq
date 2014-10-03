@@ -1247,6 +1247,23 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public void Test_Select_Contains()
+		{
+			using (var scope = new TransactionScope())
+			{
+				Assert.IsFalse(model.Students
+					               .Select(c => c.Lastname)
+					               .Contains("zzzzz"));
+
+				Assert.IsTrue(model.Students
+								   .Select(c => c.Lastname)
+								   .Contains("Nguyen"));
+
+				scope.Complete();
+			}
+		}
+
 		[Test, Ignore]
 		public void Test_Implicit_Join()
 		{

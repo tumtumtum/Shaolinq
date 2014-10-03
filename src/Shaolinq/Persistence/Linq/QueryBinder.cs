@@ -180,7 +180,23 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
 		{
-			return new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, Visit(checkItem), Visit(checkList));
+			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, Visit(checkItem), Visit(checkList));
+
+			var alias = this.GetNextAlias();
+			var selectType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(typeof(bool));
+
+			var select = new SqlSelectExpression
+			(
+				selectType,
+				alias,
+				new[] { new SqlColumnDeclaration("exists", functionExpression) },
+				null,
+				null,
+				null,
+				false
+			);
+
+			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, "exists"), null);
 		}
 
 		private Expression BindFirst(Expression source, SelectFirstType selectFirstType)
@@ -1240,7 +1256,6 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = this.GetNextAlias();
 
-			var projectedColumns = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 			var aggregateExpression = new SqlAggregateExpression(returnType, aggregateType, argumentExpression, isDistinct);
 			var selectType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(returnType);
 
@@ -1834,52 +1849,6 @@ namespace Shaolinq.Persistence.Linq
 					return expression;
 				case (ExpressionType)SqlExpressionType.Column:
 					return expression;
-				/*case (ExpressionType)SqlExpressionType.ObjectOperand:
-					SqlObjectOperand operand;
-					List<Expression> newExpressions = null;
-					List<string> newPropertyNames = null;
-
-					operand = (SqlObjectOperand)expression;
-
-					for (int i = 0; i < operand.ExpressionsInOrder.Count; i++)
-					{
-						var newoe = Visit(operand.ExpressionsInOrder[i]);
-						
-						if (newoe != operand.ExpressionsInOrder[i])
-						{
-							if (newExpressions == null)
-							{
-								newExpressions = new List<Expression>();
-								newPropertyNames = new List<string>();
-								
-								for (int j = 0; j < i; j++)
-								{
-									newExpressions.Add(operand.ExpressionsInOrder[j]);
-									var key = operand.PropertyNamesByExpression[operand.ExpressionsInOrder[j]];
-									newPropertyNames.Add(key);
-								}
-
-								newExpressions.Add(newoe);
-								var key2 = operand.PropertyNamesByExpression[operand.ExpressionsInOrder[i]];
-								newPropertyNames.Add(key2);
-							}
-							else
-							{
-								newExpressions.Add(newoe);
-								var key = operand.PropertyNamesByExpression[operand.ExpressionsInOrder[i]];
-								newPropertyNames.Add(key);
-							}
-						}
-					}
-
-					if (newExpressions != null)
-					{
-						return new SqlObjectOperand(expression.Type, newExpressions, newPropertyNames);
-					}
-					else
-					{
-						return expression;
-					}*/
 			}
 
 			return base.Visit(expression);

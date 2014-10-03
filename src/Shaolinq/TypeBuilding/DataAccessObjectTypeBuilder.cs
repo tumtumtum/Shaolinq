@@ -872,7 +872,6 @@ namespace Shaolinq.TypeBuilding
 					}
 
 					ILGenerator privateGenerator;
-					var continueLabel = generator.DefineLabel();
 					var notDeletedLabel = generator.DefineLabel();
 
 					// Throw if object has been deleted
@@ -892,7 +891,7 @@ namespace Shaolinq.TypeBuilding
 
 					// Skip setting if value is reference equal
 
-					if (propertyBuilder.PropertyType.IsClass)
+					if (propertyBuilder.PropertyType.IsClass && propertyBuilder.PropertyType != typeof(string))
 					{
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, dataObjectField);
@@ -908,43 +907,6 @@ namespace Shaolinq.TypeBuilding
 					}
 
 					generator.MarkLabel(skipLabel);
-
-					// Skip setting if value is the same as the previous value
-
-					var unwrappedNullableType = propertyBuilder.PropertyType.GetUnwrappedNullableType();
-
-					if ((unwrappedNullableType.IsPrimitive
-							|| unwrappedNullableType.IsEnum
-							|| unwrappedNullableType == typeof(string)
-							|| unwrappedNullableType == typeof(Guid)
-							|| unwrappedNullableType == typeof(DateTime)
-							|| unwrappedNullableType == typeof(TimeSpan)
-							|| unwrappedNullableType == typeof(decimal))
-							|| unwrappedNullableType.IsDataAccessObjectType())
-					{
-						// Load the new  value
-						generator.Emit(OpCodes.Ldarg_1);
-
-						// Load the old value
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-
-						// Compare and load true or false
-						EmitCompareEquals(generator, propertyBuilder.PropertyType);
-					
-						generator.Emit(OpCodes.Brfalse, continueLabel);
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Ldfld, dataObjectField);
-						generator.Emit(OpCodes.Ldc_I4_1);
-						generator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
-
-						EmitUpdatedComputedPropertes(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
-
-						generator.Emit(OpCodes.Ret);
-					}
-
-					generator.MarkLabel(continueLabel);
 
 					if (shouldBuildForceMethod)
 					{
@@ -969,6 +931,46 @@ namespace Shaolinq.TypeBuilding
 					{
 						privateGenerator = generator;
 					}
+
+					// Skip setting if value is the same as the previous value
+
+					var unwrappedNullableType = propertyBuilder.PropertyType.GetUnwrappedNullableType();
+
+					var continueLabel = privateGenerator.DefineLabel();
+					
+
+					if ((unwrappedNullableType.IsPrimitive
+							|| unwrappedNullableType.IsEnum
+							|| unwrappedNullableType == typeof(string)
+							|| unwrappedNullableType == typeof(Guid)
+							|| unwrappedNullableType == typeof(DateTime)
+							|| unwrappedNullableType == typeof(TimeSpan)
+							|| unwrappedNullableType == typeof(decimal))
+							|| unwrappedNullableType.IsDataAccessObjectType())
+					{
+						// Load the new  value
+						privateGenerator.Emit(OpCodes.Ldarg_1);
+
+						// Load the old value
+						privateGenerator.Emit(OpCodes.Ldarg_0);
+						privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
+						privateGenerator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
+
+						// Compare and load true or false
+						EmitCompareEquals(privateGenerator, propertyBuilder.PropertyType);
+
+						privateGenerator.Emit(OpCodes.Brfalse, continueLabel);
+						privateGenerator.Emit(OpCodes.Ldarg_0);
+						privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
+						privateGenerator.Emit(OpCodes.Ldc_I4_1);
+						privateGenerator.Emit(OpCodes.Stfld, valueIsSetFields[propertyName]);
+
+						EmitUpdatedComputedPropertes(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
+
+						privateGenerator.Emit(OpCodes.Ret);
+					}
+
+					privateGenerator.MarkLabel(continueLabel);
 
 					if (currentPropertyDescriptor.IsPrimaryKey)
 					{
@@ -1506,17 +1508,16 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Beq, returnLabel);
 
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Castclass, typeBuilder);
-			generator.Emit(OpCodes.Ldfld, dataObjectField);
-			generator.Emit(OpCodes.Ldc_I4_1);
-			generator.Emit(OpCodes.Stfld, swappingField);
-
 			var label = generator.DefineLabel();
 
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Castclass, typeBuilder);
 			generator.Emit(OpCodes.Stloc, local);
+
+			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ldfld, dataObjectField);
+			generator.Emit(OpCodes.Ldc_I4_1);
+			generator.Emit(OpCodes.Stfld, swappingField);
 
 			generator.Emit(OpCodes.Ldarg_2);
 			generator.Emit(OpCodes.Brfalse, label);
@@ -1564,8 +1565,7 @@ namespace Shaolinq.TypeBuilding
 			// this.data = local
 			generator.Emit(OpCodes.Stfld, dataObjectField);
 
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Castclass, typeBuilder);
+			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Stfld, swappingField);
