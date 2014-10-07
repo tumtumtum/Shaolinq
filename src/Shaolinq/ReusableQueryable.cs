@@ -77,6 +77,11 @@ namespace Shaolinq
 			private set;
 		}
 
+		public virtual string OriginalToString()
+		{
+			return base.ToString();
+		}
+
 		public override string ToString()
 		{
 			return ((SqlQueryProvider)this.Provider).GetQueryText(this.Expression);

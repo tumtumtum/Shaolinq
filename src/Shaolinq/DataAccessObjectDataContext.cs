@@ -72,15 +72,17 @@ namespace Shaolinq
 
 		internal class ObjectsByIdCache<T>
 		{
+			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
 			internal readonly Dictionary<Type, HashSet<IDataAccessObject>> newObjects;
 			internal readonly Dictionary<Type, Dictionary<T, IDataAccessObject>> objectsByIdCache;
 			internal readonly Dictionary<Type, HashSet<IDataAccessObject>> objectsNotReadyForCommit;
 			internal Dictionary<Type, Dictionary<T, IDataAccessObject>> objectsDeleted;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, IDataAccessObject>> objectsDeletedComposite;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, IDataAccessObject>> objectsByIdCacheComposite;
-			
-			public ObjectsByIdCache()
+
+			public ObjectsByIdCache(DataAccessObjectDataContext dataAccessObjectDataContext)
 			{
+				this.dataAccessObjectDataContext = dataAccessObjectDataContext;
 				newObjects = new Dictionary<Type, HashSet<IDataAccessObject>>(PrimeNumbers.Prime67);
 				objectsByIdCache = new Dictionary<Type, Dictionary<T, IDataAccessObject>>(PrimeNumbers.Prime67);
 				objectsNotReadyForCommit = new Dictionary<Type, HashSet<IDataAccessObject>>(PrimeNumbers.Prime67);
@@ -101,7 +103,7 @@ namespace Shaolinq
 
 						foreach (var value in (kvp.Value.Where(c => c.PrimaryKeyIsCommitReady)).ToList())
 						{
-							value.SubmitToCache();
+							dataAccessObjectDataContext.CacheObject(value, false);
 
 							x--;
 						}
@@ -510,14 +512,14 @@ namespace Shaolinq
 				case TypeCode.Int32:
 					if (cacheByInt == null)
 					{
-						cacheByInt = new ObjectsByIdCache<int>();
+						cacheByInt = new ObjectsByIdCache<int>(this);
 					}
 					cacheByInt.Deleted((DataAccessObject<int>)value);
 					break;
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
-						cacheByLong = new ObjectsByIdCache<long>();
+						cacheByLong = new ObjectsByIdCache<long>(this);
 					}
 					cacheByLong.Deleted((DataAccessObject<long>)value);
 					break;
@@ -526,7 +528,7 @@ namespace Shaolinq
 					{
 						if (cacheByGuid == null)
 						{
-							cacheByGuid = new ObjectsByIdCache<Guid>();
+							cacheByGuid = new ObjectsByIdCache<Guid>(this);
 						}
 						cacheByGuid.Deleted((DataAccessObject<Guid>)value);
 					}
@@ -534,7 +536,7 @@ namespace Shaolinq
 					{
 						if (cacheByString == null)
 						{
-							cacheByString = new ObjectsByIdCache<string>();
+							cacheByString = new ObjectsByIdCache<string>(this);
 						}
 						cacheByString.Deleted((DataAccessObject<string>)value);
 					}
@@ -651,13 +653,13 @@ namespace Shaolinq
 				case TypeCode.Int32:
 					if (cacheByInt == null)
 					{
-						cacheByInt = new ObjectsByIdCache<int>();
+						cacheByInt = new ObjectsByIdCache<int>(this);
 					}
 					return cacheByInt.Cache((DataAccessObject<int>)value, forImport);
 				case TypeCode.Int64:
 					if (cacheByLong == null)
 					{
-						cacheByLong = new ObjectsByIdCache<long>();
+						cacheByLong = new ObjectsByIdCache<long>(this);
 					}
 					return cacheByLong.Cache((DataAccessObject<long>)value, forImport);
 				default:
@@ -665,7 +667,7 @@ namespace Shaolinq
 					{
 						if (cacheByGuid == null)
 						{
-							cacheByGuid = new ObjectsByIdCache<Guid>();
+							cacheByGuid = new ObjectsByIdCache<Guid>(this);
 						}
 						return cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
 					}
@@ -673,7 +675,7 @@ namespace Shaolinq
 					{
 						if (cacheByString == null)
 						{
-							cacheByString = new ObjectsByIdCache<string>();
+							cacheByString = new ObjectsByIdCache<string>(this);
 						}
 						return cacheByString.Cache((DataAccessObject<string>)value, forImport);
 					}

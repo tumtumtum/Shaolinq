@@ -108,13 +108,15 @@ namespace Shaolinq.TypeBuilding
 			initialiseGenerator.Emit(OpCodes.Ret);
 
 			BuildGetDataAccessObjectsMethod();
+			BuildGetDataAccessObjectsGenericMethod();
          
 			return typeBuilder.CreateType();
 		}
 
-		protected virtual void BuildGetDataAccessObjectsMethod()
+		protected virtual void BuildGetDataAccessObjectsGenericMethod()
 		{
-			var method = typeBuilder.BaseType.GetMethod("GetDataAccessObjects");
+			var method = typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && c.IsGenericMethod && c.GetParameters().Length == 0);
+			var otherMethod = typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && !c.IsGenericMethod && c.GetParameters().Length == 1);
 			var methodAttributes = (method.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot)) | MethodAttributes.Virtual;
 			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
 			var genericParameters = methodBuilder.DefineGenericParameters(new string[] { "T" });
@@ -124,14 +126,28 @@ namespace Shaolinq.TypeBuilding
 
 			var generator = methodBuilder.GetILGenerator();
 
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldtoken, genericParameters[0]);
+			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+			generator.Emit(OpCodes.Callvirt, otherMethod);
+			generator.Emit(OpCodes.Ret);
+		}
+
+		protected virtual void BuildGetDataAccessObjectsMethod()
+		{
+			var method = typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && !c.IsGenericMethod && c.GetParameters().Length == 1);
+			var methodAttributes = (method.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot)) | MethodAttributes.Virtual;
+			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
+			
+			var generator = methodBuilder.GetILGenerator();
+
 			var label = generator.DefineLabel();
 			var local = generator.DeclareLocal(typeof(IQueryable));
 			var typedLocal = generator.DeclareLocal(methodBuilder.ReturnType);
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
-			generator.Emit(OpCodes.Ldtoken, genericParameters[0]);
-			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Ldloca, local);
 			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("TryGetValue", new Type[] { typeof(Type), typeof(IQueryable).MakeByRefType() }));
 			generator.Emit(OpCodes.Brfalse, label);
@@ -142,28 +158,17 @@ namespace Shaolinq.TypeBuilding
 
 			generator.MarkLabel(label);
 
-			var constructorPrep = typeof(DataAccessObjects<>).GetConstructor(new Type[0]);
-			var constructor = TypeBuilder.GetConstructor(typeof(DataAccessObjects<>).MakeGenericType(genericParameters[0]), constructorPrep);
-
 			// CreateDatabaseAndSchema new queryable
-			generator.Emit(OpCodes.Newobj, constructor);
-			generator.Emit(OpCodes.Stloc, typedLocal);
-
-			// Call Initialize method
-			generator.Emit(OpCodes.Ldloc, typedLocal);
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldnull);
-
-			var methodPrep = typeof(DataAccessObjectsQueryable<>).GetMethod("Initialize", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(DataAccessModel), typeof(Expression) }, null);
-			var initializeMethod =TypeBuilder.GetMethod(typeof(DataAccessObjectsQueryable<>).MakeGenericType(genericParameters[0]), methodPrep);
-
-			generator.Emit(OpCodes.Callvirt, initializeMethod);
-
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("CreateDataAccessObjects", BindingFlags.Instance | BindingFlags.NonPublic));
+			generator.Emit(OpCodes.Stloc, typedLocal);
+			
+			// TODO: Make access to  dictionary threadsafe
 			// Store in dictionary
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
-			generator.Emit(OpCodes.Ldtoken, genericParameters[0]);
-			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+			generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldloc, typedLocal);
 			generator.Emit(OpCodes.Callvirt, dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
 

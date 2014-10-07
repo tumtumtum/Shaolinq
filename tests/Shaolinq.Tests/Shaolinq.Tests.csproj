@@ -96,6 +96,7 @@
     <Compile Include="BaseTests.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Address.cs" />
     <Compile Include="ComplexPrimaryKeyModel\ComplexPrimaryKeyDataAccessModel.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\Mall.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Region.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Shop.cs" />
     <Compile Include="ComplexPrimaryKeyTests.cs" />

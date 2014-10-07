@@ -5,6 +5,9 @@
 		: DataAccessModel
 	{
 		[DataAccessObjects]
+		public abstract DataAccessObjects<Mall> Malls { get; }
+
+		[DataAccessObjects]
 		public abstract DataAccessObjects<Shop> Shops { get; }
 
 		[DataAccessObjects]

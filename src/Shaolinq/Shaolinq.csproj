@@ -121,6 +121,7 @@
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
     <Compile Include="ConstraintDefaults.cs" />
+    <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DataAccessTypeAttribute.cs" />
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
+    <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlObjectReference.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExistsSubqueryOptimizer.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />

@@ -12,6 +12,9 @@ namespace Shaolinq
 	{
 		[ThreadStatic]
 		private static Dictionary<DataAccessModel, DataAccessModelTransactionManager> AmbientTransactionManagers;
+
+		[ThreadStatic]
+		internal static Transaction CurrentlyCommitingTransaction;
         
 		/// <summary>
 		/// Gets the <see cref="DataAccessModelTransactionManager "/> for the current <see cref="Shaolinq.DataAccessModel"/> for the current thread.
@@ -131,6 +134,11 @@ namespace Shaolinq
 			catch (InvalidOperationException)
 			{
 				transaction = Transaction.Current = null;
+			}
+
+			if (transaction == null)
+			{
+				transaction = CurrentlyCommitingTransaction;
 			}
 
 			if (transaction == null && forWrite)

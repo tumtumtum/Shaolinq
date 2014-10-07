@@ -38,7 +38,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (expression != null)
 				{
-					bool saveIsBlocked = isBlocked;
+					var saveIsBlocked = isBlocked;
 
 					isBlocked = false;
 

@@ -866,11 +866,6 @@ namespace Shaolinq.TypeBuilding
 
 					break;
 				case PropertyMethodType.Set:
-					if (currentPropertyDescriptor.DeclaringTypeDescriptor.TypeName == "Student")
-					{
-						Console.WriteLine();
-					}
-
 					ILGenerator privateGenerator;
 					var notDeletedLabel = generator.DefineLabel();
 

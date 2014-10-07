@@ -3,21 +3,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Shaolinq.Persistence.Linq.Expressions;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
 	public class QueryBinder
 		: Platform.Linq.ExpressionVisitor
 	{
+		public DataAccessModel DataAccessModel { get; private set; }
+
 		private int aliasCount;
 		private bool isWithinClientSideCode;
 		private readonly Type conditionType;
@@ -27,33 +26,38 @@ namespace Shaolinq.Persistence.Linq
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly Dictionary<Expression, GroupByInfo> groupByMap;
 		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter;
-		
-		public DataAccessModel DataAccessModel { get; private set; }
+		private readonly Dictionary<MemberInitExpression, SqlObjectReference> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReference>(MemberInitEqualityComparer.Default);
 
 		protected void AddExpressionByParameter(ParameterExpression parameterExpression, Expression expression)
 		{
 			expressionsByParameter[parameterExpression] = expression;
 		}
 
-		private QueryBinder(DataAccessModel dataAccessModel, Expression rootExpression, Type conditionType, LambdaExpression extraCondition)
+		private QueryBinder(DataAccessModel dataAccessModel, Expression rootExpression, Type conditionType, LambdaExpression extraCondition, RelatedPropertiesJoinExpanderResults joinExpanderResults)
 		{
 			this.conditionType = conditionType;
 			this.DataAccessModel = dataAccessModel;
 			this.rootExpression = rootExpression;
 			this.extraCondition = extraCondition;
+			this.joinExpanderResults = joinExpanderResults;
 			this.typeDescriptorProvider = dataAccessModel.TypeDescriptorProvider;
 
 			expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
 			groupByMap = new Dictionary<Expression, GroupByInfo>();
 		}
 
+		private RelatedPropertiesJoinExpanderResults joinExpanderResults;
+
 		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
 		{
-			var expandedExpression = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
+			expression = ConditionalMethodsToWhereConverter.Convert(expression);
+			var joinExpanderResults = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
-			var queryBinder = new QueryBinder(dataAccessModel, expandedExpression, conditionType, extraCondition);
+			expression = joinExpanderResults.ProcessedExpression;
+			
+			var queryBinder = new QueryBinder(dataAccessModel, expression, conditionType, extraCondition, joinExpanderResults);
 
-			return queryBinder.Visit(expandedExpression);
+			return queryBinder.Visit(expression);
 		}
 
 		public static bool RequiresColumnProjection(Expression expression)
@@ -1204,7 +1208,6 @@ namespace Shaolinq.Persistence.Linq
 		private Expression BindAggregate(Expression source, MethodInfo method, LambdaExpression argument, bool isRoot)
 		{
 			var isDistinct = false;
-			var argumentWasPredicate = false; 
 			var returnType = method.ReturnType;
 			var aggregateType = GetAggregateType(method.Name);
 			var hasPredicateArg = HasPredicateArg(aggregateType);
@@ -1222,15 +1225,6 @@ namespace Shaolinq.Persistence.Linq
 
 					isDistinct = true;
 				}
-			}
-
-			if (argument != null && hasPredicateArg)
-			{
-				// Convert Query.Count(predicate) into Query.Where(predicate).Count()
-
-				source = Expression.Call(typeof(Queryable), "Where", method.GetGenericArguments(), source, argument);
-				argument = null;
-				argumentWasPredicate = true;
 			}
 
 			var projection = this.VisitSequence(source);
@@ -1281,7 +1275,7 @@ namespace Shaolinq.Persistence.Linq
 
 			GroupByInfo info;
 
-			if (!argumentWasPredicate && this.groupByMap.TryGetValue(projection, out info))
+			if (this.groupByMap.TryGetValue(projection, out info))
 			{
 				// Use the element expression from the group by info to rebind the
 				// argument so the resulting expression is one that would be legal 
@@ -1399,8 +1393,6 @@ namespace Shaolinq.Persistence.Linq
 				return obj.Type.GetHashCode() ^ obj.Bindings.Count;
 			}
 		}
-
-		private readonly Dictionary<MemberInitExpression, SqlObjectReference> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReference>(MemberInitEqualityComparer.Default);
 
 		private SqlProjectionExpression GetTableProjection(Type type)
 		{

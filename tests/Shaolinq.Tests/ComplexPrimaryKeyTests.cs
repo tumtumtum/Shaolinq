@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
@@ -15,6 +13,42 @@ namespace Shaolinq.Tests
 		public ComplexPrimaryKeyTests(string providerName)
 			: base(providerName)
 		{
+		}
+
+		[Test]
+		public void Test_Implicit_Join_With_Complex_Primary_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var mall = this.model.Malls.Create();
+				var shop = mall.Shops.Create();
+
+				mall.Name = "Westfield";
+				
+				shop.Address = this.model.Addresses.Create();
+				shop.Address.Region = this.model.Regions.Create();
+				shop.Address.Region.Name = "City of London";
+				shop.Name = "Apple Store";
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				Assert.IsNotNull(this.model.Malls.First(c => c.Name == "Westfield"));
+				Assert.IsNotNull(this.model.Shops.FirstOrDefault(c => c.Name == "Apple Store"));
+				Assert.IsNotNull(this.model.Shops.First(c => c.Mall.Name == "Westfield"));
+				
+				var query =
+					from
+						shop in model.Shops
+					where shop.Mall.Name.StartsWith("Westfield")
+					select shop;
+
+				Assert.IsNotEmpty(query.ToList());
+				
+				scope.Complete();
+			}
 		}
 
 		[Test]

@@ -30,6 +30,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.type = type;
 		}
 
+		public virtual string OriginalToString()
+		{
+			return base.ToString();
+		}
+
 		public override string ToString()
 		{
 			return this.GetType().Name + ":" + new Sql92QueryFormatter(SqlQueryFormatterOptions.Default).Format(this).CommandText;

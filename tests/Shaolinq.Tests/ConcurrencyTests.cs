@@ -79,7 +79,7 @@ namespace Shaolinq.Tests
 							Thread.Sleep(random.Next(0, 50));
 
 							var school = this.model.Schools.First();
-							//Assert.IsNotNull(school);
+							Assert.IsNotNull(school);
 						}
 					}
 					catch (Exception e)

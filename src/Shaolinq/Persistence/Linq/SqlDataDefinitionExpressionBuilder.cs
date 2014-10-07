@@ -191,11 +191,6 @@ namespace Shaolinq.Persistence.Linq
 			foreach (var property in typeDescriptor.PersistedProperties
 				.Where(c => c.PropertyType.IsDataAccessObjectType() && !c.IsPrimaryKey))
 			{
-				if (typeDescriptor.PersistedName == "Student")
-				{
-					Console.WriteLine();
-				}
-
 				columnInfos = QueryBinder.GetColumnInfos
 				(
 					this.model.TypeDescriptorProvider,

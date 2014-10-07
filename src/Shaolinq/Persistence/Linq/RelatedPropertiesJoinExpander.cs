@@ -7,61 +7,60 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
-using Shaolinq.TypeBuilding;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
+	public class RelatedPropertiesJoinExpanderResults
+	{	
+		public Expression ProcessedExpression { get; set; }
+		public Dictionary<Expression, Expression> SubstituteAssignments { get; set; }
+	}
+
 	public class RelatedPropertiesJoinExpander
 		: SqlExpressionVisitor
 	{
 		private readonly DataAccessModel model;
+		private readonly Dictionary<Expression, Expression> substituteAssignments = new Dictionary<Expression, Expression>();
 
 		private RelatedPropertiesJoinExpander(DataAccessModel model)
 		{
 			this.model = model;
 		}
 
-		public static Expression Expand(DataAccessModel model, Expression expression)
+		public static RelatedPropertiesJoinExpanderResults Expand(DataAccessModel model, Expression expression)
 		{
-			return new RelatedPropertiesJoinExpander(model).Visit(expression);
+			var visitor = new RelatedPropertiesJoinExpander(model);
+
+			var processedExpression = visitor.Visit(expression);
+
+			return new RelatedPropertiesJoinExpanderResults
+			{
+				ProcessedExpression = processedExpression,
+				SubstituteAssignments = visitor.substituteAssignments
+			};
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
-			    || methodCallExpression.Method.DeclaringType == typeof(Enumerable)
-			    || methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
+			if (methodCallExpression.Method.DeclaringType != typeof(Queryable)
+				&& methodCallExpression.Method.DeclaringType != typeof(Enumerable)
+				&& methodCallExpression.Method.DeclaringType != typeof(QueryableExtensions))
 			{
-				switch (methodCallExpression.Method.Name)
-				{
-					case "Where":
-					case "Select":
-					case "WhereForUpdate":
-					case "SelectForUpdate":
-						return this.RewriteBasicProjection(methodCallExpression);
-				}
+				return base.VisitMethodCall(methodCallExpression);
+			}
+
+			switch (methodCallExpression.Method.Name)
+			{
+			case "Where":
+			case "Select":
+			case "WhereForUpdate":
+			case "SelectForUpdate":
+				return this.RewriteBasicProjection(methodCallExpression);
 			}
 
 			return base.VisitMethodCall(methodCallExpression);
-		}
-
-		private static Expression MakeSelectorForType(Type type, MemberExpression key)
-		{
-			Expression body = null;
-			var parameter = Expression.Parameter(type);
-			
-			if (key != null)
-			{
-				body = Expression.Property(parameter, ((PropertyInfo)key.Member));
-			}
-			else
-			{
-				body = parameter;
-			}
-
-			return Expression.Lambda(body, parameter);
 		}
 
 		private static LambdaExpression MakeJoinProjector(Type leftType, Type rightType)
@@ -82,9 +81,9 @@ namespace Shaolinq.Persistence.Linq
 			var leftElementType = left.Type.GetGenericArguments()[0];
 			var rightElementType = right.Type.GetGenericArguments()[0];
 
+			Expression leftObject = null; 
 			ParameterExpression parameter;
-			Expression leftObject = null;
-
+			
 			if (index > 0)
 			{
 				parameter = Expression.Parameter(leftElementType);
@@ -157,7 +156,7 @@ namespace Shaolinq.Persistence.Linq
 			return retval;
 		}
 
-		private static LambdaExpression CreateReplacementPredicateOrSelector(Type finalTupleType, Expression body, List<MemberInfo> membersSortedByName, Dictionary<MemberInfo, IGrouping<MemberInfo, MemberExpression>> expressionsGroupedByMember, ParameterExpression sourceParameterExpression)
+		private LambdaExpression CreateReplacementPredicateOrSelector(Type finalTupleType, Expression body, List<MemberInfo> membersSortedByName, Dictionary<MemberInfo, IGrouping<MemberInfo, MemberExpression>> expressionsGroupedByMember, ParameterExpression sourceParameterExpression)
 		{
 			var newParameter = Expression.Parameter(finalTupleType);
 			var retval = body;
@@ -172,11 +171,15 @@ namespace Shaolinq.Persistence.Linq
 					{
 						var replacementExpression = CreateRightJoinTargetExpression(index, newParameter);
 
+						this.substituteAssignments[memberExpression] = replacementExpression;
+
 						retval = ExpressionReplacer.Replace(retval, memberExpression, replacementExpression);
 					}
 					else
 					{
 						var replacementExpression = CreateReplacementMemberAccessExpression(index, newParameter, memberExpression.Member.Name);
+
+						this.substituteAssignments[memberExpression] = replacementExpression;
 
 						retval = ExpressionReplacer.Replace(retval, memberExpression, replacementExpression);
 					}
@@ -185,21 +188,44 @@ namespace Shaolinq.Persistence.Linq
 				index--;
 			}
 
-			retval = ExpressionReplacer.Replace(retval, sourceParameterExpression, CreateReplacementMemberAccessExpression(membersSortedByName.Count - 1, newParameter, null));
+			var sourceReplacementExpression = CreateReplacementMemberAccessExpression(membersSortedByName.Count - 1, newParameter, null);
+
+			this.substituteAssignments[sourceParameterExpression] = sourceReplacementExpression;
+
+			retval = ExpressionReplacer.Replace(retval, sourceParameterExpression, sourceReplacementExpression);
 
 			return Expression.Lambda(retval, newParameter);
 		}
 
 		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression)
 		{
-			var source = methodCallExpression.Arguments[0];
+			var source = this.Visit(methodCallExpression.Arguments[0]);
 			var predicateOrSelector = (LambdaExpression)QueryBinder.StripQuotes(methodCallExpression.Arguments[1]);
 			var sourceParameterExpression = predicateOrSelector.Parameters[0];
-			var memberAccessExpressionsNeedingJoins = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression);
-		
+			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression);;
+			var memberAccessExpressionsNeedingJoins = result.MemberExpressions;
+			predicateOrSelector = (LambdaExpression)result.ReducedExpression;
+
 			if (memberAccessExpressionsNeedingJoins.Count > 0)
 			{
-				var expressionsGroupedByMember = memberAccessExpressionsNeedingJoins.GroupBy(c => c.Expression == sourceParameterExpression ? c.Member : ((MemberExpression)c.Expression).Member).ToDictionary(c => c.Key);
+				var expressionsGroupedByMember = memberAccessExpressionsNeedingJoins
+					.GroupBy(c =>
+					{
+						if (c.Expression == sourceParameterExpression)
+						{
+							return c.Member;
+						}
+						else if (c.Expression is MemberExpression)
+						{
+							return ((MemberExpression)c.Expression).Member;
+						}
+						else
+						{
+							throw new NotSupportedException();
+						}
+					})
+					.ToDictionary(c => c.Key);
+
 				var membersSortedByName = expressionsGroupedByMember.Keys.Sorted((x, y) => String.CompareOrdinal(x.Name, y.Name)).ToList();
 
 				var finalTupleType = CreateFinalTupleType(source.Type.GetGenericArguments()[0], membersSortedByName);
@@ -211,7 +237,7 @@ namespace Shaolinq.Persistence.Linq
 
 				foreach (var member in membersSortedByName)
 				{
-					var right = Expression.Constant(null, typeof(RelatedDataAccessObjects<>).MakeGenericType(member.GetMemberReturnType()));
+					var right = Expression.Constant(this.model.GetDataAccessObjects(member.GetMemberReturnType()), typeof(DataAccessObjects<>).MakeGenericType(member.GetMemberReturnType()));
 
 					var join = MakeJoinCallExpression(index, currentLeft, right, member);
 
@@ -245,15 +271,33 @@ namespace Shaolinq.Persistence.Linq
 					var selectBody = CreateReplacementMemberAccessExpression(membersSortedByName.Count - 1, selectParameter, null);
 					var selectCall = Expression.Lambda(selectBody, selectParameter);
 
-					var selectMethod = MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(selectParameter.Type, selectCall.ReturnType);
+					var selectMethod = MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod
+					(
+						selectParameter.Type,
+						selectCall.ReturnType
+					);
 
 					newCall = Expression.Call(null, selectMethod, new Expression[] { newCall, selectCall });
 				}
 
 				return newCall;
 			}
-
-			return methodCallExpression;
+			else
+			{
+				if (source == methodCallExpression.Arguments[0])
+				{
+					return methodCallExpression;
+				}
+				else
+				{
+					return Expression.Call
+					(
+						methodCallExpression.Object,
+						methodCallExpression.Method,
+						new[] { source, methodCallExpression.Arguments[1]}
+					);
+				}
+			}
 		}
 	}
 }

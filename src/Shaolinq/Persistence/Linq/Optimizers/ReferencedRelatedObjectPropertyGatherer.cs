@@ -8,6 +8,12 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
+	public struct ReferencedRelatedObjectPropertyGathererResults
+	{
+		public Expression ReducedExpression { get; set; }
+		public List<MemberExpression> MemberExpressions { get; set; }
+	}
+
 	public  class ReferencedRelatedObjectPropertyGatherer
 		: SqlExpressionVisitor
 	{
@@ -47,13 +53,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			this.sourceParameterExpression = sourceParameterExpression;
 		}
 
-		public static List<MemberExpression> Gather(DataAccessModel model, Expression expression, ParameterExpression sourceParameterExpression)
+		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, Expression expression, ParameterExpression sourceParameterExpression)
 		{
 			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, sourceParameterExpression);
 			
-			gatherer.Visit(expression);
+			var reducedExpression = gatherer.Visit(expression);
 
-			return gatherer.results;
+			return new ReferencedRelatedObjectPropertyGathererResults
+			{
+				ReducedExpression = reducedExpression,
+				MemberExpressions = gatherer.results
+			};
 		}
 
 		private static int CountLevel(MemberExpression memberExpression)
@@ -77,6 +87,22 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				return base.VisitBinary(binaryExpression);
 			}
+		}
+
+		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+		{
+			if (methodCallExpression.Method.IsGenericMethod
+				&& methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod)
+			{
+				var selector = (LambdaExpression)methodCallExpression.Arguments[1];
+				var newSelector = ExpressionReplacer.Replace(selector.Body, selector.Parameters[0], sourceParameterExpression);
+
+				this.Visit(newSelector);
+
+				return methodCallExpression.Arguments[0];
+			}
+
+			return base.VisitMethodCall(methodCallExpression);
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)

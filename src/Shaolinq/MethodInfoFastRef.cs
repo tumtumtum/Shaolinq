@@ -11,11 +11,14 @@ namespace Shaolinq
 {
 	public static class MethodInfoFastRef
 	{
+		public static readonly MethodInfo EnumerableCountMethod;
+		public static readonly MethodInfo QueryableCountMethod;
 		public static readonly MethodInfo QueryableWhereMethod;
 		public static readonly MethodInfo QueryableSelectMethod;
 		public static readonly MethodInfo QueryableJoinMethod;
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod;
 		public static readonly MethodInfo ExpressionGenericLambdaMethod;
+		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = typeof(DataAccessObjectExtensions).GetMethods().First(c => c.Name == "Include" && c.GetParameters().Length == 2);
 		public static readonly MethodInfo EnumParseMethod = typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null);
 		public static readonly MethodInfo BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod;
 		public static readonly MethodInfo GuidEqualsMethod = typeof(Guid).GetMethod("Equals", new Type[] { typeof(Guid) });
@@ -39,6 +42,8 @@ namespace Shaolinq
 		{
 			// TODO: Make these match arg types so that they're safe to future API changes
 
+			EnumerableCountMethod = typeof(Enumerable).GetMethods().FirstOrDefault(c => c.Name == "Count" && c.GetParameters().Length == 1);
+			QueryableCountMethod = typeof(Queryable).GetMethods().FirstOrDefault(c => c.Name == "Count" && c.GetParameters().Length == 1);
 			QueryableWhereMethod = (from method in typeof(Queryable).GetMethods().Filter(c => c.Name == "Where") let parameters = method.GetParameters() where parameters.Length == 2 let genericargs = parameters[1].ParameterType.GetGenericArguments() where genericargs.Length == 1 where genericargs[0].GetGenericArguments().Length == 2 select method).First();
 			QueryableSelectMethod = typeof(Queryable).GetMethods().Where(c => c.Name == "Select").First(c => c.GetParameters().Length == 2);
 			QueryableJoinMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "Join")).First(c => c.GetParameters().Length == 5);

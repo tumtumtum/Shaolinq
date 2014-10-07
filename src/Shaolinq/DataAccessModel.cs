@@ -16,12 +16,52 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : MarshalByRefObject, IDisposable
 	{
+		public virtual event EventHandler Disposed;
+
 		public Assembly DefinitionAssembly { get; private set; }
 		public AssemblyBuildInfo AssemblyBuildInfo { get; private set; }
 		public DataAccessModelConfiguration Configuration { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
+		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
+		private Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>();
+		private readonly Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 		internal DataAccessObjectProjectionContext DataAccessObjectProjectionContext { get; private set; }
+		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
+
+		[ReflectionEmitted]
+		protected abstract void Initialise();
+
+		[ReflectionEmitted]
+		public abstract DataAccessObjects<T> GetDataAccessObjects<T>() where T : class, IDataAccessObject;
+
+		[ReflectionEmitted]
+		public abstract IQueryable GetDataAccessObjects(Type type);
+
+		private Dictionary<Type, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<Type, Func<IQueryable>>();
+
+		protected virtual IQueryable CreateDataAccessObjects(Type type)
+		{
+			Func<IQueryable> func;
+
+			if (!createDataAccessObjectsFuncs.TryGetValue(type, out func))
+			{
+				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type)
+					.GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression) });
+
+				var body = Expression.New(constructor, Expression.Constant(this), Expression.Constant(null, typeof(Expression)));
+
+				func = Expression.Lambda<Func<IQueryable>>(body).Compile();
+
+				var newDictionary = new Dictionary<Type, Func<IQueryable>>(createDataAccessObjectsFuncs);
+
+				newDictionary[type] = func;
+
+				createDataAccessObjectsFuncs = newDictionary;
+			}
+
+			return func();
+		}
 
 		private struct SqlDatabaseContextsInfo
 		{
@@ -36,21 +76,7 @@ namespace Shaolinq
 				};
 			}
 		}
-
-		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
-
-		private Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>(); 
-		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
-		private readonly Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 		
-		[ReflectionEmitted]
-		protected abstract void Initialise();
-
-		[ReflectionEmitted]
-		public abstract DataAccessObjects<T> GetDataAccessObjects<T>() where T : class, IDataAccessObject;
-
-		public event EventHandler Disposed;
-
 		public DataAccessModelTransactionManager AmbientTransactionManager
 		{
 			get

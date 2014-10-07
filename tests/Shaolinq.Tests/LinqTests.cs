@@ -1264,7 +1264,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Implicit_Join()
 		{
 			using (var scope = new TransactionScope())
@@ -1278,9 +1278,11 @@ namespace Shaolinq.Tests
 					select
 						new
 						{
-							School = student.School,
+							student.School,
 							MaleStudents = student
 						};
+
+				Assert.IsFalse(query.ToList().First().School.IsDeflatedReference);
 
 				var studentsBySchool = query.ToLookup(x => x.School, x => x.MaleStudents);
 
@@ -1292,6 +1294,51 @@ namespace Shaolinq.Tests
 					{
 						Assert.That(student.Sex, Is.EqualTo(Sex.Male));
 					}
+				}
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						student in model.Students
+					where
+						student.Sex == Sex.Male 
+					select
+						student.Include(c => c.BestFriend.Address);
+
+				Assert.IsFalse(query.ToList().First().School.IsDeflatedReference);
+
+				foreach (var student in query.ToList())
+				{
+					Assert.IsFalse(student.School.IsDeflatedReference);
+				}
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						student in model.Students
+					where
+						student.Sex == Sex.Male &&
+						student.School.Name.EndsWith("School")
+					select
+						student;
+
+				Assert.True(query.ToList().First().School.IsDeflatedReference);
+
+				foreach (var student in query.ToList())
+				{
+					Assert.IsFalse(student.School.IsDeflatedReference);
 				}
 			}
 		}
