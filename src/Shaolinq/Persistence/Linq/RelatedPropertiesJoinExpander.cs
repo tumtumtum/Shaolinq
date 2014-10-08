@@ -239,8 +239,6 @@ namespace Shaolinq.Persistence.Linq
 					index++;
 				}
 
-				//replacementExpressions[sourceParameterExpression] = parameter;
-				
 				var newPredicateOrSelectorBody = ExpressionReplacer.Replace(predicateOrSelector.Body, c =>
 				{
 					Expression value;

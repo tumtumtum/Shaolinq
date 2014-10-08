@@ -160,11 +160,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			MemberExpression expression; 
 			var visited = new List<PropertyInfo>();
 			var root = memberExpression.Expression;
-			
+			var x = false;
+
 			if (memberExpression.Type.IsDataAccessObjectType())
 			{
 				if (forProjection)
 				{
+					x = true;
+
 					expression = memberExpression;
 				}
 				else
@@ -224,7 +227,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (!path[path.Length - 1].ReflectedType.IsDataAccessObjectType())
 				{
-					rootExpressionsByPath[path] = memberExpression.Expression;
+					rootExpressionsByPath[path] = memberExpression;
 
 					break;
 				}
@@ -239,7 +242,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					if (memberExpression.Expression is MemberExpression)
 					{
-						objectInfo.TargetExpressions.Add(memberExpression.Expression);
+						if (x)
+						{
+							objectInfo.TargetExpressions.Add(memberExpression);
+						}
+						else
+						{
+							objectInfo.TargetExpressions.Add(memberExpression.Expression);
+						}
 					}
 				}
 

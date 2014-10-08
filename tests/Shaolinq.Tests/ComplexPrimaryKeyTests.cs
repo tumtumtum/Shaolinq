@@ -107,8 +107,8 @@ namespace Shaolinq.Tests
 								 shop = shop.Include(c => c.Address.Include(d => d.Region))
 							}
 						}
-					).Select(c => c.shop.Include(d => d.shop.Address));
-					
+					).Select(c => c.shop.shop.Include(d => d.Address));
+
 
 				var first = query.First();
 			}
