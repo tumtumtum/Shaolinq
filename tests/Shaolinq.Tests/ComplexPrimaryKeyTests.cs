@@ -82,17 +82,35 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query =
-					from
-						shop in model.Shops
-					select
-						shop
-						.Include(c => c.Address)
-						.Include(c => c.Address.Region);
+				var query = from
+					shop in model.Shops
+					select shop.Include(c => c.Address.Region);
 
 				var first = query.First();
 
 				//Assert.IsFalse(first.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject_Nested_Anonymous()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					(from
+						shop in model.Shops
+						select new
+						{
+							shop = new
+							{
+								 shop = shop.Include(c => c.Address.Include(d => d.Region))
+							}
+						}
+					).Select(c => c.shop.Include(d => d.shop.Address));
+					
+
+				var first = query.First();
 			}
 		}
 

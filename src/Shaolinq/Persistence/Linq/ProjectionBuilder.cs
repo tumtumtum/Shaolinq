@@ -135,7 +135,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (visitedArgs != expression.Arguments)
 			{
-				int i = 0;
+				var i = 0;
 				Expression[] newArgs = null;
                 
 				foreach (var newArg in visitedArgs)
@@ -146,7 +146,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							newArgs = new Expression[visitedArgs.Count];
 
-							for (int j = 0; j < i; j++)
+							for (var j = 0; j < i; j++)
 							{
 								newArgs[j] = visitedArgs[j];
 							}
@@ -165,7 +165,7 @@ namespace Shaolinq.Persistence.Linq
 					i++;
 				}
 
-				return Expression.New(expression.Constructor, (IEnumerable<Expression>)newArgs ?? visitedArgs, expression.Members);
+				return expression.Update(newArgs ?? (IEnumerable<Expression>)visitedArgs);
 			}
 
 			return expression;

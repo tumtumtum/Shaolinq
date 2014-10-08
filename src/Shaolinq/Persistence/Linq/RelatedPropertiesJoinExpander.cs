@@ -82,14 +82,36 @@ namespace Shaolinq.Persistence.Linq
 
 			return Expression.Lambda(body, leftParameter, rightParameter);
 		}
-		
-		private static MethodCallExpression MakeJoinCallExpression(int index, Expression left, Expression right, PropertyInfo[] targetPath, Dictionary<PropertyInfo[], int> indexByPath)
+
+		private static MethodCallExpression MakeJoinCallExpression(int index, Expression left, Expression right, PropertyInfo[] targetPath, Dictionary<PropertyInfo[], int> indexByPath, Dictionary<PropertyInfo[], Expression> rootExpressionsByPath, Expression sourceParameterExpression)
 		{
+			Expression leftObject;
+
 			var leftElementType = left.Type.GetGenericArguments()[0];
 			var rightElementType = right.Type.GetGenericArguments()[0];
-			
+
+			var rootPath = targetPath.Take(targetPath.Length - 1).ToArray();
 			var leftSelectorParameter = Expression.Parameter(leftElementType);
-			var leftObject = CreateExpressionForPath(index - 1, targetPath.Take(targetPath.Length - 1).ToArray(), leftSelectorParameter, indexByPath);
+
+			if (!rootExpressionsByPath.TryGetValue(rootPath, out leftObject))
+			{
+				leftObject = CreateExpressionForPath(index - 1, rootPath, leftSelectorParameter, indexByPath);
+			}
+			else
+			{
+				leftObject = ExpressionReplacer.Replace(leftObject, c =>
+				{
+					if (c == sourceParameterExpression)
+					{
+						return leftSelectorParameter;
+					}
+
+					return null;
+				});
+
+				Console.WriteLine();
+			}
+
 			var leftSelector = Expression.Lambda(Expression.Property(leftObject, targetPath.Last().Name), leftSelectorParameter);
 
 			var rightSelectorParameter = Expression.Parameter(rightElementType);
@@ -123,9 +145,16 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var targetIndex = indexByPath[targetPath];
+				if (!indexByPath.ContainsKey(targetPath))
+				{
+					delta = currentIndex;
+				}
+				else
+				{
+					var targetIndex = indexByPath[targetPath];
 
-				delta = currentIndex - targetIndex;
+					delta = currentIndex - targetIndex;
+				}
 			}
 
 			Expression retval = parameterExpression;
@@ -151,6 +180,7 @@ namespace Shaolinq.Persistence.Linq
 			var sourceParameterExpression = predicateOrSelector.Parameters[0];
 			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression, forSelector);
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
+			var rootExpressionsByPath = result.RootExpressionsByPath;
 
 			predicateOrSelector = (LambdaExpression)result.ReducedExpression;
 
@@ -195,6 +225,22 @@ namespace Shaolinq.Persistence.Linq
 				var replacementExpressions = propertyPathsByOriginalExpression
 					.ToDictionary(c => c.Key, c => replacementExpressionsByPropertyPathForSelector[c.Value]);
 
+				var index = 0;
+				var currentLeft = source;
+
+				foreach (var referencedObjectPath in referencedObjectPaths)
+				{
+					var property = referencedObjectPath.PropertyPath[referencedObjectPath.PropertyPath.Length - 1];
+					var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
+
+					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.PropertyPath, indexByPath, rootExpressionsByPath, sourceParameterExpression);
+
+					currentLeft = join;
+					index++;
+				}
+
+				//replacementExpressions[sourceParameterExpression] = parameter;
+				
 				var newPredicateOrSelectorBody = ExpressionReplacer.Replace(predicateOrSelector.Body, c =>
 				{
 					Expression value;
@@ -208,20 +254,6 @@ namespace Shaolinq.Persistence.Linq
 				});
 
 				var newPredicateOrSelector = Expression.Lambda(newPredicateOrSelectorBody, parameter);
-
-				var index = 0;
-				var currentLeft = source;
-
-				foreach (var referencedObjectPath in referencedObjectPaths)
-				{
-					var property = referencedObjectPath.PropertyPath[referencedObjectPath.PropertyPath.Length - 1];
-					var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
-
-					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.PropertyPath, indexByPath);
-
-					currentLeft = join;
-					index++;
-				}
 
 				MethodInfo newMethod;
 				var newParameterType = newPredicateOrSelector.Parameters[0].Type;

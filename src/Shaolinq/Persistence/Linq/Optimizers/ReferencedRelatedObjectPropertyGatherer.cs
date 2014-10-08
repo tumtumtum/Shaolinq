@@ -48,6 +48,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public struct ReferencedRelatedObjectPropertyGathererResults
 	{
 		public Expression ReducedExpression { get; set; }
+		public Dictionary<PropertyInfo[], Expression> RootExpressionsByPath { get; set; }
 		public Dictionary<PropertyInfo[], ReferencedRelatedObject> ReferencedRelatedObjectByPath { get; set; }
 	}
 
@@ -58,6 +59,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private readonly bool forProjection; 
 		private readonly DataAccessModel model;
 		private readonly ParameterExpression sourceParameterExpression;
+		private readonly Dictionary<PropertyInfo[], Expression> rootExpressionsByPath = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
 		private readonly Dictionary<PropertyInfo[], ReferencedRelatedObject> results = new Dictionary<PropertyInfo[], ReferencedRelatedObject>(ArrayEqualityComparer<PropertyInfo>.Default);
 		
 		private class DisableCompareContext
@@ -100,7 +102,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return new ReferencedRelatedObjectPropertyGathererResults
 			{
 				ReducedExpression = reducedExpression,
-				ReferencedRelatedObjectByPath = gatherer.results
+				ReferencedRelatedObjectByPath = gatherer.results,
+				RootExpressionsByPath = gatherer.rootExpressionsByPath
 			};
 		}
 
@@ -118,11 +121,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				&& methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod)
 			{
 				var selector = (LambdaExpression)methodCallExpression.Arguments[1];
-				var newSelector = ExpressionReplacer.Replace(selector.Body, selector.Parameters[0], sourceParameterExpression);
+				var newSelector = ExpressionReplacer.Replace(selector.Body, selector.Parameters[0], methodCallExpression.Arguments[0]);
 
 				this.Visit(newSelector);
 
-				return this.Visit(methodCallExpression.Arguments[0]);
+				var retval = this.Visit(methodCallExpression.Arguments[0]);
+
+				return retval;
 			}
 
 			return base.VisitMethodCall(methodCallExpression);
@@ -170,6 +175,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			else
 			{
 				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.Type);
+
+				if (typeDescriptor == null)
+				{
+					return memberExpression;
+				}
+
 				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 
 				if (property.IsPrimaryKey)
@@ -205,6 +216,18 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var path = visited.Take(visited.Count - i).ToArray();
 
 				ReferencedRelatedObject objectInfo;
+
+				if (path.Length == 0)
+				{
+					break;
+				}
+
+				if (!path[path.Length - 1].ReflectedType.IsDataAccessObjectType())
+				{
+					rootExpressionsByPath[path] = memberExpression.Expression;
+
+					break;
+				}
 
 				if (!results.TryGetValue(path, out objectInfo))
 				{
