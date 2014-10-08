@@ -15,6 +15,106 @@ namespace Shaolinq.Tests
 		{
 		}
 
+		[TestFixtureSetUp]
+		public void SetUpFixture()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var mall = this.model.Malls.Create();
+				var shop = mall.Shops.Create();
+
+				mall.Name = "Seattle City";
+
+				shop.Address = this.model.Addresses.Create();
+				shop.Address.Street = "Madison Street";
+				shop.Address.Region = this.model.Regions.Create();
+				shop.Address.Region.Name = "Washington";
+				shop.Address.Region.Diameter = 2000;
+				shop.Name = "Microsoft Store";
+
+				shop.Address.Region.Center = this.model.Coordinates.Create();
+				shop.Address.Region.Center.Label = "Center of Washington";
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Where_Join_Not_Primary_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					where
+						shop.Address.Street == "Madison Street"
+					select
+						shop;
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Where_Join_Multiple_Depths_Not_Primary_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					where
+						shop.Address.Region.Center.Label == "Center of Washington"
+					select
+						shop;
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					select
+						shop
+						.Include(c => c.Address)
+						.Include(c => c.Address.Region);
+
+				var first = query.First();
+
+				//Assert.IsFalse(first.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Where_Join_Multiple_Depths_Primary_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					where
+						shop.Address.Region.Name == "Washington"
+					select
+						shop;
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+			}
+		}
+
 		[Test]
 		public void Test_Implicit_Join_With_Complex_Primary_Key()
 		{

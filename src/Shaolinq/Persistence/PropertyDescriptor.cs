@@ -37,8 +37,7 @@ namespace Shaolinq.Persistence
 		public ReadOnlyCollection<IndexAttribute> IndexAttributes { get; private set; }
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; private set; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; private set; }
-		public ReferencedObjectPrimaryKeyPropertyAttribute ReferencedObjectPrimaryKeyPropertyAttribute { get; private set; }
-
+		
 		public string PropertyName
 		{
 			get
@@ -52,25 +51,6 @@ namespace Shaolinq.Persistence
 			get
 			{
 				return this.UniqueAttribute != null;
-			}
-		}
-
-		public PropertyDescriptor ReferencedObjectPrimaryKeyPropertyDescriptor
-		{
-			get
-			{
-				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(referencedObjectPrimaryKeyPropertyInfo.ReflectedType);
-
-				return typeDescriptor.GetPropertyDescriptorByPropertyName(referencedObjectPrimaryKeyPropertyInfo.Name);
-			}
-		}
-		internal PropertyInfo referencedObjectPrimaryKeyPropertyInfo;
-		
-		public bool IsReferencedObjectPrimaryKeyProperty
-		{
-			get
-			{
-				return this.ReferencedObjectPrimaryKeyPropertyAttribute != null;
 			}
 		}
 
@@ -134,7 +114,6 @@ namespace Shaolinq.Persistence
 			this.BackReferenceAttribute = propertyInfo.GetFirstCustomAttribute<BackReferenceAttribute>(true);
 			this.RelatedDataAccessObjectsAttribute = propertyInfo.GetFirstCustomAttribute<RelatedDataAccessObjectsAttribute>(true);
 			this.PersistedMemberAttribute = propertyInfo.GetFirstCustomAttribute<PersistedMemberAttribute>(true);
-			this.ReferencedObjectPrimaryKeyPropertyAttribute = propertyInfo.GetFirstCustomAttribute<ReferencedObjectPrimaryKeyPropertyAttribute>(true);
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 
 			if (this.PropertyType.IsIntegerType(true) || this.PropertyType.GetUnwrappedNullableType() == typeof(Guid))

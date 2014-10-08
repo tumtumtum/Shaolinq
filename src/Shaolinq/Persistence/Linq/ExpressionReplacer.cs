@@ -12,15 +12,28 @@ namespace Shaolinq.Persistence.Linq
 	public class ExpressionReplacer
 		: SqlExpressionVisitor
 	{
-		private readonly Expression searchFor;
-		private readonly Expression replaceWith;
-		private readonly Comparison<Expression> compareExpressions;
+		private readonly Func<Expression, Expression> selector;
 		
+		private ExpressionReplacer(Func<Expression, Expression> selector)
+		{
+			this.selector = selector;
+		}
+
 		private ExpressionReplacer(Expression searchFor, Expression replaceWith, Comparison<Expression> compareExpressions)
 		{
-			this.searchFor = searchFor;
-			this.replaceWith = replaceWith;
-			this.compareExpressions = compareExpressions;
+			if (compareExpressions != null)
+			{
+				this.selector = c => compareExpressions(c, searchFor) == 0 ? replaceWith : null;
+			}
+			else
+			{
+				this.selector = c => c == searchFor ? replaceWith : null;
+			}
+		}
+
+		public static Expression Replace(Expression expression, Func<Expression, Expression> selector)
+		{
+			return new ExpressionReplacer(selector).Visit(expression);
 		}
 
 		/// <summary>
@@ -62,22 +75,12 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression Visit(Expression expression)
 		{
-			if (this.compareExpressions != null)
+			if (expression == null)
 			{
-				if (this.compareExpressions(expression, this.searchFor) == 0)
-				{
-					return this.replaceWith;
-				}
-
-				return base.Visit(expression);
+				return null;
 			}
 
-			if (expression == this.searchFor)
-			{
-				return this.replaceWith;
-			}
-
-			return base.Visit(expression);
+			return selector(expression) ?? base.Visit(expression);
 		}
 	}
 }

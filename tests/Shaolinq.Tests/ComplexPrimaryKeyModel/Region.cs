@@ -9,6 +9,9 @@
 		public abstract string Name { get; set; }
 
 		[PersistedMember]
-		public abstract float Diameter { get; set; }
+		public abstract double Diameter { get; set; }
+
+		[PersistedMember]
+		public abstract Coordinate Center { get; set; }
 	}
 }

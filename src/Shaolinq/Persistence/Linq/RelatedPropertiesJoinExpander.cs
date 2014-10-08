@@ -12,6 +12,12 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
+	internal struct LeftRightJoinInfo<L, R>
+	{
+		public L Left { get; set; }
+		public R Right { get; set; }
+	}
+
 	public class RelatedPropertiesJoinExpanderResults
 	{	
 		public Expression ProcessedExpression { get; set; }
@@ -54,20 +60,21 @@ namespace Shaolinq.Persistence.Linq
 			switch (methodCallExpression.Method.Name)
 			{
 			case "Where":
-			case "Select":
 			case "WhereForUpdate":
+				return this.RewriteBasicProjection(methodCallExpression, false);
+			case "Select":
 			case "SelectForUpdate":
-				return this.RewriteBasicProjection(methodCallExpression);
+				return this.RewriteBasicProjection(methodCallExpression, true);
+			default:
+				return base.VisitMethodCall(methodCallExpression);
 			}
-
-			return base.VisitMethodCall(methodCallExpression);
 		}
 
 		private static LambdaExpression MakeJoinProjector(Type leftType, Type rightType)
 		{
 			var leftParameter = Expression.Parameter(leftType);
 			var rightParameter = Expression.Parameter(rightType);
-			var newExpression = Expression.New(typeof(Pair<,>).MakeGenericType(leftType, rightType));
+			var newExpression = Expression.New(typeof(LeftRightJoinInfo<,>).MakeGenericType(leftType, rightType));
 
 			var body = Expression.MemberInit(newExpression, 
 				Expression.Bind(newExpression.Type.GetProperty("Left", BindingFlags.Public | BindingFlags.Instance), leftParameter),
@@ -76,170 +83,141 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.Lambda(body, leftParameter, rightParameter);
 		}
 		
-		private static MethodCallExpression MakeJoinCallExpression(int index, Expression left, Expression right, MemberInfo member)
+		private static MethodCallExpression MakeJoinCallExpression(int index, Expression left, Expression right, PropertyInfo[] targetPath, Dictionary<PropertyInfo[], int> indexByPath)
 		{
 			var leftElementType = left.Type.GetGenericArguments()[0];
 			var rightElementType = right.Type.GetGenericArguments()[0];
-
-			Expression leftObject = null; 
-			ParameterExpression parameter;
 			
-			if (index > 0)
-			{
-				parameter = Expression.Parameter(leftElementType);
-				
-				leftObject = CreateReplacementMemberAccessExpression(index - 1, parameter, null);
-			}
-			else
-			{
-				parameter = Expression.Parameter(leftElementType);
+			var leftSelectorParameter = Expression.Parameter(leftElementType);
+			var leftObject = CreateExpressionForPath(index - 1, targetPath.Take(targetPath.Length - 1).ToArray(), leftSelectorParameter, indexByPath);
+			var leftSelector = Expression.Lambda(Expression.Property(leftObject, targetPath.Last().Name), leftSelectorParameter);
 
-				leftObject = parameter;
-			}
-
-			var leftSelector = Expression.Lambda(Expression.Property(leftObject, member.Name), parameter);
-
-			parameter = Expression.Parameter(rightElementType);
-			var rightSelector = Expression.Lambda(parameter, parameter);
+			var rightSelectorParameter = Expression.Parameter(rightElementType);
+			var rightSelector = Expression.Lambda(rightSelectorParameter, rightSelectorParameter);
 
 			var projector = MakeJoinProjector(leftElementType, rightElementType);
 
-			var method = MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod(leftElementType, rightElementType, member.GetMemberReturnType(), projector.ReturnType);
-
 			right = Expression.Call(null, MethodInfoFastRef.QueryableDefaultIfEmptyMethod.MakeGenericMethod(rightElementType), right);
 
+			var method = MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod(leftElementType, rightElementType, targetPath.Last().GetMemberReturnType(), projector.ReturnType);
+			
 			return Expression.Call(null, method, left, right, Expression.Quote(leftSelector), Expression.Quote(rightSelector), Expression.Quote(projector));
 		}
 
-		private static Type CreateFinalTupleType(Type previousType, IEnumerable<MemberInfo> membersSortedByName)
+		private static Type CreateFinalTupleType(Type previousType, IEnumerable<Type> types)
 		{
-			var retval = previousType;
-
-			foreach (var memberInfo in membersSortedByName)
-			{
-				retval = typeof(Pair<,>).MakeGenericType(retval, memberInfo.GetMemberReturnType().IsDataAccessObjectType() ? memberInfo.GetMemberReturnType() : memberInfo.GetMemberReturnType().GetGenericArguments()[0]);
-			}
-
-			return retval;
+			return types.Aggregate(previousType, (current, type) => typeof(LeftRightJoinInfo<,>).MakeGenericType(current, type));
 		}
 
-		private static Expression CreateReplacementMemberAccessExpression(int index, ParameterExpression parameterExpression, string memberName = null)
+		internal static Expression CreateExpressionForPath(int currentIndex, PropertyInfo[] targetPath, ParameterExpression parameterExpression, Dictionary<PropertyInfo[], int> indexByPath)
 		{
-			Expression retval = parameterExpression;
+			int delta;
 
-			for (var i = 0; i <= index; i++)
+			if (currentIndex == indexByPath.Count)
 			{
-				if (i == index && memberName != null)
-				{
-					retval = Expression.Property(Expression.Property(retval, "Right"), memberName);
-				
-					break;
-				}
-				
-				retval = Expression.Property(retval, "Left");
+				delta = currentIndex;
+			}
+			else if (targetPath.Length == 0)
+			{
+				return parameterExpression;
+			}
+			else
+			{
+				var targetIndex = indexByPath[targetPath];
+
+				delta = currentIndex - targetIndex;
 			}
 
-			return retval;
-		}
-
-		private static Expression CreateRightJoinTargetExpression(int index, ParameterExpression parameterExpression)
-		{
 			Expression retval = parameterExpression;
 
-			for (var i = 0; i <= index - 1; i++)
+			for (var i = 0; i < delta; i++)
 			{
 				retval = Expression.Property(retval, "Left");
 			}
 
-			retval = Expression.Property(retval, "Right");
-
-			return retval;
-		}
-
-		private LambdaExpression CreateReplacementPredicateOrSelector(Type finalTupleType, Expression body, List<MemberInfo> membersSortedByName, Dictionary<MemberInfo, IGrouping<MemberInfo, MemberExpression>> expressionsGroupedByMember, ParameterExpression sourceParameterExpression)
-		{
-			var newParameter = Expression.Parameter(finalTupleType);
-			var retval = body;
-
-			var index = membersSortedByName.Count - 1;
-
-			foreach (var member in membersSortedByName)
+			if (retval.Type.IsGenericType && retval.Type.GetGenericTypeDefinition() == typeof(LeftRightJoinInfo<,>))
 			{
-				foreach (var memberExpression in expressionsGroupedByMember[member])
-				{
-					if (memberExpression.Expression == sourceParameterExpression)
-					{
-						var replacementExpression = CreateRightJoinTargetExpression(index, newParameter);
-
-						this.substituteAssignments[memberExpression] = replacementExpression;
-
-						retval = ExpressionReplacer.Replace(retval, memberExpression, replacementExpression);
-					}
-					else
-					{
-						var replacementExpression = CreateReplacementMemberAccessExpression(index, newParameter, memberExpression.Member.Name);
-
-						this.substituteAssignments[memberExpression] = replacementExpression;
-
-						retval = ExpressionReplacer.Replace(retval, memberExpression, replacementExpression);
-					}
-				}
-
-				index--;
+				retval = Expression.Property(retval, "Right");
 			}
 
-			var sourceReplacementExpression = CreateReplacementMemberAccessExpression(membersSortedByName.Count - 1, newParameter, null);
-
-			this.substituteAssignments[sourceParameterExpression] = sourceReplacementExpression;
-
-			retval = ExpressionReplacer.Replace(retval, sourceParameterExpression, sourceReplacementExpression);
-
-			return Expression.Lambda(retval, newParameter);
+			return retval;	
 		}
 
-		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression)
+		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression, bool forSelector)
 		{
 			var source = this.Visit(methodCallExpression.Arguments[0]);
+			var sourceType = source.Type.GetGenericArguments()[0];
 			var predicateOrSelector = (LambdaExpression)QueryBinder.StripQuotes(methodCallExpression.Arguments[1]);
 			var sourceParameterExpression = predicateOrSelector.Parameters[0];
-			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression);;
-			var memberAccessExpressionsNeedingJoins = result.MemberExpressions;
+			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression, forSelector);
+			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
+
 			predicateOrSelector = (LambdaExpression)result.ReducedExpression;
 
 			if (memberAccessExpressionsNeedingJoins.Count > 0)
 			{
-				var expressionsGroupedByMember = memberAccessExpressionsNeedingJoins
-					.GroupBy(c =>
+				var referencedObjectPaths = memberAccessExpressionsNeedingJoins
+					.OrderBy(c => c.Key.Length)
+					.Select(c => c.Value)
+					.ToList();
+
+				var types = referencedObjectPaths
+					.Select(c => c.PropertyPath[c.PropertyPath.Length - 1].PropertyType)
+					.ToList();
+				
+				var finalTupleType = CreateFinalTupleType(sourceType, types);
+				var replacementExpressionsByPropertyPathForSelector = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
+				var parameter = Expression.Parameter(finalTupleType);
+
+				var i = 0;
+				var indexByPath = new Dictionary<PropertyInfo[], int>(ArrayEqualityComparer<PropertyInfo>.Default);
+
+				foreach (var value in referencedObjectPaths)
+				{
+					indexByPath[value.PropertyPath] = i++;
+				}
+
+				foreach (var path in referencedObjectPaths)
+				{
+					var replacement = CreateExpressionForPath(referencedObjectPaths.Count - 1, path.PropertyPath, parameter, indexByPath);
+
+					replacementExpressionsByPropertyPathForSelector[path.PropertyPath] = replacement;
+				}
+
+				replacementExpressionsByPropertyPathForSelector[new PropertyInfo[0]] = CreateExpressionForPath(referencedObjectPaths.Count, new PropertyInfo[0], parameter, indexByPath); ;
+
+				var propertyPathsByOriginalExpression = referencedObjectPaths
+					.SelectMany(d => d.TargetExpressions.Select(e => new { d.PropertyPath, Expression = e }))
+					.ToDictionary(c => c.Expression, c => c.PropertyPath);
+
+				propertyPathsByOriginalExpression[predicateOrSelector.Parameters[0]] = new PropertyInfo[0];
+
+				var replacementExpressions = propertyPathsByOriginalExpression
+					.ToDictionary(c => c.Key, c => replacementExpressionsByPropertyPathForSelector[c.Value]);
+
+				var newPredicateOrSelectorBody = ExpressionReplacer.Replace(predicateOrSelector.Body, c =>
+				{
+					Expression value;
+
+					if (replacementExpressions.TryGetValue(c, out value))
 					{
-						if (c.Expression == sourceParameterExpression)
-						{
-							return c.Member;
-						}
-						else if (c.Expression is MemberExpression)
-						{
-							return ((MemberExpression)c.Expression).Member;
-						}
-						else
-						{
-							throw new NotSupportedException();
-						}
-					})
-					.ToDictionary(c => c.Key);
+						return value;
+					}
 
-				var membersSortedByName = expressionsGroupedByMember.Keys.Sorted((x, y) => String.CompareOrdinal(x.Name, y.Name)).ToList();
+					return null;
+				});
 
-				var finalTupleType = CreateFinalTupleType(source.Type.GetGenericArguments()[0], membersSortedByName);
-
-				var newPredicateOrSelector = CreateReplacementPredicateOrSelector(finalTupleType, predicateOrSelector.Body, membersSortedByName, expressionsGroupedByMember, sourceParameterExpression);
+				var newPredicateOrSelector = Expression.Lambda(newPredicateOrSelectorBody, parameter);
 
 				var index = 0;
 				var currentLeft = source;
 
-				foreach (var member in membersSortedByName)
+				foreach (var referencedObjectPath in referencedObjectPaths)
 				{
-					var right = Expression.Constant(this.model.GetDataAccessObjects(member.GetMemberReturnType()), typeof(DataAccessObjects<>).MakeGenericType(member.GetMemberReturnType()));
+					var property = referencedObjectPath.PropertyPath[referencedObjectPath.PropertyPath.Length - 1];
+					var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
 
-					var join = MakeJoinCallExpression(index, currentLeft, right, member);
+					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.PropertyPath, indexByPath);
 
 					currentLeft = join;
 					index++;
@@ -250,7 +228,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (methodCallExpression.Method.Name.StartsWith("Select"))
 				{
-					var projectionResultType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0];
+					var projectionResultType = newPredicateOrSelector.ReturnType;
 
 					newMethod = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
 				}
@@ -268,7 +246,7 @@ namespace Shaolinq.Persistence.Linq
 				if (newCall.Method.ReturnType != methodCallExpression.Method.ReturnType)
 				{
 					var selectParameter = Expression.Parameter(newParameterType);
-					var selectBody = CreateReplacementMemberAccessExpression(membersSortedByName.Count - 1, selectParameter, null);
+					var selectBody = CreateExpressionForPath(referencedObjectPaths.Count, new PropertyInfo[0], selectParameter, indexByPath);
 					var selectCall = Expression.Lambda(selectBody, selectParameter);
 
 					var selectMethod = MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod

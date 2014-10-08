@@ -19,8 +19,7 @@ namespace Shaolinq.Persistence
 		public ICollection<PropertyDescriptor> PersistedProperties { get; private set; }
 		public ICollection<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
 		public ICollection<PropertyDescriptor> ComputedTextProperties { get; private set; }
-		public ICollection<PropertyDescriptor> ReferencedObjectPrimaryKeyProperties { get; private set; }
-
+		
 		private readonly List<PropertyDescriptor> propertyDescriptorsInOrder;
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
@@ -238,10 +237,6 @@ namespace Shaolinq.Persistence
 
 			var alreadyEnteredProperties = new HashSet<string>();
 
-			var referencedObjectPrimaryKeyProperties = new List<PropertyDescriptor>();
-
-			this.ReferencedObjectPrimaryKeyProperties = referencedObjectPrimaryKeyProperties;
-
 			foreach (var propertyInfo in this.GetPropertiesInOrder())
 			{
 				if (alreadyEnteredProperties.Contains(propertyInfo.Name))
@@ -283,55 +278,6 @@ namespace Shaolinq.Persistence
 					propertyDescriptorsByPropertyInfo[propertyInfo] = propertyDescriptor;
 					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 					propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
-				}
-
-				var referencedPrimaryKeyAttribute = propertyInfo.GetFirstCustomAttribute<ReferencedObjectPrimaryKeyPropertyAttribute>(true);
-
-				if (referencedPrimaryKeyAttribute != null)
-				{
-					PropertyInfo referencedObjectPrimaryKeyPropertyInfo = null;
-
-					if (propertyInfo.GetSetMethod() != null)
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The ReferencedObjectPrimaryKeyProperty '{0}' illegally defines a setter method", propertyInfo.Name);
-					}
-
-					if (propertyInfo.GetGetMethod() == null)
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The ReferencedObjectPrimaryKeyProperty '{0}' must have a setter method", propertyInfo.Name);
-					}
-
-					var ownerProperty = propertyDescriptorsByPropertyInfo.Values.FirstOrDefault
-					(
-						c =>
-						{
-							if (!propertyInfo.Name.StartsWith(c.PropertyName))
-							{
-								return false;
-							}
-
-							if (!c.PropertyType.IsDataAccessObjectType())
-							{
-								return false;
-							}
-
-							string referencedPropertyName = propertyInfo.Name.Substring(c.PropertyName.Length);
-
-							if ((referencedObjectPrimaryKeyPropertyInfo  = c.PropertyType.GetProperties().FirstOrDefault(d => d.Name == referencedPropertyName)) == null)
-							{
-								return false;
-							}
-
-							return true;
-						}
-					);
-
-					if (ownerProperty != null)
-					{
-						var propertyDescriptor = new PropertyDescriptor(this, type, propertyInfo);
-						propertyDescriptor.referencedObjectPrimaryKeyPropertyInfo = referencedObjectPrimaryKeyPropertyInfo;
-						referencedObjectPrimaryKeyProperties.Add(propertyDescriptor);
-					}
 				}
 			}
 

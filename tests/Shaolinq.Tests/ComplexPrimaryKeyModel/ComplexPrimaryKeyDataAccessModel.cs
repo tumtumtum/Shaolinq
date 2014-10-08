@@ -15,5 +15,8 @@
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Region> Regions { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Coordinate> Coordinates { get; }
 	}
 }

@@ -1,28 +1,65 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+using Platform;
+using System.Linq;
 using System.Reflection;
+using System.Linq.Expressions;
+using System.Collections.Generic;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
+	public class ReferencedRelatedObject
+	{
+		public PropertyInfo[] PropertyPath { get; private set; }
+		public HashSet<Expression> TargetExpressions { get; private set; }
+
+		public ReferencedRelatedObject(PropertyInfo[] propertyPath)
+		{
+			this.PropertyPath = propertyPath;
+			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
+		}
+
+		public ReferencedRelatedObject(IEnumerable<PropertyInfo> propertyPath)
+		{
+			this.PropertyPath = propertyPath.ToArray();
+			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
+		}
+
+		public override int GetHashCode()
+		{
+			return this.PropertyPath.Aggregate(this.PropertyPath.Length, (current, value) => current ^ value.GetHashCode());
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj == this)
+			{
+				return true;
+			}
+
+			var value = obj as ReferencedRelatedObject;
+
+			return value != null && ArrayEqualityComparer<PropertyInfo>.Default.Equals(this.PropertyPath, value.PropertyPath);
+		}
+	}
+
 	public struct ReferencedRelatedObjectPropertyGathererResults
 	{
 		public Expression ReducedExpression { get; set; }
-		public List<MemberExpression> MemberExpressions { get; set; }
+		public Dictionary<PropertyInfo[], ReferencedRelatedObject> ReferencedRelatedObjectByPath { get; set; }
 	}
 
 	public  class ReferencedRelatedObjectPropertyGatherer
 		: SqlExpressionVisitor
 	{
 		private bool disableCompare;
+		private readonly bool forProjection; 
 		private readonly DataAccessModel model;
 		private readonly ParameterExpression sourceParameterExpression;
-		private readonly List<MemberExpression> results = new List<MemberExpression>();
-		private readonly HashSet<Expression> expressionsToIgnore = new HashSet<Expression>();
-
+		private readonly Dictionary<PropertyInfo[], ReferencedRelatedObject> results = new Dictionary<PropertyInfo[], ReferencedRelatedObject>(ArrayEqualityComparer<PropertyInfo>.Default);
+		
 		private class DisableCompareContext
 			: IDisposable
 		{
@@ -47,38 +84,24 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return new DisableCompareContext(this);
 		}
 		
-		public ReferencedRelatedObjectPropertyGatherer(DataAccessModel model, ParameterExpression sourceParameterExpression)
+		public ReferencedRelatedObjectPropertyGatherer(DataAccessModel model, ParameterExpression sourceParameterExpression, bool forProjection)
 		{
 			this.model = model;
 			this.sourceParameterExpression = sourceParameterExpression;
+			this.forProjection = forProjection;
 		}
 
-		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, Expression expression, ParameterExpression sourceParameterExpression)
+		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, Expression expression, ParameterExpression sourceParameterExpression, bool forProjection)
 		{
-			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, sourceParameterExpression);
+			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, sourceParameterExpression, forProjection);
 			
 			var reducedExpression = gatherer.Visit(expression);
 
 			return new ReferencedRelatedObjectPropertyGathererResults
 			{
 				ReducedExpression = reducedExpression,
-				MemberExpressions = gatherer.results
+				ReferencedRelatedObjectByPath = gatherer.results
 			};
-		}
-
-		private static int CountLevel(MemberExpression memberExpression)
-		{
-			if (!memberExpression.Expression.Type.IsDataAccessObjectType())
-			{
-				return 0;
-			}
-
-			if (!(memberExpression.Expression is MemberExpression))
-			{
-				return 1;
-			}
-
-			return 1 + CountLevel(((MemberExpression)memberExpression.Expression));
 		}
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
@@ -99,7 +122,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				this.Visit(newSelector);
 
-				return methodCallExpression.Arguments[0];
+				return this.Visit(methodCallExpression.Arguments[0]);
 			}
 
 			return base.VisitMethodCall(methodCallExpression);
@@ -129,55 +152,79 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
-			var level = CountLevel(memberExpression);
-			var max = memberExpression.Type.IsDataAccessObjectType() ? 1 : 2;
-
-			if (level >= max && !expressionsToIgnore.Contains(memberExpression))
+			MemberExpression expression; 
+			var visited = new List<PropertyInfo>();
+			var root = memberExpression.Expression;
+			
+			if (memberExpression.Type.IsDataAccessObjectType())
 			{
-				var add = false;
-				var type = memberExpression.Expression.Type;
-				var memberMemberExpression = memberExpression.Expression as MemberExpression;
-
-				if (memberMemberExpression != null)
+				if (forProjection)
 				{
-					add = true;
-
-					var typeDescriptor = this.model.GetTypeDescriptor(type);
-					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
-
-					if (propertyDescriptor.IsPrimaryKey || propertyDescriptor.IsReferencedObjectPrimaryKeyProperty)
-					{
-						add = false;
-					}
-
-					if (sourceParameterExpression != null)
-					{
-						if (memberMemberExpression.Expression != sourceParameterExpression)
-						{
-							add = false;
-						}
-					}
+					expression = memberExpression;
 				}
-				else if (memberExpression.Type.IsDataAccessObjectType() && !disableCompare)
+				else
 				{
-					add = true;
-				}
-
-				if (add)
-				{
-					this.results.Add(memberExpression);
-				
-					var expression = memberExpression;
-
-					while (expression != null)
-					{
-						expressionsToIgnore.Add(expression);
-						expression = expression.Expression as MemberExpression;
-					}
+					return memberExpression;
 				}
 			}
+			else
+			{
+				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.Type);
+				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 
-			return base.VisitMemberAccess(memberExpression);
+				if (property.IsPrimaryKey)
+				{
+					return memberExpression;
+				}
+
+				expression = memberExpression.Expression as MemberExpression;
+			}
+
+			var currentExpression = expression;
+
+			while (currentExpression != null && currentExpression.Member is PropertyInfo)
+			{
+				visited.Add((PropertyInfo)currentExpression.Member);
+
+				root = currentExpression.Expression;
+				currentExpression = root as MemberExpression;
+			}
+
+			if (root != sourceParameterExpression)
+			{
+				return base.VisitMemberAccess(memberExpression);
+			}
+
+			visited.Reverse();
+
+			var i = 0;
+			currentExpression = expression;
+
+			while (currentExpression != null && currentExpression.Member is PropertyInfo)
+			{
+				var path = visited.Take(visited.Count - i).ToArray();
+
+				ReferencedRelatedObject objectInfo;
+
+				if (!results.TryGetValue(path, out objectInfo))
+				{
+					objectInfo = new ReferencedRelatedObject(path);
+					results[path] = objectInfo;
+				}
+
+				if (currentExpression == expression)
+				{
+					if (memberExpression.Expression is MemberExpression)
+					{
+						objectInfo.TargetExpressions.Add(memberExpression.Expression);
+					}
+				}
+
+				i++;
+				currentExpression = currentExpression.Expression as MemberExpression;
+			}
+
+			return memberExpression;
 		}
 	}
 }
