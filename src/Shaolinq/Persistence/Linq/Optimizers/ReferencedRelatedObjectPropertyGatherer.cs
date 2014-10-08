@@ -225,9 +225,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					break;
 				}
 
-				if (!path[path.Length - 1].ReflectedType.IsDataAccessObjectType())
+				if (!path.Last().ReflectedType.IsDataAccessObjectType())
 				{
-					rootExpressionsByPath[path] = memberExpression;
+					rootExpressionsByPath[path] = currentExpression;
 
 					break;
 				}

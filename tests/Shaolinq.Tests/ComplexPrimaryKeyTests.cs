@@ -93,7 +93,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Select_Include_RelatedObject_Nested_Anonymous()
+		public void Test_Select_Project_Related_Object()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -107,10 +107,35 @@ namespace Shaolinq.Tests
 								 shop = shop.Include(c => c.Address.Include(d => d.Region))
 							}
 						}
-					).Select(c => c.shop.shop.Include(d => d.Address));
+					).Select(c => new { shop= c.shop.shop, address = c.shop.shop.Address });
 
 
 				var first = query.First();
+				Assert.IsNotNull(first.shop);
+				Assert.IsNotNull(first.address);
+				Assert.AreEqual(first.shop.Address, first.address);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject_Nested_Anonymous()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					(from
+						shop in model.Shops
+					 select new
+					 {
+						 shop = new
+						 {
+							 shop
+						 }
+					 }
+					).Select(c => new { shop = c.shop.shop.Include(d => d.Address)});
+
+				var first = query.First();
+				Assert.IsNotNull(first.shop);
 			}
 		}
 
