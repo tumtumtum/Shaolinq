@@ -703,7 +703,7 @@ namespace Shaolinq.TypeBuilding
 			}
 			else
 			{
-				var equalityOperatorMethod = operandType.GetMethods().Filter(c => c.Name == ("op_Equality") && c.GetParameters().Length == 2).FirstOrDefault();
+				var equalityOperatorMethod = operandType.GetMethods().FirstOrDefault(c => c.Name == ("op_Equality") && c.GetParameters().Length == 2);
 
 				if (equalityOperatorMethod != null)
 				{
@@ -1296,7 +1296,7 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
+			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
 
 			var generator = methodBuilder.GetILGenerator();
 
@@ -1410,7 +1410,7 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
+			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
 
 			var generator = methodBuilder.GetILGenerator();
 
@@ -1969,7 +1969,7 @@ namespace Shaolinq.TypeBuilding
 			foreach (var visited in columnInfo
 				.VisitedProperties
 				.Select(c => new Tuple<PropertyDescriptor, string>(c, c.PropertyName))
-				.Append(last))
+				.Concat(last))
 			{
 				var loadValueLabel = generator.DefineLabel();
 				var readValueLabel = generator.DefineLabel();
@@ -2151,7 +2151,7 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Concat(this.typeDescriptor.RelatedProperties.Filter(c => c.BackReferenceAttribute != null)))
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Concat(this.typeDescriptor.RelatedProperties.Where(c => c.BackReferenceAttribute != null)))
 			{
 				if (propertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
 				{ 
@@ -2469,7 +2469,7 @@ namespace Shaolinq.TypeBuilding
 				methodAttributes = methodInfo.Attributes &  ~(MethodAttributes.Abstract | MethodAttributes.NewSlot);
 			}
 
-			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Convert(c => c.ParameterType).ToArray());
+			var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
 
 			if (explicitInterfaceImplementation)
 			{

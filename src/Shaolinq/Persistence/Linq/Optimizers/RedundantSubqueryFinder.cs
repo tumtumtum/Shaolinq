@@ -1,7 +1,8 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Linq;
+﻿using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 using Platform;
 
@@ -59,7 +60,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return false;
 			}
 
-			var fromColumnNames = new HashSet<string>(fromSelect.Columns.Convert(x => x.Name));
+			var fromColumnNames = new HashSet<string>(fromSelect.Columns.Select(x => x.Name));
 
 			foreach (var t in @select.Columns)
 			{

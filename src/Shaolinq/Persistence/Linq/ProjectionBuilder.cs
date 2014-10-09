@@ -30,7 +30,7 @@ namespace Shaolinq.Persistence.Linq
 			this.dataAccessModel = dataAccessModel;
 			this.sqlDatabaseContext = sqlDatabaseContext;
 
-			columnIndexes = columns.ToDictionaryWithKeys(c => x++);
+			columnIndexes = columns.ToDictionary(c => c, c => x++);
 
 			dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
 			objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");

@@ -10,48 +10,6 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class ReferencedRelatedObject
-	{
-		public PropertyInfo[] PropertyPath { get; private set; }
-		public HashSet<Expression> TargetExpressions { get; private set; }
-
-		public ReferencedRelatedObject(PropertyInfo[] propertyPath)
-		{
-			this.PropertyPath = propertyPath;
-			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
-		}
-
-		public ReferencedRelatedObject(IEnumerable<PropertyInfo> propertyPath)
-		{
-			this.PropertyPath = propertyPath.ToArray();
-			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
-		}
-
-		public override int GetHashCode()
-		{
-			return this.PropertyPath.Aggregate(this.PropertyPath.Length, (current, value) => current ^ value.GetHashCode());
-		}
-
-		public override bool Equals(object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-
-			var value = obj as ReferencedRelatedObject;
-
-			return value != null && ArrayEqualityComparer<PropertyInfo>.Default.Equals(this.PropertyPath, value.PropertyPath);
-		}
-	}
-
-	public struct ReferencedRelatedObjectPropertyGathererResults
-	{
-		public Expression ReducedExpression { get; set; }
-		public Dictionary<PropertyInfo[], Expression> RootExpressionsByPath { get; set; }
-		public Dictionary<PropertyInfo[], ReferencedRelatedObject> ReferencedRelatedObjectByPath { get; set; }
-	}
-
 	public  class ReferencedRelatedObjectPropertyGatherer
 		: SqlExpressionVisitor
 	{
@@ -59,6 +17,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private readonly bool forProjection; 
 		private readonly DataAccessModel model;
 		private readonly ParameterExpression sourceParameterExpression;
+		private readonly HashSet<IncludedPropertyInfo> includedPropertyInfos = new HashSet<IncludedPropertyInfo>();
 		private readonly Dictionary<PropertyInfo[], Expression> rootExpressionsByPath = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
 		private readonly Dictionary<PropertyInfo[], ReferencedRelatedObject> results = new Dictionary<PropertyInfo[], ReferencedRelatedObject>(ArrayEqualityComparer<PropertyInfo>.Default);
 		
@@ -127,6 +86,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				var retval = this.Visit(methodCallExpression.Arguments[0]);
 
+				var includedPropertyInfo = new IncludedPropertyInfo
+				{
+					RootExpression = retval
+				};
+
+				includedPropertyInfos.Add(includedPropertyInfo);
+				
 				return retval;
 			}
 

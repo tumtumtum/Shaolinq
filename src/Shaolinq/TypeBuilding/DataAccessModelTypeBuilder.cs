@@ -195,7 +195,7 @@ namespace Shaolinq.TypeBuilding
 					throw new NotSupportedException(methodType);
 			}
 
-			var parameters = method.GetParameters().Convert(x => x.ParameterType).ToArray();
+			var parameters = method.GetParameters().Select(x => x.ParameterType).ToArray();
 			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, parameters);
 			var generator = methodBuilder.GetILGenerator();
 

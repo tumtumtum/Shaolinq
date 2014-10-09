@@ -21,14 +21,14 @@ namespace Shaolinq.Persistence.Linq
 	public class RelatedPropertiesJoinExpanderResults
 	{	
 		public Expression ProcessedExpression { get; set; }
-		public Dictionary<Expression, Expression> SubstituteAssignments { get; set; }
+		public Dictionary<PropertyInfo[], Expression> RootExpressionsByPath { get; set; }
 	}
 
 	public class RelatedPropertiesJoinExpander
 		: SqlExpressionVisitor
 	{
 		private readonly DataAccessModel model;
-		private readonly Dictionary<Expression, Expression> substituteAssignments = new Dictionary<Expression, Expression>();
+		private readonly Dictionary<PropertyInfo[], Expression> rootExpressionsByPath = new Dictionary<PropertyInfo[], Expression>();
 
 		private RelatedPropertiesJoinExpander(DataAccessModel model)
 		{
@@ -44,7 +44,7 @@ namespace Shaolinq.Persistence.Linq
 			return new RelatedPropertiesJoinExpanderResults
 			{
 				ProcessedExpression = processedExpression,
-				SubstituteAssignments = visitor.substituteAssignments
+				RootExpressionsByPath = visitor.rootExpressionsByPath
 			};
 		}
 
@@ -108,8 +108,6 @@ namespace Shaolinq.Persistence.Linq
 
 					return null;
 				});
-
-				Console.WriteLine();
 			}
 
 			var leftSelector = Expression.Lambda(Expression.Property(leftObject, targetPath.Last().Name), leftSelectorParameter);
@@ -239,7 +237,7 @@ namespace Shaolinq.Persistence.Linq
 					index++;
 				}
 
-				var newPredicateOrSelectorBody = ExpressionReplacer.Replace(predicateOrSelector.Body, c =>
+				Func<Expression, Expression> replace = e => ExpressionReplacer.Replace(predicateOrSelector.Body, c =>
 				{
 					Expression value;
 
@@ -251,6 +249,12 @@ namespace Shaolinq.Persistence.Linq
 					return null;
 				});
 
+				foreach (var value in rootExpressionsByPath)
+				{
+					this.rootExpressionsByPath[value.Key] = replace(value.Value);
+				}
+
+				var newPredicateOrSelectorBody = replace(predicateOrSelector.Body);
 				var newPredicateOrSelector = Expression.Lambda(newPredicateOrSelectorBody, parameter);
 
 				MethodInfo newMethod;

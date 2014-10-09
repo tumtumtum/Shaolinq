@@ -108,7 +108,7 @@ namespace Shaolinq.TypeBuilding
 
 			var builder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
 			
-			foreach (var type in assembly.GetTypes().Filter(typeof(DataAccessModel).IsAssignableFrom))
+			foreach (var type in assembly.GetTypes().Where(typeof(DataAccessModel).IsAssignableFrom))
 			{
 				builder.BuildType(type);
 			}

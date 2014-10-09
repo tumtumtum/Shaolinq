@@ -78,7 +78,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Select_Include_RelatedObject()
+		public void Test_Select_Include_RelatedObject_Two_Levels()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -87,8 +87,21 @@ namespace Shaolinq.Tests
 					select shop.Include(c => c.Address.Region);
 
 				var first = query.First();
+			}
+		}
 
-				//Assert.IsFalse(first.Address.IsDeflatedReference);
+
+		[Test]
+		public void Test_Select_Include_RelatedObject()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops.Select(shop => new
+				{
+					shop
+				}).Select(c => c.shop.Include(d => d.Address));
+
+				var first = query.First();
 			}
 		}
 
@@ -114,6 +127,28 @@ namespace Shaolinq.Tests
 				Assert.IsNotNull(first.shop);
 				Assert.IsNotNull(first.address);
 				Assert.AreEqual(first.shop.Address, first.address);
+			}
+		}
+
+		[Test, Ignore]
+		public void Test_Select_Include_Self()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					(from
+						shop in model.Shops
+					 select new
+					 {
+						 shop = new
+						 {
+							 shop
+						 }
+					 }
+					).Select(c => new { shop = c.shop.shop.Include(d => d) });
+
+				var first = query.First();
+				Assert.IsNotNull(first.shop);
 			}
 		}
 

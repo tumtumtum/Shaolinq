@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 							arg2Args.Add(Visit(arg));
 						}
 
-						retval = new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Concat, (arg1Args.Append(arg2Args)).ToArray());
+						retval = new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Concat, (arg1Args.Concat(arg2Args)).ToArray());
 
 						return retval;
 					}

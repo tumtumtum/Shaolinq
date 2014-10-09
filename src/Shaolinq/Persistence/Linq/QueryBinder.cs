@@ -56,7 +56,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = joinExpanderResults.ProcessedExpression;
 			
 			var queryBinder = new QueryBinder(dataAccessModel, expression, conditionType, extraCondition, joinExpanderResults);
-
+			
 			return queryBinder.Visit(expression);
 		}
 
@@ -1583,6 +1583,11 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
 			var source = this.Visit(memberExpression.Expression);
+
+			if (Enumerable.Contains(this.joinExpanderResults.RootExpressionsByPath.Values, memberExpression, SqlExpressionEqualityComparer.Default))
+			{
+				Console.WriteLine();
+			}
 
 			if (source == null)
 			{

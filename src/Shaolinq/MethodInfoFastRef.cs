@@ -44,10 +44,10 @@ namespace Shaolinq
 
 			EnumerableCountMethod = typeof(Enumerable).GetMethods().FirstOrDefault(c => c.Name == "Count" && c.GetParameters().Length == 1);
 			QueryableCountMethod = typeof(Queryable).GetMethods().FirstOrDefault(c => c.Name == "Count" && c.GetParameters().Length == 1);
-			QueryableWhereMethod = (from method in typeof(Queryable).GetMethods().Filter(c => c.Name == "Where") let parameters = method.GetParameters() where parameters.Length == 2 let genericargs = parameters[1].ParameterType.GetGenericArguments() where genericargs.Length == 1 where genericargs[0].GetGenericArguments().Length == 2 select method).First();
+			QueryableWhereMethod = (from method in typeof(Queryable).GetMethods().Where(c => c.Name == "Where") let parameters = method.GetParameters() where parameters.Length == 2 let genericargs = parameters[1].ParameterType.GetGenericArguments() where genericargs.Length == 1 where genericargs[0].GetGenericArguments().Length == 2 select method).First();
 			QueryableSelectMethod = typeof(Queryable).GetMethods().Where(c => c.Name == "Select").First(c => c.GetParameters().Length == 2);
-			QueryableJoinMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "Join")).First(c => c.GetParameters().Length == 5);
-			QueryableDefaultIfEmptyMethod = (typeof(Queryable).GetMethods().Filter(c => c.Name == "DefaultIfEmpty")).First(c => c.GetParameters().Length == 1);
+			QueryableJoinMethod = (typeof(Queryable).GetMethods().Where(c => c.Name == "Join")).First(c => c.GetParameters().Length == 5);
+			QueryableDefaultIfEmptyMethod = (typeof(Queryable).GetMethods().Where(c => c.Name == "DefaultIfEmpty")).First(c => c.GetParameters().Length == 1);
 			ExpressionGenericLambdaMethod = typeof(Expression).GetMethods().First(c => c.Name == "Lambda" && c.GetGenericArguments().Length == 1);
 			BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = typeof(DataAccessModel).GetMethods().First(c => c.Name == "GetReferenceByPrimaryKey" && c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(object[]));
 		}
