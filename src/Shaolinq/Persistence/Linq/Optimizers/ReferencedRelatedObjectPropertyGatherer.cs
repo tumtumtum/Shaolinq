@@ -81,6 +81,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 		}
 
+		private int nesting = 0;
+
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
 			if (methodCallExpression.Method.IsGenericMethod
@@ -101,6 +103,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				referencedRelatedObjects = new List<ReferencedRelatedObject>();
 
+				nesting++;
+
 				this.Visit(newSelector);
 
 				if (referencedRelatedObjects.Count == 0)
@@ -116,7 +120,36 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				var retval = this.Visit(methodCallExpression.Arguments[0]);
 
-				AddIncludedProperty(retval, propertyPath, suffix);
+				if (nesting > 1 &&  (retval != sourceParameterExpression) && retval is MemberExpression)
+				{
+					// Support includes like:
+					// Select(c => c.Include(d => d.Address.Include(e => e.Region)));
+
+					var prefixProperties = new List<PropertyInfo>();
+					var current = (MemberExpression)retval;
+
+					while (current != null)
+					{
+						prefixProperties.Add((PropertyInfo)current.Member);
+
+						if (current.Expression == sourceParameterExpression)
+						{
+							break;
+						}
+
+						current = current.Expression as MemberExpression;
+					}
+
+					prefixProperties.Reverse();
+
+					AddIncludedProperty(sourceParameterExpression, propertyPath, prefixProperties.Take(nesting - 1).Concat(suffix).ToArray());
+				}
+				else
+				{
+					AddIncludedProperty(retval, propertyPath, suffix);
+				}
+
+				nesting--;
 
 				return retval;
 			}
@@ -213,11 +246,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				root = currentExpression.Expression;
 				currentExpression = root as MemberExpression;
-			}
-
-			if (root != sourceParameterExpression)
-			{
-				return base.VisitMemberAccess(memberExpression);
 			}
 
 			visited.Reverse();

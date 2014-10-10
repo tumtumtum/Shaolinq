@@ -133,21 +133,16 @@ namespace Shaolinq.Persistence.Linq
 
 					var foreignTypeDescriptor = typeDescriptorProvider.GetTypeDescriptor(property.PropertyType);
 
-					var prefix = string.Concat(visitedProperties.Select(c => c.PersistedName)) + property.PersistedName;
-
 					var newVisited = new List<PropertyDescriptor>(visitedProperties.Count + 1);
 
 					newVisited.AddRange(visitedProperties);
 					newVisited.Add(property);
-
-					var newVisitedArray = newVisited.ToArray();
 
 					foreach (var relatedColumnInfo in GetColumnInfos(typeDescriptorProvider, foreignTypeDescriptor.PrimaryKeyProperties, follow, include, newVisited, depth + 1))
 					{
 						retval.Add(new ColumnInfo
 						{
 							ForeignType = foreignTypeDescriptor,
-							ColumnName = prefix + relatedColumnInfo.ColumnName,
 							DefinitionProperty = relatedColumnInfo.DefinitionProperty,
 							VisitedProperties = relatedColumnInfo.VisitedProperties
 						});
@@ -163,7 +158,6 @@ namespace Shaolinq.Persistence.Linq
 
 					retval.Add(new ColumnInfo
 					{
-						ColumnName = visitedProperties.Count == 0 ? property.PersistedName : property.PersistedShortName,
 						ForeignType = null,
 						DefinitionProperty = property,
 						VisitedProperties = visitedProperties.ToArray()

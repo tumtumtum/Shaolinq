@@ -21,8 +21,6 @@ namespace Shaolinq.Persistence.Linq
 	internal class PropertyPath
 	{
 		public PropertyInfo[] Path { get; set; }
-		public Expression ExpressionRoot { get; set; }
-		
 	}
 
 	internal class PropertyPathEqualityComparer
@@ -32,14 +30,12 @@ namespace Shaolinq.Persistence.Linq
 
 		public bool Equals(PropertyPath x, PropertyPath y)
 		{
-			return x.ExpressionRoot == y.ExpressionRoot && ArrayEqualityComparer<PropertyInfo>.Default.Equals(x.Path, y.Path);
+			return ArrayEqualityComparer<PropertyInfo>.Default.Equals(x.Path, y.Path);
 		}
 
 		public int GetHashCode(PropertyPath obj)
 		{
-			var retval = obj.ExpressionRoot.GetHashCode();
-
-			return obj.Path.Aggregate(retval, (current, path) => current ^ path.Name.GetHashCode());
+			return obj.Path.Aggregate(0, (current, path) => current ^ path.Name.GetHashCode());
 		}
 	}
 

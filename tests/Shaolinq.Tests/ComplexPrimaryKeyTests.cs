@@ -37,6 +37,11 @@ namespace Shaolinq.Tests
 				shop.Address.Region.Center = this.model.Coordinates.Create();
 				shop.Address.Region.Center.Label = "Center of Washington";
 
+				shop.SecondAddress = this.model.Addresses.Create();
+				shop.SecondAddress.Street = "Jefferson Avenue";
+				shop.SecondAddress.Region = this.model.Regions.Create();
+				shop.SecondAddress.Region.Name = "Washington";
+				
 				scope.Flush(model);
 
 				shopId = shop.Id;
@@ -142,6 +147,111 @@ namespace Shaolinq.Tests
 					});
 
 				var first = query.First();
+			}
+		}
+
+		[Test]
+		public void Test_Select_Implicit_Join_On_RelatedObject_And_Other_Related_Object_Of_Same_Type1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street" && c.SecondAddress.Street == "Jefferson Avenue")
+					.Select(c => c.Include(d => d.Address));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsTrue(first.SecondAddress.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Implicit_Join_On_RelatedObject_And_Other_Related_Object_Of_Same_Type2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street" )
+					.Where(c => c.SecondAddress.Street == "Jefferson Avenue")
+					.Select(c => c.Include(d => d.Address));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsTrue(first.SecondAddress.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Implicit_Join_On_RelatedObject_And_Other_Related_Object_Of_Same_Type3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street")
+					.Where(c => c.SecondAddress.Street == "Jefferson Avenue")
+					.Select(c => c.Include(d => d.Address).Include(d => d.SecondAddress));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+				Assert.AreEqual("Jefferson Avenue", first.SecondAddress.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_And_Include_RelatedObjects()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(c => c.Include(d => d.Address).Include(d => d.Mall));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Mall.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_And_Include_RelatedObjects2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(c => c.Include(d => d.Address).Include(d => d.Address.Region));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_And_Include_RelatedObjects3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(c => c.Include(d => d.Address.Include(e => e.Region)));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
 

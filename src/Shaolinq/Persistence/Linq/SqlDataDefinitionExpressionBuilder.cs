@@ -124,7 +124,7 @@ namespace Shaolinq.Persistence.Linq
 			if (columnInfos.Length > 1 || !supportsInlineForeignKeys)
 			{
 				var currentTableColumnNames = new ReadOnlyCollection<string>(columnInfos.Select(c => c.ColumnName).ToList());
-				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnInfos.Select(c => c.DefinitionProperty.PersistedName).ToList());
+				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnInfos.Select(c => c.GetTailColumnName()).ToList());
 				var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, referencedTableColumnNames, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
 				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
 
