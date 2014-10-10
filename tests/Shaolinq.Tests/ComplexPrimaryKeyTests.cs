@@ -84,6 +84,21 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Select_Related_Object()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					select
+						shop.Address;
+
+				var first = query.First();
+			}
+		}
+
+		[Test]
 		public void Test_Select_Include_RelatedObject_Two_Levels()
 		{
 			using (var scope = new TransactionScope())
@@ -102,7 +117,6 @@ namespace Shaolinq.Tests
 			}
 		}
 
-
 		[Test]
 		public void Test_Select_Include_RelatedObject()
 		{
@@ -114,6 +128,30 @@ namespace Shaolinq.Tests
 
 				Assert.IsFalse(first.Address.IsDeflatedReference);
 				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Two_Implicit_Joins_At_Nested_Levels()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Select(c => new { c.Address, c.Address.Region });
+
+				var first = query.First();
+			}
+		}
+
+		[Test]
+		public void Test_Select_Two_Implicit_Joins_At_Same_Level()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Select(c => new { c.Address, c.Mall });
+
+				var first = query.First();
 			}
 		}
 

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -21,13 +23,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlInsertIntoExpression(string tableName, ReadOnlyCollection<string> columnNames, ReadOnlyCollection<string> returningAutoIncrementColumnNames, ReadOnlyCollection<Expression> valueExpressions)
+		public SqlInsertIntoExpression(string tableName, ReadOnlyCollection<string> columnNames, ReadOnlyCollection<string> returningAutoIncrementColumnNames, IEnumerable<Expression> valueExpressions)
 			: base(typeof(void))
 		{
 			this.TableName = tableName;
 			this.ColumnNames = columnNames;
 			this.ReturningAutoIncrementColumnNames = returningAutoIncrementColumnNames;
-			this.ValueExpressions = valueExpressions;
+			this.ValueExpressions = valueExpressions is ReadOnlyCollection<Expression> ? (ReadOnlyCollection<Expression>)valueExpressions : new ReadOnlyCollection<Expression>(valueExpressions is IList<Expression> ? (IList<Expression>)valueExpressions : valueExpressions.ToList());
 		}
 	}
 }

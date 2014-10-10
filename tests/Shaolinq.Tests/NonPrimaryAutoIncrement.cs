@@ -15,6 +15,5 @@ namespace Shaolinq.Tests
 		[AutoIncrement]
 		[PersistedMember]
 		public abstract Guid RandomGuid { get; set; }
-
 	}
 }

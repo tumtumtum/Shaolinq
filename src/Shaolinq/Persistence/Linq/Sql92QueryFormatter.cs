@@ -240,102 +240,107 @@ namespace Shaolinq.Persistence.Linq
 			return unaryExpression;
 		}
 
-		protected virtual FunctionResolveResult ResolveSqlFunction(SqlFunction function, ReadOnlyCollection<Expression> arguments)
+		protected virtual FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionExpression)
 		{
+			var function = functionExpression.Function;
+			var arguments = functionExpression.Arguments;
+
 			switch (function)
 			{
-				case SqlFunction.IsNull:
-					return new FunctionResolveResult("", true, arguments)
-					{
-						functionSuffix = "IS NULL"
-					};
-				case SqlFunction.IsNotNull:
-					return new FunctionResolveResult("", true, arguments)
-					{
-						functionSuffix = "IS NOT NULL"
-					};
-				case SqlFunction.In:
-					return new FunctionResolveResult("IN", true, arguments);
-				case SqlFunction.Exists:
-					return new FunctionResolveResult("EXISTSOPERATOR", true, arguments)
-					{
-						functionPrefix = "EXISTS"
-					};
-				case SqlFunction.Coalesce:
-					return new FunctionResolveResult("COALESCE", false, arguments);
-				case SqlFunction.Like:
-					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
-				case SqlFunction.CompareObject:
-					var expressionType = (ExpressionType)((ConstantExpression)arguments[0]).Value;
-					var args = new Expression[2];
-
-					args[0] = arguments[1];
-					args[1] = arguments[2];
-
-					switch (expressionType)
-					{
-						case ExpressionType.LessThan:
-							return new FunctionResolveResult("<", true, new ReadOnlyCollection<Expression>(args));
-						case ExpressionType.LessThanOrEqual:
-							return new FunctionResolveResult("<=", true, new ReadOnlyCollection<Expression>(args));
-						case ExpressionType.GreaterThan:
-							return new FunctionResolveResult(">", true, new ReadOnlyCollection<Expression>(args));
-						case ExpressionType.GreaterThanOrEqual:
-							return new FunctionResolveResult(">=", true, new ReadOnlyCollection<Expression>(args));
-					}
-					throw new InvalidOperationException();
-				case SqlFunction.NotLike:
-					return new FunctionResolveResult("NOT " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
-				case SqlFunction.ServerDateTime:
-					return new FunctionResolveResult("NOW", false, arguments);
-				case SqlFunction.StartsWith:
+			case SqlFunction.IsNull:
+				return new FunctionResolveResult("", true, arguments)
 				{
-					Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
-					newArgument = RedundantFunctionCallRemover.Remove(newArgument);
-
-					var list = new List<Expression>
-					{
-						arguments[0],
-						newArgument
-					};
-
-					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
-				}
-				case SqlFunction.ContainsString:
+					functionSuffix = "IS NULL"
+				};
+			case SqlFunction.IsNotNull:
+				return new FunctionResolveResult("", true, arguments)
 				{
-					Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
-					newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), newArgument);
-					newArgument = RedundantFunctionCallRemover.Remove(newArgument);
-
-					var list = new List<Expression>
-					{
-						arguments[0],
-						newArgument
-					};
-
-					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
-				}
-				case SqlFunction.EndsWith:
+					functionSuffix = "IS NOT NULL"
+				};
+			case SqlFunction.In:
+				return new FunctionResolveResult("IN", true, arguments);
+			case SqlFunction.Exists:
+				return new FunctionResolveResult("EXISTSOPERATOR", true, arguments)
 				{
-					Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
-					newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+					functionPrefix = "EXISTS"
+				};
+			case SqlFunction.UserDefined:
+				return new FunctionResolveResult(functionExpression.UserDefinedFunctionName, false, arguments);
+			case SqlFunction.Coalesce:
+				return new FunctionResolveResult("COALESCE", false, arguments);
+			case SqlFunction.Like:
+				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
+			case SqlFunction.CompareObject:
+				var expressionType = (ExpressionType)((ConstantExpression)arguments[0]).Value;
+				var args = new Expression[2];
 
-					var list = new List<Expression>
-					{
-						arguments[0],
-						newArgument
-					};
+				args[0] = arguments[1];
+				args[1] = arguments[2];
 
-					return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
+				switch (expressionType)
+				{
+					case ExpressionType.LessThan:
+						return new FunctionResolveResult("<", true, new ReadOnlyCollection<Expression>(args));
+					case ExpressionType.LessThanOrEqual:
+						return new FunctionResolveResult("<=", true, new ReadOnlyCollection<Expression>(args));
+					case ExpressionType.GreaterThan:
+						return new FunctionResolveResult(">", true, new ReadOnlyCollection<Expression>(args));
+					case ExpressionType.GreaterThanOrEqual:
+						return new FunctionResolveResult(">=", true, new ReadOnlyCollection<Expression>(args));
 				}
-				default:
-					return new FunctionResolveResult(function.ToString().ToUpper(), false, arguments);
+				throw new InvalidOperationException();
+			case SqlFunction.NotLike:
+				return new FunctionResolveResult("NOT " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
+			case SqlFunction.ServerDateTime:
+				return new FunctionResolveResult("NOW", false, arguments);
+			case SqlFunction.StartsWith:
+			{
+				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
+				newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+
+				var list = new List<Expression>
+				{
+					arguments[0],
+					newArgument
+				};
+
+				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
+			}
+			case SqlFunction.ContainsString:
+			{
+				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
+				newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), newArgument);
+				newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+
+				var list = new List<Expression>
+				{
+					arguments[0],
+					newArgument
+				};
+
+				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
+			}
+			case SqlFunction.EndsWith:
+			{
+				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
+				newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+
+				var list = new List<Expression>
+				{
+					arguments[0],
+					newArgument
+				};
+
+				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, new ReadOnlyCollection<Expression>(list));
+			}
+			default:
+				return new FunctionResolveResult(function.ToString().ToUpper(), false, arguments);
 			}
 		}
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
-			var result = ResolveSqlFunction(functionCallExpression.Function, functionCallExpression.Arguments);
+			var result = ResolveSqlFunction(functionCallExpression);
 
 			if (result.treatAsOperator)
 			{

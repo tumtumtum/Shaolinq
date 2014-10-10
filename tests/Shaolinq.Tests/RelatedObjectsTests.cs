@@ -175,7 +175,34 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				var addresses = this.model.Students.Select(c => c.School.Name == "Bruce's Kung Fu School" ? c.Address : c.Address).ToList();
+				var schoolsAndAddresses = this.model.Students
+					.Select(c => new { c.School, c.Address}).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_Select_Related_Object_Implict_Join_3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.Create();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.Create();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				//var addresses = this.model.Students
+				//.Select(c => c.School.Name == "Bruce's Kung Fu School" ? c.Address : c.Address).ToList();
+
+				var addresses = this.model.Students
+					.Select(c => new { c.School, c.Address }).ToList();
+				//.Select(c => c.School.Name == "" ? c.Address : c.Address).ToList();
 
 				scope.Complete();
 			}
@@ -287,7 +314,7 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				var students = this.model.Students.Select(c => c.Address.Number == 0 ? c.School : brucesSchool).ToList();
+				var students = this.model.Students.Select(c => c.Nickname == "" ? c.School : brucesSchool).ToList();
 
 				Assert.That(students.Count, Is.GreaterThan(0));
 				

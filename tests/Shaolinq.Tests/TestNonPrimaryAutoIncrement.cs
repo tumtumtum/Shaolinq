@@ -53,7 +53,7 @@ namespace Shaolinq.Tests
 		public void Test_Create_Object_With_Non_Primary_Auto_Increment_And_Explicitly_Set()
 		{
 			Guid object1Id, object2Id, object3Id;
-
+			
 			using (var scope = new TransactionScope())
 			{
 				var object1 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
@@ -65,8 +65,9 @@ namespace Shaolinq.Tests
 				scope.Flush(this.model);
 				object2Id = object2.Id;
 				Assert.AreNotEqual(0, object2.SerialNumber);
-
+				
 				var object3 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
+				object3.SerialNumber = 1002;
 				scope.Flush(this.model);
 				object3Id = object3.Id;
 				Assert.AreNotEqual(0, object3.SerialNumber);

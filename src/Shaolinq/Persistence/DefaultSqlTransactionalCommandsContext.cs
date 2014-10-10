@@ -375,7 +375,11 @@ namespace Shaolinq.Persistence
 
 								for (var i = 0; i < propertyInfos.Length; i++)
 								{
-									values[i] = Convert.ChangeType(reader.GetValue(i), propertyInfos[i].PropertyType);
+									var value = reader.GetValue(i);
+
+									value = Convert.ChangeType(value, propertyInfos[i].PropertyType);
+									
+									values[i] = value;
 								}
 
 								dataAccessObject.SetPropertiesGeneratedOnTheServerSide(values);

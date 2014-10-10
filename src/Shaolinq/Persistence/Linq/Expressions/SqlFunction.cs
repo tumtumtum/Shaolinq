@@ -143,5 +143,7 @@
         Coalesce,
 
 		CompareObject,
+
+		UserDefined
 	}
 }

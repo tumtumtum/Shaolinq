@@ -39,8 +39,11 @@ namespace Shaolinq.Sqlite
 			}
 		}
 
-		protected override FunctionResolveResult ResolveSqlFunction(SqlFunction function, ReadOnlyCollection<Expression> arguments)
+		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)
 		{
+			var function = functionCallExpression.Function;
+			var arguments = functionCallExpression.Arguments;
+
 			switch (function)
 			{
 				case SqlFunction.Concat:
@@ -67,7 +70,7 @@ namespace Shaolinq.Sqlite
 					return new FunctionResolveResult("RTRIM", false, arguments);
 			}
 
-			return base.ResolveSqlFunction(function, arguments);
+			return base.ResolveSqlFunction(functionCallExpression);
 		}
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)

@@ -15,6 +15,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public SqlFunction Function { get; private set; }
+		public string UserDefinedFunctionName { get; private set; }
 		public ReadOnlyCollection<Expression> Arguments { get; private set; }
 
 		public override ExpressionType NodeType
@@ -23,6 +24,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				return (ExpressionType)SqlExpressionType.FunctionCall;
 			}
+		}
+
+		public SqlFunctionCallExpression(Type type, string userDefinedFunctionName, params Expression[] arguments)
+			: this(type, SqlFunction.UserDefined, (IEnumerable<Expression>)arguments)
+		{
+			this.UserDefinedFunctionName = userDefinedFunctionName;
 		}
 
 		public SqlFunctionCallExpression(Type type, SqlFunction function, params Expression[] arguments)

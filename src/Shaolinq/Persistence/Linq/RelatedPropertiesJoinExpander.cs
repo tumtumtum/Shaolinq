@@ -160,30 +160,9 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static Expression CreateExpressionForPath(int currentIndex, PropertyInfo[] targetPath, ParameterExpression parameterExpression, Dictionary<PropertyInfo[], int> indexByPath)
 		{
-			int delta;
-
-			if (currentIndex == indexByPath.Count)
-			{
-				delta = currentIndex;
-			}
-			else if (targetPath.Length == 0)
-			{
-				return parameterExpression;
-			}
-			else
-			{
-				if (!indexByPath.ContainsKey(targetPath))
-				{
-					delta = currentIndex;
-				}
-				else
-				{
-					var targetIndex = indexByPath[targetPath];
-
-					delta = currentIndex - targetIndex;
-				}
-			}
-
+			var targetIndex = indexByPath[targetPath];
+			var delta = currentIndex - targetIndex;
+			
 			Expression retval = parameterExpression;
 
 			for (var i = 0; i < delta; i++)
@@ -228,7 +207,7 @@ namespace Shaolinq.Persistence.Linq
 				var replacementExpressionsByPropertyPathForSelector = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
 				var parameter = Expression.Parameter(finalTupleType);
 
-				var i = 0;
+				var i = 1;
 				var indexByPath = new Dictionary<PropertyInfo[], int>(ArrayEqualityComparer<PropertyInfo>.Default);
 
 				foreach (var value in referencedObjectPaths)
@@ -236,9 +215,11 @@ namespace Shaolinq.Persistence.Linq
 					indexByPath[value.PropertyPath] = i++;
 				}
 
+				indexByPath[new PropertyInfo[0]] = 0;
+
 				foreach (var path in referencedObjectPaths)
 				{
-					var replacement = CreateExpressionForPath(referencedObjectPaths.Count - 1, path.PropertyPath, parameter, indexByPath);
+					var replacement = CreateExpressionForPath(referencedObjectPaths.Count, path.PropertyPath, parameter, indexByPath);
 
 					replacementExpressionsByPropertyPathForSelector[path.PropertyPath] = replacement;
 				}
@@ -259,7 +240,7 @@ namespace Shaolinq.Persistence.Linq
 				var replacementExpressions = propertyPathsByOriginalExpression
 					.ToDictionary(c => c.Key, c => replacementExpressionsByPropertyPathForSelector[c.Value]);
 
-				var index = 0;
+				var index = 1;
 				var currentLeft = source;
 
 				foreach (var referencedObjectPath in referencedObjectPaths)
@@ -311,21 +292,6 @@ namespace Shaolinq.Persistence.Linq
 
 					return null;
 				});
-
-				/*foreach (var value in currentRootExpressionsByPath)
-				{
-					this.rootExpressionsByPath[value.Key] = replace(value.Value);
-				}*/
-
-				/*
-				if (forSelector)
-				{
-					foreach (var keyValuePair in result.IncludedPropertyInfoByExpression)
-					{
-						keyValuePair.Value.RootExpression = replace(keyValuePair.Value.RootExpression);
-						this.includedPropertyInfos[keyValuePair.Value.RootExpression] = keyValuePair.Value;
-					}
-				}*/
 
 				var newPredicateOrSelectorBody = replace(predicateOrSelector.Body, true);
 				var newPredicateOrSelector = Expression.Lambda(newPredicateOrSelectorBody, parameter);

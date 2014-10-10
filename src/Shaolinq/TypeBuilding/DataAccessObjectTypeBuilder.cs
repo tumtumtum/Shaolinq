@@ -1346,20 +1346,27 @@ namespace Shaolinq.TypeBuilding
 
 		protected virtual void BuildSetPropertiesGeneratedOnTheServerSideMethod()
 		{
+			var index = 0; 
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPropertiesGeneratedOnTheServerSide");
-			var index = 0;
+			var local = generator.DeclareLocal(typeof(object));
 
 			var columnInfos = GetColumnsGeneratedOnTheServerSide();
 
 			foreach (var columnInfo in columnInfos)
 			{
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				var next = generator.DefineLabel();
 
 				generator.Emit(OpCodes.Ldarg_1);
 				generator.Emit(OpCodes.Ldc_I4, index);
 				generator.Emit(OpCodes.Ldelem, typeof(object));
+				generator.Emit(OpCodes.Stloc, local);
+				generator.Emit(OpCodes.Ldloc, local);
+				generator.Emit(OpCodes.Brfalse, next);
 
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldloc, local);
+				
 				generator.Emit(OpCodes.Ldtoken, columnInfo.DefinitionProperty.PropertyType);
 				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
 				generator.Emit(OpCodes.Call, MethodInfoFastRef.ConvertChangeTypeMethod);
@@ -1379,6 +1386,8 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Stfld, this.valueIsSetFields[columnInfo.DefinitionProperty.PropertyName]);
+
+				generator.MarkLabel(next);
 
 				index++;
 			}
