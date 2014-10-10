@@ -11,11 +11,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class ReferencedRelatedObject
 	{
 		public PropertyInfo[] PropertyPath { get; private set; }
+		public PropertyInfo[] SuffixPropertyPath { get; private set; }
 		public HashSet<Expression> TargetExpressions { get; private set; }
 
-		public ReferencedRelatedObject(PropertyInfo[] propertyPath)
+		public ReferencedRelatedObject(PropertyInfo[] propertyPath, PropertyInfo[] suffix)
 		{
 			this.PropertyPath = propertyPath;
+			this.SuffixPropertyPath = suffix;
 			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
 		}
 

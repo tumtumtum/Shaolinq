@@ -3,12 +3,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Shaolinq.Persistence.Linq.Expressions;
 using Platform;
 using Platform.Reflection;
+using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -1584,11 +1586,6 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var source = this.Visit(memberExpression.Expression);
 
-			if (Enumerable.Contains(this.joinExpanderResults.RootExpressionsByPath.Values, memberExpression, SqlExpressionEqualityComparer.Default))
-			{
-				Console.WriteLine();
-			}
-
 			if (source == null)
 			{
 				return MakeMemberAccess(null, memberExpression.Member);
@@ -1826,20 +1823,60 @@ namespace Shaolinq.Persistence.Linq
 				return null;
 			}
 
-			switch (expression.NodeType)
+			List<IncludedPropertyInfo> includedPropertyInfos;
+
+			if (this.joinExpanderResults.IncludedPropertyInfos.TryGetValue(expression, out includedPropertyInfos))
 			{
-				case (ExpressionType)SqlExpressionType.ConstantPlaceholder:
+				var newExpression = PrivateVisit(expression);
+				var replacements = new Dictionary<Expression, Expression>();
 
-					var result = Visit(((SqlConstantPlaceholderExpression) expression).ConstantExpression);
+				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => c.SuffixPropertyPath.Length))
+				{
+					Expression current = newExpression;
 
-					if (!(result is ConstantExpression))
+					foreach (var propertyInfo in includedProperty.SuffixPropertyPath)
 					{
-						return result;
+						Expression replacementCurrent;
+
+						if (replacements.TryGetValue(current, out replacementCurrent))
+						{
+							current = replacementCurrent;
+						}
+
+						current = ((MemberAssignment)((MemberInitExpression)current).Bindings.First(c => c.Member.Name == propertyInfo.Name)).Expression;
 					}
 
-					return expression;
-				case (ExpressionType)SqlExpressionType.Column:
-					return expression;
+					var replacement = this.Visit(this.joinExpanderResults.ReplacementExpressionForPropertyPath[includedProperty.PropertyPath]);
+
+					newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
+				}
+
+				return newExpression;
+			}
+
+			return PrivateVisit(expression);
+		}
+
+		private Expression PrivateVisit(Expression expression)
+		{
+			if (expression == null)
+			{
+				return null;
+			}
+
+			switch (expression.NodeType)
+			{
+			case (ExpressionType)SqlExpressionType.ConstantPlaceholder:
+				var result = Visit(((SqlConstantPlaceholderExpression)expression).ConstantExpression);
+
+				if (!(result is ConstantExpression))
+				{
+					return result;
+				}
+
+				return expression;
+			case (ExpressionType)SqlExpressionType.Column:
+				return expression;
 			}
 
 			return base.Visit(expression);

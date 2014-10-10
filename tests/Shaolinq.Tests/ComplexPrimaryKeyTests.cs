@@ -10,6 +10,8 @@ namespace Shaolinq.Tests
 	public class ComplexPrimaryKeyTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
 	{
+		private long shopId;
+
 		public ComplexPrimaryKeyTests(string providerName)
 			: base(providerName)
 		{
@@ -34,6 +36,10 @@ namespace Shaolinq.Tests
 
 				shop.Address.Region.Center = this.model.Coordinates.Create();
 				shop.Address.Region.Center.Label = "Center of Washington";
+
+				scope.Flush(model);
+
+				shopId = shop.Id;
 
 				scope.Complete();
 			}
@@ -84,9 +90,15 @@ namespace Shaolinq.Tests
 			{
 				var query = from
 					shop in model.Shops
+					where shop.Id == shopId
 					select shop.Include(c => c.Address.Region);
 
 				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+				Assert.AreEqual("Washington", first.Address.Region.Name);
 			}
 		}
 
@@ -96,12 +108,28 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops.Select(shop => new
+				var query = model.Shops.Where(c => c.Id == shopId).Select(c => c.Include(d => d.Address));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject_2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops.Where(c => c.Id == shopId).Select(shop => new
 				{
 					shop
 				}).Select(c => c.shop.Include(d => d.Address));
 
 				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
 			}
 		}
 
@@ -117,7 +145,8 @@ namespace Shaolinq.Tests
 						{
 							shop = new
 							{
-								 shop = shop.Include(c => c.Address.Include(d => d.Region))
+								 //shop = shop.Include(c => c.Address.Include(d => d.Region))
+								 shop = shop.Include(c => c.Address)
 							}
 						}
 					).Select(c => new { shop= c.shop.shop, address = c.shop.shop.Address });
@@ -162,12 +191,12 @@ namespace Shaolinq.Tests
 						shop in model.Shops
 					 select new
 					 {
-						 shop = new
+						 container = new
 						 {
 							 shop
 						 }
 					 }
-					).Select(c => new { shop = c.shop.shop.Include(d => d.Address)});
+					).Select(c => new { shop = c.container.shop.Include(d => d.Address)});
 
 				var first = query.First();
 				Assert.IsNotNull(first.shop);

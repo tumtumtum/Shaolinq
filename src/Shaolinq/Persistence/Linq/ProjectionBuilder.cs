@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
 using Platform;
 
@@ -22,6 +23,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly Dictionary<string, int> columnIndexes;
+		private readonly RelatedPropertiesJoinExpanderResults joinExpanderResults;
 		private static readonly MethodInfo ExecuteSubQueryMethod = typeof(ObjectProjector).GetMethod("ExecuteSubQuery");
 
 		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IEnumerable<string> columns)
@@ -29,7 +31,7 @@ namespace Shaolinq.Persistence.Linq
 			var x = 0;
 			this.dataAccessModel = dataAccessModel;
 			this.sqlDatabaseContext = sqlDatabaseContext;
-
+			
 			columnIndexes = columns.ToDictionary(c => c, c => x++);
 
 			dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
@@ -116,6 +118,36 @@ namespace Shaolinq.Persistence.Linq
 			}
 			
 			return base.VisitFunctionCall(functionCallExpression);
+		}
+
+
+
+		protected virtual Expression ProcessIncluded(Expression expression)
+		{
+			List<IncludedPropertyInfo> includedPropertyInfos;
+
+			if (this.joinExpanderResults.IncludedPropertyInfos.TryGetValue(expression, out includedPropertyInfos))
+			{
+				var converted = base.Visit(expression);
+
+				var memberInitExpression = (MemberInitExpression)converted;
+
+				foreach (var includedPropertyInfo in includedPropertyInfos)
+				{
+					if (this.joinExpanderResults.ReplacementExpressionForPropertyPath.TryGetValue(includedPropertyInfo.PropertyPath, out expression))
+					{
+						foreach (var propertyInfo in includedPropertyInfo.SuffixPropertyPath)
+						{
+						}
+
+						Console.WriteLine();
+					}
+				}
+
+				return memberInitExpression;
+			}
+
+			return base.Visit(expression);
 		}
 
 		protected override NewExpression VisitNew(NewExpression expression)

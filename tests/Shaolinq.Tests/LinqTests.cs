@@ -1311,11 +1311,10 @@ namespace Shaolinq.Tests
 					select
 						student.Include(c => c.BestFriend.Address);
 
-				Assert.IsFalse(query.ToList().First().School.IsDeflatedReference);
-
 				foreach (var student in query.ToList())
 				{
-					Assert.IsFalse(student.School.IsDeflatedReference);
+					Assert.IsFalse(student.BestFriend.IsDeflatedReference);
+					Assert.IsFalse(student.BestFriend.Address.IsDeflatedReference);
 				}
 			}
 		}
@@ -1334,12 +1333,24 @@ namespace Shaolinq.Tests
 					select
 						student;
 
-				Assert.True(query.ToList().First().School.IsDeflatedReference);
-
 				foreach (var student in query.ToList())
 				{
-					Assert.IsFalse(student.School.IsDeflatedReference);
+					Assert.IsTrue(student.School.IsDeflatedReference);
 				}
+
+				var firstStudent =
+					(from
+						student in model.Students
+						where
+							student.Firstname == "Tum"
+							&& student.Sex == Sex.Male
+							&& student.School.Name.EndsWith("School")
+						select
+							student.Include(c => c.Address)).First();
+
+				Assert.AreEqual("Bruce's Kung Fu School", firstStudent.School.Name);
+				Assert.IsFalse(firstStudent.IsDeflatedReference);
+				Assert.AreEqual(178, firstStudent.Address.Number);
 			}
 		}
 	}

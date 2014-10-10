@@ -18,10 +18,36 @@ namespace Shaolinq.Persistence.Linq
 		public R Right { get; set; }
 	}
 
+	internal class PropertyPath
+	{
+		public PropertyInfo[] Path { get; set; }
+		public Expression ExpressionRoot { get; set; }
+		
+	}
+
+	internal class PropertyPathEqualityComparer
+		: IEqualityComparer<PropertyPath>
+	{
+		public static readonly PropertyPathEqualityComparer Default = new PropertyPathEqualityComparer();
+
+		public bool Equals(PropertyPath x, PropertyPath y)
+		{
+			return x.ExpressionRoot == y.ExpressionRoot && ArrayEqualityComparer<PropertyInfo>.Default.Equals(x.Path, y.Path);
+		}
+
+		public int GetHashCode(PropertyPath obj)
+		{
+			var retval = obj.ExpressionRoot.GetHashCode();
+
+			return obj.Path.Aggregate(retval, (current, path) => current ^ path.Name.GetHashCode());
+		}
+	}
+
 	public class RelatedPropertiesJoinExpanderResults
 	{	
 		public Expression ProcessedExpression { get; set; }
-		public Dictionary<PropertyInfo[], Expression> RootExpressionsByPath { get; set; }
+		public Dictionary<Expression, List<IncludedPropertyInfo>> IncludedPropertyInfos { get; set; }
+		public Dictionary<PropertyInfo[], Expression> ReplacementExpressionForPropertyPath { get; set; }
 	}
 
 	public class RelatedPropertiesJoinExpander
@@ -29,6 +55,8 @@ namespace Shaolinq.Persistence.Linq
 	{
 		private readonly DataAccessModel model;
 		private readonly Dictionary<PropertyInfo[], Expression> rootExpressionsByPath = new Dictionary<PropertyInfo[], Expression>();
+		private readonly Dictionary<Expression, List<IncludedPropertyInfo>> includedPropertyInfos = new Dictionary<Expression, List<IncludedPropertyInfo>>();
+		private readonly Dictionary<PropertyInfo[], Expression> replacementExpressionForPropertyPath = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
 
 		private RelatedPropertiesJoinExpander(DataAccessModel model)
 		{
@@ -44,7 +72,8 @@ namespace Shaolinq.Persistence.Linq
 			return new RelatedPropertiesJoinExpanderResults
 			{
 				ProcessedExpression = processedExpression,
-				RootExpressionsByPath = visitor.rootExpressionsByPath
+				IncludedPropertyInfos = visitor.includedPropertyInfos,
+				ReplacementExpressionForPropertyPath = visitor.replacementExpressionForPropertyPath 
 			};
 		}
 
@@ -178,12 +207,14 @@ namespace Shaolinq.Persistence.Linq
 			var sourceParameterExpression = predicateOrSelector.Parameters[0];
 			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression, forSelector);
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
-			var rootExpressionsByPath = result.RootExpressionsByPath;
-
+			var currentRootExpressionsByPath = result.RootExpressionsByPath;
+			
 			predicateOrSelector = (LambdaExpression)result.ReducedExpression;
 
 			if (memberAccessExpressionsNeedingJoins.Count > 0)
 			{
+				ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression, forSelector);
+
 				var referencedObjectPaths = memberAccessExpressionsNeedingJoins
 					.OrderBy(c => c.Key.Length)
 					.Select(c => c.Value)
@@ -212,7 +243,12 @@ namespace Shaolinq.Persistence.Linq
 					replacementExpressionsByPropertyPathForSelector[path.PropertyPath] = replacement;
 				}
 
-				replacementExpressionsByPropertyPathForSelector[new PropertyInfo[0]] = CreateExpressionForPath(referencedObjectPaths.Count, new PropertyInfo[0], parameter, indexByPath); ;
+				replacementExpressionsByPropertyPathForSelector[new PropertyInfo[0]] = CreateExpressionForPath(referencedObjectPaths.Count, new PropertyInfo[0], parameter, indexByPath);
+
+				foreach (var value in replacementExpressionsByPropertyPathForSelector)
+				{
+					this.replacementExpressionForPropertyPath[value.Key] = value.Value;
+				}
 
 				var propertyPathsByOriginalExpression = referencedObjectPaths
 					.SelectMany(d => d.TargetExpressions.Select(e => new { d.PropertyPath, Expression = e }))
@@ -231,15 +267,42 @@ namespace Shaolinq.Persistence.Linq
 					var property = referencedObjectPath.PropertyPath[referencedObjectPath.PropertyPath.Length - 1];
 					var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
 
-					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.PropertyPath, indexByPath, rootExpressionsByPath, sourceParameterExpression);
+					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.PropertyPath, indexByPath, currentRootExpressionsByPath, sourceParameterExpression);
 
 					currentLeft = join;
 					index++;
 				}
 
-				Func<Expression, Expression> replace = e => ExpressionReplacer.Replace(predicateOrSelector.Body, c =>
+				Func<Expression, bool, Expression> replace = null;
+				
+				replace = (e, b) => ExpressionReplacer.Replace(e, c =>
 				{
 					Expression value;
+
+					if (forSelector && b)
+					{
+						if (result.IncludedPropertyInfoByExpression.ContainsKey(c))
+						{
+							var x = replace(c, false);
+							var y = result.IncludedPropertyInfoByExpression[c];
+
+							var newList = new List<IncludedPropertyInfo>();
+
+							foreach (var includedPropertyInfo in y)
+							{
+								newList.Add(new IncludedPropertyInfo
+								{
+									PropertyPath = includedPropertyInfo.PropertyPath,
+									SuffixPropertyPath = includedPropertyInfo.SuffixPropertyPath,
+									RootExpression = x
+								});
+							}
+
+							this.includedPropertyInfos[x] = newList;
+
+							return x;
+						}
+					}
 
 					if (replacementExpressions.TryGetValue(c, out value))
 					{
@@ -249,12 +312,22 @@ namespace Shaolinq.Persistence.Linq
 					return null;
 				});
 
-				foreach (var value in rootExpressionsByPath)
+				/*foreach (var value in currentRootExpressionsByPath)
 				{
 					this.rootExpressionsByPath[value.Key] = replace(value.Value);
-				}
+				}*/
 
-				var newPredicateOrSelectorBody = replace(predicateOrSelector.Body);
+				/*
+				if (forSelector)
+				{
+					foreach (var keyValuePair in result.IncludedPropertyInfoByExpression)
+					{
+						keyValuePair.Value.RootExpression = replace(keyValuePair.Value.RootExpression);
+						this.includedPropertyInfos[keyValuePair.Value.RootExpression] = keyValuePair.Value;
+					}
+				}*/
+
+				var newPredicateOrSelectorBody = replace(predicateOrSelector.Body, true);
 				var newPredicateOrSelector = Expression.Lambda(newPredicateOrSelectorBody, parameter);
 
 				MethodInfo newMethod;
