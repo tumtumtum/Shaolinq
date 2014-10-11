@@ -27,6 +27,7 @@ namespace Shaolinq.Persistence.Linq
 		private List<SqlOrderByExpression> thenBys;
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly Dictionary<Expression, GroupByInfo> groupByMap;
+		private readonly RelatedPropertiesJoinExpanderResults joinExpanderResults;
 		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter;
 		private readonly Dictionary<MemberInitExpression, SqlObjectReference> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReference>(MemberInitEqualityComparer.Default);
 
@@ -47,8 +48,6 @@ namespace Shaolinq.Persistence.Linq
 			expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
 			groupByMap = new Dictionary<Expression, GroupByInfo>();
 		}
-
-		private RelatedPropertiesJoinExpanderResults joinExpanderResults;
 
 		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
 		{

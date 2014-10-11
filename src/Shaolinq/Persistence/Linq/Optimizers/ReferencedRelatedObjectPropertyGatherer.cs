@@ -109,7 +109,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (referencedRelatedObjects.Count == 0)
 				{
-					throw new InvalidOperationException();
+					return this.Visit(methodCallExpression.Arguments[0]);
 				}
 
 				var propertyPath = this.referencedRelatedObjects[0].PropertyPath;

@@ -178,13 +178,14 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var source = this.Visit(methodCallExpression.Arguments[0]);
 			var sourceType = source.Type.GetGenericArguments()[0];
-			var predicateOrSelector = (LambdaExpression)QueryBinder.StripQuotes(methodCallExpression.Arguments[1]);
-			var sourceParameterExpression = predicateOrSelector.Parameters[0];
-			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression, forSelector);
+			var originalPredicateOrSelector = (methodCallExpression.Arguments[1]);
+			var sourceParameterExpression = ((LambdaExpression)QueryBinder.StripQuotes(originalPredicateOrSelector)).Parameters[0];
+			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalPredicateOrSelector, sourceParameterExpression, forSelector);
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
 			var currentRootExpressionsByPath = result.RootExpressionsByPath;
 			
-			predicateOrSelector = (LambdaExpression)result.ReducedExpression;
+			var predicateOrSelector = result.ReducedExpression;
+			var predicateOrSelectorLabmda = (LambdaExpression)QueryBinder.StripQuotes(predicateOrSelector);
 
 			if (memberAccessExpressionsNeedingJoins.Count > 0)
 			{
@@ -231,7 +232,7 @@ namespace Shaolinq.Persistence.Linq
 					.SelectMany(d => d.TargetExpressions.Select(e => new { d.PropertyPath, Expression = e }))
 					.ToDictionary(c => c.Expression, c => c.PropertyPath);
 
-				propertyPathsByOriginalExpression[predicateOrSelector.Parameters[0]] = new PropertyInfo[0];
+				propertyPathsByOriginalExpression[predicateOrSelectorLabmda.Parameters[0]] = new PropertyInfo[0];
 
 				var replacementExpressions = propertyPathsByOriginalExpression
 					.ToDictionary(c => c.Key, c => replacementExpressionsByPropertyPathForSelector[c.Value]);
@@ -289,7 +290,7 @@ namespace Shaolinq.Persistence.Linq
 					return null;
 				});
 
-				var newPredicateOrSelectorBody = replace(predicateOrSelector.Body, true);
+				var newPredicateOrSelectorBody = replace(predicateOrSelectorLabmda.Body, true);
 				var newPredicateOrSelector = Expression.Lambda(newPredicateOrSelectorBody, parameter);
 
 				MethodInfo newMethod;
@@ -331,7 +332,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				if (source == methodCallExpression.Arguments[0])
+				if (predicateOrSelector == originalPredicateOrSelector)
 				{
 					return methodCallExpression;
 				}
@@ -341,7 +342,7 @@ namespace Shaolinq.Persistence.Linq
 					(
 						methodCallExpression.Object,
 						methodCallExpression.Method,
-						new[] { source, methodCallExpression.Arguments[1]}
+						new[] { source, predicateOrSelector}
 					);
 				}
 			}

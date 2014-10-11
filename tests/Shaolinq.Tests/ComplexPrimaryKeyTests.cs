@@ -443,7 +443,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Select_Include_Self()
 		{
 			using (var scope = new TransactionScope())
