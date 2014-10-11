@@ -32,8 +32,11 @@ namespace Shaolinq
 		[ReflectionEmitted]
 		protected abstract void Initialise();
 
-		[ReflectionEmitted]
-		public abstract DataAccessObjects<T> GetDataAccessObjects<T>() where T : class, IDataAccessObject;
+		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
+			where T : class, IDataAccessObject
+		{
+			return (DataAccessObjects<T>)GetDataAccessObjects(typeof(T));
+		}
 
 		[ReflectionEmitted]
 		public abstract IQueryable GetDataAccessObjects(Type type);

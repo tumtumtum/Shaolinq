@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -17,17 +16,10 @@ namespace Shaolinq
 		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator
 		where T : class, IDataAccessObject
 	{
-		/// <summary>
-		/// A reference to the related <see cref="Shaolinq.DataAccessModel"/>.
-		/// </summary>
 		public DataAccessModel DataAccessModel { get; set; }
-
 		public LambdaExpression ExtraCondition { get; protected set; }
 
-		/// <summary>
-		/// Used to support the framework.  Do not call this method directly.
-		/// </summary>
-		public virtual void Initialize(DataAccessModel dataAccessModel, Expression expression)
+		protected DataAccessObjectsQueryable(DataAccessModel dataAccessModel, Expression expression)
 		{
 			if (this.DataAccessModel != null)
 			{
@@ -35,7 +27,6 @@ namespace Shaolinq
 			}
 
 			this.DataAccessModel = dataAccessModel;
-
 			base.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 

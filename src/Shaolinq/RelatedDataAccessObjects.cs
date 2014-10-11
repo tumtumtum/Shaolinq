@@ -1,11 +1,9 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Linq.Expressions;
 using Platform;
 
 namespace Shaolinq
@@ -14,24 +12,16 @@ namespace Shaolinq
 		: DataAccessObjectsQueryable<T>, IRelatedDataAccessObjectContext, IDataAccessObjectActivator
 		where T : class, IDataAccessObject
 	{
+		public override Type ElementType { get { return typeof(T); } }
 		public IDataAccessObject RelatedDataAccessObject { get; private set; }
 
-		public override Type ElementType
-		{
-			get
-			{
-				return typeof(T);
-			}
-		}
-		
 		public string PropertyName { get; private set; }
 		public EntityRelationshipType RelationshipType { get; private set; }
 		public Action<IDataAccessObject, IDataAccessObject> InitializeDataAccessObject { get; private set; }
-		
-		public virtual void Initialize(IDataAccessObject relatedDataAccessObject, DataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
-		{
-			base.Initialize(dataAccessModel, null);
 
+		public RelatedDataAccessObjects(IDataAccessObject relatedDataAccessObject, DataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
+			: base(dataAccessModel, null)
+		{
 			this.PropertyName = propertyName;
 			this.RelatedDataAccessObject = relatedDataAccessObject;
 			this.RelationshipType = relationshipType;

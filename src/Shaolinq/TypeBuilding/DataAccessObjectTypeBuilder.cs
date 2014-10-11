@@ -470,19 +470,19 @@ namespace Shaolinq.TypeBuilding
 				propertyBuilder = this.propertyBuilders[propertyInfo.Name];
 				currentFieldInDataObject = valueFields[propertyInfo.Name];
 
-				propertyBuilder.SetGetMethod(BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, typeBuilder, dataObjectField, currentFieldInDataObject, currentFieldInDataObject.FieldType.GetConstructor(Type.EmptyTypes), EntityRelationshipType.ParentOfOneToMany, propertyInfo));
+				propertyBuilder.SetGetMethod(BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, typeBuilder, dataObjectField, currentFieldInDataObject, EntityRelationshipType.ParentOfOneToMany, propertyInfo));
 			}
 		}
 
-		protected virtual MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, ConstructorInfo constructorInfo, EntityRelationshipType relationshipType, PropertyInfo propertyInfo)
+		protected virtual MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, EntityRelationshipType relationshipType, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
-
 			var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName, methodAttributes, callingConventions, propertyType, Type.EmptyTypes);
-
 			var generator = methodBuilder.GetILGenerator();
-            
-			generator.DeclareLocal(currentFieldInDataObject.FieldType);
+
+			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObject), typeof(DataAccessModel), typeof(EntityRelationshipType), typeof(string) });
+    
+			var local = generator.DeclareLocal(currentFieldInDataObject.FieldType);
             
 			var returnLabel = generator.DefineLabel();
 
@@ -490,18 +490,11 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
 			generator.Emit(OpCodes.Ldfld, currentFieldInDataObject);
-			generator.Emit(OpCodes.Stloc_0);
+			generator.Emit(OpCodes.Stloc, local);
 
 			// Compare field (temp) to null
-			generator.Emit(OpCodes.Ldloc_0);
+			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Brtrue, returnLabel);
-
-			// CreateDatabaseAndSchema RelatedDataAccessObjects
-			generator.Emit(OpCodes.Newobj, constructorInfo);
-			generator.Emit(OpCodes.Stloc_0);
-
-			// Load RelatedDataAccessObjects
-			generator.Emit(OpCodes.Ldloc_0);
 
 			// Load "this"
 			generator.Emit(OpCodes.Ldarg_0);
@@ -516,18 +509,18 @@ namespace Shaolinq.TypeBuilding
 			// Load Property Name
 			generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 
-			// Call "RelatedDataAccessObjects.Initialize"
-			generator.Emit(OpCodes.Callvirt, constructorInfo.DeclaringType.GetMethod("Initialize", new [] {typeof(IDataAccessObject), typeof(DataAccessModel), typeof(EntityRelationshipType), typeof(string)}));
+			generator.Emit(OpCodes.Newobj, constructor);
+			generator.Emit(OpCodes.Stloc_0);
 
 			// Store object
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
-			generator.Emit(OpCodes.Ldloc_0);
+			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Stfld, currentFieldInDataObject);
 			
 			// Return local
 			generator.MarkLabel(returnLabel);
-			generator.Emit(OpCodes.Ldloc_0);
+			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ret);
 
 			return methodBuilder;
