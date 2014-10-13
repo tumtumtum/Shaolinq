@@ -29,7 +29,7 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
     <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
     <tags>linq provider orm sqlite mysql sql database</tags>
     <dependencies>
-      <dependency id="Shaolinq"/>
+      <dependency id="Shaolinq" version="1.0.0.146"/>
       <dependency id="MySql.Data"/>
     </dependencies>
   </metadata>
