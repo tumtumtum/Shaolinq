@@ -132,9 +132,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return unaryExpression;
 			}
 
-			result &= current.IsLifted == unaryExpression.IsLifted
-			       && current.IsLiftedToNull == unaryExpression.IsLiftedToNull
-			       && current.Method == unaryExpression.Method;
+			result = result && (current.IsLifted == unaryExpression.IsLifted
+			                    && current.IsLiftedToNull == unaryExpression.IsLiftedToNull
+			                    && current.Method == unaryExpression.Method);
 
 			if (result)
 			{
@@ -173,7 +173,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.TypeOperand == expression.TypeOperand;
+			result = result && (current.TypeOperand == expression.TypeOperand);
 
 			if (result)
 			{
@@ -245,7 +245,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.Name == expression.Name;
+			result = result && (current.Name == expression.Name);
 
 			return expression;
 		}
@@ -259,7 +259,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return memberExpression;
 			}
 
-			result &= current.Member == memberExpression.Member;
+			result = result && (current.Member == memberExpression.Member);
 
 			if (result)
 			{
@@ -280,7 +280,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return methodCallExpression;
 			}
 
-			result &= current.Method == methodCallExpression.Method;
+			result = result && (current.Method == methodCallExpression.Method);
 
 			if (result)
 			{
@@ -334,8 +334,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return assignment;
 			}
 
-			result &= current.BindingType == assignment.BindingType
-			          && current.Member == assignment.Member;
+			result = result && (current.BindingType == assignment.BindingType
+			                    && current.Member == assignment.Member);
 
 			if (result)
 			{
@@ -356,8 +356,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return binding;
 			}
 
-			result &= current.BindingType == binding.BindingType
-				&& current.Member == binding.Member;
+			result = result && (current.BindingType == binding.BindingType
+			                    && current.Member == binding.Member);
 
 			if (result)
 			{
@@ -378,8 +378,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return binding;
 			}
 
-			result &= current.BindingType == binding.BindingType
-			          && current.Member == binding.Member;
+			result = result && (current.BindingType == binding.BindingType
+			                    && current.Member == binding.Member);
 
 			if (result)
 			{
@@ -400,7 +400,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return original;
 			}
 
-			result &= current.Count == original.Count;
+			result = result && (current.Count == original.Count);
 
 			if (result)
 			{
@@ -424,8 +424,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				return original;
 			}
-			
-			result &= current.Count == original.Count;
+
+			result = result && (current.Count == original.Count);
 
 			if (result)
 			{
@@ -450,7 +450,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.Parameters.Count == expression.Parameters.Count;
+			result = result && (current.Parameters.Count == expression.Parameters.Count);
 
 			if (result)
 			{
@@ -482,8 +482,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.Constructor == expression.Constructor
-			          && current.Arguments.Count == expression.Arguments.Count;
+			result = result && (current.Constructor == expression.Constructor
+			                    && current.Arguments.Count == expression.Arguments.Count);
 
 			if (result)
 			{
@@ -509,7 +509,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.Bindings.Count == expression.Bindings.Count;
+			result = result && (current.Bindings.Count == expression.Bindings.Count);
 
 			if (result)
 			{
@@ -538,7 +538,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.Initializers.Count == expression.Initializers.Count;
+			result = result && (current.Initializers.Count == expression.Initializers.Count);
 
 			if (result)
 			{
@@ -559,7 +559,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.Expressions.Count == expression.Expressions.Count;
+			result = result && (current.Expressions.Count == expression.Expressions.Count);
 
 			if (result)
 			{
@@ -580,7 +580,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			result &= current.Arguments.Count == expression.Arguments.Count;
+			result = result && (current.Arguments.Count == expression.Arguments.Count);
 
 			if (result)
 			{
@@ -600,7 +600,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return constantPlaceholder;
 			}
 
-			result &= current.Index == constantPlaceholder.Index;
+			result = result && (current.Index == constantPlaceholder.Index);
 
 			if (result && !ignoreConstantPlaceholderValues)
 			{
@@ -626,7 +626,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return objectReference;
 			}
 
-			result &= current.Bindings.Count == objectReference.Bindings.Count;
+			result = result && (current.Bindings.Count == objectReference.Bindings.Count);
 
 			if (result)
 			{
@@ -634,7 +634,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				VisitBindingList(objectReference.Bindings);
 				currentObject = current;
 			}
-
+			
 			return objectReference;
 		}
 
@@ -647,7 +647,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return join;
 			}
 
-			result &= current.JoinType == join.JoinType;
+			result = result && (current.JoinType == join.JoinType);
 
 			if (result)
 			{
@@ -675,7 +675,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return table;
 			}
 
-			result &= current.Name == table.Name && current.Alias == table.Alias;
+			result = result && (current.Name == table.Name && current.Alias == table.Alias);
 
 			return table;
 		}
@@ -688,9 +688,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				return columnExpression;
 			}
-			
-			result &= current.Name == columnExpression.Name
-			          && current.SelectAlias == columnExpression.SelectAlias;
+
+			result = result && (current.Name == columnExpression.Name
+			                    && current.SelectAlias == columnExpression.SelectAlias);
 
 			return columnExpression;
 		}
@@ -704,7 +704,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return functionCallExpression;
 			}
 
-			result &= current.Function == functionCallExpression.Function;
+			result = result && (current.Function == functionCallExpression.Function);
 
 			if (result)
 			{
@@ -763,7 +763,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return aggregate;
 			}
 
-			result &= current.GroupByAlias == aggregate.GroupByAlias;
+			result = result && (current.GroupByAlias == aggregate.GroupByAlias);
 
 			if (result)
 			{
@@ -791,7 +791,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return columns;
 			}
 
-			result &= current.Count == columns.Count;
+			result = result && (current.Count == columns.Count);
 
 			if (result)
 			{
@@ -828,7 +828,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return orderByExpression;
 			}
 
-			result &= current.OrderType == orderByExpression.OrderType;
+			result = result && (current.OrderType == orderByExpression.OrderType);
 
 			if (result)
 			{
@@ -849,11 +849,28 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return selectExpression;
 			}
 
-			result &= current.Alias == selectExpression.Alias
-			          && current.Distinct == selectExpression.Distinct
-			          && current.ForUpdate == selectExpression.ForUpdate
-			          && current.Skip == selectExpression.Skip
-			          && current.Take == selectExpression.Take;
+			result = result && (current.Alias == selectExpression.Alias
+			                    && current.Distinct == selectExpression.Distinct
+			                    && current.ForUpdate == selectExpression.ForUpdate);
+
+			if (result)
+			{
+				currentObject = current.Skip;
+
+				this.Visit(current.Skip);
+			}
+
+			if (result)
+			{
+				currentObject = current.Take;
+
+				this.Visit(current.Take);
+			}
+
+			if (!result)
+			{
+				return selectExpression;
+			}
 
 			if (result)
 			{
@@ -901,9 +918,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return projection;
 			}
 
-			result &= current.IsDefaultIfEmpty == projection.IsDefaultIfEmpty
-			          && current.IsElementTableProjection == projection.IsElementTableProjection
-			          && current.SelectFirstType == projection.SelectFirstType;
+			result = result && (current.IsDefaultIfEmpty == projection.IsDefaultIfEmpty
+			                    && current.IsElementTableProjection == projection.IsElementTableProjection
+			                    && current.SelectFirstType == projection.SelectFirstType);
 					  
 			if (!result)
 			{
@@ -954,8 +971,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return deleteExpression;
 			}
 
-			result &= current.Alias == deleteExpression.Alias
-			          && current.TableName == deleteExpression.TableName;
+			result = result && (current.Alias == deleteExpression.Alias
+			                    && current.TableName == deleteExpression.TableName);
 
 			if (result)
 			{

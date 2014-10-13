@@ -13,6 +13,11 @@ namespace Shaolinq.Persistence
 			this.ConstraintDefaults = constraintDefaults;
 		}
 
+		public virtual Type GetTypeForEnums()
+		{
+			return typeof(string);
+		}
+
 		public abstract SqlDataType GetSqlDataType(Type type);
 	}
 }

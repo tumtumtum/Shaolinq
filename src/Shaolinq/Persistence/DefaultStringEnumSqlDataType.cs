@@ -62,7 +62,7 @@ namespace Shaolinq.Persistence
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
 								Expression.Constant(this.SupportedType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),
@@ -80,7 +80,7 @@ namespace Shaolinq.Persistence
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
 								Expression.Constant(this.SupportedType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),
@@ -101,7 +101,7 @@ namespace Shaolinq.Persistence
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
 								Expression.Constant(this.UnderlyingType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),
@@ -119,7 +119,7 @@ namespace Shaolinq.Persistence
 						(
 							Expression.Call
 							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null),
+								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
 								Expression.Constant(this.UnderlyingType),
 								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 							),

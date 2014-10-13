@@ -138,7 +138,9 @@
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlObjectReference.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\EnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExistsSubqueryOptimizer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\ExpressionTypeFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObject.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGathererResults.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />

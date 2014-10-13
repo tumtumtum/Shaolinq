@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -338,21 +337,6 @@ namespace Shaolinq.Persistence.Linq
 				right = this.objectReferenceByMemberInit[(MemberInitExpression)right];
 			}
 			
-			if (left.Type.IsEnum)
-			{
-				if (!right.Type.IsEnum)
-				{
-					right = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type), right), left.Type);
-				}
-			}
-			else if (right.Type.IsEnum)
-			{
-				if (!left.Type.IsEnum)
-				{
-					left = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type), left), right.Type);
-				}
-			}
-
 			var conversion = Visit(binaryExpression.Conversion);
 
 			if (left != binaryExpression.Left || right != binaryExpression.Right || conversion != binaryExpression.Conversion)
@@ -672,6 +656,43 @@ namespace Shaolinq.Persistence.Linq
 			return result;
 		}
 
+		protected virtual Expression BindGroupJoin(MethodInfo groupJoinMethod, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
+		{
+			// A database will treat this no differently than a SelectMany w/ result selector, so just use that translation instead
+			Type[] args = groupJoinMethod.GetGenericArguments();
+
+			var outerProjection = this.VisitSequence(outerSource);
+
+			this.expressionsByParameter[outerKey.Parameters[0]] = outerProjection.Projector;
+			var predicateLambda = Expression.Lambda(Expression.Equal(innerKey.Body, outerKey.Body), innerKey.Parameters[0]);
+			var callToWhere = Expression.Call(typeof(Enumerable), "Where", new Type[] { args[1] }, innerSource, predicateLambda);
+			Expression group = this.Visit(callToWhere);
+
+			this.expressionsByParameter[resultSelector.Parameters[0]] = outerProjection.Projector;
+			this.expressionsByParameter[resultSelector.Parameters[1]] = group;
+			Expression resultExpr = this.Visit(resultSelector.Body);
+
+			var alias = this.GetNextAlias();
+			var pc = this.ProjectColumns(resultExpr, alias, outerProjection.Select.Alias);
+
+			return new SqlProjectionExpression(new SqlSelectExpression( outerProjection.Select.Type, alias, pc.Columns, outerProjection.Select, null, null, false), pc.Projector, null);
+		}
+
+		public static LambdaExpression GetLambda(Expression e)
+		{
+			while (e.NodeType == ExpressionType.Quote)
+			{
+				e = ((UnaryExpression)e).Operand;
+			}
+
+			if (e.NodeType == ExpressionType.Constant)
+			{
+				return ((ConstantExpression)e).Value as LambdaExpression;
+			}
+
+			return e as LambdaExpression;
+		}
+
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
             if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
@@ -696,6 +717,12 @@ namespace Shaolinq.Persistence.Linq
 						return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
 					case "ThenByDescending":
 						return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
+					case "GroupJoin":
+						if (methodCallExpression.Arguments.Count == 5)
+						{
+							return this.BindGroupJoin(methodCallExpression.Method, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], GetLambda(methodCallExpression.Arguments[2]), GetLambda(methodCallExpression.Arguments[3]), GetLambda(methodCallExpression.Arguments[4]));
+						}
+						break;
 					case "GroupBy":
 						if (methodCallExpression.Arguments.Count == 2)
 						{
@@ -1479,7 +1506,7 @@ namespace Shaolinq.Persistence.Linq
 			return projection;
 		}
 
-		protected static bool IsTable(Type type)
+		public static bool IsTable(Type type)
 		{
 			if (type.IsGenericType)
 			{
@@ -1700,13 +1727,6 @@ namespace Shaolinq.Persistence.Linq
                         
 						return new SqlFunctionCallExpression(typeof(bool), SqlFunction.NotLike, operand1, operand2);
 					}
-				}
-			}
-			else if (unaryExpression.NodeType == ExpressionType.Convert)
-			{
-				if (unaryExpression.Operand.Type.IsEnum && unaryExpression.Operand.Type != typeof(DayOfWeek))
-				{
-					return Visit(unaryExpression.Operand);	
 				}
 			}
 

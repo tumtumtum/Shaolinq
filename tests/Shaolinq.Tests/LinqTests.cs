@@ -1272,14 +1272,15 @@ namespace Shaolinq.Tests
 					from
 						student in model.Students
 					where
-						student.Sex == Sex.Male &&
-						student.School.Name.EndsWith("School")
+						student.Sex == Sex.Male && student.School.Name.EndsWith("School")
 					select
 						new
 						{
 							student.School,
 							MaleStudents = student
 						};
+
+				var z = query.ToList();
 
 				Assert.IsFalse(query.ToList().First().School.IsDeflatedReference);
 

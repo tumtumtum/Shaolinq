@@ -8,6 +8,8 @@
 		InnerJoin,
 		LeftJoin,
 		RightJoin,
-		OuterJoin
+		OuterJoin,
+		OuterApply,
+		CrossApply
 	}
 }

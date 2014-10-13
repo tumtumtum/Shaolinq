@@ -150,7 +150,13 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			if (methodCallExpression.Method == MethodInfoFastRef.ObjectToStringMethod)
+			if (methodCallExpression.Method == MethodInfoFastRef.EnumToObjectMethod)
+			{
+				Visit(methodCallExpression.Arguments[1]);
+
+				return methodCallExpression;
+			}
+			else if (methodCallExpression.Method == MethodInfoFastRef.ObjectToStringMethod)
 			{
 				if (methodCallExpression.Object.Type.IsEnum)
 				{
@@ -217,7 +223,8 @@ namespace Shaolinq.Persistence.Linq
 					var unaryType = Nullable.GetUnderlyingType(unaryExpression.Type) ?? unaryExpression.Type;
 					var operandType = Nullable.GetUnderlyingType(unaryExpression.Operand.Type) ?? unaryExpression.Operand.Type;
 
-					if (unaryType == operandType
+					if (operandType == typeof(object)
+						|| unaryType == operandType
 					    || (IsNumeric(unaryType) && IsNumeric(operandType))
 					    || unaryExpression.Operand.Type.IsDataAccessObjectType())
 					{

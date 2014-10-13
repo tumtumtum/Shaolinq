@@ -80,6 +80,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
 		{
+			//return constantPlaceholder.ConstantExpression;
+			//return Expression.ArrayIndex(this.dynamicParameters, Expression.Constant(constantPlaceholder.Index));
 			return Expression.Convert(Expression.ArrayIndex(this.dynamicParameters, Expression.Constant(constantPlaceholder.Index)), constantPlaceholder.ConstantExpression.Type);
 		}
 

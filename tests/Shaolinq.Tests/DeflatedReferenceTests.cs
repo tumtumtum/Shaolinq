@@ -391,6 +391,21 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
+				var student = this.model.GetReferenceByPrimaryKey<Student>(studentId);
+
+				Assert.IsTrue(student.IsDeflatedReference);
+
+				student.Inflate();
+
+				Assert.IsFalse(student.IsDeflatedReference);
+
+				Assert.AreEqual("Bruce", student.Firstname);
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
 				var student = model.Students.First(c => c.Id == studentId);
 
 				Assert.AreEqual(schoolId, student.School.Id);

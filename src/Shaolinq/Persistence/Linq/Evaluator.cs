@@ -33,6 +33,11 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static bool CanBeEvaluatedLocally(Expression expression)
 		{
+			if (expression.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
+			{
+				return true;	
+			}
+
 			if (!(expression.NodeType != ExpressionType.Parameter && (int)expression.NodeType < (int)SqlExpressionType.Table))
 			{
 				return false;
@@ -107,9 +112,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (e.NodeType == ExpressionType.Constant)
 				{
-					value = ((ConstantExpression)e).Value;
-
-					return Expression.Constant(value, e.Type);
+					return e;
 				}
 				else if (e.NodeType == ExpressionType.Convert && ((UnaryExpression)e).Operand.NodeType == ExpressionType.Constant)
 				{

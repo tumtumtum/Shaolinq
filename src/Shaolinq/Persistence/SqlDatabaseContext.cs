@@ -16,9 +16,9 @@ namespace Shaolinq.Persistence
 		public TimeSpan CommandTimeout { get; protected set; }
 
 		protected DbProviderFactory dbProviderFactory;
-		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default); 
-		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
-		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
+		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(PrimeNumbers.Prime131, SqlQueryProvider.ProjectorCacheEqualityComparer.Default);
+		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(PrimeNumbers.Prime131, DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
+		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(PrimeNumbers.Prime131, DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 
 		public string DatabaseName { get; private set; }
 		public string SchemaName { get; protected set; }
