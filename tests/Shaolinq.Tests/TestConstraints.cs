@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System.Transactions;
+using System.Transactions;
 using NUnit.Framework;
- using Shaolinq.Tests.TestModel;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {

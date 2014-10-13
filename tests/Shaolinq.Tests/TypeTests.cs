@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
@@ -6,7 +8,7 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	/*[TestFixture("MySql")]*/
+	[TestFixture("MySql")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
@@ -16,9 +18,30 @@ namespace Shaolinq.Tests
 	public class TypeTests
 		: BaseTests<TestDataAccessModel>
 	{
+		private readonly int floatSignificantFigures = 7;
+		private readonly DateTime MinDatetime = DateTime.MinValue;
+		private readonly DateTime MaxDateTime = DateTime.MaxValue;
+		private readonly TimeSpan timespanEpsilon = TimeSpan.FromSeconds(1);
+
+		private static TimeSpan Abs(TimeSpan timeSpan)
+		{
+			if (timeSpan.TotalMilliseconds < 0)
+			{
+				return TimeSpan.FromMilliseconds(timeSpan.TotalMilliseconds * -1);
+			}
+
+			return timeSpan;
+		}
+
 		public TypeTests(string providerName)
 			: base(providerName)
 		{
+			if (providerName == "MySql")
+			{
+				floatSignificantFigures = 6;
+
+				MaxDateTime -= TimeSpan.FromSeconds(1);
+			}
 		}
 
 		[Test]
@@ -42,10 +65,10 @@ namespace Shaolinq.Tests
 				uint.MinValue,
 				ulong.MinValue,
 				minDecimal,
-				(float) TruncateToSignificantDigits(float.MinValue, 7), // .NET internally stores 9 significant figures, but only 7 are used externally
+				(float) TruncateToSignificantDigits(float.MinValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MinValue,
 				false,
-				Truncate(DateTime.MinValue, TimeSpan.FromMilliseconds(1)),
+				Truncate(MinDatetime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.MinValue,
 				Sex.Male);
 		}
@@ -53,7 +76,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Max_Values()
 		{
-			decimal maxDecimal = decimal.MaxValue;
+			var maxDecimal = decimal.MaxValue;
 
 			//decimal.MaxValue seems to be too large for dotConnect to handle
 			if (this.ProviderName.StartsWith("Postgres.DotConnect"))
@@ -71,11 +94,11 @@ namespace Shaolinq.Tests
 				(uint) int.MaxValue, // using signed max value as unsigned not supported in various databases
 				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
 				maxDecimal,
-				(float) TruncateToSignificantDigits(float.MaxValue, 7), // .NET internally stores 9 significant figures, but only 7 are used externally
+				(float) TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MaxValue,
 				true,
-				Truncate(DateTime.MaxValue, TimeSpan.FromMilliseconds(1)),
-				TimeSpan.MaxValue,
+				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
+				TimeSpan.Zero,
 				Sex.Female);
 		}
 
@@ -185,10 +208,11 @@ namespace Shaolinq.Tests
 				Assert.That(dbObj.Float, Is.EqualTo(@float));
 				Assert.That(dbObj.Double, Is.EqualTo(@double));
 				Assert.That(dbObj.Bool, Is.EqualTo(@bool));
-				Assert.That(dbObj.DateTime.ToUniversalTime(), Is.EqualTo(dateTime.ToUniversalTime()));
-				Assert.That(dbObj.TimeSpan, Is.EqualTo(timeSpan));
+				Assert.That(Abs(dbObj.DateTime.ToUniversalTime() - dateTime.ToUniversalTime()), Is.LessThan(timespanEpsilon));
+				Assert.That(Abs(dbObj.TimeSpan - timeSpan), Is.LessThan(timespanEpsilon));
 				Assert.That(dbObj.Enum, Is.EqualTo(@enum));
-				//Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
+				// Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
+				
 			}
 		}
 

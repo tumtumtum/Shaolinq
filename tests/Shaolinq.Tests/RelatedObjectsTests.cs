@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Text;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;

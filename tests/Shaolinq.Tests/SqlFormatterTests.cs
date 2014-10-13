@@ -1,10 +1,11 @@
-﻿using System;
+﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Transactions;
 using NUnit.Framework;
-using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Tests.TestModel;
