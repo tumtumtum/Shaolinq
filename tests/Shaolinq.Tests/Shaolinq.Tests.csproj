@@ -113,8 +113,8 @@
   <ItemGroup>
     <Compile Include="BaseTests.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Address.cs" />
-    <Compile Include="ComplexPrimaryKeyModel\Class1.cs" />
-    <Compile Include="ComplexPrimaryKeyModel\Class2.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\Toy.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\Child.cs" />
     <Compile Include="ComplexPrimaryKeyModel\ComplexPrimaryKeyDataAccessModel.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Coordinate.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Mall.cs" />
