@@ -19,8 +19,8 @@ namespace Shaolinq.MySql
 			DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
 			DefineSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
 
-			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, false));
-			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, true));
+			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", false));
+			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", true));
 		}
 	}
 }

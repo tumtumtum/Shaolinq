@@ -13,8 +13,8 @@ namespace Shaolinq.Persistence
 
 		private readonly MethodInfo specifyKindMethod;
 
-		public UniversalTimeNormalisingDateTimeSqlDateType(ConstraintDefaults constraintDefaults, bool nullable)
-			: base(constraintDefaults, nullable ? typeof(DateTime?) : typeof(DateTime), "DATETIME", DataRecordMethods.GetMethod("GetDateTime"))
+		public UniversalTimeNormalisingDateTimeSqlDateType(ConstraintDefaults constraintDefaults, string typeName, bool nullable)
+			: base(constraintDefaults, nullable ? typeof(DateTime?) : typeof(DateTime), typeName, DataRecordMethods.GetMethod("GetDateTime"))
 		{
 			specifyKindMethod = nullable ? specifyKindIfUnspecifiedMethodNullable : specifyKindIfUnspecifiedMethod;
 		}
