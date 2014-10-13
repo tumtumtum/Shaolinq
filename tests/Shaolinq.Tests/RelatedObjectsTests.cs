@@ -13,7 +13,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory")]
+	//[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class RelatedObjectTests
 		: BaseTests<TestDataAccessModel>
