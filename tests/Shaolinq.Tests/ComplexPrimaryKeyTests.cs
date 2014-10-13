@@ -8,7 +8,7 @@ using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("Postgres")]
+	[TestFixture("Postgres.DotConnect")]
 	public class ComplexPrimaryKeyTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
 	{
@@ -47,6 +47,26 @@ namespace Shaolinq.Tests
 				scope.Flush(model);
 
 				shopId = shop.Id;
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Explicit_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var objs = from toy in model.Toys
+					join child in model.Children on toy.Owner equals child
+					where child.Good
+					select new
+					{
+						child,
+						toy
+					};
+
+				var list = objs.ToList();
 
 				scope.Complete();
 			}

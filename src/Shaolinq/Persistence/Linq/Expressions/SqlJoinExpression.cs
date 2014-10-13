@@ -46,6 +46,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlJoinExpression(Type type, SqlJoinType joinType, Expression left, Expression right, Expression condition)
 			: base(type)
 		{
+			if (joinType != SqlJoinType.CrossApply || joinType != SqlJoinType.CrossJoin)
+			{
+				if (condition == null)
+				{
+					throw new ArgumentNullException("condition");
+				}
+			}
+
 			this.JoinType = joinType;
 			this.Left = left;
 			this.Right = right;

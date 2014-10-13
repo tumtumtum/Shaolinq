@@ -18,5 +18,11 @@
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Coordinate> Coordinates { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Child> Children { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Toy> Toys { get; }
 	}
 }
