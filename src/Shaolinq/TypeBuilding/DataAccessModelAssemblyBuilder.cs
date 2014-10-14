@@ -1,12 +1,12 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
- using System.Linq;
- using System.Reflection;
+using System.Configuration;
+using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using Shaolinq.Persistence;
-using Platform;
 
 namespace Shaolinq.TypeBuilding
 {
@@ -132,16 +132,20 @@ namespace Shaolinq.TypeBuilding
 
 			assemblyBuildContext.Dispose();
 
-#if DEBUG
-			try
+			bool saveConcreteAssembly;
+			bool.TryParse(ConfigurationManager.AppSettings["Shaolinq.SaveConcreteAssembly"], out saveConcreteAssembly);
+
+			if (saveConcreteAssembly)
 			{
-				assemblyBuilder.Save(assemblyName + ".dll");
+				try
+				{
+					assemblyBuilder.Save(assemblyName + ".dll");
+				}
+				catch
+				{
+				}
 			}
-			catch
-			{
-			}
-#endif
-			
+
 			return assemblyBuilder;
 		}
 	}
