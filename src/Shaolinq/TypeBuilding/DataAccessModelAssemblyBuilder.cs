@@ -135,7 +135,13 @@ namespace Shaolinq.TypeBuilding
 			bool saveConcreteAssembly;
 			bool.TryParse(ConfigurationManager.AppSettings["Shaolinq.SaveConcreteAssembly"], out saveConcreteAssembly);
 
-			if (saveConcreteAssembly)
+#if DEBUG
+			const bool isInDebugMode = true;
+#else
+			const bool isInDebugMode = false;
+#endif
+
+			if (saveConcreteAssembly || isInDebugMode)
 			{
 				try
 				{
