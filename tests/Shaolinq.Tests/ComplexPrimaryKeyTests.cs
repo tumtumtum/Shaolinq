@@ -93,7 +93,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Implicit_Where_Join_Not_Primary_Key()
+		public void Test_Implicit_Where_Join_Not_Primary_Key1()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -108,6 +108,37 @@ namespace Shaolinq.Tests
 				var first = query.First();
 
 				Assert.IsTrue(first.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Two_Different_Selects()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops.Where(c => c.Address.Street == "Madison Street")
+					.Include(c => c.Address)
+					.Include(c => c.SecondAddress);
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_One_Select()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops.Where(c => c.Address.Street == "Madison Street")
+					.Select(c => c.Include(d => d.Address).Include(d => d.SecondAddress));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
 			}
 		}
 

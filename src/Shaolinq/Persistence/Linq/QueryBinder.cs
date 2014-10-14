@@ -1550,15 +1550,9 @@ namespace Shaolinq.Persistence.Linq
 				type = constantExpression.Value.GetType();
 			}
 
-			Console.WriteLine("VisitConstant!");
-
 			if (IsTable(type))
 			{
-				Console.WriteLine("IsTable!");
-
 				var retval = GetTableProjection(type);
-
-				Console.WriteLine("IsTable*");
 
 				return retval;
 			}
@@ -1566,10 +1560,6 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return CreateObjectReference(constantExpression);
 			}
-
-			Console.WriteLine("IsOther!");
-			Console.WriteLine("Type:" + type);
-			Console.WriteLine("Value: " + constantExpression.Value);
 
 			return constantExpression;
 		}
