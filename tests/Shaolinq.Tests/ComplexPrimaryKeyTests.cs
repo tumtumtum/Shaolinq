@@ -52,7 +52,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_Explicit_Complex1()
 		{
 			using (var scope = new TransactionScope())
