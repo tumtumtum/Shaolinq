@@ -423,9 +423,6 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
 		{
-			Console.WriteLine(this.Visit(outerSource));
-			Console.WriteLine(this.Visit(innerSource));
-
 			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
 			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
 			
@@ -698,11 +695,11 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-            if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
+			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
-			{
-				switch (methodCallExpression.Method.Name)
+            {
+	            switch (methodCallExpression.Method.Name)
 				{
 					case "Where":
 						return this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
@@ -1129,7 +1126,9 @@ namespace Shaolinq.Persistence.Linq
 
 			var pc = ProjectColumns(projection.Projector, alias, GetExistingAlias(projection.Select));
 
-			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, forUpdate), pc.Projector, null);
+			var retval = new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, forUpdate), pc.Projector, null);
+
+			return retval;
 		}
 
 		private Expression BindDistinct(Type resultType, Expression source)
