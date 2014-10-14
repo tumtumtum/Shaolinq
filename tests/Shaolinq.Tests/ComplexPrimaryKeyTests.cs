@@ -52,7 +52,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Explicit_Complex1()
 		{
 			using (var scope = new TransactionScope())
@@ -590,7 +590,7 @@ namespace Shaolinq.Tests
 			long shopId;
 			long addressId;
 			long regionId;
-
+			
 			using (var scope = new TransactionScope())
 			{
 				var shop = this.model.Shops.Create();

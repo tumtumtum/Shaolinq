@@ -125,6 +125,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Stloc, acquiredLock);
 			
 			
+			/*
 			generator.BeginExceptionBlock();
 
 			generator.Emit(OpCodes.Ldarg_0);
@@ -133,6 +134,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Stloc, lockObj);
 			generator.Emit(OpCodes.Ldloca, acquiredLock);
 			generator.Emit(OpCodes.Call, typeof(Monitor).GetMethods().Single(c => c.Name == "Enter" && c.GetParameters().Length == 2));
+			*/
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
@@ -141,7 +143,8 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("TryGetValue", new Type[] { typeof(Type), typeof(IQueryable).MakeByRefType() }));
 			generator.Emit(OpCodes.Brfalse, label);
 			generator.Emit(OpCodes.Nop);
-			generator.Emit(OpCodes.Leave, returnLabel);
+			//generator.Emit(OpCodes.Leave, returnLabel);
+			generator.Emit(OpCodes.Br, returnLabel);
 
 			generator.MarkLabel(label);
 
@@ -157,7 +160,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("set_Item"));
 			generator.Emit(OpCodes.Nop);
 			generator.Emit(OpCodes.Nop);
-			generator.BeginFinallyBlock();
+			/*generator.BeginFinallyBlock();
 			var boolValue = generator.DeclareLocal(typeof(bool));
 			generator.Emit(OpCodes.Ldloc, acquiredLock);
 			generator.Emit(OpCodes.Ldc_I4_0);
@@ -171,7 +174,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Nop);
 			generator.MarkLabel(endOfFinally);
 			generator.EndExceptionBlock();
-
+			*/
 			generator.MarkLabel(returnLabel);
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ret);

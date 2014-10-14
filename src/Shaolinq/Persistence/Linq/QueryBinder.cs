@@ -422,7 +422,7 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
-		{	
+		{
 			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
 			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
 
@@ -1525,8 +1525,15 @@ namespace Shaolinq.Persistence.Linq
 			if (type.IsGenericType)
 			{
 				var genericType = type.GetGenericTypeDefinition();
+				var elementType = type.GetGenericArguments()[0];
 
-				var retval = genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType || (genericType == TypeHelper.IQueryableType && type.GetGenericArguments()[0].IsDataAccessObjectType());
+				var retval = 
+					genericType == TypeHelper.DataAccessObjectsType 
+					|| genericType == TypeHelper.RelatedDataAccessObjectsType
+					|| genericType == typeof(IQueryable<>) && elementType.IsDataAccessObjectType()
+					|| genericType == typeof(SqlQueryable<>) && elementType.IsDataAccessObjectType()
+					|| genericType == typeof(ReusableQueryable<>) && elementType.IsDataAccessObjectType()
+					|| genericType.GetInterfaces().Any(c => c == typeof(IQueryable)) && elementType.IsDataAccessObjectType();
 
 				return retval;
 			}
@@ -1543,9 +1550,15 @@ namespace Shaolinq.Persistence.Linq
 				type = constantExpression.Value.GetType();
 			}
 
+			Console.WriteLine("VisitConstant!");
+
 			if (IsTable(type))
 			{
+				Console.WriteLine("IsTable!");
+
 				var retval = GetTableProjection(type);
+
+				Console.WriteLine("IsTable*");
 
 				return retval;
 			}
@@ -1553,6 +1566,10 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return CreateObjectReference(constantExpression);
 			}
+
+			Console.WriteLine("IsOther!");
+			Console.WriteLine("Type:" + type);
+			Console.WriteLine("Value: " + constantExpression.Value);
 
 			return constantExpression;
 		}
