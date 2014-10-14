@@ -61,7 +61,8 @@ namespace Shaolinq.Persistence.Linq
 			if (expression is MethodCallExpression)
 			{
 				if (((MethodCallExpression)expression).Method.DeclaringType == typeof(Enumerable)
-					|| ((MethodCallExpression)expression).Method.DeclaringType == typeof(Queryable))
+					|| ((MethodCallExpression)expression).Method.DeclaringType == typeof(Queryable)
+					|| ((MethodCallExpression)expression).Method.DeclaringType == typeof(QueryableExtensions))
 				{
 					return false;
 				}

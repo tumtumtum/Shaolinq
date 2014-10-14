@@ -131,7 +131,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops.Where(c => c.Address.Street == "Madison Street")
+				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Select(c => c.Include(d => d.Address))
 					.Select(c => c.Include(d => d.SecondAddress));
 
@@ -139,6 +139,22 @@ namespace Shaolinq.Tests
 
 				Assert.IsFalse(first.Address.IsDeflatedReference);
 				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Two_Different_QuerableIncludes()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
+					.Include(c => c.Address)
+					.Include(c => c.SecondAddress);
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				//Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
 			}
 		}
 

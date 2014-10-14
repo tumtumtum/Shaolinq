@@ -51,6 +51,7 @@ namespace Shaolinq.Persistence.Linq
 		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
 		{
 			expression = ConditionalMethodsToWhereConverter.Convert(expression);
+			expression = QueryableIncludeExpander.Expand(expression);
 			var joinExpanderResults = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
 			expression = joinExpanderResults.ProcessedExpression;

@@ -29,5 +29,15 @@ namespace Shaolinq
 		{
 			return queryable.PersistenceQueryProvider.CreateQuery<R>(Expression.Call(null, SelectForUpdateMethod.MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
 		}
+
+		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)
+			where T : IDataAccessObject
+		{
+			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new [] {typeof(T), typeof(U)}), new []
+			{
+				source.Expression,
+				Expression.Quote(include)
+			}));
+		}
 	}
 }

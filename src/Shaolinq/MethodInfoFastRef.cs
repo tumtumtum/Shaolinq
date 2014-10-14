@@ -18,7 +18,8 @@ namespace Shaolinq
 		public static readonly MethodInfo QueryableJoinMethod;
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod;
 		public static readonly MethodInfo ExpressionGenericLambdaMethod;
-		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = typeof(DataAccessObjectExtensions).GetMethods().First(c => c.Name == "Include" && c.GetParameters().Length == 2);
+		public static readonly MethodInfo QueryableExtensionsIncludeMethod = typeof(QueryableExtensions).GetMethods().First(c => c.Name == "Include" && c.IsGenericMethod && c.GetParameters().Length == 2 && c.ReturnType == typeof(IQueryable<>).MakeGenericType(c.GetGenericArguments()[0]));
+		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = typeof(DataAccessObjectExtensions).GetMethods().First(c => c.Name == "Include" && c.IsGenericMethod && c.GetParameters().Length == 2 && c.ReturnType == c.GetGenericArguments()[0]);
 		public static readonly MethodInfo EnumParseMethod = typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(Type), typeof(string) }, null);
 		public static readonly MethodInfo BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod;
 		public static readonly MethodInfo GuidEqualsMethod = typeof(Guid).GetMethod("Equals", new Type[] { typeof(Guid) });
