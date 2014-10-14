@@ -112,13 +112,12 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Include_With_Two_Different_Selects()
+		public void Test_Include_With_One_Select()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var query = model.Shops.Where(c => c.Address.Street == "Madison Street")
-					.Include(c => c.Address)
-					.Include(c => c.SecondAddress);
+					.Select(c => c.Include(d => d.Address).Include(d => d.SecondAddress));
 
 				var first = query.First();
 
@@ -126,14 +125,15 @@ namespace Shaolinq.Tests
 				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
 			}
 		}
-
+		
 		[Test]
-		public void Test_Include_With_One_Select()
+		public void Test_Include_With_Two_Different_Selects()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var query = model.Shops.Where(c => c.Address.Street == "Madison Street")
-					.Select(c => c.Include(d => d.Address).Include(d => d.SecondAddress));
+					.Select(c => c.Include(d => d.Address))
+					.Select(c => c.Include(d => d.SecondAddress));
 
 				var first = query.First();
 
