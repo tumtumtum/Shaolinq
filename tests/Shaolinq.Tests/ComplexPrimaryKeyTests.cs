@@ -52,8 +52,8 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
-		public int Test_Explicit_Complex()
+		[Test, Ignore]
+		public void Test_Explicit_Complex()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -70,8 +70,6 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
-
-			return 0;
 		}
 
 		[Test]
