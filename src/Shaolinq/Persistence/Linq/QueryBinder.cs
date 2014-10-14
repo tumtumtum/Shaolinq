@@ -423,6 +423,9 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
 		{
+			Console.WriteLine(this.Visit(outerSource));
+			Console.WriteLine(this.Visit(innerSource));
+
 			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
 			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
 			
