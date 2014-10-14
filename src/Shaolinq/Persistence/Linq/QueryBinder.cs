@@ -422,10 +422,10 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
-		{
+		{	
 			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
 			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
-			
+
 			AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
 			var outerKeyExpr = this.Visit(outerKey.Body);
 			AddExpressionByParameter(innerKey.Parameters[0], innerProjection.Projector);
@@ -435,12 +435,12 @@ namespace Shaolinq.Persistence.Linq
 			{
 				outerKeyExpr = this.objectReferenceByMemberInit[(MemberInitExpression)outerKeyExpr];
 			}
-
+			
 			if (innerKeyExpression.NodeType == ExpressionType.MemberInit)
 			{
 				innerKeyExpression = this.objectReferenceByMemberInit[(MemberInitExpression)innerKeyExpression];
 			}
-
+			
 			AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);
 			AddExpressionByParameter(resultSelector.Parameters[1], innerProjection.Projector);
 

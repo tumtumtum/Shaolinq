@@ -52,7 +52,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var school = this.model.Schools.Create();
+					var school = this.model.GetDataAccessObjects<School>().Create();
 
 					school.Name = "Lee's Kung Fu School";
 					
@@ -78,7 +78,7 @@ namespace Shaolinq.Tests
 						{
 							Thread.Sleep(random.Next(0, 50));
 
-							var school = this.model.Schools.First();
+							var school = this.model.GetDataAccessObjects<School>().First();
 							Assert.IsNotNull(school);
 						}
 					}

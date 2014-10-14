@@ -115,14 +115,24 @@ namespace Shaolinq.TypeBuilding
 			
 			var generator = methodBuilder.GetILGenerator();
 
+			var lockObj = generator.DeclareLocal(typeof(object));
+			var acquiredLock = generator.DeclareLocal(typeof(bool));
 			var label = generator.DefineLabel();
 			var local = generator.DeclareLocal(typeof(IQueryable));
 
-			generator.BeginExceptionBlock();
+			var returnLabel = generator.DefineLabel();
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Stloc, acquiredLock);
 			
+			
+			generator.BeginExceptionBlock();
+
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
-			generator.Emit(OpCodes.Call, typeof(Monitor).GetMethod("Enter",new [] { typeof(object) }));
+			generator.Emit(OpCodes.Dup);
+			generator.Emit(OpCodes.Stloc, lockObj);
+			generator.Emit(OpCodes.Ldloca, acquiredLock);
+			generator.Emit(OpCodes.Call, typeof(Monitor).GetMethods().Single(c => c.Name == "Enter" && c.GetParameters().Length == 2));
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
@@ -130,9 +140,8 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloca, local);
 			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("TryGetValue", new Type[] { typeof(Type), typeof(IQueryable).MakeByRefType() }));
 			generator.Emit(OpCodes.Brfalse, label);
-			
-			generator.Emit(OpCodes.Ldloc, local);
-			generator.Emit(OpCodes.Ret);
+			generator.Emit(OpCodes.Nop);
+			generator.Emit(OpCodes.Leave, returnLabel);
 
 			generator.MarkLabel(label);
 
@@ -146,17 +155,24 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("set_Item"));
-
-			generator.Emit(OpCodes.Ldloc, local);
-			generator.Emit(OpCodes.Ret);
-
+			generator.Emit(OpCodes.Nop);
+			generator.Emit(OpCodes.Nop);
 			generator.BeginFinallyBlock();
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
+			var boolValue = generator.DeclareLocal(typeof(bool));
+			generator.Emit(OpCodes.Ldloc, acquiredLock);
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Ceq);
+			generator.Emit(OpCodes.Stloc, boolValue);
+			generator.Emit(OpCodes.Ldloc, boolValue);
+			var endOfFinally = generator.DefineLabel();
+			generator.Emit(OpCodes.Brtrue, endOfFinally);
+			generator.Emit(OpCodes.Ldloc, lockObj);
 			generator.Emit(OpCodes.Call, typeof(Monitor).GetMethod("Exit", new [] { typeof(object) }));
-			
+			generator.Emit(OpCodes.Nop);
+			generator.MarkLabel(endOfFinally);
 			generator.EndExceptionBlock();
 
+			generator.MarkLabel(returnLabel);
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ret);
 		}
