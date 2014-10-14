@@ -52,7 +52,7 @@ namespace Shaolinq
 				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type)
 					.GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression) });
 
-				var body = Expression.New(constructor, Expression.Constant(this), Expression.Constant(null, typeof(Expression)));
+				var body = Expression.Convert(Expression.New(constructor, Expression.Constant(this), Expression.Constant(null, typeof(Expression))), typeof(IQueryable));
 
 				func = Expression.Lambda<Func<IQueryable>>(body).Compile();
 

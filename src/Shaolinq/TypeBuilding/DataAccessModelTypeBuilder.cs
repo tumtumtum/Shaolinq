@@ -76,7 +76,7 @@ namespace Shaolinq.TypeBuilding
 					// Add to dictionary
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
-					initialiseGenerator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType);
+					initialiseGenerator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType.GetGenericArguments()[0]);
 					initialiseGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
