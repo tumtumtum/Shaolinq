@@ -53,12 +53,12 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Explicit_Join()
+		public void Test_Explicit_Complex_()
 		{
 			using (var scope = new TransactionScope())
 			{
-				var objs = from toy in model.Toys
-					join child in model.Children on toy.Owner equals child
+				var objs = from toy in model.GetDataAccessObjects<Toy>().Where(c => c.Missing != null).OrderBy(c => c.Name)
+						   join child in model.GetDataAccessObjects<Child>().Where(c => c.Nickname != null) on toy.Owner equals child
 					where child.Good
 					select new
 					{

@@ -173,7 +173,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(this.DataAccessModel, QueryBinder.RequiresColumnProjection, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
+			return ColumnProjector.ProjectColumns(QueryBinder.RequiresColumnProjection, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
 		}
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
@@ -1480,6 +1480,7 @@ namespace Shaolinq.Persistence.Linq
 				var property = value.Key[value.Key.Length - 1];
 				var objectReferenceType = property.PropertyType;
 				var parentBindings = parentBindingsForKey[value.Key];
+
 				var objectReference = new SqlObjectReference(objectReferenceType, bindingsForKey[value.Key]);
 
 				if (objectReference.Bindings.Count == 0)

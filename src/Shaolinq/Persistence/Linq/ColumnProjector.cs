@@ -70,29 +70,27 @@ namespace Shaolinq.Persistence.Linq
 		private readonly string newAlias;
 		private readonly string[] existingAliases;
 
-		private readonly DataAccessModel dataAccessModel;
 		private readonly HashSet<string> columnNames; 
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
 		private readonly Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		internal ColumnProjector(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
 			mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 
 			this.sqlObjectReferenceByMemberInit = sqlObjectReferenceByMemberInit;
-			this.dataAccessModel = dataAccessModel;
 			this.newAlias = newAlias;
 			this.existingAliases = existingAliases;
 			this.candidates = Nominator.Nominate(canBeColumn, expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(DataAccessModel dataAccessModel, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
-			var projector = new ColumnProjector(dataAccessModel, canBeColumn, expression, newAlias, sqlObjectReferenceByMemberInit, existingAliases);
+			var projector = new ColumnProjector(canBeColumn, expression, newAlias, sqlObjectReferenceByMemberInit, existingAliases);
 
 			expression = projector.Visit(expression);
 
@@ -106,30 +104,9 @@ namespace Shaolinq.Persistence.Linq
 
 			if (retval != expression && newMemberInit != null)
 			{
-				if (this.sqlObjectReferenceByMemberInit.ContainsKey(expression))
-				{
-					var newBindings = new List<MemberBinding>();
-					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(expression.Type);
+				this.sqlObjectReferenceByMemberInit[expression] = new SqlObjectReference(newMemberInit.Type, newMemberInit.Bindings);
 
-					foreach (var propertyDescriptor in typeDescriptor.PrimaryKeyProperties)
-					{
-						var localPropertyDescriptor = propertyDescriptor;
-
-						foreach (var memberAssignmentExpressionExpression in newMemberInit
-							.Bindings
-							.OfType<MemberAssignment>()
-							.Select(c => c.Expression)
-							.OfType<SqlColumnExpression>()
-							.Where(c => c.Name == localPropertyDescriptor.PropertyName))
-						{
-							newBindings.Add(Expression.Bind(propertyDescriptor.PropertyInfo, memberAssignmentExpressionExpression));
-						}
-					}
-
-					var objectReference = new SqlObjectReference(newMemberInit.Type, newBindings);
-
-					this.sqlObjectReferenceByMemberInit[expression] = objectReference;
-				}
+				return retval;
 			}
 
 			return retval;
@@ -181,23 +158,6 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (expression.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 				{
-					/*
-					var listExpression = (SqlObjectReference)expression;
-					var newList = new List<Expression>();
-					var newPropertyNames = new List<string>();
-
-					foreach (var subExpression in listExpression.ExpressionsInOrder)
-					{
-						var processed = ProcessExpression(subExpression);
-
-						newList.Add(processed);
-						var key = listExpression.PropertyNamesByExpression[subExpression];
-
-						newPropertyNames.Add(key);
-					}
-
-					return new SqlObjectOperand(listExpression.Type, newList, newPropertyNames);*/
-
 					return base.Visit(expression);
 				}
 				else

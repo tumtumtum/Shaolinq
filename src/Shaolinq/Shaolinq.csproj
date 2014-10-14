@@ -232,7 +232,6 @@
     <Compile Include="Persistence\Linq\Grouping.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryMerger.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ConditionalEliminator.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\ObjectOperandAssignmentExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ObjectOperandComparisonExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\HasAggregateChecker.cs" />
     <Compile Include="Persistence\Linq\Optimizers\RedundantBinaryExpressionsRemover.cs" />

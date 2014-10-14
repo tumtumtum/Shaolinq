@@ -13,5 +13,8 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		[PersistedMember]
 		public abstract string Name { get; set; }
+
+		[PersistedMember]
+		public abstract bool? Missing { get; set; }
 	}
 }

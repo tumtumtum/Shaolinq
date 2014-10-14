@@ -108,6 +108,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			if (binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference
 				&& binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 			{
+				Console.WriteLine("HII");
+				Console.WriteLine(binaryExpression);
+
 				Expression retval = null;
 				var leftOperand = (SqlObjectReference)binaryExpression.Left;
 				var rightOperand = (SqlObjectReference)binaryExpression.Right;
