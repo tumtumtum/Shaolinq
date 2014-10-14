@@ -1482,10 +1482,21 @@ namespace Shaolinq.Persistence.Linq
 				var parentBindings = parentBindingsForKey[value.Key];
 				var objectReference = new SqlObjectReference(objectReferenceType, bindingsForKey[value.Key]);
 
+				if (objectReference.Bindings.Count == 0)
+				{
+					throw new InvalidOperationException(string.Format("Missing ObjectReference bindings: {0}.{1}", property.PropertyInfo.ReflectedType , property.PropertyName));
+				}
+
 				parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
 			}
 
 			var rootObjectReference = new SqlObjectReference(typeDescriptor.Type, rootBindings.Where(c => rootPrimaryKeyProperties.Contains(c.Member.Name)));
+
+			if (rootObjectReference.Bindings.Count == 0)
+			{
+				throw new InvalidOperationException(string.Format("Missing ObjectReference bindings: {0}", type.Name));
+			}
+
 			var projectorExpression = Expression.MemberInit(Expression.New(elementType), rootBindings);
 			this.objectReferenceByMemberInit[projectorExpression] = rootObjectReference;
 
