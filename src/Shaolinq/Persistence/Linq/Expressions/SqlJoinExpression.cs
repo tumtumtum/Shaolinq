@@ -54,7 +54,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				}
 			}
 
-			this.JoinType = joinType;
+			this.JoinType = joinType; 
 			this.Left = left;
 			this.Right = right;
 			this.Condition = condition;

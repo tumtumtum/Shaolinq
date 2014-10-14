@@ -1599,6 +1599,11 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
+			if (bindings.Count == 0)
+			{
+				throw new Exception(string.Format("Missing bindings for: {0}", expression));
+			}
+
 			return new SqlObjectReference(expression.Type, bindings);
 		}
 
