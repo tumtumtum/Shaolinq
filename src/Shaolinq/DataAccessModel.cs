@@ -408,7 +408,7 @@ namespace Shaolinq
 			return this.GetReferenceByPrimaryKey<T>(propertyInfoAndValues);
 		}
 
-		public virtual T GetReferenceByPrimaryKey<T>(object primaryKey)
+		public virtual T GetReferenceByPrimaryKey<T>(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 			where T : class, IDataAccessObject
 		{
 			if (primaryKey == null)
@@ -421,10 +421,20 @@ namespace Shaolinq
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
-				var isSimpleType = TypeDescriptor.IsSimpleType(objectType);
+				bool isNonCompositePrimaryKey;
+
+				if (primaryKeyType == PrimaryKeyType.Auto)
+				{
+					isNonCompositePrimaryKey = TypeDescriptor.IsSimpleType(objectType) || typeof(IDataAccessObject).IsAssignableFrom(objectType);
+				}
+				else
+				{
+					isNonCompositePrimaryKey = TypeDescriptor.IsSimpleType(objectType) || primaryKeyType == PrimaryKeyType.Single;
+				}
+
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
-				if (isSimpleType && typeDescriptor.PrimaryKeyCount != 1)
+				if (isNonCompositePrimaryKey && typeDescriptor.PrimaryKeyCount != 1)
 				{
 					throw new InvalidOperationException("Composite primary key expected");
 				}
@@ -440,7 +450,7 @@ namespace Shaolinq
 
 					Expression valueExpression;
 
-					if (isSimpleType)
+					if (isNonCompositePrimaryKey)
 					{
 						valueExpression = parameter;
 					}

@@ -11,9 +11,9 @@ namespace Shaolinq
 			where T : IDataAccessObject
 			where U : IDataAccessObject
 		{
-			include(obj).Inflate();
-
-			return obj;
+			Log.ErrorFormat("Include called on object ({0}) rather than within a Select or LINQ query", obj);
+			
+			return (T)include(obj).Inflate();
 		}
 	}
 }

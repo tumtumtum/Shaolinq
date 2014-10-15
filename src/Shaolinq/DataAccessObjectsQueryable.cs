@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -16,6 +17,7 @@ namespace Shaolinq
 		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator
 		where T : class, IDataAccessObject
 	{
+		private readonly TypeDescriptor typeDescriptor;
 		public DataAccessModel DataAccessModel { get; set; }
 		public LambdaExpression ExtraCondition { get; protected set; }
 
@@ -25,6 +27,8 @@ namespace Shaolinq
 			{
 				throw new ObjectAlreadyInitializedException(this);
 			}
+
+			this.typeDescriptor = dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
 			this.DataAccessModel = dataAccessModel;
 			base.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
@@ -71,42 +75,129 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual T GetByPrimaryKey<I>(I id)
+		public virtual T GetByPrimaryKey(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			var parameterExpression = Expression.Parameter(typeof(T), "value");
-
-			var propertyInfo = PropertyInfoCache<T>.IdPropertyInfo;
-			var body = Expression.Equal(Expression.Property(parameterExpression, propertyInfo), Expression.Constant(id));
-			var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
-
-			return this.Where(condition).First();
+			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
 		}
 
-		public virtual T GetByPrimaryKeyOrDefault<I>(I id)
+		public virtual T GetByPrimaryKeyOrDefault(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			var parameterExpression = Expression.Parameter(typeof(T), "value");
-
-			var propertyInfo = PropertyInfoCache<T>.IdPropertyInfo;
-			var body = Expression.Equal(Expression.Property(parameterExpression, propertyInfo), Expression.Constant(id));
-			var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
-
-			return this.Where(condition).FirstOrDefault();
+			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
 		}
 
-		public virtual IQueryable<T> GetByPrimaryKeys<I>(params I[] ids)
+		private IQueryable<T> GetQueryableByPrimaryKey(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			var parameterExpression = Expression.Parameter(typeof(T), "value");
-            
-			var propertyInfo = PropertyInfoCache<T>.IdPropertyInfo;
-			var body = Expression.Call(null, PropertyInfoCache<I>.EnumerableContainsMethod, Expression.Constant(ids), Expression.Property(parameterExpression, propertyInfo));
-			var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
+			if (primaryKey == null)
+			{
+				throw new ArgumentNullException("primaryKey");
+			}
+
+			Expression<Func<T, bool>> condition;
+
+			if (TypeDescriptor.IsSimpleType(primaryKey.GetType()) || primaryKeyType == PrimaryKeyType.Single)
+			{
+				if (this.typeDescriptor.PrimaryKeyCount != 1)
+				{
+					throw new ArgumentException("Composite primary key expected", "primaryKey");
+				}
+				
+				var parameterExpression = Expression.Parameter(typeof(T), "value");
+				var body = Expression.Equal(Expression.Property(parameterExpression, PropertyInfoCache<T>.IdPropertyInfo), Expression.Constant(Convert.ChangeType(primaryKey, typeof(T))));
+
+				condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
+			}
+			else
+			{
+				var deflated = this.DataAccessModel.GetReferenceByPrimaryKey<T>(primaryKey, primaryKeyType);
+				var parameterExpression = Expression.Parameter(typeof(T), "value");
+				var body = Expression.Equal(parameterExpression, Expression.Constant(deflated));
+
+				condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
+			}
 
 			return this.Where(condition);
 		}
 
-		public virtual IQueryable<T> GetByPrimaryKeys<I>(IEnumerable<I> ids)
+		public virtual IQueryable<T> GetObjectsByPrimaryKeys(params object[] primaryKeys)
 		{
-			return GetByPrimaryKeys(ids.ToArray());
+			return GetObjectsByPrimaryKeys(primaryKeys, PrimaryKeyType.Auto);
+		}
+
+		public virtual IQueryable<T> GetObjectsByPrimaryKeys(object[] primaryKeys, PrimaryKeyType primaryKeyType)
+		{
+			return GetObjectsByPrimaryKeys((IEnumerable<object>)primaryKeys, primaryKeyType);
+		}
+
+		public virtual IQueryable<T> GetObjectsByPrimaryKeys(IEnumerable<object> primaryKeys, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		{
+			List<T> converted = null;
+
+			if (primaryKeys == null)
+			{
+				throw new ArgumentNullException("primaryKeys");
+			} 
+			
+			var primaryKeysCopy = new List<object>();
+
+			if (primaryKeyType != PrimaryKeyType.Composite)
+			{
+				converted = new List<T>();
+
+				foreach (var obj in primaryKeys)
+				{
+					if (obj == null)
+					{
+						throw new ArgumentNullException("primaryKeys");
+					}
+
+					primaryKeysCopy.Add(obj);
+
+					if (converted == null)
+					{
+						continue;
+					}
+
+					if (TypeDescriptor.IsSimpleType(obj.GetType()) || obj is IDataAccessObject)
+					{
+						converted.Add((T)Convert.ChangeType(obj, typeof(T)));
+					}
+					else
+					{
+						if (primaryKeyType == PrimaryKeyType.Single)
+						{
+							throw new ArgumentException("Element in primaryKey is not convertible to type " + typeof(T), "primaryKeys");
+						}
+
+						converted = null;
+					}
+				}
+			}
+
+			Expression<Func<T, bool>> condition;
+
+			if (converted != null)
+			{
+				var propertyInfo = PropertyInfoCache<T>.IdPropertyInfo;
+				var parameterExpression = Expression.Parameter(propertyInfo.PropertyType, "value");
+
+				var body = Expression.Call(null, MethodInfoFastRef.EnumerableContainsMethod.MakeGenericMethod(propertyInfo.PropertyType), Expression.Constant(converted), Expression.Property(parameterExpression, propertyInfo));
+
+				condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
+			}
+			else
+			{
+				var parameterExpression = Expression.Parameter(typeof(T), "value");
+				
+				var deflatedObjects = primaryKeysCopy
+					.Select(c => this.DataAccessModel.GetReferenceByPrimaryKey<T>(c, primaryKeyType))
+					.ToArray();
+
+				var body = Expression.Call(null, PropertyInfoCache<T>.EnumerableContainsMethod, Expression.Constant(deflatedObjects), parameterExpression);
+
+				condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
+			}
+
+			return this.Where(condition);
 		}
 	}
 }

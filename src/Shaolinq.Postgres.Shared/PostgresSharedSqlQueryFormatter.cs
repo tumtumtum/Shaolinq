@@ -134,5 +134,35 @@ namespace Shaolinq.Postgres.Shared
 			append(tableName);
 			append(this.identifierQuoteString);
 		}
+
+
+		protected override Expression VisitIndexedColumn(SqlIndexedColumnExpression indexedColumnExpression)
+		{
+			if (indexedColumnExpression.LowercaseIndex)
+			{
+				this.Write("(lower(");
+			}
+
+			this.Visit(indexedColumnExpression.Column);
+
+			if (indexedColumnExpression.LowercaseIndex)
+			{
+				this.Write("))");
+			}
+
+			switch (indexedColumnExpression.SortOrder)
+			{
+			case SortOrder.Descending:
+			this.Write(" DESC");
+			break;
+			case SortOrder.Ascending:
+			this.Write(" ASC");
+			break;
+			case SortOrder.Unspecified:
+			break;
+			}
+
+			return indexedColumnExpression;
+		}
 	}
 }

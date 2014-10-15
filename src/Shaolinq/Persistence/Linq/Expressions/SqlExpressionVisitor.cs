@@ -465,7 +465,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (newColumn != indexedColumnExpression.Column)
 			{
-				return new SqlIndexedColumnExpression(newColumn, indexedColumnExpression.SortOrder);
+				return new SqlIndexedColumnExpression(newColumn, indexedColumnExpression.SortOrder, indexedColumnExpression.LowercaseIndex);
 			}
 
 			return indexedColumnExpression;

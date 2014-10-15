@@ -154,7 +154,22 @@ namespace Shaolinq.Tests
 				var first = query.First();
 
 				Assert.IsFalse(first.Address.IsDeflatedReference);
-				//Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test, Ignore]
+		public void Test_Include_With_Two_Different_QuerableIncludes_Same_Property()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
+					.Include(c => c.Address)
+					.Include(c => c.Address);
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
 			}
 		}
 

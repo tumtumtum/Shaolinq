@@ -12,7 +12,7 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract string Firstname { get; set; }
 
-		[Unique, PersistedMember, SizeConstraint(MaximumLength = 64)]
+		[Index(LowercaseIndex = true), PersistedMember, SizeConstraint(MaximumLength = 64)]
 		public abstract string Email { get; set; }
 
 		[PersistedMember]
