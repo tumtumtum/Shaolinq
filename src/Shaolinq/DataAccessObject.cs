@@ -28,20 +28,20 @@ namespace Shaolinq
 		bool IDataAccessObject.HasCompositeKey { get { return ((IDataAccessObject)this).NumberOfPrimaryKeys > 1; } }
 		bool IDataAccessObject.HasObjectChanged { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Changed) != 0; } }
 
-		
-		public virtual void Inflate()
+		public virtual IDataAccessObject Inflate()
 		{
 			if (!((IDataAccessObject)this).IsDeflatedReference)
 			{
-				return;
+				return this;
 			}
 
 			var inflated = this.DataAccessModel.Inflate((IDataAccessObject)this);
 
 			// SwapData should not be necessary inside a transaction 
 			((IDataAccessObject)this).SwapData(inflated, true);
-
 			((IDataAccessObject)this).SetIsDeflatedReference(false);
+
+			return this;
 		}
 
 		protected void RemoveFromCache()
