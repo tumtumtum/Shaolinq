@@ -100,9 +100,12 @@ namespace Shaolinq
 
 		protected virtual void OnDisposed(EventArgs eventArgs)
 		{
-			if (this.Disposed != null)
+
+			var onDisposed = this.Disposed;
+
+			if (onDisposed != null)
 			{
-				this.Disposed(this, eventArgs);
+				onDisposed(this, eventArgs);
 			}
 		}
 
@@ -303,7 +306,7 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual T GetReferenceByPrimaryKey<T>(ObjectPropertyValue[] primaryKey)
+		public virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
 			where T : class, IDataAccessObject
 		{
 			foreach (var keyValue in primaryKey)
@@ -336,17 +339,17 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual T GetReferenceByPrimaryKey<T, K>(K primaryKey)
+		private class ContainerType<T>
+		{
+		}
+
+		public virtual T GetReference<T, K>(K primaryKey)
 			where T : DataAccessObject<K>
 		{
-			return this.GetReferenceByPrimaryKey<T>(new { Id = primaryKey });
+			return this.GetReference<T>(new { Id = primaryKey });
 		}
 
-		private class ContainerType<T>
-		{	
-		}
-
-		public virtual T GetReferenceByPrimaryKey<T>(object[] primaryKeyValues)
+		public virtual T GetReference<T>(object[] primaryKeyValues)
 			where T : class, IDataAccessObject
 		{
 			if (primaryKeyValues == null)
@@ -405,10 +408,10 @@ namespace Shaolinq
 
 			var propertyInfoAndValues = func(primaryKeyValues);
 
-			return this.GetReferenceByPrimaryKey<T>(propertyInfoAndValues);
+			return this.GetReference<T>(propertyInfoAndValues);
 		}
 
-		public virtual T GetReferenceByPrimaryKey<T>(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		public virtual T GetReference<T>(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 			where T : class, IDataAccessObject
 		{
 			if (primaryKey == null)
@@ -485,7 +488,7 @@ namespace Shaolinq
 
 			var propertyInfoAndValues = func(primaryKey); 
 			
-			return this.GetReferenceByPrimaryKey<T>(propertyInfoAndValues);
+			return this.GetReference<T>(propertyInfoAndValues);
 		}
 
 		public virtual IDataAccessObject CreateDataAccessObject(Type type)

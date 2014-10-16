@@ -29,7 +29,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var foo = this.model.Schools.ReferenceTo(999);
+				var foo = this.model.Schools.GetReference(999);
 
 				foo.Inflate();
 			}
@@ -94,7 +94,7 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.Create();
 
-				student.School = this.model.Schools.ReferenceTo(schoolId);
+				student.School = this.model.Schools.GetReference(schoolId);
 
 				scope.Flush(model);
 
@@ -121,7 +121,7 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.Create();
 
-				student.School = this.model.Schools.ReferenceTo(8972394);
+				student.School = this.model.Schools.GetReference(8972394);
 
 				scope.Complete();
 			}
@@ -152,7 +152,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.ReferenceTo(schoolId);
+				var school = model.Schools.GetReference(schoolId);
 
 				school.Name = "The Temple";
 
@@ -181,7 +181,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.ReferenceTo(schoolId);
+				var school = model.Schools.GetReference(schoolId);
 
 				school.Delete();
 
@@ -213,7 +213,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.ReferenceTo(schoolId);
+				var school = model.Schools.GetReference(schoolId);
 
 				school.Name = "The Temple";
 
@@ -226,7 +226,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.ReferenceTo(89327493);
+				var school = model.Schools.GetReference(89327493);
 
 				school.Name = "The Temple";
 
@@ -248,7 +248,7 @@ namespace Shaolinq.Tests
 
 				obj.Id = 1077;
 
-				var obj2 =  model.GetReferenceByPrimaryKey<ObjectWithLongNonAutoIncrementPrimaryKey>(1077);
+				var obj2 =  model.GetReference<ObjectWithLongNonAutoIncrementPrimaryKey>(1077);
 
 				Assert.AreEqual(obj.Id, obj2.Id);
 				Assert.AreSame(obj, obj2);
@@ -329,7 +329,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.GetReferenceByPrimaryKey<Student>(new { Id = studentId });
+				var student = this.model.GetReference<Student>(new { Id = studentId });
 
 				Assert.IsTrue(student.IsDeflatedReference);
 
@@ -344,7 +344,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.GetReferenceByPrimaryKey<Student>(studentId);
+				var student = this.model.GetReference<Student>(studentId);
 
 				Assert.IsTrue(student.IsDeflatedReference);
 
@@ -360,7 +360,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.GetReferenceByPrimaryKey<Student>(studentId);
+				var student = this.model.GetReference<Student>(studentId);
 
 				Assert.IsTrue(student.IsDeflatedReference);
 
@@ -376,7 +376,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.GetReferenceByPrimaryKey<Student>(studentId);
+				var student = this.model.GetReference<Student>(studentId);
 
 				Assert.IsTrue(student.IsDeflatedReference);
 
@@ -391,7 +391,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.GetReferenceByPrimaryKey<Student>(studentId);
+				var student = this.model.GetReference<Student>(studentId);
 
 				Assert.IsTrue(student.IsDeflatedReference);
 

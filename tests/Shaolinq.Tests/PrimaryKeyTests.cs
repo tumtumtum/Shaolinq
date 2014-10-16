@@ -276,9 +276,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.GetReferenceByPrimaryKey<Student>(studentId);
+				var student = model.GetReference<Student>(studentId);
 
-				var obj = this.model.ObjectWithCompositePrimaryKeys.ReferenceTo(new
+				var obj = this.model.ObjectWithCompositePrimaryKeys.GetReference(new
 				{
 					Id = 1,
 					SecondaryKey = secondaryKey,
@@ -296,9 +296,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.GetReferenceByPrimaryKey<Student>(studentId);
+				var student = this.model.GetReference<Student>(studentId);
 
-				var obj1 = this.model.ObjectWithCompositePrimaryKeys.ReferenceTo(new
+				var obj1 = this.model.ObjectWithCompositePrimaryKeys.GetReference(new
 				{
 					Id = 1,
 					SecondaryKey = secondaryKey,

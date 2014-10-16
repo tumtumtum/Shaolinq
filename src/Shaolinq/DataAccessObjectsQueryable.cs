@@ -1,22 +1,28 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
- using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
 	/// <summary>
-	/// Base class that represents a queryable set of data access objects (maps directly to a queryable table).
+	/// Base class that represents a queryable set of <c>DataAccessObjects</c>
 	/// </summary>
 	/// <typeparam name="T">The type data access object</typeparam>
 	public class DataAccessObjectsQueryable<T>
 		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator
 		where T : class, IDataAccessObject
 	{
+		private static class PropertyInfoCache<U>
+		{
+			public static readonly PropertyInfo IdPropertyInfo = typeof(U).GetProperties().FirstOrDefault(c => c.Name == "Id");
+			public static readonly MethodInfo EnumerableContainsMethod = MethodInfoFastRef.EnumerableContainsMethod.MakeGenericMethod(typeof(U));
+		}
+
 		private readonly TypeDescriptor typeDescriptor;
 		public DataAccessModel DataAccessModel { get; set; }
 		public LambdaExpression ExtraCondition { get; protected set; }
@@ -28,9 +34,8 @@ namespace Shaolinq
 				throw new ObjectAlreadyInitializedException(this);
 			}
 
+			this.DataAccessModel = dataAccessModel; 
 			this.typeDescriptor = dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
-
-			this.DataAccessModel = dataAccessModel;
 			base.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 
@@ -49,38 +54,18 @@ namespace Shaolinq
 			return this.Create();
 		}
 
-		public virtual T ReferenceTo(object primaryKey)
+		public virtual U Foo<U, K>(K primaryKey)
+			where U : DataAccessObject<K>, T
 		{
-			return this.DataAccessModel.GetReferenceByPrimaryKey<T>(primaryKey);
-		}
-        
-		private static class PropertyInfoCache<TTT>
-		{
-			public static readonly MethodInfo EnumerableContainsMethod;
-			public static readonly PropertyInfo IdPropertyInfo = typeof(TTT).GetProperties().FirstOrDefault(c => c.Name == "Id");
-			
-            static PropertyInfoCache()
-			{
-				foreach (var methodInfo in typeof(Enumerable).GetMethods())
-				{
-					if (methodInfo.IsGenericMethod
-						&& methodInfo.Name == "Contains"
-						&& methodInfo.GetParameters().Length == 2)
-					{
-						EnumerableContainsMethod = methodInfo.MakeGenericMethod(typeof(TTT));
-
-						break;
-					}
-				}
-			}
+			return null;
 		}
 
-		public virtual T GetByPrimaryKey(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		public virtual T GetObject(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
 			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
 		}
 
-		public virtual T GetByPrimaryKeyOrDefault(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		public virtual T GetObjectOrDefault(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
 			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
 		}
@@ -108,7 +93,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var deflated = this.DataAccessModel.GetReferenceByPrimaryKey<T>(primaryKey, primaryKeyType);
+				var deflated = this.DataAccessModel.GetReference<T>(primaryKey, primaryKeyType);
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
 				var body = Expression.Equal(parameterExpression, Expression.Constant(deflated));
 
@@ -118,26 +103,32 @@ namespace Shaolinq
 			return this.Where(condition);
 		}
 
-		public virtual IQueryable<T> GetObjectsByPrimaryKeys(params object[] primaryKeys)
+		public virtual IQueryable<T> GetObjects(params object[] primaryKeys)
 		{
-			return GetObjectsByPrimaryKeys(primaryKeys, PrimaryKeyType.Auto);
+			return this.GetObjects(primaryKeys, PrimaryKeyType.Auto);
 		}
 
-		public virtual IQueryable<T> GetObjectsByPrimaryKeys(object[] primaryKeys, PrimaryKeyType primaryKeyType)
+		public virtual IQueryable<T> GetObjects(object[] primaryKeys, PrimaryKeyType primaryKeyType)
 		{
-			return GetObjectsByPrimaryKeys((IEnumerable<object>)primaryKeys, primaryKeyType);
+			return this.GetObjects((IEnumerable<object>)primaryKeys, primaryKeyType);
 		}
 
-		public virtual IQueryable<T> GetObjectsByPrimaryKeys(IEnumerable<object> primaryKeys, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		public virtual IQueryable<T> GetObjects(IEnumerable<object> primaryKeys, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			List<T> converted = null;
-
 			if (primaryKeys == null)
 			{
 				throw new ArgumentNullException("primaryKeys");
-			} 
-			
-			var primaryKeysCopy = new List<object>();
+			}
+
+			List<T> converted = null;
+			IList<object> primaryKeysCopy = null;
+			var primaryKeysToWorkWith = primaryKeys as IList<object>;
+		
+			if (primaryKeysToWorkWith == null)
+			{
+				primaryKeysCopy = new List<object>();
+				primaryKeysToWorkWith = primaryKeysCopy;
+			}
 
 			if (primaryKeyType != PrimaryKeyType.Composite)
 			{
@@ -150,14 +141,21 @@ namespace Shaolinq
 						throw new ArgumentNullException("primaryKeys");
 					}
 
-					primaryKeysCopy.Add(obj);
+					if (primaryKeysCopy != null)
+					{
+						primaryKeysCopy.Add(obj);
+					}
 
 					if (converted == null)
 					{
 						continue;
 					}
 
-					if (TypeDescriptor.IsSimpleType(obj.GetType()) || obj is IDataAccessObject)
+					if (obj is T)
+					{
+						converted.Add((T)obj);
+					}
+					else if (TypeDescriptor.IsSimpleType(obj.GetType()))
 					{
 						converted.Add((T)Convert.ChangeType(obj, typeof(T)));
 					}
@@ -188,8 +186,8 @@ namespace Shaolinq
 			{
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
 				
-				var deflatedObjects = primaryKeysCopy
-					.Select(c => this.DataAccessModel.GetReferenceByPrimaryKey<T>(c, primaryKeyType))
+				var deflatedObjects = primaryKeysToWorkWith
+					.Select(c => this.DataAccessModel.GetReference<T>(c, primaryKeyType))
 					.ToArray();
 
 				var body = Expression.Call(null, PropertyInfoCache<T>.EnumerableContainsMethod, Expression.Constant(deflatedObjects), parameterExpression);

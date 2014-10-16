@@ -104,7 +104,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.GetReferenceByPrimaryKey<School>(schoolId);
+				var school = model.GetReference<School>(schoolId);
 
 				school.Delete();
 
@@ -128,7 +128,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.GetReferenceByPrimaryKey<School>(100000);
+				var school = model.GetReference<School>(100000);
 
 				school.Delete();
 
@@ -258,7 +258,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var school = this.model.Schools.ReferenceTo(schoolId);
+					var school = this.model.Schools.GetReference(schoolId);
 
 					school.Name = "Yoga Decorum!!!";
 
