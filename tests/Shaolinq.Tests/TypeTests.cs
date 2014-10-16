@@ -70,7 +70,8 @@ namespace Shaolinq.Tests
 				false,
 				Truncate(MinDatetime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.MinValue,
-				Sex.Male);
+				Sex.Male,
+				null);
 		}
 
 		[Test]
@@ -99,7 +100,8 @@ namespace Shaolinq.Tests
 				true,
 				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.Zero,
-				Sex.Female);
+				Sex.Female,
+				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)));
 		}
 
 		[Test]
@@ -120,7 +122,8 @@ namespace Shaolinq.Tests
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromHours(24),
-				Sex.Female);
+				Sex.Female,
+				null);
 		}
 
 		[Test]
@@ -141,7 +144,8 @@ namespace Shaolinq.Tests
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromMilliseconds(1),
-				Sex.Female);
+				Sex.Female,
+				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)));
 		}
 
 		private void ExecuteTest(
@@ -159,7 +163,8 @@ namespace Shaolinq.Tests
 			bool @bool,
 			DateTime dateTime,
 			TimeSpan timeSpan,
-			Sex @enum
+			Sex @enum,
+			DateTime? nullableDateTime
 		)
 		{
 			long dbId;
@@ -183,6 +188,7 @@ namespace Shaolinq.Tests
 				subject.DateTime = dateTime;
 				subject.TimeSpan = timeSpan;
 				subject.Enum = @enum;
+				subject.NullableDateTime = nullableDateTime;
 				//subject.ByteArray = byteArray;
 
 				scope.Flush(model);
@@ -208,12 +214,31 @@ namespace Shaolinq.Tests
 				Assert.That(dbObj.Float, Is.EqualTo(@float));
 				Assert.That(dbObj.Double, Is.EqualTo(@double));
 				Assert.That(dbObj.Bool, Is.EqualTo(@bool));
-				Assert.That(Abs(dbObj.DateTime.ToUniversalTime() - dateTime.ToUniversalTime()), Is.LessThan(timespanEpsilon));
+				AssertDateTime(dbObj.DateTime, dateTime);
 				Assert.That(Abs(dbObj.TimeSpan - timeSpan), Is.LessThan(timespanEpsilon));
 				Assert.That(dbObj.Enum, Is.EqualTo(@enum));
+				AssertNullable(dbObj.NullableDateTime, nullableDateTime, AssertDateTime);
 				// Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
-				
 			}
+		}
+
+		private static void AssertNullable<T>(T? nullable1, T? nullable2, Action<T, T> assertUnderlying) where T : struct
+		{
+			Assert.That(nullable1.HasValue, Is.EqualTo(nullable2.HasValue));
+			if (nullable1.HasValue && nullable2.HasValue)
+			{
+				assertUnderlying(nullable1.Value, nullable2.Value);
+			}
+			else
+			{
+				Assert.That(nullable1, Is.Null);
+				Assert.That(nullable2, Is.Null);
+			}
+		}
+
+		private void AssertDateTime(DateTime dateTime1, DateTime dateTime2)
+		{
+			Assert.That(Abs(dateTime1.ToUniversalTime() - dateTime2.ToUniversalTime()), Is.LessThan(timespanEpsilon));
 		}
 
 		private static DateTime Truncate(DateTime dateTime, TimeSpan timeSpan)

@@ -52,6 +52,9 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract Sex Enum { get; set; }
 
+		[PersistedMember]
+		public abstract DateTime? NullableDateTime { get; set; }
+
 		// Formatter doesn't correctly deal with byte array
 
 		//[PersistedMember]
