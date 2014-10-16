@@ -434,5 +434,37 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
+
+		[Test]
+		public void Test_Update_Deflated_Object_Field_To_Null()
+		{
+			long id;
+
+			using (var scope = new TransactionScope())
+			{
+				var dbObj = model.ObjectWithManyTypes.Create();
+
+				dbObj.String = "foo";
+				dbObj.NullableDateTime = DateTime.UtcNow;
+
+				scope.Flush(model);
+
+				scope.Complete();
+
+				id = dbObj.Id;
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var dbObj = model.ObjectWithManyTypes.ReferenceTo(id);
+
+				dbObj.String = null;
+				dbObj.NullableDateTime = null;
+
+				Assert.That(((IDataAccessObject)dbObj).GetChangedProperties().Count, Is.EqualTo(2));
+
+				scope.Complete();
+			}
+		}
 	}
 }
