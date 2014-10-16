@@ -321,5 +321,19 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
+
+		[Test]
+		public void Test_GetByPrimaryKey()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				scope.Flush(model);
+
+				var school2 = this.model.Schools.GetByPrimaryKey(school.Id);
+				// shouldn't throw an exception
+			}
+		}
 	}
 }
