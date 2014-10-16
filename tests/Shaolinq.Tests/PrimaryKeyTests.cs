@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
@@ -232,7 +233,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Composite_Primary_Keys()
 		{
-			var secondaryKey = new StackTrace().GetFrame(0).GetMethod().Name;
+			var secondaryKey = MethodBase.GetCurrentMethod().Name;
 			Guid studentId;
 
 			using (var scope = new TransactionScope())
@@ -276,7 +277,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.GetReference<Student>(studentId);
+				var student = model.Students.GetReference(studentId);
 
 				var obj = this.model.ObjectWithCompositePrimaryKeys.GetReference(new
 				{
@@ -296,7 +297,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.GetReference<Student>(studentId);
+				var student = this.model.Students.GetReference(studentId);
 
 				var obj1 = this.model.ObjectWithCompositePrimaryKeys.GetReference(new
 				{
@@ -332,7 +333,46 @@ namespace Shaolinq.Tests
 				scope.Flush(model);
 
 				var school2 = this.model.Schools.GetByPrimaryKey(school.Id);
-				// shouldn't throw an exception
+			}
+		}
+
+
+		[Test]
+		public void Test_GetByPrimaryKey_Composite()
+		{
+			Guid studentId;
+			var secondaryKey = MethodBase.GetCurrentMethod().Name;
+			
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+				var student = school.Students.Create();
+
+				scope.Flush(model);
+
+				studentId = student.Id;
+
+				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Create();
+
+				obj1.Id = 88;
+				obj1.SecondaryKey = secondaryKey;
+				obj1.Name = "Name" + secondaryKey;
+				obj1.Student = student;
+				
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.ObjectWithCompositePrimaryKeys.GetByPrimaryKey
+				(
+					new
+					{
+						Id = 88,
+						SecondaryKey = secondaryKey,
+						Student = model.Students.GetReference(studentId)
+					}
+				);
 			}
 		}
 	}

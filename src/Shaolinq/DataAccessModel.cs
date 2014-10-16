@@ -339,17 +339,7 @@ namespace Shaolinq
 			}
 		}
 
-		private class ContainerType<T>
-		{
-		}
-
-		public virtual T GetReference<T, K>(K primaryKey)
-			where T : DataAccessObject<K>
-		{
-			return this.GetReference<T>(new { Id = primaryKey });
-		}
-
-		public virtual T GetReference<T>(object[] primaryKeyValues)
+		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
 			where T : class, IDataAccessObject
 		{
 			if (primaryKeyValues == null)
@@ -362,7 +352,7 @@ namespace Shaolinq
 				return null;
 			}
 
-			var objectType = typeof(ContainerType<T>);
+			var objectType = typeof(void);
 			Func<object, ObjectPropertyValue[]> func;
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
@@ -411,10 +401,10 @@ namespace Shaolinq
 			return this.GetReference<T>(propertyInfoAndValues);
 		}
 
-		public virtual T GetReference<T>(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		public virtual T GetReference<T, K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 			where T : class, IDataAccessObject
 		{
-			if (primaryKey == null)
+			if (object.Equals(primaryKey, default(K)) && typeof(K).IsClass)
 			{
 				throw new ArgumentNullException("primaryKey");
 			}
@@ -424,20 +414,17 @@ namespace Shaolinq
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
-				bool isNonCompositePrimaryKey;
+				var isSimpleKey = false;
+				var idPropertyType = PrimaryKeyInfoCache<T>.IdPropertyInfo.PropertyType;
 
-				if (primaryKeyType == PrimaryKeyType.Auto)
+				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) ==  idPropertyType && primaryKeyType != PrimaryKeyType.Composite))
 				{
-					isNonCompositePrimaryKey = TypeDescriptor.IsSimpleType(objectType) || typeof(IDataAccessObject).IsAssignableFrom(objectType);
-				}
-				else
-				{
-					isNonCompositePrimaryKey = TypeDescriptor.IsSimpleType(objectType) || primaryKeyType == PrimaryKeyType.Single;
+					isSimpleKey = true;
 				}
 
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
-				if (isNonCompositePrimaryKey && typeDescriptor.PrimaryKeyCount != 1)
+				if (isSimpleKey && typeDescriptor.PrimaryKeyCount != 1)
 				{
 					throw new InvalidOperationException("Composite primary key expected");
 				}
@@ -453,7 +440,7 @@ namespace Shaolinq
 
 					Expression valueExpression;
 
-					if (isNonCompositePrimaryKey)
+					if (isSimpleKey)
 					{
 						valueExpression = parameter;
 					}
@@ -538,10 +525,6 @@ namespace Shaolinq
 			return retval;
 		}
 
-		internal IPersistenceQueryProvider NewQueryProvider()
-		{
-			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider();
-		}
 
 		public virtual SqlDatabaseContext GetCurrentSqlDatabaseContext()
 		{
@@ -624,7 +607,12 @@ namespace Shaolinq
 			this.GetCurrentDataContext(true).Commit(transactionContext, true);
 		}
 
-		public virtual IDataAccessObject Inflate(IDataAccessObject dataAccessObject)
+		protected internal IPersistenceQueryProvider NewQueryProvider()
+		{
+			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider();
+		}
+
+		protected internal IDataAccessObject Inflate(IDataAccessObject dataAccessObject)
 		{
 			if (dataAccessObject == null)
 			{
@@ -637,9 +625,7 @@ namespace Shaolinq
 			if (!inflateFuncsByType.TryGetValue(definitionType, out func))
 			{
 				var parameter = Expression.Parameter(typeof(IDataAccessObject), "dataAccessObject");
-				var methodInfo = this.GetType().GetMethods().First(c => c.Name == "Inflate" && c.IsGenericMethod);
-
-				methodInfo = methodInfo.MakeGenericMethod(definitionType);
+				var methodInfo = MethodInfoFastRef.BaseDataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
 				var body = Expression.Call(Expression.Constant(this), methodInfo, Expression.Convert(parameter, definitionType));
 
 				var lambda = Expression.Lambda<Func<IDataAccessObject, IDataAccessObject>>(body, parameter);
@@ -656,7 +642,7 @@ namespace Shaolinq
 			return func(dataAccessObject);
 		}
 
-		public virtual T Inflate<T>(T obj)
+		protected internal T Inflate<T>(T obj)
 			where T : class, IDataAccessObject
 		{
 			if (!obj.IsDeflatedReference)

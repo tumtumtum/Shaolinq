@@ -104,7 +104,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.GetReference<School>(schoolId);
+				var school = model.Schools.GetReference(schoolId);
 
 				school.Delete();
 
@@ -128,7 +128,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.GetReference<School>(100000);
+				var school = model.Schools.GetReference(100000);
 
 				school.Delete();
 

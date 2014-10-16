@@ -184,6 +184,7 @@
     <Compile Include="Persistence\SqlFeature.cs" />
     <Compile Include="Persistence\SqlSyntaxSymbol.cs" />
     <Compile Include="Persistence\UniversalTimeNormalisingDateTimeSqlDateType.cs" />
+    <Compile Include="PrimaryKeyInfoCache.cs" />
     <Compile Include="PrimaryKeyType.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="SortOrder.cs" />
