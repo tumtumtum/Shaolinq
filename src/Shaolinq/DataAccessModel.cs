@@ -339,6 +339,10 @@ namespace Shaolinq
 			}
 		}
 
+		private class RawPrimaryKeysPlaceholderType<T>
+		{
+		}
+
 		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
 			where T : class, IDataAccessObject
 		{
@@ -352,7 +356,7 @@ namespace Shaolinq
 				return null;
 			}
 
-			var objectType = typeof(void);
+			var objectType = typeof(RawPrimaryKeysPlaceholderType<T>);
 			Func<object, ObjectPropertyValue[]> func;
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
