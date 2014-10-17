@@ -39,5 +39,6 @@ namespace Shaolinq
 		public static readonly MethodInfo TypeGetTypeFromHandle = typeof(Type).GetMethod("GetTypeFromHandle", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(RuntimeTypeHandle) }, null);
 		public static readonly MethodInfo ConvertChangeTypeMethod = typeof(Convert).GetMethod("ChangeType", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(object), typeof(Type) }, null);
 		public static readonly MethodInfo DictionaryTryGetValueMethod = typeof(Dictionary<,>).GetMethod("TryGetValue", BindingFlags.Instance | BindingFlags.Public);
+		public static readonly MethodInfo ObjectPropertyValueListAddMethod = typeof(List<ObjectPropertyValue>).GetMethod("Add");
 	}
 }

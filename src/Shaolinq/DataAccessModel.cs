@@ -16,6 +16,20 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : MarshalByRefObject, IDisposable
 	{
+		private struct SqlDatabaseContextsInfo
+		{
+			public uint Count { get; set; }
+			public List<SqlDatabaseContext> DatabaseContexts { get; private set; }
+
+			public static SqlDatabaseContextsInfo Create()
+			{
+				return new SqlDatabaseContextsInfo
+				{
+					DatabaseContexts = new List<SqlDatabaseContext>()
+				};
+			}
+		}
+
 		public virtual event EventHandler Disposed;
 
 		public Assembly DefinitionAssembly { get; private set; }
@@ -65,26 +79,12 @@ namespace Shaolinq
 
 			return func();
 		}
-
-		private struct SqlDatabaseContextsInfo
-		{
-			public uint counter;
-			public List<SqlDatabaseContext> databaseContexts;
-
-			public static SqlDatabaseContextsInfo Create()
-			{
-				return new SqlDatabaseContextsInfo()
-				{
-					databaseContexts = new List<SqlDatabaseContext>()
-				};
-			}
-		}
 		
 		public DataAccessModelTransactionManager AmbientTransactionManager
 		{
 			get
 			{
-				if (this.disposed == 1)
+				if (this.disposed)
 				{
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
@@ -114,20 +114,32 @@ namespace Shaolinq
 			Dispose();
 		}
 
-		private int disposed = 0;
+		private void DisposeAllSqlDatabaseContexts()
+		{
+			DataAccessModelTransactionManager.GetAmbientTransactionManager(this).FlushConnections();
+
+			foreach (var context in this.sqlDatabaseContextsByCategory
+				.SelectMany(c => this.sqlDatabaseContextsByCategory.Values)
+				.SelectMany(c => c.DatabaseContexts))
+			{
+				context.Dispose();
+			}
+		}
+
+		private bool disposed;
 
 		public virtual void Dispose()
 		{
-			this.DisposeAllSqlDatabaseContexts();
-
-			if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
+			if (disposed)
 			{
-				this.DisposeAllSqlDatabaseContexts();
-
-				this.OnDisposed(EventArgs.Empty);
-
-				GC.SuppressFinalize(this);
+				return;
 			}
+
+			this.disposed = true;
+			this.DisposeAllSqlDatabaseContexts();
+			this.OnDisposed(EventArgs.Empty);
+
+			GC.SuppressFinalize(this);
 		}
 
 		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)
@@ -176,7 +188,7 @@ namespace Shaolinq
 						this.sqlDatabaseContextsByCategory["."] = info;
 					}
 
-					info.databaseContexts.Add(newSqlDatabaseContext);
+					info.DatabaseContexts.Add(newSqlDatabaseContext);
 				}
 				else
 				{
@@ -189,7 +201,7 @@ namespace Shaolinq
 							this.sqlDatabaseContextsByCategory[category] = info;
 						}
 
-						info.databaseContexts.Add(newSqlDatabaseContext);
+						info.DatabaseContexts.Add(newSqlDatabaseContext);
 					}
 				}
 			}
@@ -288,22 +300,6 @@ namespace Shaolinq
 			}
 
 			this.Configuration = configuration;
-		}
-
-		/// <summary>
-		/// Flushes and closes all connections for the DataAccessModel associated with the current thread.
-		/// </summary>
-		private void DisposeAllSqlDatabaseContexts()
-		{
-			DataAccessModelTransactionManager.GetAmbientTransactionManager(this).FlushConnections();
-
-			foreach (var key in this.sqlDatabaseContextsByCategory.Keys)
-			{
-				foreach (var context in this.sqlDatabaseContextsByCategory[key].databaseContexts)
-				{
-					context.Dispose();
-				}
-			}
 		}
 
 		public virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
@@ -535,30 +531,32 @@ namespace Shaolinq
 			var forWrite = Transaction.Current != null;
 
 			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(forWrite);
-			
-			if (transactionContext.SqlDatabaseContext == null)
+
+			if (transactionContext.SqlDatabaseContext != null)
 			{
-				SqlDatabaseContextsInfo info;
+				return transactionContext.SqlDatabaseContext;
+			}
 
-				if (!this.sqlDatabaseContextsByCategory.TryGetValue(transactionContext.DatabaseContextCategoriesKey, out info))
+			SqlDatabaseContextsInfo info;
+
+			if (!this.sqlDatabaseContextsByCategory.TryGetValue(transactionContext.DatabaseContextCategoriesKey, out info))
+			{
+				var compositeInfo = SqlDatabaseContextsInfo.Create();
+
+				foreach (var category in transactionContext.DatabaseContextCategories)
 				{
-					var compositeInfo = SqlDatabaseContextsInfo.Create();
+					info = this.sqlDatabaseContextsByCategory[category];
 
-					foreach (var category in transactionContext.DatabaseContextCategories)
-					{
-						info = this.sqlDatabaseContextsByCategory[category];
-
-						compositeInfo.databaseContexts.AddRange(info.databaseContexts);
-					}
-
-					info = this.sqlDatabaseContextsByCategory[transactionContext.DatabaseContextCategoriesKey] = compositeInfo;
+					compositeInfo.DatabaseContexts.AddRange(info.DatabaseContexts);
 				}
 
-				var index = (int)(info.counter++ % info.databaseContexts.Count);
-
-				transactionContext.SqlDatabaseContext = info.databaseContexts[index];
+				info = this.sqlDatabaseContextsByCategory[transactionContext.DatabaseContextCategoriesKey] = compositeInfo;
 			}
-			
+
+			var index = (int)(info.Count++ % info.DatabaseContexts.Count);
+
+			transactionContext.SqlDatabaseContext = info.DatabaseContexts[index];
+
 			return transactionContext.SqlDatabaseContext;
 		}
 
@@ -568,12 +566,10 @@ namespace Shaolinq
 			
 			if (transactionContext.DatabaseContextCategories == null)
 			{
-				foreach (var category in categories)
+				foreach (var category in categories
+					.Where(category => !this.sqlDatabaseContextsByCategory.ContainsKey(category)))
 				{
-					if (!this.sqlDatabaseContextsByCategory.ContainsKey(category))
-					{
-						throw new InvalidOperationException("Unsupported category: " + category);
-					}
+					throw new InvalidOperationException("Unsupported category: " + category);
 				}
 
 				transactionContext.DatabaseContextCategories = categories;

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,11 +14,10 @@ namespace Shaolinq.TypeBuilding
 {
 	public class DataAccessObjectTypeBuilder
 	{
-		private static readonly MethodInfo ObjectPropertyValueListAddMethod = typeof(List<ObjectPropertyValue>).GetMethod("Add");
-		
-		internal static readonly string ForceSetPrefix = "ForceSet";
-		internal static readonly string HasChangedSuffix = "Changed";
-		internal static readonly string ObjectDataFieldName = "data";
+		internal static readonly string ForceSetPrefix = "$$ForceSet";
+		internal static readonly string IsSetSuffix = "$$IsSet";
+		internal static readonly string HasChangedSuffix = "$$Changed";
+		internal static readonly string ObjectDataFieldName = "$$data";
 		
 		public ModuleBuilder ModuleBuilder { get; private set; }
 		public AssemblyBuildContext AssemblyBuildContext { get; private set; }
@@ -649,7 +648,7 @@ namespace Shaolinq.TypeBuilding
 				var valueChangedAttributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
 				valueChangedFieldInDataObject.SetCustomAttribute(valueChangedAttributeBuilder);
 
-				var valueIsSetFieldInDataObject = dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name + "IsSet", typeof(bool), FieldAttributes.Public);
+				var valueIsSetFieldInDataObject = dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name + IsSetSuffix, typeof(bool), FieldAttributes.Public);
 				var valueIsSetAttributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
 				valueIsSetFieldInDataObject.SetCustomAttribute(valueIsSetAttributeBuilder);
 				valueIsSetFields.Add(propertyInfo.Name, valueIsSetFieldInDataObject);
@@ -1837,7 +1836,7 @@ namespace Shaolinq.TypeBuilding
 			}
 			else
 			{
-				generator.Emit(OpCodes.Callvirt, ObjectPropertyValueListAddMethod);
+				generator.Emit(OpCodes.Callvirt, MethodInfoFastRef.ObjectPropertyValueListAddMethod);
 			}
 		}
 
@@ -2050,23 +2049,6 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Brtrue, loadValueLabel);
 				}
 
-				var l2 = generator.DefineLabel();
-
-				/*if (!first && !columnInfo.DefinitionProperty.IsPropertyThatIsCreatedOnTheServerSide)
-				{
-					generator.Emit(OpCodes.Ldloc, currentObject);
-					generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
-					generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.New));
-					generator.Emit(OpCodes.And);
-					generator.Emit(OpCodes.Ldc_I4_0);
-					generator.Emit(OpCodes.Ceq);
-					generator.Emit(OpCodes.Brtrue, l2);
-					generator.Emit(OpCodes.Ldc_I4_1);
-					generator.Emit(OpCodes.Stloc, isNew);
-					generator.MarkLabel(l2);
-					
-				}*/
-
 				generator.Emit(OpCodes.Ldloc, isNew);
 				generator.Emit(OpCodes.Brtrue, loadValueLabel);
 
@@ -2154,13 +2136,8 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties.Concat(this.typeDescriptor.RelatedProperties.Where(c => c.BackReferenceAttribute != null)))
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
 			{
-				if (propertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
-				{ 
-					continue;
-				}
-
 				var label = generator.DefineLabel();
 				var label2 = generator.DefineLabel();
 
@@ -2176,8 +2153,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, partialObjectStateField);
 				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
-				generator.Emit(OpCodes.Ceq);
-				
+				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, label);
 
 				generator.MarkLabel(label2);
@@ -2200,9 +2176,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedPropertiesFlattened");
 			var properties = this.typeDescriptor
-				.PersistedProperties
-				.Concat(this.typeDescriptor.RelatedProperties.Where(c => c.IsBackReferenceProperty))
-				.Where(c => !(c.IsPropertyThatIsCreatedOnTheServerSide && c.IsPrimaryKey))
+				.PersistedAndRelatedObjectProperties
 				.ToList();
 
 			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, properties);

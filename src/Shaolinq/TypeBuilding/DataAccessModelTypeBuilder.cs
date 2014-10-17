@@ -41,7 +41,7 @@ namespace Shaolinq.TypeBuilding
 			var initialiseMethodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
 			var initialiseGenerator = initialiseMethodBuilder.GetILGenerator();
 			
-			dictionaryFieldBuilder = typeBuilder.DefineField("m$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
+			dictionaryFieldBuilder = typeBuilder.DefineField("$$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
 
 			initialiseGenerator.Emit(OpCodes.Ldarg_0);
 			initialiseGenerator.Emit(OpCodes.Ldc_I4, baseType.GetProperties().Count());
@@ -65,7 +65,7 @@ namespace Shaolinq.TypeBuilding
 				if (propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetSetMethod().IsAbstract)
 				{
 					// Generate the field for the queryable
-					var fieldBuilder = typeBuilder.DefineField("m$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
+					var fieldBuilder = typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
 
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
@@ -124,7 +124,6 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Stloc, acquiredLock);
 			
-			
 			generator.BeginExceptionBlock();
 
 			generator.Emit(OpCodes.Ldarg_0);
@@ -157,6 +156,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("set_Item"));
 			generator.Emit(OpCodes.Nop);
 			generator.Emit(OpCodes.Nop);
+
 			generator.BeginFinallyBlock();
 			var boolValue = generator.DeclareLocal(typeof(bool));
 			generator.Emit(OpCodes.Ldloc, acquiredLock);

@@ -137,11 +137,17 @@ namespace Shaolinq.Tests
 			{
 				var obj = model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 
-				// Should not be able to set AutoIncrement properties
+				obj.Id = 10007;
 
-				obj.Id = 1000;
+				Assert.IsTrue(obj.GetChangedProperties().Any(c => c.PropertyName == "Id"));
+				Assert.IsTrue(obj.GetChangedPropertiesFlattened().Any(c => c.PropertyName == "Id"));
 
 				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var obj = model.ObjectWithLongAutoIncrementPrimaryKeys.GetByPrimaryKey(10007);
 			}
 		}
 
