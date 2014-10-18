@@ -23,57 +23,29 @@ namespace Shaolinq.Postgres.Shared
 			return "UUID";
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull)
+		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
 		{
 			if (this.UnderlyingType == null)
 			{
-				if (asObjectKeepNull)
-				{
-					return Expression.Condition
-					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Constant(null, typeof(object)),
-						Expression.Convert(Expression.Call(dataReader, DataRecordMethods.GetGuidMethod, Expression.Constant(ordinal)), typeof(object))
-					);
-				}
-				else
-				{
-					return Expression.Condition
-					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue(), this.SupportedType), this.SupportedType),
-						Expression.Call(dataReader, DataRecordMethods.GetGuidMethod, Expression.Constant(ordinal))
-					);
-				}
+				return Expression.Condition
+				(
+					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue(), this.SupportedType), this.SupportedType),
+					Expression.Call(dataReader, DataRecordMethods.GetGuidMethod, Expression.Constant(ordinal))
+				);
 			}
 			else
 			{
-				if (asObjectKeepNull)
-				{
-					return Expression.Condition
+				return Expression.Condition
+				(
+					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+					Expression.Convert(Expression.Constant(null, typeof(Guid?)), this.SupportedType),
+					Expression.New
 					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Constant(null, typeof(object)),
-						Expression.Convert(Expression.New
-						(
-							NullableGuidConstructor,
-							Expression.Call(dataReader, DataRecordMethods.GetGuidMethod, Expression.Constant(ordinal))
-						), typeof(object))
-					);	
-				}
-				else
-				{ 
-					return Expression.Condition
-					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Convert(Expression.Constant(null, typeof(Guid?)), this.SupportedType),
-						Expression.New
-						(
-							NullableGuidConstructor,
-							Expression.Call(dataReader, DataRecordMethods.GetGuidMethod, Expression.Constant(ordinal))
-						)
-					);
-				}
+						NullableGuidConstructor,
+						Expression.Call(dataReader, DataRecordMethods.GetGuidMethod, Expression.Constant(ordinal))
+					)
+				);
 			}
 		}
 	}

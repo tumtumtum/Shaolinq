@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -53,11 +54,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var icolumn = columnsOrderedByName[i];
 				var iNewColumnExpression = new SqlColumnExpression(icolumn.Expression.Type, select.Alias, icolumn.Name);
                 
-				for (int j = i + 1; j < n; j++)
+				for (var j = i + 1; j < n; j++)
 				{
 					if (!removedColumns.Get(j))
 					{
-						SqlColumnDeclaration jcolumn = columnsOrderedByName[j];
+						var jcolumn = columnsOrderedByName[j];
 
 						if (IsSameExpression(icolumn.Expression, jcolumn.Expression))
 						{
@@ -101,9 +102,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var typedLeft = left as SqlColumnExpression;
 			var typedRight = right as SqlColumnExpression;
 
-			return typedLeft != null && typedRight != null
+			var retval = typedLeft != null && typedRight != null
+					&& typedLeft.Type == typedRight.Type
 			       && typedLeft.SelectAlias == typedRight.SelectAlias
 			       && typedLeft.Name == typedRight.Name;
+
+			if (retval)
+			{
+				Console.WriteLine();
+			}
+
+			return retval;
 		}
 	}
 }

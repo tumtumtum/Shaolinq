@@ -112,6 +112,35 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Select_And_Has_Property_With_Null_Value()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street");
+
+				var first = query.First();
+
+				Assert.IsNull(first.ThirdAddress);
+			}
+		}
+
+		[Test]
+		public void Test_Include_Property_With_Null_Value()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street")
+					.Include(c => c.ThirdAddress.Region.Center);
+
+				var first = query.First();
+
+				Assert.IsNull(first.ThirdAddress);
+			}
+		}
+
+		[Test]
 		public void Test_Include_With_One_Select()
 		{
 			using (var scope = new TransactionScope())

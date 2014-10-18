@@ -422,16 +422,31 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
 
+		internal static Expression StripNullCheck(Expression expression)
+		{
+			if (expression.NodeType == ExpressionType.Conditional)
+			{
+				var conditional = (ConditionalExpression)expression;
+
+				if (conditional.IfTrue.NodeType == ExpressionType.Constant && ((ConstantExpression)conditional.IfTrue).Value == null)
+				{
+					return conditional.IfFalse;
+				}
+			}
+
+			return expression;
+		}
+
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
 		{
 			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
 			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
 
 			AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
-			var outerKeyExpr = this.Visit(outerKey.Body);
+			var outerKeyExpr = StripNullCheck(this.Visit(outerKey.Body));
 			AddExpressionByParameter(innerKey.Parameters[0], innerProjection.Projector);
-			var innerKeyExpression = this.Visit(innerKey.Body);
-
+			var innerKeyExpression = StripNullCheck(this.Visit(innerKey.Body));
+			
 			if (outerKeyExpr.NodeType == ExpressionType.MemberInit)
 			{
 				outerKeyExpr = this.objectReferenceByMemberInit[(MemberInitExpression)outerKeyExpr];
@@ -1883,12 +1898,82 @@ namespace Shaolinq.Persistence.Linq
 							current = replacementCurrent;
 						}
 
-						current = ((MemberAssignment)((MemberInitExpression)current).Bindings.First(c => c.Member.Name == propertyInfo.Name)).Expression;
+						MemberInitExpression currentMemberInit;
+
+						if (current.NodeType == ExpressionType.Conditional)
+						{
+							currentMemberInit = (MemberInitExpression)((ConditionalExpression)current).IfFalse;
+						}
+						else
+						{
+							currentMemberInit = (MemberInitExpression)current;
+						}
+
+						current = ((MemberAssignment)(currentMemberInit).Bindings.First(c => c.Member.Name == propertyInfo.Name)).Expression;
 					}
 
-					var replacement = this.Visit(this.joinExpanderResults.ReplacementExpressionForPropertyPath[includedProperty.PropertyPath]);
+					var objectReference = current as SqlObjectReference;
 
-					newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
+					if (objectReference == null)
+					{
+						throw new InvalidOperationException("Expected SqlObjectReference");
+					}
+
+					Expression isNullExpression = null;
+
+					foreach (var binding in objectReference.Bindings.OfType<MemberAssignment>())
+					{
+						Expression equalExpression;
+						var columnExpression = binding.Expression as SqlColumnExpression;
+
+						if (columnExpression != null)
+						{
+							var nullableType = columnExpression.Type.MakeNullable();
+
+							if (columnExpression.Type == nullableType)
+							{
+								equalExpression = Expression.Equal(columnExpression, Expression.Constant(null, columnExpression.Type));
+							}
+							else
+							{
+								equalExpression = Expression.Equal(Expression.Convert(columnExpression, nullableType), Expression.Constant(nullableType.GetDefaultValue(), nullableType));
+							}
+						}
+						else if (binding.Expression is SqlObjectReference)
+						{
+							equalExpression = Expression.Equal(binding.Expression, Expression.Constant(null));
+						}
+						else
+						{
+							isNullExpression = null;
+
+							break;
+						}
+
+						if (isNullExpression == null)
+						{
+							isNullExpression = equalExpression;
+						}
+						else
+						{
+							isNullExpression = Expression.Or(isNullExpression, equalExpression);
+						}
+					}
+
+					var originalReplacementExpression = this.joinExpanderResults.ReplacementExpressionForPropertyPath[includedProperty.PropertyPath];
+
+					var replacement = this.Visit(originalReplacementExpression);
+
+					if (isNullExpression != null)
+					{
+						var condition = Expression.Condition(isNullExpression, Expression.Constant(null, current.Type), replacement);
+
+						newExpression = ExpressionReplacer.Replace(newExpression, current, condition);
+					}
+					else
+					{
+						newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
+					}
 				}
 
 				return newExpression;

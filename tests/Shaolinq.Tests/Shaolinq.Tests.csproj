@@ -86,13 +86,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\src\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="Platform, Version=1.0.0.146, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\src\packages\Platform.NET.1.0.0.146\lib\35\Platform.dll</HintPath>
+    <Reference Include="Platform">
+      <HintPath>..\..\src\packages\Platform.NET.1.0.0.147\lib\35\Platform.dll</HintPath>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.0.0.146, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\src\packages\Platform.Xml.Serialization.1.0.0.146\lib\35\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization">
+      <HintPath>..\..\src\packages\Platform.Xml.Serialization.1.0.0.147\lib\35\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />

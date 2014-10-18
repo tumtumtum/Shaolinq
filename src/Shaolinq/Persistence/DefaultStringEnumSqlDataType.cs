@@ -48,85 +48,43 @@ namespace Shaolinq.Persistence
 		{
 		}
         
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull)
+		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
 		{
 			if (this.UnderlyingType == null)
 			{
-				if (asObjectKeepNull)
-				{
-					return Expression.Condition
+				return Expression.Condition
+				(
+					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+					Expression.Constant(Enum.ToObject(this.SupportedType, this.SupportedType.GetDefaultValue()), this.SupportedType),
+					Expression.Convert
 					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Convert(null, typeof(object)),
-						Expression.Convert(Expression.Convert
+						Expression.Call
 						(
-							Expression.Call
-							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
-								Expression.Constant(this.SupportedType),
-								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
-							),
-							this.SupportedType
-						), typeof(object))
-					);
-				}
-				else
-				{ 
-					return Expression.Condition
-					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Constant(Enum.ToObject(this.SupportedType, this.SupportedType.GetDefaultValue()), this.SupportedType),
-						Expression.Convert
-						(
-							Expression.Call
-							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
-								Expression.Constant(this.SupportedType),
-								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
-							),
-							this.SupportedType
-						)
-					);
-				}
+							typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
+							Expression.Constant(this.SupportedType),
+							Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
+						),
+						this.SupportedType
+					)
+				);
 			}
 			else
-			{
-				if (asObjectKeepNull)
-				{
-					return Expression.Condition
+			{	
+				return Expression.Condition
+				(
+					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+					Expression.Constant(null, this.SupportedType),
+					Expression.Convert
 					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Constant(null, typeof(object)),
-						Expression.Convert(Expression.Convert
+						Expression.Call
 						(
-							Expression.Call
-							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
-								Expression.Constant(this.UnderlyingType),
-								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
-							),
-							this.SupportedType
-						), typeof(object))
-					);
-				}
-				else
-				{
-					return Expression.Condition
-					(
-						Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-						Expression.Constant(null, this.SupportedType),
-						Expression.Convert
-						(
-							Expression.Call
-							(
-								typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
-								Expression.Constant(this.UnderlyingType),
-								Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
-							),
-							this.SupportedType
-						)
-					);
-				}
+							typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
+							Expression.Constant(this.UnderlyingType),
+							Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
+						),
+						this.SupportedType
+					)
+				);
 			}
 		}
 

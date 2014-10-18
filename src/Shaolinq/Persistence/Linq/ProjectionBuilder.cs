@@ -7,6 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
@@ -202,10 +203,24 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
-			return this.VisitColumn(column, false);
+			return this.ConvertColumnToDataReaderRead(column, column.Type);
 		}
 
-		protected virtual Expression VisitColumn(SqlColumnExpression column, bool asObjectKeepNull)
+		protected override Expression VisitUnary(UnaryExpression unaryExpression)
+		{
+			if (unaryExpression.NodeType == ExpressionType.Convert)
+			{
+				if (unaryExpression.Operand.NodeType == ((ExpressionType)SqlExpressionType.Column)
+					&& unaryExpression.Type == unaryExpression.Operand.Type.MakeNullable())
+				{
+					return this.ConvertColumnToDataReaderRead((SqlColumnExpression)unaryExpression.Operand, unaryExpression.Operand.Type.MakeNullable());
+				}
+			}
+
+			return base.VisitUnary(unaryExpression);
+		}
+
+		protected virtual Expression ConvertColumnToDataReaderRead(SqlColumnExpression column, Type type)
 		{
 			// Replace all column accesses with the appropriate IDataReader call
 
@@ -215,15 +230,15 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
+				var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(type);
 
 				if (!this.columnIndexes.ContainsKey(column.Name))
 				{
-					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, 0, asObjectKeepNull);
+					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, 0);
 				}
 				else
 				{
-					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, this.columnIndexes[column.Name], asObjectKeepNull);
+					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, this.columnIndexes[column.Name]);
 				}
 			}
 		}
@@ -233,7 +248,7 @@ namespace Shaolinq.Persistence.Linq
 			var arrayOfValues = Expression.NewArrayInit(typeof(object), sqlObjectReference
 				.Bindings
 				.OfType<MemberAssignment>()
-				.Select(c => (Expression)Expression.Convert(c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? this.VisitColumn((SqlColumnExpression)c.Expression, true) : this.Visit(c.Expression), typeof(object))).ToArray());
+				.Select(c => (Expression)Expression.Convert(c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? this.ConvertColumnToDataReaderRead((SqlColumnExpression)c.Expression, c.Expression.Type.MakeNullable()) : this.Visit(c.Expression), typeof(object))).ToArray());
 
 			var method = MethodInfoFastRef.BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(sqlObjectReference.Type);
 

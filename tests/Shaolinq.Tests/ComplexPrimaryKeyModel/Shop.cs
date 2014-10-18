@@ -16,5 +16,8 @@
 
 		[PersistedMember]
 		public abstract Address SecondAddress { get; set; }
+
+		[PersistedMember]
+		public abstract Address ThirdAddress { get; set; }
 	}
 }

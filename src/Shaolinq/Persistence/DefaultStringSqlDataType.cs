@@ -51,26 +51,14 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull)
+		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
 		{
-			if (asObjectKeepNull)
-			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Constant(null, typeof(object)),
-					Expression.Convert(Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal)), typeof(object))
-				);
-			}
-			else
-			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(null), this.SupportedType),
-					Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
-				);
-			}
+			return Expression.Condition
+			(
+				Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+				Expression.Convert(Expression.Constant(null), this.SupportedType),
+				Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
+			);
 		}
 	}
 }

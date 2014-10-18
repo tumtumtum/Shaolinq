@@ -88,6 +88,6 @@ namespace Shaolinq.Persistence
 		/// <param name="dataReader">The parameter that references the <see cref="IDataReader"/></param>
 		/// <param name="ordinal">The parameter that contains the ordinal of the column to read</param>
 		/// <returns>An expression for reading the column into a value</returns>
-		public abstract Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull);
+		public abstract Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal);
 	}
 }

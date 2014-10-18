@@ -32,28 +32,16 @@ namespace Shaolinq.Persistence
 			return (T)Convert.ChangeType(record.GetValue(ordinal), typeof(T));
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal, bool asObjectKeepNull)
+		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
 		{
 			var type = this.UnderlyingType ?? this.SupportedType;
 
-			if (asObjectKeepNull)
-			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(null), typeof(object)),
-					Expression.Convert(Expression.Call(null, typeof(PrimitiveSqlDataType).GetMethod("Read", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod(type), dataReader, Expression.Constant(ordinal)), typeof(object))
-				);
-			}
-			else
-			{
-				return Expression.Condition
-				(
-					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
-					Expression.Convert(Expression.Call(null, typeof(PrimitiveSqlDataType).GetMethod("Read", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod(type), dataReader, Expression.Constant(ordinal)), this.SupportedType)
-				);
-			}
+			return Expression.Condition
+			(
+				Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
+				Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
+				Expression.Convert(Expression.Call(null, typeof(PrimitiveSqlDataType).GetMethod("Read", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod(type), dataReader, Expression.Constant(ordinal)), this.SupportedType)
+			);
 		}
 	}
 }

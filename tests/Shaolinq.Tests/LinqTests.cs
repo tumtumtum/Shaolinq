@@ -1307,15 +1307,32 @@ namespace Shaolinq.Tests
 					from
 						student in model.Students
 					where
-						student.Sex == Sex.Male 
+						student.Sex == Sex.Female 
 					select
 						student.Include(c => c.BestFriend.Address);
 
+				var count = 0;
+
 				foreach (var student in query.ToList())
 				{
+					if (student.BestFriend == null)
+					{
+						continue;
+					}
+
 					Assert.IsFalse(student.BestFriend.IsDeflatedReference);
+
+					if (student.BestFriend.Address == null)
+					{
+						continue;
+					}
+
 					Assert.IsFalse(student.BestFriend.Address.IsDeflatedReference);
+
+					count++;
 				}
+
+				Assert.That(count, Is.GreaterThan(0));
 			}
 		}
 

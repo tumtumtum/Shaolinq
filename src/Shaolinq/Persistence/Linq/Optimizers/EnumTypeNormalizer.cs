@@ -32,7 +32,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				&& unaryExpression.NodeType == ExpressionType.Convert
 				&& unaryExpression.Type.IsIntegerType(true))
 			{
-				if (operand.NodeType == (ExpressionType)SqlExpressionType.Column)
+				if (operand.NodeType == (ExpressionType)SqlExpressionType.Column && operand.Type.IsEnum)
 				{
 					return operand;
 				}
