@@ -509,7 +509,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 
 			generator.Emit(OpCodes.Newobj, constructor);
-			generator.Emit(OpCodes.Stloc_0);
+			generator.Emit(OpCodes.Stloc, local);
 
 			// Store object
 			generator.Emit(OpCodes.Ldarg_0);
@@ -1436,7 +1436,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, valueField);
 
 				// Load operand value
-				generator.Emit(OpCodes.Ldloc_0);
+				generator.Emit(OpCodes.Ldloc, local);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, valueField);
 
@@ -1455,7 +1455,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldfld, dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
 					generator.Emit(OpCodes.Brfalse, returnLabel);
-					generator.Emit(OpCodes.Ldloc_0);
+					generator.Emit(OpCodes.Ldloc, local);
 					generator.Emit(OpCodes.Ldfld, dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
 					generator.Emit(OpCodes.Brfalse, returnLabel);
@@ -1468,7 +1468,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldfld, valueField);
 
 					// Load operand value
-					generator.Emit(OpCodes.Ldloc_0);
+					generator.Emit(OpCodes.Ldloc, local);
 					generator.Emit(OpCodes.Ldfld, dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
 
