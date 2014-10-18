@@ -15,7 +15,7 @@ namespace Shaolinq.Tests
 		where T : DataAccessModel
     {
         protected T model;
-	    private static readonly bool useMonoData;
+	    protected static readonly bool useMonoData;
 
 	    static BaseTests()
 	    {

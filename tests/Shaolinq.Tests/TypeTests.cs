@@ -42,12 +42,16 @@ namespace Shaolinq.Tests
 
 				MaxDateTime -= TimeSpan.FromSeconds(1);
 			}
+			else if (useMonoData)
+			{
+				floatSignificantFigures = 3;
+			}
 		}
 
 		[Test]
 		public void Test_Min_Values()
 		{
-			decimal minDecimal = decimal.MinValue;
+			var minDecimal = decimal.MinValue;
 
 			//decimal.MinValue seems to be too large for dotConnect to handle
 			if (this.ProviderName.StartsWith("Postgres.DotConnect"))
