@@ -122,7 +122,7 @@ namespace Shaolinq.Tests
 				123456789,
 				123.456789m,
 				123.456f,
-				987.654321,
+				TruncateToSignificantDigits(987.654321, floatSignificantFigures),
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromHours(24),
