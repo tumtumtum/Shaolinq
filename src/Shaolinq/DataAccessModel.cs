@@ -39,8 +39,7 @@ namespace Shaolinq
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>();
-		private readonly Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
-		internal DataAccessObjectProjectionContext DataAccessObjectProjectionContext { get; private set; }
+		private Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
 
 		[ReflectionEmitted]
@@ -95,7 +94,6 @@ namespace Shaolinq
 
 		protected DataAccessModel()
 		{
-			this.DataAccessObjectProjectionContext = new DataAccessObjectProjectionContext(this);
 		}
 
 		protected virtual void OnDisposed(EventArgs eventArgs)
@@ -302,20 +300,22 @@ namespace Shaolinq
 			this.Configuration = configuration;
 		}
 
-		public virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
+		protected internal virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
 			where T : class, IDataAccessObject
 		{
-			foreach (var keyValue in primaryKey)
+			if (primaryKey == null)
 			{
-				if (keyValue.Value == null)
-				{
-					return null;
-				}
+				return null;
 			}
 
-			var propertyInfoAndValues = primaryKey;
+			if (primaryKey.Any(keyValue => keyValue.Value == null))
+			{
+				return null;
+			}
 
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), propertyInfoAndValues);
+			var objectPropertyAndValues = primaryKey;
+
+			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), objectPropertyAndValues);
 
 			if (existing != null)
 			{
@@ -326,7 +326,7 @@ namespace Shaolinq
 				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, false);
 
 				retval.SetIsDeflatedReference(true);
-				retval.SetPrimaryKeys(propertyInfoAndValues);
+				retval.SetPrimaryKeys(objectPropertyAndValues);
 				retval.ResetModified();
 				retval.FinishedInitializing();
 				retval.SubmitToCache();
@@ -335,12 +335,19 @@ namespace Shaolinq
 			}
 		}
 
+		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
+			where T : class, IDataAccessObject
+		{
+			var propertyValues = GetObjectPropertyValues<T>(primaryKeyValues);
+
+			return this.GetReference<T>(propertyValues);
+		}
+
 		private class RawPrimaryKeysPlaceholderType<T>
 		{
 		}
 
-		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
-			where T : class, IDataAccessObject
+		protected internal ObjectPropertyValue[] GetObjectPropertyValues<T>(object[] primaryKeyValues)
 		{
 			if (primaryKeyValues == null)
 			{
@@ -352,8 +359,8 @@ namespace Shaolinq
 				return null;
 			}
 
-			var objectType = typeof(RawPrimaryKeysPlaceholderType<T>);
 			Func<object, ObjectPropertyValue[]> func;
+			var objectType = typeof(RawPrimaryKeysPlaceholderType<T>);
 
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
@@ -371,7 +378,7 @@ namespace Shaolinq
 
 					var valueExpression = Expression.Convert(Expression.ArrayIndex(Expression.Convert(parameter, typeof(object[])), Expression.Constant(index)), typeof(object));
 					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
-					
+
 					if (property.PropertyType.IsDataAccessObjectType())
 					{
 						convertedValue = valueExpression;
@@ -393,16 +400,16 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				propertyInfoAndValueGetterFuncByType[objectType] = func;
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(propertyInfoAndValueGetterFuncByType);
+				newPropertyInfoAndValueGetterFuncByType[objectType] = func;
+
+				propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}
 
-			var propertyInfoAndValues = func(primaryKeyValues);
-
-			return this.GetReference<T>(propertyInfoAndValues);
+			return func(primaryKeyValues);
 		}
 
-		public virtual T GetReference<T, K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
-			where T : class, IDataAccessObject
+		protected  internal ObjectPropertyValue[] GetObjectPropertyValues<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
 			if (object.Equals(primaryKey, default(K)) && typeof(K).IsClass)
 			{
@@ -415,14 +422,13 @@ namespace Shaolinq
 			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
 				var isSimpleKey = false;
-				var idPropertyType = PrimaryKeyInfoCache<T>.IdPropertyInfo.PropertyType;
+				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(type);
+				var idPropertyType = typeDescriptor.GetPropertyDescriptorByPropertyName("Id").PropertyType;
 
-				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) ==  idPropertyType && primaryKeyType != PrimaryKeyType.Composite))
+				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == idPropertyType && primaryKeyType == PrimaryKeyType.Auto))
 				{
 					isSimpleKey = true;
 				}
-
-				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
 				if (isSimpleKey && typeDescriptor.PrimaryKeyCount != 1)
 				{
@@ -465,66 +471,120 @@ namespace Shaolinq
 				}
 
 				var body = Expression.NewArrayInit(typeof(ObjectPropertyValue), initializers);
-				
+
 				var lambdaExpression = Expression.Lambda(typeof(Func<object, ObjectPropertyValue[]>), body, parameter);
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				propertyInfoAndValueGetterFuncByType[objectType] = func;
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(propertyInfoAndValueGetterFuncByType);
+				newPropertyInfoAndValueGetterFuncByType[objectType] = func;
+
+				propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}
 
-			var propertyInfoAndValues = func(primaryKey); 
-			
-			return this.GetReference<T>(propertyInfoAndValues);
+			return func(primaryKey);
+		}
+
+		public virtual T GetReference<T, K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+			where T : class, IDataAccessObject
+		{
+			var propertyValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
+
+			return this.GetReference<T>(propertyValues);
 		}
 
 		public virtual IDataAccessObject CreateDataAccessObject(Type type)
 		{
-			return this.CreateDataAccessObject(type, false);
+			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
+
+			retval.FinishedInitializing();
+			retval.SubmitToCache();
+
+			return retval;
+		}
+
+		public virtual IDataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey)
+		{
+			return CreateDataAccessObject(type, primaryKey, PrimaryKeyType.Auto);
+		}
+
+		public virtual IDataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
+		{
+			if (!typeof(IDataAccessObject).IsAssignableFrom(type)
+				|| !typeof(DataAccessObject<>).IsAssignableFromIgnoreGenericParameters(type))
+			{
+				throw new ArgumentException("Type must be a DataAccessObjectType", "type");
+			}
+
+			var objectPropertyAndValues = GetObjectPropertyValues(type, primaryKey, primaryKeyType);
+
+			if (objectPropertyAndValues.Any(keyValue => keyValue.Value == null))
+			{
+				throw new MissingOrInvalidPrimaryKeyException();
+			}
+
+			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
+
+			if (existing != null)
+			{
+				throw new UniqueKeyConstraintException(null, "CreateDataAccessObject");
+			}
+			else
+			{
+				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
+
+				retval.SetPrimaryKeys(objectPropertyAndValues);
+				retval.FinishedInitializing();
+				retval.SubmitToCache();
+
+				return retval;
+			}
 		}
 
 		public virtual T CreateDataAccessObject<T>()
 			where T : class, IDataAccessObject
 		{
-			return this.CreateDataAccessObject<T>(false);
-		}
-
-		public virtual IDataAccessObject CreateDataAccessObject(Type type, bool transient)
-		{
-			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
-
-			if (!transient)
-			{
-				retval.FinishedInitializing();
-				retval.SubmitToCache();
-			}
-			else
-			{
-				retval.FinishedInitializing();
-				retval.SetTransient(true);
-			}
-
-			return retval;
-		}
-
-		public virtual T CreateDataAccessObject<T>(bool transient)
-			where T : class, IDataAccessObject
-		{
 			var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
 
-			if (!transient)
-			{
-				retval.FinishedInitializing();
-				retval.SubmitToCache();
-			}
-			else
-			{
-				retval.SetTransient(true);
-			}
+			retval.FinishedInitializing();
+			retval.SubmitToCache();
 
 			return retval;
 		}
 
+		public virtual T CreateDataAccessObject<T, K>(K primaryKey)
+			where T : class, IDataAccessObject
+		{
+			return CreateDataAccessObject<T, K>(primaryKey, PrimaryKeyType.Auto);
+		}
+
+		public virtual T CreateDataAccessObject<T, K>(K primaryKey, PrimaryKeyType primaryKeyType)
+			where T : class, IDataAccessObject
+		{
+			var objectPropertyAndValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
+
+			if (objectPropertyAndValues.Any(keyValue => keyValue.Value == null))
+			{
+				throw new MissingOrInvalidPrimaryKeyException();
+			}
+
+			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), objectPropertyAndValues);
+
+			if (existing != null)
+			{
+				throw new UniqueKeyConstraintException(null, "CreateDataAccessObject");
+			}
+			else
+			{
+				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
+
+				retval.SetPrimaryKeys(objectPropertyAndValues);
+				retval.FinishedInitializing();
+				retval.SubmitToCache();
+
+				return retval;
+			}
+		}
 
 		public virtual SqlDatabaseContext GetCurrentSqlDatabaseContext()
 		{

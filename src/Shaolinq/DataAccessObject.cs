@@ -1,8 +1,7 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Shaolinq.Persistence;
 
 namespace Shaolinq

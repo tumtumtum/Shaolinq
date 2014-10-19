@@ -13,7 +13,7 @@ namespace Shaolinq
 	/// </summary>
 	/// <typeparam name="T">The type data access object</typeparam>
 	public class DataAccessObjectsQueryable<T>
-		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator
+		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator<T>
 		where T : class, IDataAccessObject
 	{
 		private readonly TypeDescriptor typeDescriptor;
@@ -38,14 +38,19 @@ namespace Shaolinq
 			return this.DataAccessModel.CreateDataAccessObject<T>();
 		}
 
-		public virtual T Create(bool transient)
+		public virtual T Create<K>(K primaryKey)
 		{
-			return this.DataAccessModel.CreateDataAccessObject<T>(transient);
+			return this.DataAccessModel.CreateDataAccessObject<T, K>(primaryKey);
 		}
 
 		IDataAccessObject IDataAccessObjectActivator.Create()
 		{
 			return this.Create();
+		}
+
+		IDataAccessObject IDataAccessObjectActivator.Create<K>(K primaryKey)
+		{
+			return this.Create<K>(primaryKey);
 		}
 
 		public virtual T GetByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)

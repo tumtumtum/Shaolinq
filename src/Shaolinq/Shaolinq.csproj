@@ -193,7 +193,6 @@
     <Compile Include="FieldInfoFastRef.cs" />
     <Compile Include="DatabaseReadMode.cs" />
     <Compile Include="DataAccessModelAttribute.cs" />
-    <Compile Include="DataAccessObjectProjectionContext.cs" />
     <Compile Include="DataAccessObjects.cs" />
     <Compile Include="EnvironmentSubstitutor.cs" />
     <Compile Include="ExpectedDataAccessObjectTypeException.cs" />
