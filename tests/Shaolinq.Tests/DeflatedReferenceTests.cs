@@ -71,6 +71,33 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Get_Deflated_Reference_With_Guid()
+		{
+			const string schoolName = "American Kung Fu School";
+			Guid studentId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				school.Name = schoolName;
+				var student = school.Students.Create();
+
+				scope.Flush(model);
+
+				studentId = student.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = model.Students.GetReference(studentId);
+			}
+		}
+
+
+		[Test]
 		public void Test_Set_Related_Parent_Using_Deflated_Reference()
 		{
 			long schoolId;

@@ -13,7 +13,12 @@ namespace Shaolinq
 		{
 		}
 
-		public virtual T GetReference<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		public virtual T GetReference<K>(K primaryKey)
+		{
+			return GetReference(primaryKey, PrimaryKeyType.Auto);
+		}
+
+		public virtual T GetReference<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
 			return this.DataAccessModel.GetReference<T, K>(primaryKey, primaryKeyType);
 		}
