@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence
 			{
 				if (value != null)
 				{
-					value = ((DateTime)value).ToUniversalTime();
+					value = (DateTime?)((DateTime)value).ToUniversalTime();
 				}
 
 				return new Pair<Type, object>(this.UnderlyingType, value);

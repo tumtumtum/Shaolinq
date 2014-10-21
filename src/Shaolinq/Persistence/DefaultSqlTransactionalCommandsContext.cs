@@ -411,7 +411,7 @@ namespace Shaolinq.Persistence
 			return new InsertResults(listToFixup, listToRetry);
 		}
         
-		private IDbDataParameter AddParameter(IDbCommand command, Type type, object value, bool convertForSql)
+		private IDbDataParameter AddParameter(IDbCommand command, Type type, object value)
 		{
 			var parameter = command.CreateParameter();
 
@@ -422,18 +422,11 @@ namespace Shaolinq.Persistence
 				parameter.DbType = GetDbType(type);
 			}
 
-			if (convertForSql)
-			{
-				var result = sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
+			var result = sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
 
-				parameter.DbType = GetDbType(result.Left);
-				parameter.Value = result.Right;
-			}
-			else
-			{
-				parameter.Value = value;
-			}
-
+			parameter.DbType = GetDbType(result.Left);
+			parameter.Value = result.Right;
+		
 			command.Parameters.Add(parameter);
 
 			return parameter;
@@ -443,14 +436,14 @@ namespace Shaolinq.Persistence
 		{
 			foreach (var infoAndValue in changedProperties)
 			{
-				AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value, true);
+				AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
 			}
 
 			if (primaryKeys != null)
 			{
 				foreach (var infoAndValue in primaryKeys)
 				{
-					AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value, true);
+					AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
 				}
 			}
 		}
@@ -598,7 +591,7 @@ namespace Shaolinq.Persistence
 
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Left, value.Right, true);
+					this.AddParameter(command, value.Left, value.Right);
 				}
 
 				if (Logger.IsDebugEnabled)
