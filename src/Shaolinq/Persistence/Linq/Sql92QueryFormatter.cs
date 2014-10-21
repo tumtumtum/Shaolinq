@@ -574,22 +574,12 @@ namespace Shaolinq.Persistence.Linq
 						}
 						break;
 					default:
-						if (constantExpression.Type.IsEnum)
-						{
-							this.Write(this.ParameterIndicatorPrefix);
-							this.Write(Sql92QueryFormatter.ParamNamePrefix);
-							this.Write(parameterValues.Count);
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(Sql92QueryFormatter.ParamNamePrefix);
+						this.Write(parameterValues.Count);
 
-							parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(constantExpression.Value));
-						}
-						else
-						{
-							this.Write(this.ParameterIndicatorPrefix);
-							this.Write(Sql92QueryFormatter.ParamNamePrefix);
-							this.Write(parameterValues.Count);
-
-							parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
-						}
+						parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(constantExpression.Value));
+						
 						break;
 				}
 			}

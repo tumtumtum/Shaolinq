@@ -598,7 +598,7 @@ namespace Shaolinq.Persistence
 
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Left, value.Right, false);
+					this.AddParameter(command, value.Left, value.Right, true);
 				}
 
 				if (Logger.IsDebugEnabled)
