@@ -416,6 +416,7 @@ namespace Shaolinq
 				throw new ArgumentNullException("primaryKey");
 			}
 
+			var idType = primaryKey.GetType();
 			var objectType = primaryKey.GetType();
 			Func<object, ObjectPropertyValue[]> func;
 
@@ -425,7 +426,7 @@ namespace Shaolinq
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(type);
 				var idPropertyType = typeDescriptor.GetPropertyDescriptorByPropertyName("Id").PropertyType;
 
-				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == idPropertyType && primaryKeyType == PrimaryKeyType.Auto))
+				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(idType) || (idType == idPropertyType && primaryKeyType == PrimaryKeyType.Auto))
 				{
 					isSimpleKey = true;
 				}

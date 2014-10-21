@@ -71,7 +71,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Get_Deflated_Reference_With_Guid()
+		public void Test_Get_Deflated_Reference_With_Boxed_Guid()
 		{
 			const string schoolName = "American Kung Fu School";
 			Guid studentId;
@@ -92,7 +92,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.GetReference(studentId);
+				var student = model.Students.GetReference((object)studentId);
 			}
 		}
 
