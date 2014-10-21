@@ -18,6 +18,8 @@ namespace Shaolinq.MySql
 
 		protected override Expression PreProcess(Expression expression)
 		{
+			expression = base.PreProcess(expression);
+
 			return MySqlInsertIntoAutoIncrementAmmender.Ammend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
 		}
 
@@ -61,6 +63,10 @@ namespace Shaolinq.MySql
 			}
 			
 			this.Write("; SELECT LAST_INSERT_ID()");
+		}
+
+		protected override void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)
+		{
 		}
 	}
 }

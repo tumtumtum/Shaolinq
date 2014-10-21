@@ -100,7 +100,8 @@ namespace Shaolinq.Persistence.Linq
 			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetTypeDescriptor(referencingProperty.PropertyType);
 			var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
 
-			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required);
+			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required)
+				|| referencingProperty.IsPrimaryKey;
 			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible);
 
 			foreach (var foreignKeyColumn in columnInfos)
@@ -161,11 +162,6 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var columnExpressions = new List<Expression>();
 			currentTableConstraints = new List<Expression>();
-
-			if (typeDescriptor.TypeName == "Shop")
-			{
-				Console.WriteLine();
-			}
 
 			var columnInfos = QueryBinder.GetColumnInfos
 			(

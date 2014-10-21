@@ -550,7 +550,7 @@ namespace Shaolinq.Persistence.Linq
 				switch (Type.GetTypeCode(type))
 				{
 					case TypeCode.Boolean:
-						this.Write(this.ParameterIndicatorPrefix);
+						this.Write (this.ParameterIndicatorPrefix);
 						this.Write(Sql92QueryFormatter.ParamNamePrefix);
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
@@ -1089,13 +1089,13 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteDeliminatedListOfItems(referencesColumnExpression.ReferencedColumnNames, this.WriteQuotedIdentifier);
 
 			this.Write(")");
-
+			
 			if (referencesColumnExpression.OnDeleteAction != SqlColumnReferenceAction.NoAction)
 			{
 				this.Write(" ON DELETE ");
 				this.Write(referencesColumnExpression.OnDeleteAction);
 			}
-
+			
 			if (referencesColumnExpression.OnUpdateAction != SqlColumnReferenceAction.NoAction)
 			{
 				this.Write(" ON UPDATE ");

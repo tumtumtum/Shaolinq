@@ -18,7 +18,8 @@ namespace Shaolinq.Tests.TestModel
 		[BackReference, ValueRequired(false)]
 		public abstract Fraternity Fraternity { get; set; }
 
-		[PersistedMember]
+		[Index]
+		[PersistedMember, ValueRequired(false)]
 		public abstract Student BestFriend { get; set; }
 
 		[PersistedMember]
