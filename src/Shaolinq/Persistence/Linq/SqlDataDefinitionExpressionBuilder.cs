@@ -162,11 +162,16 @@ namespace Shaolinq.Persistence.Linq
 			var columnExpressions = new List<Expression>();
 			currentTableConstraints = new List<Expression>();
 
+			if (typeDescriptor.TypeName == "Shop")
+			{
+				Console.WriteLine();
+			}
+
 			var columnInfos = QueryBinder.GetColumnInfos
 			(
 				this.model.TypeDescriptorProvider,
 				typeDescriptor.PersistedAndRelatedObjectProperties,
-				(c, d) => c.IsPrimaryKey,
+				(c, d) => c.IsPrimaryKey && !c.PropertyType.IsDataAccessObjectType(),
 				(c, d) => c.IsPrimaryKey
 			);
 
@@ -189,7 +194,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			foreach (var property in typeDescriptor.PersistedProperties
-				.Where(c => c.PropertyType.IsDataAccessObjectType() && !c.IsPrimaryKey))
+				.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
 				columnInfos = QueryBinder.GetColumnInfos
 				(
@@ -203,7 +208,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
-
 
 			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
 
