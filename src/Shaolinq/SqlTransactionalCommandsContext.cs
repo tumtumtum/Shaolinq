@@ -95,11 +95,26 @@ namespace Shaolinq
 
 		public virtual void Commit()
 		{
-			if (this.dbTransaction != null)
+			try
 			{
-				dbTransaction.Commit();
-				
-				this.dbTransaction = null;
+				if (this.dbTransaction != null)
+				{
+					dbTransaction.Commit();
+
+					this.dbTransaction = null;
+				}
+			}
+			catch (Exception e)
+			{
+				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+
+				if (decoratedException != e)
+				{
+					throw decoratedException;
+				}
+
+				throw;
 			}
 
 			CloseConnection();

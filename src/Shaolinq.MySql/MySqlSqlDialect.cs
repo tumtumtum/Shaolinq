@@ -13,18 +13,20 @@ namespace Shaolinq.MySql
 		{
 			switch (feature)
 			{
-				case SqlFeature.AlterTableAddConstraints:
-					return true;
-				case SqlFeature.Constraints:
-					return true;
-				case SqlFeature.IndexNameCasing:
-					return true;
-				case SqlFeature.IndexToLower:
-					return false;
-				case SqlFeature.SelectForUpdate:
-					return true;
-				default:
-					return false;
+			case SqlFeature.AlterTableAddConstraints:
+				return true;
+			case SqlFeature.Constraints:
+				return true;
+			case SqlFeature.IndexNameCasing:
+				return true;
+			case SqlFeature.IndexToLower:
+				return false;
+			case SqlFeature.SelectForUpdate:
+				return true;
+			case SqlFeature.Deferrability:
+				return false;
+			default:
+				return false;
 			}
 		}
 

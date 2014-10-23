@@ -12,18 +12,20 @@ namespace Shaolinq.Persistence
 		{
 			switch (feature)
 			{
-				case SqlFeature.AlterTableAddConstraints:
+			case SqlFeature.AlterTableAddConstraints:
+				return true;
+			case SqlFeature.Constraints:
+				return true;
+			case SqlFeature.IndexNameCasing:
+				return true;
+			case SqlFeature.IndexToLower:
+				return true;
+			case SqlFeature.SelectForUpdate:
+				return true;
+			case SqlFeature.Deferrability:
 					return true;
-				case SqlFeature.Constraints:
-					return true;
-				case SqlFeature.IndexNameCasing:
-					return true;
-				case SqlFeature.IndexToLower:
-					return true;
-				case SqlFeature.SelectForUpdate:
-					return true;
-				default:
-					return false;
+			default:
+				return false;
 			}
 		}
 

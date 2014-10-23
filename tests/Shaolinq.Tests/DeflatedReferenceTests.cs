@@ -311,8 +311,6 @@ namespace Shaolinq.Tests
 
 				student.BestFriend = friend;
 
-				scope.Flush(model);
-
 				scope.Complete();
 			}
 

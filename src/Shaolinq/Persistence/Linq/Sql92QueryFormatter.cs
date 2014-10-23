@@ -1103,7 +1103,10 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(referencesColumnExpression.OnUpdateAction);
 			}
 
-			this.WriteDeferrability(referencesColumnExpression.Deferrability);
+			if (this.sqlDialect.SupportsFeature(SqlFeature.Deferrability))
+			{
+				this.WriteDeferrability(referencesColumnExpression.Deferrability);
+			}
 
 			return referencesColumnExpression;
 		}

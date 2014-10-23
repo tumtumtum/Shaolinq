@@ -14,18 +14,20 @@ namespace Shaolinq.Postgres.Shared
 		{
 			switch (feature)
 			{
-				case SqlFeature.AlterTableAddConstraints:
-					return true;
-				case SqlFeature.Constraints:
-					return true;
-				case SqlFeature.IndexNameCasing:
-					return false;
-				case SqlFeature.IndexToLower:
-					return true;
-				case SqlFeature.SelectForUpdate:
-					return true;
-				default:
-					return false;
+			case SqlFeature.AlterTableAddConstraints:
+				return true;
+			case SqlFeature.Constraints:
+				return true;
+			case SqlFeature.IndexNameCasing:
+				return false;
+			case SqlFeature.IndexToLower:
+				return true;
+			case SqlFeature.SelectForUpdate:
+				return true;
+			case SqlFeature.Deferrability:
+				return true;
+			default:
+				return false;
 			}
 		}
 

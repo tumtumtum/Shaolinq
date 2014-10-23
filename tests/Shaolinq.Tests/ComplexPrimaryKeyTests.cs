@@ -8,6 +8,7 @@ using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
 	[TestFixture("Postgres.DotConnect")]
 	public class ComplexPrimaryKeyTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
@@ -29,19 +30,27 @@ namespace Shaolinq.Tests
 
 				mall.Name = "Seattle City";
 
-				shop.Address = this.model.Addresses.Create();
+				var address = this.model.Addresses.Create();
+				shop.Address = address;
 				shop.Address.Street = "Madison Street";
-				shop.Address.Region = this.model.Regions.Create();
+				var region = this.model.Regions.Create();
+
+				shop.Address.Region = region;
 				shop.Address.Region.Name = "Washington";
 				shop.Address.Region.Diameter = 2000;
 				shop.Name = "Microsoft Store";
 
-				shop.Address.Region.Center = this.model.Coordinates.Create();
-				shop.Address.Region.Center.Label = "Center of Washington";
+				var center = this.model.Coordinates.Create();
+				center.Label = "Center of Washington";
 
+				shop.Address.Region.Center = center;
+				
+				model.Flush();
+
+				region = this.model.Regions.Create();
 				shop.SecondAddress = this.model.Addresses.Create();
 				shop.SecondAddress.Street = "Jefferson Avenue";
-				shop.SecondAddress.Region = this.model.Regions.Create();
+				shop.SecondAddress.Region = region;
 				shop.SecondAddress.Region.Name = "Washington";
 				
 				scope.Flush(model);

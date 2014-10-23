@@ -13,20 +13,22 @@ namespace Shaolinq.Sqlite
 		{
 			switch (feature)
 			{
-				case SqlFeature.AlterTableAddConstraints:
-					return false;
-				case SqlFeature.Constraints:
-					return true;
-				case SqlFeature.IndexNameCasing:
-					return true;
-				case SqlFeature.IndexToLower:
-					return true;
-				case SqlFeature.SelectForUpdate:
-					return false;
-				case SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible:
-					return false;
-				default:
-					return false;
+			case SqlFeature.AlterTableAddConstraints:
+				return false;
+			case SqlFeature.Constraints:
+				return true;
+			case SqlFeature.IndexNameCasing:
+				return true;
+			case SqlFeature.IndexToLower:
+				return true;
+			case SqlFeature.SelectForUpdate:
+				return false;
+			case SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible:
+				return false;
+			case SqlFeature.Deferrability:
+				return true;
+			default:
+				return false;
 			}
 		}
 		

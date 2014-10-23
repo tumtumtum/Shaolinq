@@ -126,6 +126,7 @@
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
+    <Compile Include="ForeignObjectConstraintAttribute.cs" />
     <Compile Include="IdentityEqualityComparer.cs" />
     <Compile Include="InternalListExtensions.cs" />
     <Compile Include="MissingDataAccessObjectException.cs" />

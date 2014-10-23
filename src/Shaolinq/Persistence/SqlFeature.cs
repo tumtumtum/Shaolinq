@@ -6,6 +6,7 @@ namespace Shaolinq.Persistence
 	{
 		None,
 		Constraints,
+		Deferrability,
 		SelectForUpdate,
 		AlterTableAddConstraints,
 		IndexNameCasing,

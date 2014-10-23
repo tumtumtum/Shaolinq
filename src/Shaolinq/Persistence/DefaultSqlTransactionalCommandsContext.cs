@@ -320,7 +320,9 @@ namespace Shaolinq.Persistence
 						throw new NotSupportedException("Changed state not supported");
 				}
 
-				if ((objectState & (ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys)) == 0)
+				var mask = ObjectState.MissingUnconstrainedForeignKeys | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys;
+
+				if ((objectState & mask) == 0)
 				{
 					// We can insert if it is not missing foreign keys
 					// (could be missing some unconstrained foreign keys)
