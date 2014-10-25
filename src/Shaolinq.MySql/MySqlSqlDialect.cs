@@ -7,27 +7,25 @@ namespace Shaolinq.MySql
 	public class MySqlSqlDialect
 		: SqlDialect
 	{
-		public new static readonly MySqlSqlDialect Default = new MySqlSqlDialect();
+		public new static readonly MySqlSqlDialect Default;
 
-		public override bool SupportsFeature(SqlFeature feature)
+		static MySqlSqlDialect()
 		{
-			switch (feature)
-			{
-			case SqlFeature.AlterTableAddConstraints:
-				return true;
-			case SqlFeature.Constraints:
-				return true;
-			case SqlFeature.IndexNameCasing:
-				return true;
-			case SqlFeature.IndexToLower:
-				return false;
-			case SqlFeature.SelectForUpdate:
-				return true;
-			case SqlFeature.Deferrability:
-				return false;
-			default:
-				return false;
-			}
+			Default = new MySqlSqlDialect
+			(
+				new []
+				{
+					SqlFeature.AlterTableAddConstraints,
+					SqlFeature.Constraints,
+					SqlFeature.IndexNameCasing,
+					SqlFeature.SelectForUpdate
+				}
+			);
+		}
+
+		private MySqlSqlDialect(params SqlFeature[] supportedFeatures)
+			: base(supportedFeatures)
+		{	
 		}
 
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)

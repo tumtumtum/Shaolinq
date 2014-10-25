@@ -1016,7 +1016,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				this.WriteLine();
-				this.WriteDeliminatedListOfItems(createTableExpression.TableConstraints, this.Visit);
+				this.WriteDeliminatedListOfItems(createTableExpression.TableConstraints, this.Visit, () => this.WriteLine(","));
 			}
 
 			this.WriteLine();

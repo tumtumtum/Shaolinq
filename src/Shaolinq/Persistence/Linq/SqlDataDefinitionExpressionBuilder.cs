@@ -43,11 +43,6 @@ namespace Shaolinq.Persistence.Linq
 					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique));
 				}
 
-				if (foreignKeyReferencingProperty.IsPrimaryKey)
-				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
-				}
-
 				if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
 				{
 					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
@@ -67,11 +62,6 @@ namespace Shaolinq.Persistence.Linq
 				else
 				{
 					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
-				}
-
-				if (propertyDescriptor.IsPrimaryKey)
-				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
 				}
 
 				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true))
@@ -102,7 +92,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required)
 				|| referencingProperty.IsPrimaryKey;
-			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsAndPrefersInlineForeignKeysWherePossible);
+			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsInlineForeignKeys);
 
 			foreach (var foreignKeyColumn in columnInfos)
 			{
@@ -209,7 +199,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var primaryKeys = QueryBinder.GetPrimaryKeyColumnInfos(this.model.TypeDescriptorProvider, typeDescriptor);
 
-			if (primaryKeys.Length > 1)
+			if (primaryKeys.Length > 0)
 			{
 				var columnNames = primaryKeys.Select(c => c.ColumnName).ToArray();
 
@@ -315,8 +305,6 @@ namespace Shaolinq.Persistence.Linq
 			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model, tableNamePrefix, flags);
 
 			var retval = builder.Build();
-
-			retval = SqlMultiColumnPrimaryKeyRemover.Remove(retval);
 
 			return retval;
 		}

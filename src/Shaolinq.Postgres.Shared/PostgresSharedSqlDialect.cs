@@ -1,34 +1,32 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using Platform;
-﻿using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
 {
 	public class PostgresSharedSqlDialect
 		: SqlDialect
 	{
-		public new static readonly PostgresSharedSqlDialect Default = new PostgresSharedSqlDialect();
+		public new static readonly PostgresSharedSqlDialect Default;
 
-		public override bool SupportsFeature(SqlFeature feature)
+		static PostgresSharedSqlDialect()
 		{
-			switch (feature)
-			{
-			case SqlFeature.AlterTableAddConstraints:
-				return true;
-			case SqlFeature.Constraints:
-				return true;
-			case SqlFeature.IndexNameCasing:
-				return false;
-			case SqlFeature.IndexToLower:
-				return true;
-			case SqlFeature.SelectForUpdate:
-				return true;
-			case SqlFeature.Deferrability:
-				return true;
-			default:
-				return false;
-			}
+			Default = new PostgresSharedSqlDialect
+			(
+				new []
+				{
+					SqlFeature.AlterTableAddConstraints, 
+					SqlFeature.Constraints, 
+					SqlFeature.IndexToLower, 
+					SqlFeature.SelectForUpdate,
+					SqlFeature.Deferrability
+				}
+			);
+		}
+
+		private PostgresSharedSqlDialect(params SqlFeature[] supportedFeatures)
+			: base(supportedFeatures)
+		{	
 		}
 
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)

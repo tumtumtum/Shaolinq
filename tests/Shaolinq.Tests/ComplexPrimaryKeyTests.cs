@@ -9,6 +9,7 @@ using Shaolinq.Tests.ComplexPrimaryKeyModel;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
+	[TestFixture("Sqlite")]
 	[TestFixture("Postgres.DotConnect")]
 	public class ComplexPrimaryKeyTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
@@ -25,7 +26,16 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
+				var region = this.model.Regions.Create();
+				region.Name = "Washington";
+				region.Diameter = 2000;
+
+				model.Flush();
+
 				var mall = this.model.Malls.Create();
+
+				model.Flush();
+
 				var shop = mall.Shops.Create();
 
 				mall.Name = "Seattle City";
@@ -33,11 +43,8 @@ namespace Shaolinq.Tests
 				var address = this.model.Addresses.Create();
 				shop.Address = address;
 				shop.Address.Street = "Madison Street";
-				var region = this.model.Regions.Create();
-
+				
 				shop.Address.Region = region;
-				shop.Address.Region.Name = "Washington";
-				shop.Address.Region.Diameter = 2000;
 				shop.Name = "Microsoft Store";
 
 				var center = this.model.Coordinates.Create();
@@ -150,6 +157,46 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Implicit_Join_In_Where_Then_Select_Single_Property()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street")
+					.Select(c => c.Id);
+
+				var first = query.First();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_Then_Project()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street")
+					.Select(c => c);
+
+				var first = query.First();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_Then_Project_Anonymous()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address.Street == "Madison Street")
+					.Select(c => new { c });
+
+				var first = query.First();
+			}
+		}
+
+
+		[Test]
 		public void Test_Include_With_One_Select()
 		{
 			using (var scope = new TransactionScope())
@@ -196,14 +243,15 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Include_With_Two_Different_QuerableIncludes_Same_Property()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
-					.Include(c => c.Address)
-					.Include(c => c.Address);
+					.Select(c => c.Include(d => d.Address))
+					//.Select(c => c.Include(d => d.Mall));
+					.Select(c => c.Include(d => d.Address));
 
 				var first = query.First();
 

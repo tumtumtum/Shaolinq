@@ -24,6 +24,7 @@ namespace Shaolinq.Persistence.Linq
 		private LambdaExpression extraCondition;
 		private readonly Expression rootExpression;
 		private List<SqlOrderByExpression> thenBys;
+		private Stack<Expression> selectorPredicateStack = new Stack<Expression>();
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly Dictionary<Expression, GroupByInfo> groupByMap;
 		private readonly RelatedPropertiesJoinExpanderResults joinExpanderResults;
@@ -674,19 +675,18 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression BindGroupJoin(MethodInfo groupJoinMethod, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
 		{
-			// A database will treat this no differently than a SelectMany w/ result selector, so just use that translation instead
-			Type[] args = groupJoinMethod.GetGenericArguments();
+			var args = groupJoinMethod.GetGenericArguments();
 
 			var outerProjection = this.VisitSequence(outerSource);
 
 			this.expressionsByParameter[outerKey.Parameters[0]] = outerProjection.Projector;
 			var predicateLambda = Expression.Lambda(Expression.Equal(innerKey.Body, outerKey.Body), innerKey.Parameters[0]);
-			var callToWhere = Expression.Call(typeof(Enumerable), "Where", new Type[] { args[1] }, innerSource, predicateLambda);
-			Expression group = this.Visit(callToWhere);
+			var callToWhere = Expression.Call(typeof(Enumerable), "Where", new[] { args[1] }, innerSource, predicateLambda);
+			var group = this.Visit(callToWhere);
 
 			this.expressionsByParameter[resultSelector.Parameters[0]] = outerProjection.Projector;
 			this.expressionsByParameter[resultSelector.Parameters[1]] = group;
-			Expression resultExpr = this.Visit(resultSelector.Body);
+			var resultExpr = this.Visit(resultSelector.Body);
 
 			var alias = this.GetNextAlias();
 			var pc = this.ProjectColumns(resultExpr, alias, outerProjection.Select.Alias);
@@ -711,188 +711,209 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
+			Expression result;
+
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
             {
 	            switch (methodCallExpression.Method.Name)
-				{
-					case "Where":
-						return this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
-					case "WhereForUpdate":
-						return this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
-					case "Select":
-						return this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
-					case "SelectForUpdate":
-						return this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
-					case "OrderBy":
-						return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
-					case "OrderByDescending":
-						return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
-					case "ThenBy":
-						return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
-					case "ThenByDescending":
-						return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
-					case "GroupJoin":
-						if (methodCallExpression.Arguments.Count == 5)
-						{
-							return this.BindGroupJoin(methodCallExpression.Method, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], GetLambda(methodCallExpression.Arguments[2]), GetLambda(methodCallExpression.Arguments[3]), GetLambda(methodCallExpression.Arguments[4]));
-						}
-						break;
-					case "GroupBy":
-						if (methodCallExpression.Arguments.Count == 2)
-						{
-							return this.BindGroupBy
-							(
-								methodCallExpression.Arguments[0],
-								(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
-								null,
-								null
-							);
-						}
-						else if (methodCallExpression.Arguments.Count == 3)
-						{
-							return this.BindGroupBy
-							(
-								methodCallExpression.Arguments[0],
-								(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
-								(LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
-								null
-							);
-						}
-						else if (methodCallExpression.Arguments.Count == 4)
-						{
-							return this.BindGroupBy
-							(
-								methodCallExpression.Arguments[0],
-								(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
-								(LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
-								(LambdaExpression)StripQuotes(methodCallExpression.Arguments[3])
-							);
-						}
-						break;
-					case "Count":
-					case "Min":
-					case "Max":
-					case "Sum":
-					case "Average":
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							return this.BindAggregate(methodCallExpression.Arguments[0], methodCallExpression.Method, null, methodCallExpression == this.rootExpression);
-						}
-						else if (methodCallExpression.Arguments.Count == 2)
-						{
-							var selector = (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]);
+	            {
+	            case "Where":
+					this.selectorPredicateStack.Push(methodCallExpression);
+		            result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
+		            this.selectorPredicateStack.Pop();
+					return result;
+	            case "WhereForUpdate":
+		            this.selectorPredicateStack.Push(methodCallExpression);
+		            result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
+					this.selectorPredicateStack.Pop();
+					return result;
+	            case "Select":
+					this.selectorPredicateStack.Push(methodCallExpression);
+		            result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
+		            this.selectorPredicateStack.Pop();
+					return result;
+	            case "SelectForUpdate":
+					this.selectorPredicateStack.Push(methodCallExpression);
+		            result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
+					this.selectorPredicateStack.Pop();
+					return result;
+	            case "OrderBy":
+		            return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
+	            case "OrderByDescending":
+		            return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
+	            case "ThenBy":
+		            return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
+	            case "ThenByDescending":
+		            return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
+	            case "GroupJoin":
+		            if (methodCallExpression.Arguments.Count == 5)
+		            {
+			            return this.BindGroupJoin(methodCallExpression.Method, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], GetLambda(methodCallExpression.Arguments[2]), GetLambda(methodCallExpression.Arguments[3]), GetLambda(methodCallExpression.Arguments[4]));
+		            }
+		            break;
+	            case "GroupBy":
+		            if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            return this.BindGroupBy
+						(
+							methodCallExpression.Arguments[0],
+							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
+							null,
+							null
+						);
+		            }
+		            else if (methodCallExpression.Arguments.Count == 3)
+		            {
+			            return this.BindGroupBy
+				            (
+				             methodCallExpression.Arguments[0],
+				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
+				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
+				             null
+				            );
+		            }
+		            else if (methodCallExpression.Arguments.Count == 4)
+		            {
+			            return this.BindGroupBy
+				            (
+				             methodCallExpression.Arguments[0],
+				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
+				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
+				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[3])
+				            );
+		            }
+		            break;
+	            case "Count":
+	            case "Min":
+	            case "Max":
+	            case "Sum":
+	            case "Average":
+		            if (methodCallExpression.Arguments.Count == 1)
+		            {
+			            return this.BindAggregate(methodCallExpression.Arguments[0], methodCallExpression.Method, null, methodCallExpression == this.rootExpression);
+		            }
+		            else if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            var selector = (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]);
 
-							return this.BindAggregate(methodCallExpression.Arguments[0], methodCallExpression.Method, selector, methodCallExpression == this.rootExpression);
-						}
+			            return this.BindAggregate(methodCallExpression.Arguments[0], methodCallExpression.Method, selector, methodCallExpression == this.rootExpression);
+		            }
+		            break;
+	            case "Distinct":
+		            return this.BindDistinct(methodCallExpression.Type, methodCallExpression.Arguments[0]);
+	            case "Join":
+		            return this.BindJoin(methodCallExpression.Type, methodCallExpression.Arguments[0],
+		                                       methodCallExpression.Arguments[1],
+		                                       (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
+		                                       (LambdaExpression)StripQuotes(methodCallExpression.Arguments[3]),
+		                                       (LambdaExpression)StripQuotes(methodCallExpression.Arguments[4]));
+	            case "SelectMany":
+		            this.selectorPredicateStack.Push(methodCallExpression);
+					if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), null);
+		            }
+		            else if (methodCallExpression.Arguments.Count == 3)
+		            {
+			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]));
+		            }
+		            else
+		            {
+			            this.selectorPredicateStack.Pop();
 						break;
-					case "Distinct":
-						return this.BindDistinct(methodCallExpression.Type, methodCallExpression.Arguments[0]);
-					case "Join":
-						return this.BindJoin(methodCallExpression.Type, methodCallExpression.Arguments[0],
-						                     methodCallExpression.Arguments[1],
-						                     (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
-						                     (LambdaExpression)StripQuotes(methodCallExpression.Arguments[3]),
-						                     (LambdaExpression)StripQuotes(methodCallExpression.Arguments[4]));
-					case "SelectMany":
-						if (methodCallExpression.Arguments.Count == 2)
-						{
-							return this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), null);
-						}
-						else if (methodCallExpression.Arguments.Count == 3)
-						{
-							return this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]));
-						}
-						break;
-					case "Skip":
-						if (methodCallExpression.Arguments.Count == 2)
-						{
-							return this.BindSkip(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
-						}
-						break;
-					case "Take":
-						if (methodCallExpression.Arguments.Count == 2)
-						{
-							return this.BindTake(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
-						}
-						break;
-					case "First":
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var retval = this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.First);
+		            }
+					this.selectorPredicateStack.Pop();
+		            return result;
+	            case "Skip":
+		            if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            return this.BindSkip(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
+		            }
+		            break;
+	            case "Take":
+		            if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            return this.BindTake(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
+		            }
+		            break;
+	            case "First":
+		            if (methodCallExpression.Arguments.Count == 1)
+		            {
+			            var retval = this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.First);
 
-							return retval;
-						}
-						else if (methodCallExpression.Arguments.Count == 2)
-						{
-							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+			            return retval;
+		            }
+		            else if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, SelectFirstType.First);
-						}
-						break;
-					case "FirstOrDefault":
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.FirstOrDefault);
-						}
-						else if (methodCallExpression.Arguments.Count == 2)
-						{
-							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+			            return this.BindFirst(where, SelectFirstType.First);
+		            }
+		            break;
+	            case "FirstOrDefault":
+		            if (methodCallExpression.Arguments.Count == 1)
+		            {
+			            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.FirstOrDefault);
+		            }
+		            else if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, SelectFirstType.FirstOrDefault);
-						}
-						break;
-					case "Single":
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.Single);
-						}
-						else if (methodCallExpression.Arguments.Count == 2)
-						{
-							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+			            return this.BindFirst(where, SelectFirstType.FirstOrDefault);
+		            }
+		            break;
+	            case "Single":
+		            if (methodCallExpression.Arguments.Count == 1)
+		            {
+			            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.Single);
+		            }
+		            else if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, SelectFirstType.Single);
-						}
-						break;
-					case "SingleOrDefault":
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.SingleOrDefault);
-						}
-						else if (methodCallExpression.Arguments.Count == 2)
-						{
-							var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+			            return this.BindFirst(where, SelectFirstType.Single);
+		            }
+		            break;
+	            case "SingleOrDefault":
+		            if (methodCallExpression.Arguments.Count == 1)
+		            {
+			            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.SingleOrDefault);
+		            }
+		            else if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
-							return this.BindFirst(where, SelectFirstType.SingleOrDefault);
-						}
-						break;
-					case "DefaultIfEmpty":
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
+			            return this.BindFirst(where, SelectFirstType.SingleOrDefault);
+		            }
+		            break;
+	            case "DefaultIfEmpty":
+		            if (methodCallExpression.Arguments.Count == 1)
+		            {
+			            var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
 
-							return projectionExpression.ToDefaultIfEmpty(null);
-						}
-						else if (methodCallExpression.Arguments.Count == 2)
-						{
-							var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
+			            return projectionExpression.ToDefaultIfEmpty(null);
+		            }
+		            else if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
 
-							return projectionExpression.ToDefaultIfEmpty(methodCallExpression.Arguments[1]);
-						}
-						else
-						{
-							throw new NotSupportedException(methodCallExpression.ToString());
-						}
-					case "Contains":
-						if (methodCallExpression.Arguments.Count == 2)
-						{
-							return this.BindContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
-						}
-						break;
-				}
+			            return projectionExpression.ToDefaultIfEmpty(methodCallExpression.Arguments[1]);
+		            }
+		            else
+		            {
+			            throw new NotSupportedException(methodCallExpression.ToString());
+		            }
+	            case "Contains":
+		            if (methodCallExpression.Arguments.Count == 2)
+		            {
+			            return this.BindContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
+		            }
+		            break;
+	            }
 
-				throw new NotSupportedException(String.Format("Linq function \"{0}\" is not supported", methodCallExpression.Method.Name));
+	            throw new NotSupportedException(String.Format("Linq function \"{0}\" is not supported", methodCallExpression.Method.Name));
 			}
 			else if (methodCallExpression.Method.DeclaringType == typeof(DataAccessObjectsQueryableExtensions))
 			{
@@ -1914,53 +1935,51 @@ namespace Shaolinq.Persistence.Linq
 
 					var objectReference = current as SqlObjectReference;
 
-					if (objectReference == null)
-					{
-						throw new InvalidOperationException("Expected SqlObjectReference");
-					}
-
 					Expression isNullExpression = null;
 
-					foreach (var binding in objectReference.Bindings.OfType<MemberAssignment>())
+					if (objectReference != null)
 					{
-						Expression equalExpression;
-						var columnExpression = binding.Expression as SqlColumnExpression;
-
-						if (columnExpression != null)
+						foreach (var binding in objectReference.Bindings.OfType<MemberAssignment>())
 						{
-							var nullableType = columnExpression.Type.MakeNullable();
+							Expression equalExpression;
+							var columnExpression = binding.Expression as SqlColumnExpression;
 
-							if (columnExpression.Type == nullableType)
+							if (columnExpression != null)
 							{
-								equalExpression = Expression.Equal(columnExpression, Expression.Constant(null, columnExpression.Type));
+								var nullableType = columnExpression.Type.MakeNullable();
+
+								if (columnExpression.Type == nullableType)
+								{
+									equalExpression = Expression.Equal(columnExpression, Expression.Constant(null, columnExpression.Type));
+								}
+								else
+								{
+									equalExpression = Expression.Equal(Expression.Convert(columnExpression, nullableType), Expression.Constant(nullableType.GetDefaultValue(), nullableType));
+								}
+							}
+							else if (binding.Expression is SqlObjectReference)
+							{
+								equalExpression = Expression.Equal(binding.Expression, Expression.Constant(null));
 							}
 							else
 							{
-								equalExpression = Expression.Equal(Expression.Convert(columnExpression, nullableType), Expression.Constant(nullableType.GetDefaultValue(), nullableType));
+								isNullExpression = null;
+
+								break;
 							}
-						}
-						else if (binding.Expression is SqlObjectReference)
-						{
-							equalExpression = Expression.Equal(binding.Expression, Expression.Constant(null));
-						}
-						else
-						{
-							isNullExpression = null;
 
-							break;
-						}
-
-						if (isNullExpression == null)
-						{
-							isNullExpression = equalExpression;
-						}
-						else
-						{
-							isNullExpression = Expression.Or(isNullExpression, equalExpression);
+							if (isNullExpression == null)
+							{
+								isNullExpression = equalExpression;
+							}
+							else
+							{
+								isNullExpression = Expression.Or(isNullExpression, equalExpression);
+							}
 						}
 					}
 
-					var originalReplacementExpression = this.joinExpanderResults.ReplacementExpressionForPropertyPath[includedProperty.PropertyPath];
+					var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.PropertyPath);
 
 					var replacement = this.Visit(originalReplacementExpression);
 

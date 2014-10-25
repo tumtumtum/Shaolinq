@@ -40,19 +40,51 @@ namespace Shaolinq.Persistence.Linq
 	}
 
 	public class RelatedPropertiesJoinExpanderResults
-	{	
+	{
 		public Expression ProcessedExpression { get; set; }
 		public Dictionary<Expression, List<IncludedPropertyInfo>> IncludedPropertyInfos { get; set; }
-		public Dictionary<PropertyInfo[], Expression> ReplacementExpressionForPropertyPath { get; set; }
+		private readonly List<Pair<Expression, Dictionary<PropertyInfo[], Expression>>> replacementExpressionForPropertyPathsByJoin;
+		
+		internal RelatedPropertiesJoinExpanderResults(List<Pair<Expression, Dictionary<PropertyInfo[], Expression>>> replacementExpressionForPropertyPathsByJoin)
+		{
+			this.replacementExpressionForPropertyPathsByJoin = replacementExpressionForPropertyPathsByJoin;
+		}
+
+		public Expression GetReplacementExpression(Expression currentJoin, PropertyInfo[] propertyInfo)
+		{
+			int index;
+			var indexFound = -1;
+
+			for (index = replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
+			{
+				Expression retval;
+
+				if (currentJoin == replacementExpressionForPropertyPathsByJoin[index].Left)
+				{
+					indexFound = index;
+				}
+
+				if (index > indexFound)
+				{
+					continue;
+				}
+
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyInfo, out retval))
+				{
+					return retval;	
+				}
+			}
+
+			throw new InvalidOperationException();
+		}
 	}
 
 	public class RelatedPropertiesJoinExpander
 		: SqlExpressionVisitor
 	{
 		private readonly DataAccessModel model;
-		private readonly Dictionary<PropertyInfo[], Expression> rootExpressionsByPath = new Dictionary<PropertyInfo[], Expression>();
 		private readonly Dictionary<Expression, List<IncludedPropertyInfo>> includedPropertyInfos = new Dictionary<Expression, List<IncludedPropertyInfo>>();
-		private readonly Dictionary<PropertyInfo[], Expression> replacementExpressionForPropertyPath = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
+		private readonly List<Pair<Expression, Dictionary<PropertyInfo[], Expression>>> replacementExpressionForPropertyPathsByJoin = new List<Pair<Expression, Dictionary<PropertyInfo[], Expression>>>();
 
 		private RelatedPropertiesJoinExpander(DataAccessModel model)
 		{
@@ -65,11 +97,10 @@ namespace Shaolinq.Persistence.Linq
 
 			var processedExpression = visitor.Visit(expression);
 
-			return new RelatedPropertiesJoinExpanderResults
+			return new RelatedPropertiesJoinExpanderResults(visitor.replacementExpressionForPropertyPathsByJoin)
 			{
 				ProcessedExpression = processedExpression,
-				IncludedPropertyInfos = visitor.includedPropertyInfos,
-				ReplacementExpressionForPropertyPath = visitor.replacementExpressionForPropertyPath 
+				IncludedPropertyInfos = visitor.includedPropertyInfos
 			};
 		}
 
@@ -176,7 +207,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression, bool forSelector)
 		{
-			var source = this.Visit(methodCallExpression.Arguments[0]);
+			var originalSource = methodCallExpression.Arguments[0];
+			var source = this.Visit(originalSource);
 			var sourceType = source.Type.GetGenericArguments()[0];
 			var originalPredicateOrSelector = (methodCallExpression.Arguments[1]);
 			var sourceParameterExpression = ((LambdaExpression)QueryBinder.StripQuotes(originalPredicateOrSelector)).Parameters[0];
@@ -189,6 +221,8 @@ namespace Shaolinq.Persistence.Linq
 
 			if (memberAccessExpressionsNeedingJoins.Count > 0)
 			{
+				var replacementExpressionForPropertyPath = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
+
 				ReferencedRelatedObjectPropertyGatherer.Gather(this.model, predicateOrSelector, sourceParameterExpression, forSelector);
 
 				var referencedObjectPaths = memberAccessExpressionsNeedingJoins
@@ -225,7 +259,8 @@ namespace Shaolinq.Persistence.Linq
 
 				foreach (var value in replacementExpressionsByPropertyPathForSelector)
 				{
-					this.replacementExpressionForPropertyPath[value.Key] = value.Value;
+					replacementExpressionForPropertyPath[value.Key] = value.Value;
+					//this.replacementExpressionForPropertyPath.Add(value.Key, value.Value);
 				}
 
 				var propertyPathsByOriginalExpression = referencedObjectPaths
@@ -328,11 +363,13 @@ namespace Shaolinq.Persistence.Linq
 					newCall = Expression.Call(null, selectMethod, new Expression[] { newCall, selectCall });
 				}
 
+				this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression,Dictionary<PropertyInfo[],Expression>>(newCall, replacementExpressionForPropertyPath));
+
 				return newCall;
 			}
 			else
 			{
-				if (predicateOrSelector == originalPredicateOrSelector)
+				if (predicateOrSelector == originalPredicateOrSelector && source == originalSource)
 				{
 					return methodCallExpression;
 				}

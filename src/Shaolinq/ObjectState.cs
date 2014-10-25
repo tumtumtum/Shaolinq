@@ -54,8 +54,13 @@ namespace Shaolinq
 		MissingServerGeneratedForeignPrimaryKeys = 32,
 
 		/// <summary>
+		/// The object has been inserted in the transaction but may or may not be completely fulfilled.s
+		/// </summary>
+		ObjectInsertedWithinTransaction = 64,
+
+		/// <summary>
 		/// The object has been deleted
 		/// </summary>
-		Deleted = 256
+		Deleted = 4096
 	}
 }

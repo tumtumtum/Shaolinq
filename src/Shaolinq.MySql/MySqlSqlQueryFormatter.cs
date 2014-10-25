@@ -19,8 +19,9 @@ namespace Shaolinq.MySql
 		protected override Expression PreProcess(Expression expression)
 		{
 			expression = base.PreProcess(expression);
+			expression = MySqlInsertIntoAutoIncrementAmmender.Ammend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
 
-			return MySqlInsertIntoAutoIncrementAmmender.Ammend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
+			return expression;
 		}
 
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)

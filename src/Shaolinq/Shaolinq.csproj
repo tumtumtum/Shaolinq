@@ -129,6 +129,7 @@
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
     <Compile Include="IdentityEqualityComparer.cs" />
     <Compile Include="InternalListExtensions.cs" />
+    <Compile Include="InvalidDataAccessModelDefinitionException.cs" />
     <Compile Include="MissingDataAccessObjectException.cs" />
     <Compile Include="MissingOrInvalidPrimaryKeyException.cs" />
     <Compile Include="MutableTuple.cs" />
@@ -332,6 +333,7 @@
     <Compile Include="TypeHelper.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="UniqueKeyConstraintException.cs" />
+    <Compile Include="UnsupportedDataAccessModelDefinitionException.cs" />
     <Compile Include="VariableSubstitutor.cs" />
     <Compile Include="WriteOnlyDomainObjectException.cs" />
     <Compile Include="Xml\XmlSerializationExtensions.cs" />

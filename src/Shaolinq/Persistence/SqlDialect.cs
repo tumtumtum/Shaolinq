@@ -1,32 +1,46 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
-using Platform;
+using System.Linq;
 
 namespace Shaolinq.Persistence
 {
 	public class SqlDialect
 	{
-		public static readonly SqlDialect Default = new SqlDialect();
+		public static readonly SqlDialect Default;
+
+		static SqlDialect()
+		{
+			Default = new SqlDialect
+			(
+				new []
+				{
+					SqlFeature.AlterTableAddConstraints,
+					SqlFeature.Constraints,
+					SqlFeature.IndexNameCasing,
+					SqlFeature.IndexToLower,
+					SqlFeature.SelectForUpdate,
+					SqlFeature.Deferrability,
+					SqlFeature.InsertIntoReturning,
+					SqlFeature.SupportsInlineForeignKeys
+				}
+			);
+		}
+
+		private readonly SqlFeature[] supportedFeatures;
+		
+		public SqlDialect(params SqlFeature[] supportedFeatures)
+		{
+			this.supportedFeatures = supportedFeatures;
+		}
+
+		public SqlFeature[] GetAllSupportedFeatures()
+		{
+			return (SqlFeature[])this.supportedFeatures.Clone();
+		}
 
 		public virtual bool SupportsFeature(SqlFeature feature)
 		{
-			switch (feature)
-			{
-			case SqlFeature.AlterTableAddConstraints:
-				return true;
-			case SqlFeature.Constraints:
-				return true;
-			case SqlFeature.IndexNameCasing:
-				return true;
-			case SqlFeature.IndexToLower:
-				return true;
-			case SqlFeature.SelectForUpdate:
-				return true;
-			case SqlFeature.Deferrability:
-					return true;
-			default:
-				return false;
-			}
+			return this.supportedFeatures.Contains(feature);
 		}
 
 		public virtual string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)

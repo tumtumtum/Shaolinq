@@ -12,6 +12,6 @@ namespace Shaolinq.Persistence
 		IndexNameCasing,
 		IndexToLower,
 		InsertIntoReturning,
-		SupportsAndPrefersInlineForeignKeysWherePossible
+		SupportsInlineForeignKeys
 	}
 }

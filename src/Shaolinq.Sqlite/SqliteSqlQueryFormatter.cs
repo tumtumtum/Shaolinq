@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 ﻿using Shaolinq.Persistence;
@@ -18,8 +19,12 @@ namespace Shaolinq.Sqlite
 
 		protected override Expression PreProcess(Expression expression)
 		{
-			expression = SqliteDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), sqlDataTypeProvider);
+			IDictionary<string, string> primaryKeyNameByTablesWithReducedPrimaryKeyName;
 
+			expression = base.PreProcess(expression);
+			expression = SqliteAutoIncrementPrimaryKeyColumnReducer.Reduce(expression, out primaryKeyNameByTablesWithReducedPrimaryKeyName);
+			expression = SqliteForeignKeyConstraintReducer.Reduce(expression, primaryKeyNameByTablesWithReducedPrimaryKeyName);
+			
 			return expression;
 		}
 

@@ -137,9 +137,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
-    <Compile Include="SqliteDataDefinitionExpressionAmmender.cs" />
+    <Compile Include="SqliteAutoIncrementPrimaryKeyColumnReducer.cs" />
     <Compile Include="SqliteConfiguration.cs" />
     <Compile Include="SqliteErrorCodes.cs" />
+    <Compile Include="SqliteForeignKeyConstraintReducer.cs" />
     <Compile Include="SqliteMonoSqlDatabaseContext.cs" />
     <Compile Include="SqliteMonoSqlDatabaseSchemaManager.cs" />
     <Compile Include="SqliteOfficialAssemblyReference.cs" />

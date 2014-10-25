@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -22,6 +24,16 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
+		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
+			: this(referencedTableName, deferrability, referencedColumnNames.ToList(), onDelete, onUpdate)
+		{
+		}
+
+		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IList<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
+			: this(referencedTableName, deferrability, new ReadOnlyCollection<string>(referencedColumnNames), onDelete, onUpdate)
+		{
+		}
+
 		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, ReadOnlyCollection<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
 			: base(typeof(void))
 		{
@@ -30,6 +42,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ReferencedTableName = referencedTableName;
 			this.Deferrability = deferrability;
 			this.ReferencedColumnNames = referencedColumnNames;
+		}
+
+		public SqlReferencesColumnExpression UpdateReferencedColumnNames(IEnumerable<string> columnNames)
+		{
+			return new SqlReferencesColumnExpression(this.ReferencedTableName, this.Deferrability, columnNames, this.OnDeleteAction, this.OnUpdateAction);
 		}
 	}
 }

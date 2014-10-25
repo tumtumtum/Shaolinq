@@ -1395,7 +1395,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.ServerSidePropertiesHydrated);
+				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.ObjectInsertedWithinTransaction));
 				generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 				generator.Emit(OpCodes.Ret);
 			}

@@ -368,7 +368,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected virtual Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
-			var newTable = Visit(createTableExpression.Table);
+			var newTable = (SqlTableExpression)Visit(createTableExpression.Table);
 			var constraints = VisitExpressionList(createTableExpression.TableConstraints);
 			var columnDefinitions = VisitExpressionList(createTableExpression.ColumnDefinitionExpressions);
 

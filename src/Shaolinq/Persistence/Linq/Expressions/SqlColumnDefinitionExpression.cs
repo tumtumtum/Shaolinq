@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -21,12 +22,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlColumnDefinitionExpression(string columnName, Expression columnTypeName, IList<Expression> constraintExpressions)
+		public SqlColumnDefinitionExpression(string columnName, Expression columnTypeName, IEnumerable<Expression> constraintExpressions)
 			: base(typeof(void))
 		{
 			this.ColumnName = columnName;
 			this.ColumnType = columnTypeName;
-			this.ConstraintExpressions = new ReadOnlyCollection<Expression>(constraintExpressions);
+			this.ConstraintExpressions = new ReadOnlyCollection<Expression>(constraintExpressions.ToList());
+		}
+
+		public SqlColumnDefinitionExpression UpdateConstraints(IEnumerable<Expression> newConstraints)
+		{
+			return new SqlColumnDefinitionExpression(this.ColumnName, this.ColumnType, newConstraints);
 		}
 	}
 }
