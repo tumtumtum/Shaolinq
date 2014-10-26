@@ -8,14 +8,20 @@ namespace Shaolinq
 {
 	[Serializable]
 	[DataAccessObject(NotPersisted = true)]
-    public abstract class DataAccessObject<T>
-        : IDataAccessObject
+	public abstract class DataAccessObject<T>
+		: DataAccessObject
 	{
 		[PrimaryKey]
 		[AutoIncrement]
 		[PersistedMember(Name = "$(PERSISTEDTYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)")]
 		public abstract T Id { get; set; }
-		
+	}
+
+	[Serializable]
+	[DataAccessObject(NotPersisted = true)]
+    public abstract class DataAccessObject
+        : IDataAccessObject
+	{
 		public virtual DataAccessModel DataAccessModel { get; private set; }
 		public virtual bool IsDeflatedReference { get { return ((IDataAccessObject)this).IsDeflatedReference; } }
 		bool IDataAccessObject.IsNew { get { return (((IDataAccessObject)this).ObjectState & ObjectState.New) != 0; } }

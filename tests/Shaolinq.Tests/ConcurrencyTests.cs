@@ -101,6 +101,11 @@ namespace Shaolinq.Tests
 			threads.ForEach(c => c.Start());
 			threads.ForEach(c => c.Join());
 
+			if (exceptions.Count > 0)
+			{
+				exceptions.ForEach(Console.WriteLine);
+			}
+
 			Assert.AreEqual(0, exceptions.Count);
 
 			exceptions.ForEach(Console.WriteLine);
