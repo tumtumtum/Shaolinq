@@ -292,7 +292,7 @@ namespace Shaolinq.Persistence
 
 					if (result == 0)
 					{
-						throw new MissingDataAccessObjectException();
+						throw new MissingDataAccessObjectException(dataAccessObject.ToString());
 					}
 
 					dataAccessObject.ResetModified();

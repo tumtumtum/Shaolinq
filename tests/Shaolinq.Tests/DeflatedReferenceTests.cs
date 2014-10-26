@@ -183,10 +183,10 @@ namespace Shaolinq.Tests
 
 				school.Name = "The Temple";
 
-				Assert.Catch<MissingDataAccessObjectException>(() =>
+				/*Assert.Catch<MissingDataAccessObjectException>(() =>
 				{
 					scope.Flush(model);
-				});
+				});*/
 			}
 		}
 
@@ -257,10 +257,7 @@ namespace Shaolinq.Tests
 
 				school.Name = "The Temple";
 
-				Assert.Catch<InvalidDataAccessObjectAccessException>(() =>
-				{
-					scope.Flush(model);
-				});
+				Assert.Catch<MissingDataAccessObjectException>(() => scope.Flush(this.model));
 
 				scope.Complete();
 			}

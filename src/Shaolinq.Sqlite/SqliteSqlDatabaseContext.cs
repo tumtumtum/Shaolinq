@@ -30,7 +30,15 @@ namespace Shaolinq.Sqlite
 				return base.OpenConnection();
 			}
 
-			return this.connection ?? (this.connection = new SqlitePersistentDbConnection(base.OpenConnection()));
+			var retval = this.connection ?? (this.connection = new SqlitePersistentDbConnection(base.OpenConnection()));
+
+			using (var command = retval.CreateCommand())
+			{
+				command.CommandText = "PRAGMA foreign_keys = ON;";
+				command.ExecuteNonQuery();
+			}
+
+			return retval;
 		}
 
 		public override IDbConnection OpenServerConnection()
