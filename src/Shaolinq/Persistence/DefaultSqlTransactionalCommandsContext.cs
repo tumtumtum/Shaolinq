@@ -361,7 +361,7 @@ namespace Shaolinq.Persistence
 						throw;
 					}
 
-					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foriegn keys
+					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foreign keys
 
 					if (dataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 					{

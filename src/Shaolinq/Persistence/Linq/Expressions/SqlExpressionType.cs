@@ -36,6 +36,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		InsertInto,
 		Update,
 		Assign,
+		Pragma,
 		ObjectReference
 	}
 }

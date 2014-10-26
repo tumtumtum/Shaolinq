@@ -1336,5 +1336,14 @@ namespace Shaolinq.Persistence.Linq
 
 			return indexedColumnExpression;
 		}
+
+		protected override Expression VisitPragma(SqlPragmaExpression expression)
+		{
+			this.Write("PRAGMA ");
+			this.Write(expression.Directive);
+			this.WriteLine(";");
+
+			return base.VisitPragma(expression);
+		}
 	}
 }

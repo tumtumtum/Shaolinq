@@ -24,8 +24,10 @@ namespace Shaolinq.Sqlite
 			expression = base.PreProcess(expression);
 			expression = SqliteAutoIncrementPrimaryKeyColumnReducer.Reduce(expression, out primaryKeyNameByTablesWithReducedPrimaryKeyName);
 			expression = SqliteForeignKeyConstraintReducer.Reduce(expression, primaryKeyNameByTablesWithReducedPrimaryKeyName);
-			
-			return expression;
+
+			var pragmaExpression = new SqlPragmaExpression("foreign_keys=ON");
+
+			return new SqlStatementListExpression(pragmaExpression, expression);
 		}
 
 		protected override void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)

@@ -36,7 +36,7 @@ namespace Shaolinq.Tests
 
 				if (this.ProviderName == "MySql")
 				{
-					// MySql does not support deferred foriegn key checks so create student2 first
+					// MySql does not support deferred foreign key checks so create student2 first
 
 					var student2 = school.Students.Create();
 

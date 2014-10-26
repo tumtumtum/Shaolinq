@@ -18,71 +18,78 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return null;
 			}
 
-			switch ((SqlExpressionType) expression.NodeType)
+			switch ((SqlExpressionType)expression.NodeType)
 			{
-				case SqlExpressionType.ConstantPlaceholder:
-					return VisitConstantPlaceholder((SqlConstantPlaceholderExpression)expression);
-				case SqlExpressionType.Table:
-					return VisitTable((SqlTableExpression)expression);
-				case SqlExpressionType.Column:
-					return VisitColumn((SqlColumnExpression)expression);
-				case SqlExpressionType.Select:
-					return VisitSelect((SqlSelectExpression)expression);
-				case SqlExpressionType.Join:
-					return VisitJoin((SqlJoinExpression)expression);
-				case SqlExpressionType.Projection:
-					return VisitProjection((SqlProjectionExpression)expression);
-				case SqlExpressionType.FunctionCall:
-					return VisitFunctionCall((SqlFunctionCallExpression)expression);
-				case SqlExpressionType.Aggregate:
-					return this.VisitAggregate((SqlAggregateExpression)expression);
-				case SqlExpressionType.Subquery:
-					return this.VisitSubquery((SqlSubqueryExpression)expression);
-				case SqlExpressionType.AggregateSubquery:
-					return this.VisitAggregateSubquery((SqlAggregateSubqueryExpression)expression);
-				case SqlExpressionType.ObjectReference:
-					return this.VisitObjectReference((SqlObjectReference)expression);
-				case SqlExpressionType.OrderBy:
-					return this.VisitOrderBy((SqlOrderByExpression)expression);
-				case SqlExpressionType.Tuple:
-					return this.VisitTuple((SqlTupleExpression)expression);
-				case SqlExpressionType.Delete:
-					return this.VisitDelete((SqlDeleteExpression)expression);
-				case SqlExpressionType.AlterTable:
-					return this.VisitAlterTable((SqlAlterTableExpression)expression);
-				case SqlExpressionType.ConstraintAction:
-					return this.VisitConstraintAction((SqlConstraintActionExpression)expression);
-				case SqlExpressionType.ColumnDefinition:
-					return this.VisitColumnDefinition((SqlColumnDefinitionExpression)expression);
-				case SqlExpressionType.CreateIndex:
-					return this.VisitCreateIndex((SqlCreateIndexExpression)expression);
-				case SqlExpressionType.IndexedColumn:
-					return this.VisitIndexedColumn((SqlIndexedColumnExpression)expression);
-				case SqlExpressionType.CreateTable:
-					return this.VisitCreateTable((SqlCreateTableExpression)expression);
-				case SqlExpressionType.ForeignKeyConstraint:
-					return this.VisitForeignKeyConstraint((SqlForeignKeyConstraintExpression)expression);
-				case SqlExpressionType.ReferencesColumn:
-					return this.VisitReferencesColumn((SqlReferencesColumnExpression)expression);
-				case SqlExpressionType.SimpleConstraint:
-					return this.VisitSimpleConstraint((SqlSimpleConstraintExpression)expression);
-				case SqlExpressionType.StatementList:
-					return this.VisitStatementList((SqlStatementListExpression)expression);
-				case SqlExpressionType.InsertInto:
-					return this.VisitInsertInto((SqlInsertIntoExpression)expression);
-				case SqlExpressionType.Update:
-					return this.VisitUpdate((SqlUpdateExpression)expression);
-				case SqlExpressionType.Assign:
-					return this.VisitAssign((SqlAssignExpression)expression);
-				case SqlExpressionType.CreateType:
-					return this.VisitCreateType((SqlCreateTypeExpression)expression);
-				case SqlExpressionType.Type:
-					return this.VisitType((SqlTypeExpression)expression);
-				case SqlExpressionType.EnumDefinition:
-					return this.VisitEnumDefinition((SqlEnumDefinitionExpression)expression);
-				default:
-					return base.Visit(expression);
+			case SqlExpressionType.ConstantPlaceholder:
+				return VisitConstantPlaceholder((SqlConstantPlaceholderExpression)expression);
+			case SqlExpressionType.Table:
+				return VisitTable((SqlTableExpression)expression);
+			case SqlExpressionType.Column:
+				return VisitColumn((SqlColumnExpression)expression);
+			case SqlExpressionType.Select:
+				return VisitSelect((SqlSelectExpression)expression);
+			case SqlExpressionType.Join:
+				return VisitJoin((SqlJoinExpression)expression);
+			case SqlExpressionType.Projection:
+				return VisitProjection((SqlProjectionExpression)expression);
+			case SqlExpressionType.FunctionCall:
+				return VisitFunctionCall((SqlFunctionCallExpression)expression);
+			case SqlExpressionType.Aggregate:
+				return this.VisitAggregate((SqlAggregateExpression)expression);
+			case SqlExpressionType.Subquery:
+				return this.VisitSubquery((SqlSubqueryExpression)expression);
+			case SqlExpressionType.AggregateSubquery:
+				return this.VisitAggregateSubquery((SqlAggregateSubqueryExpression)expression);
+			case SqlExpressionType.ObjectReference:
+				return this.VisitObjectReference((SqlObjectReference)expression);
+			case SqlExpressionType.OrderBy:
+				return this.VisitOrderBy((SqlOrderByExpression)expression);
+			case SqlExpressionType.Tuple:
+				return this.VisitTuple((SqlTupleExpression)expression);
+			case SqlExpressionType.Delete:
+				return this.VisitDelete((SqlDeleteExpression)expression);
+			case SqlExpressionType.AlterTable:
+				return this.VisitAlterTable((SqlAlterTableExpression)expression);
+			case SqlExpressionType.ConstraintAction:
+				return this.VisitConstraintAction((SqlConstraintActionExpression)expression);
+			case SqlExpressionType.ColumnDefinition:
+				return this.VisitColumnDefinition((SqlColumnDefinitionExpression)expression);
+			case SqlExpressionType.CreateIndex:
+				return this.VisitCreateIndex((SqlCreateIndexExpression)expression);
+			case SqlExpressionType.IndexedColumn:
+				return this.VisitIndexedColumn((SqlIndexedColumnExpression)expression);
+			case SqlExpressionType.CreateTable:
+				return this.VisitCreateTable((SqlCreateTableExpression)expression);
+			case SqlExpressionType.ForeignKeyConstraint:
+				return this.VisitForeignKeyConstraint((SqlForeignKeyConstraintExpression)expression);
+			case SqlExpressionType.ReferencesColumn:
+				return this.VisitReferencesColumn((SqlReferencesColumnExpression)expression);
+			case SqlExpressionType.SimpleConstraint:
+				return this.VisitSimpleConstraint((SqlSimpleConstraintExpression)expression);
+			case SqlExpressionType.StatementList:
+				return this.VisitStatementList((SqlStatementListExpression)expression);
+			case SqlExpressionType.InsertInto:
+				return this.VisitInsertInto((SqlInsertIntoExpression)expression);
+			case SqlExpressionType.Update:
+				return this.VisitUpdate((SqlUpdateExpression)expression);
+			case SqlExpressionType.Assign:
+				return this.VisitAssign((SqlAssignExpression)expression);
+			case SqlExpressionType.CreateType:
+				return this.VisitCreateType((SqlCreateTypeExpression)expression);
+			case SqlExpressionType.Type:
+				return this.VisitType((SqlTypeExpression)expression);
+			case SqlExpressionType.EnumDefinition:
+				return this.VisitEnumDefinition((SqlEnumDefinitionExpression)expression);
+			case SqlExpressionType.Pragma:
+				return this.VisitPragma((SqlPragmaExpression)expression);
+			default:
+				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitPragma(SqlPragmaExpression expression)
+		{
+			return expression;
 		}
 
 		protected virtual Expression VisitEnumDefinition(SqlEnumDefinitionExpression expression)
