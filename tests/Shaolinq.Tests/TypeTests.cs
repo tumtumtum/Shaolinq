@@ -25,7 +25,10 @@ namespace Shaolinq.Tests
 		private readonly float floatEpsilon = float.Epsilon;
 		private readonly float floatMinValue = float.MinValue;
 		private readonly float floatMaxValue = float.MaxValue;
-
+		private readonly double doubleEpsilon = double.Epsilon;
+		private readonly double doubleMinValue = double.MinValue;
+		private readonly double doubleMaxValue = double.MaxValue;
+		
 		private static TimeSpan Abs(TimeSpan timeSpan)
 		{
 			if (timeSpan.TotalMilliseconds < 0)
@@ -49,8 +52,11 @@ namespace Shaolinq.Tests
 			{
 				floatSignificantFigures = 3;
 				floatEpsilon = 0;
-				floatMinValue = float.NegativeInfinity;
-				floatMaxValue = float.PositiveInfinity;
+				floatMinValue = float.MinValue + float.Epsilon;
+				floatMaxValue = float.MaxValue - float.Epsilon;
+				doubleEpsilon = 0;
+				doubleMinValue = double.MinValue + double.Epsilon;
+				doubleMaxValue = double.MaxValue - double.Epsilon;
 			}
 		}
 
@@ -76,7 +82,7 @@ namespace Shaolinq.Tests
 				ulong.MinValue,
 				minDecimal,
 				(float) TruncateToSignificantDigits(floatMinValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
-				double.MinValue,
+				doubleMinValue,
 				false,
 				Truncate(MinDatetime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.MinValue,
@@ -106,7 +112,7 @@ namespace Shaolinq.Tests
 				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
 				maxDecimal,
 				(float) TruncateToSignificantDigits(floatMaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
-				double.MaxValue,
+				doubleMaxValue,
 				true,
 				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.Zero,
@@ -150,7 +156,7 @@ namespace Shaolinq.Tests
 				1,
 				0.00000000000000000001m,
 				floatEpsilon,
-				double.Epsilon,
+				doubleEpsilon,
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromMilliseconds(1),
