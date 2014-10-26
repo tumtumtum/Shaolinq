@@ -20,6 +20,24 @@ namespace Shaolinq.Sqlite
 
 		public override IDbConnection OpenConnection()
 		{
+			var retval = PrivateOpenConnection();
+
+			if (retval == null)
+			{
+				return null;
+			}
+
+			using (var command = retval.CreateCommand())
+			{
+				command.CommandText = "PRAGMA foreign_keys = ON;";
+				command.ExecuteNonQuery();
+			}
+
+			return retval;
+		}
+
+		private IDbConnection PrivateOpenConnection()
+		{
 			if (!this.IsInMemoryConnection)
 			{
 				return base.OpenConnection();
@@ -30,15 +48,7 @@ namespace Shaolinq.Sqlite
 				return base.OpenConnection();
 			}
 
-			var retval = this.connection ?? (this.connection = new SqlitePersistentDbConnection(base.OpenConnection()));
-
-			using (var command = retval.CreateCommand())
-			{
-				command.CommandText = "PRAGMA foreign_keys = ON;";
-				command.ExecuteNonQuery();
-			}
-
-			return retval;
+			return this.connection ?? (this.connection = new SqlitePersistentDbConnection(base.OpenConnection()));
 		}
 
 		public override IDbConnection OpenServerConnection()

@@ -22,6 +22,9 @@ namespace Shaolinq.Tests
 		private readonly DateTime MinDatetime = DateTime.MinValue;
 		private readonly DateTime MaxDateTime = DateTime.MaxValue;
 		private readonly TimeSpan timespanEpsilon = TimeSpan.FromSeconds(1);
+		private readonly float floatEpsilon = float.Epsilon;
+		private readonly float floatMinValue = float.MinValue;
+		private readonly float floatMaxValue = float.MaxValue;
 
 		private static TimeSpan Abs(TimeSpan timeSpan)
 		{
@@ -44,7 +47,10 @@ namespace Shaolinq.Tests
 			}
 			else if (useMonoData)
 			{
-				floatSignificantFigures = 1;
+				floatSignificantFigures = 3;
+				floatEpsilon = 0;
+				floatMinValue = float.NegativeInfinity;
+				floatMaxValue = float.PositiveInfinity;
 			}
 		}
 
@@ -69,7 +75,7 @@ namespace Shaolinq.Tests
 				uint.MinValue,
 				ulong.MinValue,
 				minDecimal,
-				(float) TruncateToSignificantDigits(float.MinValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
+				(float) TruncateToSignificantDigits(floatMinValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MinValue,
 				false,
 				Truncate(MinDatetime, TimeSpan.FromMilliseconds(1)),
@@ -99,7 +105,7 @@ namespace Shaolinq.Tests
 				(uint) int.MaxValue, // using signed max value as unsigned not supported in various databases
 				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
 				maxDecimal,
-				(float) TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
+				(float) TruncateToSignificantDigits(floatMaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MaxValue,
 				true,
 				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
@@ -143,7 +149,7 @@ namespace Shaolinq.Tests
 				1,
 				1,
 				0.00000000000000000001m,
-				float.Epsilon,
+				floatEpsilon,
 				double.Epsilon,
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
