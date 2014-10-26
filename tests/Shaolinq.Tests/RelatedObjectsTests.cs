@@ -455,10 +455,10 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, ExpectedException(typeof(MissingPropertyValueException))]
 		public void Test_Create_Object_Without_Related_Parent()
 		{
-			Assert.Catch<TransactionAbortedException>(() =>
+			try
 			{
 				using (var scope = new TransactionScope())
 				{
@@ -469,7 +469,11 @@ namespace Shaolinq.Tests
 
 					scope.Complete();
 				}
-			});
+			}
+			catch (TransactionAbortedException e)
+			{
+				throw e.InnerException;
+			}
 		}
 
 		[Test]

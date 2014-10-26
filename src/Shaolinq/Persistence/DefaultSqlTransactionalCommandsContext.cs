@@ -182,7 +182,7 @@ namespace Shaolinq.Persistence
 			catch (Exception e)
 			{
 				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
-				var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
 				Logger.ErrorFormat(e.ToString());
 
@@ -231,7 +231,7 @@ namespace Shaolinq.Persistence
 			catch (Exception e)
 			{
 				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
-				var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
 				Logger.ErrorFormat(e.ToString());
 
@@ -278,7 +278,7 @@ namespace Shaolinq.Persistence
 					catch (Exception e)
 					{
 						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
-						var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+						var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
 
 						Logger.ErrorFormat(e.ToString());
 
@@ -292,7 +292,7 @@ namespace Shaolinq.Persistence
 
 					if (result == 0)
 					{
-						throw new MissingDataAccessObjectException(dataAccessObject.ToString());
+						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
 
 					dataAccessObject.ResetModified();
@@ -349,7 +349,7 @@ namespace Shaolinq.Persistence
 					catch (Exception e)
 					{
 						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
-						var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+						var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
 
 						Logger.ErrorFormat(e.ToString());
 
@@ -608,7 +608,7 @@ namespace Shaolinq.Persistence
 				catch (Exception e)
 				{
 					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
-					var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+					var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
 					Logger.ErrorFormat(e.ToString());
 

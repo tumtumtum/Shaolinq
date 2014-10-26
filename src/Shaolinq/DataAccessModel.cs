@@ -528,7 +528,7 @@ namespace Shaolinq
 
 			if (existing != null)
 			{
-				throw new UniqueKeyConstraintException(null, "CreateDataAccessObject");
+				throw new UniqueConstraintException(null, "CreateDataAccessObject");
 			}
 			else
 			{
@@ -573,7 +573,7 @@ namespace Shaolinq
 
 			if (existing != null)
 			{
-				throw new UniqueKeyConstraintException(null, "CreateDataAccessObject");
+				throw new UniqueConstraintException(null, "CreateDataAccessObject");
 			}
 			else
 			{

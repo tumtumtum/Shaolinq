@@ -56,21 +56,24 @@ using MySql.Data.MySqlClient;
 		{
 		}
 
-		public override Exception DecorateException(Exception exception, string relatedQuery)
+		public override Exception DecorateException(Exception exception, IDataAccessObject dataAccessObject, string relatedQuery)
 		{
 			var mySqlException = exception as MySqlException;
 
 			if (mySqlException == null)
 			{
-				return base.DecorateException(exception, relatedQuery);
+				return base.DecorateException(exception, dataAccessObject, relatedQuery);
 			}
 
-			if (mySqlException.Number == 1062)
+			switch (mySqlException.Number)
 			{
-				throw new UniqueKeyConstraintException(mySqlException, relatedQuery);
-			}
-			else
-			{
+			case 1062:
+				throw new UniqueConstraintException(mySqlException, relatedQuery);
+			case 1364:
+				return new MissingPropertyValueException(dataAccessObject, mySqlException, relatedQuery);
+			case 1452:
+				throw new MissingRelatedDataAccessObjectException(null, dataAccessObject, mySqlException, relatedQuery);
+			default:
 				return new DataAccessException(exception, relatedQuery);
 			}
 		}

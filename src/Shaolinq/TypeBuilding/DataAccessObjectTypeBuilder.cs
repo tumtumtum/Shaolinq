@@ -870,7 +870,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Deleted);
 					generator.Emit(OpCodes.Ceq);
 					generator.Emit(OpCodes.Brfalse, notDeletedLabel);
-					generator.Emit(OpCodes.Newobj, typeof(DeletedDataAccessObjectException).GetConstructor(new Type[0]));
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Newobj, typeof(DeletedDataAccessObjectException).GetConstructor(new [] { typeof(IDataAccessObject) }));
 					generator.Emit(OpCodes.Throw);
 
 					generator.MarkLabel(notDeletedLabel);

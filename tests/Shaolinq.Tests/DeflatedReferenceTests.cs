@@ -141,20 +141,26 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(TransactionAbortedException))]
+		[Test, ExpectedException(typeof(MissingRelatedDataAccessObjectException))]
 		public void Test_Set_Related_Parent_Using_Invalid_Deflated_Reference()
 		{
-			using (var scope = new TransactionScope())
+			try
 			{
-				var student = this.model.Students.Create();
+				using (var scope = new TransactionScope())
+				{
+					var student = this.model.Students.Create();
 
-				student.School = this.model.Schools.GetReference(8972394);
-
-				scope.Complete();
+					student.School = this.model.Schools.GetReference(8972394);
+					scope.Complete();
+				}
+			}
+			catch (TransactionAbortedException e)
+			{
+				throw e.InnerException;
 			}
 		}
 
-		[Test]
+		[Test, ExpectedException(typeof(MissingDataAccessObjectException))]
 		public void Test_Use_Deflated_Reference_To_Update_Object_That_Was_Deleted1()
 		{
 			long schoolId;
@@ -177,16 +183,20 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			try
 			{
-				var school = model.Schools.GetReference(schoolId);
-
-				school.Name = "The Temple";
-
-				/*Assert.Catch<MissingDataAccessObjectException>(() =>
+				using (var scope = new TransactionScope())
 				{
-					scope.Flush(model);
-				});*/
+					var school = model.Schools.GetReference(schoolId);
+
+					school.Name = "The Temple";
+
+					scope.Complete();
+				}
+			}
+			catch (TransactionAbortedException e)
+			{
+				throw e.InnerException;
 			}
 		}
 
@@ -217,7 +227,6 @@ namespace Shaolinq.Tests
 					school.Name = "The Temple";
 				});
 
-				scope.Flush(model);
 				scope.Complete();
 			}
 		}
@@ -248,18 +257,23 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(TransactionAbortedException))]
+		[Test, ExpectedException(typeof(MissingDataAccessObjectException))]
 		public void Test_Use_Deflated_Reference_To_Update_Non_Existant_Object_Without_First_Reading()
 		{
-			using (var scope = new TransactionScope())
+			try
 			{
-				var school = model.Schools.GetReference(89327493);
+				using (var scope = new TransactionScope())
+				{
+					var school = model.Schools.GetReference(89327493);
 
-				school.Name = "The Temple";
+					school.Name = "The Temple";
 
-				Assert.Catch<MissingDataAccessObjectException>(() => scope.Flush(this.model));
-
-				scope.Complete();
+					scope.Complete();
+				}
+			}
+			catch (TransactionAbortedException e)
+			{
+				throw e.InnerException;
 			}
 		}
 

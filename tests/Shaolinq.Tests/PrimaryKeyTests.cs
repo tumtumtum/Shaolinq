@@ -113,21 +113,25 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
-		public void Test_Create_Object_With_Guid_Non_AutoIncrement_PrimaryKey_And_Dont_Set_PrimaryKey_Multiple()
+		[Test, ExpectedException(typeof(UniqueConstraintException))]
+		public void Test_Create_Objects_With_Guid_Non_AutoIncrement_PrimaryKey_And_Set_Same_Primary_Keys()
 		{
-			Assert.Catch<TransactionAbortedException>(() =>
+			try
 			{
 				using (var scope = new TransactionScope())
 				{
-					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
-					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
+					var id = Guid.NewGuid();
 
-					// Both objects will have same primary key (Guid.Empty)
+					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
 
 					scope.Complete();
 				}
-			});
+			}
+			catch (TransactionAbortedException e)
+			{
+				throw e.InnerException;
+			}
 		}
 		
 		[Test]

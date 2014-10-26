@@ -107,7 +107,7 @@ namespace Shaolinq
 			catch (Exception e)
 			{
 				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
-				var decoratedException = this.SqlDatabaseContext.DecorateException(e, relatedSql);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
 				if (decoratedException != e)
 				{

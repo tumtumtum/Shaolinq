@@ -5,5 +5,9 @@
 	public class DeletedDataAccessObjectException
 		: MissingDataAccessObjectException
 	{
+		public DeletedDataAccessObjectException(IDataAccessObject dataAccessObject)
+			: base(dataAccessObject)
+		{	
+		}
 	}
 }

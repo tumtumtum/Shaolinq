@@ -149,18 +149,31 @@ namespace Shaolinq.Sqlite
 			return new SQLiteFactory();
 		}
 
-		public override Exception DecorateException(Exception exception, string relatedQuery)
+		public override Exception DecorateException(Exception exception, IDataAccessObject dataAccessObject, string relatedQuery)
 		{
 			// http://www.sqlite.org/c3ref/c_abort.html
 
-			if (!(exception is SQLiteException))
-			{	
-				return base.DecorateException(exception, relatedQuery);
+			var sqliteException = exception as SQLiteException;
+
+			if (sqliteException == null)
+			{
+				return base.DecorateException(exception, dataAccessObject, relatedQuery);
 			}
 
-			if (((SQLiteException)exception).ErrorCode == SqliteErrorCodes.SqliteConstraint)
+			if (sqliteException.ErrorCode == SqliteErrorCodes.SqliteConstraint)
 			{
-				return new UniqueKeyConstraintException(exception, relatedQuery);
+				if (sqliteException.Message.IndexOf("FOREIGN KEY", System.StringComparison.Ordinal) >= 0)
+				{
+					return new MissingRelatedDataAccessObjectException(null, dataAccessObject, sqliteException, relatedQuery);
+				}
+				else if (sqliteException.Message.IndexOf("NOT NULL", StringComparison.Ordinal) >= 0)
+				{
+					return new MissingPropertyValueException(dataAccessObject, sqliteException, relatedQuery);
+				}
+				else
+				{
+					return new UniqueConstraintException(exception, relatedQuery);
+				}
 			}
 
 			return new DataAccessException(exception, relatedQuery);

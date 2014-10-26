@@ -74,21 +74,28 @@ using Shaolinq.Postgres.Shared;
 			return postgresException.ErrorSql;
 		}
 
-		public override Exception DecorateException(Exception exception, string relatedQuery)
+		public override Exception DecorateException(Exception exception, IDataAccessObject  dataAccessObject, string relatedQuery)
 		{
-			var typedException = exception as NpgsqlException;
+			var postgresException = exception as NpgsqlException;
 
-			if (typedException == null)
+			if (postgresException == null)
 			{
-				return base.DecorateException(exception, relatedQuery);
+				return base.DecorateException(exception, dataAccessObject, relatedQuery);
 			}
 
-			if (typedException.Code == "23505")
+			switch (postgresException.Code)
 			{
-				return new UniqueKeyConstraintException(typedException, relatedQuery);
+			case "40001":
+				return new ConcurrencyException(exception, relatedQuery);
+			case "23502":
+				return new MissingPropertyValueException(dataAccessObject, postgresException, relatedQuery);
+			case "23503":
+				return new MissingRelatedDataAccessObjectException(null, dataAccessObject, postgresException, relatedQuery);
+			case "23505":
+				return new UniqueConstraintException(exception, relatedQuery);
 			}
 			
-			return new DataAccessException(typedException, relatedQuery);
+			return new DataAccessException(postgresException, relatedQuery);
 		}
 	}
 }

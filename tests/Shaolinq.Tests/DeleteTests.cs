@@ -229,7 +229,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, ExpectedException(typeof(MissingDataAccessObjectException))]
 		public void Test_Query_Access_Deleted_Object_Via_DeflatedReference()
 		{
 			long schoolId;
@@ -254,7 +254,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			Assert.Catch<TransactionAbortedException>(() =>
+			try
 			{
 				using (var scope = new TransactionScope())
 				{
@@ -262,14 +262,13 @@ namespace Shaolinq.Tests
 
 					school.Name = "Yoga Decorum!!!";
 
-					Assert.Catch<MissingDataAccessObjectException>(() =>
-					{
-						scope.Flush(model);
-					});
-
 					scope.Complete();
 				}
-			});
+			}
+			catch (TransactionAbortedException e)
+			{
+				throw e.InnerException;
+			}
 		}
 	}
 }

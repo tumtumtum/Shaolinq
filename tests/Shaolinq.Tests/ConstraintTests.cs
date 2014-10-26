@@ -21,7 +21,7 @@ namespace Shaolinq.Tests
 		{
 		}
 
-		[Test, ExpectedException(typeof(UniqueKeyConstraintException))]
+		[Test, ExpectedException(typeof(UniqueConstraintException))]
 		public void Test_Unique_Non_PrimaryKey_Constraint()
 		{
 			using (var scope = new TransactionScope())

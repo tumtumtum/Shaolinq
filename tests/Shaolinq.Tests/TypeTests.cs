@@ -44,7 +44,7 @@ namespace Shaolinq.Tests
 			}
 			else if (useMonoData)
 			{
-				floatSignificantFigures = 3;
+				floatSignificantFigures = 1;
 			}
 		}
 

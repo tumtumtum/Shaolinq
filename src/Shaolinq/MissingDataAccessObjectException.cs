@@ -1,24 +1,40 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿namespace Shaolinq
+using System;
+
+namespace Shaolinq
 {
 	/// <summary>
-	/// Thrown when a trying to update a DAO that cannot be found. Usually occurs
-	/// when trying to commit an update to a DAO that has been deleted by another transaction
-	/// or when trying to commit an update to a delated DAO with an invalid primary key.
+	/// Thrown when trying to update an object that does not exist or when updating
+	/// related property to an object that does not exist.
 	/// </summary>
 	public class MissingDataAccessObjectException
 		: InvalidDataAccessObjectAccessException
 	{
-		public object RelatedObject { get; private set; }
+		/// <summary>
+		/// The object that is missing (if known). Can be null if constraints are deferred.
+		/// </summary>
+		public IDataAccessObject MissingObject { get; private set; }
 
 		public MissingDataAccessObjectException()
+			: this(null, null, null)
+		{
+		}
+
+		public MissingDataAccessObjectException(Exception innerException, string relatedQuery)
+			: this(null, innerException, relatedQuery)
 		{	
 		}
 
-		public MissingDataAccessObjectException(object relatedObject)
+		public MissingDataAccessObjectException(IDataAccessObject missingObject)
+			: this(missingObject, null, null)
+		{	
+		}
+
+		public MissingDataAccessObjectException(IDataAccessObject missingObject, Exception innerException, string relatedQuery)
+			: base(innerException, relatedQuery)
 		{
-			this.RelatedObject = relatedObject;
+			this.MissingObject = missingObject;
 		}
 	}
 }

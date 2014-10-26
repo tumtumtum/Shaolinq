@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence
 			return null;
 		}
 
-		public virtual Exception DecorateException(Exception exception, string relatedQuery)
+		public virtual Exception DecorateException(Exception exception, IDataAccessObject dataAccessObject, string relatedQuery)
 		{
 			return exception;
 		}
