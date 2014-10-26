@@ -233,7 +233,7 @@ namespace Shaolinq.TypeBuilding
 
 				foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties)
 				{
-					if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.NonNullableType() == typeof(Guid))
+					if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.GetUnwrappedNullableType() == typeof(Guid))
 					{
 						constructorGenerator.Emit(OpCodes.Ldarg_0);
 						constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
@@ -105,6 +107,94 @@ namespace Shaolinq.Tests
 				var list = objs.ToList();
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Explicit_Join_On_GroupBy()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					(from
+						shop in model.Shops
+						join address in model.Addresses on shop.Address equals address
+						select new
+						{
+							shop,
+							address
+						}
+						).GroupBy(c => c.address.Street, c => c.shop)
+						.Select(c => new { c.Key, count = c.Count()});
+
+
+				var all = query.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_On_GroupBy()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					group shop by shop.Address.Street
+					into g
+					select
+						g.Key;
+
+				var first = query.First();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_On_OrderBy()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					orderby shop.Address.Street
+					select
+						shop;
+
+				var first = query.First();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_On_OrderBy_Project_Related_Property()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					orderby shop.Address.Street
+					select
+						shop.Address;
+
+				var first = query.First();
+			}
+		}
+
+
+		[Test]
+		public void Test_Implicit_Join_On_OrderBy_Project_Simple()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from
+						shop in model.Shops
+					orderby shop.Address.Street
+					select
+						shop.Name;
+
+				var first = query.First();
 			}
 		}
 

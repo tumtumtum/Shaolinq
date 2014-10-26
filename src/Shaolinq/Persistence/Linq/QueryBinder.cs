@@ -740,7 +740,10 @@ namespace Shaolinq.Persistence.Linq
 					this.selectorPredicateStack.Pop();
 					return result;
 	            case "OrderBy":
-		            return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
+					this.selectorPredicateStack.Push(methodCallExpression);
+		            result = this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
+		            this.selectorPredicateStack.Pop();
+					return result;
 	            case "OrderByDescending":
 		            return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
 	            case "ThenBy":
@@ -754,9 +757,10 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            break;
 	            case "GroupBy":
+					this.selectorPredicateStack.Push(methodCallExpression);
 		            if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            return this.BindGroupBy
+			            result = this.BindGroupBy
 						(
 							methodCallExpression.Arguments[0],
 							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
@@ -766,25 +770,30 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 3)
 		            {
-			            return this.BindGroupBy
-				            (
-				             methodCallExpression.Arguments[0],
-				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
-				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
-				             null
-				            );
+			            result = this.BindGroupBy
+						(
+							methodCallExpression.Arguments[0],
+							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
+							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
+							null
+						);
 		            }
 		            else if (methodCallExpression.Arguments.Count == 4)
 		            {
-			            return this.BindGroupBy
-				            (
-				             methodCallExpression.Arguments[0],
-				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
-				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
-				             (LambdaExpression)StripQuotes(methodCallExpression.Arguments[3])
-				            );
+			            result = this.BindGroupBy
+						(
+							methodCallExpression.Arguments[0],
+							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
+							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
+							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[3])
+						);
 		            }
-		            break;
+		            else
+		            {
+						break;
+		            }
+		            this.selectorPredicateStack.Pop();
+					return result;
 	            case "Count":
 	            case "Min":
 	            case "Max":

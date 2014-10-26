@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
+﻿using System.Text;
 
 namespace Shaolinq
 {
@@ -16,16 +17,43 @@ namespace Shaolinq
 			return typeof(IDataAccessObject).IsAssignableFrom(type);
 		}
 
-		public static Type NonNullableType(this Type type)
+		public static string ToHumanReadableName(this Type type)
 		{
-			var underlying = Nullable.GetUnderlyingType(type);
+			var builder = new StringBuilder();
 
-			if (underlying != null)
+			type.AppendHumanReadableName(builder);
+
+			return builder.ToString();
+		}
+
+		private static void AppendHumanReadableName(this Type type, StringBuilder builder)
+		{
+			if (type.IsGenericType)
 			{
-				return underlying;
-			}
+				builder.Append(type.Name.Remove(type.Name.LastIndexOf('`')));
 
-			return type;
+				builder.Append("<");
+
+				var i = 0;
+				var genericArgs = type.GetGenericArguments();
+
+				foreach (var innerType in genericArgs)
+				{
+					innerType.AppendHumanReadableName(builder);
+
+					if (i != genericArgs.Length - 1)
+					{
+						builder.Append(", ");
+					}
+					i++;
+				}
+
+				builder.Append(">");
+			}
+			else
+			{
+				builder.Append(type.Name);
+			}
 		}
 	}
 }

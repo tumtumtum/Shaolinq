@@ -55,15 +55,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			this.forProjection = forProjection;
 		}
 
-		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, Expression expression, ParameterExpression sourceParameterExpression, bool forProjection)
+		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, Expression[] expressions, ParameterExpression sourceParameterExpression, bool forProjection)
 		{
 			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, sourceParameterExpression, forProjection);
-			
-			var reducedExpression = gatherer.Visit(expression);
 
 			return new ReferencedRelatedObjectPropertyGathererResults
 			{
-				ReducedExpression = reducedExpression,
+				ReducedExpressions = expressions.Select(gatherer.Visit).ToArray(),
 				ReferencedRelatedObjectByPath = gatherer.results,
 				RootExpressionsByPath = gatherer.rootExpressionsByPath,
 				IncludedPropertyInfoByExpression = gatherer
