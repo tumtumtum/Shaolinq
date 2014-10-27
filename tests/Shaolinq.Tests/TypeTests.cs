@@ -42,6 +42,10 @@ namespace Shaolinq.Tests
 
 				MaxDateTime -= TimeSpan.FromSeconds(1);
 			}
+			else if (useMonoData && ProviderName.StartsWith("Sqlite"))
+			{
+				floatSignificantFigures = 3;
+			}
 		}
 
 		[Test]
