@@ -162,7 +162,7 @@ namespace Shaolinq.Sqlite
 
 			if (sqliteException.ErrorCode == SqliteErrorCodes.SqliteConstraint)
 			{
-				if (sqliteException.Message.IndexOf("FOREIGN KEY", System.StringComparison.Ordinal) >= 0)
+				if (sqliteException.Message.IndexOf("FOREIGN KEY", StringComparison.Ordinal) >= 0)
 				{
 					return new MissingRelatedDataAccessObjectException(null, dataAccessObject, sqliteException, relatedQuery);
 				}
@@ -172,6 +172,16 @@ namespace Shaolinq.Sqlite
 				}
 				else
 				{
+					if (dataAccessObject != null)
+					{
+						var primaryKeyNames = dataAccessObject.TypeDescriptor.PrimaryKeyProperties.Select(c => c.DeclaringTypeDescriptor.PersistedName + "." + c.PersistedName);
+
+						if (primaryKeyNames.Any(c => sqliteException.Message.IndexOf(c, StringComparison.Ordinal) >= 0))
+						{
+							return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
+						}
+					}
+
 					return new UniqueConstraintException(exception, relatedQuery);
 				}
 			}

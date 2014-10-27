@@ -68,6 +68,14 @@ using MySql.Data.MySqlClient;
 			switch (mySqlException.Number)
 			{
 			case 1062:
+				if (mySqlException.Message.Contains("for key 'PRIMARY'"))
+				{
+					return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
+				}
+				else
+				{
+					return new UniqueConstraintException(exception, relatedQuery);
+				}
 				throw new UniqueConstraintException(mySqlException, relatedQuery);
 			case 1364:
 				return new MissingPropertyValueException(dataAccessObject, mySqlException, relatedQuery);

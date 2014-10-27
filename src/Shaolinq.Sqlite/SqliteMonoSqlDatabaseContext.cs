@@ -2,6 +2,7 @@
 
 using System;
 using System.Data.Common;
+using System.Linq;
 using Mono.Data.Sqlite;
 using Shaolinq.Persistence;
 
@@ -69,6 +70,16 @@ namespace Shaolinq.Sqlite
 				}
 				else
 				{
+					if (dataAccessObject != null)
+					{
+						var primaryKeyNames = dataAccessObject.TypeDescriptor.PrimaryKeyProperties.Select(c => c.DeclaringTypeDescriptor.PersistedName + "." + c.PersistedName);
+
+						if (primaryKeyNames.Any(c => sqliteException.Message.IndexOf(c, StringComparison.Ordinal) >= 0))
+						{
+							return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
+						}
+					}
+
 					return new UniqueConstraintException(exception, relatedQuery);
 				}
 			}

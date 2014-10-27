@@ -300,8 +300,21 @@ namespace Shaolinq
 			this.Configuration = configuration;
 		}
 
+
 		protected internal virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
 			where T : class, IDataAccessObject
+		{
+			return (T)GetReference(typeof(T), primaryKey);
+		}
+
+		protected internal virtual IDataAccessObject GetReference<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
+		{
+			var primaryKeyValues = this.GetObjectPropertyValues(type, primaryKey, primaryKeyType);
+
+			return this.GetReference(type, primaryKeyValues);
+		}
+
+		protected internal virtual IDataAccessObject GetReference(Type type, ObjectPropertyValue[] primaryKey)
 		{
 			if (primaryKey == null)
 			{
@@ -315,15 +328,15 @@ namespace Shaolinq
 
 			var objectPropertyAndValues = primaryKey;
 
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), objectPropertyAndValues);
+			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
 
 			if (existing != null)
 			{
-				return (T)existing;
+				return existing;
 			}
 			else
 			{
-				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, false);
+				var retval = (IDataAccessObject)this.AssemblyBuildInfo.CreateDataAccessObject(type, this, false);
 
 				retval.SetIsDeflatedReference(true);
 				retval.SetPrimaryKeys(objectPropertyAndValues);
@@ -528,7 +541,11 @@ namespace Shaolinq
 
 			if (existing != null)
 			{
-				throw new UniqueConstraintException(null, "CreateDataAccessObject");
+				IDataAccessObject obj = null;
+
+				ActionUtils.IgnoreExceptions(() => obj = this.GetReference(type, primaryKey, primaryKeyType));
+
+				throw new ObjectAlreadyExistsException(obj, null, "CreateDataAccessObject");
 			}
 			else
 			{
@@ -573,7 +590,11 @@ namespace Shaolinq
 
 			if (existing != null)
 			{
-				throw new UniqueConstraintException(null, "CreateDataAccessObject");
+				T obj = null;
+
+				ActionUtils.IgnoreExceptions(() => obj = this.GetReference<T, K>(primaryKey, primaryKeyType));
+
+				throw new ObjectAlreadyExistsException(obj, null, "CreateDataAccessObject");
 			}
 			else
 			{
