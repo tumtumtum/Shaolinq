@@ -22,12 +22,6 @@ namespace Shaolinq.Tests
 		private readonly DateTime MinDatetime = DateTime.MinValue;
 		private readonly DateTime MaxDateTime = DateTime.MaxValue;
 		private readonly TimeSpan timespanEpsilon = TimeSpan.FromSeconds(1);
-		private readonly float floatEpsilon = float.Epsilon;
-		private readonly float floatMinValue = float.MinValue;
-		private readonly float floatMaxValue = float.MaxValue;
-		private readonly double doubleEpsilon = double.Epsilon;
-		private readonly double doubleMinValue = double.MinValue;
-		private readonly double doubleMaxValue = double.MaxValue;
 		
 		private static TimeSpan Abs(TimeSpan timeSpan)
 		{
@@ -47,16 +41,6 @@ namespace Shaolinq.Tests
 				floatSignificantFigures = 6;
 
 				MaxDateTime -= TimeSpan.FromSeconds(1);
-			}
-			else if (providerName.StartsWith("Sqlite") && useMonoData)
-			{
-				floatSignificantFigures = 3;
-				floatEpsilon = 0;
-				floatMinValue = float.MinValue + float.Epsilon;
-				floatMaxValue = float.MaxValue - float.Epsilon;
-				doubleEpsilon = 0;
-				doubleMinValue = double.MinValue + double.Epsilon;
-				doubleMaxValue = double.MaxValue - double.Epsilon;
 			}
 		}
 
@@ -81,8 +65,8 @@ namespace Shaolinq.Tests
 				uint.MinValue,
 				ulong.MinValue,
 				minDecimal,
-				(float) TruncateToSignificantDigits(floatMinValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
-				doubleMinValue,
+				(float) TruncateToSignificantDigits(float.MinValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
+				double.MinValue,
 				false,
 				Truncate(MinDatetime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.MinValue,
@@ -111,8 +95,8 @@ namespace Shaolinq.Tests
 				(uint) int.MaxValue, // using signed max value as unsigned not supported in various databases
 				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
 				maxDecimal,
-				(float) TruncateToSignificantDigits(floatMaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
-				doubleMaxValue,
+				(float) TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
+				double.MaxValue,
 				true,
 				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.Zero,
@@ -155,8 +139,8 @@ namespace Shaolinq.Tests
 				1,
 				1,
 				0.00000000000000000001m,
-				floatEpsilon,
-				doubleEpsilon,
+				float.Epsilon,
+				double.Epsilon,
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromMilliseconds(1),
@@ -212,6 +196,35 @@ namespace Shaolinq.Tests
 				dbId = subject.Id;
 
 				scope.Complete();
+			}
+
+			if (useMonoData && this.ProviderName.StartsWith("Sqlite"))
+			{
+				if (@float == TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures))
+				{
+					@float = float.PositiveInfinity;
+				}
+				else if (@float == TruncateToSignificantDigits(float.MinValue, floatSignificantFigures))
+				{
+					@float = float.NegativeInfinity;
+				}
+				else if (@float == TruncateToSignificantDigits(float.Epsilon, floatSignificantFigures))
+				{
+					@float = 0;
+				}
+
+				if (@double == double.MaxValue)
+				{
+					@double = double.PositiveInfinity;
+				}
+				else if (@double == double.MinValue)
+				{
+					@double = double.NegativeInfinity;
+				}
+				else if (@double == double.Epsilon)
+				{
+					@double = 0;
+				}
 			}
 
 			using (var scope = new TransactionScope())
