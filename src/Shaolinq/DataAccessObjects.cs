@@ -6,7 +6,7 @@ namespace Shaolinq
 {
 	public class DataAccessObjects<T>
 		: DataAccessObjectsQueryable<T>
-		where T : class, IDataAccessObject
+		where T : DataAccessObject
 	{
 		public DataAccessObjects(DataAccessModel dataAccessModel, Expression expression)
 			: base(dataAccessModel, expression)

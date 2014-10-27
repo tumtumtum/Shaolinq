@@ -16,6 +16,10 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : MarshalByRefObject, IDisposable
 	{
+		private class RawPrimaryKeysPlaceholderType<T>
+		{
+		}
+
 		private struct SqlDatabaseContextsInfo
 		{
 			public uint Count { get; set; }
@@ -46,7 +50,7 @@ namespace Shaolinq
 		protected abstract void Initialise();
 
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			return (DataAccessObjects<T>)GetDataAccessObjects(typeof(T));
 		}
@@ -302,7 +306,7 @@ namespace Shaolinq
 
 
 		protected internal virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			return (T)GetReference(typeof(T), primaryKey);
 		}
@@ -349,15 +353,11 @@ namespace Shaolinq
 		}
 
 		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			var propertyValues = GetObjectPropertyValues<T>(primaryKeyValues);
 
 			return this.GetReference<T>(propertyValues);
-		}
-
-		private class RawPrimaryKeysPlaceholderType<T>
-		{
 		}
 
 		protected internal ObjectPropertyValue[] GetObjectPropertyValues<T>(object[] primaryKeyValues)
@@ -500,19 +500,19 @@ namespace Shaolinq
 		}
 
 		public virtual T GetReference<T, K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			var propertyValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
 			return this.GetReference<T>(propertyValues);
 		}
 
-		public virtual IDataAccessObject CreateDataAccessObject(Type type)
+		public virtual DataAccessObject CreateDataAccessObject(Type type)
 		{
 			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
 
-			retval.FinishedInitializing();
-			retval.SubmitToCache();
+			((IDataAccessObject)retval).FinishedInitializing();
+			((IDataAccessObject)retval).SubmitToCache();
 
 			return retval;
 		}
@@ -551,33 +551,33 @@ namespace Shaolinq
 			{
 				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
 
-				retval.SetPrimaryKeys(objectPropertyAndValues);
-				retval.FinishedInitializing();
-				retval.SubmitToCache();
+				((IDataAccessObject)retval).SetPrimaryKeys(objectPropertyAndValues);
+				((IDataAccessObject)retval).FinishedInitializing();
+				((IDataAccessObject)retval).SubmitToCache();
 
 				return retval;
 			}
 		}
 
 		public virtual T CreateDataAccessObject<T>()
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
 
-			retval.FinishedInitializing();
-			retval.SubmitToCache();
+			((IDataAccessObject)retval).FinishedInitializing();
+			((IDataAccessObject)retval).SubmitToCache();
 
 			return retval;
 		}
 
 		public virtual T CreateDataAccessObject<T, K>(K primaryKey)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			return CreateDataAccessObject<T, K>(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T CreateDataAccessObject<T, K>(K primaryKey, PrimaryKeyType primaryKeyType)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			var objectPropertyAndValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
@@ -600,9 +600,9 @@ namespace Shaolinq
 			{
 				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
 
-				retval.SetPrimaryKeys(objectPropertyAndValues);
-				retval.FinishedInitializing();
-				retval.SubmitToCache();
+				((IDataAccessObject)retval).SetPrimaryKeys(objectPropertyAndValues);
+				((IDataAccessObject)retval).FinishedInitializing();
+				((IDataAccessObject)retval).SubmitToCache();
 
 				return retval;
 			}
@@ -725,7 +725,7 @@ namespace Shaolinq
 		}
 
 		protected internal T Inflate<T>(T obj)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			if (!obj.IsDeflatedReference)
 			{

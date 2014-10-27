@@ -92,7 +92,14 @@ using Shaolinq.Postgres.Shared;
 			case "23503":
 				return new MissingRelatedDataAccessObjectException(null, dataAccessObject, postgresException, relatedQuery);
 			case "23505":
-				if (postgresException.ConstraintName.IndexOf("_pkey", StringComparison.InvariantCultureIgnoreCase) >= 0)
+				var s = postgresException.ConstraintName;
+
+				if (string.IsNullOrEmpty(s))
+				{
+					s = postgresException.Message;
+				}
+
+				if (s.IndexOf("_pkey", StringComparison.InvariantCultureIgnoreCase) >= 0)
 				{
 					return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
 				}

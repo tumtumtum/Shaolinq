@@ -18,7 +18,7 @@ namespace Shaolinq
 		}
 
 		public static T Import<T>(this TransactionScope scope, T dataAccessObject)
-			where T : IDataAccessObject
+			where T : DataAccessObject
 		{
 			dataAccessObject.DataAccessModel.GetCurrentDataContext(true).ImportObject(dataAccessObject);
 
@@ -26,7 +26,7 @@ namespace Shaolinq
 		}
 
 		public static void Import<T>(this TransactionScope scope, params T[] dataAccessObjects)
-			where T : IDataAccessObject
+			where T : DataAccessObject
 		{
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
@@ -35,7 +35,7 @@ namespace Shaolinq
 		}
 
 		public static void Import<T>(this TransactionScope scope, IEnumerable<T> dataAccessObjects)
-			where T : IDataAccessObject
+			where T : DataAccessObject
 		{
 			foreach (var dataAccessObject in dataAccessObjects)
 			{

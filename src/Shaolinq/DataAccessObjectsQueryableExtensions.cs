@@ -19,7 +19,7 @@ namespace Shaolinq
 		}
 
 		public static void DeleteWhere<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			queryable.DataAccessModel.Flush();
 
@@ -39,7 +39,7 @@ namespace Shaolinq
 		}
 
 		public static IEnumerable<T> DeleteObjectByObjectWhere<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
-			where T : class, IDataAccessObject
+			where T : DataAccessObject
 		{
 			if (queryable.ExtraCondition != null)
 			{

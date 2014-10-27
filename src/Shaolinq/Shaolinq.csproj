@@ -340,7 +340,6 @@
     <Compile Include="UnsupportedDataAccessModelDefinitionException.cs" />
     <Compile Include="VariableSubstitutor.cs" />
     <Compile Include="WriteOnlyDomainObjectException.cs" />
-    <Compile Include="Xml\XmlSerializationExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

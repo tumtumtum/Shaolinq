@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq
 	public class DataAccessObjectProjector<T, U>
 		: ObjectProjector<T, U>
 		where U : T
-		where T : IDataAccessObject
+		where T : DataAccessObject
 	{
 		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty, object[] placeholderValues)
 			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, objectReader, relatedDataAccessObjectContext, selectFirstType, sqlAggregateType, isDefaultIfEmpty, placeholderValues)
@@ -31,7 +31,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						T retval = this.objectReader(this, dataReader, this.placeholderValues);
 
-						retval.ResetModified();
+						((IDataAccessObject)retval).ResetModified();
 
 						yield return retval;
 

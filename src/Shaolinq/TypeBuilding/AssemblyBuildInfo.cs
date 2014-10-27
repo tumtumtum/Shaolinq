@@ -21,7 +21,7 @@ namespace Shaolinq.TypeBuilding
 		private readonly Dictionary<Type, Type> modelTypesByConcreteModelType;
 		private readonly Dictionary<Type, Type> concreteModelTypesByModelType;
 		private readonly Dictionary<Type, Delegate> dataAccessModelConstructors;
-		private readonly Dictionary<Type, Func<DataAccessModel, bool, IDataAccessObject>> dataAccessObjectConstructors;
+		private readonly Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>> dataAccessObjectConstructors;
 		
 		public AssemblyBuildInfo(Assembly concreteAssembly, Assembly definitionAssembly)
 		{
@@ -32,7 +32,7 @@ namespace Shaolinq.TypeBuilding
 			this.concreteTypesByType = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
 			this.modelTypesByConcreteModelType = new Dictionary<Type, Type>(PrimeNumbers.Prime7);
 			this.concreteModelTypesByModelType = new Dictionary<Type, Type>(PrimeNumbers.Prime7);
-			this.dataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, IDataAccessObject>>(PrimeNumbers.Prime67);
+			this.dataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>(PrimeNumbers.Prime67);
 			this.whereMethodInfos = new Dictionary<Type, MethodInfo>(PrimeNumbers.Prime127);
 			this.dataAccessObjectsTypes = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
 			this.enumerableTypes = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
@@ -141,9 +141,9 @@ namespace Shaolinq.TypeBuilding
 			return constructor;
 		}
 
-		public IDataAccessObject CreateDataAccessObject(Type dataAccessObjectType, DataAccessModel dataAccessModel, bool isNew)
+		public DataAccessObject CreateDataAccessObject(Type dataAccessObjectType, DataAccessModel dataAccessModel, bool isNew)
 		{
-			Func<DataAccessModel, bool, IDataAccessObject> constructor;
+			Func<DataAccessModel, bool, DataAccessObject> constructor;
 
 			if (!this.dataAccessObjectConstructors.TryGetValue(dataAccessObjectType, out constructor))
 			{
@@ -166,7 +166,7 @@ namespace Shaolinq.TypeBuilding
 				var isNewParam = Expression.Parameter(typeof(bool));
 				var dataAccessModelParam = Expression.Parameter(typeof(DataAccessModel));
 
-				constructor = Expression.Lambda<Func<DataAccessModel, bool, IDataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), dataAccessObjectType), isNewParam).Compile();
+				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), dataAccessObjectType), isNewParam).Compile();
 
 				this.dataAccessObjectConstructors[dataAccessObjectType] = constructor;
 			}
@@ -175,9 +175,9 @@ namespace Shaolinq.TypeBuilding
 		}
 
 		public T CreateDataAccessObject<T>(DataAccessModel dataAccessModel, bool isNew)
-			where T : IDataAccessObject
+			where T : DataAccessObject
 		{
-			Func<DataAccessModel, bool, IDataAccessObject> constructor;
+			Func<DataAccessModel, bool, DataAccessObject> constructor;
 
 			if (!this.dataAccessObjectConstructors.TryGetValue(typeof(T), out constructor))
 			{
@@ -200,7 +200,7 @@ namespace Shaolinq.TypeBuilding
 				var isNewParam = Expression.Parameter(typeof(bool));
 				var dataAccessModelParam = Expression.Parameter(typeof(DataAccessModel));
 
-				constructor = Expression.Lambda<Func<DataAccessModel, bool, IDataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), typeof(T)), dataAccessModelParam, isNewParam).Compile();
+				constructor = Expression.Lambda<Func<DataAccessModel, bool,DataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), typeof(T)), dataAccessModelParam, isNewParam).Compile();
 
 				this.dataAccessObjectConstructors[typeof(T)] = constructor;
 			}

@@ -10,7 +10,7 @@
 
 	public interface IDataAccessObjectActivator<out T>
 		: IDataAccessObjectActivator
-		where T : IDataAccessObject
+		where T : DataAccessObject
 	{
 		new T Create();
 		new T Create<K>(K primaryKey);

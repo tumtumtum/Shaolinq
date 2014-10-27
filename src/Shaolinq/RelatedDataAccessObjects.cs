@@ -10,7 +10,7 @@ namespace Shaolinq
 {
 	public class RelatedDataAccessObjects<T>
 		: DataAccessObjectsQueryable<T>, IRelatedDataAccessObjectContext, IDataAccessObjectActivator
-		where T : class, IDataAccessObject
+		where T : DataAccessObject
 	{
 		public override Type ElementType { get { return typeof(T); } }
 		public IDataAccessObject RelatedDataAccessObject { get; private set; }
