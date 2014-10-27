@@ -114,7 +114,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test, ExpectedException(typeof(ObjectAlreadyExistsException))]
-		public void Test_Create_Objects_With_Guid_Non_AutoIncrement_PrimaryKey_And_Set_Same_Primary_Keys()
+		public void Test_Create_Objects_With_Guid_Non_AutoIncrement_PrimaryKey_And_Set_Same_Primary_Keys_With_Assign()
 		{
 			try
 			{
@@ -124,8 +124,30 @@ namespace Shaolinq.Tests
 
 					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
 					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
+
 					obj2.Id = id;
 
+					scope.Complete();
+				}
+			}
+			catch (TransactionAbortedException e)
+			{
+				throw e.InnerException;
+			}
+		}
+
+		[Test, ExpectedException(typeof(ObjectAlreadyExistsException))]
+		public void Test_Create_Objects_With_Guid_Non_AutoIncrement_PrimaryKey_And_Set_Same_Primary_Keys_With_Create()
+		{
+			try
+			{
+				using (var scope = new TransactionScope())
+				{
+					var id = Guid.NewGuid();
+
+					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+					
 					scope.Complete();
 				}
 			}

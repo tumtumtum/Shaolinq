@@ -97,7 +97,7 @@ namespace Shaolinq.Postgres.DotConnect
 			case "23503":
 				return new MissingRelatedDataAccessObjectException(null, dataAccessObject, postgresException, relatedQuery);
 			case "23505":
-				if (postgresException.ConstraintName.Contains("_pkey"))
+				if (postgresException.ConstraintName.IndexOf("_pkey", StringComparison.Ordinal) >= 0)
 				{
 					return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
 				}
