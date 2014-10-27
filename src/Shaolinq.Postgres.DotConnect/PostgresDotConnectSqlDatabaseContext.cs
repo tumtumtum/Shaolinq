@@ -120,7 +120,7 @@ namespace Shaolinq.Postgres.DotConnect
 					}
 				}
 
-				if (postgresException.Message.IndexOf("_pkey\\", StringComparison.InvariantCultureIgnoreCase) >= 0)
+				if (postgresException.Message.IndexOf("_pkey", StringComparison.InvariantCultureIgnoreCase) >= 0)
 				{
 					return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);	
 				}
