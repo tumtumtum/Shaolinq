@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Linq;
 using System.Data.Common;
+using System.Text.RegularExpressions;
 using System.Transactions;
 ﻿using Shaolinq.Persistence;
 using Devart.Data.PostgreSql;
@@ -97,16 +99,30 @@ namespace Shaolinq.Postgres.DotConnect
 			case "23503":
 				return new MissingRelatedDataAccessObjectException(null, dataAccessObject, postgresException, relatedQuery);
 			case "23505":
-				var s = postgresException.ConstraintName;
-
-				if (string.IsNullOrEmpty(s))
+				if (!string.IsNullOrEmpty(postgresException.ColumnName) && dataAccessObject != null)
 				{
-					s = postgresException.Message;
+					if (dataAccessObject.GetPrimaryKeysFlattened().Any(c => c.PersistedName == postgresException.ColumnName))
+					{
+						return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
+					}
 				}
 
-				if (s.IndexOf("_pkey", StringComparison.InvariantCultureIgnoreCase) >= 0)
+				if (!string.IsNullOrEmpty(postgresException.ConstraintName) && postgresException.ConstraintName.EndsWith("_pkey"))
 				{
 					return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
+				}
+
+				if (!string.IsNullOrEmpty(postgresException.DetailMessage) && dataAccessObject != null)
+				{
+					if (dataAccessObject.GetPrimaryKeysFlattened().Any(c => Regex.Match(postgresException.DetailMessage, @"Key\s*\(\s*""?" + c.PersistedName + @"""?\s*\)", RegexOptions.CultureInvariant).Success))
+					{
+						return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);	
+					}
+				}
+
+				if (postgresException.Message.IndexOf("_pkey\\", StringComparison.InvariantCultureIgnoreCase) >= 0)
+				{
+					return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);	
 				}
 				else
 				{
