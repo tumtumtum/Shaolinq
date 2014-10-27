@@ -107,11 +107,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			       && typedLeft.SelectAlias == typedRight.SelectAlias
 			       && typedLeft.Name == typedRight.Name;
 
-			if (retval)
-			{
-				Console.WriteLine();
-			}
-
 			return retval;
 		}
 	}
