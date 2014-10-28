@@ -7,9 +7,9 @@ namespace Shaolinq
 	public class MissingObjectIdentifierException
 		: Exception
 	{
-		public IDataAccessObject DataAccessObject { get; private set; }
+		public IDataAccessObjectAdvanced DataAccessObject { get; private set; }
 
-		public MissingObjectIdentifierException(IDataAccessObject dataAccessObject)
+		public MissingObjectIdentifierException(IDataAccessObjectAdvanced dataAccessObject)
 		{
 			this.DataAccessObject = dataAccessObject;
 		}

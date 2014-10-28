@@ -46,8 +46,7 @@ namespace Shaolinq
 		private Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
 
-		[ReflectionEmitted]
-		protected abstract void Initialise();
+		
 
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
 			where T : DataAccessObject
@@ -55,9 +54,7 @@ namespace Shaolinq
 			return (DataAccessObjects<T>)GetDataAccessObjects(typeof(T));
 		}
 
-		[ReflectionEmitted]
-		public abstract IQueryable GetDataAccessObjects(Type type);
-
+		
 		private Dictionary<Type, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<Type, Func<IQueryable>>();
 
 		protected virtual IQueryable CreateDataAccessObjects(Type type)
@@ -342,11 +339,13 @@ namespace Shaolinq
 			{
 				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, false);
 
-				retval.Advanced.SetIsDeflatedReference(true);
-				retval.Advanced.SetPrimaryKeys(objectPropertyAndValues);
-				retval.Advanced.ResetModified();
-				retval.Advanced.FinishedInitializing();
-				retval.Advanced.SubmitToCache();
+				var internalDataAccessObject = (IDataAccessObjectInternal)retval;
+
+				internalDataAccessObject.SetIsDeflatedReference(true);
+				internalDataAccessObject.SetPrimaryKeys(objectPropertyAndValues);
+				internalDataAccessObject.ResetModified();
+				internalDataAccessObject.FinishedInitializing();
+				internalDataAccessObject.SubmitToCache();
 
 				return retval;
 			}
@@ -511,20 +510,20 @@ namespace Shaolinq
 		{
 			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
 
-			((IDataAccessObject)retval).FinishedInitializing();
-			((IDataAccessObject)retval).SubmitToCache();
+			((IDataAccessObjectInternal)retval).FinishedInitializing();
+			((IDataAccessObjectInternal)retval).SubmitToCache();
 
 			return retval;
 		}
 
-		public virtual IDataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey)
+		public virtual IDataAccessObjectAdvanced CreateDataAccessObject<K>(Type type, K primaryKey)
 		{
 			return CreateDataAccessObject(type, primaryKey, PrimaryKeyType.Auto);
 		}
 
-		public virtual IDataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
+		public virtual IDataAccessObjectAdvanced CreateDataAccessObject<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			if (!typeof(IDataAccessObject).IsAssignableFrom(type)
+			if (!typeof(IDataAccessObjectAdvanced).IsAssignableFrom(type)
 				|| !typeof(DataAccessObject<>).IsAssignableFromIgnoreGenericParameters(type))
 			{
 				throw new ArgumentException("Type must be a DataAccessObjectType", "type");
@@ -541,7 +540,7 @@ namespace Shaolinq
 
 			if (existing != null)
 			{
-				IDataAccessObject obj = null;
+				IDataAccessObjectAdvanced obj = null;
 
 				ActionUtils.IgnoreExceptions(() => obj = this.GetReference(type, primaryKey, primaryKeyType));
 
@@ -551,9 +550,9 @@ namespace Shaolinq
 			{
 				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
 
-				((IDataAccessObject)retval).SetPrimaryKeys(objectPropertyAndValues);
-				((IDataAccessObject)retval).FinishedInitializing();
-				((IDataAccessObject)retval).SubmitToCache();
+				retval.ToObjectInternal().SetPrimaryKeys(objectPropertyAndValues);
+				retval.ToObjectInternal().FinishedInitializing();
+				retval.ToObjectInternal().SubmitToCache();
 
 				return retval;
 			}
@@ -564,8 +563,8 @@ namespace Shaolinq
 		{
 			var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
 
-			((IDataAccessObject)retval).FinishedInitializing();
-			((IDataAccessObject)retval).SubmitToCache();
+			retval.ToObjectInternal().FinishedInitializing();
+			retval.ToObjectInternal().SubmitToCache();
 
 			return retval;
 		}
@@ -600,9 +599,9 @@ namespace Shaolinq
 			{
 				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
 
-				((IDataAccessObject)retval).SetPrimaryKeys(objectPropertyAndValues);
-				((IDataAccessObject)retval).FinishedInitializing();
-				((IDataAccessObject)retval).SubmitToCache();
+				retval.ToObjectInternal().SetPrimaryKeys(objectPropertyAndValues);
+				retval.ToObjectInternal().FinishedInitializing();
+				retval.ToObjectInternal().SubmitToCache();
 
 				return retval;
 			}
@@ -706,7 +705,7 @@ namespace Shaolinq
 			
 			if (!inflateFuncsByType.TryGetValue(definitionType, out func))
 			{
-				var parameter = Expression.Parameter(typeof(IDataAccessObject), "dataAccessObject");
+				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");
 				var methodInfo = MethodInfoFastRef.BaseDataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
 				var body = Expression.Call(Expression.Constant(this), methodInfo, Expression.Convert(parameter, definitionType));
 
@@ -741,5 +740,8 @@ namespace Shaolinq
 
 			return retval;
 		}
+
+		protected abstract void Initialise();
+		public abstract IQueryable GetDataAccessObjects(Type type);
 	}
 }

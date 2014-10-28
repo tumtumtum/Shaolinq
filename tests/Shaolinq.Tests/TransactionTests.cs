@@ -124,8 +124,8 @@ namespace Shaolinq.Tests
 				address1.Street = "Street1";
 				address2.Street = "Street2";
 
-				Console.WriteLine("Address1 changed: {0}", ((IDataAccessObject)address1).HasObjectChanged);
-				Console.WriteLine("Address2 changed: {0}", ((IDataAccessObject)address2).HasObjectChanged);
+				Console.WriteLine("Address1 changed: {0}", ((IDataAccessObjectAdvanced)address1).HasObjectChanged);
+				Console.WriteLine("Address2 changed: {0}", ((IDataAccessObjectAdvanced)address2).HasObjectChanged);
 
 				scope.Complete();
 			}

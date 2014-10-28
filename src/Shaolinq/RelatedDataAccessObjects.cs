@@ -13,13 +13,13 @@ namespace Shaolinq
 		where T : DataAccessObject
 	{
 		public override Type ElementType { get { return typeof(T); } }
-		public IDataAccessObject RelatedDataAccessObject { get; private set; }
+		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; private set; }
 
 		public string PropertyName { get; private set; }
 		public EntityRelationshipType RelationshipType { get; private set; }
-		public Action<IDataAccessObject, IDataAccessObject> InitializeDataAccessObject { get; private set; }
+		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; private set; }
 
-		public RelatedDataAccessObjects(IDataAccessObject relatedDataAccessObject, DataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
+		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
 			: base(dataAccessModel, null)
 		{
 			this.PropertyName = propertyName;
@@ -65,7 +65,7 @@ namespace Shaolinq
 			var key = new Pair<Type, Type>(this.RelatedDataAccessObject.GetType(), typeof(T));
 			var initializeActionsStorage = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
 
-			Action<IDataAccessObject, IDataAccessObject> initializeDataAccessObject;
+			Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> initializeDataAccessObject;
 
 			if (initializeActionsStorage.initializeActions.TryGetValue(key, out initializeDataAccessObject))
 			{
@@ -81,8 +81,8 @@ namespace Shaolinq
 					var relatedDataAccessObjectType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType());
 					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
 					
-					var newParam = Expression.Parameter(typeof(IDataAccessObject), "newobj");
-					var relatedParam = Expression.Parameter(typeof(IDataAccessObject), "related");
+					var newParam = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "newobj");
+					var relatedParam = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "related");
 
 					var propertyDescriptor = newObjectTypeDescriptor.RelatedProperties.First(c => relatedDataAccessObjectType.IsAssignableFrom(c.PropertyType));
 
@@ -92,7 +92,7 @@ namespace Shaolinq
 
 					var lambda = Expression.Lambda(body, relatedParam, newParam);
 
-					this.InitializeDataAccessObject = (Action<IDataAccessObject, IDataAccessObject>)lambda.Compile();
+					this.InitializeDataAccessObject = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
 
 					initializeActionsStorage.initializeActions[key] = this.InitializeDataAccessObject;
 
@@ -114,7 +114,7 @@ namespace Shaolinq
 			return retval;
 		}
 
-		IDataAccessObject IDataAccessObjectActivator.Create()
+		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create()
 		{
 			return this.Create();
 		}

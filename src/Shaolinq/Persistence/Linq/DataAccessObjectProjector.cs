@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
@@ -31,7 +31,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						T retval = this.objectReader(this, dataReader, this.placeholderValues);
 
-						retval.Advanced.ResetModified();
+						retval.ToObjectInternal().ResetModified();
 
 						yield return retval;
 

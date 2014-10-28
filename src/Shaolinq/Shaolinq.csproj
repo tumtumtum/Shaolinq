@@ -262,7 +262,6 @@
     <Compile Include="ObjectPropertyValue.cs" />
     <Compile Include="PropertyInfoFastRef.cs" />
     <Compile Include="QueryableExtensions.cs" />
-    <Compile Include="ReflectionEmittedAttribute.cs" />
     <Compile Include="BackReferenceAttribute.cs" />
     <Compile Include="ReferencedObjectPrimaryKeyPropertyAttribute.cs" />
     <Compile Include="ServerDateTime.cs" />
@@ -296,7 +295,7 @@
     <Compile Include="DataAccessModelConfigurationSectionHandler.cs" />
     <Compile Include="DataAccessModelTransactionManager.cs" />
     <Compile Include="DataAccessObjectDataContext.cs" />
-    <Compile Include="IDataAccessObject.cs" />
+    <Compile Include="IDataAccessObjectAdvanced.cs" />
     <Compile Include="MissingObjectIdentifierException.cs" />
     <Compile Include="ObjectAlreadyInitializedException.cs" />
     <Compile Include="Persistence\IPersistenceQueryable.cs" />
@@ -333,6 +332,7 @@
     <Compile Include="Persistence\TypeDescriptor.cs" />
     <Compile Include="Persistence\TypeDescriptorProvider.cs" />
     <Compile Include="Persistence\TypeRelationshipInfo.cs" />
+    <Compile Include="TypeBuilding\IDataAccessObjectInternal.cs" />
     <Compile Include="TypeBuilding\PropertyMethodType.cs" />
     <Compile Include="TypeHelper.cs" />
     <Compile Include="TypeExtensions.cs" />

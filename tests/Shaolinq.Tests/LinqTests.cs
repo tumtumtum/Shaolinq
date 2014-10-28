@@ -646,7 +646,7 @@ namespace Shaolinq.Tests
 		{
 			var student = model.Students.First();
 
-			Assert.IsFalse(((IDataAccessObject)student).HasObjectChanged);
+			Assert.IsFalse(((IDataAccessObjectAdvanced)student).HasObjectChanged);
 		}
 
 		[Test]
@@ -656,7 +656,7 @@ namespace Shaolinq.Tests
 			{
 				var student = model.Students.First();
 
-				Assert.That(((IDataAccessObject)student).GetChangedPropertiesFlattened(), Is.Empty);
+				Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
 
 				student.Sex = student.Sex;	
 				student.School = student.School;
@@ -673,8 +673,8 @@ namespace Shaolinq.Tests
 				student.FavouriteNumber = student.FavouriteNumber;
 				student.Birthdate = student.Birthdate;
 
-				Assert.That(((IDataAccessObject)student).GetChangedPropertiesFlattened(), Is.Empty);
-				Assert.IsFalse(((IDataAccessObject)student).HasObjectChanged);
+				Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
+				Assert.IsFalse(((IDataAccessObjectAdvanced)student).HasObjectChanged);
 			}
 		}
 

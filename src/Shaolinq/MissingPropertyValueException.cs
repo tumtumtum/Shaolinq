@@ -5,9 +5,9 @@ namespace Shaolinq
 	public class MissingPropertyValueException
 		: DataAccessException
 	{
-		public IDataAccessObject RelatedObject { get; private set; }
+		public IDataAccessObjectAdvanced RelatedObject { get; private set; }
 
-		public MissingPropertyValueException(IDataAccessObject relatedObject, Exception innerException, string relatedQuery)
+		public MissingPropertyValueException(IDataAccessObjectAdvanced relatedObject, Exception innerException, string relatedQuery)
 			: base(innerException, relatedQuery)
 		{
 			this.RelatedObject = relatedObject;

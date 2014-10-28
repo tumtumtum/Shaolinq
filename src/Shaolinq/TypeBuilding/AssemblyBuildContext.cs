@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Shaolinq.TypeBuilding
 {
-	public class AssemblyBuildContext
+	public sealed class AssemblyBuildContext
 		: IDisposable
 	{
 		public Assembly SourceAssembly { get; set; }
@@ -18,7 +18,7 @@ namespace Shaolinq.TypeBuilding
 			this.TypeBuilders = new Dictionary<Type, DataAccessObjectTypeBuilder>();
 		}
 
-		public virtual void Dispose()
+		public void Dispose()
 		{
 		}
 	}

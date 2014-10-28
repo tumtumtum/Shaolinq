@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Shaolinq.Persistence;
 using Platform;
+using Shaolinq.TypeBuilding;
 using TypeAndTransactionalCommandsContext = Platform.Pair<System.Type, Shaolinq.SqlTransactionalCommandsContext>;
 
 namespace Shaolinq
@@ -70,12 +70,12 @@ namespace Shaolinq
 
 		#region ObjectsByIdCache
 
-		internal class ObjectsByIdCache<T>
+		private class ObjectsByIdCache<T>
 		{
 			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
 			internal readonly Dictionary<Type, HashSet<DataAccessObject>> newObjects;
 			internal readonly Dictionary<Type, Dictionary<T, DataAccessObject>> objectsByIdCache;
-			internal readonly Dictionary<Type, HashSet<DataAccessObject>> objectsNotReadyForCommit;
+			private readonly Dictionary<Type, HashSet<DataAccessObject>> objectsNotReadyForCommit;
 			internal Dictionary<Type, Dictionary<T, DataAccessObject>> objectsDeleted;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>> objectsDeletedComposite;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>> objectsByIdCacheComposite;
@@ -122,22 +122,22 @@ namespace Shaolinq
 			{
 				foreach (var value in this.newObjects.Values.SelectMany(c => c))
 				{
-					value.Advanced.SetIsNew(false);
-					value.Advanced.ResetModified();
+					value.ToObjectInternal().SetIsNew(false);
+					value.ToObjectInternal().ResetModified();
 
 					this.Cache((DataAccessObject<T>)value, false);
 				}
 
 				foreach (var obj in this.objectsByIdCache.SelectMany(j => j.Value.Values))
 				{
-					obj.Advanced.ResetModified();
+					obj.ToObjectInternal().ResetModified();
 				}
 
 				if (this.objectsByIdCacheComposite != null)
 				{
 					foreach (var obj in this.objectsByIdCacheComposite.SelectMany(j => j.Value.Values))
 					{
-						obj.Advanced.ResetModified();
+						obj.ToObjectInternal().ResetModified();
 					}
 				}
 
@@ -148,7 +148,7 @@ namespace Shaolinq
 			{
 				var type = value.GetType();
 
-				if (((IDataAccessObject)value).IsNew)
+				if (((IDataAccessObjectAdvanced)value).IsNew)
 				{
 					HashSet<DataAccessObject> subcache;
 
@@ -164,7 +164,7 @@ namespace Shaolinq
 				}
 				else
 				{
-					if (((IDataAccessObject)value).NumberOfPrimaryKeys > 1)
+					if (((IDataAccessObjectAdvanced)value).NumberOfPrimaryKeys > 1)
 					{
 						Dictionary<CompositePrimaryKey, DataAccessObject> subcache;
 						var key = new CompositePrimaryKey(value.GetPrimaryKeys());
@@ -310,7 +310,7 @@ namespace Shaolinq
 					{
 						if (!this.objectsNotReadyForCommit.TryGetValue(type, out subcache))
 						{
-							subcache = new HashSet<DataAccessObject>(IdentityEqualityComparer<IDataAccessObject>.Default);
+							subcache = new HashSet<DataAccessObject>(IdentityEqualityComparer<IDataAccessObjectAdvanced>.Default);
 
 							this.objectsNotReadyForCommit[type] = subcache;
 						}
@@ -350,12 +350,12 @@ namespace Shaolinq
 						{
 							var deleted = outValue.IsDeleted;
 
-							outValue.Advanced.SwapData(value, true);
-							outValue.Advanced.SetIsDeflatedReference(value.IsDeflatedReference);
+							((IDataAccessObjectInternal)outValue).SwapData(value, true);
+							((IDataAccessObjectInternal)outValue).SetIsDeflatedReference(value.IsDeflatedReference);
 
 							if (deleted)
 							{
-								outValue.Advanced.SetIsDeleted(true);
+								((IDataAccessObjectInternal)outValue).SetIsDeleted(true);
 							}
 
 							return (DataAccessObject<T>)outValue;
@@ -374,8 +374,8 @@ namespace Shaolinq
 							{
 								if (!forImport)
 								{
-									existingDeleted.Advanced.SwapData(value, true);
-									existingDeleted.Advanced.SetIsDeleted(true);
+									existingDeleted.ToObjectInternal().SwapData(value, true);
+									existingDeleted.ToObjectInternal().SetIsDeleted(true);
 
 									return (DataAccessObject<T>)existingDeleted;
 								}
@@ -421,12 +421,12 @@ namespace Shaolinq
 						{
 							var deleted = outValue.IsDeleted;
 
-							outValue.Advanced.SwapData(value, true);
-							outValue.Advanced.SetIsDeflatedReference(value.IsDeflatedReference);
+							((IDataAccessObjectInternal)outValue).SwapData(value, true);
+							((IDataAccessObjectInternal)outValue).SetIsDeflatedReference(value.IsDeflatedReference);
 
 							if (deleted)
 							{
-								outValue.Advanced.SetIsDeleted(true);
+								((IDataAccessObjectInternal)outValue).SetIsDeleted(true);
 							}
 
 							return (DataAccessObject<T>)outValue;
@@ -445,8 +445,8 @@ namespace Shaolinq
 							{
 								if (!forImport)
 								{
-									existingDeleted.Advanced.SwapData(value, true);
-									existingDeleted.Advanced.SetIsDeleted(true);
+									existingDeleted.ToObjectInternal().SwapData(value, true);
+									existingDeleted.ToObjectInternal().SetIsDeleted(true);
 
 									return (DataAccessObject<T>)existingDeleted;
 								}
@@ -493,7 +493,7 @@ namespace Shaolinq
 			this.SqlDatabaseContext = sqlDatabaseContext;
 		}
 
-		public virtual void Deleted(IDataAccessObject value)
+		public virtual void Deleted(IDataAccessObjectAdvanced value)
 		{
 			var keyType = value.KeyType;
 
@@ -556,7 +556,7 @@ namespace Shaolinq
 				return;
 			}
 
-			value.Advanced.SetTransient(false);
+			value.ToObjectInternal().SetIsTransient(false);
 			ImportObject(new HashSet<DataAccessObject>(), value);
 		}
 

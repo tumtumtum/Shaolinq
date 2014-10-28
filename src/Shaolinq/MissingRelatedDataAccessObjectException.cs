@@ -7,7 +7,7 @@ namespace Shaolinq
 	public class MissingRelatedDataAccessObjectException
 		: MissingDataAccessObjectException
 	{
-		public IDataAccessObject ParentObject { get; private set; }
+		public IDataAccessObjectAdvanced ParentObject { get; private set; }
 
 		public MissingRelatedDataAccessObjectException()
 			: this(null, null)
@@ -19,12 +19,12 @@ namespace Shaolinq
 		{
 		}
 
-		public MissingRelatedDataAccessObjectException(IDataAccessObject missingObject)
+		public MissingRelatedDataAccessObjectException(IDataAccessObjectAdvanced missingObject)
 			: this(missingObject, null, null, null)
 		{
 		}
 
-		public MissingRelatedDataAccessObjectException(IDataAccessObject missingObject, IDataAccessObject parentObject, Exception innerException, string relatedQuery)
+		public MissingRelatedDataAccessObjectException(IDataAccessObjectAdvanced missingObject, IDataAccessObjectAdvanced parentObject, Exception innerException, string relatedQuery)
 			: base(missingObject, innerException, relatedQuery)
 		{
 			this.ParentObject = parentObject;

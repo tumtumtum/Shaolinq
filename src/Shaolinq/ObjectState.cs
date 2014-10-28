@@ -59,6 +59,11 @@ namespace Shaolinq
 		ObjectInsertedWithinTransaction = 64,
 
 		/// <summary>
+		/// The object is not a member of any transaction
+		/// </summary>
+		Transient = 128,
+
+		/// <summary>
 		/// The object has been deleted
 		/// </summary>
 		Deleted = 4096

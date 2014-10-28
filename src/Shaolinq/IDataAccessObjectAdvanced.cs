@@ -1,66 +1,15 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
- using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	internal interface IDataAccessObjectInternal
-	{
-		/// <summary>
-		/// Submits this object into the cache and then returns itself.
-		/// </summary>
-		/// <returns>The current object</returns>
-		IDataAccessObject SubmitToCache();
-
-		/// <summary>
-		/// Marks this object as newly created (unpersisted).
-		/// </summary>
-		void SetIsNew(bool value);
-
-		/// <summary>
-		/// Marks this object has been deleted.
-		/// </summary>
-		void SetIsDeleted(bool value);
-
-		/// <summary>
-		/// Makes the object as write-only (reads can only be made to primary key properties and properties that have been
-		/// changed within the context of the current transaction)
-		/// </summary>
-		void SetIsDeflatedReference(bool value);
-
-		/// <summary>
-		/// Sets the properties generated on the server side. The order of the values must be the same order
-		/// as that returned by <see cref="IDataAccessObject.GetPropertiesGeneratedOnTheServerSide"/>
-		/// </summary>
-		/// <param name="values">An array of values to set. Must be in the same order as the properties returned 
-		/// by <see cref="IDataAccessObject.GetPropertiesGeneratedOnTheServerSide"/>
-		/// </param>
-		void SetPropertiesGeneratedOnTheServerSide(object[] values);
-
-		/// <summary>
-		/// Update all properties that rely on server side generated properties.
-		/// </summary>
-		/// <returns></returns>
-		bool ComputeServerGeneratedIdDependentComputedTextProperties();
-
-		/// <summary>
-		/// Resets the modified status of all the properties that aren't unrealised
-		/// foreign key references.
-		/// </summary>
-		IDataAccessObject ResetModified();
-
-		/// <summary>
-		/// Sets the underlying data container of the current data access object with the one in the given domain object.
-		/// </summary>
-		void SwapData(IDataAccessObject source, bool transferChangedProperties);
-	}
-
 	/// <summary>
 	/// An interface implemented by all data access objects.
 	/// </summary>
-	public interface IDataAccessObject
+	public interface IDataAccessObjectAdvanced
 	{
 		/// <summary>
 		/// The TypeDescriptor associated with this data access object.
@@ -129,18 +78,6 @@ namespace Shaolinq
 		Type DefinitionType { get; }
 
 		/// <summary>
-		/// Resets the modified status of all the properties that aren't unrealised
-		/// foreign key references.
-		/// </summary>
-		IDataAccessObject ResetModified();
-
-		/// <summary>
-		/// Called when an object has finished being loaded from the database
-		/// </summary>
-		/// <returns></returns>
-		IDataAccessObject FinishedInitializing();
-
-		/// <summary>
 		/// Returns True if this object defines any direct properties that are generated on
 		/// the server side.
 		/// </summary>
@@ -163,54 +100,14 @@ namespace Shaolinq
 		bool IsTransient { get; }
 
 		/// <summary>
-		/// Makes this object as not belonging to any transaction (it will not be commited)
-		/// </summary>
-		void SetTransient(bool transient);
-
-		/// <summary>
 		/// Deletes the object.
 		/// </summary>
 		void Delete();
 
 		/// <summary>
-		/// Marks this object as newly created (unpersisted).
-		/// </summary>
-		void SetIsNew(bool value);
-
-		/// <summary>
-		/// Marks this object has been deleted.
-		/// </summary>
-		void SetIsDeleted(bool value);
-
-		/// <summary>
-		/// Makes the object as write-only (reads can only be made to primary key properties and properties that have been
-		/// changed within the context of the current transaction)
-		/// </summary>
-		void SetIsDeflatedReference(bool value);
-
-		/// <summary>
-		/// Sets the primary keys.
-		/// </summary>
-		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
-
-		/// <summary>
-		/// Sets the underlying data container of the current data access object with the one in the given domain object.
-		/// </summary>
-		void SwapData(IDataAccessObject source, bool transferChangedProperties);
-
-		/// <summary>
 		/// Returns true if the property with the given name has been changed since the object was loaded or created.
 		/// </summary>
 		bool HasPropertyChanged(string propertyName);
-
-		/// <summary>
-		/// Sets the properties generated on the server side. The order of the values must be the same order
-		/// as that returned by <see cref="GetPropertiesGeneratedOnTheServerSide"/>
-		/// </summary>
-		/// <param name="values">An array of values to set. Must be in the same order as the properties returned 
-		/// by <see cref="GetPropertiesGeneratedOnTheServerSide"/>
-		/// </param>
-		void SetPropertiesGeneratedOnTheServerSide(object[] values);
 
 		/// <summary>
 		/// Gets an array of the primary keys and their values.
@@ -264,12 +161,6 @@ namespace Shaolinq
 		List<ObjectPropertyValue> GetChangedPropertiesFlattened();
 
 		/// <summary>
-		/// Update all properties that rely on server side generated properties.
-		/// </summary>
-		/// <returns></returns>
-		bool ComputeServerGeneratedIdDependentComputedTextProperties();
-
-		/// <summary>
 		/// Inflates the current object if the object is currently deflated.  A deflated object only contains
 		/// primary keys and no other property values. Inflation usually requires a database query.
 		/// </summary>
@@ -282,11 +173,5 @@ namespace Shaolinq
 		/// could be emptyy.
 		/// </summary>
 		bool PrimaryKeyIsCommitReady { get; }
-
-		/// <summary>
-		/// Submits this object into the cache and then returns itself.
-		/// </summary>
-		/// <returns>The current object</returns>
-		DataAccessObject SubmitToCache();
 	}
 }

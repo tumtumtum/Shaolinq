@@ -4,8 +4,8 @@
 {
 	public interface IDataAccessObjectActivator
 	{
-		IDataAccessObject Create();
-		IDataAccessObject Create<K>(K primaryKey);
+		IDataAccessObjectAdvanced Create();
+		IDataAccessObjectAdvanced Create<K>(K primaryKey);
 	}
 
 	public interface IDataAccessObjectActivator<out T>

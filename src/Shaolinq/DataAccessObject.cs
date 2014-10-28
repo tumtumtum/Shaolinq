@@ -9,7 +9,7 @@ namespace Shaolinq
 	[Serializable]
 	[DataAccessObject(NotPersisted = true)]
 	public abstract class DataAccessObject<T>
-		: DataAccessObject
+		: DataAccessObject, IDataAccessObjectAdvanced
 	{
 		[PrimaryKey]
 		[AutoIncrement]
@@ -20,60 +20,37 @@ namespace Shaolinq
 	[Serializable]
 	[DataAccessObject(NotPersisted = true)]
     public abstract class DataAccessObject
-        : IDataAccessObject
+        : IDataAccessObjectAdvanced
 	{
-		public IDataAccessObject Advanced { get { return this; } }
-
 		public DataAccessModel DataAccessModel { get; private set; }
-		public bool IsDeflatedReference { get { return ((IDataAccessObject)this).IsDeflatedReference; } }
 		public SqlDatabaseContext DatabaseConnection { get { return this.DataAccessModel.GetCurrentSqlDatabaseContext(); } }
-		public bool IsDeleted { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0; } }
-		
-		bool IDataAccessObject.IsNew { get { return (((IDataAccessObject)this).ObjectState & ObjectState.New) != 0; } }
-		bool IDataAccessObject.IsTransient { get { return this.isTransient; } }
-		bool IDataAccessObject.HasCompositeKey { get { return ((IDataAccessObject)this).NumberOfPrimaryKeys > 1; } }
-		bool IDataAccessObject.HasObjectChanged { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Changed) != 0; } }
-		TypeDescriptor IDataAccessObject.TypeDescriptor { get { return this.DataAccessModel.GetTypeDescriptor(this.GetType()); } }
-		Type IDataAccessObject.DefinitionType { get { return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
+
+		public IDataAccessObjectAdvanced Advanced { get { return this; } }
+		public bool IsNew { get { return (((IDataAccessObjectAdvanced)this).IsNew); } }
+		public bool IsTransient { get { return (((IDataAccessObjectAdvanced)this).IsTransient); } }
+		public bool IsDeleted { get { return (((IDataAccessObjectAdvanced)this).IsDeleted); } }
+		public bool IsDeflatedReference { get { return ((IDataAccessObjectAdvanced)this).IsDeflatedReference; } }
 		
 		public virtual DataAccessObject Inflate()
 		{
-			if (!((IDataAccessObject)this).IsDeflatedReference)
+			if (!((IDataAccessObjectAdvanced)this).IsDeflatedReference)
 			{
 				return this;
 			}
 
 			var inflated = this.DataAccessModel.Inflate(this);
 
-			// SwapData should not be necessary inside a transaction 
-			((IDataAccessObject)this).SwapData(inflated, true);
-			((IDataAccessObject)this).SetIsDeflatedReference(false);
+			this.ToObjectInternal().SwapData(inflated, true);
+			this.ToObjectInternal().SetIsDeflatedReference(false);
 
 			return this;
-		}
-
-		protected bool CanHaveNewPrimaryKey(ObjectPropertyValue[] primaryKey)
-		{
-			if (this.DataAccessModel.GetCurrentDataContext(false).GetObject(this.GetType(), primaryKey) != null)
-			{
-				return false;
-			}
-
-			return true;
 		}
 
 		public virtual void Delete()
 		{
 			this.DataAccessModel.GetCurrentDataContext(true).Deleted(this);
-			
-			((IDataAccessObject)this).SetIsDeleted(true);
-		}
 
-		private bool isTransient;
-
-		void IDataAccessObject.SetTransient(bool transient)
-		{
-			this.isTransient = transient;
+			this.ToObjectInternal().SetIsDeleted(true);
 		}
 
 		protected void SetDataAccessModel(DataAccessModel dataAccessModel)
@@ -86,126 +63,37 @@ namespace Shaolinq
 			this.DataAccessModel = dataAccessModel;
 		}
 
-		bool IDataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObject)this).NumberOfDirectPropertiesGeneratedOnTheServerSide > 0; } }
-
-		[ReflectionEmitted]
-		public abstract bool HasPropertyChanged(string propertyName);
-
-		[ReflectionEmitted]
 		public abstract ObjectPropertyValue[] GetPrimaryKeys();
-
-		[ReflectionEmitted]
-		public abstract ObjectPropertyValue[] GetPrimaryKeysFlattened();
-
-		[ReflectionEmitted]
-		public abstract ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened();
-		
-		[ReflectionEmitted]
 		public abstract ObjectPropertyValue[] GetAllProperties();
-		
-		[ReflectionEmitted]
+		public abstract bool HasPropertyChanged(string propertyName);
+		public abstract ObjectPropertyValue[] GetPrimaryKeysFlattened();
+		public abstract ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened();
 		public abstract ObjectPropertyValue[] GetRelatedObjectProperties();
-
-		[ReflectionEmitted]
 		public abstract List<ObjectPropertyValue> GetChangedProperties();
-
-		[ReflectionEmitted]
 		public abstract List<ObjectPropertyValue> GetChangedPropertiesFlattened();
+		public abstract ObjectPropertyValue[] GetPropertiesGeneratedOnTheServerSide();
 
-		#region Reflection emitted explicit interface implementations
-
-		[ReflectionEmitted]
-		Type IDataAccessObject.KeyType { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		ObjectState IDataAccessObject.ObjectState { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		bool IDataAccessObject.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		Type[] IDataAccessObject.CompositeKeyTypes { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		int IDataAccessObject.NumberOfPrimaryKeys { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		int IDataAccessObject.NumberOfPrimaryKeysGeneratedOnServerSide { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		void IDataAccessObject.SetPrimaryKeys(ObjectPropertyValue[] primaryKeys)
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		bool IDataAccessObject.IsDeflatedReference { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		IDataAccessObject IDataAccessObject.ResetModified()
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		IDataAccessObject IDataAccessObject.FinishedInitializing()
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		void IDataAccessObject.SwapData(IDataAccessObject source, bool transferChangedProperties)
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		void IDataAccessObject.SetIsNew(bool value)
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		void IDataAccessObject.SetIsDeflatedReference(bool value)
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		void IDataAccessObject.SetIsDeleted(bool value)
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		bool IDataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties()
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		ObjectPropertyValue[] IDataAccessObject.GetPropertiesGeneratedOnTheServerSide()
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		void IDataAccessObject.SetPropertiesGeneratedOnTheServerSide(object[] values)
-		{
-			throw new NotImplementedException();
-		}
-
-		[ReflectionEmitted]
-		bool IDataAccessObject.PrimaryKeyIsCommitReady { get { throw new NotImplementedException(); } }
-
-		[ReflectionEmitted]
-		int IDataAccessObject.NumberOfDirectPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
-
+		#region IDataAccessObjectAdvanced
+		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObjectAdvanced)this).NumberOfDirectPropertiesGeneratedOnTheServerSide > 0; } }
+		bool IDataAccessObjectAdvanced.IsNew { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.New) != 0; } }
+		bool IDataAccessObjectAdvanced.IsDeleted { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Deleted) != 0; } }
+		bool IDataAccessObjectAdvanced.IsTransient { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Transient) != 0; } }
+		bool IDataAccessObjectAdvanced.HasCompositeKey { get { return ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys > 1; } }
+		bool IDataAccessObjectAdvanced.HasObjectChanged { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Changed) != 0; } }
+		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor { get { return this.DataAccessModel.GetTypeDescriptor(this.GetType()); } }
+		Type IDataAccessObjectAdvanced.DefinitionType { get { return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
 		#endregion
 
-		DataAccessObject IDataAccessObject.SubmitToCache()
-		{
-			return this.DataAccessModel.GetCurrentDataContext(false).CacheObject(this, false);
-		}
+		#region Reflection emitted explicit interface implementations
+		Type IDataAccessObjectAdvanced.KeyType { get { throw new NotImplementedException(); } }
+		ObjectState IDataAccessObjectAdvanced.ObjectState { get { throw new NotImplementedException(); } }
+		bool IDataAccessObjectAdvanced.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys { get { throw new NotImplementedException(); } }
+		Type[] IDataAccessObjectAdvanced.CompositeKeyTypes { get { throw new NotImplementedException(); } }
+		int IDataAccessObjectAdvanced.NumberOfPrimaryKeys { get { throw new NotImplementedException(); } }
+		int IDataAccessObjectAdvanced.NumberOfPrimaryKeysGeneratedOnServerSide { get { throw new NotImplementedException(); } }
+		bool IDataAccessObjectAdvanced.IsDeflatedReference { get { throw new NotImplementedException(); } }
+		bool IDataAccessObjectAdvanced.PrimaryKeyIsCommitReady { get { throw new NotImplementedException(); } }
+		int IDataAccessObjectAdvanced.NumberOfDirectPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
+		#endregion
 	}
 }

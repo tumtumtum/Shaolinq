@@ -48,12 +48,12 @@ namespace Shaolinq
 			return this.DataAccessModel.CreateDataAccessObject<T, K>(primaryKey, primaryKeyType);
 		}
 
-		IDataAccessObject IDataAccessObjectActivator.Create()
+		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create()
 		{
 			return this.Create();
 		}
 
-		IDataAccessObject IDataAccessObjectActivator.Create<K>(K primaryKey)
+		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create<K>(K primaryKey)
 		{
 			return this.Create<K>(primaryKey);
 		}

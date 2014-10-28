@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence
 					{
 						if (!typeDescriptorsByType.ContainsKey(baseType) && !dataAccessObjectAttribute.NotPersisted)
 						{
-							if (!typeof(IDataAccessObject).IsAssignableFrom(baseType))
+							if (!typeof(IDataAccessObjectAdvanced).IsAssignableFrom(baseType))
 							{
 								throw new InvalidDataAccessObjectModelDefinition("The type {0} is decorated with a [DataAccessObject] attribute but does not extend DataAccessObject<T>", baseType.Name);
 							}
@@ -105,7 +105,7 @@ namespace Shaolinq.Persistence
 							typeDescriptorsByType[baseType] = typeDescriptor;
 						}
 					}
-					else if (typeof(IDataAccessObject).IsAssignableFrom(baseType))
+					else if (typeof(IDataAccessObjectAdvanced).IsAssignableFrom(baseType))
 					{
 						throw new InvalidDataAccessObjectModelDefinition("The type {0} extends DataAccessObject<T> but is not explicitly decorated with the [DataAccessObject] attribute", baseType.Name);
 					}

@@ -497,7 +497,7 @@ namespace Shaolinq.Tests
 				dbObj.String = null;
 				dbObj.NullableDateTime = null;
 
-				Assert.That(((IDataAccessObject)dbObj).GetChangedProperties().Count, Is.EqualTo(2));
+				Assert.That(((IDataAccessObjectAdvanced)dbObj).GetChangedProperties().Count, Is.EqualTo(2));
 
 				scope.Complete();
 			}

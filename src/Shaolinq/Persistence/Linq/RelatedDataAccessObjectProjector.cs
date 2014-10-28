@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (this.relatedDataAccessObjectContext.InitializeDataAccessObject != null)
 						{
-							this.relatedDataAccessObjectContext.InitializeDataAccessObject(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObject)retval);
+							this.relatedDataAccessObjectContext.InitializeDataAccessObject(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObjectAdvanced)retval);
 						}
 
 						//retval.ResetModified();

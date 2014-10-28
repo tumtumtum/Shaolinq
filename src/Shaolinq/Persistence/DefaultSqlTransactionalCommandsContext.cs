@@ -295,7 +295,7 @@ namespace Shaolinq.Persistence
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
 
-					dataAccessObject.Advanced.ResetModified();
+					dataAccessObject.ToObjectInternal().ResetModified();
 				}
 			}
 		}
@@ -366,6 +366,7 @@ namespace Shaolinq.Persistence
 					if (dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 					{
 						object[] values = null;
+						var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
 
 						using (reader)
 						{
@@ -384,14 +385,14 @@ namespace Shaolinq.Persistence
 									values[i] = value;
 								}
 
-								dataAccessObject.Advanced.SetPropertiesGeneratedOnTheServerSide(values);
+								dataAccessObjectInternal.SetPropertiesGeneratedOnTheServerSide(values);
 							}
 						}
 
-						if (values != null && dataAccessObject.Advanced.ComputeServerGeneratedIdDependentComputedTextProperties())
+						if (values != null && dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
 							this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
-							dataAccessObject.Advanced.SetPropertiesGeneratedOnTheServerSide(values);
+							dataAccessObjectInternal.SetPropertiesGeneratedOnTheServerSide(values);
 						}
 					}
 					else

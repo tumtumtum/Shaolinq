@@ -72,11 +72,11 @@ namespace Shaolinq.Persistence.Linq
 
 			currentNewExpressionType = previousCurrentNewExpressionType;
 
-			var submitToCacheMethod = typeof(IDataAccessObject).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-			var resetModifiedMethod = typeof(IDataAccessObject).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-			var finishedInitializingMethod = typeof(IDataAccessObject).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+			var submitToCacheMethod = typeof(IDataAccessObjectInternal).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+			var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+			var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 
-			return Expression.Convert(Expression.Call(Expression.Call(Expression.Call(retval, finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
+			return Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
 		}
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)

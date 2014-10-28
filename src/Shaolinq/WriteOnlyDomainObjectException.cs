@@ -7,9 +7,9 @@ namespace Shaolinq
 	public class WriteOnlyDataAccessObjectException
 		: Exception
 	{
-		public IDataAccessObject DataAccessObject { get; private set; }
+		public IDataAccessObjectAdvanced DataAccessObject { get; private set; }
 
-		public WriteOnlyDataAccessObjectException(IDataAccessObject dataAccessObject)
+		public WriteOnlyDataAccessObjectException(IDataAccessObjectAdvanced dataAccessObject)
 		{
 			this.DataAccessObject = dataAccessObject;
 		}
