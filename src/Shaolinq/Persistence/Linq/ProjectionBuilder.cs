@@ -234,11 +234,11 @@ namespace Shaolinq.Persistence.Linq
 
 				if (!this.columnIndexes.ContainsKey(column.Name))
 				{
-					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, 0);
+					return sqlDataType.GetReadExpression(this.dataReader, 0);
 				}
 				else
 				{
-					return sqlDataType.GetReadExpression(this.objectProjector, this.dataReader, this.columnIndexes[column.Name]);
+					return sqlDataType.GetReadExpression(this.dataReader, this.columnIndexes[column.Name]);
 				}
 			}
 		}

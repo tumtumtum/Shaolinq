@@ -37,14 +37,7 @@ namespace Shaolinq.TypeBuilding
 		/// </summary>
 		void SetIsDeflatedReference(bool value);
 
-		/// <summary>
-		/// Sets the properties generated on the server side. The order of the values must be the same order
-		/// as that returned by <see cref="IDataAccessObjectAdvanced.GetPropertiesGeneratedOnTheServerSide"/>
-		/// </summary>
-		/// <param name="values">An array of values to set. Must be in the same order as the properties returned 
-		/// by <see cref="IDataAccessObjectAdvanced.GetPropertiesGeneratedOnTheServerSide"/>
-		/// </param>
-		void SetPropertiesGeneratedOnTheServerSide(object[] values);
+		void MarkServerSidePropertiesApplied();
 
 		/// <summary>
 		/// Update all properties that rely on server side generated properties.

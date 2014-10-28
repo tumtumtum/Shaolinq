@@ -287,8 +287,8 @@ namespace Shaolinq.TypeBuilding
 			this.BuildEqualsMethod();
 			this.BuildSetIsTransientMethod();
 			this.BuildSubmitToCacheMethod();
+			this.BuildMarkServerSidePropertiesAppliedMethod();
 			this.BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod();
-			this.BuildSetPropertiesGeneratedOnTheServerSideMethod();
 			this.BuildGetPropertiesGeneratedOnTheServerSideMethod();
 
 			typeBuilder.CreateType();
@@ -1232,7 +1232,7 @@ namespace Shaolinq.TypeBuilding
 			else
 			{
 				var returnLabel = generator.DefineLabel();
-				var keyTypeField = typeBuilder.DefineField("$$keytype", typeof(Type[]), FieldAttributes.Static | FieldAttributes.Public);
+				var keyTypeField = typeBuilder.DefineField("$$compositeKeyTypes", typeof(Type[]), FieldAttributes.Static | FieldAttributes.Public);
 
 				generator.Emit(OpCodes.Ldsfld, keyTypeField);
 				generator.Emit(OpCodes.Brtrue, returnLabel);
@@ -1243,7 +1243,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Newarr, typeof(Type));
 				generator.Emit(OpCodes.Stsfld, keyTypeField);
 				
-				foreach (var primaryKeyDescriptor in typeDescriptor.PrimaryKeyProperties.Sorted((x, y) => x == y ? 0 : x.PropertyName == "Id" ? -1 : 1))
+				foreach (var primaryKeyDescriptor in typeDescriptor.PrimaryKeyProperties)
 				{
 					generator.Emit(OpCodes.Ldsfld, keyTypeField);
 					generator.Emit(OpCodes.Ldc_I4, i);
@@ -1340,66 +1340,22 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildSetPropertiesGeneratedOnTheServerSideMethod()
+		private void BuildMarkServerSidePropertiesAppliedMethod()
 		{
-			var index = 0; 
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPropertiesGeneratedOnTheServerSide");
-			var local = generator.DeclareLocal(typeof(object));
-
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("MarkServerSidePropertiesApplied");
+			
 			var columnInfos = GetColumnsGeneratedOnTheServerSide();
 
-			foreach (var columnInfo in columnInfos)
-			{
-				var next = generator.DefineLabel();
-
-				generator.Emit(OpCodes.Ldarg_1);
-				generator.Emit(OpCodes.Ldc_I4, index);
-				generator.Emit(OpCodes.Ldelem, typeof(object));
-				generator.Emit(OpCodes.Stloc, local);
-				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Brfalse, next);
-
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-				generator.Emit(OpCodes.Ldloc, local);
-				
-				generator.Emit(OpCodes.Ldtoken, columnInfo.DefinitionProperty.PropertyType);
-				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
-				generator.Emit(OpCodes.Call, MethodInfoFastRef.ConvertChangeTypeMethod);
-
-				if (columnInfo.DefinitionProperty.PropertyType.IsValueType)
-				{
-					generator.Emit(OpCodes.Unbox_Any, columnInfo.DefinitionProperty.PropertyType);
-				}
-				else
-				{
-					generator.Emit(OpCodes.Castclass, columnInfo.DefinitionProperty.PropertyType);
-				}
-
-				generator.Emit(OpCodes.Stfld, this.valueFields[columnInfo.DefinitionProperty.PropertyName]);
-				
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-				generator.Emit(OpCodes.Ldc_I4_1);
-				generator.Emit(OpCodes.Stfld, this.valueIsSetFields[columnInfo.DefinitionProperty.PropertyName]);
-
-				generator.MarkLabel(next);
-
-				index++;
-			}
-
-			if (index == 0)
-			{
-				generator.Emit(OpCodes.Ldstr, "No autoincrement property defined on type: " + typeBuilder.Name);
-				generator.Emit(OpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) }));
-				generator.Emit(OpCodes.Throw);
-			}
-			else
+			if (columnInfos.Length > 0)
 			{
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.ObjectInsertedWithinTransaction));
 				generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
+				generator.Emit(OpCodes.Ret);
+			}
+			else
+			{
 				generator.Emit(OpCodes.Ret);
 			}
 		}

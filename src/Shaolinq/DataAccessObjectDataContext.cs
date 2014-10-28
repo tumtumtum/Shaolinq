@@ -495,12 +495,12 @@ namespace Shaolinq
 
 		public virtual void Deleted(IDataAccessObjectAdvanced value)
 		{
-			var keyType = value.KeyType;
-
 			if (value.IsDeleted)
 			{
 				return;
 			}
+
+			var keyType = value.KeyType;
 
 			if (keyType == null && value.NumberOfPrimaryKeys > 1)
 			{
@@ -509,38 +509,40 @@ namespace Shaolinq
 
 			switch (Type.GetTypeCode(keyType))
 			{
-				case TypeCode.Int32:
-					if (cacheByInt == null)
+			case TypeCode.Int32:
+				if (cacheByInt == null)
+				{
+					cacheByInt = new ObjectsByIdCache<int>(this);
+				}
+				cacheByInt.Deleted((DataAccessObject<int>)value);
+				break;
+			case TypeCode.Int64:
+				if (cacheByLong == null)
+				{
+					cacheByLong = new ObjectsByIdCache<long>(this);
+				}
+				cacheByLong.Deleted((DataAccessObject<long>)value);
+				break;
+			case TypeCode.String:
+				if (keyType == typeof(string))
+				{
+					if (cacheByString == null)
 					{
-						cacheByInt = new ObjectsByIdCache<int>(this);
+						cacheByString = new ObjectsByIdCache<string>(this);
 					}
-					cacheByInt.Deleted((DataAccessObject<int>)value);
-					break;
-				case TypeCode.Int64:
-					if (cacheByLong == null)
+					cacheByString.Deleted((DataAccessObject<string>)value);
+				}
+				break;
+			default:
+				if (keyType == typeof(Guid))
+				{
+					if (cacheByGuid == null)
 					{
-						cacheByLong = new ObjectsByIdCache<long>(this);
+						cacheByGuid = new ObjectsByIdCache<Guid>(this);
 					}
-					cacheByLong.Deleted((DataAccessObject<long>)value);
-					break;
-				default:
-					if (keyType == typeof(Guid))
-					{
-						if (cacheByGuid == null)
-						{
-							cacheByGuid = new ObjectsByIdCache<Guid>(this);
-						}
-						cacheByGuid.Deleted((DataAccessObject<Guid>)value);
-					}
-					else if (keyType == typeof(string))
-					{
-						if (cacheByString == null)
-						{
-							cacheByString = new ObjectsByIdCache<string>(this);
-						}
-						cacheByString.Deleted((DataAccessObject<string>)value);
-					}
-					break;
+					cacheByGuid.Deleted((DataAccessObject<Guid>)value);
+				}
+				break;
 			}
 		}
 

@@ -25,7 +25,7 @@ namespace Shaolinq.Postgres.Shared
 			return enumTypeDescriptor.Name;
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
 		{
 			if (underlyingType == null)
 			{

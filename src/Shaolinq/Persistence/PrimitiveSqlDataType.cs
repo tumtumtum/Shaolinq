@@ -4,8 +4,7 @@
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using Platform;
+﻿using Platform;
 
 namespace Shaolinq.Persistence
 {
@@ -32,7 +31,7 @@ namespace Shaolinq.Persistence
 			return (T)Convert.ChangeType(record.GetValue(ordinal), typeof(T));
 		}
 
-		public override Expression GetReadExpression(ParameterExpression objectProjector, ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
 		{
 			var type = this.UnderlyingType ?? this.SupportedType;
 

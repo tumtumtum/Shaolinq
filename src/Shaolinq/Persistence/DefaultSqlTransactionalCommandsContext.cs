@@ -365,34 +365,20 @@ namespace Shaolinq.Persistence
 
 					if (dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 					{
-						object[] values = null;
 						var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
 
 						using (reader)
 						{
 							if (reader.Read())
 							{
-								var propertyInfos = dataAccessObject.Advanced.GetPropertiesGeneratedOnTheServerSide();
-
-								values = new object[propertyInfos.Length];
-
-								for (var i = 0; i < propertyInfos.Length; i++)
-								{
-									var value = reader.GetValue(i);
-
-									value = Convert.ChangeType(value, propertyInfos[i].PropertyType);
-									
-									values[i] = value;
-								}
-
-								dataAccessObjectInternal.SetPropertiesGeneratedOnTheServerSide(values);
+								ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
+								dataAccessObjectInternal.MarkServerSidePropertiesApplied();
 							}
 						}
 
-						if (values != null && dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
+						if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
 							this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
-							dataAccessObjectInternal.SetPropertiesGeneratedOnTheServerSide(values);
 						}
 					}
 					else
@@ -412,6 +398,57 @@ namespace Shaolinq.Persistence
 			}
 
 			return new InsertResults(listToFixup, listToRetry);
+		}
+
+		private Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>> serverSideGeneratedPropertySettersByType = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>();
+
+		private DataAccessObject ApplyPropertiesGeneratedOnServerSide(DataAccessObject dataAccessObject, IDataReader reader)
+		{
+			if (!dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+			{
+				return dataAccessObject;
+			}
+
+			Func<DataAccessObject, IDataReader, DataAccessObject> applicator;
+
+			if (!serverSideGeneratedPropertySettersByType.TryGetValue(dataAccessObject.GetType(), out applicator))
+			{
+				var objectParameter = Expression.Parameter(typeof(DataAccessObject));
+				var readerParameter = Expression.Parameter(typeof(IDataReader));
+				var propertiesGeneratedOnServerSide = dataAccessObject.GetPropertiesGeneratedOnTheServerSide();
+				var local = Expression.Variable(dataAccessObject.GetType());
+				
+				var statements = new List<Expression>();
+
+				statements.Add(Expression.Assign(local, Expression.Convert(objectParameter, dataAccessObject.GetType())));
+
+				var index = 0;
+
+				foreach (var property in propertiesGeneratedOnServerSide)
+				{
+					var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(property.PropertyType);
+					var valueExpression = sqlDataType.GetReadExpression(readerParameter, index++);
+					var member = dataAccessObject.GetType().GetProperty(property.PropertyName);
+
+					statements.Add(Expression.Assign(Expression.MakeMemberAccess(local, member), valueExpression));
+				}
+				
+				statements.Add(objectParameter);
+				
+				var body = Expression.Block(new [] { local }, statements);
+
+				var lambda = Expression.Lambda<Func<DataAccessObject, IDataReader, DataAccessObject>>(body, objectParameter, readerParameter);
+				
+				applicator = lambda.Compile();
+
+				var newDictionary = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>(serverSideGeneratedPropertySettersByType);
+
+				newDictionary[dataAccessObject.GetType()] = applicator;
+
+				serverSideGeneratedPropertySettersByType = newDictionary;
+			}
+
+			return applicator(dataAccessObject, reader);
 		}
         
 		private IDbDataParameter AddParameter(IDbCommand command, Type type, object value)

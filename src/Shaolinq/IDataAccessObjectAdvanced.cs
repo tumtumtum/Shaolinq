@@ -37,7 +37,7 @@ namespace Shaolinq
 		bool IsDeleted { get; }
 
 		/// <summary>
-		/// Returns the Primary Key type for this object.  If the object defines a composite key the return value will be typeof(object).
+		/// Returns the Primary Key type for this object.
 		/// </summary>
 		Type KeyType { get; }
 
