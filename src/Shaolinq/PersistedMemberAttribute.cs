@@ -10,7 +10,15 @@ namespace Shaolinq
 	public class PersistedMemberAttribute
 		: Attribute
 	{
+		/// <summary>
+		/// The persisted name of the property
+		/// </summary>
 		public string Name { get; set; }
+
+		/// <summary>
+		/// The short persisted name for this property. Short names are used as suffixes
+		/// when naming related DataAccessObject properties.
+		/// </summary>
 		public string ShortName { get; set; }
 
 		public string GetShortName(MemberInfo memberInfo, TypeDescriptor typeDescriptor)

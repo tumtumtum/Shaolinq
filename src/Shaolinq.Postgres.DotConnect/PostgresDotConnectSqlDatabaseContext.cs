@@ -81,7 +81,7 @@ namespace Shaolinq.Postgres.DotConnect
 			PgSqlConnection.ClearAllPools();
 		}
 
-		public override Exception DecorateException(Exception exception, IDataAccessObject dataAccessObject, string relatedQuery)
+		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)
 		{
 			var postgresException = exception as PgSqlException;
 

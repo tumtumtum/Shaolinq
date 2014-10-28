@@ -22,35 +22,34 @@ namespace Shaolinq
     public abstract class DataAccessObject
         : IDataAccessObject
 	{
-		public virtual DataAccessModel DataAccessModel { get; private set; }
-		public virtual bool IsDeflatedReference { get { return ((IDataAccessObject)this).IsDeflatedReference; } }
-		bool IDataAccessObject.IsNew { get { return (((IDataAccessObject)this).ObjectState & ObjectState.New) != 0; } }
+		public IDataAccessObject Advanced { get { return this; } }
+
+		public DataAccessModel DataAccessModel { get; private set; }
+		public bool IsDeflatedReference { get { return ((IDataAccessObject)this).IsDeflatedReference; } }
 		public SqlDatabaseContext DatabaseConnection { get { return this.DataAccessModel.GetCurrentSqlDatabaseContext(); } }
-		Type IDataAccessObject.DefinitionType { get { return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
-		TypeDescriptor IDataAccessObject.TypeDescriptor { get { return this.DataAccessModel.GetTypeDescriptor(this.GetType()); } }
-		public virtual bool IsDeleted { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0; } }
+		public bool IsDeleted { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Deleted) != 0; } }
+		
+		bool IDataAccessObject.IsNew { get { return (((IDataAccessObject)this).ObjectState & ObjectState.New) != 0; } }
 		bool IDataAccessObject.IsTransient { get { return this.isTransient; } }
 		bool IDataAccessObject.HasCompositeKey { get { return ((IDataAccessObject)this).NumberOfPrimaryKeys > 1; } }
 		bool IDataAccessObject.HasObjectChanged { get { return (((IDataAccessObject)this).ObjectState & ObjectState.Changed) != 0; } }
-
-		public virtual IDataAccessObject Inflate()
+		TypeDescriptor IDataAccessObject.TypeDescriptor { get { return this.DataAccessModel.GetTypeDescriptor(this.GetType()); } }
+		Type IDataAccessObject.DefinitionType { get { return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
+		
+		public virtual DataAccessObject Inflate()
 		{
 			if (!((IDataAccessObject)this).IsDeflatedReference)
 			{
 				return this;
 			}
 
-			var inflated = this.DataAccessModel.Inflate((IDataAccessObject)this);
+			var inflated = this.DataAccessModel.Inflate(this);
 
 			// SwapData should not be necessary inside a transaction 
 			((IDataAccessObject)this).SwapData(inflated, true);
 			((IDataAccessObject)this).SetIsDeflatedReference(false);
 
 			return this;
-		}
-
-		protected void RemoveFromCache()
-		{	
 		}
 
 		protected bool CanHaveNewPrimaryKey(ObjectPropertyValue[] primaryKey)
@@ -77,7 +76,7 @@ namespace Shaolinq
 			this.isTransient = transient;
 		}
 
-		void IDataAccessObject.SetDataAccessModel(DataAccessModel dataAccessModel)
+		protected void SetDataAccessModel(DataAccessModel dataAccessModel)
 		{
 			if (this.DataAccessModel != null)
 			{
@@ -204,7 +203,7 @@ namespace Shaolinq
 
 		#endregion
 
-		IDataAccessObject IDataAccessObject.SubmitToCache()
+		DataAccessObject IDataAccessObject.SubmitToCache()
 		{
 			return this.DataAccessModel.GetCurrentDataContext(false).CacheObject(this, false);
 		}

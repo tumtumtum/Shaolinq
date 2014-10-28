@@ -61,8 +61,6 @@ namespace Shaolinq.TypeBuilding
 
 		public void BuildFirstPhase(int pass)
 		{
-			//ILGenerator constructorGenerator = null;    
-			
 			if (pass == 1)
 			{
 				typeBuilder = this.ModuleBuilder.DefineType(baseType.FullName, TypeAttributes.Class | TypeAttributes.Public, baseType);
@@ -80,6 +78,7 @@ namespace Shaolinq.TypeBuilding
 				cctorGenerator = staticConstructor.GetILGenerator();
 
 				// Define constructor for data object type
+
 				dataConstructorBuilder = dataObjectTypeTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
 				var constructorGenerator = dataConstructorBuilder.GetILGenerator();
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
@@ -92,8 +91,6 @@ namespace Shaolinq.TypeBuilding
 				partialObjectStateField = dataObjectTypeTypeBuilder.DefineField("PartialObjectState", typeof(ObjectState), FieldAttributes.Public);
 
 				this.isDeflatedReferenceField = dataObjectTypeTypeBuilder.DefineField("IsDeflatedReference", typeof(bool), FieldAttributes.Public);
-
-				//constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
 
 				dataObjectField = typeBuilder.DefineField("data", dataObjectTypeTypeBuilder, FieldAttributes.Public);
 			}
@@ -225,7 +222,7 @@ namespace Shaolinq.TypeBuilding
 
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
 				constructorGenerator.Emit(OpCodes.Ldarg_1);
-				constructorGenerator.Emit(OpCodes.Callvirt, typeof(IDataAccessObject).GetMethod("SetDataAccessModel"));
+				constructorGenerator.Emit(OpCodes.Callvirt, this.baseType.GetMethod("SetDataAccessModel", BindingFlags.Instance | BindingFlags.NonPublic));
 
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
 				constructorGenerator.Emit(OpCodes.Ldarg_2);
@@ -2415,18 +2412,31 @@ namespace Shaolinq.TypeBuilding
 
 		private ILGenerator CreateGeneratorForReflectionEmittedPropertyGetter(string propertyName)
 		{
-			const MethodAttributes methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Final;
+			var propertyInfo = typeBuilder.BaseType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 
-			var propertyInfo = typeof(IDataAccessObject).GetProperty(propertyName);
+			if (propertyInfo != null && propertyInfo.GetGetMethod().IsAbstract)
+			{
+				var methodInfo = propertyInfo.GetGetMethod();
+				var methodAttributes = methodInfo.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot);
+				var methodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
 
-			var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).FullName + ".get_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, Type.EmptyTypes);
-			var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).FullName + "." + propertyName, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
+				return methodBuilder.GetILGenerator();
+			}
+			else
+			{
+				const MethodAttributes methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Final;
 
-			propertyBuilder.SetGetMethod(methodBuilder);
+				propertyInfo = typeof(IDataAccessObject).GetProperty(propertyName);
 
-			typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_" + propertyName, BindingFlags.Instance | BindingFlags.Public));
+				var methodBuilder = typeBuilder.DefineMethod(typeof(IDataAccessObject).FullName + ".get_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, Type.EmptyTypes);
+				var propertyBuilder = typeBuilder.DefineProperty(typeof(IDataAccessObject).FullName + "." + propertyName, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
 
-			return methodBuilder.GetILGenerator();
+				propertyBuilder.SetGetMethod(methodBuilder);
+
+				typeBuilder.DefineMethodOverride(methodBuilder, typeof(IDataAccessObject).GetMethod("get_" + propertyName, BindingFlags.Instance | BindingFlags.Public));
+
+				return methodBuilder.GetILGenerator();
+			}
 		}
 
 		private ILGenerator CreateGeneratorForReflectionEmittedMethod(string methodName)

@@ -31,9 +31,9 @@ namespace Shaolinq.Persistence
 		protected internal struct SqlCommandKey
 		{
 			public readonly Type dataAccessObjectType;
-			public readonly List<ObjectPropertyValue> changedProperties;
+			public readonly IList<ObjectPropertyValue> changedProperties;
 
-			public SqlCommandKey(Type dataAccessObjectType, List<ObjectPropertyValue> changedProperties)
+			public SqlCommandKey(Type dataAccessObjectType, IList<ObjectPropertyValue> changedProperties)
 			{
 				this.dataAccessObjectType = dataAccessObjectType;
 				this.changedProperties = changedProperties;
@@ -244,13 +244,13 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override void Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
+		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				if (dataAccessObject.HasObjectChanged || (dataAccessObject.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys | ObjectState.MissingUnconstrainedForeignKeys | ObjectState.ServerSidePropertiesHydrated)) != 0)
+				if (dataAccessObject.Advanced.HasObjectChanged || (dataAccessObject.Advanced.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys | ObjectState.MissingUnconstrainedForeignKeys | ObjectState.ServerSidePropertiesHydrated)) != 0)
 				{
 					var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
 
@@ -295,19 +295,19 @@ namespace Shaolinq.Persistence
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
 
-					dataAccessObject.ResetModified();
+					dataAccessObject.Advanced.ResetModified();
 				}
 			}
 		}
 
-		public override InsertResults Insert(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
+		public override InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			var listToFixup = new List<IDataAccessObject>();
-			var listToRetry = new List<IDataAccessObject>();
+			var listToFixup = new List<DataAccessObject>();
+			var listToRetry = new List<DataAccessObject>();
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				var objectState = dataAccessObject.ObjectState;
+				var objectState = dataAccessObject.Advanced.ObjectState;
                 
 				switch (objectState & ObjectState.NewChanged)
 				{
@@ -363,7 +363,7 @@ namespace Shaolinq.Persistence
 
 					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foreign keys
 
-					if (dataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+					if (dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 					{
 						object[] values = null;
 
@@ -371,7 +371,7 @@ namespace Shaolinq.Persistence
 						{
 							if (reader.Read())
 							{
-								var propertyInfos = dataAccessObject.GetPropertiesGeneratedOnTheServerSide();
+								var propertyInfos = dataAccessObject.Advanced.GetPropertiesGeneratedOnTheServerSide();
 
 								values = new object[propertyInfos.Length];
 
@@ -384,14 +384,14 @@ namespace Shaolinq.Persistence
 									values[i] = value;
 								}
 
-								dataAccessObject.SetPropertiesGeneratedOnTheServerSide(values);
+								dataAccessObject.Advanced.SetPropertiesGeneratedOnTheServerSide(values);
 							}
 						}
 
-						if (values != null && dataAccessObject.ComputeServerGeneratedIdDependentComputedTextProperties())
+						if (values != null && dataAccessObject.Advanced.ComputeServerGeneratedIdDependentComputedTextProperties())
 						{
 							this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
-							dataAccessObject.SetPropertiesGeneratedOnTheServerSide(values);
+							dataAccessObject.Advanced.SetPropertiesGeneratedOnTheServerSide(values);
 						}
 					}
 					else
@@ -434,7 +434,7 @@ namespace Shaolinq.Persistence
 			return parameter;
 		}
 
-		private void FillParameters(IDbCommand command, List<ObjectPropertyValue> changedProperties, ObjectPropertyValue[] primaryKeys)
+		private void FillParameters(IDbCommand command, IList<ObjectPropertyValue> changedProperties, ObjectPropertyValue[] primaryKeys)
 		{
 			foreach (var infoAndValue in changedProperties)
 			{
@@ -450,7 +450,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected virtual IDbCommand BuildUpdateCommand(TypeDescriptor typeDescriptor, IDataAccessObject dataAccessObject)
+		protected virtual IDbCommand BuildUpdateCommand(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject)
 		{
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
@@ -512,7 +512,7 @@ namespace Shaolinq.Persistence
 			return command;
 		}
 
-		protected virtual IDbCommand BuildInsertCommand(TypeDescriptor typeDescriptor, IDataAccessObject dataAccessObject)
+		protected virtual IDbCommand BuildInsertCommand(TypeDescriptor typeDescriptor,DataAccessObject dataAccessObject)
 		{
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
@@ -531,7 +531,7 @@ namespace Shaolinq.Persistence
 			
 			ReadOnlyCollection<string> returningAutoIncrementColumnNames = null;
 
-			if (dataAccessObject.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+			if (dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 			{
 				var propertyDescriptors = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 
@@ -631,7 +631,7 @@ namespace Shaolinq.Persistence
 		{
 		}
 
-		public override void Delete(Type type, IEnumerable<IDataAccessObject> dataAccessObjects)
+		public override void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 			var parameter = Expression.Parameter(typeDescriptor.Type, "value");

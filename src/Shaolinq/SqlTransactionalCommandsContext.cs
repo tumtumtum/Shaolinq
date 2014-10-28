@@ -22,9 +22,9 @@ namespace Shaolinq
 		public DataAccessModel DataAccessModel { get; private set; }
 
 		public abstract void Delete(SqlDeleteExpression deleteExpression);
-		public abstract void Delete(Type type, IEnumerable<IDataAccessObject> dataAccessObjects);
-		public abstract void Update(Type type, IEnumerable<IDataAccessObject> dataAccessObjects);
-		public abstract InsertResults Insert(Type type, IEnumerable<IDataAccessObject> dataAccessObjects);
+		public abstract void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 
 		public static System.Data.IsolationLevel ConvertIsolationLevel(System.Transactions.IsolationLevel isolationLevel)
 		{

@@ -31,7 +31,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						T retval = this.objectReader(this, dataReader, this.placeholderValues);
 
-						((IDataAccessObject)retval).ResetModified();
+						retval.Advanced.ResetModified();
 
 						yield return retval;
 

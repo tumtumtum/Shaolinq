@@ -149,7 +149,7 @@ namespace Shaolinq.Sqlite
 			return new SQLiteFactory();
 		}
 
-		public override Exception DecorateException(Exception exception, IDataAccessObject dataAccessObject, string relatedQuery)
+		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)
 		{
 			// http://www.sqlite.org/c3ref/c_abort.html
 
@@ -174,7 +174,7 @@ namespace Shaolinq.Sqlite
 				{
 					if (dataAccessObject != null)
 					{
-						var primaryKeyNames = dataAccessObject.TypeDescriptor.PrimaryKeyProperties.Select(c => c.DeclaringTypeDescriptor.PersistedName + "." + c.PersistedName);
+						var primaryKeyNames = dataAccessObject.Advanced.TypeDescriptor.PrimaryKeyProperties.Select(c => c.DeclaringTypeDescriptor.PersistedName + "." + c.PersistedName);
 
 						if (primaryKeyNames.Any(c => sqliteException.Message.IndexOf(c, StringComparison.Ordinal) >= 0))
 						{

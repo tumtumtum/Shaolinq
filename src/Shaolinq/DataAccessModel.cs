@@ -42,7 +42,7 @@ namespace Shaolinq
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
-		private Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>();
+		private Dictionary<Type, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 		internal RelatedDataAccessObjectsInitializeActionsCache relatedDataAccessObjectsInitializeActionsCache = new RelatedDataAccessObjectsInitializeActionsCache();
 
@@ -311,14 +311,14 @@ namespace Shaolinq
 			return (T)GetReference(typeof(T), primaryKey);
 		}
 
-		protected internal virtual IDataAccessObject GetReference<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
+		protected internal virtual DataAccessObject GetReference<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
 		{
 			var primaryKeyValues = this.GetObjectPropertyValues(type, primaryKey, primaryKeyType);
 
 			return this.GetReference(type, primaryKeyValues);
 		}
 
-		protected internal virtual IDataAccessObject GetReference(Type type, ObjectPropertyValue[] primaryKey)
+		protected internal virtual DataAccessObject GetReference(Type type, ObjectPropertyValue[] primaryKey)
 		{
 			if (primaryKey == null)
 			{
@@ -340,13 +340,13 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = (IDataAccessObject)this.AssemblyBuildInfo.CreateDataAccessObject(type, this, false);
+				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, false);
 
-				retval.SetIsDeflatedReference(true);
-				retval.SetPrimaryKeys(objectPropertyAndValues);
-				retval.ResetModified();
-				retval.FinishedInitializing();
-				retval.SubmitToCache();
+				retval.Advanced.SetIsDeflatedReference(true);
+				retval.Advanced.SetPrimaryKeys(objectPropertyAndValues);
+				retval.Advanced.ResetModified();
+				retval.Advanced.FinishedInitializing();
+				retval.Advanced.SubmitToCache();
 
 				return retval;
 			}
@@ -694,15 +694,15 @@ namespace Shaolinq
 			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider();
 		}
 
-		protected internal IDataAccessObject Inflate(IDataAccessObject dataAccessObject)
+		protected internal DataAccessObject Inflate(DataAccessObject dataAccessObject)
 		{
 			if (dataAccessObject == null)
 			{
 				throw new ArgumentNullException("dataAccessObject");
 			}
 
-			Func<IDataAccessObject, IDataAccessObject> func; 
-			var definitionType = dataAccessObject.DefinitionType;
+			Func<DataAccessObject, DataAccessObject> func; 
+			var definitionType = dataAccessObject.Advanced.DefinitionType;
 			
 			if (!inflateFuncsByType.TryGetValue(definitionType, out func))
 			{
@@ -710,11 +710,11 @@ namespace Shaolinq
 				var methodInfo = MethodInfoFastRef.BaseDataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
 				var body = Expression.Call(Expression.Constant(this), methodInfo, Expression.Convert(parameter, definitionType));
 
-				var lambda = Expression.Lambda<Func<IDataAccessObject, IDataAccessObject>>(body, parameter);
+				var lambda = Expression.Lambda<Func<DataAccessObject, DataAccessObject>>(body, parameter);
 
 				func = lambda.Compile();
 
-				var newDictionary = new Dictionary<Type, Func<IDataAccessObject, IDataAccessObject>>(inflateFuncsByType);
+				var newDictionary = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>(inflateFuncsByType);
 
 				newDictionary[definitionType] = func;
 

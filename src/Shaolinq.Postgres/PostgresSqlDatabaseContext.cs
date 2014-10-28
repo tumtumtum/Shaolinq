@@ -76,7 +76,7 @@ using Shaolinq.Postgres.Shared;
 			return postgresException.ErrorSql;
 		}
 
-		public override Exception DecorateException(Exception exception, IDataAccessObject  dataAccessObject, string relatedQuery)
+		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)
 		{
 			var postgresException = exception as NpgsqlException;
 
