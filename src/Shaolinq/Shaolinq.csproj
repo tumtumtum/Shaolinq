@@ -193,6 +193,7 @@
     <Compile Include="PrimaryKeyType.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="SortOrder.cs" />
+    <Compile Include="TypeBuilding\CachingDataAccessModelAssemblyProvider.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
     <Compile Include="DataAccessObjectsQueryableExtensions.cs" />
@@ -324,6 +325,7 @@
     <Compile Include="TypeBuilding\AssemblyBuildContext.cs" />
     <Compile Include="TypeBuilding\AssemblyBuildInfo.cs" />
     <Compile Include="TypeBuilding\BaseTypeBuilder.cs" />
+    <Compile Include="TypeBuilding\DataAccessAssemblyProvider.cs" />
     <Compile Include="TypeBuilding\DataAccessModelAssemblyBuilder.cs" />
     <Compile Include="TypeBuilding\DataAccessModelTypeBuilder.cs" />
     <Compile Include="Persistence\EntityRelationshipType.cs" />

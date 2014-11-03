@@ -46,22 +46,21 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					this.PrependOrderings(select.OrderBy.Select(c => (SqlOrderByExpression)c));
 				}
 
-				bool canHaveOrderBy = saveIsOuterMostSelect && AggregateSubqueryFinder.Find(select).Count == 0;
+				var canHaveOrderBy = saveIsOuterMostSelect && AggregateSubqueryFinder.Find(select).Count == 0;
+				var canPassOnOrderings = !saveIsOuterMostSelect;
 
-				bool canPassOnOrderings = !saveIsOuterMostSelect;
-
-				ReadOnlyCollection<SqlColumnDeclaration> columns = select.Columns;
-				IEnumerable<SqlOrderByExpression> orderings = (canHaveOrderBy) ? this.gatheredOrderings : null;
+				var columns = select.Columns;
+				IEnumerable<Expression> orderings = (canHaveOrderBy) ? this.gatheredOrderings : null;
 				
 				if (this.gatheredOrderings != null)
 				{
 					if (canPassOnOrderings)
 					{
-						HashSet<string> producedAliases = AliasesProduced.Gather(select.From);
+						var producedAliases = AliasesProduced.Gather(select.From);
 
-						// Reproject order expressions using this select's alias so the outer select will have properly formed expressions
+						// Reproject order expressions  using this select's alias so the outer select will have properly formed expressions
 
-						BindResult project = this.RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
+						var project = this.RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
 
 						this.gatheredOrderings = project.Orderings;
 						columns = project.Columns;
@@ -90,7 +89,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		/// to give precedence to the new expressions over any previous expressions
 		/// </summary>
 		/// <param name="newOrderings"></param>
-		protected void PrependOrderings(IEnumerable<SqlOrderByExpression> newOrderings)
+		private void PrependOrderings(IEnumerable<SqlOrderByExpression> newOrderings)
 		{
 			if (newOrderings != null)
 			{

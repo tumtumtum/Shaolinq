@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
@@ -340,8 +338,23 @@ namespace Shaolinq.Tests
 			{
 				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Select(c => c.Include(d => d.Address))
-					//.Select(c => c.Include(d => d.Mall));
+					.Select(c => c.Include(d => d.Mall))
 					.Select(c => c.Include(d => d.Address));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_Sample_Property_Twice()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
+					.Include(c => c.Address)
+					.Include(c => c.Address);
 
 				var first = query.First();
 

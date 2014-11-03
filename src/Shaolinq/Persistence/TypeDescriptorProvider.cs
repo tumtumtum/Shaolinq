@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Shaolinq.TypeBuilding;
 using Platform;
 using Platform.Reflection;
 
@@ -22,17 +21,10 @@ namespace Shaolinq.Persistence
 		
 		public static TypeDescriptorProvider GetProvider(Assembly assembly)
 		{
-			TypeDescriptorProvider retval;
-
-			assembly = DataAccessModelAssemblyBuilder.Default.GetDefinitionAssembly(assembly);
-
-			if (typeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
-			{
-				return retval;
-			}
-
 			lock (typeof(TypeDescriptorProvider))
 			{
+				TypeDescriptorProvider retval;
+
 				if (!typeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
 				{
 					retval = new TypeDescriptorProvider(assembly);

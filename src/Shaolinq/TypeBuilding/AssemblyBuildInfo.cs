@@ -1,17 +1,20 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
-	public struct AssemblyBuildInfo
+	public class AssemblyBuildInfo
 	{
-		public readonly Assembly concreteAssembly;
-		public readonly Assembly definitionAssembly;
+		private readonly Type dataAccessModelType;
+		public Assembly ConcreteAssembly { get; private set; }
+		public Assembly DefinitionAssembly { get; private set; }
+		private readonly DataAccessModelConfiguration configuration;
 
 		private readonly Dictionary<Type, Type> enumerableTypes;
 		private readonly Dictionary<Type, Type> typesByConcreteType;
@@ -23,10 +26,14 @@ namespace Shaolinq.TypeBuilding
 		private readonly Dictionary<Type, Delegate> dataAccessModelConstructors;
 		private readonly Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>> dataAccessObjectConstructors;
 		
-		public AssemblyBuildInfo(Assembly concreteAssembly, Assembly definitionAssembly)
+		public AssemblyBuildInfo(Type dataAccessModelType, Assembly concreteAssembly, Assembly definitionAssembly, DataAccessModelConfiguration configuration)
 		{
-			this.concreteAssembly = concreteAssembly;
-			this.definitionAssembly = definitionAssembly;
+			Debug.Assert(dataAccessModelType.Assembly == definitionAssembly);
+
+			this.dataAccessModelType = dataAccessModelType;
+			this.ConcreteAssembly = concreteAssembly;
+			this.DefinitionAssembly = definitionAssembly;
+			this.configuration = configuration;
 			this.dataAccessModelConstructors = new Dictionary<Type, Delegate>(PrimeNumbers.Prime7);
 			this.typesByConcreteType = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
 			this.concreteTypesByType = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
@@ -100,15 +107,15 @@ namespace Shaolinq.TypeBuilding
 		{
 			var constructor = GetDataAccessModelConstructor(dataAccessModelType);
 
-			return (DataAccessModel) constructor.DynamicInvoke();
+			return ((Func<DataAccessModel>)constructor)();
 		}
 
 		public T NewDataAccessModel<T>()
 			where T : DataAccessModel
 		{
-			var constructor = GetDataAccessModelConstructor(typeof (T));
+			var constructor = GetDataAccessModelConstructor(typeof(T));
 
-			return ((Func<T>) constructor)();
+			return ((Func<T>)constructor)();
 		}
 
 		private Delegate GetDataAccessModelConstructor(Type dataAccessModelType)
@@ -119,7 +126,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				Type type;
 
-				if (dataAccessModelType.Assembly == this.concreteAssembly || dataAccessModelType.Assembly == this.definitionAssembly)
+				if (dataAccessModelType.Assembly == this.ConcreteAssembly || dataAccessModelType.Assembly == this.DefinitionAssembly)
 				{
 					if (!this.concreteModelTypesByModelType.TryGetValue(dataAccessModelType, out type))
 					{
@@ -128,9 +135,7 @@ namespace Shaolinq.TypeBuilding
 				}
 				else
 				{
-					var b = DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(dataAccessModelType.Assembly);
-
-					type = b.concreteTypesByType[dataAccessModelType];
+					throw new InvalidOperationException();
 				}
 
 				constructor = Expression.Lambda(Expression.Convert(Expression.New(type), dataAccessModelType)).Compile();
@@ -149,7 +154,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				Type type;
                 
-				if (dataAccessObjectType.Assembly == this.concreteAssembly || dataAccessObjectType.Assembly == this.definitionAssembly)
+				if (dataAccessObjectType.Assembly == this.ConcreteAssembly || dataAccessObjectType.Assembly == this.DefinitionAssembly)
 				{
 					if (!this.concreteTypesByType.TryGetValue(dataAccessObjectType, out type))
 					{
@@ -158,9 +163,7 @@ namespace Shaolinq.TypeBuilding
 				}
 				else
 				{
-					var b = DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(dataAccessObjectType.Assembly);
-
-					type = b.concreteTypesByType[dataAccessObjectType];
+					throw new InvalidOperationException();
 				}
 
 				var isNewParam = Expression.Parameter(typeof(bool));
@@ -183,7 +186,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				Type type;
 
-				if (typeof(T).Assembly == this.concreteAssembly || typeof(T).Assembly == this.definitionAssembly)
+				if (typeof(T).Assembly == this.ConcreteAssembly || typeof(T).Assembly == this.DefinitionAssembly)
 				{
 					if (!this.concreteTypesByType.TryGetValue(typeof(T), out type))
 					{
@@ -192,9 +195,7 @@ namespace Shaolinq.TypeBuilding
 				}
 				else
 				{
-					var b = DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(typeof(T).Assembly);
-
-					type = b.concreteTypesByType[typeof(T)];
+					throw new InvalidOperationException();
 				}
 
 				var isNewParam = Expression.Parameter(typeof(bool));
@@ -212,7 +213,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			Type retval;
 
-			if (this.concreteAssembly.Equals(definitionType.Assembly))
+			if (this.ConcreteAssembly == definitionType.Assembly)
 			{
 				return definitionType;
 			}
@@ -229,7 +230,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			Type retval;
 
-			if (this.definitionAssembly.Equals(concreteType.Assembly))
+			if (this.DefinitionAssembly == concreteType.Assembly)
 			{
 				return concreteType;
 			}
@@ -246,7 +247,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			Type retval;
 
-			if (this.definitionAssembly.Equals(concreteModelType.Assembly))
+			if (this.DefinitionAssembly == concreteModelType.Assembly)
 			{
 				return concreteModelType;
 			}
@@ -263,7 +264,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			Type retval;
 
-			if (this.concreteAssembly.Equals(definitionModelType.Assembly))
+			if (this.ConcreteAssembly == definitionModelType.Assembly)
 			{
 				return definitionModelType;
 			}

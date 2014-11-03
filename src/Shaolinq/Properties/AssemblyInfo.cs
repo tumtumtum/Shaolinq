@@ -1,7 +1,8 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System.Reflection;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+﻿using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -35,3 +36,5 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.0.0.0")]
 [assembly: AssemblyFileVersion("0.0.0.0")]
+
+[assembly: InternalsVisibleTo("Shaolinq.Tests")]

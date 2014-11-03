@@ -37,7 +37,7 @@ namespace Shaolinq
 		bool IsDeleted { get; }
 
 		/// <summary>
-		/// Returns the Primary Key type for this object.
+		/// Returns the Primary Key type for this object.  If the object defines a composite key the return value will be null
 		/// </summary>
 		Type KeyType { get; }
 
@@ -92,7 +92,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Returns the number of direct properties generated on the server side.
 		/// </summary>
-		int NumberOfDirectPropertiesGeneratedOnTheServerSide { get; }
+		int NumberOfPropertiesGeneratedOnTheServerSide { get; }
 
 		/// <summary>
 		/// Returns true if the current object doesn't belong to any transaction (is freeform)

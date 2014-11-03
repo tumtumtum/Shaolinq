@@ -4,6 +4,8 @@ namespace Shaolinq.TypeBuilding
 {
 	public interface IDataAccessObjectInternal
 	{
+		object CompositePrimaryKey { get; }
+
 		/// <summary>
 		/// Submits this object into the cache and then returns itself.
 		/// </summary>
@@ -37,7 +39,7 @@ namespace Shaolinq.TypeBuilding
 		/// </summary>
 		void SetIsDeflatedReference(bool value);
 
-		void MarkServerSidePropertiesApplied();
+		void MarkServerSidePropertiesAsApplied();
 
 		/// <summary>
 		/// Update all properties that rely on server side generated properties.

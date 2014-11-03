@@ -33,6 +33,7 @@ namespace Shaolinq.TypeBuilding
 		private FieldBuilder isTransientField;
 		private FieldBuilder partialObjectStateField;
 		private TypeBuilder dataObjectTypeTypeBuilder;
+		private TypeBuilder compositePrimaryKeyTypeBuilder;
 		private readonly TypeDescriptor typeDescriptor;
 		private ConstructorBuilder dataConstructorBuilder;
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
@@ -58,6 +59,11 @@ namespace Shaolinq.TypeBuilding
 		private TypeDescriptor GetTypeDescriptor(Type type)
 		{
 			return this.typeDescriptorProvider.GetTypeDescriptor(type);
+		}
+
+		private void BuildCompositePrimaryKeyType()
+		{
+			compositePrimaryKeyTypeBuilder = this.ModuleBuilder.DefineType(baseType.FullName + "PrimaryKey");
 		}
 
 		public void BuildFirstPhase(int pass)
@@ -276,7 +282,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildGetChangedPropertiesMethod();
 			this.BuildGetChangedPropertiesMethodFlattenedMethod();
 			this.BuildObjectStateProperty();
-			this.BuildNumberOfDirectPropertiesGeneratedOnTheServerSideProperty();
+			this.BuildNumberOfPropertiesGeneratedOnTheServerSideProperty();
 			this.BuildSwapDataMethod();
 			this.BuildHasPropertyChangedMethod();
 			this.BuildSetIsNewMethod();
@@ -285,9 +291,10 @@ namespace Shaolinq.TypeBuilding
 			this.BuildSetIsDeletedMethod();
 			this.BuildGetHashCodeMethod();
 			this.BuildEqualsMethod();
+			this.BuildCompoistePrimaryKeyProperty();
 			this.BuildSetIsTransientMethod();
 			this.BuildSubmitToCacheMethod();
-			this.BuildMarkServerSidePropertiesAppliedMethod();
+			this.BuildMarkServerSidePropertiesAsAppliedMethod();
 			this.BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod();
 			this.BuildGetPropertiesGeneratedOnTheServerSideMethod();
 
@@ -1340,9 +1347,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildMarkServerSidePropertiesAppliedMethod()
+		private void BuildMarkServerSidePropertiesAsAppliedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("MarkServerSidePropertiesApplied");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("MarkServerSidePropertiesAsApplied");
 			
 			var columnInfos = GetColumnsGeneratedOnTheServerSide();
 
@@ -1641,6 +1648,14 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldfld, dataObjectField);
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Stfld, this.isDeflatedReferenceField);
+			generator.Emit(OpCodes.Ret);
+		}
+
+		private void BuildCompoistePrimaryKeyProperty()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("CompositePrimaryKey");
+
+			generator.Emit(OpCodes.Ldnull);
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2084,7 +2099,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetAllProperties");
 			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
-			var count = this.typeDescriptor.PersistedProperties.Count;
+			var count = this.typeDescriptor.PersistedAndRelatedObjectProperties.Count;
 
 			generator.Emit(OpCodes.Ldc_I4, count);
 			generator.Emit(OpCodes.Newarr, typeof(ObjectPropertyValue));
@@ -2287,9 +2302,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildNumberOfDirectPropertiesGeneratedOnTheServerSideProperty()
+		private void BuildNumberOfPropertiesGeneratedOnTheServerSideProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfDirectPropertiesGeneratedOnTheServerSide");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfPropertiesGeneratedOnTheServerSide");
 
 			var count = this.typeDescriptor.PersistedProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 

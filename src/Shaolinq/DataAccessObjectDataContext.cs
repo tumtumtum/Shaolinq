@@ -6,7 +6,6 @@ using System.Linq;
 using Shaolinq.Persistence;
 using Platform;
 using Shaolinq.TypeBuilding;
-using TypeAndTransactionalCommandsContext = Platform.Pair<System.Type, Shaolinq.SqlTransactionalCommandsContext>;
 
 namespace Shaolinq
 {
@@ -18,7 +17,30 @@ namespace Shaolinq
 	/// </summary>
 	public class DataAccessObjectDataContext
 	{
+		protected internal struct TypeAndTransactionalCommandsContext
+		{
+			public Type Type { get; private set; }
+			public SqlTransactionalCommandsContext CommandsContext { get; private set; }
+
+			public TypeAndTransactionalCommandsContext(Type type, SqlTransactionalCommandsContext sqlTransactionalCommandsContext)
+				: this()
+			{
+				this.Type = type;
+				this.CommandsContext = sqlTransactionalCommandsContext;
+			}
+		}
+
 		#region CompositePrimaryKeyComparer
+
+		protected internal struct CompositePrimaryKey
+		{
+			internal readonly ObjectPropertyValue[] keyValues;
+
+			public CompositePrimaryKey(ObjectPropertyValue[] keyValues)
+			{
+				this.keyValues = keyValues;
+			}
+		}
 
 		protected internal class CompositePrimaryKeyComparer
 			: IEqualityComparer<CompositePrimaryKey>
@@ -53,16 +75,6 @@ namespace Shaolinq
 				}
 
 				return retval;
-			}
-		}
-
-		protected internal struct CompositePrimaryKey
-		{
-			internal readonly ObjectPropertyValue[] keyValues;
-
-			public CompositePrimaryKey(ObjectPropertyValue[] keyValues)
-			{
-				this.keyValues = keyValues;
 			}
 		}
 
@@ -167,7 +179,7 @@ namespace Shaolinq
 					if (((IDataAccessObjectAdvanced)value).NumberOfPrimaryKeys > 1)
 					{
 						Dictionary<CompositePrimaryKey, DataAccessObject> subcache;
-						var key = new CompositePrimaryKey(value.GetPrimaryKeys());
+						var key = new CompositePrimaryKey(value.Advanced.GetPrimaryKeys());
 
 						if (objectsByIdCacheComposite == null)
 						{
@@ -328,7 +340,7 @@ namespace Shaolinq
 				{
 					Dictionary<CompositePrimaryKey, DataAccessObject> subcache;
 
-					var key = new CompositePrimaryKey(value.GetPrimaryKeys());
+					var key = new CompositePrimaryKey(value.Advanced.GetPrimaryKeys());
 
 					if (this.objectsByIdCacheComposite == null)
 					{
@@ -573,7 +585,7 @@ namespace Shaolinq
 
 			alreadyVisited.Add(value);
 
-			foreach (var propertyInfoAndValue in value.GetAllProperties())
+			foreach (var propertyInfoAndValue in value.Advanced.GetAllProperties())
 			{
 				var propertyValue = propertyInfoAndValue.Value as DataAccessObject;
 
@@ -919,8 +931,8 @@ namespace Shaolinq
                 // Perform the retry list
 				foreach (var i in currentInsertResultsByType)
 				{
-					var type = i.Key.Left;
-					var persistenceTransactionContext = i.Key.Right;
+					var type = i.Key.Type;
+					var persistenceTransactionContext = i.Key.CommandsContext;
 					var retryListForType = i.Value.ToRetry;
 
 					if (retryListForType.Count == 0)
@@ -945,8 +957,8 @@ namespace Shaolinq
 			// Perform fixups
 			foreach (var i in fixups)
 			{
-				var type = i.Key.Left;
-				var databaseTransactionContext = i.Key.Right;
+				var type = i.Key.Type;
+				var databaseTransactionContext = i.Key.CommandsContext;
 
 				databaseTransactionContext.Update(type, i.Value);
 			}

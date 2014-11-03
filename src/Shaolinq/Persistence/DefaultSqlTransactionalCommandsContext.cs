@@ -372,7 +372,7 @@ namespace Shaolinq.Persistence
 							if (reader.Read())
 							{
 								ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
-								dataAccessObjectInternal.MarkServerSidePropertiesApplied();
+								dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
 							}
 						}
 
@@ -415,7 +415,7 @@ namespace Shaolinq.Persistence
 			{
 				var objectParameter = Expression.Parameter(typeof(DataAccessObject));
 				var readerParameter = Expression.Parameter(typeof(IDataReader));
-				var propertiesGeneratedOnServerSide = dataAccessObject.GetPropertiesGeneratedOnTheServerSide();
+				var propertiesGeneratedOnServerSide = dataAccessObject.Advanced.GetPropertiesGeneratedOnTheServerSide();
 				var local = Expression.Variable(dataAccessObject.GetType());
 				
 				var statements = new List<Expression>();
@@ -492,14 +492,14 @@ namespace Shaolinq.Persistence
 		{
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
-			var updatedProperties = dataAccessObject.GetChangedPropertiesFlattened();
+			var updatedProperties = dataAccessObject.Advanced.GetChangedPropertiesFlattened();
 			
 			if (updatedProperties.Count == 0)
 			{
 				return null;
 			}
 
-			var primaryKeys = dataAccessObject.GetPrimaryKeysForUpdateFlattened();
+			var primaryKeys = dataAccessObject.Advanced.GetPrimaryKeysForUpdateFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
@@ -555,7 +555,7 @@ namespace Shaolinq.Persistence
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
 
-			var updatedProperties = dataAccessObject.GetChangedPropertiesFlattened();
+			var updatedProperties = dataAccessObject.Advanced.GetChangedPropertiesFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))

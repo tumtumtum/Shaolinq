@@ -1,104 +1,34 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Platform;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
-	public class DataAccessModelAssemblyBuilder
-		: MarshalByRefObject
+	internal sealed class DataAccessModelAssemblyBuilder
+		: DataAccessAssemblyProvider
 	{
-		private class ObjectEqualityComparer<T>
-            : IEqualityComparer<T>
+		public override AssemblyBuildInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
-			public static readonly ObjectEqualityComparer<T> Default = new ObjectEqualityComparer<T>();
+			var originalAssembly = dataAccessModelType.Assembly;
+			var builtAssembly = BuildAssembly(originalAssembly, configuration);
 
-			public bool Equals(T x, T y)
-			{
-				return x.Equals(y);
-			}
-
-			public int GetHashCode(T obj)
-			{
-				return this.GetHashCode();
-			}
+			return new AssemblyBuildInfo(dataAccessModelType, builtAssembly, originalAssembly, configuration);
 		}
 
-		private readonly Dictionary<Assembly, AssemblyBuildInfo> builtAssemblies = new Dictionary<Assembly, AssemblyBuildInfo>();
-		private Dictionary<Assembly, Assembly> definitionByConcrete = new Dictionary<Assembly, Assembly>(ObjectEqualityComparer<Assembly>.Default);
-		public static DataAccessModelAssemblyBuilder Default = new DataAccessModelAssemblyBuilder();
-		
-		public Assembly GetDefinitionAssembly(Assembly concreteAssembly)
-		{
-			Assembly retval;
-
-			if (definitionByConcrete.TryGetValue(concreteAssembly, out retval))
-			{
-				return retval;
-			}
-
-			return concreteAssembly;
-		}
-
-		public AssemblyBuildInfo GetAssemblyBuildInfo(Assembly assembly)
-		{
-			lock (typeof(TypeDescriptorProvider))
-			{
-				AssemblyBuildInfo retval;
-
-				assembly = GetDefinitionAssembly(assembly);
-
-				if (builtAssemblies.TryGetValue(assembly, out retval))
-				{
-					return retval;
-				}
-			}
-
-			throw new InvalidOperationException();
-		}
-
-		public AssemblyBuildInfo GetOrBuildConcreteAssembly(Assembly definitionAssembly)
-		{
-			AssemblyBuildInfo value;
-
-			lock (typeof(TypeDescriptorProvider))
-			{
-				definitionAssembly = GetDefinitionAssembly(definitionAssembly);
-
-				if (!builtAssemblies.TryGetValue(definitionAssembly, out value))
-				{
-					value = new AssemblyBuildInfo(BuildAssembly(definitionAssembly), definitionAssembly);
-
-					builtAssemblies[definitionAssembly] = value;
-
-					var newDefinitionByConcrete = new Dictionary<Assembly, Assembly>(ObjectEqualityComparer<Assembly>.Default);
-
-					foreach (var kvp in definitionByConcrete)
-					{
-						newDefinitionByConcrete[kvp.Key] = kvp.Value;
-					}
-
-					newDefinitionByConcrete[value.concreteAssembly] = definitionAssembly;
-
-					definitionByConcrete = newDefinitionByConcrete;
-				}
-			}
-
-			return value;
-		}
-
-		protected virtual Assembly BuildAssembly(Assembly assembly)
+		private static Assembly BuildAssembly(Assembly assembly, DataAccessModelConfiguration configuration)
 		{
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
-            
+
+			var configMd5 = configuration.GetMd5();
 			var assemblyName = new AssemblyName(assembly.GetName().Name + ".Concrete");
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
-			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + ".dll");
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + configMd5 + ".dll");
 			
 			var assemblyBuildContext = new AssemblyBuildContext
 			{
@@ -143,13 +73,7 @@ namespace Shaolinq.TypeBuilding
 
 			if (saveConcreteAssembly || isInDebugMode)
 			{
-				try
-				{
-					assemblyBuilder.Save(assemblyName + ".dll");
-				}
-				catch
-				{
-				}
+				ActionUtils.IgnoreExceptions(() => assemblyBuilder.Save(assemblyName + "." + configMd5 + ".dll"));
 			}
 
 			return assemblyBuilder;

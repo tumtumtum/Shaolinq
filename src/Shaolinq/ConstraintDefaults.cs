@@ -1,5 +1,4 @@
-﻿using System;
-using Platform.Validation;
+﻿using Platform.Validation;
 using Platform.Xml.Serialization;
 
 namespace Shaolinq

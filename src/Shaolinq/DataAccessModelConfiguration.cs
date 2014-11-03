@@ -1,8 +1,10 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Text.RegularExpressions;
+using System.Security.Cryptography;
+using System.Text;
 using Platform;
+using Platform.Text;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
@@ -91,6 +93,13 @@ namespace Shaolinq
 		{
 			this.SqlDatabaseContextInfos = new SqlDatabaseContextInfo[0];
 			this.ConstraintDefaults = ConstraintDefaults.Default;
+		}
+
+		public string GetMd5()
+		{
+			var md5 = new MD5CryptoServiceProvider();
+
+			return TextConversion.ToHexString(md5.ComputeHash(Encoding.UTF8.GetBytes(string.Empty)));
 		}
 	}
 }

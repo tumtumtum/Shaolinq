@@ -96,7 +96,7 @@ using Shaolinq.Postgres.Shared;
 			case "23505":
 				if (!string.IsNullOrEmpty(postgresException.ColumnName) && dataAccessObject != null)
 				{
-					if (dataAccessObject.GetPrimaryKeysFlattened().Any(c => c.PersistedName == postgresException.ColumnName))
+					if (dataAccessObject.Advanced.GetPrimaryKeysFlattened().Any(c => c.PersistedName == postgresException.ColumnName))
 					{
 						return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
 					}
@@ -109,7 +109,7 @@ using Shaolinq.Postgres.Shared;
 
 				if (!string.IsNullOrEmpty(postgresException.Detail) && dataAccessObject != null)
 				{
-					if (dataAccessObject.GetPrimaryKeysFlattened().Any(c => Regex.Match(postgresException.Detail, @"Key\s*\(\s*""?" + c.PersistedName + @"""?\s*\)", RegexOptions.CultureInvariant).Success))
+					if (dataAccessObject.Advanced.GetPrimaryKeysFlattened().Any(c => Regex.Match(postgresException.Detail, @"Key\s*\(\s*""?" + c.PersistedName + @"""?\s*\)", RegexOptions.CultureInvariant).Success))
 					{
 						return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);	
 					}

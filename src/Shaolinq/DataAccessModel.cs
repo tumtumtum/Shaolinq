@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 using System.Transactions;
 using Shaolinq.Persistence;
 using Shaolinq.TypeBuilding;
@@ -92,11 +91,7 @@ namespace Shaolinq
 				return DataAccessModelTransactionManager.GetAmbientTransactionManager(this);
 			}
 		}
-
-		protected DataAccessModel()
-		{
-		}
-
+		
 		protected virtual void OnDisposed(EventArgs eventArgs)
 		{
 
@@ -143,12 +138,12 @@ namespace Shaolinq
 
 		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)
 		{
-			return DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(definitionType.Assembly).GetConcreteType(definitionType);
+			return this.AssemblyBuildInfo.GetConcreteType(definitionType);
 		}
 
 		internal Type GetDefinitionTypeFromConcreteType(Type concreteType)
 		{
-			return DataAccessModelAssemblyBuilder.Default.GetOrBuildConcreteAssembly(concreteType.Assembly).GetDefinitionType(concreteType);
+			return this.AssemblyBuildInfo.GetDefinitionType(concreteType);
 		}
 
 		public virtual TypeDescriptor GetTypeDescriptor(Type type)
@@ -169,7 +164,7 @@ namespace Shaolinq
 		private void SetAssemblyBuildInfo(AssemblyBuildInfo value)
 		{
 			this.AssemblyBuildInfo = value;
-			this.DefinitionAssembly = value.definitionAssembly;
+			this.DefinitionAssembly = value.DefinitionAssembly;
 			this.TypeDescriptorProvider = TypeDescriptorProvider.GetProvider(this.DefinitionAssembly);
 			this.ModelTypeDescriptor = this.TypeDescriptorProvider.GetModelTypeDescriptor(value.GetDefinitionModelType(this.GetType()));
 
@@ -218,14 +213,12 @@ namespace Shaolinq
 
 		public static DataAccessModel BuildDataAccessModel(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
-			if (!dataAccessModelType.IsSubclassOf(typeof (DataAccessModel)))
+			if (!dataAccessModelType.IsSubclassOf(typeof(DataAccessModel)))
 			{
 				throw new ArgumentException("Data access model type must derive from DataAccessModel", "dataAccessModelType");
 			}
 
-			var builder = DataAccessModelAssemblyBuilder.Default;
-			var buildInfo = builder.GetOrBuildConcreteAssembly(dataAccessModelType.Assembly);
-
+			var buildInfo = CachingDataAccessModelAssemblyProvider.Default.GetDataAccessModelAssembly(dataAccessModelType, configuration);
 			var retval = buildInfo.NewDataAccessModel(dataAccessModelType);
 
 			retval.SetConfiguration(configuration);
@@ -245,9 +238,8 @@ namespace Shaolinq
 		public static T BuildDataAccessModel<T>(DataAccessModelConfiguration configuration)
 			where T : DataAccessModel
 		{
-			var builder = DataAccessModelAssemblyBuilder.Default;
-			var buildInfo = builder.GetOrBuildConcreteAssembly(typeof(T).Assembly);
-
+			var provider = CachingDataAccessModelAssemblyProvider.Default;
+			var buildInfo = provider.GetDataAccessModelAssembly(typeof(T), configuration);
 			var retval = buildInfo.NewDataAccessModel<T>();
 
 			retval.SetConfiguration(configuration);
@@ -339,7 +331,7 @@ namespace Shaolinq
 			{
 				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, false);
 
-				var internalDataAccessObject = (IDataAccessObjectInternal)retval;
+				var internalDataAccessObject = retval.ToObjectInternal();
 
 				internalDataAccessObject.SetIsDeflatedReference(true);
 				internalDataAccessObject.SetPrimaryKeys(objectPropertyAndValues);
@@ -509,9 +501,10 @@ namespace Shaolinq
 		public virtual DataAccessObject CreateDataAccessObject(Type type)
 		{
 			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
+			var retvalInternal = retval.ToObjectInternal();
 
-			((IDataAccessObjectInternal)retval).FinishedInitializing();
-			((IDataAccessObjectInternal)retval).SubmitToCache();
+			retvalInternal.FinishedInitializing();
+			retvalInternal.SubmitToCache();
 
 			return retval;
 		}

@@ -26,6 +26,7 @@ namespace Shaolinq
 		public SqlDatabaseContext DatabaseConnection { get { return this.DataAccessModel.GetCurrentSqlDatabaseContext(); } }
 
 		public IDataAccessObjectAdvanced Advanced { get { return this; } }
+
 		public bool IsNew { get { return (((IDataAccessObjectAdvanced)this).IsNew); } }
 		public bool IsTransient { get { return (((IDataAccessObjectAdvanced)this).IsTransient); } }
 		public bool IsDeleted { get { return (((IDataAccessObjectAdvanced)this).IsDeleted); } }
@@ -63,18 +64,13 @@ namespace Shaolinq
 			this.DataAccessModel = dataAccessModel;
 		}
 
-		public abstract ObjectPropertyValue[] GetPrimaryKeys();
 		public abstract ObjectPropertyValue[] GetAllProperties();
 		public abstract bool HasPropertyChanged(string propertyName);
-		public abstract ObjectPropertyValue[] GetPrimaryKeysFlattened();
-		public abstract ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened();
-		public abstract ObjectPropertyValue[] GetRelatedObjectProperties();
 		public abstract List<ObjectPropertyValue> GetChangedProperties();
-		public abstract List<ObjectPropertyValue> GetChangedPropertiesFlattened();
-		public abstract ObjectPropertyValue[] GetPropertiesGeneratedOnTheServerSide();
-
+		
 		#region IDataAccessObjectAdvanced
-		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObjectAdvanced)this).NumberOfDirectPropertiesGeneratedOnTheServerSide > 0; } }
+		ObjectState IDataAccessObjectAdvanced.ObjectState { get { throw new NotImplementedException(); } }
+		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObjectAdvanced)this).NumberOfPropertiesGeneratedOnTheServerSide > 0; } }
 		bool IDataAccessObjectAdvanced.IsNew { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.New) != 0; } }
 		bool IDataAccessObjectAdvanced.IsDeleted { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Deleted) != 0; } }
 		bool IDataAccessObjectAdvanced.IsTransient { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Transient) != 0; } }
@@ -86,14 +82,20 @@ namespace Shaolinq
 
 		#region Reflection emitted explicit interface implementations
 		Type IDataAccessObjectAdvanced.KeyType { get { throw new NotImplementedException(); } }
-		ObjectState IDataAccessObjectAdvanced.ObjectState { get { throw new NotImplementedException(); } }
 		bool IDataAccessObjectAdvanced.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys { get { throw new NotImplementedException(); } }
 		Type[] IDataAccessObjectAdvanced.CompositeKeyTypes { get { throw new NotImplementedException(); } }
 		int IDataAccessObjectAdvanced.NumberOfPrimaryKeys { get { throw new NotImplementedException(); } }
 		int IDataAccessObjectAdvanced.NumberOfPrimaryKeysGeneratedOnServerSide { get { throw new NotImplementedException(); } }
 		bool IDataAccessObjectAdvanced.IsDeflatedReference { get { throw new NotImplementedException(); } }
 		bool IDataAccessObjectAdvanced.PrimaryKeyIsCommitReady { get { throw new NotImplementedException(); } }
-		int IDataAccessObjectAdvanced.NumberOfDirectPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
+		int IDataAccessObjectAdvanced.NumberOfPropertiesGeneratedOnTheServerSide { get { throw new NotImplementedException(); } }
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysFlattened() { throw new NotImplementedException(); }
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysForUpdateFlattened() {  throw new NotImplementedException(); }
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeys() { throw new NotImplementedException(); }
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetRelatedObjectProperties() { throw new NotImplementedException(); }
+		List<ObjectPropertyValue> IDataAccessObjectAdvanced.GetChangedProperties() { throw new NotImplementedException(); }
+		List<ObjectPropertyValue> IDataAccessObjectAdvanced.GetChangedPropertiesFlattened() { throw new NotImplementedException(); }
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPropertiesGeneratedOnTheServerSide() { throw new NotImplementedException(); }
 		#endregion
 	}
 }

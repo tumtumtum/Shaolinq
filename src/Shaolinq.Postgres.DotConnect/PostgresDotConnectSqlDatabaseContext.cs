@@ -101,7 +101,7 @@ namespace Shaolinq.Postgres.DotConnect
 			case "23505":
 				if (!string.IsNullOrEmpty(postgresException.ColumnName) && dataAccessObject != null)
 				{
-					if (dataAccessObject.GetPrimaryKeysFlattened().Any(c => c.PersistedName == postgresException.ColumnName))
+					if (dataAccessObject.Advanced.GetPrimaryKeysFlattened().Any(c => c.PersistedName == postgresException.ColumnName))
 					{
 						return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);
 					}
@@ -114,7 +114,7 @@ namespace Shaolinq.Postgres.DotConnect
 
 				if (!string.IsNullOrEmpty(postgresException.DetailMessage) && dataAccessObject != null)
 				{
-					if (dataAccessObject.GetPrimaryKeysFlattened().Any(c => Regex.Match(postgresException.DetailMessage, @"Key\s*\(\s*""?" + c.PersistedName + @"""?\s*\)", RegexOptions.CultureInvariant).Success))
+					if (dataAccessObject.Advanced.GetPrimaryKeysFlattened().Any(c => Regex.Match(postgresException.DetailMessage, @"Key\s*\(\s*""?" + c.PersistedName + @"""?\s*\)", RegexOptions.CultureInvariant).Success))
 					{
 						return new ObjectAlreadyExistsException(dataAccessObject, exception, relatedQuery);	
 					}

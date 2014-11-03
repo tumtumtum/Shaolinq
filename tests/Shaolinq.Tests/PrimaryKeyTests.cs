@@ -166,8 +166,8 @@ namespace Shaolinq.Tests
 
 				obj.Id = 10007;
 
-				Assert.IsTrue(obj.GetChangedProperties().Any(c => c.PropertyName == "Id"));
-				Assert.IsTrue(obj.GetChangedPropertiesFlattened().Any(c => c.PropertyName == "Id"));
+				Assert.IsTrue(obj.Advanced.GetChangedProperties().Any(c => c.PropertyName == "Id"));
+				Assert.IsTrue(obj.Advanced.GetChangedPropertiesFlattened().Any(c => c.PropertyName == "Id"));
 
 				scope.Complete();
 			}
