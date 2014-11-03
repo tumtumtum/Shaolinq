@@ -218,6 +218,13 @@ namespace Shaolinq
 				throw new ArgumentException("Data access model type must derive from DataAccessModel", "dataAccessModelType");
 			}
 
+			configuration = configuration ?? GetDefaultConfiguration(dataAccessModelType);
+
+			if (configuration == null)
+			{
+				throw new InvalidOperationException("No configuration specified or declaredd");
+			}
+
 			var buildInfo = CachingDataAccessModelAssemblyProvider.Default.GetDataAccessModelAssembly(dataAccessModelType, configuration);
 			var retval = buildInfo.NewDataAccessModel(dataAccessModelType);
 
@@ -255,9 +262,9 @@ namespace Shaolinq
 			return ConfigurationBlock<DataAccessModelConfiguration>.Load(path);
 		}
 
-		public DataAccessModelConfiguration GetDefaultConfiguration()
+		public static DataAccessModelConfiguration GetDefaultConfiguration(Type type)
 		{
-			var typeName = this.GetType().Name;
+			var typeName = type.Name;
 			var configuration = DataAccessModel.GetConfiguration(typeName);
 
 			if (configuration != null)
@@ -280,19 +287,8 @@ namespace Shaolinq
 
 		internal void SetConfiguration(DataAccessModelConfiguration configuration)
 		{
-			if (configuration == null)
-			{
-				configuration = GetDefaultConfiguration();
-
-				if (configuration == null)
-				{
-					throw new InvalidOperationException("No configuration for: " + this.GetType().Name);
-				}
-			}
-
 			this.Configuration = configuration;
 		}
-
 
 		protected internal virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
 			where T : DataAccessObject
