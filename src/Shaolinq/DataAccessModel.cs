@@ -245,16 +245,7 @@ namespace Shaolinq
 		public static T BuildDataAccessModel<T>(DataAccessModelConfiguration configuration)
 			where T : DataAccessModel
 		{
-			var provider = CachingDataAccessModelAssemblyProvider.Default;
-			var buildInfo = provider.GetDataAccessModelAssembly(typeof(T), configuration);
-			var retval = buildInfo.NewDataAccessModel<T>();
-
-			retval.SetConfiguration(configuration);
-			retval.SetAssemblyBuildInfo(buildInfo);
-
-			retval.Initialise();
-
-			return retval;
+			return (T)BuildDataAccessModel(typeof(T), configuration);
 		}
 
 		public static DataAccessModelConfiguration GetConfiguration(string path)
