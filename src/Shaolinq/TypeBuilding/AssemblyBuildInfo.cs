@@ -169,7 +169,7 @@ namespace Shaolinq.TypeBuilding
 				var isNewParam = Expression.Parameter(typeof(bool));
 				var dataAccessModelParam = Expression.Parameter(typeof(DataAccessModel));
 
-				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), dataAccessObjectType), isNewParam).Compile();
+				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), dataAccessObjectType), dataAccessModelParam, isNewParam).Compile();
 
 				this.dataAccessObjectConstructors[dataAccessObjectType] = constructor;
 			}
@@ -180,33 +180,7 @@ namespace Shaolinq.TypeBuilding
 		public T CreateDataAccessObject<T>(DataAccessModel dataAccessModel, bool isNew)
 			where T : DataAccessObject
 		{
-			Func<DataAccessModel, bool, DataAccessObject> constructor;
-
-			if (!this.dataAccessObjectConstructors.TryGetValue(typeof(T), out constructor))
-			{
-				Type type;
-
-				if (typeof(T).Assembly == this.ConcreteAssembly || typeof(T).Assembly == this.DefinitionAssembly)
-				{
-					if (!this.concreteTypesByType.TryGetValue(typeof(T), out type))
-					{
-						throw new InvalidDataAccessObjectModelDefinition("Could not find metadata for DataAccessObject type: {0}", type);
-					}
-				}
-				else
-				{
-					throw new InvalidOperationException();
-				}
-
-				var isNewParam = Expression.Parameter(typeof(bool));
-				var dataAccessModelParam = Expression.Parameter(typeof(DataAccessModel));
-
-				constructor = Expression.Lambda<Func<DataAccessModel, bool,DataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), typeof(T)), dataAccessModelParam, isNewParam).Compile();
-
-				this.dataAccessObjectConstructors[typeof(T)] = constructor;
-			}
-
-			return (T)constructor(dataAccessModel, isNew);
+			return (T)CreateDataAccessObject(typeof(T), dataAccessModel, isNew);
 		}
 
 		public Type GetConcreteType(Type definitionType)
