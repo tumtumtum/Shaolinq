@@ -36,7 +36,7 @@ namespace Shaolinq
 		public virtual event EventHandler Disposed;
 
 		public Assembly DefinitionAssembly { get; private set; }
-		public AssemblyBuildInfo AssemblyBuildInfo { get; private set; }
+		public RuntimeDataAccessModelInfo RuntimeDataAccessModelInfo { get; private set; }
 		public DataAccessModelConfiguration Configuration { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
@@ -138,12 +138,12 @@ namespace Shaolinq
 
 		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)
 		{
-			return this.AssemblyBuildInfo.GetConcreteType(definitionType);
+			return this.RuntimeDataAccessModelInfo.GetConcreteType(definitionType);
 		}
 
 		internal Type GetDefinitionTypeFromConcreteType(Type concreteType)
 		{
-			return this.AssemblyBuildInfo.GetDefinitionType(concreteType);
+			return this.RuntimeDataAccessModelInfo.GetDefinitionType(concreteType);
 		}
 
 		public virtual TypeDescriptor GetTypeDescriptor(Type type)
@@ -161,9 +161,9 @@ namespace Shaolinq
 			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(true).GetCurrentDatabaseTransactionContext(this.GetCurrentSqlDatabaseContext());
 		}
 
-		private void SetAssemblyBuildInfo(AssemblyBuildInfo value)
+		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
 		{
-			this.AssemblyBuildInfo = value;
+			this.RuntimeDataAccessModelInfo = value;
 			this.DefinitionAssembly = value.DefinitionAssembly;
 			this.TypeDescriptorProvider = value.TypeDescriptorProvider;
 			this.ModelTypeDescriptor = this.TypeDescriptorProvider.ModelTypeDescriptor;
@@ -316,7 +316,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, false);
+				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, false);
 
 				var internalDataAccessObject = retval.ToObjectInternal();
 
@@ -487,7 +487,7 @@ namespace Shaolinq
 
 		public virtual DataAccessObject CreateDataAccessObject(Type type)
 		{
-			var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
+			var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, true);
 			var retvalInternal = retval.ToObjectInternal();
 
 			retvalInternal.FinishedInitializing();
@@ -528,7 +528,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = this.AssemblyBuildInfo.CreateDataAccessObject(type, this, true);
+				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, true);
 
 				retval.ToObjectInternal().SetPrimaryKeys(objectPropertyAndValues);
 				retval.ToObjectInternal().FinishedInitializing();
@@ -541,7 +541,7 @@ namespace Shaolinq
 		public virtual T CreateDataAccessObject<T>()
 			where T : DataAccessObject
 		{
-			var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
+			var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject<T>(this, true);
 
 			retval.ToObjectInternal().FinishedInitializing();
 			retval.ToObjectInternal().SubmitToCache();
@@ -577,7 +577,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = this.AssemblyBuildInfo.CreateDataAccessObject<T>(this, true);
+				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject<T>(this, true);
 
 				retval.ToObjectInternal().SetPrimaryKeys(objectPropertyAndValues);
 				retval.ToObjectInternal().FinishedInitializing();

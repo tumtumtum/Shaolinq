@@ -185,7 +185,7 @@ namespace Shaolinq.Persistence.Linq
 			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, Visit(checkItem), Visit(checkList));
 
 			var alias = this.GetNextAlias();
-			var selectType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(typeof(bool));
+			var selectType = typeof(IEnumerable<>).MakeGenericType(typeof(bool));
 
 			var select = new SqlSelectExpression
 			(
@@ -1241,7 +1241,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(expression.Type.GetGenericArguments()[0]);
 						var parentTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(memberAccessExpression.Expression.Type);
-						var source = Expression.Constant(null, this.DataAccessModel.AssemblyBuildInfo.GetDataAccessObjectsType(typeDescriptor.Type));
+						var source = Expression.Constant(null, this.DataAccessModel.RuntimeDataAccessModelInfo.GetDataAccessObjectsType(typeDescriptor.Type));
 						var concreteType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(typeDescriptor.Type);
 						var parameter = Expression.Parameter(typeDescriptor.Type, "relatedObject");
 						PropertyDescriptor relatedProperty = typeDescriptor.GetRelatedProperty(parentTypeDescriptor.Type);
@@ -1315,7 +1315,7 @@ namespace Shaolinq.Persistence.Linq
 			var alias = this.GetNextAlias();
 
 			var aggregateExpression = new SqlAggregateExpression(returnType, aggregateType, argumentExpression, isDistinct);
-			var selectType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(returnType);
+			var selectType = typeof(IEnumerable<>).MakeGenericType(returnType);
 
 			var select = new SqlSelectExpression
 			(
@@ -1549,7 +1549,7 @@ namespace Shaolinq.Persistence.Linq
 			var projectorExpression = Expression.MemberInit(Expression.New(elementType), rootBindings);
 			this.objectReferenceByMemberInit[projectorExpression] = rootObjectReference;
 
-			var resultType = this.DataAccessModel.AssemblyBuildInfo.GetEnumerableType(elementType);
+			var resultType = typeof(IEnumerable<>).MakeGenericType(elementType);
 			var projection = new SqlProjectionExpression(new SqlSelectExpression(resultType, selectAlias, tableColumns, new SqlTableExpression(resultType, tableAlias, typeDescriptor.PersistedName), null, null, false), projectorExpression, null);
 
 			if ((conditionType == elementType || (conditionType != null && conditionType.IsAssignableFrom(elementType))) && extraCondition != null)

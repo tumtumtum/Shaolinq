@@ -9,16 +9,16 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
-	internal sealed class DataAccessModelAssemblyBuilder
+	public class DataAccessModelAssemblyBuilder
 		: DataAccessAssemblyProvider
 	{
-		public override AssemblyBuildInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
+		public override RuntimeDataAccessModelInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
 			var typeDescriptorProvider = new TypeDescriptorProvider(dataAccessModelType);
 			var originalAssembly = dataAccessModelType.Assembly;
 			var builtAssembly = BuildAssembly(typeDescriptorProvider, configuration);
 
-			return new AssemblyBuildInfo(typeDescriptorProvider, builtAssembly, originalAssembly, configuration);
+			return new RuntimeDataAccessModelInfo(typeDescriptorProvider, builtAssembly, originalAssembly);
 		}
 
 		private static Assembly BuildAssembly(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration)

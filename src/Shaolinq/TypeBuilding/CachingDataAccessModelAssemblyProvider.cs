@@ -45,30 +45,30 @@ namespace Shaolinq.TypeBuilding
 		}
 
 		private readonly DataAccessAssemblyProvider provider;
-		private readonly Dictionary<AssemblyKey, AssemblyBuildInfo> assemblyBuildInfosByKey = new Dictionary<AssemblyKey, AssemblyBuildInfo>();
+		private readonly Dictionary<AssemblyKey, RuntimeDataAccessModelInfo> assemblyBuildInfosByKey = new Dictionary<AssemblyKey, RuntimeDataAccessModelInfo>();
 
 		public CachingDataAccessModelAssemblyProvider(DataAccessAssemblyProvider provider)
 		{
 			this.provider = provider;
 		}
 
-		public override AssemblyBuildInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
+		public override RuntimeDataAccessModelInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
 			var key = new AssemblyKey(dataAccessModelType, configuration);
 
-			AssemblyBuildInfo assemblyBuildInfo;
+			RuntimeDataAccessModelInfo runtimeDataAccessModelInfo;
 
 			lock (this.assemblyBuildInfosByKey)
 			{
-				if (!this.assemblyBuildInfosByKey.TryGetValue(key, out assemblyBuildInfo))
+				if (!this.assemblyBuildInfosByKey.TryGetValue(key, out runtimeDataAccessModelInfo))
 				{
-					assemblyBuildInfo = this.provider.GetDataAccessModelAssembly(dataAccessModelType, configuration);
+					runtimeDataAccessModelInfo = this.provider.GetDataAccessModelAssembly(dataAccessModelType, configuration);
 
-					this.assemblyBuildInfosByKey[key] = assemblyBuildInfo;
+					this.assemblyBuildInfosByKey[key] = runtimeDataAccessModelInfo;
 				}
 			}
 
-			return assemblyBuildInfo;
+			return runtimeDataAccessModelInfo;
 		}
 	}
 }

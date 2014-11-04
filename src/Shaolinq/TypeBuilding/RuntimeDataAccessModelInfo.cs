@@ -9,15 +9,13 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
-	public class AssemblyBuildInfo
+	public class RuntimeDataAccessModelInfo
 	{
 		private readonly Type dataAccessModelType;
-		private readonly Type concreteDataAccessModelType;
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public Assembly ConcreteAssembly { get; private set; }
 		public Assembly DefinitionAssembly { get; private set; }
-		private readonly DataAccessModelConfiguration configuration;
-
+		
 		private readonly Dictionary<Type, Type> enumerableTypes = new Dictionary<Type, Type>();
 		private readonly Dictionary<Type, Type> typesByConcreteType = new Dictionary<Type, Type>();
 		private readonly Dictionary<Type, Type> concreteTypesByType = new Dictionary<Type, Type>();
@@ -25,19 +23,18 @@ namespace Shaolinq.TypeBuilding
 		private Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>> dataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>();
 		private readonly Func<DataAccessModel> dataAccessModelConstructor;
 		
-		public AssemblyBuildInfo(TypeDescriptorProvider typeDescriptorProvider, Assembly concreteAssembly, Assembly definitionAssembly, DataAccessModelConfiguration configuration)
+		public RuntimeDataAccessModelInfo(TypeDescriptorProvider typeDescriptorProvider, Assembly concreteAssembly, Assembly definitionAssembly)
 		{
 			this.TypeDescriptorProvider = typeDescriptorProvider;
 			this.dataAccessModelType = typeDescriptorProvider.DataAccessModelType;
-			this.concreteDataAccessModelType = concreteAssembly.GetType(dataAccessModelType.Namespace + "." + dataAccessModelType.Name);
-
+			
 			Debug.Assert(dataAccessModelType.Assembly == definitionAssembly);
 
-			this.configuration = configuration; 
 			this.ConcreteAssembly = concreteAssembly;
 			this.DefinitionAssembly = definitionAssembly;
-			
-			this.dataAccessModelConstructor = Expression.Lambda<Func<DataAccessModel>>(Expression.Convert(Expression.New(this.concreteDataAccessModelType), dataAccessModelType)).Compile();
+
+			var concreteDataAccessModelType = concreteAssembly.GetType(dataAccessModelType.Namespace + "." + dataAccessModelType.Name);
+			this.dataAccessModelConstructor = Expression.Lambda<Func<DataAccessModel>>(Expression.Convert(Expression.New(concreteDataAccessModelType), dataAccessModelType)).Compile();
 
 			var typeProvider = new TypeDescriptorProvider(dataAccessModelType);
 
@@ -63,18 +60,6 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			return TypeHelper.DataAccessObjectsType.MakeGenericType(type);
-		}
-
-		public Type GetEnumerableType(Type type)
-		{
-			Type retval;
-
-			if (this.enumerableTypes.TryGetValue(type, out retval))
-			{
-				return retval;
-			}
-
-			return TypeHelper.IEnumerableType.MakeGenericType(type);
 		}
 
 		public DataAccessModel NewDataAccessModel()
@@ -142,7 +127,7 @@ namespace Shaolinq.TypeBuilding
 				return retval;
 			}
 
-			throw new ExpectedDataAccessObjectTypeException(definitionType);
+			throw new InvalidOperationException(string.Format("Type {0} is unexpected", definitionType.Name));
 		}
 
 		public Type GetDefinitionType(Type concreteType)
@@ -159,7 +144,7 @@ namespace Shaolinq.TypeBuilding
 				return retval;
 			}
 
-			throw new ExpectedDataAccessObjectTypeException(concreteType);
+			throw new InvalidOperationException(string.Format("Type {0} is unexpected", concreteType.Name));
 		}
 	}
 }
