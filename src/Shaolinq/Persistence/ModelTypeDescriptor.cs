@@ -14,8 +14,6 @@ namespace Shaolinq.Persistence
 		public Type Type { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public DataAccessModelAttribute DataAccessModelAttribute { get; private set; }
-		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptors; 
-		private readonly Dictionary<Type, TypeDescriptor> typeDescriptors = new Dictionary<Type, TypeDescriptor>();
 		
 		public ModelTypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
@@ -24,6 +22,7 @@ namespace Shaolinq.Persistence
 
 			this.DataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
 
+			/*
 			foreach (var propertyInfo in this.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
 			{
 				var queryableAttribute = propertyInfo.GetFirstCustomAttribute<DataAccessObjectsAttribute>(true);
@@ -55,7 +54,7 @@ namespace Shaolinq.Persistence
 
 				if (typeDescriptor == null)
 				{
-					throw new InvalidDataAccessObjectModelDefinition(string.Format("DataAccessObject type '{0}' is missing [DataAccessObject] attribute", genericType.Name));
+					throw new InvalidDataAccessObjectModelDefinition(string.Format("Type {0} is referenced by model but not resolvable", genericType.Name));
 				}
 
 				this.typeDescriptors[typeDescriptor.Type] = typeDescriptor;
@@ -68,29 +67,7 @@ namespace Shaolinq.Persistence
 
 			enumTypeDescriptors = Enumerable.Distinct(allEnumTypes).ToDictionary(c => c, c => new EnumTypeDescriptor(c));
 
-			this.TypeDescriptorProvider.AddEnumTypeDescriptors(enumTypeDescriptors.Values);
-		}
-
-		public IEnumerable<EnumTypeDescriptor> GetPersistedEnumTypeDescriptors()
-		{
-			return enumTypeDescriptors.Values.Sorted((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
-		}
-
-		public IEnumerable<TypeDescriptor> GetPersistedObjectTypeDescriptors()
-		{
-			return this.typeDescriptors.Values.Sorted((x, y) => String.Compare(x.PersistedName, y.PersistedName, StringComparison.Ordinal));
-		}
-
-		public TypeDescriptor GetTypeDescriptor(Type type)
-		{
-			TypeDescriptor retval;
-
-			if (!this.typeDescriptors.TryGetValue(type, out retval))
-			{
-				throw new InvalidDataAccessObjectModelDefinition(string.Format("{0} is missing a [DataAccessObjects] property for the type: {1}", this.Type.Name, type.Name));	
-			}
-
-			return retval;
+			this.TypeDescriptorProvider.AddEnumTypeDescriptors(enumTypeDescriptors.Values);*/
 		}
 	}
 }

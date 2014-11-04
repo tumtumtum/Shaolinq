@@ -1,8 +1,7 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 ﻿using System.Linq;
 ﻿using System.Reflection;
 using Platform;
@@ -13,14 +12,6 @@ namespace Shaolinq.Persistence
 {
 	public class PropertyDescriptor
 	{
-		public TypeDescriptorProvider TypeDescriptorProvider
-		{
-			get
-			{
-				return this.DeclaringTypeDescriptor.TypeDescriptorProvider;
-			}
-		}
-
 		public Type OwnerType { get; private set; }
 		public bool IsPrimaryKey { get; private set; }
 		public string PersistedName { get; private set; }
@@ -37,72 +28,15 @@ namespace Shaolinq.Persistence
 		public ReadOnlyCollection<IndexAttribute> IndexAttributes { get; private set; }
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; private set; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; private set; }
+		public string PropertyName { get { return this.PropertyInfo.Name; } }
+		public Type PropertyType { get { return this.PropertyInfo.PropertyType; } }
+		public bool HasUniqueAttribute { get { return this.UniqueAttribute != null; } }
+		public bool IsBackReferenceProperty { get { return this.BackReferenceAttribute != null; } }
+		public bool IsComputedTextMember { get { return this.ComputedTextMemberAttribute != null; } }
+		public bool IsRelatedDataAccessObjectsProperty { get { return this.RelatedDataAccessObjectsAttribute != null; } }
+		public bool IsAutoIncrement { get { return this.AutoIncrementAttribute != null && this.AutoIncrementAttribute.AutoIncrement; } }
+		public bool IsPropertyThatIsCreatedOnTheServerSide { get { return this.IsAutoIncrement && this.PropertyType.IsIntegerType(true); } }
 		
-		public string PropertyName
-		{
-			get
-			{
-				return this.PropertyInfo.Name;
-			}
-		}
-
-		public bool HasUniqueAttribute
-		{
-			get
-			{
-				return this.UniqueAttribute != null;
-			}
-		}
-
-		public bool IsRelatedDataAccessObjectsProperty
-		{
-			get
-			{
-				return this.RelatedDataAccessObjectsAttribute != null;
-			}
-		}
-
-		public bool IsBackReferenceProperty
-		{
-			get
-			{
-				return this.BackReferenceAttribute != null;
-			}
-		}
-        
-		public bool IsAutoIncrement
-		{
-			get
-			{
-				return this.AutoIncrementAttribute != null
-					&& this.AutoIncrementAttribute.AutoIncrement;
-			}
-		}
-
-		public bool IsPropertyThatIsCreatedOnTheServerSide
-		{
-			get
-			{
-				return this.IsAutoIncrement && this.PropertyType.IsIntegerType(true);
-			}
-		}
-
-		public Type PropertyType
-		{
-			get
-			{
-				return this.PropertyInfo.PropertyType;
-			}
-		}
-
-		public bool IsComputedTextMember
-		{
-			get
-			{
-				return this.ComputedTextMemberAttribute != null;
-			}
-		}
-
 		public PropertyDescriptor(TypeDescriptor declaringTypeDescriptor, Type ownerType, PropertyInfo propertyInfo)
 		{
 			this.OwnerType = ownerType;
@@ -158,7 +92,7 @@ namespace Shaolinq.Persistence
 
 		public override string ToString()
 		{
-			return string.Format("PropertyDescriptor({0}.{1})", this.DeclaringTypeDescriptor.TypeName, this.PropertyName);
+			return string.Format("{0}.{1} PropertyDescriptor", this.DeclaringTypeDescriptor.TypeName, this.PropertyName);
 		}
 	}
 }

@@ -856,7 +856,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
 			            return this.BindFirst(where, SelectFirstType.First);
 		            }
@@ -868,7 +868,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
 			            return this.BindFirst(where, SelectFirstType.FirstOrDefault);
 		            }
@@ -880,7 +880,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
 			            return this.BindFirst(where, SelectFirstType.Single);
 		            }
@@ -892,7 +892,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            var where = Expression.Call(null, this.DataAccessModel.AssemblyBuildInfo.GetQueryableWhereMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
 
 			            return this.BindFirst(where, SelectFirstType.SingleOrDefault);
 		            }

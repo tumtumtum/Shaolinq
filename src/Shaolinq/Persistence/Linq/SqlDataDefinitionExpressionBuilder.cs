@@ -87,7 +87,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ColumnInfo[] columnInfos)
 		{
-			var relatedPropertyTypeDescriptor = this.model.ModelTypeDescriptor.GetTypeDescriptor(referencingProperty.PropertyType);
+			var relatedPropertyTypeDescriptor = this.model.GetTypeDescriptor(referencingProperty.PropertyType);
 			var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
 
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required)
@@ -256,7 +256,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if ((flags & SqlDataDefinitionBuilderFlags.BuildEnums) != 0)
 			{
-				foreach (var enumTypeDescriptor in this.model.ModelTypeDescriptor.GetPersistedEnumTypeDescriptors())
+				foreach (var enumTypeDescriptor in this.model.TypeDescriptorProvider.GetPersistedEnumTypeDescriptors())
 				{
 					expressions.Add(BuildCreateEnumTypeExpression(enumTypeDescriptor));
 				}
@@ -264,7 +264,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if ((flags & (SqlDataDefinitionBuilderFlags.BuildIndexes | SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
 			{
-				foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetPersistedObjectTypeDescriptors())
+				foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 				{
 					expressions.Add(BuildCreateTableExpression(typeDescriptor));
 					expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
@@ -274,7 +274,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if ((flags & (SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
 				{
-					foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetPersistedObjectTypeDescriptors())
+					foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 					{
 						expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
 					}
@@ -282,7 +282,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if ((flags & (SqlDataDefinitionBuilderFlags.BuildTables)) != 0)
 				{
-					foreach (var typeDescriptor in this.model.ModelTypeDescriptor.GetPersistedObjectTypeDescriptors())
+					foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 					{
 						expressions.Add(BuildCreateTableExpression(typeDescriptor));
 					}

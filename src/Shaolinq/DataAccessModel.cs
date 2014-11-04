@@ -165,8 +165,8 @@ namespace Shaolinq
 		{
 			this.AssemblyBuildInfo = value;
 			this.DefinitionAssembly = value.DefinitionAssembly;
-			this.TypeDescriptorProvider = TypeDescriptorProvider.GetProvider(this.DefinitionAssembly);
-			this.ModelTypeDescriptor = this.TypeDescriptorProvider.GetModelTypeDescriptor(value.GetDefinitionModelType(this.GetType()));
+			this.TypeDescriptorProvider = value.TypeDescriptorProvider;
+			this.ModelTypeDescriptor = this.TypeDescriptorProvider.ModelTypeDescriptor;
 
 			foreach (var contextInfo in this.Configuration.SqlDatabaseContextInfos)
 			{
@@ -226,7 +226,7 @@ namespace Shaolinq
 			}
 
 			var buildInfo = CachingDataAccessModelAssemblyProvider.Default.GetDataAccessModelAssembly(dataAccessModelType, configuration);
-			var retval = buildInfo.NewDataAccessModel(dataAccessModelType);
+			var retval = buildInfo.NewDataAccessModel();
 
 			retval.SetConfiguration(configuration);
 			retval.SetAssemblyBuildInfo(buildInfo);

@@ -11,101 +11,91 @@ namespace Shaolinq.Persistence
 {
 	public class TypeDescriptorProvider
 	{
-		private static IDictionary<Assembly, TypeDescriptorProvider> typeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
-		
-		public Assembly Assembly { get; private set; }
-		private readonly List<Type> dataAccessModelTypes = new List<Type>();
-		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType = new Dictionary<Type,EnumTypeDescriptor>();
-		private readonly Dictionary<Type, ModelTypeDescriptor> modelTypeDescriptorsByType = new Dictionary<Type, ModelTypeDescriptor>();
+		public Type DataAccessModelType { get; private set; }
+		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
+
+		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType;
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptorsByType = new Dictionary<Type, TypeDescriptor>();
 		
-		public static TypeDescriptorProvider GetProvider(Assembly assembly)
+		public TypeDescriptorProvider(Type dataAccessModelType)
 		{
-			lock (typeof(TypeDescriptorProvider))
+			this.DataAccessModelType = dataAccessModelType;
+
+			var dataAccessModelAttribute = dataAccessModelType.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
+
+			if (typeof(DataAccessModel).IsAssignableFrom(dataAccessModelType) && dataAccessModelAttribute == null)
 			{
-				TypeDescriptorProvider retval;
-
-				if (!typeDescriptorProvidersByAssembly.TryGetValue(assembly, out retval))
-				{
-					retval = new TypeDescriptorProvider(assembly);
-
-					var newTypeDescriptorProvidersByAssembly = new Dictionary<Assembly, TypeDescriptorProvider>(PrimeNumbers.Prime7);
-
-					foreach (var kvp in typeDescriptorProvidersByAssembly)
-					{
-						newTypeDescriptorProvidersByAssembly[kvp.Key] = kvp.Value;
-					}
-
-					newTypeDescriptorProvidersByAssembly[assembly] = retval;
-					typeDescriptorProvidersByAssembly = newTypeDescriptorProvidersByAssembly;
-				}
-
-				return retval;
+				throw new InvalidDataAccessObjectModelDefinition("The DataAccessModel type '{0}' is missing a DataAccessModelAttribute", dataAccessModelType.Name);
 			}
-		}
 
-		private TypeDescriptorProvider(Assembly assembly)
-		{
-			this.Assembly = assembly;
-
-			this.Process();
-		}
-
-		private void Process()
-		{
-			foreach (var type in this.Assembly.GetTypes())
+			foreach (var type in this.DataAccessModelType
+				.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+				.Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(DataAccessObjects<>))
+				.Select(c => c.PropertyType.GetGenericArguments()[0]))
 			{
-				var dataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
+				var currentType = type;
 
-				if (dataAccessModelAttribute != null)
+				while (currentType != null 
+					&& currentType != typeof(DataAccessObject) 
+					&& !(currentType.IsGenericType && currentType.GetGenericTypeDefinition() == typeof(DataAccessObject<>)))
 				{
-					dataAccessModelTypes.Add(type);
-				}
-
-				if (typeof(DataAccessModel).IsAssignableFrom(type) && dataAccessModelAttribute == null)
-				{
-					throw new InvalidDataAccessObjectModelDefinition("The DataAccessModel type '{0}' is missing a [DataAccessModel] attribute", type.Name);
-				}
-
-				var baseType = type;
-				
-				while (baseType != null)
-				{
-					var dataAccessObjectAttribute = baseType.GetFirstCustomAttribute<DataAccessObjectAttribute>(false);
-
-					if (dataAccessModelAttribute != null && dataAccessObjectAttribute != null)
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The type '{0}' cannot be decorated with both a [DataAccessModel] attribute and a DataAccessObjectAttribute", baseType.Name);
-					}
+					var dataAccessObjectAttribute = currentType.GetFirstCustomAttribute<DataAccessObjectAttribute>(false);
 
 					if (dataAccessObjectAttribute != null)
 					{
-						if (!typeDescriptorsByType.ContainsKey(baseType) && !dataAccessObjectAttribute.NotPersisted)
+						if (!typeDescriptorsByType.ContainsKey(currentType))
 						{
-							if (!typeof(IDataAccessObjectAdvanced).IsAssignableFrom(baseType))
+							if (!typeof(DataAccessObject).IsAssignableFrom(currentType))
 							{
-								throw new InvalidDataAccessObjectModelDefinition("The type {0} is decorated with a [DataAccessObject] attribute but does not extend DataAccessObject<T>", baseType.Name);
+								throw new InvalidDataAccessObjectModelDefinition("The type {0} is decorated with a [DataAccessObject] attribute but does not extend DataAccessObject<T>", currentType.Name);
 							}
 
-							var typeDescriptor = new TypeDescriptor(this, baseType);
+							var typeDescriptor = new TypeDescriptor(this, currentType);
 
 							if (typeDescriptor.PrimaryKeyProperties.Count(c => c.PropertyType.IsNullableType()) > 0)
 							{
-								throw new InvalidDataAccessObjectModelDefinition("The type {0} illegally defines a nullable primary key", baseType.Name);
+								throw new InvalidDataAccessObjectModelDefinition("The type {0} illegally defines a nullable primary key", currentType.Name);
 							}
 
-							typeDescriptorsByType[baseType] = typeDescriptor;
+							typeDescriptorsByType[currentType] = typeDescriptor;
 						}
 					}
-					else if (typeof(IDataAccessObjectAdvanced).IsAssignableFrom(baseType))
+					else
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The type {0} extends DataAccessObject<T> but is not explicitly decorated with the [DataAccessObject] attribute", baseType.Name);
+						throw new InvalidDataAccessObjectModelDefinition("Type '{0}' does not have a DataAccessObject attribute", currentType);
 					}
 
-					baseType = baseType.BaseType;
+					currentType = currentType.BaseType;
 				}
 			}
-			
+
+			var typesSet = new HashSet<Type>(this.typeDescriptorsByType.Keys);
+
+			var typesReferenced = this.typeDescriptorsByType
+				.Values
+				.SelectMany(c => c.PersistedProperties)
+				.Select(c => c.PropertyType)
+				.Where(c => typeof(DataAccessObject).IsAssignableFrom(c))
+				.Distinct();
+
+			var first = typesReferenced.FirstOrDefault(c => !typesSet.Contains(c));
+
+			if (first != null)
+			{
+				throw new InvalidDataAccessModelDefinitionException(string.Format("Type {0} is referenced but is not declared as a property {1}", first.Name, dataAccessModelType.Name));
+			}	
+
+			// Enums
+
+			this.enumTypeDescriptorsByType = this.typeDescriptorsByType
+				.Values
+				.SelectMany(c => c.PersistedProperties)
+				.Select(c => c.PropertyType.GetUnwrappedNullableType())
+				.Where(c => c.IsEnum)
+				.Distinct()
+				.Select(c => new EnumTypeDescriptor(c))
+				.ToDictionary(c => c.EnumType, c => c);
+
 			// Resolve relationships
 
 			foreach (var typeDescriptor in typeDescriptorsByType.Values)
@@ -162,20 +152,7 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-			foreach (var modelTypeDescriptor in this.dataAccessModelTypes.Select(dataAccessModelType => new ModelTypeDescriptor(this, dataAccessModelType)))
-			{
-				this.modelTypeDescriptorsByType[modelTypeDescriptor.Type] = modelTypeDescriptor;
-			}
-		}
-
-		public IEnumerable<Type> GetEnumTypes()
-		{
-			return enumTypeDescriptorsByType.Keys;
-		}
-
-		public IEnumerable<EnumTypeDescriptor> GetEnumTypeDescriptors()
-		{
-			return enumTypeDescriptorsByType.Values;
+			this.ModelTypeDescriptor = new ModelTypeDescriptor(this, dataAccessModelType);
 		}
 
 		public EnumTypeDescriptor GetEnumTypeDescriptor(Type type)
@@ -188,11 +165,6 @@ namespace Shaolinq.Persistence
 			}
 
 			return null;
-		}
-
-		public IEnumerable<Type> GetTypes()
-		{
-			return typeDescriptorsByType.Keys;
 		}
 
 		public ICollection<TypeDescriptor> GetTypeDescriptors()
@@ -212,29 +184,19 @@ namespace Shaolinq.Persistence
 			return null;
 		}
 
-		public ICollection<ModelTypeDescriptor> GetModelTypeDescriptors()
+		public IEnumerable<EnumTypeDescriptor> GetPersistedEnumTypeDescriptors()
 		{
-			return this.modelTypeDescriptorsByType.Values;
+			return this.enumTypeDescriptorsByType
+				.Values
+				.Sorted((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
 		}
 
-		public ModelTypeDescriptor GetModelTypeDescriptor(Type type)
+		public IEnumerable<TypeDescriptor> GetPersistedObjectTypeDescriptors()
 		{
-			ModelTypeDescriptor retval;
-
-			if (modelTypeDescriptorsByType.TryGetValue(type, out retval))
-			{
-				return retval;
-			}
-
-			return null;
-		}
-
-		internal void AddEnumTypeDescriptors(IEnumerable<EnumTypeDescriptor> values)
-		{
-			foreach (var value in values)
-			{
-				this.enumTypeDescriptorsByType[value.EnumType] = value;
-			}
+			return this.typeDescriptorsByType
+				.Values
+				.Where(c => !c.DataAccessObjectAttribute.NotPersisted)
+				.Sorted((x, y) => String.Compare(x.PersistedName, y.PersistedName, StringComparison.Ordinal));
 		}
 	}
 }

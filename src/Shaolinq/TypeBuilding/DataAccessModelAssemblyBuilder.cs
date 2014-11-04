@@ -2,7 +2,6 @@
 
 using System;
 using System.Configuration;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using Platform;
@@ -15,40 +14,37 @@ namespace Shaolinq.TypeBuilding
 	{
 		public override AssemblyBuildInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
+			var typeDescriptorProvider = new TypeDescriptorProvider(dataAccessModelType);
 			var originalAssembly = dataAccessModelType.Assembly;
-			var builtAssembly = BuildAssembly(originalAssembly, configuration);
+			var builtAssembly = BuildAssembly(typeDescriptorProvider, configuration);
 
-			return new AssemblyBuildInfo(dataAccessModelType, builtAssembly, originalAssembly, configuration);
+			return new AssemblyBuildInfo(typeDescriptorProvider, builtAssembly, originalAssembly, configuration);
 		}
 
-		private static Assembly BuildAssembly(Assembly assembly, DataAccessModelConfiguration configuration)
+		private static Assembly BuildAssembly(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration)
 		{
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 
 			var configMd5 = configuration.GetMd5();
-			var assemblyName = new AssemblyName(assembly.GetName().Name + ".Concrete");
+			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + ".Concrete");
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + configMd5 + ".dll");
 			
 			var assemblyBuildContext = new AssemblyBuildContext
 			{
-				SourceAssembly = assembly,
+				SourceAssembly = typeDescriptorProvider.DataAccessModelType.Assembly,
 				TargetAssembly = assemblyBuilder
 			};
 
-			var builder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
-			
-			foreach (var type in assembly.GetTypes().Where(typeof(DataAccessModel).IsAssignableFrom))
-			{
-				builder.BuildType(type);
-			}
+			var dataAccessModelTypeBuilder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
 
-			var typeProvider = TypeDescriptorProvider.GetProvider(assembly);
-			var typeDescriptors = typeProvider.GetTypeDescriptors();
+			dataAccessModelTypeBuilder.BuildType(typeDescriptorProvider.DataAccessModelType);
+
+			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
             
 			foreach (var typeDescriptor in typeDescriptors)
 			{
-				dataAccessObjectTypeBuilder = new DataAccessObjectTypeBuilder(typeProvider, assemblyBuildContext, moduleBuilder, typeDescriptor.Type);
+				dataAccessObjectTypeBuilder = new DataAccessObjectTypeBuilder(typeDescriptorProvider, assemblyBuildContext, moduleBuilder, typeDescriptor.Type);
 
 				dataAccessObjectTypeBuilder.BuildFirstPhase(1);
 			}

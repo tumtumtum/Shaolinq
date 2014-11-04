@@ -12,39 +12,34 @@ namespace Shaolinq.TypeBuilding
 	public class AssemblyBuildInfo
 	{
 		private readonly Type dataAccessModelType;
+		private readonly Type concreteDataAccessModelType;
+		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public Assembly ConcreteAssembly { get; private set; }
 		public Assembly DefinitionAssembly { get; private set; }
 		private readonly DataAccessModelConfiguration configuration;
 
-		private readonly Dictionary<Type, Type> enumerableTypes;
-		private readonly Dictionary<Type, Type> typesByConcreteType;
-		private readonly Dictionary<Type, Type> concreteTypesByType;
-		private readonly Dictionary<Type, Type> dataAccessObjectsTypes;
-		private readonly Dictionary<Type, MethodInfo> whereMethodInfos;
-		private readonly Dictionary<Type, Type> modelTypesByConcreteModelType;
-		private readonly Dictionary<Type, Type> concreteModelTypesByModelType;
-		private readonly Dictionary<Type, Delegate> dataAccessModelConstructors;
-		private readonly Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>> dataAccessObjectConstructors;
+		private readonly Dictionary<Type, Type> enumerableTypes = new Dictionary<Type, Type>();
+		private readonly Dictionary<Type, Type> typesByConcreteType = new Dictionary<Type, Type>();
+		private readonly Dictionary<Type, Type> concreteTypesByType = new Dictionary<Type, Type>();
+		private readonly Dictionary<Type, Type> dataAccessObjectsTypes = new Dictionary<Type, Type>();
+		private Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>> dataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>();
+		private readonly Func<DataAccessModel> dataAccessModelConstructor;
 		
-		public AssemblyBuildInfo(Type dataAccessModelType, Assembly concreteAssembly, Assembly definitionAssembly, DataAccessModelConfiguration configuration)
+		public AssemblyBuildInfo(TypeDescriptorProvider typeDescriptorProvider, Assembly concreteAssembly, Assembly definitionAssembly, DataAccessModelConfiguration configuration)
 		{
+			this.TypeDescriptorProvider = typeDescriptorProvider;
+			this.dataAccessModelType = typeDescriptorProvider.DataAccessModelType;
+			this.concreteDataAccessModelType = concreteAssembly.GetType(dataAccessModelType.Namespace + "." + dataAccessModelType.Name);
+
 			Debug.Assert(dataAccessModelType.Assembly == definitionAssembly);
 
-			this.dataAccessModelType = dataAccessModelType;
+			this.configuration = configuration; 
 			this.ConcreteAssembly = concreteAssembly;
 			this.DefinitionAssembly = definitionAssembly;
-			this.configuration = configuration;
-			this.dataAccessModelConstructors = new Dictionary<Type, Delegate>(PrimeNumbers.Prime7);
-			this.typesByConcreteType = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
-			this.concreteTypesByType = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
-			this.modelTypesByConcreteModelType = new Dictionary<Type, Type>(PrimeNumbers.Prime7);
-			this.concreteModelTypesByModelType = new Dictionary<Type, Type>(PrimeNumbers.Prime7);
-			this.dataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>(PrimeNumbers.Prime67);
-			this.whereMethodInfos = new Dictionary<Type, MethodInfo>(PrimeNumbers.Prime127);
-			this.dataAccessObjectsTypes = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
-			this.enumerableTypes = new Dictionary<Type, Type>(PrimeNumbers.Prime127);
+			
+			this.dataAccessModelConstructor = Expression.Lambda<Func<DataAccessModel>>(Expression.Convert(Expression.New(this.concreteDataAccessModelType), dataAccessModelType)).Compile();
 
-			var typeProvider = TypeDescriptorProvider.GetProvider(definitionAssembly);
+			var typeProvider = new TypeDescriptorProvider(dataAccessModelType);
 
 			foreach (var type in typeProvider.GetTypeDescriptors())
 			{
@@ -53,32 +48,11 @@ namespace Shaolinq.TypeBuilding
 				this.concreteTypesByType[type.Type] = concreteType;
 				this.typesByConcreteType[concreteType] = type.Type;
 				
-				this.whereMethodInfos[type.Type] = MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(type.Type);
 				this.dataAccessObjectsTypes[type.Type] = TypeHelper.DataAccessObjectsType.MakeGenericType(type.Type);
 				this.enumerableTypes[type.Type] = TypeHelper.IEnumerableType.MakeGenericType(type.Type);
 			}
-
-			foreach (var descriptor in typeProvider.GetModelTypeDescriptors())
-			{
-				var concreteType = concreteAssembly.GetType(descriptor.Type.Namespace + "." + descriptor.Type.Name);
-
-				this.concreteModelTypesByModelType[descriptor.Type] = concreteType;
-				this.modelTypesByConcreteModelType[concreteType] = descriptor.Type;
-			}
 		}
-
-		public MethodInfo GetQueryableWhereMethod(Type type)
-		{
-			MethodInfo retval;
-
-			if (this.whereMethodInfos.TryGetValue(type, out retval))
-			{
-				return retval;
-			}
-
-			return MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(type);
-		}
-
+		
 		public Type GetDataAccessObjectsType(Type type)
 		{
 			Type retval;
@@ -103,54 +77,21 @@ namespace Shaolinq.TypeBuilding
 			return TypeHelper.IEnumerableType.MakeGenericType(type);
 		}
 
-		public DataAccessModel NewDataAccessModel(Type dataAccessModelType)
+		public DataAccessModel NewDataAccessModel()
 		{
-			var constructor = GetDataAccessModelConstructor(dataAccessModelType);
-
-			return ((Func<DataAccessModel>)constructor)();
-		}
-
-		public T NewDataAccessModel<T>()
-			where T : DataAccessModel
-		{
-			var constructor = GetDataAccessModelConstructor(typeof(T));
-
-			return ((Func<T>)constructor)();
-		}
-
-		private Delegate GetDataAccessModelConstructor(Type dataAccessModelType)
-		{
-			Delegate constructor;
-
-			if (!this.dataAccessModelConstructors.TryGetValue(dataAccessModelType, out constructor))
-			{
-				Type type;
-
-				if (dataAccessModelType.Assembly == this.ConcreteAssembly || dataAccessModelType.Assembly == this.DefinitionAssembly)
-				{
-					if (!this.concreteModelTypesByModelType.TryGetValue(dataAccessModelType, out type))
-					{
-						throw new InvalidDataAccessObjectModelDefinition("Could not find metadata for {0}", dataAccessModelType);
-					}
-				}
-				else
-				{
-					throw new InvalidOperationException();
-				}
-
-				constructor = Expression.Lambda(Expression.Convert(Expression.New(type), dataAccessModelType)).Compile();
-
-				this.dataAccessModelConstructors[dataAccessModelType] = constructor;
-			}
-
-			return constructor;
+			return this.dataAccessModelConstructor();
 		}
 
 		public DataAccessObject CreateDataAccessObject(Type dataAccessObjectType, DataAccessModel dataAccessModel, bool isNew)
 		{
+			return GetDataAccessObjectConstructor(dataAccessObjectType)(dataAccessModel, isNew);
+		}
+
+		private Func<DataAccessModel, bool, DataAccessObject> GetDataAccessObjectConstructor(Type dataAccessObjectType)
+		{
 			Func<DataAccessModel, bool, DataAccessObject> constructor;
 
-			if (!this.dataAccessObjectConstructors.TryGetValue(dataAccessObjectType, out constructor))
+			if (!dataAccessObjectConstructors.TryGetValue(dataAccessObjectType, out constructor))
 			{
 				Type type;
                 
@@ -163,7 +104,7 @@ namespace Shaolinq.TypeBuilding
 				}
 				else
 				{
-					throw new InvalidOperationException();
+					throw new InvalidOperationException("The type is not part of " + this.dataAccessModelType.Name);
 				}
 
 				var isNewParam = Expression.Parameter(typeof(bool));
@@ -171,16 +112,20 @@ namespace Shaolinq.TypeBuilding
 
 				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), dataAccessObjectType), dataAccessModelParam, isNewParam).Compile();
 
-				this.dataAccessObjectConstructors[dataAccessObjectType] = constructor;
+				var newDataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>(dataAccessObjectConstructors);
+
+				newDataAccessObjectConstructors[dataAccessObjectType] = constructor;
+
+				dataAccessObjectConstructors = newDataAccessObjectConstructors;
 			}
 
-			return constructor(dataAccessModel, isNew);
+			return constructor;
 		}
 
 		public T CreateDataAccessObject<T>(DataAccessModel dataAccessModel, bool isNew)
 			where T : DataAccessObject
 		{
-			return (T)CreateDataAccessObject(typeof(T), dataAccessModel, isNew);
+			return (T)this.GetDataAccessObjectConstructor(typeof(T))(dataAccessModel, isNew);
 		}
 
 		public Type GetConcreteType(Type definitionType)
@@ -215,40 +160,6 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			throw new ExpectedDataAccessObjectTypeException(concreteType);
-		}
-
-		public Type GetDefinitionModelType(Type concreteModelType)
-		{
-			Type retval;
-
-			if (this.DefinitionAssembly == concreteModelType.Assembly)
-			{
-				return concreteModelType;
-			}
-
-			if (this.modelTypesByConcreteModelType.TryGetValue(concreteModelType, out retval))
-			{
-				return retval;
-			}
-
-			throw new ExpectedDataAccessObjectTypeException(concreteModelType);
-		}
-
-		public Type GetConcreteModelType(Type definitionModelType)
-		{
-			Type retval;
-
-			if (this.ConcreteAssembly == definitionModelType.Assembly)
-			{
-				return definitionModelType;
-			}
-
-			if (this.concreteModelTypesByModelType.TryGetValue(definitionModelType, out retval))
-			{
-				return retval;
-			}
-
-			throw new ExpectedDataAccessObjectTypeException(definitionModelType);
 		}
 	}
 }

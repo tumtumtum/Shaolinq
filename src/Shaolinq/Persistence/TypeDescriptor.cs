@@ -19,37 +19,17 @@ namespace Shaolinq.Persistence
 		public ICollection<PropertyDescriptor> PersistedProperties { get; private set; }
 		public ICollection<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
 		public ICollection<PropertyDescriptor> ComputedTextProperties { get; private set; }
-		
+		public string TypeName { get { return this.Type.Name; } }
+		public bool HasPrimaryKeys { get { return this.PrimaryKeyProperties.Count > 0; } }
+		public int PrimaryKeyCount { get { return this.PrimaryKeyProperties.Count; } }
+		public DataAccessObjectAttribute DataAccessObjectAttribute { get; private set; }
+
 		private readonly List<PropertyDescriptor> propertyDescriptorsInOrder;
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
 		private readonly IDictionary<PropertyInfo, PropertyDescriptor> propertyDescriptorsByPropertyInfo;
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
-
-		public string TypeName
-		{
-			get
-			{
-				return this.Type.Name;
-			}
-		}
-
-		public bool HasPrimaryKeys
-		{
-			get
-			{
-				return this.PrimaryKeyProperties.Count > 0;
-			}
-		}
-
-		public int PrimaryKeyCount
-		{
-			get
-			{
-				return this.PrimaryKeyProperties.Count;
-			}
-		}
 
 		public static bool IsSimpleType(Type type)
 		{
@@ -78,8 +58,6 @@ namespace Shaolinq.Persistence
 				return this.DataAccessObjectAttribute.GetName(this.Type);
 			}
 		}
-
-		public DataAccessObjectAttribute DataAccessObjectAttribute { get; private set; }
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
@@ -272,9 +250,7 @@ namespace Shaolinq.Persistence
 						throw new InvalidDataAccessObjectModelDefinition("The property {0} is not virtual or abstract", propertyInfo.Name);
 					}
 
-
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
-
 					propertyDescriptorsByPropertyInfo[propertyInfo] = propertyDescriptor;
 					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 					propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
