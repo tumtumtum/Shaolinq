@@ -29,15 +29,10 @@ namespace Shaolinq.TypeBuilding
 			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + ".Concrete");
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + configMd5 + ".dll");
-			
-			var assemblyBuildContext = new AssemblyBuildContext
-			{
-				SourceAssembly = typeDescriptorProvider.DataAccessModelType.Assembly,
-				TargetAssembly = assemblyBuilder
-			};
+
+			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder);
 
 			var dataAccessModelTypeBuilder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
-
 			dataAccessModelTypeBuilder.BuildType(typeDescriptorProvider.DataAccessModelType);
 
 			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
@@ -45,18 +40,14 @@ namespace Shaolinq.TypeBuilding
 			foreach (var typeDescriptor in typeDescriptors)
 			{
 				dataAccessObjectTypeBuilder = new DataAccessObjectTypeBuilder(typeDescriptorProvider, assemblyBuildContext, moduleBuilder, typeDescriptor.Type);
-
 				dataAccessObjectTypeBuilder.BuildFirstPhase(1);
 			}
 
 			foreach (var typeDescriptor in typeDescriptors)
 			{
 				dataAccessObjectTypeBuilder = assemblyBuildContext.TypeBuilders[typeDescriptor.Type];
-
 				dataAccessObjectTypeBuilder.BuildFirstPhase(2);
 			}
-
-			assemblyBuildContext.Dispose();
 
 			bool saveConcreteAssembly;
 			bool.TryParse(ConfigurationManager.AppSettings["Shaolinq.SaveConcreteAssembly"], out saveConcreteAssembly);

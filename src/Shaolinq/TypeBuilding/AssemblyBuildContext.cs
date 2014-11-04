@@ -6,20 +6,15 @@ using System.Reflection;
 
 namespace Shaolinq.TypeBuilding
 {
-	public sealed class AssemblyBuildContext
-		: IDisposable
+	public class AssemblyBuildContext
 	{
-		public Assembly SourceAssembly { get; set; }
-		public Assembly TargetAssembly { get; set; }
+		public Assembly TargetAssembly { get; private set; }
 		public Dictionary<Type, DataAccessObjectTypeBuilder> TypeBuilders { get; private set; }
 
-		public AssemblyBuildContext()
+		public AssemblyBuildContext(Assembly targetAssembly)
 		{
+			this.TargetAssembly = targetAssembly;
 			this.TypeBuilders = new Dictionary<Type, DataAccessObjectTypeBuilder>();
-		}
-
-		public void Dispose()
-		{
 		}
 	}
 }
