@@ -515,6 +515,22 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Select_Include_Off_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = (from  mall  in model.Malls
+							join shop in model.Shops on mall equals shop.Mall
+							select new {  mall, shop }).Include(c => c.shop.Address);
+
+				var first = query.First();
+
+				Assert.IsFalse(first.shop.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects2()
 		{
 			using (var scope = new TransactionScope())
@@ -565,7 +581,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Select_Include_RelatedObject2()
+		public void Test_Select_Include_RelatedObject2a1()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -574,12 +590,106 @@ namespace Shaolinq.Tests
 					.Select(shop => new
 					{
 						shop
-					}).Select(c => c.shop.Include(d => d.Address));
+					}).Include(c => c.shop.Address);
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsTrue(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
+				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject2a2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(shop => new
+					{
+						x = new
+						{
+							shop
+						}
+					}).Include(c => c.x.shop.Address);
+
+				var first = query.First();
+
+				Assert.IsFalse(first.x.shop.Address.IsDeflatedReference);
+				Assert.IsTrue(first.x.shop.Address.Region.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject2b()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(shop => new
+					{
+						shop
+					}).Select(c => c.Include(d => d.shop.Address));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
+				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject2c()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(shop => new
+					{
+						shop
+					}).Where(c => c.shop.Address.Street == "Madison Street");
+
+				var first = query.First();
+
+				Assert.IsTrue(first.shop.Address.IsDeflatedReference);
+				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject2d()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(shop => new
+					{
+						shop
+					}).Select(c => new { c, c.shop, c.shop.Address });
+
+				var first = query.First();
+
+				Assert.IsFalse(first.c.shop.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_RelatedObject2e()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(shop => new
+					{
+						shop
+					}).Select(c => new { c.shop, c.shop.Address});
+
+				var first = query.First();
 			}
 		}
 

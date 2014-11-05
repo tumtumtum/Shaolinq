@@ -6,7 +6,6 @@ namespace Shaolinq
 	public static class DataAccessObjectExtensions
 	{
 		internal static T Include<T, U>(this T obj, Func<T, U> include)
-			where T : DataAccessObject
 			where U : DataAccessObject
 		{
 			throw new InvalidOperationException();

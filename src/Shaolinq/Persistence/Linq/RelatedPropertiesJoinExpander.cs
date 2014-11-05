@@ -223,6 +223,7 @@ namespace Shaolinq.Persistence.Linq
 			var source = this.Visit(originalSource);
 			var sourceType = source.Type.GetGenericArguments()[0];
 			var originalPredicateOrSelector = methodCallExpression.Arguments[1];
+
 			if (methodCallExpression.Arguments.Count == 2)
 			{
 				originalSelectors = new[] { originalPredicateOrSelector };
@@ -231,6 +232,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				originalSelectors = new[] { originalPredicateOrSelector, methodCallExpression.Arguments[2] };
 			}
+
 			var sourceParameterExpression = ((LambdaExpression)QueryBinder.StripQuotes(originalPredicateOrSelector)).Parameters[0];
 			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors, sourceParameterExpression, forSelector);
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
@@ -266,11 +268,11 @@ namespace Shaolinq.Persistence.Linq
 
 				indexByPath[new PropertyInfo[0]] = 0;
 
-				foreach (var path in referencedObjectPaths)
+				foreach (var path in referencedObjectPaths.Select(c => c.PropertyPath))
 				{
-					var replacement = CreateExpressionForPath(referencedObjectPaths.Count, path.PropertyPath, parameter, indexByPath);
+					var replacement = CreateExpressionForPath(referencedObjectPaths.Count, path, parameter, indexByPath);
 
-					replacementExpressionsByPropertyPathForSelector[path.PropertyPath] = replacement;
+					replacementExpressionsByPropertyPathForSelector[path] = replacement;
 				}
 
 				replacementExpressionsByPropertyPathForSelector[new PropertyInfo[0]] = CreateExpressionForPath(referencedObjectPaths.Count, new PropertyInfo[0], parameter, indexByPath);
@@ -405,6 +407,8 @@ namespace Shaolinq.Persistence.Linq
 
 						newCall = Expression.Call(null, selectMethod, new Expression[] { newCall, selectCall });
 					}
+
+					this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression, Dictionary<PropertyInfo[], Expression>>(newCall, replacementExpressionForPropertyPath));
 				}
 				else if (methodCallExpression.Method.Name == ("GroupBy"))
 				{

@@ -14,7 +14,7 @@ namespace Shaolinq
 
 		public static bool IsDataAccessObjectType(this Type type)
 		{
-			return typeof(IDataAccessObjectAdvanced).IsAssignableFrom(type);
+			return typeof(DataAccessObject).IsAssignableFrom(type);
 		}
 
 		public static string ToHumanReadableName(this Type type)

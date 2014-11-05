@@ -22,7 +22,7 @@ namespace Shaolinq
 		}
 
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)
-			where T : DataAccessObject
+			where U : DataAccessObject
 		{
 			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new [] {typeof(T), typeof(U)}), new []
 			{

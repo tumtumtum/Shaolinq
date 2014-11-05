@@ -157,9 +157,32 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		private void AddIncludedProperty(Expression root, PropertyInfo[] propertyPath, PropertyInfo[] suffix)
 		{
+			/*
+			for (var i = propertyPath.Length - 1; i >= 1; i--)
+			{
+				var rootPath = propertyPath.Take(i).ToArray();
+
+				if (rootExpressionsByPath.TryGetValue(rootPath, out root))
+				{
+					propertyPath = propertyPath.Skip(i).ToArray();
+
+					break;
+				}
+			}
+
+			if (propertyPath.Length == 0)
+			{
+				return;
+			}*/
+
 			for (var i = 1; i <= suffix.Length; i++)
 			{
 				var delta = suffix.Length - i;
+
+				if (propertyPath.Length - delta <= 0)
+				{
+					continue;
+				}
 
 				var includedPropertyInfo = new IncludedPropertyInfo
 				{
@@ -235,7 +258,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			var currentExpression = expression;
-
 
 			while (currentExpression != null && currentExpression.Member is PropertyInfo)
 			{

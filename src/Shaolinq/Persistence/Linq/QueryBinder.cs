@@ -1922,24 +1922,41 @@ namespace Shaolinq.Persistence.Linq
 					foreach (var propertyInfo in includedProperty.SuffixPropertyPath)
 					{
 						Expression replacementCurrent;
+						var currentPropertyName = propertyInfo.Name;
 
 						if (replacements.TryGetValue(current, out replacementCurrent))
 						{
 							current = replacementCurrent;
 						}
 
-						MemberInitExpression currentMemberInit;
+						Expression unwrapped;
 
 						if (current.NodeType == ExpressionType.Conditional)
 						{
-							currentMemberInit = (MemberInitExpression)((ConditionalExpression)current).IfFalse;
+							unwrapped = ((ConditionalExpression)current).IfFalse;
 						}
 						else
 						{
-							currentMemberInit = (MemberInitExpression)current;
+							unwrapped = current;
 						}
 
-						current = ((MemberAssignment)(currentMemberInit).Bindings.First(c => c.Member.Name == propertyInfo.Name)).Expression;
+						if (unwrapped is MemberInitExpression)
+						{
+							var currentMemberInit = (MemberInitExpression)unwrapped;
+
+							current = ((MemberAssignment)(currentMemberInit).Bindings.First(c => c.Member.Name == currentPropertyName)).Expression;
+						}
+						else if (unwrapped is NewExpression)
+						{
+							var currentNewExpression = (NewExpression)unwrapped;
+							var index = currentNewExpression.Constructor.GetParameters().IndexOfAny(c => c.Name == currentPropertyName);
+
+							current = currentNewExpression.Arguments[index];
+						}
+						else
+						{
+							throw new InvalidOperationException();
+						}
 					}
 
 					var objectReference = current as SqlObjectReference;
@@ -1989,7 +2006,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 
 					var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.PropertyPath);
-
+					
 					var replacement = this.Visit(originalReplacementExpression);
 
 					if (isNullExpression != null)
