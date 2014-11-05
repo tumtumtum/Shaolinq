@@ -19,8 +19,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private readonly ParameterExpression sourceParameterExpression;
 		private List<ReferencedRelatedObject> referencedRelatedObjects = new List<ReferencedRelatedObject>();
 		private readonly HashSet<IncludedPropertyInfo> includedPropertyInfos = new HashSet<IncludedPropertyInfo>(IncludedPropertyInfoEqualityComparer.Default);
-		private readonly Dictionary<PropertyInfo[], Expression> rootExpressionsByPath = new Dictionary<PropertyInfo[], Expression>(ArrayEqualityComparer<PropertyInfo>.Default);
-		private readonly Dictionary<PropertyInfo[], ReferencedRelatedObject> results = new Dictionary<PropertyInfo[], ReferencedRelatedObject>(ArrayEqualityComparer<PropertyInfo>.Default);
+		private readonly Dictionary<PropertyPath, Expression> rootExpressionsByPath = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
+		private readonly Dictionary<PropertyPath, ReferencedRelatedObject> results = new Dictionary<PropertyPath, ReferencedRelatedObject>(PropertyPathEqualityComparer.Default);
 		private PropertyInfo[] lastPropertyPathSuffix;
 		private Expression currentParent;
 
@@ -111,7 +111,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 
 				var propertyPath = this.referencedRelatedObjects[0].PropertyPath;
-				var suffix = this.lastPropertyPathSuffix.ToArray();
+				var suffix = new PropertyPath(this.lastPropertyPathSuffix.ToArray());
 
 				this.referencedRelatedObjects = originalReferencedRelatedObjects;
 				this.currentParent = originalParent;
@@ -140,7 +140,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					prefixProperties.Reverse();
 
-					AddIncludedProperty(sourceParameterExpression, propertyPath, prefixProperties.Take(nesting - 1).Concat(suffix).ToArray());
+					AddIncludedProperty(sourceParameterExpression, propertyPath, new PropertyPath(prefixProperties.Take(nesting - 1).Concat(suffix).ToArray()));
 				}
 				else
 				{
@@ -155,26 +155,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
-		private void AddIncludedProperty(Expression root, PropertyInfo[] propertyPath, PropertyInfo[] suffix)
+		private void AddIncludedProperty(Expression root, PropertyPath propertyPath, PropertyPath suffix)
 		{
-			/*
-			for (var i = propertyPath.Length - 1; i >= 1; i--)
-			{
-				var rootPath = propertyPath.Take(i).ToArray();
-
-				if (rootExpressionsByPath.TryGetValue(rootPath, out root))
-				{
-					propertyPath = propertyPath.Skip(i).ToArray();
-
-					break;
-				}
-			}
-
-			if (propertyPath.Length == 0)
-			{
-				return;
-			}*/
-
 			for (var i = 1; i <= suffix.Length; i++)
 			{
 				var delta = suffix.Length - i;
@@ -187,8 +169,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var includedPropertyInfo = new IncludedPropertyInfo
 				{
 					RootExpression = root,
-					PropertyPath = propertyPath.Take(propertyPath.Length - delta).ToArray(),
-					SuffixPropertyPath = suffix.Take(i).ToArray()
+					PropertyPath = new PropertyPath(propertyPath.Take(propertyPath.Length - delta)),
+					SuffixPropertyPath = new PropertyPath(suffix.Take(i))
 				};
 
 				includedPropertyInfos.Add(includedPropertyInfo);
@@ -280,7 +262,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			while (currentExpression != null && currentExpression.Member is PropertyInfo)
 			{
-				var path = visited.Take(visited.Count - i).ToArray();
+				var path = new PropertyPath(visited.Take(visited.Count - i).ToArray());
 				
 				ReferencedRelatedObject objectInfo;
 
@@ -308,7 +290,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (!results.TryGetValue(path, out objectInfo))
 				{
-					objectInfo = new ReferencedRelatedObject(path, suffix.ToArray());
+					objectInfo = new ReferencedRelatedObject(path, new PropertyPath(suffix));
 					results[path] = objectInfo;
 				}
 

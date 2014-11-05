@@ -3,18 +3,9 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
-using Platform;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class IncludedPropertyInfo
-	{
-		public Expression RootExpression { get; set; }
-		public PropertyInfo[] PropertyPath { get; set; }
-		public PropertyInfo[] SuffixPropertyPath { get; set; }
-	}
-
 	public class IncludedPropertyInfoEqualityComparer
 		: IEqualityComparer<IncludedPropertyInfo>
 	{
@@ -27,7 +18,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return true;
 			}
 
-			return x.RootExpression == y.RootExpression && ArrayEqualityComparer<PropertyInfo>.Default.Equals(x.PropertyPath, y.PropertyPath);
+			return x.RootExpression == y.RootExpression
+			       && PropertyPathEqualityComparer.Default.Equals(x.PropertyPath, y.PropertyPath);
 		}
 
 		public int GetHashCode(IncludedPropertyInfo obj)
@@ -39,8 +31,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public struct ReferencedRelatedObjectPropertyGathererResults
 	{
 		public Expression[] ReducedExpressions { get; set; }
-		public Dictionary<PropertyInfo[], Expression> RootExpressionsByPath { get; set; }
+		public Dictionary<PropertyPath, Expression> RootExpressionsByPath { get; set; }
 		public Dictionary<Expression, List<IncludedPropertyInfo>> IncludedPropertyInfoByExpression { get; set; }
-		public Dictionary<PropertyInfo[], ReferencedRelatedObject> ReferencedRelatedObjectByPath { get; set; }
+		public Dictionary<PropertyPath, ReferencedRelatedObject> ReferencedRelatedObjectByPath { get; set; }
 	}
 }
