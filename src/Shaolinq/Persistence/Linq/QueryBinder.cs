@@ -1912,12 +1912,14 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var newExpression = PrivateVisit(expression);
 				var replacements = new Dictionary<Expression, Expression>();
-				
-				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => newExpression.Type.IsDataAccessObjectType() ? c.IncludedPropertyPath.Length : c.FullAccessPropertyPath.Length))
-				{
-					Expression current = newExpression;
 
-					foreach (var propertyInfo in newExpression.Type.IsDataAccessObjectType() ? includedProperty.IncludedPropertyPath : includedProperty.FullAccessPropertyPath)
+				var useFullPath = !newExpression.Type.IsDataAccessObjectType();
+				
+				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length))
+				{
+					var current = newExpression;
+
+					foreach (var propertyInfo in useFullPath ? includedProperty.FullAccessPropertyPath : includedProperty.IncludedPropertyPath)
 					{
 						Expression replacementCurrent;
 						var currentPropertyName = propertyInfo.Name;

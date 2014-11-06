@@ -625,13 +625,12 @@ namespace Shaolinq.Tests
 								shop
 							}
 						}
-						//}).Where(c => c.x.y.shop.Address.Street == "Madison Street");
-					}).Include(c => c.x.y.shop.Address);
+					}).Include(c => c.x.y.shop.Address.Region);
 
 				var first = query.First();
 
-				//Assert.IsFalse(first.shop.Address.IsDeflatedReference);
-				//Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.x.y.shop.Address.IsDeflatedReference);
+				Assert.IsFalse(first.x.y.shop.Address.Region.IsDeflatedReference);
 			}
 		}
 
