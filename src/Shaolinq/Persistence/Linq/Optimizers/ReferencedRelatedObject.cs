@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Platform;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -11,18 +10,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class ReferencedRelatedObject
 	{
 		public PropertyPath PropertyPath { get; private set; }
-		public PropertyPath SuffixPropertyPath { get; private set; }
+		public Expression[] ExpressionPath { get; private set; }
+		public Expression RootExpression {get; private set;}
 		public HashSet<Expression> TargetExpressions { get; private set; }
 
-		public ReferencedRelatedObject(PropertyPath propertyPath, PropertyPath suffix)
+		public ReferencedRelatedObject(Expression rootExpression, PropertyPath propertyPath, Expression[] expressionPath)
 		{
-			this.PropertyPath = propertyPath;
-			this.SuffixPropertyPath = suffix;
-			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
-		}
-
-		public ReferencedRelatedObject(PropertyPath propertyPath)
-		{
+			this.RootExpression = rootExpression;
+			this.ExpressionPath = expressionPath;
 			this.PropertyPath = propertyPath;
 			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
 		}

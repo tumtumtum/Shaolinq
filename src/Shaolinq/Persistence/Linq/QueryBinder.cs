@@ -24,11 +24,11 @@ namespace Shaolinq.Persistence.Linq
 		private LambdaExpression extraCondition;
 		private readonly Expression rootExpression;
 		private List<SqlOrderByExpression> thenBys;
-		private Stack<Expression> selectorPredicateStack = new Stack<Expression>();
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
-		private readonly Dictionary<Expression, GroupByInfo> groupByMap;
 		private readonly RelatedPropertiesJoinExpanderResults joinExpanderResults;
-		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter;
+		private readonly Stack<Expression> selectorPredicateStack = new Stack<Expression>();
+		private readonly Dictionary<Expression, GroupByInfo> groupByMap = new Dictionary<Expression, GroupByInfo>();
+		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
 		private readonly Dictionary<MemberInitExpression, SqlObjectReference> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReference>(MemberInitEqualityComparer.Default);
 
 		protected void AddExpressionByParameter(ParameterExpression parameterExpression, Expression expression)
@@ -44,9 +44,6 @@ namespace Shaolinq.Persistence.Linq
 			this.extraCondition = extraCondition;
 			this.joinExpanderResults = joinExpanderResults;
 			this.typeDescriptorProvider = dataAccessModel.TypeDescriptorProvider;
-
-			expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
-			groupByMap = new Dictionary<Expression, GroupByInfo>();
 		}
 
 		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
@@ -497,7 +494,7 @@ namespace Shaolinq.Persistence.Linq
 			ProjectedColumns projectedColumns; 
 			var projection = (SqlProjectionExpression)this.Visit(source);
 			AddExpressionByParameter(collectionSelector.Parameters[0], projection.Projector);
-			var selector = Evaluator.PartialEval(this.DataAccessModel, collectionSelector.Body);
+			var selector = Evaluator.PartialEval(collectionSelector.Body);
 			var collectionProjection = (SqlProjectionExpression)this.Visit(selector);
 			
 			if (IsTable(selector.Type))
@@ -679,13 +676,14 @@ namespace Shaolinq.Persistence.Linq
 
 			var outerProjection = this.VisitSequence(outerSource);
 
-			this.expressionsByParameter[outerKey.Parameters[0]] = outerProjection.Projector;
+			this.AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
 			var predicateLambda = Expression.Lambda(Expression.Equal(innerKey.Body, outerKey.Body), innerKey.Parameters[0]);
 			var callToWhere = Expression.Call(typeof(Enumerable), "Where", new[] { args[1] }, innerSource, predicateLambda);
 			var group = this.Visit(callToWhere);
 
-			this.expressionsByParameter[resultSelector.Parameters[0]] = outerProjection.Projector;
-			this.expressionsByParameter[resultSelector.Parameters[1]] = group;
+			this.AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);
+			this.AddExpressionByParameter(resultSelector.Parameters[1], group);
+			;
 			var resultExpr = this.Visit(resultSelector.Body);
 
 			var alias = this.GetNextAlias();
@@ -1609,17 +1607,17 @@ namespace Shaolinq.Persistence.Linq
 
 			return constantExpression;
 		}
-        
-		protected override Expression VisitParameter(ParameterExpression p)
-		{
-			Expression e;
 
-			if (this.expressionsByParameter.TryGetValue(p, out e))
+		protected override Expression VisitParameter(ParameterExpression parameterExpression)
+		{
+			Expression retval;
+
+			if (this.expressionsByParameter.TryGetValue(parameterExpression, out retval))
 			{
-				return e;
+				return retval;
 			}
 
-			return p;
+			return parameterExpression;
 		}
 
 		protected SqlObjectReference CreateObjectReference(Expression expression)
@@ -1915,11 +1913,11 @@ namespace Shaolinq.Persistence.Linq
 				var newExpression = PrivateVisit(expression);
 				var replacements = new Dictionary<Expression, Expression>();
 
-				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => c.SuffixPropertyPath.Length))
+				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => c.PropertyPath.Length))
 				{
 					Expression current = newExpression;
 
-					foreach (var propertyInfo in includedProperty.SuffixPropertyPath)
+					foreach (var propertyInfo in includedProperty.PropertyPath)
 					{
 						Expression replacementCurrent;
 						var currentPropertyName = propertyInfo.Name;

@@ -16,9 +16,9 @@ namespace Shaolinq.Persistence.Linq
 		/// <param name="expression">The root of the expression tree.</param>
 		/// <param name="fnCanBeEvaluated">A function that decides whether a given expression node can be part of the local function.</param>
 		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
-		public static Expression PartialEval(DataAccessModel dataAccessModel, Expression expression, Func<Expression, bool> fnCanBeEvaluated)
+		public static Expression PartialEval(Expression expression, Func<Expression, bool> fnCanBeEvaluated)
 		{
-			return new SubtreeEvaluator(new Nominator(fnCanBeEvaluated).Nominate(expression)).Eval(dataAccessModel, expression);
+			return new SubtreeEvaluator(new Nominator(fnCanBeEvaluated).Nominate(expression)).Eval(expression);
 		}
 
 		/// <summary>
@@ -26,9 +26,9 @@ namespace Shaolinq.Persistence.Linq
 		/// </summary>
 		/// <param name="expression">The root of the expression tree.</param>
 		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
-		public static Expression PartialEval(DataAccessModel dataAccessModel, Expression expression)
+		public static Expression PartialEval(Expression expression)
 		{
-			return PartialEval(dataAccessModel, expression, CanBeEvaluatedLocally);
+			return PartialEval(expression, CanBeEvaluatedLocally);
 		}
 
 		internal static bool CanBeEvaluatedLocally(Expression expression)
@@ -38,7 +38,12 @@ namespace Shaolinq.Persistence.Linq
 				return true;	
 			}
 
-			if (!(expression.NodeType != ExpressionType.Parameter && (int)expression.NodeType < (int)SqlExpressionType.Table))
+			if (((int)expression.NodeType >= (int)SqlExpressionType.Table))
+			{
+				return false;
+			}
+
+			if (expression.NodeType == ExpressionType.Parameter)
 			{
 				return false;
 			}
@@ -77,7 +82,6 @@ namespace Shaolinq.Persistence.Linq
 		private class SubtreeEvaluator : SqlExpressionVisitor
 		{
 			private int index;
-			private DataAccessModel dataAccessModel;
 			private readonly HashSet<Expression> candidates;
 
 			internal SubtreeEvaluator(HashSet<Expression> candidates)
@@ -85,10 +89,8 @@ namespace Shaolinq.Persistence.Linq
 				this.candidates = candidates;
 			}
 
-			internal Expression Eval(DataAccessModel dataAccessModel, Expression exp)
+			internal Expression Eval(Expression exp)
 			{
-				this.dataAccessModel = dataAccessModel;
-
 				return Visit(exp);
 			}
 

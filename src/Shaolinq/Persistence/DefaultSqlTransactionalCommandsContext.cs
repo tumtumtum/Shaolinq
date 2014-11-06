@@ -537,7 +537,7 @@ namespace Shaolinq.Persistence
 
 			var expression = new SqlUpdateExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), assignments, where);
 
-			expression = (SqlUpdateExpression)ObjectOperandComparisonExpander.Expand(this.DataAccessModel, expression);
+			expression = (SqlUpdateExpression)ObjectOperandComparisonExpander.Expand(expression);
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
@@ -698,10 +698,10 @@ namespace Shaolinq.Persistence
 			var condition = Expression.Lambda(body, parameter);
 			var expression = (Expression)Expression.Call(null, GetDeleteMethod(typeDescriptor.Type), Expression.Constant(null, typeDescriptor.Type), condition);
 			
-			expression = Evaluator.PartialEval(this.DataAccessModel, expression);
+			expression = Evaluator.PartialEval(expression);
 			expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
-			expression = ObjectOperandComparisonExpander.Expand(this.DataAccessModel, expression);
-			expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext);
+			expression = ObjectOperandComparisonExpander.Expand(expression);
+			expression = SqlQueryProvider.Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
 			Delete((SqlDeleteExpression)expression);
 		}

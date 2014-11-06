@@ -181,14 +181,14 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression, SqlDatabaseContext sqlDatabaseContext, bool simplerPartialVal = true)
+		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
-			expression = EnumTypeNormalizer.Normalize(expression, dataAccessModel, sqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+			expression = EnumTypeNormalizer.Normalize(expression, typeForEnums);
 			expression = GroupByCollator.Collate(expression);
 			expression = AggregateSubqueryRewriter.Rewrite(expression);
 			expression = UnusedColumnRemover.Remove(expression);
 			expression = RedundantColumnRemover.Remove(expression);
-			expression = ObjectOperandComparisonExpander.Expand(dataAccessModel, expression);
+			expression = ObjectOperandComparisonExpander.Expand(expression);
 			expression = RedundantSubqueryRemover.Remove(expression);
 			expression = FunctionCoalescer.Coalesce(expression);
 			expression = ExistsSubqueryOptimizer.Optimize(expression);
@@ -197,11 +197,11 @@ namespace Shaolinq.Persistence.Linq
 
 			if (simplerPartialVal)
 			{
-				expression = Evaluator.PartialEval(dataAccessModel, expression, c => c.NodeType != (ExpressionType)SqlExpressionType.ConstantPlaceholder && Evaluator.CanBeEvaluatedLocally(c));
+				expression = Evaluator.PartialEval(expression, c => c.NodeType != (ExpressionType)SqlExpressionType.ConstantPlaceholder && Evaluator.CanBeEvaluatedLocally(c));
 			}
 			else
 			{
-				expression = Evaluator.PartialEval(dataAccessModel, expression);
+				expression = Evaluator.PartialEval(expression);
 			}
 
 			expression = RedundantFunctionCallRemover.Remove(expression);
@@ -218,7 +218,7 @@ namespace Shaolinq.Persistence.Linq
 			
 			if (projectionExpression == null)
 			{
-				expression = Evaluator.PartialEval(this.DataAccessModel, expression);
+				expression = Evaluator.PartialEval(expression);
 
 				if (this.RelatedDataAccessObjectContext == null)
 				{
@@ -229,7 +229,7 @@ namespace Shaolinq.Persistence.Linq
 					expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition);
 				}
 
-				projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext, true);
+				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
 
 			ProjectorCacheInfo cacheInfo;

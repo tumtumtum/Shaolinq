@@ -47,7 +47,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					continue;
 				}
-
+				
 				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyInfo, out retval))
 				{
 					return retval;	
@@ -223,7 +223,7 @@ namespace Shaolinq.Persistence.Linq
 					.ToList();
 
 				var types = referencedObjectPaths
-					.Select(c => c.PropertyPath.Path[c.PropertyPath.Length - 1].PropertyType)
+					.Select(c => c.PropertyPath.Last.PropertyType)
 					.ToList();
 				
 				var finalTupleType = CreateFinalTupleType(sourceType, types);
@@ -296,7 +296,6 @@ namespace Shaolinq.Persistence.Linq
 							var newList = y.Select(includedPropertyInfo => new IncludedPropertyInfo
 							{
 								PropertyPath = includedPropertyInfo.PropertyPath,
-								SuffixPropertyPath = includedPropertyInfo.SuffixPropertyPath,
 								RootExpression = x
 							}).ToList();
 

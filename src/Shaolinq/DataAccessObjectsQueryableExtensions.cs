@@ -29,10 +29,10 @@ namespace Shaolinq
 			{
 				var expression = (Expression)Expression.Call(null, MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof(DataAccessObjectsQueryable<T>)), condition);
 
-				expression = Evaluator.PartialEval(queryable.DataAccessModel, expression);
+				expression = Evaluator.PartialEval(expression);
 				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, queryable.ExtraCondition);
-				expression = ObjectOperandComparisonExpander.Expand(queryable.DataAccessModel, expression);
-				expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression, transactionContext.SqlDatabaseContext);
+				expression = ObjectOperandComparisonExpander.Expand(expression);
+				expression = SqlQueryProvider.Optimize(expression, transactionContext.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
 				acquisition.SqlDatabaseCommandsContext.Delete((SqlDeleteExpression)expression);
 			}

@@ -152,6 +152,7 @@
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObject.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGathererResults.cs" />
     <Compile Include="Persistence\Linq\PropertyPath.cs" />
+    <Compile Include="Persistence\Linq\PropertyPathEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />
     <Compile Include="Persistence\ServerSqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />

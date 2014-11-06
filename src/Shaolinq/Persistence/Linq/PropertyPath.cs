@@ -43,7 +43,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override string ToString()
 		{
-			return string.Join(",", this.Path.Select(c => c.Name));
+			return string.Join(".", this.Path.Select(c => c.Name));
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

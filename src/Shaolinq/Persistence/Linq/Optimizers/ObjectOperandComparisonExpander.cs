@@ -16,16 +16,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		: SqlExpressionVisitor
 	{
 		private bool inProjector; 
-		private readonly DataAccessModel model;
 		
-		private ObjectOperandComparisonExpander(DataAccessModel model)
+		private ObjectOperandComparisonExpander()
 		{
-			this.model = model;
 		}
 
-		public static Expression Expand(DataAccessModel model, Expression expression)
+		public static Expression Expand(Expression expression)
 		{
-			var fixer = new ObjectOperandComparisonExpander(model);
+			var fixer = new ObjectOperandComparisonExpander();
 
 			return fixer.Visit(expression);
 		}

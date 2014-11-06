@@ -44,7 +44,7 @@ namespace Shaolinq.Persistence.Linq
 					Expression.Constant(this)
 				);
 		
-			projection = (SqlProjectionExpression) Evaluator.PartialEval(this.DataAccessModel, projection, CanEvaluateLocally);
+			projection = (SqlProjectionExpression) Evaluator.PartialEval(projection, CanEvaluateLocally);
             
 			var result = (IEnumerable<T>) this.provider.Execute(projection);
 			var list = new List<T>(result);

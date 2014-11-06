@@ -8,18 +8,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class EnumTypeNormalizer
 		: SqlExpressionVisitor
 	{
-		private readonly DataAccessModel dataAccessModel;
 		public Type PersistedType { get; private set; }
 
-		public EnumTypeNormalizer(DataAccessModel dataAccessModel, Type persistedType)
+		public EnumTypeNormalizer(Type persistedType)
 		{
-			this.dataAccessModel = dataAccessModel;
 			this.PersistedType = persistedType;
 		}
 
-		public static Expression Normalize(Expression expression, DataAccessModel dataAccessModel, Type persistedType)
+		public static Expression Normalize(Expression expression, Type persistedType)
 		{
-			var normalizer = new EnumTypeNormalizer(dataAccessModel, persistedType);
+			var normalizer = new EnumTypeNormalizer(persistedType);
 
 			return normalizer.Visit(expression);
 		}

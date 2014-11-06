@@ -570,7 +570,15 @@ namespace Shaolinq.Persistence.Linq
 
 							var value = constantExpression.Value as Guid?;
 
-							parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(value));
+							// TEST TEST
+							if (false && typeof(DataAccessObject).IsAssignableFrom(constantExpression.Type))
+							{
+								parameterValues.Add(new Pair<Type, object>(typeof(string), constantExpression.Value.ToString()));
+							}
+							else
+							{
+								parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(value));
+							}
 						}
 						break;
 					default:
