@@ -4,12 +4,16 @@ using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
+using Platform;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	public class ComplexPrimaryKeyTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
@@ -530,7 +534,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects2()
 		{
 			using (var scope = new TransactionScope())
@@ -560,6 +564,41 @@ namespace Shaolinq.Tests
 
 				Assert.IsFalse(first.Address.IsDeflatedReference);
 				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_And_Include_RelatedObjects_Via_Pair1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(c => new Pair<string, Shop>{ Left = "hi", Right = c })
+					.Select(c => c.Right.Include(e => e.Address.Region));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.Address.Street);
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_And_Include_RelatedObjects_Via_Pair2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Id == shopId)
+					.Select(c => new Pair<string, Shop> { Left = "hi", Right = c })
+					.Select(c => c.Right.Include(d => d.Address.Include(e => e.Region)));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference);
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}

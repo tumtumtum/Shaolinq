@@ -1944,12 +1944,12 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var currentMemberInit = (MemberInitExpression)unwrapped;
 
-							current = ((MemberAssignment)(currentMemberInit).Bindings.First(c => c.Member.Name == currentPropertyName)).Expression;
+							current = ((MemberAssignment)(currentMemberInit).Bindings.First(c => String.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0)).Expression;
 						}
 						else if (unwrapped is NewExpression)
 						{
 							var currentNewExpression = (NewExpression)unwrapped;
-							var index = currentNewExpression.Constructor.GetParameters().IndexOfAny(c => c.Name == currentPropertyName);
+							var index = currentNewExpression.Constructor.GetParameters().IndexOfAny(c => String.Compare(c.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0);
 
 							current = currentNewExpression.Arguments[index];
 						}
@@ -2005,18 +2005,8 @@ namespace Shaolinq.Persistence.Linq
 						}
 					}
 
-					Expression originalReplacementExpression;
-
-					try
-					{
-
-						originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
-					}
-					catch (InvalidOperationException)
-					{
-						return PrivateVisit(expression);
-					}
-
+					var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
+					
 					var replacement = this.Visit(originalReplacementExpression);
 
 					if (isNullExpression != null)

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Platform;
 
@@ -12,12 +11,12 @@ namespace Shaolinq.Persistence.Linq
 
 		public bool Equals(PropertyPath x, PropertyPath y)
 		{
-			return ArrayEqualityComparer<PropertyInfo>.Default.Equals(x.Path, y.Path);
+			return ArrayEqualityComparer<PropertyInfo>.Default.Equals(x.path, y.path);
 		}
 
 		public int GetHashCode(PropertyPath obj)
 		{
-			return obj.Path.Aggregate(0, (current, path) => current ^ path.Name.GetHashCode());
+			return obj.GetHashCode();
 		}
 	}
 }

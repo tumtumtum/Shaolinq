@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using Platform;
 using System.Linq;
 using System.Reflection;
 using System.Linq.Expressions;
@@ -14,17 +13,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		: SqlExpressionVisitor
 	{
 		private bool disableCompare;
+		private Expression currentParent;
 		private readonly bool forProjection; 
 		private readonly DataAccessModel model;
 		private readonly ParameterExpression sourceParameterExpression;
 		private List<ReferencedRelatedObject> referencedRelatedObjects = new List<ReferencedRelatedObject>();
 		private readonly HashSet<IncludedPropertyInfo> includedPropertyInfos = new HashSet<IncludedPropertyInfo>(IncludedPropertyInfoEqualityComparer.Default);
-		private readonly HashSet<Expression> rootExpressions = new HashSet<Expression>();
 		private readonly Dictionary<PropertyPath, Expression> rootExpressionsByPath = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
 		private readonly Dictionary<PropertyPath, ReferencedRelatedObject> results = new Dictionary<PropertyPath, ReferencedRelatedObject>(PropertyPathEqualityComparer.Default);
-		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
-		private Expression currentParent;
-
+		
 		private class DisableCompareContext
 			: IDisposable
 		{
@@ -129,13 +126,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					while (current != null)
 					{
-						prefixProperties.Add((PropertyInfo)current.Member);
-
-						if (current.Expression == sourceParameterExpression)
+						if (!current.Member.ReflectedType.IsDataAccessObjectType()
+							|| current == this.currentParent)
 						{
 							break;
 						}
 
+						prefixProperties.Add((PropertyInfo)current.Member);
+						
+						if (current.Expression == sourceParameterExpression)
+						{
+							break;
+						}
+						
 						current = current.Expression as MemberExpression;
 					}
 
