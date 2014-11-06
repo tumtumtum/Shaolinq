@@ -796,12 +796,12 @@ namespace Shaolinq.Tests
 						shop in model.Shops
 						select new
 						{
-							shop = new
+							shop1 = new
 							{
-								 shop = shop
+								 shop2 = shop
 							}
 						}
-					).Select(c => new { shop = c.shop.shop, address = c.shop.shop.Address.Include(d => d.Region) });
+					).Select(c => new { shop = c.shop1.shop2, address = c.shop1.shop2.Address.Include(d => d.Region) });
 
 
 				var first = query.First();

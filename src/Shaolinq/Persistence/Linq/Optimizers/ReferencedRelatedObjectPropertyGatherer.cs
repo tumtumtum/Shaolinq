@@ -141,11 +141,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					prefixProperties.Reverse();
 
-					AddIncludedProperty(sourceParameterExpression, referencedRelatedObject.RootExpression, (MemberExpression[])referencedRelatedObject.ExpressionPath);
+					AddIncludedProperty(sourceParameterExpression, referencedRelatedObject, new PropertyPath(prefixProperties));
 				}
 				else
 				{
-					AddIncludedProperty(retval, referencedRelatedObject.RootExpression, (MemberExpression[])referencedRelatedObject.ExpressionPath);
+					AddIncludedProperty(retval, referencedRelatedObject, PropertyPath.Empty);
 				}
 
 				nesting--;
@@ -156,22 +156,18 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
-		private void AddIncludedProperty(Expression root, Expression memberAccessRoot, MemberExpression[] expressionPath)
+		private void AddIncludedProperty(Expression root, ReferencedRelatedObject referencedRelatedObject, PropertyPath prefixPath)
 		{
-			for (var i = 0; i < expressionPath.Length; i++)
+			for (var i = 0; i < referencedRelatedObject.IncludedPropertyPath.Length + prefixPath.Length; i++)
 			{
-				var currentPropertyPath = new PropertyPath(expressionPath.Take(expressionPath.Length - i).Select(c => (PropertyInfo)c.Member));
-				var currentExpression = expressionPath[expressionPath.Length - i - 1];
+				var fullAccessPropertyPath = new PropertyPath(referencedRelatedObject.FullAccessPropertyPath.Take(referencedRelatedObject.FullAccessPropertyPath.Length - i));
+				var currentPropertyPath = new PropertyPath(prefixPath.Concat(referencedRelatedObject.IncludedPropertyPath.Take(referencedRelatedObject.IncludedPropertyPath.Length - i)));
 
-				if (currentExpression == memberAccessRoot)
-				{
-					break;
-				}
-				
 				var includedPropertyInfo = new IncludedPropertyInfo
 				{
 					RootExpression = root,
-					PropertyPath = currentPropertyPath
+					FullAccessPropertyPath = fullAccessPropertyPath,
+					IncludedPropertyPath = currentPropertyPath
 				};
 
 				includedPropertyInfos.Add(includedPropertyInfo);
@@ -251,9 +247,27 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				currentExpression = root as MemberExpression;
 			}
 
-			visited.Reverse();
-			
+			var includedPathSkip = 0;
+
 			var i = 0;
+
+			foreach (var current in visited)
+			{
+				if (!current.Member.ReflectedType.IsDataAccessObjectType()
+					|| current == currentParent /* @see: Test_Select_Project_Related_Object_And_Include1 */)
+				{
+					root = current;
+					includedPathSkip = visited.Count - i;
+					
+					break;
+				}
+
+				i++;
+			}
+
+			visited.Reverse();
+
+			i = 0;
 			currentExpression = expression;
 
 			while (currentExpression != null && currentExpression.Member is PropertyInfo)
@@ -277,7 +291,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (!results.TryGetValue(path, out objectInfo))
 				{
-					objectInfo = new ReferencedRelatedObject(root, path, expressionPath);
+					var includedPropertyPath = new PropertyPath(path.Skip(includedPathSkip));
+
+					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath);
+
 					results[path] = objectInfo;
 				}
 

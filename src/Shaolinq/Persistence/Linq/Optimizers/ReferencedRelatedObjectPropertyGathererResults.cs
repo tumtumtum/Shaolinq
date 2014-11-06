@@ -19,12 +19,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			return x.RootExpression == y.RootExpression
-			       && PropertyPathEqualityComparer.Default.Equals(x.PropertyPath, y.PropertyPath);
+			       && PropertyPathEqualityComparer.Default.Equals(x.FullAccessPropertyPath, y.FullAccessPropertyPath);
 		}
 
 		public int GetHashCode(IncludedPropertyInfo obj)
 		{
-			return obj.PropertyPath.Aggregate(obj.RootExpression.GetHashCode(), (c, d) => c ^ d.GetHashCode());
+			return obj.FullAccessPropertyPath.Aggregate(obj.RootExpression.GetHashCode(), (c, d) => c ^ d.GetHashCode());
 		}
 	}
 

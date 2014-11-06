@@ -1912,12 +1912,12 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var newExpression = PrivateVisit(expression);
 				var replacements = new Dictionary<Expression, Expression>();
-
-				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => c.PropertyPath.Length))
+				
+				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => newExpression.Type.IsDataAccessObjectType() ? c.IncludedPropertyPath.Length : c.FullAccessPropertyPath.Length))
 				{
 					Expression current = newExpression;
 
-					foreach (var propertyInfo in includedProperty.PropertyPath)
+					foreach (var propertyInfo in newExpression.Type.IsDataAccessObjectType() ? includedProperty.IncludedPropertyPath : includedProperty.FullAccessPropertyPath)
 					{
 						Expression replacementCurrent;
 						var currentPropertyName = propertyInfo.Name;
@@ -2003,8 +2003,18 @@ namespace Shaolinq.Persistence.Linq
 						}
 					}
 
-					var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.PropertyPath);
-					
+					Expression originalReplacementExpression;
+
+					try
+					{
+
+						originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
+					}
+					catch (InvalidOperationException)
+					{
+						return PrivateVisit(expression);
+					}
+
 					var replacement = this.Visit(originalReplacementExpression);
 
 					if (isNullExpression != null)

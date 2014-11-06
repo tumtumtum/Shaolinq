@@ -9,22 +9,21 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 {
 	public class ReferencedRelatedObject
 	{
-		public PropertyPath PropertyPath { get; private set; }
-		public Expression[] ExpressionPath { get; private set; }
-		public Expression RootExpression {get; private set;}
+		public PropertyPath IncludedPropertyPath { get; set; }
+		public PropertyPath FullAccessPropertyPath { get; private set; }
 		public HashSet<Expression> TargetExpressions { get; private set; }
 
-		public ReferencedRelatedObject(Expression rootExpression, PropertyPath propertyPath, Expression[] expressionPath)
+		public ReferencedRelatedObject(PropertyPath fullAccessPropertyPath, PropertyPath includedPropertyPath)
 		{
-			this.RootExpression = rootExpression;
-			this.ExpressionPath = expressionPath;
-			this.PropertyPath = propertyPath;
+			this.FullAccessPropertyPath = fullAccessPropertyPath;
+			this.IncludedPropertyPath = includedPropertyPath;
+			this.FullAccessPropertyPath = fullAccessPropertyPath;
 			this.TargetExpressions = new HashSet<Expression>(ObjectReferenceIdentityEqualityComparer<Expression>.Default);
 		}
 
 		public override int GetHashCode()
 		{
-			return this.PropertyPath.Path.Aggregate(this.PropertyPath.Length, (current, value) => current ^ value.GetHashCode());
+			return this.FullAccessPropertyPath.Path.Aggregate(this.FullAccessPropertyPath.Length, (current, value) => current ^ value.GetHashCode());
 		}
 
 		public override bool Equals(object obj)
@@ -37,7 +36,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var value = obj as ReferencedRelatedObject;
 
 			return value != null 
-				&& PropertyPathEqualityComparer.Default.Equals(this.PropertyPath, value.PropertyPath);
+				&& PropertyPathEqualityComparer.Default.Equals(this.FullAccessPropertyPath, value.FullAccessPropertyPath);
 		}
 	}
 }

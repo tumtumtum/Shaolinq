@@ -223,7 +223,7 @@ namespace Shaolinq.Persistence.Linq
 					.ToList();
 
 				var types = referencedObjectPaths
-					.Select(c => c.PropertyPath.Last.PropertyType)
+					.Select(c => c.FullAccessPropertyPath.Last.PropertyType)
 					.ToList();
 				
 				var finalTupleType = CreateFinalTupleType(sourceType, types);
@@ -235,12 +235,12 @@ namespace Shaolinq.Persistence.Linq
 
 				foreach (var value in referencedObjectPaths)
 				{
-					indexByPath[value.PropertyPath] = i++;
+					indexByPath[value.FullAccessPropertyPath] = i++;
 				}
 
 				indexByPath[PropertyPath.Empty] = 0;
 
-				foreach (var path in referencedObjectPaths.Select(c => c.PropertyPath))
+				foreach (var path in referencedObjectPaths.Select(c => c.FullAccessPropertyPath))
 				{
 					var replacement = CreateExpressionForPath(referencedObjectPaths.Count, path, parameter, indexByPath);
 
@@ -255,7 +255,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				var propertyPathsByOriginalExpression = referencedObjectPaths
-					.SelectMany(d => d.TargetExpressions.Select(e => new { d.PropertyPath, Expression = e }))
+					.SelectMany(d => d.TargetExpressions.Select(e => new { PropertyPath = d.FullAccessPropertyPath, Expression = e }))
 					.ToDictionary(c => c.Expression, c => c.PropertyPath);
 
 				foreach (var lambda in predicateOrSelectorLambdas)
@@ -271,10 +271,10 @@ namespace Shaolinq.Persistence.Linq
 
 				foreach (var referencedObjectPath in referencedObjectPaths)
 				{
-					var property = referencedObjectPath.PropertyPath[referencedObjectPath.PropertyPath.Length - 1];
+					var property = referencedObjectPath.FullAccessPropertyPath[referencedObjectPath.FullAccessPropertyPath.Length - 1];
 					var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
 
-					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.PropertyPath, indexByPath, currentRootExpressionsByPath, sourceParameterExpression);
+					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, sourceParameterExpression);
 
 					currentLeft = join;
 					index++;
@@ -295,8 +295,10 @@ namespace Shaolinq.Persistence.Linq
 
 							var newList = y.Select(includedPropertyInfo => new IncludedPropertyInfo
 							{
-								PropertyPath = includedPropertyInfo.PropertyPath,
-								RootExpression = x
+								RootExpression = x,
+								FullAccessPropertyPath = includedPropertyInfo.FullAccessPropertyPath,
+								IncludedPropertyPath = includedPropertyInfo.IncludedPropertyPath
+								
 							}).ToList();
 
 							this.includedPropertyInfos[x] = newList;
