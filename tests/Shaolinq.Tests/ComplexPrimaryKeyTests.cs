@@ -599,6 +599,7 @@ namespace Shaolinq.Tests
 				var first = query.First();
 
 				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
