@@ -127,7 +127,7 @@ namespace Shaolinq.TypeBuilding
 				return retval;
 			}
 
-			throw new InvalidOperationException(string.Format("Type {0} is unexpected", definitionType.Name));
+			return definitionType;
 		}
 
 		public Type GetDefinitionType(Type concreteType)
@@ -144,7 +144,7 @@ namespace Shaolinq.TypeBuilding
 				return retval;
 			}
 
-			throw new InvalidOperationException(string.Format("Type {0} is unexpected", concreteType.Name));
+			return concreteType;
 		}
 	}
 }

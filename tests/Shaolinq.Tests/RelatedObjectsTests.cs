@@ -299,30 +299,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Query_Select_Related_Object_Select_With_Conditional_On_Implicit_Join_Value()
-		{
-			using (var scope = new TransactionScope())
-			{
-				var brucesSchool = this.model.Schools.Create();
-
-				brucesSchool.Name = "Bruce's Kung Fu School";
-
-				var brucesStudent = brucesSchool.Students.Create();
-
-				brucesStudent.Firstname = "Chuck";
-
-				scope.Flush(model);
-
-				var students = this.model.Students.Select(c => c.Nickname == "" ? c.School : brucesSchool).ToList();
-
-				Assert.That(students.Count, Is.GreaterThan(0));
-				
-				scope.Complete();
-			}
-		}
-
-
-		[Test]
 		public virtual void Test_Query_Where_Related_Object_Property_Compared_To_Variable()
 		{
 			using (var scope = new TransactionScope())

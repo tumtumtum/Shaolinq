@@ -19,7 +19,6 @@ namespace Shaolinq.Persistence.Linq
 		public DataAccessModel DataAccessModel { get; private set; }
 
 		private int aliasCount;
-		private bool isWithinClientSideCode;
 		private readonly Type conditionType;
 		private LambdaExpression extraCondition;
 		private readonly Expression rootExpression;
@@ -68,6 +67,12 @@ namespace Shaolinq.Persistence.Linq
 				case (ExpressionType)SqlExpressionType.AggregateSubquery:
 				case (ExpressionType)SqlExpressionType.Aggregate:
 				case (ExpressionType)SqlExpressionType.ObjectReference:
+				case ExpressionType.Conditional:
+				case ExpressionType.Constant:
+				case ExpressionType.MemberAccess:
+				case ExpressionType.Equal:
+				case ExpressionType.MemberInit:
+			case (ExpressionType)SqlExpressionType.FunctionCall:
 					return true;
 				default:
 					return false;
@@ -251,11 +256,6 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			if (this.isWithinClientSideCode)
-			{
-				return base.VisitBinary(binaryExpression);
-			}
-
 			Expression left, right;
 
 			if (binaryExpression.Left.Type == typeof(string) && binaryExpression.Right.Type == typeof(string))
@@ -398,22 +398,9 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindSelectForPrimaryKeyProjection(Type resultType, SqlProjectionExpression projection, LambdaExpression selector, bool forUpdate)
 		{
-			Expression expression;
-			var oldIsWithinClientSideCode = this.isWithinClientSideCode;
-			
 			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			this.isWithinClientSideCode = true;
-
-			try
-			{
-				expression = this.Visit(selector.Body);
-			}
-			finally
-			{
-				this.isWithinClientSideCode = oldIsWithinClientSideCode;
-			}
-
+			var expression = this.Visit(selector.Body);
 			var alias = this.GetNextAlias();
 			var pc = ProjectColumns(expression, alias, projection.Select.Alias);
 
@@ -961,7 +948,7 @@ namespace Shaolinq.Persistence.Linq
 						break;
 				}
 			}
-			else if (!this.isWithinClientSideCode && methodCallExpression.Method == MethodInfoFastRef.StringExtensionsIsLikeMethodInfo)
+			else if (methodCallExpression.Method == MethodInfoFastRef.StringExtensionsIsLikeMethodInfo)
 			{
 				var operand1 = Visit(methodCallExpression.Arguments[0]);
 				var operand2 = Visit(methodCallExpression.Arguments[1]);
@@ -1382,23 +1369,11 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindSelect(Type resultType, Expression source, LambdaExpression selector, bool forUpdate)
 		{
-			Expression expression;
-			var oldIsWithinClientSideCode = this.isWithinClientSideCode;
 			var projection = (SqlProjectionExpression)this.Visit(source);
 
 			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			this.isWithinClientSideCode = true;
-
-			try
-			{	
-				expression = this.Visit(selector.Body);
-			}
-			finally
-			{
-				this.isWithinClientSideCode = oldIsWithinClientSideCode;
-			}
-
+			var expression = this.Visit(selector.Body);
 			var alias = this.GetNextAlias();
 			var pc = ProjectColumns(expression, alias, projection.Select.Alias);
 
@@ -1601,7 +1576,7 @@ namespace Shaolinq.Persistence.Linq
 
 				return retval;
 			}
-			else if (type.IsDataAccessObjectType() && !this.isWithinClientSideCode)
+			else if (type.IsDataAccessObjectType())
 			{
 				return CreateObjectReference(constantExpression);
 			}
@@ -1808,14 +1783,14 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var fieldInfo = memberInfo as FieldInfo;
 
-			if (typeof(ICollection<>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType) && !this.isWithinClientSideCode)
+			if (typeof(ICollection<>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType))
 			{
 				if (memberInfo.Name == "Count")
 				{
 					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.CollectionCount, source);
 				}
 			}
-			else if (memberInfo.DeclaringType == typeof(DateTime) && !this.isWithinClientSideCode)
+			else if (memberInfo.DeclaringType == typeof(DateTime))
 			{
 				switch (memberInfo.Name)
 				{

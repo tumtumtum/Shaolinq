@@ -51,14 +51,20 @@ namespace Shaolinq.Persistence.Linq
 					{
 						if (fnCanBeColumn(expression))
 						{
-							candidates.Add(expression);
+							if (expression.NodeType != (ExpressionType)SqlExpressionType.ObjectReference
+								&& expression.NodeType != ExpressionType.Equal
+								&& expression.NodeType != ExpressionType.MemberInit
+								&& expression.NodeType != ExpressionType.MemberAccess)
+							{
+								candidates.Add(expression);
+							}
 						}
 						else
 						{
 							isBlocked = true;
 						}
 					}
-
+					//isBlocked = saveIsBlocked;
 					isBlocked |= saveIsBlocked;
 				}
 
