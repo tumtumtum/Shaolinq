@@ -276,6 +276,29 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Query_Select_Related_Object_Select_With_Anonymous_Projecton()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var brucesSchool = this.model.Schools.Create();
+
+				brucesSchool.Name = "Bruce's Kung Fu School";
+
+				var brucesStudent = brucesSchool.Students.Create();
+
+				brucesStudent.Firstname = "Chuck";
+
+				scope.Flush(model);
+
+				var values = this.model.Students.Select(c => new { Nickname = c.Nickname.Substring(1) + "A", c.Sex }).ToList();
+			
+				Assert.That(values.Count, Is.GreaterThan(0));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public virtual void Test_Query_Select_Related_Object_Select_With_Conditional_On_Null()
 		{
 			using (var scope = new TransactionScope())

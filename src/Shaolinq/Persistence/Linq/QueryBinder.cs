@@ -975,19 +975,16 @@ namespace Shaolinq.Persistence.Linq
 					{
 						var operand0 = Visit(methodCallExpression.Object);
 						var operand1 = Visit(methodCallExpression.Arguments[0]);
-						var operand2 = Visit(methodCallExpression.Arguments[1]);
-
-						if (methodCallExpression.Arguments.Count > 3)
+						
+						if (methodCallExpression.Arguments.Count > 2)
 						{
-							var operand3 = Visit(methodCallExpression.Arguments[1]);
+							var operand2 = Visit(methodCallExpression.Arguments[1]);
 
-							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1,
-								                                    operand2, operand3);
+							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1, operand2);
 						}
 						else
 						{
-							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1,
-								                                    operand2);
+							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1);
 						}
 					}
 					case "Trim":

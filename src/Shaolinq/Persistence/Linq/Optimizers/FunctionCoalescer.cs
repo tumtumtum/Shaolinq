@@ -40,7 +40,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					var arg1 = functionCallExpression.Arguments[0] as SqlFunctionCallExpression;
 					var arg2 = functionCallExpression.Arguments[1] as SqlFunctionCallExpression;
 
-					if (arg1 == null && arg2 != null)
+					if (arg1 == null && arg2 != null && arg2.Function == SqlFunction.Concat)
 					{
 						// Concat(something, Concat(?, ?))
 
@@ -56,7 +56,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 						return retval;
 					}
-					else if (arg1 != null && arg2 == null)
+					else if (arg1 != null && arg2 == null && arg1.Function == SqlFunction.Concat)
 					{
 						// Concat(Concat(?, ?), something)
 
@@ -72,7 +72,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 						return retval;
 					}
-					else if (arg1 != null && arg2 != null)
+					else if (arg1 != null && arg2 != null && arg1.Function == SqlFunction.Concat && arg2.Function == SqlFunction.Concat)
 					{
 						// Concat(Concat(?, ?), Concat(?, ?))
 
