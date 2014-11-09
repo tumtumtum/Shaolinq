@@ -68,6 +68,41 @@ namespace Shaolinq.Persistence.Linq
 
 			currentNewExpressionType = expression.NewExpression.Type;
 
+			Expression nullCheck = null;
+			
+			foreach (var value in ObjectOperandComparisonExpander
+				.GetPrimaryKeyElementalExpressions(expression))
+			{
+				Expression current;
+
+				if (value.NodeType == (ExpressionType)SqlExpressionType.Column)
+				{
+					current = this.ConvertColumnToIsNull((SqlColumnExpression)value);
+				}
+				else
+				{
+					var visited = this.Visit(value);
+
+					if (visited.Type.IsClass || visited.Type.IsNullableType())
+					{
+						current = Expression.Equal(Expression.Convert(visited, visited.Type), Expression.Constant(null, visited.Type));
+					}
+					else
+					{
+						current = Expression.Equal(Expression.Convert(visited, visited.Type.MakeNullable()), Expression.Constant(null, visited.Type));
+					}
+				}
+
+				if (nullCheck == null)
+				{
+					nullCheck = current;
+				}
+				else
+				{
+					nullCheck = Expression.Or(nullCheck, current);
+				}
+			}
+
 			var retval = base.VisitMemberInit(expression);
 
 			currentNewExpressionType = previousCurrentNewExpressionType;
@@ -76,7 +111,16 @@ namespace Shaolinq.Persistence.Linq
 			var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 			var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 
-			return Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
+			retval =  Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
+
+			if (nullCheck != null)
+			{
+				return Expression.Condition(nullCheck, Expression.Constant(null, retval.Type), retval);
+			}
+			else
+			{
+				return retval;
+			}
 		}
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
@@ -218,6 +262,21 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return base.VisitUnary(unaryExpression);
+		}
+
+		protected virtual Expression ConvertColumnToIsNull(SqlColumnExpression column)
+		{
+
+			var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
+
+			if (!this.columnIndexes.ContainsKey(column.Name))
+			{
+				return sqlDataType.IsNullExpression(this.dataReader, 0);
+			}
+			else
+			{
+				return sqlDataType.IsNullExpression(this.dataReader, this.columnIndexes[column.Name]);
+			}
 		}
 
 		protected virtual Expression ConvertColumnToDataReaderRead(SqlColumnExpression column, Type type)

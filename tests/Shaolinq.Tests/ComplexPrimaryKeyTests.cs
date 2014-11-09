@@ -342,6 +342,22 @@ namespace Shaolinq.Tests
 			{
 				var query = model.Shops
 					.Include(c => c.SecondAddress)
+					.Where(c => c.SecondAddress != null);
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_With_Parent_Value_Afterwards()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Include(c => c.SecondAddress)
 					.Where(c => c != null);
 
 				var first = query.First();
@@ -403,7 +419,7 @@ namespace Shaolinq.Tests
 			{
 				var query = model.Shops
 					.Include(c => c.SecondAddress)
-					.Where(c => c.Name != null);
+					.Where(c => c.Address != null);
 
 				var first = query.First();
 

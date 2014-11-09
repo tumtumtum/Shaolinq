@@ -247,6 +247,7 @@ namespace Shaolinq.Persistence.Linq
 			if (!projectorCache.TryGetValue(key, out cacheInfo))
 			{
 				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression.Projector, columns);
+				projectionLambda = (LambdaExpression)ObjectOperandComparisonExpander.Expand(projectionLambda);
 
 				cacheInfo.elementType = projectionLambda.Body.Type;
 				cacheInfo.projector = projectionLambda.Compile();

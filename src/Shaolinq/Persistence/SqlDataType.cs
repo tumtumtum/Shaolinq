@@ -88,5 +88,10 @@ namespace Shaolinq.Persistence
 		/// <param name="ordinal">The parameter that contains the ordinal of the column to read</param>
 		/// <returns>An expression for reading the column into a value</returns>
 		public abstract Expression GetReadExpression(ParameterExpression dataReader, int ordinal);
+
+		public virtual Expression IsNullExpression(ParameterExpression dataReader, int ordinal)
+		{
+			return Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal));
+		}
 	}
 }

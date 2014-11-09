@@ -61,7 +61,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return projection;
 		}
 
-		private IEnumerable<Expression> GetPrimaryKeyElementalExpressions(Expression expression)
+		internal static IEnumerable<Expression> GetPrimaryKeyElementalExpressions(Expression expression)
 		{
 			if (expression is MemberInitExpression)
 			{
@@ -113,7 +113,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				Expression retval = null;
 				
-				foreach (var value in this.GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
+				foreach (var value in ObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
 				{
 					var current = new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, value);
 
@@ -148,8 +148,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var leftOperand = binaryExpression.Left;
 				var rightOperand = binaryExpression.Right;
 
-				foreach (var value in this.GetPrimaryKeyElementalExpressions(leftOperand)
-					.Zip(this.GetPrimaryKeyElementalExpressions(rightOperand), (left, right) => new { Left = left, Right = right }))
+				foreach (var value in GetPrimaryKeyElementalExpressions(leftOperand)
+					.Zip(GetPrimaryKeyElementalExpressions(rightOperand), (left, right) => new { Left = left, Right = right }))
 				{
 					Expression current;
 					var left = this.Visit(value.Left);

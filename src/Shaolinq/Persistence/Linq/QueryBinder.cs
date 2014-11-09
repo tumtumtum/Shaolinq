@@ -399,11 +399,11 @@ namespace Shaolinq.Persistence.Linq
 		private Expression BindSelectForPrimaryKeyProjection(Type resultType, SqlProjectionExpression projection, LambdaExpression selector, bool forUpdate)
 		{
 			Expression expression;
-			var oldIsWithinClientSideCode = this.isWithinClientSideCode;
+			//var oldIsWithinClientSideCode = this.isWithinClientSideCode;
 			
 			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			this.isWithinClientSideCode = true;
+			//this.isWithinClientSideCode = true;
 
 			try
 			{
@@ -411,7 +411,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			finally
 			{
-				this.isWithinClientSideCode = oldIsWithinClientSideCode;
+				//this.isWithinClientSideCode = oldIsWithinClientSideCode;
 			}
 
 			var alias = this.GetNextAlias();
@@ -1388,7 +1388,7 @@ namespace Shaolinq.Persistence.Linq
 
 			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			this.isWithinClientSideCode = true;
+			this.isWithinClientSideCode = false;
 
 			try
 			{	
@@ -1960,64 +1960,10 @@ namespace Shaolinq.Persistence.Linq
 						}
 					}
 
-					var objectReference = current as SqlObjectReferenceExpression;
-
-					Expression isNullExpression = null;
-
-					if (objectReference != null)
-					{
-						foreach (var binding in objectReference.GetBindingsFlattened().OfType<MemberAssignment>())
-						{
-							Expression equalExpression;
-							var columnExpression = binding.Expression as SqlColumnExpression;
-
-							if (columnExpression != null)
-							{
-								var nullableType = columnExpression.Type.MakeNullable();
-
-								if (columnExpression.Type == nullableType)
-								{
-									equalExpression = Expression.Equal(columnExpression, Expression.Constant(null, columnExpression.Type));
-								}
-								else
-								{
-									equalExpression = Expression.Equal(Expression.Convert(columnExpression, nullableType), Expression.Constant(nullableType.GetDefaultValue(), nullableType));
-								}
-							}
-							else if (binding.Expression is SqlObjectReferenceExpression)
-							{
-								equalExpression = Expression.Equal(binding.Expression, Expression.Constant(null));
-							}
-							else
-							{
-								break;
-							}
-
-							if (isNullExpression == null)
-							{
-								isNullExpression = equalExpression;
-							}
-							else
-							{
-								isNullExpression = Expression.Or(isNullExpression, equalExpression);
-							}
-						}
-					}
-
 					var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
-					
 					var replacement = this.Visit(originalReplacementExpression);
 
-					if (isNullExpression != null)
-					{
-						var condition = Expression.Condition(isNullExpression, Expression.Constant(null, current.Type), replacement);
-
-						newExpression = ExpressionReplacer.Replace(newExpression, current, condition);
-					}
-					else
-					{
-						newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
-					}
+					newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
 				}
 
 				return newExpression;
