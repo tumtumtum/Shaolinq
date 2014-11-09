@@ -2,11 +2,24 @@
 
 ﻿using System;
 ﻿using System.Text;
+﻿using Platform;
 
 namespace Shaolinq
 {
 	internal static class TypeExtensions
 	{
+		public static bool IsIntegralType(this Type type)
+		{
+			type = type.GetUnwrappedNullableType();
+
+			return type == typeof(string)
+				   || type.IsNumericType()
+				   || type == typeof(Guid)
+				   || type == typeof(DateTime)
+				   || type == typeof(TimeSpan)
+				   || type == typeof(bool);
+		}
+
 		public static bool IsNullableType(this Type type)
 		{
 			return Nullable.GetUnderlyingType(type) != null;

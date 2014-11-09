@@ -14,7 +14,6 @@ namespace Shaolinq.Persistence.Linq
 		private class Nominator
 			: SqlExpressionVisitor
 		{
-			private bool isBlocked;
 			private readonly HashSet<Expression> candidates;
 			private readonly Func<Expression, bool> fnCanBeColumn;
 
@@ -22,7 +21,6 @@ namespace Shaolinq.Persistence.Linq
 			{
 				this.fnCanBeColumn = canBeColumn;
 				candidates = new HashSet<Expression>();
-				isBlocked = false;
 			}
 
 			public static HashSet<Expression> Nominate(Func<Expression, bool> canBeColumn, Expression expression)
@@ -38,34 +36,15 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (expression != null)
 				{
-					var saveIsBlocked = isBlocked;
-
-					isBlocked = false;
-
 					if (expression.NodeType != (ExpressionType)SqlExpressionType.Subquery)
 					{
 						base.Visit(expression);
 					}
 
-					if (!isBlocked)
+					if (fnCanBeColumn(expression))
 					{
-						if (fnCanBeColumn(expression))
-						{
-							if (expression.NodeType != (ExpressionType)SqlExpressionType.ObjectReference
-								&& expression.NodeType != ExpressionType.Equal
-								&& expression.NodeType != ExpressionType.MemberInit
-								&& expression.NodeType != ExpressionType.MemberAccess)
-							{
-								candidates.Add(expression);
-							}
-						}
-						else
-						{
-							isBlocked = true;
-						}
+						candidates.Add(expression);
 					}
-					//isBlocked = saveIsBlocked;
-					isBlocked |= saveIsBlocked;
 				}
 
 				return expression;

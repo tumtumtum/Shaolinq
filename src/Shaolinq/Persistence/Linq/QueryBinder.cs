@@ -58,25 +58,9 @@ namespace Shaolinq.Persistence.Linq
 			return queryBinder.Visit(expression);
 		}
 
-		public static bool RequiresColumnProjection(Expression expression)
+		public static bool IsIntegralType(Expression expression)
 		{
-			switch (expression.NodeType)
-			{
-				case (ExpressionType)SqlExpressionType.Column:
-				case (ExpressionType)SqlExpressionType.Subquery:
-				case (ExpressionType)SqlExpressionType.AggregateSubquery:
-				case (ExpressionType)SqlExpressionType.Aggregate:
-				case (ExpressionType)SqlExpressionType.ObjectReference:
-				case ExpressionType.Conditional:
-				case ExpressionType.Constant:
-				case ExpressionType.MemberAccess:
-				case ExpressionType.Equal:
-				case ExpressionType.MemberInit:
-			case (ExpressionType)SqlExpressionType.FunctionCall:
-					return true;
-				default:
-					return false;
-			}
+			return expression.Type.GetUnwrappedNullableType().IsIntegralType();
 		}
 
 		internal static Expression StripQuotes(Expression expression)
@@ -177,7 +161,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, QueryBinder.RequiresColumnProjection, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
+			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, QueryBinder.IsIntegralType, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
 		}
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
