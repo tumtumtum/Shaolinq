@@ -172,7 +172,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(QueryBinder.RequiresColumnProjection, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
+			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, QueryBinder.RequiresColumnProjection, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
 		}
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
@@ -399,11 +399,11 @@ namespace Shaolinq.Persistence.Linq
 		private Expression BindSelectForPrimaryKeyProjection(Type resultType, SqlProjectionExpression projection, LambdaExpression selector, bool forUpdate)
 		{
 			Expression expression;
-			//var oldIsWithinClientSideCode = this.isWithinClientSideCode;
+			var oldIsWithinClientSideCode = this.isWithinClientSideCode;
 			
 			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			//this.isWithinClientSideCode = true;
+			this.isWithinClientSideCode = true;
 
 			try
 			{
@@ -411,7 +411,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			finally
 			{
-				//this.isWithinClientSideCode = oldIsWithinClientSideCode;
+				this.isWithinClientSideCode = oldIsWithinClientSideCode;
 			}
 
 			var alias = this.GetNextAlias();
@@ -1388,7 +1388,7 @@ namespace Shaolinq.Persistence.Linq
 
 			AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			this.isWithinClientSideCode = false;
+			this.isWithinClientSideCode = true;
 
 			try
 			{	

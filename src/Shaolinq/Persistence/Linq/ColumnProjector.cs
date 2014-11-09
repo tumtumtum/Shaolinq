@@ -73,24 +73,26 @@ namespace Shaolinq.Persistence.Linq
 		private readonly HashSet<string> columnNames; 
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
+		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		internal ColumnProjector(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
 			mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 
+			this.typeDescriptorProvider = typeDescriptorProvider;
 			this.sqlObjectReferenceByMemberInit = sqlObjectReferenceByMemberInit;
 			this.newAlias = newAlias;
 			this.existingAliases = existingAliases;
 			this.candidates = Nominator.Nominate(canBeColumn, expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
-			var projector = new ColumnProjector(canBeColumn, expression, newAlias, sqlObjectReferenceByMemberInit, existingAliases);
+			var projector = new ColumnProjector(typeDescriptorProvider, canBeColumn, expression, newAlias, sqlObjectReferenceByMemberInit, existingAliases);
 
 			expression = projector.Visit(expression);
 
@@ -102,9 +104,12 @@ namespace Shaolinq.Persistence.Linq
 			var retval = base.VisitMemberInit(expression);
 			var newMemberInit = retval as MemberInitExpression;
 
-			if (retval != expression && newMemberInit != null)
+			if (retval != expression && newMemberInit != null && expression.Type.IsDataAccessObjectType())
 			{
-				this.sqlObjectReferenceByMemberInit[expression] = new SqlObjectReferenceExpression(newMemberInit.Type, newMemberInit.Bindings);
+				var typeDescriptor = typeDescriptorProvider.GetTypeDescriptor(expression.Type);
+				var bindingsByName = newMemberInit.Bindings.ToDictionary(c => c.Member.Name, c => c);
+
+				this.sqlObjectReferenceByMemberInit[expression] = new SqlObjectReferenceExpression(newMemberInit.Type, typeDescriptor.PrimaryKeyProperties.Select(c => bindingsByName[c.PropertyName]));
 
 				return retval;
 			}
