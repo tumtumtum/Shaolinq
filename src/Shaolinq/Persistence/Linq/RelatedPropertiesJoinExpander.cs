@@ -236,13 +236,13 @@ namespace Shaolinq.Persistence.Linq
 				originalSelectors = new[] { originalPredicateOrSelector, methodCallExpression.Arguments[2] };
 			}
 
-			var sourceParameterExpression = ((LambdaExpression)QueryBinder.StripQuotes(originalPredicateOrSelector)).Parameters[0];
+			var sourceParameterExpression = (originalPredicateOrSelector.StripQuotes()).Parameters[0];
 			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors, sourceParameterExpression, forSelector);
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
 			var currentRootExpressionsByPath = result.RootExpressionsByPath;
 
 			var predicateOrSelectors = result.ReducedExpressions;
-			var predicateOrSelectorLambdas = predicateOrSelectors.Select(c => (LambdaExpression)QueryBinder.StripQuotes(c)).ToArray();
+			var predicateOrSelectorLambdas = predicateOrSelectors.Select(c => c.StripQuotes()).ToArray();
 
 			if (memberAccessExpressionsNeedingJoins.Count > 0)
 			{

@@ -63,17 +63,6 @@ namespace Shaolinq.Persistence.Linq
 			return expression.Type.GetUnwrappedNullableType().IsIntegralType();
 		}
 
-		internal static Expression StripQuotes(Expression expression)
-		{
-			while (expression.NodeType == ExpressionType.Quote)
-			{
-				expression = ((UnaryExpression)expression).Operand;
-			}
-
-			return expression;
-		}
-
-
 		public static ColumnInfo[] GetPrimaryKeyColumnInfos(TypeDescriptorProvider typeDescriptorProvider, TypeDescriptor typeDescriptor)
 		{
 			return GetPrimaryKeyColumnInfos(typeDescriptorProvider, typeDescriptor, (c, d) => true, (c, d) => true);
@@ -690,35 +679,35 @@ namespace Shaolinq.Persistence.Linq
 	            {
 	            case "Where":
 					this.selectorPredicateStack.Push(methodCallExpression);
-		            result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
+		            result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
 		            this.selectorPredicateStack.Pop();
 					return result;
 	            case "WhereForUpdate":
 		            this.selectorPredicateStack.Push(methodCallExpression);
-		            result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
+		            result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), true);
 					this.selectorPredicateStack.Pop();
 					return result;
 	            case "Select":
 					this.selectorPredicateStack.Push(methodCallExpression);
-		            result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), false);
+		            result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
 		            this.selectorPredicateStack.Pop();
 					return result;
 	            case "SelectForUpdate":
 					this.selectorPredicateStack.Push(methodCallExpression);
-		            result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), true);
+		            result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), true);
 					this.selectorPredicateStack.Pop();
 					return result;
 	            case "OrderBy":
 					this.selectorPredicateStack.Push(methodCallExpression);
-		            result = this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
+		            result = this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Ascending);
 		            this.selectorPredicateStack.Pop();
 					return result;
 	            case "OrderByDescending":
-		            return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
+		            return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Descending);
 	            case "ThenBy":
-		            return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Ascending);
+		            return this.BindThenBy(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Ascending);
 	            case "ThenByDescending":
-		            return this.BindThenBy(methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), OrderType.Descending);
+		            return this.BindThenBy(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Descending);
 	            case "GroupJoin":
 		            if (methodCallExpression.Arguments.Count == 5)
 		            {
@@ -732,7 +721,7 @@ namespace Shaolinq.Persistence.Linq
 			            result = this.BindGroupBy
 						(
 							methodCallExpression.Arguments[0],
-							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
+							methodCallExpression.Arguments[1].StripQuotes(),
 							null,
 							null
 						);
@@ -742,8 +731,8 @@ namespace Shaolinq.Persistence.Linq
 			            result = this.BindGroupBy
 						(
 							methodCallExpression.Arguments[0],
-							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
-							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
+							methodCallExpression.Arguments[1].StripQuotes(),
+							methodCallExpression.Arguments[2].StripQuotes(),
 							null
 						);
 		            }
@@ -752,9 +741,9 @@ namespace Shaolinq.Persistence.Linq
 			            result = this.BindGroupBy
 						(
 							methodCallExpression.Arguments[0],
-							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]),
-							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
-							(LambdaExpression)StripQuotes(methodCallExpression.Arguments[3])
+							methodCallExpression.Arguments[1].StripQuotes(),
+							methodCallExpression.Arguments[2].StripQuotes(),
+							methodCallExpression.Arguments[3].StripQuotes()
 						);
 		            }
 		            else
@@ -774,7 +763,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            var selector = (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]);
+			            var selector = methodCallExpression.Arguments[1].StripQuotes();
 
 			            return this.BindAggregate(methodCallExpression.Arguments[0], methodCallExpression.Method, selector, methodCallExpression == this.rootExpression);
 		            }
@@ -784,18 +773,18 @@ namespace Shaolinq.Persistence.Linq
 	            case "Join":
 		            return this.BindJoin(methodCallExpression.Type, methodCallExpression.Arguments[0],
 		                                       methodCallExpression.Arguments[1],
-		                                       (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]),
-		                                       (LambdaExpression)StripQuotes(methodCallExpression.Arguments[3]),
-		                                       (LambdaExpression)StripQuotes(methodCallExpression.Arguments[4]));
+		                                       methodCallExpression.Arguments[2].StripQuotes(),
+		                                       methodCallExpression.Arguments[3].StripQuotes(),
+		                                       methodCallExpression.Arguments[4].StripQuotes());
 	            case "SelectMany":
 		            this.selectorPredicateStack.Push(methodCallExpression);
 					if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), null);
+			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), null);
 		            }
 		            else if (methodCallExpression.Arguments.Count == 3)
 		            {
-			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]), (LambdaExpression)StripQuotes(methodCallExpression.Arguments[2]));
+			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), methodCallExpression.Arguments[2].StripQuotes());
 		            }
 		            else
 		            {
@@ -825,7 +814,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 
 			            return this.BindFirst(where, SelectFirstType.First);
 		            }
@@ -837,7 +826,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 
 			            return this.BindFirst(where, SelectFirstType.FirstOrDefault);
 		            }
@@ -849,7 +838,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 
 			            return this.BindFirst(where, SelectFirstType.Single);
 		            }
@@ -861,7 +850,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], (LambdaExpression)StripQuotes(methodCallExpression.Arguments[1]));
+						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 
 			            return this.BindFirst(where, SelectFirstType.SingleOrDefault);
 		            }
@@ -900,7 +889,7 @@ namespace Shaolinq.Persistence.Linq
 					case "DeleteWhere":
 						if (methodCallExpression.Arguments.Count == 2)
 						{
-							return this.BindDelete(methodCallExpression.Arguments[0], (LambdaExpression)(StripQuotes(methodCallExpression.Arguments[1])));
+							return this.BindDelete(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 						}
 						break;
 				}
@@ -912,7 +901,7 @@ namespace Shaolinq.Persistence.Linq
 					case "DeleteHelper":
 						if (methodCallExpression.Arguments.Count == 2)
 						{
-							return this.BindDelete(methodCallExpression.Arguments[0], (LambdaExpression)(StripQuotes(methodCallExpression.Arguments[1])));
+							return this.BindDelete(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 						}
 						break;
 				}

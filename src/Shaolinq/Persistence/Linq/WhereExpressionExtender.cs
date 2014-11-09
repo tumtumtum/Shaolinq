@@ -36,7 +36,7 @@ namespace Shaolinq.Persistence.Linq
 						case "Where":
 						{
 							var selectSource = methodCallExpression.Arguments[0];
-							var selectCondition = (LambdaExpression)QueryBinder.StripQuotes(methodCallExpression.Arguments[1]);
+							var selectCondition = methodCallExpression.Arguments[1].StripQuotes();
 
 							if (selectSource.NodeType == ExpressionType.Constant)
 							{
@@ -63,7 +63,7 @@ namespace Shaolinq.Persistence.Linq
 						case "Select":
 						{
 							var selectSource = methodCallExpression.Arguments[0];
-							var selectSelector = (LambdaExpression)QueryBinder.StripQuotes(methodCallExpression.Arguments[1]);
+							var selectSelector = methodCallExpression.Arguments[1].StripQuotes();
 
 							return Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(this.type), methodCallExpression, this.condition);
 						}

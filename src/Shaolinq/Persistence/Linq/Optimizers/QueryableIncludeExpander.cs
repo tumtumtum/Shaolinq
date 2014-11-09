@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				&& methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.QueryableExtensionsIncludeMethod)
 			{
 				var parameter = Expression.Parameter(methodCallExpression.Method.GetGenericArguments()[0]);
-				var currentIncludeSelector = (LambdaExpression)QueryBinder.StripQuotes(this.Visit(methodCallExpression.Arguments[1]));
+				var currentIncludeSelector = this.Visit(methodCallExpression.Arguments[1]).StripQuotes();
 
 				var body = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
 				var selector = Expression.Lambda(body, parameter);

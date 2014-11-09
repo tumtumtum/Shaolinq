@@ -92,7 +92,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					throw new InvalidOperationException();
 				}
 
-				var selector = (LambdaExpression)QueryBinder.StripQuotes(methodCallExpression.Arguments[1]);
+				var selector = methodCallExpression.Arguments[1].StripQuotes();
 				var newSelector = ExpressionReplacer.Replace(selector.Body, selector.Parameters[0], methodCallExpression.Arguments[0]);
 
 				var originalReferencedRelatedObjects = referencedRelatedObjects;
