@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Platform;
+using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
 namespace Shaolinq.Persistence.Linq
 {

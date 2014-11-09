@@ -612,9 +612,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return constantPlaceholder;
 		}
 
-		protected override Expression VisitObjectReference(SqlObjectReference objectReference)
+		protected override Expression VisitObjectReference(SqlObjectReferenceExpression objectReference)
 		{
-			SqlObjectReference current;
+			SqlObjectReferenceExpression current;
 
 			if (!TryGetCurrent(objectReference, out current))
 			{

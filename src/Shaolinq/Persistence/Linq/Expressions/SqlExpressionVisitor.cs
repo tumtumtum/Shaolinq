@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			case SqlExpressionType.AggregateSubquery:
 				return this.VisitAggregateSubquery((SqlAggregateSubqueryExpression)expression);
 			case SqlExpressionType.ObjectReference:
-				return this.VisitObjectReference((SqlObjectReference)expression);
+				return this.VisitObjectReference((SqlObjectReferenceExpression)expression);
 			case SqlExpressionType.OrderBy:
 				return this.VisitOrderBy((SqlOrderByExpression)expression);
 			case SqlExpressionType.Tuple:
@@ -165,17 +165,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return new SqlConstantPlaceholderExpression(constantPlaceholder.Index, (ConstantExpression)result);
 		}
 
-		protected virtual Expression VisitObjectReference(SqlObjectReference objectReference)
+		protected virtual Expression VisitObjectReference(SqlObjectReferenceExpression objectReferenceExpression)
 		{
-			var newBindings = this.VisitBindingList(objectReference.Bindings);
+			var newBindings = this.VisitBindingList(objectReferenceExpression.Bindings);
 
-			if (!Object.ReferenceEquals(newBindings, objectReference.Bindings))
+			if (!Object.ReferenceEquals(newBindings, objectReferenceExpression.Bindings))
 			{
-				return new SqlObjectReference(objectReference.Type, newBindings);
+				return new SqlObjectReferenceExpression(objectReferenceExpression.Type, newBindings);
 			}
 			else
 			{
-				return objectReference;
+				return objectReferenceExpression;
 			}
 		}
 

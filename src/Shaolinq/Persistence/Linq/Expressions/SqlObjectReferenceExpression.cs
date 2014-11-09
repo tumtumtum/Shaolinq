@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
-	public class SqlObjectReference
+	public class SqlObjectReferenceExpression
 		: SqlBaseExpression
 	{
 		public ReadOnlyCollection<MemberBinding> Bindings { get; private set; }
@@ -24,9 +24,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					continue;
 				}
 
-				if (assignment.Expression is SqlObjectReference)
+				if (assignment.Expression is SqlObjectReferenceExpression)
 				{
-					foreach (var value in ((SqlObjectReference)assignment.Expression).GetBindingsFlattened())
+					foreach (var value in ((SqlObjectReferenceExpression)assignment.Expression).GetBindingsFlattened())
 					{
 						yield return value;
 					}
@@ -46,12 +46,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlObjectReference(Type type, MemberBinding[] bindings)
+		public SqlObjectReferenceExpression(Type type, MemberBinding[] bindings)
 			: this(type, (IEnumerable<MemberAssignment>)bindings)
 		{	
 		}
 
-		public SqlObjectReference(Type type, IEnumerable<MemberBinding> bindings)
+		public SqlObjectReferenceExpression(Type type, IEnumerable<MemberBinding> bindings)
 			: base(type)
 		{
 			this.Bindings = new ReadOnlyCollection<MemberBinding>(bindings.ToList());

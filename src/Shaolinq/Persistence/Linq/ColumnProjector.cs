@@ -73,10 +73,10 @@ namespace Shaolinq.Persistence.Linq
 		private readonly HashSet<string> columnNames; 
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
-		private readonly Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit;
+		private readonly Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		internal ColumnProjector(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
@@ -88,7 +88,7 @@ namespace Shaolinq.Persistence.Linq
 			this.candidates = Nominator.Nominate(canBeColumn, expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReference> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
 		{
 			var projector = new ColumnProjector(canBeColumn, expression, newAlias, sqlObjectReferenceByMemberInit, existingAliases);
 
@@ -104,7 +104,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (retval != expression && newMemberInit != null)
 			{
-				this.sqlObjectReferenceByMemberInit[expression] = new SqlObjectReference(newMemberInit.Type, newMemberInit.Bindings);
+				this.sqlObjectReferenceByMemberInit[expression] = new SqlObjectReferenceExpression(newMemberInit.Type, newMemberInit.Bindings);
 
 				return retval;
 			}

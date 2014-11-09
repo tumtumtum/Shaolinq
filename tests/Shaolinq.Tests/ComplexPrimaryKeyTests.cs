@@ -244,7 +244,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsNull(first.ThirdAddress);
+				Assert.IsFalse(first.ThirdAddress.IsDeflatedReference);
 			}
 		}
 
@@ -299,6 +299,115 @@ namespace Shaolinq.Tests
 				var first = query.First();
 
 				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_With_Same_Property_Sub_Property_Before()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.SecondAddress.Number != null)
+					.Include(c => c.SecondAddress);
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_With_Same_Property_Before()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.SecondAddress != null)
+					.Include(c => c.SecondAddress);
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_With_Same_Property_Afterwards()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Include(c => c.SecondAddress)
+					.Where(c => c != null);
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_With_Different_Object_Property_Afterwards()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address != null)
+					.Include(c => c.SecondAddress);
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_Complex_Key_Is_Not_Null()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address != null);
+
+				var first = query.First();
+
+				Assert.IsNotNull(first.Address);
+				Assert.IsTrue(first.Address.IsDeflatedReference);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_Complex_Key_Is_Null()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Address == null);
+
+				var first = query.FirstOrDefault();
+
+				Assert.IsNull(first);
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_Where_With_Different_Property_Afterwards()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Include(c => c.SecondAddress)
+					.Where(c => c.Name != null);
+
+				var first = query.First();
+
+				Assert.IsTrue(first.Address.IsDeflatedReference);
 				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
 			}
 		}

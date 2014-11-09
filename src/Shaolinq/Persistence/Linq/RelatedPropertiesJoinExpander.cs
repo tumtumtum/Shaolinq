@@ -9,6 +9,7 @@ using Platform;
 using Platform.Reflection;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.Persistence.Linq.Expressions;
+using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
 namespace Shaolinq.Persistence.Linq
 {

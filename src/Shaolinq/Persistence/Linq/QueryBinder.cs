@@ -29,7 +29,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly Stack<Expression> selectorPredicateStack = new Stack<Expression>();
 		private readonly Dictionary<Expression, GroupByInfo> groupByMap = new Dictionary<Expression, GroupByInfo>();
 		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
-		private readonly Dictionary<MemberInitExpression, SqlObjectReference> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReference>(MemberInitEqualityComparer.Default);
+		private readonly Dictionary<MemberInitExpression, SqlObjectReferenceExpression> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReferenceExpression>(MemberInitEqualityComparer.Default);
 
 		protected void AddExpressionByParameter(ParameterExpression parameterExpression, Expression expression)
 		{
@@ -347,7 +347,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference && right.NodeType == (ExpressionType)SqlExpressionType.Projection)
 				{
-					var objectOperandExpression = (SqlObjectReference)left;
+					var objectOperandExpression = (SqlObjectReferenceExpression)left;
 					var tupleExpression = new SqlTupleExpression(objectOperandExpression.Bindings.OfType<MemberAssignment>().Select(c => c.Expression));
 					var selector = MakeSelectorForPrimaryKeys(left.Type, tupleExpression.Type);
 					var rightWithSelect = BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)right, selector, false);
@@ -356,7 +356,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else if (left.NodeType == (ExpressionType)SqlExpressionType.Projection && right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 				{
-					var objectOperandExpression = (SqlObjectReference)right;
+					var objectOperandExpression = (SqlObjectReferenceExpression)right;
 					var tupleExpression = new SqlTupleExpression(objectOperandExpression.Bindings.OfType<MemberAssignment>().Select(c => c.Expression));
 					var selector = MakeSelectorForPrimaryKeys(right.Type, tupleExpression.Type);
 					var leftWithSelect = BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)right, selector, false);
@@ -1517,6 +1517,7 @@ namespace Shaolinq.Persistence.Linq
 					var columnExpression = new SqlColumnExpression(propertyInfo.PropertyType, selectAlias, value.ColumnName);
 
 					currentBindings.Add(Expression.Bind(propertyInfo, columnExpression));
+					
 					tableColumns.Add(new SqlColumnDeclaration(value.ColumnName, new SqlColumnExpression(propertyInfo.PropertyType, tableAlias, value.ColumnName)));
 				}
 			}
@@ -1527,7 +1528,7 @@ namespace Shaolinq.Persistence.Linq
 				var objectReferenceType = property.PropertyType;
 				var parentBindings = parentBindingsForKey[value.Key];
 
-				var objectReference = new SqlObjectReference(objectReferenceType, bindingsForKey[value.Key]);
+				var objectReference = new SqlObjectReferenceExpression(objectReferenceType, bindingsForKey[value.Key]);
 
 				if (objectReference.Bindings.Count == 0)
 				{
@@ -1537,7 +1538,7 @@ namespace Shaolinq.Persistence.Linq
 				parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
 			}
 
-			var rootObjectReference = new SqlObjectReference(typeDescriptor.Type, rootBindings.Where(c => rootPrimaryKeyProperties.Contains(c.Member.Name)));
+			var rootObjectReference = new SqlObjectReferenceExpression(typeDescriptor.Type, rootBindings.Where(c => rootPrimaryKeyProperties.Contains(c.Member.Name)));
 
 			if (rootObjectReference.Bindings.Count == 0)
 			{
@@ -1620,7 +1621,7 @@ namespace Shaolinq.Persistence.Linq
 			return parameterExpression;
 		}
 
-		protected SqlObjectReference CreateObjectReference(Expression expression)
+		protected SqlObjectReferenceExpression CreateObjectReference(Expression expression)
 		{
 			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(expression.Type));
 
@@ -1669,7 +1670,7 @@ namespace Shaolinq.Persistence.Linq
 				throw new Exception(string.Format("Missing bindings for: {0}", expression));
 			}
 
-			return new SqlObjectReference(expression.Type, bindings);
+			return new SqlObjectReferenceExpression(this.DataAccessModel.GetDefinitionTypeFromConcreteType(expression.Type), bindings);
 		}
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
@@ -1860,7 +1861,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else if (source != null && source.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 			{
-				var objectOperandExpression = (SqlObjectReference)source;
+				var objectOperandExpression = (SqlObjectReferenceExpression)source;
 				var binding = objectOperandExpression.Bindings.OfType<MemberAssignment>().FirstOrDefault(c => c.Member.Name == memberInfo.Name);
 
 				if (binding != null)
@@ -1959,13 +1960,13 @@ namespace Shaolinq.Persistence.Linq
 						}
 					}
 
-					var objectReference = current as SqlObjectReference;
+					var objectReference = current as SqlObjectReferenceExpression;
 
 					Expression isNullExpression = null;
 
 					if (objectReference != null)
 					{
-						foreach (var binding in objectReference.Bindings.OfType<MemberAssignment>())
+						foreach (var binding in objectReference.GetBindingsFlattened().OfType<MemberAssignment>())
 						{
 							Expression equalExpression;
 							var columnExpression = binding.Expression as SqlColumnExpression;
@@ -1983,14 +1984,12 @@ namespace Shaolinq.Persistence.Linq
 									equalExpression = Expression.Equal(Expression.Convert(columnExpression, nullableType), Expression.Constant(nullableType.GetDefaultValue(), nullableType));
 								}
 							}
-							else if (binding.Expression is SqlObjectReference)
+							else if (binding.Expression is SqlObjectReferenceExpression)
 							{
 								equalExpression = Expression.Equal(binding.Expression, Expression.Constant(null));
 							}
 							else
 							{
-								isNullExpression = null;
-
 								break;
 							}
 
@@ -2009,7 +2008,7 @@ namespace Shaolinq.Persistence.Linq
 					
 					var replacement = this.Visit(originalReplacementExpression);
 
-					if (isNullExpression != null)
+					if (isNullExpression != null && false)
 					{
 						var condition = Expression.Condition(isNullExpression, Expression.Constant(null, current.Type), replacement);
 
@@ -2017,6 +2016,10 @@ namespace Shaolinq.Persistence.Linq
 					}
 					else
 					{
+						if (current is ParameterExpression)
+						{
+							Console.WriteLine();
+						}
 						newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
 					}
 				}

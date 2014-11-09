@@ -1,21 +1,23 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
+﻿using System.Collections.Generic;
 ﻿using System.Linq;
 ﻿using System.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Expressions;
+﻿using System.Reflection;
+﻿using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
 	/// <summary>
-	/// Converts binary expressions between two <see cref="SqlObjectOperand"/> expressions
+	/// Converts binary expressions between two <see cref="SqlObjectReferenceExpression"/> expressions
 	/// into multiple binary expressions performing the operation over the the primary
 	/// keys of the object operands.
 	/// </summary>
 	public class ObjectOperandComparisonExpander
 		: SqlExpressionVisitor
 	{
-		private bool inProjector; 
+		private bool inProjector;
 		
 		private ObjectOperandComparisonExpander()
 		{
@@ -23,9 +25,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static Expression Expand(Expression expression)
 		{
-			var fixer = new ObjectOperandComparisonExpander();
+			var expander = new ObjectOperandComparisonExpander();
 
-			return fixer.Visit(expression);
+			return expander.Visit(expression);
 		}
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
@@ -59,6 +61,45 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return projection;
 		}
 
+		private IEnumerable<Expression> GetPrimaryKeyElementalExpressions(Expression expression)
+		{
+			if (expression is MemberInitExpression)
+			{
+				var memberInitExpression = (MemberInitExpression)expression;
+
+				foreach (var binding in memberInitExpression
+					.Bindings
+					.OfType<MemberAssignment>()
+					.Where(c => c.Member is PropertyInfo).
+					Where(binding => PropertyDescriptor.IsPropertyPrimaryKey((PropertyInfo)binding.Member)))
+				{
+					if (binding.Expression is MemberInitExpression || binding.Expression is SqlObjectReferenceExpression)
+					{
+						foreach (var value in GetPrimaryKeyElementalExpressions(binding.Expression))
+						{
+							yield return value;	
+						}
+					}
+					else
+					{
+						yield return binding.Expression;
+					}
+				}
+			}
+			else if (expression is SqlObjectReferenceExpression)
+			{
+				var operand = expression as SqlObjectReferenceExpression;
+
+				foreach (var value in operand
+						.GetBindingsFlattened()
+						.OfType<MemberAssignment>()
+						.Select(c => c.Expression))
+				{
+					yield return value;
+				}
+			}
+		}
+
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
 			if (this.inProjector)
@@ -66,31 +107,27 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return functionCallExpression;
 			}
 
-			if (functionCallExpression.Arguments.Count == 1)
+			if (functionCallExpression.Arguments.Count == 1
+				&& (functionCallExpression.Function == SqlFunction.IsNotNull || functionCallExpression.Function == SqlFunction.IsNull)
+				&& (functionCallExpression.Arguments[0].NodeType == ExpressionType.MemberInit || functionCallExpression.Arguments[0].NodeType == (ExpressionType)SqlExpressionType.ObjectReference))
 			{
-				if (functionCallExpression.Arguments[0] is SqlObjectReference)
+				Expression retval = null;
+				
+				foreach (var value in this.GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
 				{
-					Expression retval = null;
-					var operand = (SqlObjectReference)functionCallExpression.Arguments[0];
+					var current = new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, value);
 
-					foreach (var current in operand
-						.Bindings
-						.OfType<MemberAssignment>()
-						.Select(c => c.Expression)
-						.Select(c => new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, c)))
+					if (retval == null)
 					{
-						if (retval == null)
-						{
-							retval = current;
-						}
-						else
-						{
-							retval = Expression.And(retval, current);
-						}
+						retval = current;
 					}
-
-					return retval;
+					else
+					{
+						retval = Expression.And(retval, current);
+					}
 				}
+
+				return retval;
 			}
 
 			return base.VisitFunctionCall(functionCallExpression);
@@ -103,18 +140,20 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return binaryExpression;
 			}
 
-			if (binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference
-				&& binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
+			if ((binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference || binaryExpression.Left.NodeType == ExpressionType.MemberInit)
+				&& (binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference || binaryExpression.Right.NodeType == ExpressionType.MemberInit)
+				&& (binaryExpression.Left.Type == binaryExpression.Right.Type))
 			{
 				Expression retval = null;
-				var leftOperand = (SqlObjectReference)binaryExpression.Left;
-				var rightOperand = (SqlObjectReference)binaryExpression.Right;
+				var leftOperand = binaryExpression.Left;
+				var rightOperand = binaryExpression.Right;
 
-				foreach (var value in leftOperand.GetBindingsFlattened().OfType<MemberAssignment>().Zip(rightOperand.GetBindingsFlattened().OfType<MemberAssignment>(), (left, right) => new { Left = left, Right = right }))
+				foreach (var value in this.GetPrimaryKeyElementalExpressions(leftOperand)
+					.Zip(this.GetPrimaryKeyElementalExpressions(rightOperand), (left, right) => new { Left = left, Right = right }))
 				{
 					Expression current;
-					var left = this.Visit(value.Left.Expression);
-					var right = this.Visit(value.Right.Expression);
+					var left = this.Visit(value.Left);
+					var right = this.Visit(value.Right);
 					
 					switch (binaryExpression.NodeType)
 					{

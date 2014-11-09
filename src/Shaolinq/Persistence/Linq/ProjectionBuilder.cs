@@ -243,14 +243,14 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected override Expression VisitObjectReference(SqlObjectReference sqlObjectReference)
+		protected override Expression VisitObjectReference(SqlObjectReferenceExpression sqlObjectReferenceExpression)
 		{
-			var arrayOfValues = Expression.NewArrayInit(typeof(object), sqlObjectReference
+			var arrayOfValues = Expression.NewArrayInit(typeof(object), sqlObjectReferenceExpression
 				.Bindings
 				.OfType<MemberAssignment>()
 				.Select(c => (Expression)Expression.Convert(c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? this.ConvertColumnToDataReaderRead((SqlColumnExpression)c.Expression, c.Expression.Type.MakeNullable()) : this.Visit(c.Expression), typeof(object))).ToArray());
 
-			var method = MethodInfoFastRef.BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(sqlObjectReference.Type);
+			var method = MethodInfoFastRef.BaseDataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(sqlObjectReferenceExpression.Type);
 
 			return Expression.Call(Expression.Property(this.objectProjector, "DataAccessModel"), method, arrayOfValues);
 		}

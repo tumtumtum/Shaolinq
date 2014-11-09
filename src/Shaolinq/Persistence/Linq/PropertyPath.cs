@@ -1,42 +1,59 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Platform;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public struct PropertyPath
-		: IEnumerable<PropertyInfo>
+	public struct ObjectPath<T>
+		: IEnumerable<T>
 	{
-		public static readonly PropertyPath Empty = new PropertyPath(new PropertyInfo[0]);
+		public static readonly ObjectPath<T> Empty = new ObjectPath<T>(new T[0]);
 
 		public int Length { get { return this.path.Length;  } }
-		public PropertyInfo First { get { return this.path[0];  } }
+		public T First { get { return this.path[0];  } }
 		public bool IsEmpty { get { return this.path.Length == 0; } }
-		public PropertyInfo Last { get { return this.path[this.Length - 1]; } }
-		public PropertyInfo this[int index] { get { return this.path[index]; } }
+		public T Last { get { return this.path[this.Length - 1]; } }
+		public T this[int index] { get { return this.path[index]; } }
 
-		internal readonly PropertyInfo[] path;
+		internal readonly T[] path;
+		private readonly Func<T, string> toString;
 
-		public PropertyPath PathWithoutLast()
+		public ObjectPath<T> PathWithoutLast()
 		{
-			return new PropertyPath(this.path.Take(this.Length - 1));
+			return new ObjectPath<T>(this.toString, this.path.Take(this.Length - 1));
 		}
 
-		public PropertyPath(params PropertyInfo[] path)
+		public ObjectPath(params T[] path)
 			: this()
 		{
 			this.path = path;
+			this.toString = c => c.ToString();
 		}
 
-		public PropertyPath(IEnumerable<PropertyInfo> path)
+		public ObjectPath(IEnumerable<T> path)
 			: this()
 		{
 			this.path = path.ToArray();
+			this.toString = c => c.ToString();
 		}
 
-		public IEnumerator<PropertyInfo> GetEnumerator()
+		public ObjectPath(Func<T, string> toString, params T[] path)
+			: this()
+		{
+			this.path = path;
+			this.toString = toString;
+		}
+
+		public ObjectPath(Func<T, string> toString, IEnumerable<T> path)
+			: this()
+		{
+			this.toString = toString;
+			this.path = path.ToArray();
+		}
+
+		public IEnumerator<T> GetEnumerator()
 		{
 			foreach (var part in this.path)
 			{
@@ -46,9 +63,9 @@ namespace Shaolinq.Persistence.Linq
 
 		public override bool Equals(object obj)
 		{
-			var value = obj as PropertyPath?;
+			var value = obj as ObjectPath<T>?;
 
-			return value != null && ArrayEqualityComparer<PropertyInfo>.Default.Equals(this.path, value.Value.path);
+			return value != null && ArrayEqualityComparer<T>.Default.Equals(this.path, value.Value.path);
 		}
 
 		public override int GetHashCode()
@@ -58,7 +75,9 @@ namespace Shaolinq.Persistence.Linq
 
 		public override string ToString()
 		{
-			return string.Join(".", this.path.Select(c => c.Name));
+			var toStringLocal = this.toString;
+
+			return string.Join(".", this.path.Select(toStringLocal));
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

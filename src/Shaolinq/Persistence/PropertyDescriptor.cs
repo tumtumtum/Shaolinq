@@ -36,7 +36,14 @@ namespace Shaolinq.Persistence
 		public bool IsRelatedDataAccessObjectsProperty { get { return this.RelatedDataAccessObjectsAttribute != null; } }
 		public bool IsAutoIncrement { get { return this.AutoIncrementAttribute != null && this.AutoIncrementAttribute.AutoIncrement; } }
 		public bool IsPropertyThatIsCreatedOnTheServerSide { get { return this.IsAutoIncrement && this.PropertyType.IsIntegerType(true); } }
-		
+
+		public static bool IsPropertyPrimaryKey(PropertyInfo propertyInfo)
+		{
+			var value =  propertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
+
+			return value != null && value.IsPrimaryKey;
+		}
+
 		public PropertyDescriptor(TypeDescriptor declaringTypeDescriptor, Type ownerType, PropertyInfo propertyInfo)
 		{
 			this.OwnerType = ownerType;

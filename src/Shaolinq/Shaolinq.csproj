@@ -141,8 +141,9 @@
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlMemberBindingType.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionEqualityComparer.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlObjectReference.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlObjectReferenceExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlPragmaExpression.cs" />
     <Compile Include="Persistence\Linq\Optimizers\EnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExistsSubqueryOptimizer.cs" />

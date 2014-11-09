@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Linq.Expressions;
 using System.Collections.Generic;
 using Shaolinq.Persistence.Linq.Expressions;
+using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
@@ -294,9 +295,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (!results.TryGetValue(path, out objectInfo))
 				{
+					var x = i + includedPathSkip - 1;
 					var includedPropertyPath = new PropertyPath(path.Skip(includedPathSkip));
+					var objectExpression = x >= 0 ? visited[x] : root;
 
-					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath);
+					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, objectExpression);
 
 					results[path] = objectInfo;
 				}

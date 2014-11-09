@@ -183,12 +183,12 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
+			expression = ObjectOperandComparisonExpander.Expand(expression); 
 			expression = EnumTypeNormalizer.Normalize(expression, typeForEnums);
 			expression = GroupByCollator.Collate(expression);
 			expression = AggregateSubqueryRewriter.Rewrite(expression);
 			expression = UnusedColumnRemover.Remove(expression);
 			expression = RedundantColumnRemover.Remove(expression);
-			expression = ObjectOperandComparisonExpander.Expand(expression);
 			expression = RedundantSubqueryRemover.Remove(expression);
 			expression = FunctionCoalescer.Coalesce(expression);
 			expression = ExistsSubqueryOptimizer.Optimize(expression);
