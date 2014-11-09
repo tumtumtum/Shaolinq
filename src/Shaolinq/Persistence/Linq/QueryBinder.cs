@@ -2008,7 +2008,7 @@ namespace Shaolinq.Persistence.Linq
 					
 					var replacement = this.Visit(originalReplacementExpression);
 
-					if (isNullExpression != null && false)
+					if (isNullExpression != null)
 					{
 						var condition = Expression.Condition(isNullExpression, Expression.Constant(null, current.Type), replacement);
 
@@ -2016,10 +2016,6 @@ namespace Shaolinq.Persistence.Linq
 					}
 					else
 					{
-						if (current is ParameterExpression)
-						{
-							Console.WriteLine();
-						}
 						newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
 					}
 				}

@@ -244,7 +244,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.ThirdAddress.IsDeflatedReference);
+				Assert.IsNull(first.ThirdAddress);
 			}
 		}
 
