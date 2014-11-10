@@ -145,7 +145,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					prefixProperties.Reverse();
 
-					AddIncludedProperty(sourceParameterExpression, referencedRelatedObject, new PropertyPath(prefixProperties));
+					AddIncludedProperty(sourceParameterExpression, referencedRelatedObject, new PropertyPath(c => c.Name, prefixProperties));
 				}
 				else
 				{
@@ -164,8 +164,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			for (var i = 0; i < referencedRelatedObject.IncludedPropertyPath.Length + prefixPath.Length; i++)
 			{
-				var fullAccessPropertyPath = new PropertyPath(referencedRelatedObject.FullAccessPropertyPath.Take(referencedRelatedObject.FullAccessPropertyPath.Length - i));
-				var currentPropertyPath = new PropertyPath(prefixPath.Concat(referencedRelatedObject.IncludedPropertyPath.Take(referencedRelatedObject.IncludedPropertyPath.Length - i)));
+				var fullAccessPropertyPath = new PropertyPath(c => c.Name, referencedRelatedObject.FullAccessPropertyPath.Take(referencedRelatedObject.FullAccessPropertyPath.Length - i));
+				var currentPropertyPath = new PropertyPath(c => c.Name, prefixPath.Concat(referencedRelatedObject.IncludedPropertyPath.Take(referencedRelatedObject.IncludedPropertyPath.Length - i)));
 
 				var includedPropertyInfo = new IncludedPropertyInfo
 				{
@@ -276,7 +276,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			while (currentExpression != null && currentExpression.Member is PropertyInfo)
 			{
-				var path = new PropertyPath(visited.Select(c=> (PropertyInfo)c.Member).Take(visited.Count - i).ToArray());
+				var path = new PropertyPath(c => c.Name, visited.Select(c=> (PropertyInfo)c.Member).Take(visited.Count - i).ToArray());
 				var expressionPath = visited.Take(visited.Count - i).ToArray();
 
 				ReferencedRelatedObject objectInfo;
@@ -296,7 +296,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				if (!results.TryGetValue(path, out objectInfo))
 				{
 					var x = i + includedPathSkip - 1;
-					var includedPropertyPath = new PropertyPath(path.Skip(includedPathSkip));
+					var includedPropertyPath = new PropertyPath(c => c.Name, path.Skip(includedPathSkip));
 					var objectExpression = x >= 0 ? visited[x] : root;
 
 					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, objectExpression);

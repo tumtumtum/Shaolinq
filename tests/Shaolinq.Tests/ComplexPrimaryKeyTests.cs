@@ -73,6 +73,92 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Complex_Explicit_Joins()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses on shop.Address equals address1
+				join
+				address2 in model.Addresses on shop.SecondAddress equals address2
+				select
+				new
+				{
+					shop,
+					region1 = address1.Region,
+					region2 = address2.Region,
+				};
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_Joins_With_Include()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses.Include(c => c.Region) on shop.Address equals address1
+				join
+				address2 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
+				select
+				new
+				{
+					shop,
+					region1 = address1.Region,
+					region2 = address2.Region,
+				};
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_And_Implicit_Joins_With_OrderBy()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses on shop.Address equals address1
+				join
+				address2 in model.Addresses on shop.SecondAddress equals address2
+				orderby shop.Name 
+				select
+				new
+				{
+					shop,
+					region1 = address1.Region,
+					region2 = address2.Region,
+				};
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_And_Implicit_Joins_With_Include_And_OrderBy()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses.Include(c => c.Region) on shop.Address equals address1
+				join
+				address2 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
+				orderby shop.Name
+				select
+				new
+				{
+					shop,
+					region1 = address1.Region,
+					region2 = address2.Region,
+				};
+
+			var results = query.ToList();
+		}
+
+		[Test]
 		public void Test_Explicit_Complex1()
 		{
 			using (var scope = new TransactionScope())

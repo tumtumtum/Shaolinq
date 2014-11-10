@@ -67,22 +67,23 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				var memberInitExpression = (MemberInitExpression)expression;
 
-				foreach (var binding in memberInitExpression
+				foreach (var value in memberInitExpression
 					.Bindings
 					.OfType<MemberAssignment>()
-					.Where(c => c.Member is PropertyInfo).
-					Where(binding => PropertyDescriptor.IsPropertyPrimaryKey((PropertyInfo)binding.Member)))
+					.Where(c => c.Member is PropertyInfo)
+					.Where(binding => PropertyDescriptor.IsPropertyPrimaryKey((PropertyInfo)binding.Member))
+					.Select(c => c.Expression))
 				{
-					if (binding.Expression is MemberInitExpression || binding.Expression is SqlObjectReferenceExpression)
+					if (value is MemberInitExpression || value is SqlObjectReferenceExpression)
 					{
-						foreach (var value in GetPrimaryKeyElementalExpressions(binding.Expression))
+						foreach (var inner in GetPrimaryKeyElementalExpressions(value))
 						{
-							yield return value;	
+							yield return inner;	
 						}
 					}
 					else
 					{
-						yield return binding.Expression;
+						yield return value;
 					}
 				}
 			}
@@ -95,7 +96,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						.OfType<MemberAssignment>()
 						.Select(c => c.Expression))
 				{
-					yield return value;
+					if (value is MemberInitExpression || value is SqlObjectReferenceExpression)
+					{
+						foreach (var inner in GetPrimaryKeyElementalExpressions(value))
+						{
+							yield return inner;
+						}
+					}
+					else
+					{
+						yield return value;
+					}
 				}
 			}
 		}
@@ -148,12 +159,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var leftOperand = binaryExpression.Left;
 				var rightOperand = binaryExpression.Right;
 
-				foreach (var value in GetPrimaryKeyElementalExpressions(leftOperand)
-					.Zip(GetPrimaryKeyElementalExpressions(rightOperand), (left, right) => new { Left = left, Right = right }))
+				foreach (var value in GetPrimaryKeyElementalExpressions(this.Visit(leftOperand))
+					.Zip(GetPrimaryKeyElementalExpressions(this.Visit(rightOperand)), (left, right) => new { Left = left, Right = right }))
 				{
 					Expression current;
-					var left = this.Visit(value.Left);
-					var right = this.Visit(value.Right);
+					var left = value.Left;
+					var right = value.Right;
 					
 					switch (binaryExpression.NodeType)
 					{
