@@ -96,7 +96,7 @@ namespace Shaolinq.Persistence
 			}
 			else
 			{
-				return new Pair<Type, object>(typeof(string), Enum.GetName(this.SupportedType, value));
+				return new Pair<Type, object>(typeof(string), Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
 			}
 		}
 

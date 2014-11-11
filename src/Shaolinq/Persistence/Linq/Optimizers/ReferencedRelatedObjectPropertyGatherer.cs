@@ -222,6 +222,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 			else
 			{
+				if (memberExpression.Expression == null)
+				{
+					return memberExpression;
+				}
+
 				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.Type);
 
 				if (typeDescriptor == null)

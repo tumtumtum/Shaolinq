@@ -51,28 +51,57 @@ namespace Shaolinq.Sqlite
 
 			switch (function)
 			{
-				case SqlFunction.Concat:
-					return new FunctionResolveResult("||", true, arguments);
-				case SqlFunction.ServerDateTime:
-					return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%Y-%m-%d %H:%M:%f0000", "now", "localtime"), null, arguments);
-				case SqlFunction.Year:
-					return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%Y"), null, arguments);
-				case SqlFunction.Month:
-					return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%m"), null, arguments);
-				case SqlFunction.Week:
-					return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%W"), null, arguments);
-				case SqlFunction.DayOfYear:
-					return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%j"), null, arguments);
-				case SqlFunction.DayOfMonth:
-					return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%d"), null, arguments);
-				case SqlFunction.DayOfWeek:
-					return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%w"), null, arguments);
-				case SqlFunction.Substring:
-					return new FunctionResolveResult("SUBSTR", false, arguments);
-				case SqlFunction.TrimLeft:
-					return new FunctionResolveResult("LTRIM", false, arguments);
-				case SqlFunction.TrimRight:
-					return new FunctionResolveResult("RTRIM", false, arguments);
+			case SqlFunction.ServerUtcNow:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%Y-%m-%d %H:%M:%f0000", "now"), null, arguments);
+			case SqlFunction.Concat:
+				return new FunctionResolveResult("||", true, arguments);
+			case SqlFunction.ServerNow:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%Y-%m-%d %H:%M:%f0000", "now", "localtime"), null, arguments);
+			case SqlFunction.TimeSpanFromSeconds:
+				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" seconds")) }))
+				{
+					excludeParenthesis = true
+				};
+			case SqlFunction.TimeSpanFromMinutes:
+				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" minutes")) }))
+				{
+					excludeParenthesis = true
+				};
+			case SqlFunction.TimeSpanFromHours:
+				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" hours")) }))
+				{
+					excludeParenthesis = true
+				};
+			case SqlFunction.TimeSpanFromDays:
+				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" days")) }))
+				{
+					excludeParenthesis = true
+				};
+			case SqlFunction.DateTimeAddTimeSpan:
+				return new FunctionResolveResult("STRFTIME", false, new ReadOnlyCollection<Expression>(
+				new Expression[]
+				{
+					Expression.Constant("%Y-%m-%d %H:%M:%f0000"),
+					arguments[0], arguments[1]
+				}));
+			case SqlFunction.Year:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%Y"), null, arguments);
+			case SqlFunction.Month:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%m"), null, arguments);
+			case SqlFunction.Week:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%W"), null, arguments);
+			case SqlFunction.DayOfYear:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%j"), null, arguments);
+			case SqlFunction.DayOfMonth:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%d"), null, arguments);
+			case SqlFunction.DayOfWeek:
+				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%w"), null, arguments);
+			case SqlFunction.Substring:
+				return new FunctionResolveResult("SUBSTR", false, arguments);
+			case SqlFunction.TrimLeft:
+				return new FunctionResolveResult("LTRIM", false, arguments);
+			case SqlFunction.TrimRight:
+				return new FunctionResolveResult("RTRIM", false, arguments);
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);

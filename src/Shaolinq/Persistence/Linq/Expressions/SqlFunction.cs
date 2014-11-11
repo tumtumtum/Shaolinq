@@ -77,7 +77,12 @@
 		/// <summary>
 		/// Gets the DateTime on the server
 		/// </summary>
-		ServerDateTime,
+		ServerNow,
+
+		/// <summary>
+		/// Gets the UTC DateTime on the server
+		/// </summary>
+		ServerUtcNow,
 
 		/// <summary>
 		/// Gets part of a string
@@ -141,9 +146,12 @@
 		CollectionCount,
 
         Coalesce,
-
 		CompareObject,
-
+		DateTimeAddTimeSpan,
+		TimeSpanFromMinutes,
+		TimeSpanFromSeconds,
+		TimeSpanFromDays,
+		TimeSpanFromHours,
 		UserDefined
 	}
 }

@@ -906,6 +906,22 @@ namespace Shaolinq.Persistence.Linq
 						break;
 				}
 			}
+			else if (methodCallExpression.Method.DeclaringType.GetUnwrappedNullableType() == typeof(DateTime))
+			{
+				switch (methodCallExpression.Method.Name)
+				{
+				case "AddMilliseconds":
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromSeconds, this.Visit(Expression.Divide(Expression.Convert(methodCallExpression.Arguments[0], typeof(double)), Expression.Constant(1000.0, typeof(double))))));
+				case "AddSeconds":
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromSeconds, this.VisitExpressionList(methodCallExpression.Arguments)));
+				case "AddMinutes":
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromMinutes, this.VisitExpressionList(methodCallExpression.Arguments)));
+				case "AddHours":
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromHours, this.VisitExpressionList(methodCallExpression.Arguments)));
+				case "AddDays":
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromDays, this.VisitExpressionList(methodCallExpression.Arguments)));
+				}
+			}
 
 			if (typeof(IList).IsAssignableFrom(methodCallExpression.Method.DeclaringType)
 				|| typeof(ICollection).IsAssignableFrom(methodCallExpression.Method.DeclaringType)
@@ -1764,28 +1780,28 @@ namespace Shaolinq.Persistence.Linq
 			{
 				switch (memberInfo.Name)
 				{
-					case "Week":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Week, source);
-					case "Month":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Month, source);
-					case "Year":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Year, source);
-					case "Hour":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Hour, source);
-					case "Minute":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Minute, source);
-					case "Second":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Second, source);
-					case "DayOfWeek":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfWeek, source);
-					case "Day":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfMonth, source);
-					case "DayOfYear":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfYear, source);
-					case "Date":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Date, source);
-					default:
-						throw new NotSupportedException("Member access on DateTime: " + memberInfo);
+				case "Week":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Week, source);
+				case "Month":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Month, source);
+				case "Year":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Year, source);
+				case "Hour":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Hour, source);
+				case "Minute":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Minute, source);
+				case "Second":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Second, source);
+				case "DayOfWeek":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfWeek, source);
+				case "Day":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfMonth, source);
+				case "DayOfYear":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfYear, source);
+				case "Date":
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Date, source);
+				default:
+					throw new NotSupportedException("Member access on DateTime: " + memberInfo);
 				}
 			}
 			else if (memberInfo.DeclaringType == typeof(ServerDateTime))
@@ -1793,7 +1809,9 @@ namespace Shaolinq.Persistence.Linq
 				switch (memberInfo.Name)
 				{
 					case "Now":
-						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerDateTime);
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerNow);
+					case "UtcNow":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerUtcNow);
 				}
 			}
 			else if (typeof(IGrouping<,>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType) && source is NewExpression && memberInfo.Name == "Key")

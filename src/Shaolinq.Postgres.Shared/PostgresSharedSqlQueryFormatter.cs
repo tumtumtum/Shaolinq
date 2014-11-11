@@ -34,32 +34,59 @@ namespace Shaolinq.Postgres.Shared
 
 			switch (function)
 			{
-				case SqlFunction.Concat:
-					return new FunctionResolveResult("||", true, arguments);
-				case SqlFunction.TrimLeft:
-					return new FunctionResolveResult("LTRIM", false, arguments);
-				case SqlFunction.TrimRight:
-					return new FunctionResolveResult("RTRIM", false, arguments);
-				case SqlFunction.Round:
-					return new FunctionResolveResult("ROUND", false, arguments);
-				case SqlFunction.DayOfMonth:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("DAY"), null, arguments);
-				case SqlFunction.DayOfWeek:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("DOW"), null, arguments);
-				case SqlFunction.DayOfYear:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("DOY"), null, arguments);
-				case SqlFunction.Year:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("YEAR"), null, arguments);
-				case SqlFunction.Month:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("MONTH"), null, arguments);
-				case SqlFunction.Hour:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("HOUR"), null, arguments);
-				case SqlFunction.Second:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("SECOND"), null, arguments);
-				case SqlFunction.Minute:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("MINUTE"), null, arguments);
-				case SqlFunction.Week:
-					return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("WEEK"), null, arguments);
+			case SqlFunction.ServerUtcNow:
+				return new FunctionResolveResult("(NOW() at time zone 'utc')", false, arguments)
+				{
+					excludeParenthesis = true
+				};
+			case SqlFunction.TimeSpanFromSeconds:
+				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" seconds")) }))
+				{
+					functionSuffix = "::interval"
+				};
+			case SqlFunction.TimeSpanFromMinutes:
+				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" minutes")) }))
+				{
+					functionSuffix = "::interval"
+				};
+			case SqlFunction.TimeSpanFromHours:
+				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" hours")) }))
+				{
+					functionSuffix = "::interval"
+				};
+			case SqlFunction.TimeSpanFromDays:
+				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" days")) }))
+				{
+					functionSuffix = "::interval"
+				};
+			case SqlFunction.DateTimeAddTimeSpan:
+				return new FunctionResolveResult("+", true, arguments);
+			case SqlFunction.Concat:
+				return new FunctionResolveResult("||", true, arguments);
+			case SqlFunction.TrimLeft:
+				return new FunctionResolveResult("LTRIM", false, arguments);
+			case SqlFunction.TrimRight:
+				return new FunctionResolveResult("RTRIM", false, arguments);
+			case SqlFunction.Round:
+				return new FunctionResolveResult("ROUND", false, arguments);
+			case SqlFunction.DayOfMonth:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("DAY"), null, arguments);
+			case SqlFunction.DayOfWeek:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("DOW"), null, arguments);
+			case SqlFunction.DayOfYear:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("DOY"), null, arguments);
+			case SqlFunction.Year:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("YEAR"), null, arguments);
+			case SqlFunction.Month:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("MONTH"), null, arguments);
+			case SqlFunction.Hour:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("HOUR"), null, arguments);
+			case SqlFunction.Second:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("SECOND"), null, arguments);
+			case SqlFunction.Minute:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("MINUTE"), null, arguments);
+			case SqlFunction.Week:
+				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("WEEK"), null, arguments);
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);

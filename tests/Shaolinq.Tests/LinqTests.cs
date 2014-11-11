@@ -500,6 +500,38 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_ServerDateTime()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => c.Birthdate <= ServerDateTime.Now);
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => c.Birthdate <= ServerDateTime.UtcNow.AddMinutes(c.Height));
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => c.Birthdate <= ServerDateTime.UtcNow.AddMilliseconds(c.Height));
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var value = this.model
+					.Students
+					.Select(c => new
+					{
+						Original = c.Birthdate.Value,
+						Added = c.Birthdate.Value.AddMilliseconds(500)
+					}).First();
+
+				Assert.AreEqual(value.Original.AddMilliseconds(500), value.Added);
+			}
+		}
+
+		[Test]
 		public virtual void Test_Nullable_Enum_Check()
 		{
 			using (var scope = new TransactionScope())

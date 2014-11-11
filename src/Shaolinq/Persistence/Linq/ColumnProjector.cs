@@ -101,6 +101,17 @@ namespace Shaolinq.Persistence.Linq
 
 			return retval;
 		}
+
+		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
+		{
+			if (memberExpression.Member.DeclaringType.IsGenericType
+				&& memberExpression.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
+			{
+				return this.Visit(memberExpression.Expression);
+			}
+
+			return base.VisitMemberAccess(memberExpression);
+		}
         
 		private Expression ProcessExpression(Expression expression)
 		{

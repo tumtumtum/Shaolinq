@@ -35,6 +35,38 @@ namespace Shaolinq.MySql
 					return new FunctionResolveResult("LTRIM", false, arguments);
 				case SqlFunction.TrimRight:
 					return new FunctionResolveResult("RTRIM", false, arguments);
+				case SqlFunction.ServerUtcNow:
+					return new FunctionResolveResult("UTC_TIMESTAMP", false, functionCallExpression.Arguments);
+				case SqlFunction.TimeSpanFromSeconds:
+					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					{
+						functionPrefix = "INTERVAL ",
+						functionSuffix = " SECOND",
+						excludeParenthesis = true
+					};
+				case SqlFunction.TimeSpanFromMinutes:
+					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					{
+						functionPrefix = "INTERVAL ",
+						functionSuffix = " MINUTE",
+						excludeParenthesis = true
+					};
+				case SqlFunction.TimeSpanFromHours:
+					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					{
+						functionPrefix = "INTERVAL ",
+						functionSuffix = " HOUR",
+						excludeParenthesis = true
+					};
+				case SqlFunction.TimeSpanFromDays:
+					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					{
+						functionPrefix = "INTERVAL ",
+						functionSuffix = " DAY",
+						excludeParenthesis = true
+					};
+				case SqlFunction.DateTimeAddTimeSpan:
+					return new FunctionResolveResult("DATE_ADD", false, arguments);
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);

@@ -40,6 +40,7 @@ namespace Shaolinq.Persistence.Linq
 			public Pair<Type, object>[] argsAfter;
 			public Pair<Type, object>[] argsBefore;
 			public ReadOnlyCollection<Expression> arguments;
+			public bool excludeParenthesis;
 
 			public FunctionResolveResult(string functionName, bool treatAsOperator, ReadOnlyCollection<Expression> arguments)
 				: this(functionName, treatAsOperator, null, null, arguments)
@@ -55,6 +56,7 @@ namespace Shaolinq.Persistence.Linq
 				this.argsBefore = argsBefore;
 				this.argsAfter = argsAfter;
 				this.arguments = arguments;
+				this.excludeParenthesis = false;
 			}
 		}
 
@@ -257,19 +259,19 @@ namespace Shaolinq.Persistence.Linq
 			case SqlFunction.IsNull:
 				return new FunctionResolveResult("", true, arguments)
 				{
-					functionSuffix = "IS NULL"
+					functionSuffix = " IS NULL"
 				};
 			case SqlFunction.IsNotNull:
 				return new FunctionResolveResult("", true, arguments)
 				{
-					functionSuffix = "IS NOT NULL"
+					functionSuffix = " IS NOT NULL"
 				};
 			case SqlFunction.In:
 				return new FunctionResolveResult("IN", true, arguments);
 			case SqlFunction.Exists:
 				return new FunctionResolveResult("EXISTSOPERATOR", true, arguments)
 				{
-					functionPrefix = "EXISTS"
+					functionPrefix = " EXISTS "
 				};
 			case SqlFunction.UserDefined:
 				return new FunctionResolveResult(functionExpression.UserDefinedFunctionName, false, arguments);
@@ -298,8 +300,10 @@ namespace Shaolinq.Persistence.Linq
 				throw new InvalidOperationException();
 			case SqlFunction.NotLike:
 				return new FunctionResolveResult("NOT " + this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
-			case SqlFunction.ServerDateTime:
+			case SqlFunction.ServerNow:
 				return new FunctionResolveResult("NOW", false, arguments);
+			case SqlFunction.ServerUtcNow:
+				return new FunctionResolveResult("UTCNOW", false, arguments);
 			case SqlFunction.StartsWith:
 			{
 				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
@@ -356,7 +360,6 @@ namespace Shaolinq.Persistence.Linq
 				if (result.functionPrefix != null)
 				{
 					this.Write(result.functionPrefix);
-					this.Write(' ');
 				}
 				
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
@@ -385,7 +388,6 @@ namespace Shaolinq.Persistence.Linq
 
 				if (result.functionSuffix != null)
 				{
-					this.Write(' ');
 					this.Write(result.functionSuffix);
 				}
 
@@ -394,12 +396,15 @@ namespace Shaolinq.Persistence.Linq
 			else
 			{
 				this.Write(result.functionName);
-				this.Write("(");
+
+				if (!result.excludeParenthesis)
+				{
+					this.Write("(");
+				}
 
 				if (result.functionPrefix != null)
 				{
 					this.Write(result.functionPrefix);
-					this.Write(' ');
 				}
 
 				if (result.argsBefore != null && result.argsBefore.Length > 0)
@@ -407,7 +412,7 @@ namespace Shaolinq.Persistence.Linq
 					for (int i = 0, n = result.argsBefore.Length - 1; i <= n; i++)
 					{
 						this.Write(this.ParameterIndicatorPrefix);
-						this.Write("PaRaM");
+						Write(Sql92QueryFormatter.ParamNamePrefix);
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsBefore[i].Left, result.argsBefore[i].Right));
 
@@ -446,11 +451,13 @@ namespace Shaolinq.Persistence.Linq
 
 				if (result.functionSuffix != null)
 				{
-					this.Write(' ');
 					this.Write(result.functionSuffix);
 				}
 
-				this.Write(")");
+				if (!result.excludeParenthesis)
+				{
+					this.Write(")");
+				}
 			}
 
 			return functionCallExpression;
@@ -498,6 +505,9 @@ namespace Shaolinq.Persistence.Linq
 					break;
 				case ExpressionType.Multiply:
 					Write(" * ");
+					break;
+				case ExpressionType.Divide:
+					Write(" / ");
 					break;
 				case ExpressionType.Assign:
 					Write(" = ");
@@ -955,6 +965,12 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
+			if (memberExpression.Member.DeclaringType.IsGenericType
+				&& memberExpression.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
+			{
+				return this.Visit(memberExpression.Expression);
+			}
+
 			this.Visit(memberExpression.Expression);
 			this.Write(".");
 			this.Write("Prop(");

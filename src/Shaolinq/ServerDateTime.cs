@@ -13,5 +13,13 @@ namespace Shaolinq
 				return DateTime.Now; 
 			}
 		}
+
+		public static DateTime UtcNow
+		{
+			get
+			{
+				return DateTime.UtcNow;
+			}
+		}
 	}
 }
