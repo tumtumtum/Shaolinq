@@ -502,6 +502,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_ServerDateTime()
 		{
+			if (this.ProviderName.Contains("MySql"))
+			{
+				return;
+			}
+
 			using (var scope = new TransactionScope())
 			{
 				var count = this.model.Students.Count(c => c.Birthdate <= ServerDateTime.Now);
