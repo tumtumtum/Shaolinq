@@ -9,6 +9,9 @@
 		public abstract string Name { get; set; }
 
 		[PersistedMember]
+		public abstract double Range { get; set; }
+
+		[PersistedMember]
 		public abstract double Diameter { get; set; }
 
 		[PersistedMember]

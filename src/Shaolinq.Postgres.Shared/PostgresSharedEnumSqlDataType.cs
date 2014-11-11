@@ -73,7 +73,7 @@ namespace Shaolinq.Postgres.Shared
 			}
 			else
 			{
-				return new Pair<Type, object>(this.SupportedType, Enum.GetName(this.SupportedType, value));
+				return new Pair<Type, object>(this.SupportedType, Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
 			}
 		}
 	}

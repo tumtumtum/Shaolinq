@@ -15,6 +15,9 @@
 		public abstract string Name { get; set; }
 
 		[PersistedMember]
+		public abstract ShopType ShopType { get; set; }
+
+		[PersistedMember]
 		public abstract Address SecondAddress { get; set; }
 
 		[PersistedMember]

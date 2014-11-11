@@ -107,36 +107,233 @@ namespace Shaolinq.Tests
 				new
 				{
 					shop,
-					region1 = address1.Region,
-					region2 = address2.Region,
+					region1 = address1.Street,
+					region2 = address2.Street,
 				};
 
 			var results = query.ToList();
 		}
 
 		[Test]
+		public void Test_Join_With_Implict_Join_With_Related_Object_In_Projection()
+		{
+			var query =
+				from
+					shop in model.Shops
+				join
+					address1 in model.Addresses on shop.Address equals address1
+				select new
+				{
+					address = shop.Address
+				};
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Join_With_Implict_Join_With_Related_Object_In_Projection2()
+		{
+			var query =
+				from
+					shop in model.Shops
+				join
+					address1 in model.Addresses on shop.Address equals address1
+				select new
+				{
+					shop.Address,
+					address1.Region
+				};
+
+			var results = query.ToList();
+		}
+
+		[Test, Ignore("TODO")]
+		public void Test_Join_With_Implict_Join_With_Related_Object_In_Projection3()
+		{
+			var query =
+				(from
+					shop in model.Shops
+				 join
+					 address1 in model.Addresses on shop.Address equals address1
+				 select new
+				 {
+					 shop,
+					 address1
+				 }).Select(c => new
+				 {
+					 c.shop.Address,
+					 c.address1.Region
+				 });
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Join_With_Implict_Join_With_Related_Object_In_Projection4()
+		{
+			var query =
+				(from
+					shop in model.Shops
+				 join
+					 address1 in model.Addresses on shop.Address equals address1
+				 select new
+				 {
+					 shop,
+					 address1
+				 }).Select(c => new
+				 {
+					 c.shop.Address,
+					 c.address1 
+				 }).Select(c => new { c.Address, c.address1.Region });
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Join_With_Implict_Join_With_Related_Object_Two_Deep_In_Projection()
+		{
+			var query =
+				from
+					shop in model.Shops
+				join
+					address1 in model.Addresses on shop.Address equals address1
+				select new
+				{
+					region = shop.Address.Region
+				};
+
+			var results = query.ToList();
+		}
+
+		[Test, Ignore("TODO")]
 		public void Test_Complex_Explicit_And_Implicit_Joins_With_OrderBy()
+		{
+			var query =
+				from
+					shop in model.Shops
+				join
+					address1 in model.Addresses on shop.Address equals address1
+				join
+					address2 in model.Addresses on shop.SecondAddress equals address2
+				orderby shop.Name
+				select
+					new
+					{
+						shop,
+						region1 = address1.Region,
+						address1 = shop.Address
+					};
+
+			var results = query.ToList();
+		}
+
+
+		[Test]
+		public void Test_Complex_Explicit_With_Includes()
 		{
 			var query =
 				from
 				shop in model.Shops
 				join
-				address1 in model.Addresses on shop.Address equals address1
+				address1 in model.Addresses.Include(c => c.Region) on shop.Address equals address1
 				join
-				address2 in model.Addresses on shop.SecondAddress equals address2
-				orderby shop.Name 
+				address2 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
 				select
 				new
 				{
 					shop,
 					region1 = address1.Region,
-					region2 = address2.Region,
+					region2 = address2.Region2,
 				};
 
 			var results = query.ToList();
 		}
 
+		[Test, Ignore("Crazy query eh?")]
+		public void Test_Explicit_Join_With_Implicit_Join_In_Equality_Properties()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+					address1 in model.Addresses on shop.Address.Region.Diameter equals address1.Region.Diameter
+				select
+					new
+					{
+						shop
+					};
+
+			var results = query.ToList();
+		}
+
+		[Test, Ignore("Will fix by insert addtional select in join")]
+		public void Test_Explicit_Useless_Join_And_Project_Requiring_Implicit_Join()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+					address1 in model.Addresses on shop.Address equals address1
+				select
+					new
+					{
+						street = shop.Address.Street
+					};
+
+			var results = query.ToList();
+		}
+
 		[Test]
+		public void Test_Explicit_Useless_Join_And_Project_Requiring_Implicit_Join_Manual_Reselect()
+		{
+			var query =
+				(from
+					shop in model.Shops
+					join
+						address1 in model.Addresses on shop.Address equals address1
+					select
+						new
+						{
+							shop,
+							address1
+						}
+					).Select(c =>
+						         new
+						         {
+							         street = c.shop.Address.Street,
+							         diameter = c.shop.Address.Region.Diameter
+						         });
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_With_Implicit_Join_In_Projection()
+		{
+			var query =
+				(from
+				shop in model.Shops
+				join
+				address1 in model.Addresses on shop.Address equals address1
+				join
+				address2 in model.Addresses on shop.SecondAddress equals address2
+				select
+				new
+				{
+					shop, address1, address2
+				})
+				.Select(c => 
+				new
+				{
+					c.shop,
+					diameter1 = c.address1.Region.Diameter,
+					//range1 = c.shop.Address.Region.Range
+				});
+
+			var results = query.ToList();
+		}
+
+		[Test, Ignore("TODO")]
 		public void Test_Complex_Explicit_And_Implicit_Joins_With_Include_And_OrderBy()
 		{
 			var query =
@@ -152,7 +349,7 @@ namespace Shaolinq.Tests
 				{
 					shop,
 					region1 = address1.Region,
-					region2 = address2.Region,
+					region2 = address2.Region2,
 				};
 
 			var results = query.ToList();

@@ -500,6 +500,30 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Nullable_Enum_Check()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => c.SexOptional == Sex.Male);
+
+				Assert.AreEqual(0, count);
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => c.Sex == Sex.Male);
+
+				Assert.GreaterOrEqual(count, 1);
+
+				var male = this.model.Students.First(c => c.Sex == Sex.Male);
+
+				male.SexOptional = Sex.Male;
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public virtual void Test_Update_Enum()
 		{
 			using (var scope = new TransactionScope())

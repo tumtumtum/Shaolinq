@@ -9,6 +9,9 @@
 		public abstract Region Region { get; set; }
 
 		[PersistedMember]
+		public abstract Region Region2 { get; set; }
+
+		[PersistedMember]
 		public abstract int Number { get; set; }
 
 		[PersistedMember]

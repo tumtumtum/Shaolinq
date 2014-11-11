@@ -12,6 +12,9 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract Sex Sex { get; set; }
 
+		[PersistedMember]
+		public abstract Sex? SexOptional { get; set; }
+
 		[BackReference, ValueRequired(true)]
 		public abstract School School { get; set; }
 

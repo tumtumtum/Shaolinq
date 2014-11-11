@@ -111,6 +111,7 @@
   <ItemGroup>
     <Compile Include="BaseTests.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Address.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\ShopType.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Toy.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Child.cs" />
     <Compile Include="ComplexPrimaryKeyModel\ComplexPrimaryKeyDataAccessModel.cs" />

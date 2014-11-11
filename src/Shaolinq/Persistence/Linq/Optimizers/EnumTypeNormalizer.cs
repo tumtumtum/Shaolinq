@@ -30,7 +30,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				&& unaryExpression.NodeType == ExpressionType.Convert
 				&& unaryExpression.Type.IsIntegerType(true))
 			{
-				if (operand.NodeType == (ExpressionType)SqlExpressionType.Column && operand.Type.IsEnum)
+				if (operand.NodeType == (ExpressionType)SqlExpressionType.Column
+					&& operand.Type.GetUnwrappedNullableType().IsEnum)
 				{
 					return operand;
 				}
@@ -44,20 +45,20 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var left = this.Visit(binaryExpression.Left);
 			var right = this.Visit(binaryExpression.Right);
 
-			if (left.Type.IsEnum)
+			if (left.Type.GetUnwrappedNullableType().IsEnum)
 			{
-				if (!right.Type.IsEnum)
+				if (!right.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					var lambda = Expression.Lambda(Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type), right), left.Type));
+					var lambda = Expression.Lambda(Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type.GetUnwrappedNullableType()), Expression.Convert(right, typeof(int))), left.Type));
 
 					right = lambda.Body;
 				}
 			}
-			else if (right.Type.IsEnum)
+			else if (right.Type.GetUnwrappedNullableType().IsEnum)
 			{
-				if (!left.Type.IsEnum)
+				if (!left.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					left = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type), left), right.Type);
+					left = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type.GetUnwrappedNullableType()), Expression.Convert(left, typeof(int))), right.Type);
 				}
 			}
 

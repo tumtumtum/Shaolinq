@@ -289,7 +289,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				if (!path.Last.ReflectedType.IsDataAccessObjectType())
 				{
 					rootExpressionsByPath[path] = currentExpression;
-
+					
 					break;
 				}
 
