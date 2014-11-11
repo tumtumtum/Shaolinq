@@ -499,6 +499,21 @@ namespace Shaolinq.Tests
 			}
 		}
 
+
+		[Test]
+		public virtual void Test_Negate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var negativeHeights = this.model
+					.Students
+					.Select(c => -c.Height)
+					.ToList();
+
+				Assert.IsTrue(negativeHeights.All(c => c <= 0));
+			}
+		}
+
 		[Test]
 		public virtual void Test_ServerDateTime()
 		{

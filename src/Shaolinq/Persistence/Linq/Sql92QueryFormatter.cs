@@ -220,30 +220,35 @@ namespace Shaolinq.Persistence.Linq
 		{
 			switch (unaryExpression.NodeType)
 			{
-				case ExpressionType.Convert:
+			case ExpressionType.Convert:
+				var unaryType = Nullable.GetUnderlyingType(unaryExpression.Type) ?? unaryExpression.Type;
+				var operandType = Nullable.GetUnderlyingType(unaryExpression.Operand.Type) ?? unaryExpression.Operand.Type;
 
-					var unaryType = Nullable.GetUnderlyingType(unaryExpression.Type) ?? unaryExpression.Type;
-					var operandType = Nullable.GetUnderlyingType(unaryExpression.Operand.Type) ?? unaryExpression.Operand.Type;
-
-					if (operandType == typeof(object)
-						|| unaryType == operandType
-					    || (IsNumeric(unaryType) && IsNumeric(operandType))
-					    || unaryExpression.Operand.Type.IsDataAccessObjectType())
-					{
-						Visit(unaryExpression.Operand);
-					}
-					else
-					{
-						throw new NotSupportedException(String.Format("The unary operator '{0}' is not supported", unaryExpression.NodeType));
-					}
-					break;
-				case ExpressionType.Not:
-					this.Write("NOT (");
+				if (operandType == typeof(object)
+				    || unaryType == operandType
+				    || (IsNumeric(unaryType) && IsNumeric(operandType))
+				    || unaryExpression.Operand.Type.IsDataAccessObjectType())
+				{
 					Visit(unaryExpression.Operand);
-					this.Write(")");
-					break;
-				default:
+				}
+				else
+				{
 					throw new NotSupportedException(String.Format("The unary operator '{0}' is not supported", unaryExpression.NodeType));
+				}
+				break;
+			case ExpressionType.Negate:
+			case ExpressionType.NegateChecked:
+				this.Write("(-(");
+				Visit(unaryExpression.Operand);
+				this.Write("))");
+				break;
+			case ExpressionType.Not:
+				this.Write("NOT (");
+				Visit(unaryExpression.Operand);
+				this.Write(")");
+				break;
+			default:
+				throw new NotSupportedException(String.Format("The unary operator '{0}' is not supported", unaryExpression.NodeType));
 			}
 
 			return unaryExpression;
