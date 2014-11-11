@@ -524,10 +524,10 @@ namespace Shaolinq.Tests
 					.Select(c => new
 					{
 						Original = c.Birthdate.Value,
-						Added = c.Birthdate.Value.AddMilliseconds(500)
+						Added = c.Birthdate.Value.AddMilliseconds(1000)
 					}).First();
 
-				Assert.AreEqual(value.Original.AddMilliseconds(500), value.Added);
+				Assert.AreEqual(value.Original.AddMilliseconds(1000), value.Added);
 			}
 		}
 
