@@ -87,6 +87,7 @@
     <Compile Include="PostgresSharedSqlDatabaseSchemaManager.cs" />
     <Compile Include="PostgresSharedDataDefinitionExpressionAmmender.cs" />
     <Compile Include="PostgresSharedSqlTransactionalCommandsContext.cs" />
+    <Compile Include="PostgresSharedTimespanSqlDataType.cs" />
     <Compile Include="PostgresSharedUuidSqlDataType.cs" />
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="PostgresSharedSqlDataTypeProvider.cs" />

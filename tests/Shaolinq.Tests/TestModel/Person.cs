@@ -37,6 +37,9 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract DateTime? Birthdate { get; set; }
 
+		[PersistedMember]
+		public abstract TimeSpan? TimeSinceLastSlept { get; set; }
+
 		[DependsOnProperty("Id")]
 		protected virtual string CompactIdString
 		{

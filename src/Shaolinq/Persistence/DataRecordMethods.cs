@@ -11,6 +11,7 @@ namespace Shaolinq.Persistence
 		public static readonly MethodInfo GetInt32Method = typeof(IDataRecord).GetMethod("GetInt32");
 		public static readonly MethodInfo GetInt64Method = typeof(IDataRecord).GetMethod("GetInt64");
 		public static readonly MethodInfo GetStringMethod = typeof(IDataRecord).GetMethod("GetString");
+		public static readonly MethodInfo GetValueMethod = typeof(IDataRecord).GetMethod("GetValue");
 		public static readonly MethodInfo GetGuidMethod = typeof(IDataRecord).GetMethod("GetGuid");
 		public static readonly MethodInfo IsNullMethod = typeof(IDataRecord).GetMethod("IsDBNull");
 

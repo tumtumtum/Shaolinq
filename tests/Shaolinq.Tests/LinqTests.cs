@@ -63,6 +63,7 @@ namespace Shaolinq.Tests
 				tum.Height = 177;
 				tum.FavouriteNumber = 36;
 				tum.Address = address;
+				tum.TimeSinceLastSlept = TimeSpan.FromHours(7.5);
 				tum.Birthdate = new DateTime(1979, 12, 24, 04, 00, 00);
 
 				var mars = school.Students.Create();
@@ -94,7 +95,7 @@ namespace Shaolinq.Tests
 				chuck1.Lastname = "Norris";
 				chuck1.Nickname = "God";
 				chuck1.Address = address2;
-				chuck1.Height = 100000; // TODO: MySql support for Double.PositiveInfinity;
+				chuck1.Height = 100000;
 				chuck1.FavouriteNumber = 8;
 				chuck1.Weight = 1000;
 
@@ -106,6 +107,18 @@ namespace Shaolinq.Tests
 				chuck2.Weight = 70;
 			
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Get_Timespan()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.TimeSinceLastSlept != null);
+
+				Assert.IsNotNull(student);
+				Assert.AreEqual(TimeSpan.FromHours(7.5), student.TimeSinceLastSlept);
 			}
 		}
 

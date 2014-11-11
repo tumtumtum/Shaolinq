@@ -52,6 +52,9 @@ namespace Shaolinq.Postgres.Shared
 			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", false));
 			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", true));
 
+			DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan)));
+			DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan?)));
+
 			if (nativeUuids)
 			{
 				DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
