@@ -58,7 +58,7 @@ namespace Shaolinq.Persistence
 				return Expression.Condition
 				(
 					Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
-					Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
+					Expression.Constant(null, this.SupportedType),
 					Expression.New
 					(
 						nullableTimeSpanConstructor,

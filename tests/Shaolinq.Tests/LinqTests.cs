@@ -115,13 +115,24 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student = this.model.Students.First(c => c.TimeSinceLastSlept != null);
+				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
 				Assert.IsNotNull(student);
 				Assert.AreEqual(TimeSpan.FromHours(7.5), student.TimeSinceLastSlept);
+
+				student.TimeSinceLastSlept = TimeSpan.FromMilliseconds(2);
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.Firstname == "Tum");
+
+				Assert.IsNotNull(student);
+				Assert.AreEqual(TimeSpan.FromMilliseconds(2), student.TimeSinceLastSlept);
 			}
 		}
-
 
 		[Test, Ignore("NotSupported yet")]
 		public void Test_Select_Many_With_Non_Table()

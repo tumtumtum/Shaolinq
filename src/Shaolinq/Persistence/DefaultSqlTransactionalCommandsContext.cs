@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence
 
 		protected virtual DbType GetDbType(Type type)
 		{
-			type = Nullable.GetUnderlyingType(type) ?? type;
+			type = type.GetUnwrappedNullableType();
 
 			switch (Type.GetTypeCode(type))
 			{

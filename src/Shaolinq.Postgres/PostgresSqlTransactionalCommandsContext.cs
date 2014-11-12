@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
 using System.Transactions;
 using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedSqlTransactionalCommandsContext
+	public class PostgresSqlTransactionalCommandsContext
 		: DefaultSqlTransactionalCommandsContext
 	{
-		public PostgresSharedSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
+		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
 			: base(sqlDatabaseContext, transaction)
 		{
 		}

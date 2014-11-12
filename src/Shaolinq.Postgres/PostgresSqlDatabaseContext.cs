@@ -46,7 +46,7 @@ using Shaolinq.Postgres.Shared;
 
 		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
 		{
-			return new PostgresSharedSqlTransactionalCommandsContext(this, transaction);
+			return new PostgresSqlTransactionalCommandsContext(this, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
