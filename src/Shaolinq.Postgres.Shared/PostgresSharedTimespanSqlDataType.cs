@@ -30,7 +30,11 @@ namespace Shaolinq.Postgres.Shared
 			else
 			{
 				var timespan = (TimeSpan)value;
-				var s = string.Format("{0:D2} {1:D2}:{2:D2}:{3:D2}.{4:D3}", timespan.Days, timespan.Hours, Math.Abs(timespan.Minutes), Math.Abs(timespan.Seconds), Math.Abs(timespan.Milliseconds));
+				var ticks = timespan.Ticks;
+				var totalMicroseconds = ticks / 10;
+				var microSecondsComponent = totalMicroseconds - (((long)timespan.TotalSeconds) * 1000000);
+
+				var s = string.Format("{0:D2} {1:D2}:{2:D2}:{3:D2}.{4:D6}", timespan.Days, timespan.Hours, Math.Abs(timespan.Minutes), Math.Abs(timespan.Seconds), Math.Abs(microSecondsComponent));
 
 				return new Pair<Type, object>(typeof(object), s);
 			}

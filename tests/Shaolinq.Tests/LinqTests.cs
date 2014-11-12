@@ -137,7 +137,7 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
-				student.TimeSinceLastSlept = TimeSpan.FromMilliseconds(2014);
+				student.TimeSinceLastSlept = TimeSpan.FromMilliseconds(2015);
 
 				scope.Complete();
 			}
@@ -147,7 +147,7 @@ namespace Shaolinq.Tests
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
 				Assert.IsNotNull(student);
-				Assert.AreEqual(TimeSpan.FromSeconds(2.014), student.TimeSinceLastSlept);
+				Assert.AreEqual(TimeSpan.FromMilliseconds(2015), student.TimeSinceLastSlept);
 			}
 
 			using (var scope = new TransactionScope())
