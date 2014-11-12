@@ -21,6 +21,21 @@ namespace Shaolinq.Postgres.Shared
 			return "INTERVAL";
 		}
 
+		public override Pair<Type, object> ConvertForSql(object value)
+		{
+			if (value == null)
+			{
+				return new Pair<Type, object>(typeof(object), null);
+			}
+			else
+			{
+				var timespan = (TimeSpan)value;
+				var s = string.Format("{0:D2} {1:D2}:{2:D2}:{3:D2}.{4:D3}", timespan.Days, timespan.Hours, Math.Abs(timespan.Minutes), Math.Abs(timespan.Seconds), Math.Abs(timespan.Milliseconds));
+
+				return new Pair<Type, object>(typeof(object), s);
+			}
+		}
+
 		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
 		{
 			if (underlyingType == null)

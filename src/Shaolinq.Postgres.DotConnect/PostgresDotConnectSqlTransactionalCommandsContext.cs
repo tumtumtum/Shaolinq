@@ -16,18 +16,6 @@ namespace Shaolinq.Postgres.DotConnect
 			: base(sqlDatabaseContext, transaction)
 		{
 		}
-		
-		protected override DbType GetDbType(Type type)
-		{
-			type = type.GetUnwrappedNullableType();
-
-			if (type == typeof(TimeSpan))
-			{
-				return DbType.String;
-			}
-
-			return base.GetDbType(type);
-		}
 
 		public override IDbCommand CreateCommand(SqlCreateCommandOptions options)
 		{

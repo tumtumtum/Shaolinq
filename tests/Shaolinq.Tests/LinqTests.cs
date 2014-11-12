@@ -132,6 +132,40 @@ namespace Shaolinq.Tests
 				Assert.IsNotNull(student);
 				Assert.AreEqual(TimeSpan.FromMilliseconds(2), student.TimeSinceLastSlept);
 			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.Firstname == "Tum");
+
+				student.TimeSinceLastSlept = TimeSpan.FromMilliseconds(2014);
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.Firstname == "Tum");
+
+				Assert.IsNotNull(student);
+				Assert.AreEqual(TimeSpan.FromSeconds(2.014), student.TimeSinceLastSlept);
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.Firstname == "Tum");
+
+				student.TimeSinceLastSlept = TimeSpan.FromMilliseconds(999);
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.First(c => c.Firstname == "Tum");
+
+				Assert.IsNotNull(student);
+				Assert.AreEqual(TimeSpan.FromSeconds(0.999), student.TimeSinceLastSlept);
+			}
 		}
 
 		[Test, Ignore("NotSupported yet")]
