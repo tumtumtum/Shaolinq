@@ -168,7 +168,14 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				return base.Visit(expression);
+				try
+				{
+					return base.Visit(expression);
+				}
+				catch
+				{
+					throw;
+				}
 			}
 		}
 

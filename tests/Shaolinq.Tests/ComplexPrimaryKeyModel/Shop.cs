@@ -1,4 +1,6 @@
-﻿namespace Shaolinq.Tests.ComplexPrimaryKeyModel
+﻿using System;
+
+namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
 	public abstract class Shop
@@ -11,6 +13,9 @@
 		[BackReference]
 		public abstract Mall Mall { get; set; }
 		
+		[PersistedMember]
+		public abstract DateTime OpeningDate { get; set; }
+
 		[PersistedMember]
 		public abstract string Name { get; set; }
 

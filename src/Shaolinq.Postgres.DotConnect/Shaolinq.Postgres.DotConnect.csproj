@@ -94,20 +94,19 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Devart.Data, Version=5.0.857.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.264\lib\Devart.Data.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Devart.Data">
+      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.283\lib\Devart.Data.dll</HintPath>
     </Reference>
     <Reference Include="Devart.Data.PostgreSql">
-      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.264\lib\Devart.Data.PostgreSql.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.283\lib\Devart.Data.PostgreSql.dll</HintPath>
     </Reference>
-    <Reference Include="Platform">
-      <HintPath>..\packages\Platform.NET.1.0.0.147\lib\35\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.1.0.177, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Platform.NET.1.1.0.177\lib\net40\Platform.dll</HintPath>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.0.0.147\lib\35\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.177, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.177\lib\net40\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">

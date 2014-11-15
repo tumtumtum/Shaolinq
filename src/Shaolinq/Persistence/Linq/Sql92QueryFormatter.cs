@@ -586,7 +586,7 @@ namespace Shaolinq.Persistence.Linq
 							var value = constantExpression.Value as Guid?;
 
 							// TEST TEST
-							if (false && typeof(DataAccessObject).IsAssignableFrom(constantExpression.Type))
+							if (typeof(DataAccessObject).IsAssignableFrom(constantExpression.Type))
 							{
 								parameterValues.Add(new Pair<Type, object>(typeof(string), constantExpression.Value.ToString()));
 							}

@@ -558,6 +558,36 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Twin_Implicit_Join_In_Where_Then_Project()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Where(c => c.Name != "" && c.OpeningDate > new DateTime())
+					.Where(c => c.Address.Street == "Madison Street"
+						&& c.SecondAddress.Number == 0
+						&& c.ThirdAddress.Number == 0
+						&& c.ThirdAddress.Region.Diameter >= 0)
+					.Select(c => c);
+
+				var values = query.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_From_Projection()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Shops
+					.Select(c => new { shop = c, region = c.Address.Region, region2 = c.SecondAddress.Region })
+					.Where(c => c.shop.Name != null && c.region2.Diameter >= 0 && c.region.Diameter >= 0);
+
+				var values = query.ToList();
+			}
+		}
+
+		[Test]
 		public void Test_Implicit_Join_In_Where_Then_Project_Anonymous()
 		{
 			using (var scope = new TransactionScope())
