@@ -3,7 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-﻿using Shaolinq.Persistence;
+using Platform.Collections;
+using Shaolinq.Persistence;
 ﻿using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -58,32 +59,27 @@ namespace Shaolinq.Sqlite
 			case SqlFunction.ServerNow:
 				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%Y-%m-%d %H:%M:%f0000", "now", "localtime"), null, arguments);
 			case SqlFunction.TimeSpanFromSeconds:
-				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" seconds")) }))
+				return new FunctionResolveResult("", false, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" seconds")))
 				{
 					excludeParenthesis = true
 				};
 			case SqlFunction.TimeSpanFromMinutes:
-				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" minutes")) }))
+				return new FunctionResolveResult("", false, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" minutes")))
 				{
 					excludeParenthesis = true
 				};
 			case SqlFunction.TimeSpanFromHours:
-				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" hours")) }))
+				return new FunctionResolveResult("", false, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" hours")))
 				{
 					excludeParenthesis = true
 				};
 			case SqlFunction.TimeSpanFromDays:
-				return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" days")) }))
+				return new FunctionResolveResult("", false, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[0], Expression.Constant(" days")))
 				{
 					excludeParenthesis = true
 				};
 			case SqlFunction.DateTimeAddTimeSpan:
-				return new FunctionResolveResult("STRFTIME", false, new ReadOnlyCollection<Expression>(
-				new Expression[]
-				{
-					Expression.Constant("%Y-%m-%d %H:%M:%f0000"),
-					arguments[0], arguments[1]
-				}));
+				return new FunctionResolveResult("STRFTIME", false, Expression.Constant("%Y-%m-%d %H:%M:%f0000"), arguments[0], arguments[1]);
 			case SqlFunction.Year:
 				return new FunctionResolveResult("STRFTIME", false, FunctionResolveResult.MakeArguments("%Y"), null, arguments);
 			case SqlFunction.Month:

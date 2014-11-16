@@ -52,12 +52,12 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Format_Create_Table_With_Table_Constraints()
 		{
-			var columnDefinitions = new List<Expression>
+			var columnDefinitions = new []
 			{
 				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
 			};
 
-			var constraints = new List<Expression>
+			var constraints = new Expression[]
 			{
 				new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, new[] {"Column1"}),
 				new SqlForeignKeyConstraintExpression("fkc", new ReadOnlyCollection<string>(new [] {"Column1"}), new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction))

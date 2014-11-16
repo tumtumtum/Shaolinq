@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
+﻿using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -321,7 +322,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return projection;
 		}
 
-		protected virtual ReadOnlyCollection<SqlColumnDeclaration> VisitColumnDeclarations(ReadOnlyCollection<SqlColumnDeclaration> columns)
+		protected virtual IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
 			List<SqlColumnDeclaration> alternate = null;
 
@@ -343,7 +344,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (alternate != null)
 			{
-				return alternate.AsReadOnly();
+				return alternate.ToReadOnlyList();
 			}
 
 			return columns;

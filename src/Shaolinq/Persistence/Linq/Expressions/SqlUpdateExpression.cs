@@ -2,6 +2,7 @@
 
 using System.Linq.Expressions;
 using System.Collections.ObjectModel;
+using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -10,7 +11,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string TableName { get; private set; }
 		public Expression Where { get; private set; }
-		public ReadOnlyCollection<Expression> Assignments { get; private set; }
+		public IReadOnlyList<Expression> Assignments { get; private set; }
 		
 		public override ExpressionType NodeType
 		{
@@ -20,7 +21,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public SqlUpdateExpression(string tableName, ReadOnlyCollection<Expression> assignments, Expression where)
+		public SqlUpdateExpression(string tableName, IReadOnlyList<Expression> assignments, Expression where)
 			: base(typeof(void))
 		{
 			this.TableName = tableName;

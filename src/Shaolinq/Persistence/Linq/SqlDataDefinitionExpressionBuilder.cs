@@ -85,7 +85,7 @@ namespace Shaolinq.Persistence.Linq
 			return retval;
 		}
 
-		private IEnumerable<Expression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ColumnInfo[] columnInfos)
+		private IEnumerable<SqlColumnDefinitionExpression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ColumnInfo[] columnInfos)
 		{
 			var relatedPropertyTypeDescriptor = this.model.GetTypeDescriptor(referencingProperty.PropertyType);
 			var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
@@ -123,7 +123,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		private Expression BuildColumnDefinition(ColumnInfo columnInfo)
+		private SqlColumnDefinitionExpression BuildColumnDefinition(ColumnInfo columnInfo)
 		{
 			var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(columnInfo.DefinitionProperty.PropertyType);
 			var columnDataTypeName = sqlDataType.GetSqlName(columnInfo.DefinitionProperty);
@@ -132,7 +132,7 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlColumnDefinitionExpression(columnInfo.ColumnName, new SqlTypeExpression(columnDataTypeName, sqlDataType.IsUserDefinedType), constraints);
 		}
 
-		private IEnumerable<Expression> BuildRelatedColumnDefinitions(TypeDescriptor typeDescriptor)
+		private IEnumerable<SqlColumnDefinitionExpression> BuildRelatedColumnDefinitions(TypeDescriptor typeDescriptor)
 		{
 			foreach (var typeRelationshipInfo in typeDescriptor.GetRelationshipInfos())
 			{
@@ -150,7 +150,8 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BuildCreateTableExpression(TypeDescriptor typeDescriptor)
 		{
-			var columnExpressions = new List<Expression>();
+			var columnExpressions = new List<SqlColumnDefinitionExpression>();
+
 			currentTableConstraints = new List<Expression>();
 
 			var columnInfos = QueryBinder.GetColumnInfos

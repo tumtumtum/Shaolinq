@@ -81,7 +81,7 @@ namespace Shaolinq.Persistence.Linq
 
 			expression = projector.Visit(expression);
 
-			return new ProjectedColumns(expression, projector.columns.AsReadOnly());
+			return new ProjectedColumns(expression, projector.columns.ToReadOnlyList());
 		}
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)

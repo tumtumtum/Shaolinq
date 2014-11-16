@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -128,7 +129,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			if (original == null)
 			{
-				return original;
+				return null;
 			}
 
 			hashCode ^= original.Count;
@@ -322,7 +323,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitProjection(projection);
 		}
 
-		protected override ReadOnlyCollection<SqlColumnDeclaration> VisitColumnDeclarations(ReadOnlyCollection<SqlColumnDeclaration> columns)
+		protected override IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
 			if (columns == null)
 			{

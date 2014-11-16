@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Platform.Collections;
 using Shaolinq.Persistence;
 using Platform;
 using Shaolinq.TypeBuilding;
@@ -870,7 +871,7 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitNewPhase1<T>(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, ObjectsByIdCache<T> cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IList<DataAccessObject>> fixups)
+		private static void CommitNewPhase1<T>(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, ObjectsByIdCache<T> cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>> fixups)
 		{
 			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
 
@@ -898,7 +899,7 @@ namespace Shaolinq
 
 		private void CommitNew(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			var fixups = new Dictionary<TypeAndTransactionalCommandsContext, IList<DataAccessObject>>();
+			var fixups = new Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>>();
 			var insertResultsByType = new Dictionary<TypeAndTransactionalCommandsContext, InsertResults>();
 
 			if (this.cacheByInt != null)

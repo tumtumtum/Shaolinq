@@ -3,7 +3,8 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-﻿using Shaolinq.Persistence;
+using Platform.Collections;
+using Shaolinq.Persistence;
 ﻿using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -40,22 +41,22 @@ namespace Shaolinq.Postgres.Shared
 					excludeParenthesis = true
 				};
 			case SqlFunction.TimeSpanFromSeconds:
-				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" seconds")) }))
+				return new FunctionResolveResult("", true, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" seconds")))
 				{
 					functionSuffix = "::interval"
 				};
 			case SqlFunction.TimeSpanFromMinutes:
-				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" minutes")) }))
+				return new FunctionResolveResult("", true, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" minutes")))
 				{
 					functionSuffix = "::interval"
 				};
 			case SqlFunction.TimeSpanFromHours:
-				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" hours")) }))
+				return new FunctionResolveResult("", true, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" hours")))
 				{
 					functionSuffix = "::interval"
 				};
 			case SqlFunction.TimeSpanFromDays:
-				return new FunctionResolveResult("", true, new ReadOnlyCollection<Expression>(new Expression[] { new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" days")) }))
+				return new FunctionResolveResult("", true, new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Call(arguments[0], MethodInfoFastRef.ObjectToStringMethod), Expression.Constant(" days")))
 				{
 					functionSuffix = "::interval"
 				};

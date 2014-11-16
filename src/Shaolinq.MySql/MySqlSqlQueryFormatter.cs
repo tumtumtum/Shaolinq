@@ -38,28 +38,28 @@ namespace Shaolinq.MySql
 				case SqlFunction.ServerUtcNow:
 					return new FunctionResolveResult("UTC_TIMESTAMP", false, functionCallExpression.Arguments);
 				case SqlFunction.TimeSpanFromSeconds:
-					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					return new FunctionResolveResult("", false, arguments)
 					{
 						functionPrefix = "INTERVAL ",
 						functionSuffix = " SECOND",
 						excludeParenthesis = true
 					};
 				case SqlFunction.TimeSpanFromMinutes:
-					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					return new FunctionResolveResult("", false, arguments[0])
 					{
 						functionPrefix = "INTERVAL ",
 						functionSuffix = " MINUTE",
 						excludeParenthesis = true
 					};
 				case SqlFunction.TimeSpanFromHours:
-					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					return new FunctionResolveResult("", false, arguments[0])
 					{
 						functionPrefix = "INTERVAL ",
 						functionSuffix = " HOUR",
 						excludeParenthesis = true
 					};
 				case SqlFunction.TimeSpanFromDays:
-					return new FunctionResolveResult("", false, new ReadOnlyCollection<Expression>(new[] { arguments[0] }))
+					return new FunctionResolveResult("", false, arguments[0])
 					{
 						functionPrefix = "INTERVAL ",
 						functionSuffix = " DAY",

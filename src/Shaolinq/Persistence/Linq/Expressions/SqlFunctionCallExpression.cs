@@ -5,6 +5,7 @@
 ﻿using System.Collections.ObjectModel;
 ﻿using System.Linq;
 ﻿using System.Linq.Expressions;
+﻿using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -16,32 +17,36 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public SqlFunction Function { get; private set; }
 		public string UserDefinedFunctionName { get; private set; }
-		public ReadOnlyCollection<Expression> Arguments { get; private set; }
+		public IReadOnlyList<Expression> Arguments { get; private set; }
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.FunctionCall; } }
 
-		public override ExpressionType NodeType
+		public SqlFunctionCallExpression(Type type, SqlFunction function, params Expression[] arguments)
+			: this(type, function, arguments.ToReadOnlyList())
 		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.FunctionCall;
-			}
 		}
 
 		public SqlFunctionCallExpression(Type type, string userDefinedFunctionName, params Expression[] arguments)
-			: this(type, SqlFunction.UserDefined, (IEnumerable<Expression>)arguments)
+			: this(type, SqlFunction.UserDefined, arguments.ToReadOnlyList())
 		{
 			this.UserDefinedFunctionName = userDefinedFunctionName;
 		}
 
-		public SqlFunctionCallExpression(Type type, SqlFunction function, params Expression[] arguments)
-			: this(type, function, (IEnumerable<Expression>)arguments)
-		{	
+		public SqlFunctionCallExpression(Type type, SqlFunction function, IEnumerable<Expression> arguments)
+			: this(type, function, arguments.ToReadOnlyList())
+		{
 		}
 
-		public SqlFunctionCallExpression(Type type, SqlFunction function, IEnumerable<Expression> arguments)
+		public SqlFunctionCallExpression(Type type, string userDefinedFunctionName, IEnumerable<Expression> arguments)
+			: this(type, SqlFunction.UserDefined, arguments.ToReadOnlyList())
+		{
+			this.UserDefinedFunctionName = userDefinedFunctionName;
+		}
+
+		public SqlFunctionCallExpression(Type type, SqlFunction function, IReadOnlyList<Expression> arguments)
 			: base(type)
 		{
 			this.Function = function;
-			this.Arguments = new ReadOnlyCollection<Expression>(arguments.ToArray());
+			this.Arguments = arguments;
 		}
 	}
 }

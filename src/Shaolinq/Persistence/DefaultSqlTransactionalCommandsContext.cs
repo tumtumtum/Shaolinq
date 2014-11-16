@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Transactions;
+using Platform.Collections;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
@@ -510,8 +511,8 @@ namespace Shaolinq.Persistence
 
 				return command;
 			}
-			
-			var assignments = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.PropertyType, null, c.PersistedName), Expression.Constant(c.Value))).ToList());
+
+			var assignments = updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.PropertyType, null, c.PersistedName), Expression.Constant(c.Value))).ToReadOnlyList();
 
 			Expression where = null;
 
@@ -567,17 +568,17 @@ namespace Shaolinq.Persistence
 				return command;
 			}
 			
-			ReadOnlyCollection<string> returningAutoIncrementColumnNames = null;
+			IReadOnlyList<string> returningAutoIncrementColumnNames = null;
 
 			if (dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 			{
 				var propertyDescriptors = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 
-				returningAutoIncrementColumnNames = new ReadOnlyCollection<string>(propertyDescriptors.Select(c => c.PersistedName).ToList());
+				returningAutoIncrementColumnNames = new ReadOnlyList<string>(propertyDescriptors.Select(c => c.PersistedName).ToList());
 			}
 
-			var columnNames = new ReadOnlyCollection<string>(updatedProperties.Select(c => c.PersistedName).ToList());
-			var valueExpressions = new ReadOnlyCollection<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToList());
+			var columnNames = new ReadOnlyList<string>(updatedProperties.Select(c => c.PersistedName).ToList());
+			var valueExpressions = new ReadOnlyList<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToList());
 			var expression = new SqlInsertIntoExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);

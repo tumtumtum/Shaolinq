@@ -21,18 +21,16 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var columnDefinition in createTableExpression
 				.ColumnDefinitionExpressions
-				.OfType<SqlColumnDefinitionExpression>())
-			{
-				if (columnDefinition.ConstraintExpressions
+				.Where(columnDefinition => columnDefinition
+					.ConstraintExpressions
 					.OfType<SqlSimpleConstraintExpression>()
-					.Any(simpleConstraint => simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey))
-				{
-					count++;
+				    .Any(simpleConstraint => simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey)))
+			{
+				count++;
 
-					if (count >= 2)
-					{
-						break;
-					}
+				if (count >= 2)
+				{
+					break;
 				}
 			}
 
@@ -41,12 +39,12 @@ namespace Shaolinq.Persistence.Linq
 				return base.VisitCreateTable(createTableExpression);	
 			}
 
-			var newColumnExpressions = new List<Expression>();
+			var newColumnExpressions = new List<SqlColumnDefinitionExpression>();
 			var newTableConstraintExpressions = new List<Expression>(createTableExpression.TableConstraints);
 
-			foreach (var columnDefinition in createTableExpression.ColumnDefinitionExpressions.OfType<SqlColumnDefinitionExpression>())
+			foreach (var columnDefinition in createTableExpression.ColumnDefinitionExpressions)
 			{
-				var newConstraints = columnDefinition.ConstraintExpressions.FastWhere(delegate(Expression constraint)
+				var newConstraints = columnDefinition.ConstraintExpressions.Where(delegate(Expression constraint)
 				{
 					var simpleConstraint = constraint as SqlSimpleConstraintExpression;
 
@@ -58,7 +56,7 @@ namespace Shaolinq.Persistence.Linq
 					return simpleConstraint.Constraint != SqlSimpleConstraint.PrimaryKey;
 				});
 
-				if (newConstraints == columnDefinition.ConstraintExpressions)
+				if (ReferenceEquals(newConstraints, columnDefinition.ConstraintExpressions))
 				{
 					newColumnExpressions.Add(columnDefinition);
 				}

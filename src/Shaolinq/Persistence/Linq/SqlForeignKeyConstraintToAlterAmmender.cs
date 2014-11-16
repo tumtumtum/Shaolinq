@@ -24,7 +24,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
 		{
 			var action = new SqlConstraintActionExpression(SqlConstraintActionType.Add, foreignKeyConstraintExpression);
-			var ammendmentEpression = new SqlAlterTableExpression(currentTable.Table, new ReadOnlyCollection<Expression>(new [] { action }));
+			var ammendmentEpression = new SqlAlterTableExpression(currentTable.Table, action);
 
 			ammendments.Add(ammendmentEpression);
 

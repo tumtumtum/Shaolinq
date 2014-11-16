@@ -98,13 +98,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Platform, Version=1.1.0.178, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.1.0.186, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.NET.1.1.0.178\lib\net40\Platform.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.1.0.189\lib\net40\Platform.dll</HintPath>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.178, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.189, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.178\lib\net40\Platform.Xml.Serialization.dll</HintPath>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.189\lib\net40\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -128,6 +128,7 @@
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
+    <Compile Include="EnumerableUtils.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
     <Compile Include="IdentityEqualityComparer.cs" />
     <Compile Include="InternalListExtensions.cs" />
@@ -198,6 +199,7 @@
     <Compile Include="Persistence\UniversalTimeNormalisingDateTimeSqlDateType.cs" />
     <Compile Include="PrimaryKeyInfoCache.cs" />
     <Compile Include="PrimaryKeyType.cs" />
+    <Compile Include="ReadOnlyListUtils.cs" />
     <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="TypeBuilding\CachingDataAccessModelAssemblyProvider.cs" />

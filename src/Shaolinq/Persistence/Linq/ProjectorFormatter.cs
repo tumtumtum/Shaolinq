@@ -1,7 +1,9 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
+﻿using System.Linq.Expressions;
 using System.Text;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -209,7 +211,7 @@ namespace Shaolinq.Persistence.Linq
 			return methodCallExpression;
 		}
 
-		protected override System.Collections.Generic.IEnumerable<MemberBinding> VisitBindingList(System.Collections.ObjectModel.ReadOnlyCollection<MemberBinding> original)
+		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
 		{
 			output.Append("{");
 

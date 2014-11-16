@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
+using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -112,40 +113,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected class BindResult
 		{
-			private readonly ReadOnlyCollection<SqlColumnDeclaration> columns;
-			private readonly ReadOnlyCollection<SqlOrderByExpression> orderings;
+			private readonly IReadOnlyList<SqlColumnDeclaration> columns;
+			private readonly IReadOnlyList<SqlOrderByExpression> orderings;
+			public IReadOnlyList<SqlColumnDeclaration> Columns { get { return this.columns; } }
+			public IReadOnlyList<SqlOrderByExpression> Orderings { get { return this.orderings; } }
 
 			public BindResult(IEnumerable<SqlColumnDeclaration> columns, IEnumerable<SqlOrderByExpression> orderings)
 			{
-				this.columns = columns as ReadOnlyCollection<SqlColumnDeclaration>;
-
-				if (this.columns == null)
-				{
-					this.columns = new List<SqlColumnDeclaration>(columns).AsReadOnly();
-				}
-
-				this.orderings = orderings as ReadOnlyCollection<SqlOrderByExpression>;
-				
-				if (this.orderings == null)
-				{
-					this.orderings = new List<SqlOrderByExpression>(orderings).AsReadOnly();
-				}
-			}
-
-			public ReadOnlyCollection<SqlColumnDeclaration> Columns
-			{
-				get
-				{
-					return this.columns;
-				}
-			}
-
-			public ReadOnlyCollection<SqlOrderByExpression> Orderings
-			{
-				get
-				{
-					return this.orderings;
-				}
+				this.columns = columns.ToReadOnlyList();
+				this.orderings = orderings.ToReadOnlyList();
 			}
 		}
 

@@ -1,24 +1,23 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Collections.ObjectModel;
+using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlEnumDefinitionExpression
 		: SqlBaseExpression
 	{
-		public ReadOnlyCollection<string> Labels { get; private set; }
+		public IReadOnlyList<string> Labels { get; private set; }
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.EnumDefinition; } }
 
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.EnumDefinition;
-			}
+		public SqlEnumDefinitionExpression(IEnumerable<string> labels)
+			: this(labels.ToReadOnlyList())
+		{	
 		}
 
-		public SqlEnumDefinitionExpression(ReadOnlyCollection<string> labels)
+		public SqlEnumDefinitionExpression(IReadOnlyList<string> labels)
 			: base(typeof(void))
 		{
 			this.Labels = labels;

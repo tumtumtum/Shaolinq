@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Platform;
+using Platform.Collections;
 using Platform.Reflection;
 
 namespace Shaolinq.Persistence
@@ -14,11 +15,11 @@ namespace Shaolinq.Persistence
 	{
 		public Type Type { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
-		public ICollection<PropertyDescriptor> RelatedProperties { get; private set; }
-		public ICollection<PropertyDescriptor> PrimaryKeyProperties { get; private set; }
-		public ICollection<PropertyDescriptor> PersistedProperties { get; private set; }
-		public ICollection<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
-		public ICollection<PropertyDescriptor> ComputedTextProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; private set; }
 		public string TypeName { get { return this.Type.Name; } }
 		public bool HasPrimaryKeys { get { return this.PrimaryKeyProperties.Count > 0; } }
 		public int PrimaryKeyCount { get { return this.PrimaryKeyProperties.Count; } }
@@ -324,11 +325,11 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-			this.RelatedProperties = new ReadOnlyCollection<PropertyDescriptor>(relatedProperties);
-			this.PersistedProperties = new ReadOnlyCollection<PropertyDescriptor>(propertyDescriptorsInOrder);
-			this.PrimaryKeyProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
-			this.ComputedTextProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
-			this.PersistedAndRelatedObjectProperties = new ReadOnlyCollection<PropertyDescriptor>(this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToList());
+			this.RelatedProperties = new ReadOnlyList<PropertyDescriptor>(relatedProperties);
+			this.PersistedProperties = new ReadOnlyList<PropertyDescriptor>(propertyDescriptorsInOrder);
+			this.PrimaryKeyProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
+			this.ComputedTextProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
+			this.PersistedAndRelatedObjectProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToList());
 
 			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)
 			{

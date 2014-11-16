@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
+using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -11,7 +12,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public string ReferencedTableName {get;private set;}
-		public ReadOnlyCollection<string> ReferencedColumnNames {get;private set;}
+		public IReadOnlyList<string> ReferencedColumnNames {get;private set;}
 		public SqlColumnReferenceDeferrability Deferrability { get; private set; }
 		public SqlColumnReferenceAction OnDeleteAction { get; private set; }
 		public SqlColumnReferenceAction OnUpdateAction { get; private set; }
@@ -25,16 +26,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
-			: this(referencedTableName, deferrability, referencedColumnNames.ToList(), onDelete, onUpdate)
+			: this(referencedTableName, deferrability, referencedColumnNames.ToReadOnlyList(), onDelete, onUpdate)
 		{
 		}
 
-		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IList<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
-			: this(referencedTableName, deferrability, new ReadOnlyCollection<string>(referencedColumnNames), onDelete, onUpdate)
-		{
-		}
-
-		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, ReadOnlyCollection<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
+		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IReadOnlyList<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
 			: base(typeof(void))
 		{
 			this.OnDeleteAction = onDelete;

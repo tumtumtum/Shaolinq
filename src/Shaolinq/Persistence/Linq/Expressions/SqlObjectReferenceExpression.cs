@@ -10,6 +10,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public ReadOnlyCollection<MemberBinding> Bindings { get; private set; }
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ObjectReference; } }
 
 		public IEnumerable<MemberBinding> GetBindingsFlattened()
 		{
@@ -38,23 +39,20 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.ObjectReference;
-			}
-		}
-
 		public SqlObjectReferenceExpression(Type type, MemberBinding[] bindings)
-			: this(type, (IEnumerable<MemberAssignment>)bindings)
+			: this(type, bindings.ToReadOnlyList())
 		{	
 		}
 
 		public SqlObjectReferenceExpression(Type type, IEnumerable<MemberBinding> bindings)
+			: this(type, new ReadOnlyCollection<MemberBinding>(bindings.ToList()))
+		{
+		}
+
+		public SqlObjectReferenceExpression(Type type, ReadOnlyCollection<MemberBinding> bindings)
 			: base(type)
 		{
-			this.Bindings = new ReadOnlyCollection<MemberBinding>(bindings.ToList());
+			this.Bindings = bindings;
 		}
 	}
 }

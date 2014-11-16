@@ -5,7 +5,8 @@
 ﻿using System.Linq;
 ﻿using System.Reflection;
 using Platform;
-using Platform.Reflection;
+﻿using Platform.Collections;
+﻿using Platform.Reflection;
 using Platform.Validation;
 
 namespace Shaolinq.Persistence
@@ -25,7 +26,7 @@ namespace Shaolinq.Persistence
 		public ValueRequiredAttribute ValueRequiredAttribute { get; private set; }
 		public BackReferenceAttribute BackReferenceAttribute { get; private set; }
 		public PersistedMemberAttribute PersistedMemberAttribute { get; private set; }
-		public ReadOnlyCollection<IndexAttribute> IndexAttributes { get; private set; }
+		public IReadOnlyList<IndexAttribute> IndexAttributes { get; private set; }
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; private set; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; private set; }
 		public string PropertyName { get { return this.PropertyInfo.Name; } }
@@ -81,7 +82,7 @@ namespace Shaolinq.Persistence
 				this.PersistedShortName = propertyInfo.Name;
 			}
 
-			this.IndexAttributes = new ReadOnlyCollection<IndexAttribute>(this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToList());
+			this.IndexAttributes = new ReadOnlyList<IndexAttribute>(this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToList());
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
 		}
 
