@@ -96,11 +96,11 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var foreignKeyColumn in columnInfos)
 			{
-				var retval = (SqlColumnDefinitionExpression)this.BuildColumnDefinition(foreignKeyColumn);
+				var retval = this.BuildColumnDefinition(foreignKeyColumn);
 
 				if (columnInfos.Length == 1 && supportsInlineForeignKeys)
 				{
-					var names = new ReadOnlyCollection<string>(new[] { foreignKeyColumn.DefinitionProperty.PersistedName });
+					var names = new[] { foreignKeyColumn.DefinitionProperty.PersistedName };
 					var newConstraints = new List<Expression>(retval.ConstraintExpressions);
 					var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, names, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
 
@@ -114,8 +114,8 @@ namespace Shaolinq.Persistence.Linq
 
 			if (columnInfos.Length > 1 || !supportsInlineForeignKeys)
 			{
-				var currentTableColumnNames = new ReadOnlyCollection<string>(columnInfos.Select(c => c.ColumnName).ToList());
-				var referencedTableColumnNames = new ReadOnlyCollection<string>(columnInfos.Select(c => c.GetTailColumnName()).ToList());
+				var currentTableColumnNames = columnInfos.Select(c => c.ColumnName);
+				var referencedTableColumnNames = columnInfos.Select(c => c.GetTailColumnName());
 				var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, referencedTableColumnNames, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
 				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
 

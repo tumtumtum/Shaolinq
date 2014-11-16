@@ -1,31 +1,29 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Collections.ObjectModel;
+using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlCreateIndexExpression
 		: SqlBaseExpression
 	{
-		public string IndexName { get; private set; }
-		public SqlTableExpression Table { get; private set; }
 		public bool Unique { get; private set; }
+		public string IndexName { get; private set; }
+		public bool IfNotExist { get; private set; }
 		public bool LowercaseIndex { get; private set; }
 		public IndexType IndexType { get; private set; }
-		public bool IfNotExist { get; private set; }
-		public ReadOnlyCollection<SqlIndexedColumnExpression> Columns { get; private set; }
+		public SqlTableExpression Table { get; private set; }
+		public IReadOnlyList<SqlIndexedColumnExpression> Columns { get; private set; }
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.CreateIndex; } }
 
-		public override ExpressionType NodeType
+		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IEnumerable<SqlIndexedColumnExpression> columns)
+			: this(indexName, table, unique, lowercaseIndex, indexType, ifNotExist, columns.ToReadOnlyList())
 		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.CreateIndex;
-			}
 		}
 
-		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, ReadOnlyCollection<SqlIndexedColumnExpression> columns)
+		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IReadOnlyList<SqlIndexedColumnExpression> columns)
 			: base(typeof(void))
 		{
 			this.IndexName = indexName;

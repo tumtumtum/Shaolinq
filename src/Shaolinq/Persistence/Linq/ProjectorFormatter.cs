@@ -161,7 +161,7 @@ namespace Shaolinq.Persistence.Linq
 			return initializer;
 		}
 
-		protected override System.Collections.Generic.IEnumerable<ElementInit> VisitElementInitializerList(System.Collections.ObjectModel.ReadOnlyCollection<ElementInit> original)
+		protected override IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
 		{
 			output.Append("{");
 

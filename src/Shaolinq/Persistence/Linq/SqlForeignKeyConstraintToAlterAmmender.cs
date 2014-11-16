@@ -57,7 +57,7 @@ namespace Shaolinq.Persistence.Linq
 					var newList = new List<Expression>(retval.Statements);
 					
 					newList.AddRange(ammendments);
-					retval = new SqlStatementListExpression(new ReadOnlyCollection<Expression>(newList));
+					retval = new SqlStatementListExpression(newList);
 				}
 			}
 

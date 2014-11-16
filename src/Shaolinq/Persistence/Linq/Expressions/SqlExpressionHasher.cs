@@ -125,6 +125,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
+		protected override IReadOnlyList<T> VisitExpressionList<T>(IReadOnlyList<T> original)
+		{
+			if (original == null)
+			{
+				return null;
+			}
+
+			hashCode ^= original.Count;
+
+			return base.VisitExpressionList<T>(original);
+		}
+
 		protected override ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
 		{
 			if (original == null)
