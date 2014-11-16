@@ -9,14 +9,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public int Index { get; private set; }
 		public ConstantExpression ConstantExpression { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.ConstantPlaceholder;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ConstantPlaceholder; } }
 
 		public SqlConstantPlaceholderExpression(int index, ConstantExpression constantExpression)
 			: base(constantExpression.Type)

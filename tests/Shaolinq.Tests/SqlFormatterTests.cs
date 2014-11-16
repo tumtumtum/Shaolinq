@@ -54,7 +54,7 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new []
 			{
-				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new ReadOnlyCollection<string>(new [] { "Id"}), SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
+				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression("Table2", SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
 			};
 
 			var constraints = new Expression[]

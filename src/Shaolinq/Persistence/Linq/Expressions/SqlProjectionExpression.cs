@@ -14,14 +14,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public LambdaExpression Aggregator { get; private set; }
 		public SelectFirstType SelectFirstType { get; private set; }
 		public Expression DefaultValueExpression { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.Projection;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Projection; } }
 
 		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator)
 			: this(select, projector, aggregator, false)

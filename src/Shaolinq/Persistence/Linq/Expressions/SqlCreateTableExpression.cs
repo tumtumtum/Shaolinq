@@ -13,14 +13,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlTableExpression Table { get; private set; }
 		public IReadOnlyList<Expression> TableConstraints { get; private set; }
 		public IReadOnlyList<SqlColumnDefinitionExpression> ColumnDefinitionExpressions { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.CreateTable;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.CreateTable; } }
 
 		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IEnumerable<SqlColumnDefinitionExpression> columnExpressions, IEnumerable<Expression> tableConstraintExpressions)
 			: this(table, ifNotExist, columnExpressions.ToReadOnlyList(), tableConstraintExpressions.ToReadOnlyList())

@@ -230,7 +230,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 				
-			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, new ReadOnlyCollection<SqlIndexedColumnExpression>(indexedColumns));
+			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, indexedColumns);
 		}
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
@@ -290,13 +290,13 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			return new SqlStatementListExpression(new ReadOnlyCollection<Expression>(expressions));
+			return new SqlStatementListExpression(expressions);
 		}
 
 		private Expression BuildCreateEnumTypeExpression(EnumTypeDescriptor enumTypeDescriptor)
 		{
 			var sqlTypeExpression = new SqlTypeExpression(enumTypeDescriptor.Name);
-			var asExpression = new SqlEnumDefinitionExpression(new ReadOnlyCollection<string>(enumTypeDescriptor.GetValues()));
+			var asExpression = new SqlEnumDefinitionExpression(enumTypeDescriptor.GetValues());
 
 			return new SqlCreateTypeExpression(sqlTypeExpression, asExpression, true);
 		}

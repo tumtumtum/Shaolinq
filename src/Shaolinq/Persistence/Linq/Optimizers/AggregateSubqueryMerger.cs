@@ -52,8 +52,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 							return base.VisitSelect(selectExpression);
 						}
 
-						var sqlColumnExpression = (SqlColumnExpression)column.Expression;
-                        
 						var newAggregate = new SqlAggregateExpression
 						(
 							aggregateExpression.Type,
@@ -72,7 +70,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				var where = Visit(from.Where);
 
-				return new SqlSelectExpression(from.Type, from.Alias, newColumns, from.From, where, from.OrderBy, from.GroupBy, from.Distinct, from.Skip, from.Take, from.ForUpdate || selectExpression.ForUpdate);
+				return from.ChangeWhereAndColumns(where, newColumns.ToReadOnlyList(), from.ForUpdate || selectExpression.ForUpdate);
 			}
 
 			return base.VisitSelect(selectExpression);

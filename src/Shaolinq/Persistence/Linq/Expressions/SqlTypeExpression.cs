@@ -9,14 +9,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string TypeName { get; private set; }
 		public bool UserDefinedType { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.Type;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Type; } }
 
 		public SqlTypeExpression(string typeName)
 			: this(typeName, false)

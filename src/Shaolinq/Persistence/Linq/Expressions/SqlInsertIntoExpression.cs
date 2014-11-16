@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Linq.Expressions;
 using Platform.Collections;
 
@@ -13,16 +11,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string TableName { get; private set; }
 		public IReadOnlyList<string> ColumnNames { get; private set; }
-		public IReadOnlyList<string> ReturningAutoIncrementColumnNames { get; private set; }
 		public IReadOnlyList<Expression> ValueExpressions { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.InsertInto;
-			}
-		}
+		public IReadOnlyList<string> ReturningAutoIncrementColumnNames { get; private set; }
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.InsertInto; } }
 
 		public SqlInsertIntoExpression(string tableName, IEnumerable<string> columnNames, IEnumerable<string> returningAutoIncrementColumnNames, IEnumerable<Expression> valueExpressions)
 			: this(tableName, columnNames.ToReadOnlyList(), returningAutoIncrementColumnNames.ToReadOnlyList(), valueExpressions.ToReadOnlyList())

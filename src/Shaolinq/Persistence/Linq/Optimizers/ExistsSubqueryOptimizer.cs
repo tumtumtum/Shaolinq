@@ -21,15 +21,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				if (functionCallExpression.Arguments[0].NodeType == ExpressionType.Constant && functionCallExpression.Arguments[1].NodeType == (ExpressionType)SqlExpressionType.Projection)
 				{
-					var projection = (SqlProjectionExpression)functionCallExpression.Arguments[1];
+					var projector = (SqlProjectionExpression)functionCallExpression.Arguments[1];
 
-					if (projection.Select.Where == null &&  projection.Select.Columns.Count == 1)
+					if (projector.Select.Where == null &&  projector.Select.Columns.Count == 1)
 					{
-						var newWhere = Expression.Equal(functionCallExpression.Arguments[0], projection.Select.Columns[0].Expression);
-						var newSelect = new SqlSelectExpression(projection.Select.Type, projection.Select.Alias, projection.Select.Columns, projection.Select.From, newWhere, projection.Select.OrderBy, projection.Select.ForUpdate);
-						var newProjection = new SqlProjectionExpression(newSelect, projection, projection.Aggregator);
+						var newWhere = Expression.Equal(functionCallExpression.Arguments[0], projector.Select.Columns[0].Expression);
+						var newSelect = projector.Select.ChangeWhere(newWhere);
+						var newProjection = new SqlProjectionExpression(newSelect, projector, projector.Aggregator);
 
-						return new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Exists, new [] { newProjection });
+						return new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Exists, new Expression[] { newProjection });
 					}
 				}
 			}

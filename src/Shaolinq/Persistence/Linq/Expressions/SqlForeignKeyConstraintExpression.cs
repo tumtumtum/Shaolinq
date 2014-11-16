@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Linq.Expressions;
 using Platform.Collections;
 
@@ -14,14 +12,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public string ConstraintName { get; set; }
 		public IReadOnlyList<string> ColumnNames { get; set; }
 		public SqlReferencesColumnExpression ReferencesColumnExpression { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.ForeignKeyConstraint;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ForeignKeyConstraint; } }
 
 		public SqlForeignKeyConstraintExpression(string constraintName, IEnumerable<string> columnNames, SqlReferencesColumnExpression referencesColumnExpression)
 			: this(constraintName, columnNames.ToReadOnlyList(), referencesColumnExpression)

@@ -450,7 +450,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				}
 			}
 
-			return newStatements == null ? statementListExpression : new SqlStatementListExpression(new ReadOnlyCollection<Expression>(newStatements));
+			return newStatements == null ? statementListExpression : new SqlStatementListExpression(newStatements);
 		}
 
 		protected virtual Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)

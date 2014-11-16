@@ -13,45 +13,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlColumnExpression
 		: SqlBaseExpression
 	{
-		/// <summary>
-		/// The alias for the table/select-expression that this column references.
-		/// </summary>
-		public string SelectAlias { get; private set; }
-
-		/// <summary>
-		/// The name of the column within the select that this expression represents.
-		/// </summary>
 		public string Name { get; private set; }
+		public string SelectAlias { get; private set; }
+		public string AliasedName { get; private set; }
 
-		/// <summary>
-		/// Gets the name of the column with the alias prepended.
-		/// </summary>
-		public string AliasedName
-		{
-			get
-			{
-				if (string.IsNullOrEmpty(this.SelectAlias))
-				{
-					return this.Name;
-				}
-
-				return this.SelectAlias + "." + this.Name;
-			}
-		}
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.Column;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Column; } }
 
 		public SqlColumnExpression(Type type, string alias, string name)
 			: base(type)
 		{
 			this.Name = name; 
 			this.SelectAlias = alias;
+			this.AliasedName = string.IsNullOrEmpty(this.SelectAlias) ? this.Name : this.SelectAlias + "." + this.Name;
 		}
 
 		public override string ToString()

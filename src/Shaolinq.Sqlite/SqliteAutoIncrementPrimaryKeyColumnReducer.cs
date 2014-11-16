@@ -38,7 +38,6 @@ namespace Shaolinq.Sqlite
 			{
 				var autoIncrementColumns = createTableExpression
 					.ColumnDefinitionExpressions
-					.OfType<SqlColumnDefinitionExpression>()
 					.SelectMany(c => c.ConstraintExpressions.OfType<SqlSimpleConstraintExpression>().Select(d => new { Constraint = d, ColumnDefinition = c}))
 					.Where(c => c.Constraint.Constraint == SqlSimpleConstraint.AutoIncrement)
 					.ToList();

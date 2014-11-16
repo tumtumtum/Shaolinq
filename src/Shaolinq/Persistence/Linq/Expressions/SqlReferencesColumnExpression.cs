@@ -16,14 +16,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlColumnReferenceDeferrability Deferrability { get; private set; }
 		public SqlColumnReferenceAction OnDeleteAction { get; private set; }
 		public SqlColumnReferenceAction OnUpdateAction { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.ReferencesColumn;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ReferencesColumn; } }
 
 		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
 			: this(referencedTableName, deferrability, referencedColumnNames.ToReadOnlyList(), onDelete, onUpdate)

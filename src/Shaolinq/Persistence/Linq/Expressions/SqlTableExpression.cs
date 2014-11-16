@@ -10,14 +10,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string Name { get; private set; }
 		public string Alias { get; private set; }
-
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.Table;
-			}
-		}
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Table; } }
 
 		public SqlTableExpression(string name)
 			: base(typeof(void))

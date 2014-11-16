@@ -7,16 +7,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlConstraintActionExpression
 		: SqlBaseExpression
 	{
-		public override ExpressionType NodeType
-		{
-			get
-			{
-				return (ExpressionType)SqlExpressionType.ConstraintAction;
-			}
-		}
-
 		public SqlConstraintActionType ActionType {get; private set;}
 		public Expression ConstraintExpression { get; private set; }
+		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ConstraintAction; } }
 
 		public SqlConstraintActionExpression(SqlConstraintActionType actionType, Expression constraintExpression)
 			: base(typeof(void))
