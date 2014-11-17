@@ -1,6 +1,8 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
+using System.Linq;
+﻿using System.Linq.Expressions;
 ﻿using System.Text;
 ﻿using Platform;
 
@@ -18,6 +20,20 @@ namespace Shaolinq
 				   || type == typeof(DateTime)
 				   || type == typeof(TimeSpan)
 				   || type == typeof(bool);
+		}
+
+		public static NewExpression CreateNewExpression(this Type type, params Expression[] arguments)
+		{
+			if (arguments.Length == 0)
+			{
+				return Expression.New(type);
+			}
+			else
+			{
+				var constructor = type.GetConstructor(arguments.Select(c => c.Type).ToArray());
+
+				return Expression.New(constructor, arguments);
+			}
 		}
 
 		public static bool IsNullableType(this Type type)

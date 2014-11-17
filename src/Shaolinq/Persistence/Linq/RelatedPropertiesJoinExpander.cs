@@ -103,6 +103,8 @@ namespace Shaolinq.Persistence.Linq
 
 		public static RelatedPropertiesJoinExpanderResults Expand(DataAccessModel model, Expression expression)
 		{
+			expression = JoinSelectorExpander.Expand(expression);
+
 			var visitor = new RelatedPropertiesJoinExpander(model);
 
 			var processedExpression = visitor.Visit(expression);
