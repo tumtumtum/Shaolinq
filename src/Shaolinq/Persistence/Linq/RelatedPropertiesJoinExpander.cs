@@ -165,12 +165,10 @@ namespace Shaolinq.Persistence.Linq
 			var rootPath = targetPath.PathWithoutLast();
 			var leftSelectorParameter = Expression.Parameter(leftElementType);
 
-			if (!rootExpressionsByPath.TryGetValue(rootPath, out leftObject))
+			if (index == 1 && rootExpressionsByPath.ContainsKey(rootPath))
 			{
-				leftObject = CreateExpressionForPath(index - 1, rootPath, leftSelectorParameter, indexByPath);
-			}
-			else
-			{
+				leftObject = rootExpressionsByPath[rootPath];
+
 				leftObject = ExpressionReplacer.Replace(leftObject, c =>
 				{
 					if (c == sourceParameterExpression)
@@ -180,6 +178,18 @@ namespace Shaolinq.Persistence.Linq
 
 					return null;
 				});
+			}
+			else 
+			{
+				leftObject = CreateExpressionForPath(index - 1, rootPath, leftSelectorParameter, indexByPath);
+
+				if (rootExpressionsByPath.ContainsKey(rootPath))
+				{
+					foreach (var property in rootPath)
+					{
+						leftObject = Expression.Property(leftObject, property.Name);
+					}
+				}
 			}
 
 			var leftSelector = Expression.Lambda(Expression.Property(leftObject, targetPath.Last().Name), leftSelectorParameter);
@@ -272,6 +282,11 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				indexByPath[PropertyPath.Empty] = 0;
+
+				foreach (var x in currentRootExpressionsByPath)
+				{
+					indexByPath[x.Key] = 0;
+				}
 
 				foreach (var path in referencedObjectPaths.Select(c => c.FullAccessPropertyPath))
 				{

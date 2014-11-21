@@ -156,6 +156,7 @@
     <Compile Include="SqliteSqlQueryFormatter.cs" />
     <Compile Include="SqliteOfficialsSqlDatabaseContext.cs" />
     <Compile Include="SqliteOfficialSqlDatabaseSchemaManager.cs" />
+    <Compile Include="SqlServerSqlDatabaseSchemaManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

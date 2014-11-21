@@ -141,6 +141,7 @@ namespace Shaolinq.Tests
 				select new
 				{
 					shop.Address,
+					shop.SecondAddress,
 					address1.Region
 				};
 
@@ -260,13 +261,29 @@ namespace Shaolinq.Tests
 					 address1 in model.Addresses on shop.Address equals address1
 				 select new
 				 {
-					 shop,
 					 address1
 				 }).Select(c => new
 				 {
 					 c.address1.Region,
-					 c.shop.SecondAddress
+					 c.address1.Region2
 				 });
+
+			var results = query.ToList();
+		}
+
+		[Test]
+		public void Test_Select_Then_Select_With_Multiple_Implicit_Joins()
+		{
+			var query = (from address in model.Addresses
+						 select new
+						 {
+							 address1 = address
+						 }).Select
+				(c => new
+				{
+					c.address1.Region,
+					c.address1.Region2
+				});
 
 			var results = query.ToList();
 		}

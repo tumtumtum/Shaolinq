@@ -13,6 +13,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public  class ReferencedRelatedObjectPropertyGatherer
 		: SqlExpressionVisitor
 	{
+		private int nesting = 0;
 		private bool disableCompare;
 		private Expression currentParent;
 		private readonly bool forProjection; 
@@ -80,8 +81,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 		}
 
-		private int nesting = 0;
-		
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
 			if (methodCallExpression.Method.IsGenericMethod
