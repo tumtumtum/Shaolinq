@@ -261,9 +261,11 @@ namespace Shaolinq.Tests
 					 address1 in model.Addresses on shop.Address equals address1
 				 select new
 				 {
+					 shop,
 					 address1
 				 }).Select(c => new
 				 {
+					 c.shop.Address.Region.Center,
 					 c.address1.Region,
 					 c.address1.Region2
 				 });
