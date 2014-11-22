@@ -325,7 +325,7 @@ namespace Shaolinq.Tests
 			var results = query.ToList();
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public void Test_Complex_Explicit_And_Implicit_Joins_With_OrderBy()
 		{
 			var query =
@@ -386,7 +386,7 @@ namespace Shaolinq.Tests
 			var results = query.ToList();
 		}
 
-		[Test, Ignore("Will fix by insert additional select in join")]
+		[Test]
 		public void Test_Explicit_Useless_Join_And_Project_Requiring_Implicit_Join()
 		{
 			var query =
@@ -453,7 +453,7 @@ namespace Shaolinq.Tests
 			var results = query.ToList();
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public void Test_Complex_Explicit_And_Implicit_Joins_With_Include_And_OrderBy()
 		{
 			var query =
