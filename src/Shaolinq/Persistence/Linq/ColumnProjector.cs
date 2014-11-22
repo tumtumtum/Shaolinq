@@ -59,47 +59,27 @@ namespace Shaolinq.Persistence.Linq
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
-		private readonly Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		internal ColumnProjector(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
 			mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 
 			this.typeDescriptorProvider = typeDescriptorProvider;
-			this.sqlObjectReferenceByMemberInit = sqlObjectReferenceByMemberInit;
 			this.newAlias = newAlias;
 			this.existingAliases = existingAliases;
 			this.candidates = Nominator.Nominate(canBeColumn, expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, Dictionary<MemberInitExpression, SqlObjectReferenceExpression> sqlObjectReferenceByMemberInit, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, params string[] existingAliases)
 		{
-			var projector = new ColumnProjector(typeDescriptorProvider, canBeColumn, expression, newAlias, sqlObjectReferenceByMemberInit, existingAliases);
+			var projector = new ColumnProjector(typeDescriptorProvider, canBeColumn, expression, newAlias, existingAliases);
 
 			expression = projector.Visit(expression);
 
 			return new ProjectedColumns(expression, projector.columns.ToReadOnlyList());
-		}
-
-		protected override Expression VisitMemberInit(MemberInitExpression expression)
-		{
-			var retval = base.VisitMemberInit(expression);
-			var newMemberInit = retval as MemberInitExpression;
-
-			if (retval != expression && newMemberInit != null && expression.Type.IsDataAccessObjectType())
-			{
-				var typeDescriptor = typeDescriptorProvider.GetTypeDescriptor(expression.Type);
-				var bindingsByName = newMemberInit.Bindings.ToDictionary(c => c.Member.Name, c => c);
-
-				this.sqlObjectReferenceByMemberInit[expression] = new SqlObjectReferenceExpression(newMemberInit.Type, typeDescriptor.PrimaryKeyProperties.Select(c => bindingsByName[c.PropertyName]));
-
-				return retval;
-			}
-
-			return retval;
 		}
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)

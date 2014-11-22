@@ -63,6 +63,7 @@ namespace Shaolinq.Tests
 				shop.SecondAddress.Street = "Jefferson Avenue";
 				shop.SecondAddress.Region = region;
 				shop.SecondAddress.Region.Name = "Washington";
+				shop.SecondAddress.Region.Diameter = 100;
 				
 				scope.Flush(model);
 
@@ -94,7 +95,87 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Complex_Explicit_Joins_With_Include()
+		public void Test_Complex_Explicit_Joins_With_Explicit_Include_In_Select()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses on shop.Address equals address1
+				join
+				address2 in model.Addresses on shop.SecondAddress equals address2
+				join
+				address3 in model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
+				select
+				new
+				{
+					shop,
+					region1 = address1.Region,
+					region2 = address2.Region,
+					region3a = address3.Region,
+					region3b = address3.Region2,
+				};
+
+			var first = query.First();
+
+			Assert.IsFalse(first.region1.IsDeflatedReference);
+			Assert.IsFalse(first.region2.IsDeflatedReference);
+			Assert.AreEqual(2000, first.region1.Diameter);
+			Assert.AreEqual(100, first.region2.Diameter);
+			Assert.IsNull(first.region3a);
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_Joins_With_Back_Reference_On_Condition()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses on shop.Address equals address1
+				join
+				address2 in model.Addresses on address1 equals address2
+				select
+				new
+				{
+					address1,
+					address2
+				};
+
+			using (var scope = new TransactionScope())
+			{
+				var first = query.First();
+
+				Assert.AreSame(first.address1, first.address2);
+			}
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_Joins_Same_Objects()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses on shop.Address equals address1
+				join
+				address2 in model.Addresses on shop.Address equals address2
+				select
+				new
+				{
+					shop,
+					address1,
+					address2
+				};
+
+			var first = query.First();
+
+			// TODO: Assert.AreSame(first.address1, first.address2);
+			Assert.AreEqual(first.address1, first.address2);
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_Joins_With_Include_In_Queryables()
 		{
 			var query =
 				from
@@ -103,15 +184,74 @@ namespace Shaolinq.Tests
 				address1 in model.Addresses.Include(c => c.Region) on shop.Address equals address1
 				join
 				address2 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
+				join
+				address3 in model.Addresses.Include(c => c.Region).DefaultIfEmpty() on shop.ThirdAddress equals address3
+				join
+				address4 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address4
+				join
+				address5 in model.Addresses.Include(c => c.Region) on address4 equals address5
 				select
 				new
 				{
 					shop,
-					region1 = address1.Street,
-					region2 = address2.Street,
+					address1,
+					address2,
+					address3,
+					address4,
+					address5
 				};
 
-			var results = query.ToList();
+			using (var scope = new TransactionScope())
+			{
+				var first = query.First();
+
+				Assert.AreSame(first.address4, first.address5);
+
+				Assert.IsFalse(first.address1.Region.IsDeflatedReference);
+				Assert.IsFalse(first.address2.Region.IsDeflatedReference);
+				Assert.IsFalse(first.address4.Region.IsDeflatedReference);
+				Assert.AreEqual("Madison Street", first.address1.Street);
+				Assert.AreEqual("Jefferson Avenue", first.address2.Street);
+				Assert.AreEqual("Jefferson Avenue", first.address4.Street);
+				Assert.AreEqual(2000, first.address1.Region.Diameter);
+				Assert.AreEqual(100, first.address2.Region.Diameter);
+				Assert.AreEqual(100, first.address4.Region.Diameter);
+				Assert.IsNull(first.address3);
+			}
+		}
+
+		[Test]
+		public void Test_Complex_Explicit_Joins_Without_Include_In_Queryables()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join
+				address1 in model.Addresses on shop.Address equals address1
+				join
+				address2 in model.Addresses on shop.SecondAddress equals address2
+				join
+				address3 in model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
+				select
+				new
+				{
+					shop,
+					address1,
+					address2,
+					address3
+				};
+
+			var first = query.First();
+
+			Assert.IsTrue(first.address1.Region.IsDeflatedReference);
+			Assert.IsTrue(first.address2.Region.IsDeflatedReference);
+			Assert.AreEqual("Madison Street", first.address1.Street);
+			Assert.AreEqual("Jefferson Avenue", first.address2.Street);
+			Assert.AreEqual(2000, first.address1.Region.Diameter);
+			Assert.AreEqual(100, first.address2.Region.Diameter);
+			Assert.IsFalse(first.address1.Region.IsDeflatedReference);
+			Assert.IsFalse(first.address2.Region.IsDeflatedReference);
+			Assert.IsNull(first.address3);
 		}
 
 		[Test]
@@ -449,7 +589,7 @@ namespace Shaolinq.Tests
 				{
 					c.shop,
 					diameter1 = c.address1.Region.Diameter,
-					//range1 = c.shop.Address.Region.Range
+					range1 = c.shop.Address.Region.Range
 				});
 
 			var results = query.ToList();

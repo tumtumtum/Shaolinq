@@ -28,8 +28,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly Stack<Expression> selectorPredicateStack = new Stack<Expression>();
 		private readonly Dictionary<Expression, GroupByInfo> groupByMap = new Dictionary<Expression, GroupByInfo>();
 		private readonly Dictionary<ParameterExpression, Expression> expressionsByParameter = new Dictionary<ParameterExpression, Expression>();
-		private readonly Dictionary<MemberInitExpression, SqlObjectReferenceExpression> objectReferenceByMemberInit = new Dictionary<MemberInitExpression, SqlObjectReferenceExpression>(MemberInitEqualityComparer.Default);
-
+		
 		protected void AddExpressionByParameter(ParameterExpression parameterExpression, Expression expression)
 		{
 			expressionsByParameter[parameterExpression] = expression;
@@ -150,7 +149,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, QueryBinder.IsIntegralType, expression, newAlias, this.objectReferenceByMemberInit, existingAliases);
+			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, QueryBinder.IsIntegralType, expression, newAlias, existingAliases);
 		}
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
@@ -299,16 +298,6 @@ namespace Shaolinq.Persistence.Linq
 			left = Visit(binaryExpression.Left);
 			right = Visit(binaryExpression.Right);
 
-			if (left.NodeType == ExpressionType.MemberInit)
-			{
-				left = this.objectReferenceByMemberInit[(MemberInitExpression)left];
-			}
-
-			if (right.NodeType == ExpressionType.MemberInit)
-			{
-				right = this.objectReferenceByMemberInit[(MemberInitExpression)right];
-			}
-			
 			var conversion = Visit(binaryExpression.Conversion);
 
 			if (left != binaryExpression.Left || right != binaryExpression.Right || conversion != binaryExpression.Conversion)
@@ -404,16 +393,6 @@ namespace Shaolinq.Persistence.Linq
 			var outerKeyExpr = StripNullCheck(this.Visit(outerKey.Body));
 			AddExpressionByParameter(innerKey.Parameters[0], innerProjection.Projector);
 			var innerKeyExpression = StripNullCheck(this.Visit(innerKey.Body));
-			
-			if (outerKeyExpr.NodeType == ExpressionType.MemberInit)
-			{
-				outerKeyExpr = this.objectReferenceByMemberInit[(MemberInitExpression)outerKeyExpr];
-			}
-			
-			if (innerKeyExpression.NodeType == ExpressionType.MemberInit)
-			{
-				innerKeyExpression = this.objectReferenceByMemberInit[(MemberInitExpression)innerKeyExpression];
-			}
 			
 			AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);
 			AddExpressionByParameter(resultSelector.Parameters[1], innerProjection.Projector);
@@ -1507,8 +1486,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var projectorExpression = Expression.MemberInit(Expression.New(elementType), rootBindings);
-			this.objectReferenceByMemberInit[projectorExpression] = rootObjectReference;
-
+			
 			var resultType = typeof(IEnumerable<>).MakeGenericType(elementType);
 			var projection = new SqlProjectionExpression(new SqlSelectExpression(resultType, selectAlias, tableColumns, new SqlTableExpression(resultType, tableAlias, typeDescriptor.PersistedName), null, null, false), projectorExpression, null);
 
