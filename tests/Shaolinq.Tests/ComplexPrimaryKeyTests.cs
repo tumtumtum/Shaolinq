@@ -95,6 +95,25 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Explicit_Left_Join_Empty_Right()
+		{
+			var query =
+				from
+				shop in model.Shops
+				join 
+				address in model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address
+				select
+				new
+				{
+					address
+				};
+
+			var first = query.First();
+
+			Assert.IsNull(first.address);
+		}
+
+		[Test]
 		public void Test_Complex_Explicit_Joins_With_Explicit_Include_In_Select()
 		{
 			var query =

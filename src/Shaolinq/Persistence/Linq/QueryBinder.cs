@@ -388,7 +388,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
 			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
-
+			
 			AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
 			var outerKeyExpr = StripNullCheck(this.Visit(outerKey.Body));
 			AddExpressionByParameter(innerKey.Parameters[0], innerProjection.Projector);
@@ -650,6 +650,8 @@ namespace Shaolinq.Persistence.Linq
 		{
 			Expression result;
 
+			Console.WriteLine("MethodCall: " + methodCallExpression.Method.Name);
+
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
@@ -835,6 +837,7 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            break;
 	            case "DefaultIfEmpty":
+		            Console.WriteLine("DefaultIfEmpty");
 		            if (methodCallExpression.Arguments.Count == 1)
 		            {
 			            var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
@@ -1527,6 +1530,16 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
+			if (constantExpression.Value is IQueryable)
+			{
+				// Mono Queryable.Join wraps inner in a constant even if it is IQueryable
+
+				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
+				{
+					return this.Visit(((IQueryable)constantExpression.Value).Expression);
+				}
+			}
+
 			var type = constantExpression.Type;
 
 			if (constantExpression.Value != null)
