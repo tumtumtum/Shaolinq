@@ -650,8 +650,6 @@ namespace Shaolinq.Persistence.Linq
 		{
 			Expression result;
 
-			Console.WriteLine("MethodCall: " + methodCallExpression.Method.Name);
-
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
@@ -837,7 +835,6 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            break;
 	            case "DefaultIfEmpty":
-		            Console.WriteLine("DefaultIfEmpty");
 		            if (methodCallExpression.Arguments.Count == 1)
 		            {
 			            var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
