@@ -1525,7 +1525,7 @@ namespace Shaolinq.Persistence.Linq
 			return false;
 		}
 
-		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		private bool TryProcessQueryableConstant(ConstantExpression constantExpression, out Expression result)
 		{
 			if (constantExpression.Value is IQueryable)
 			{
@@ -1533,8 +1533,24 @@ namespace Shaolinq.Persistence.Linq
 
 				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
 				{
-					return this.Visit(((IQueryable)constantExpression.Value).Expression);
+					result = this.Visit(((IQueryable)constantExpression.Value).Expression);
+
+					return true;
 				}
+			}
+
+			result = null;
+
+			return false;
+		}
+
+		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		{
+			Expression result;
+
+			if (this.TryProcessQueryableConstant(constantExpression, out result))
+			{
+				return result;
 			}
 
 			var type = constantExpression.Type;

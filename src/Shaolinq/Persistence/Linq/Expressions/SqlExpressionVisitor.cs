@@ -88,6 +88,37 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 		}
 
+		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		{
+			Expression value;
+
+			if (this.TryProcessQueryableConstant(constantExpression, out value))
+			{
+				return value;
+			}
+
+			return base.VisitConstant(constantExpression);
+		}
+
+		protected virtual bool TryProcessQueryableConstant(ConstantExpression constantExpression, out Expression result)
+		{
+			if (constantExpression.Value is IQueryable)
+			{
+				// Mono Queryable.Join wraps inner in a constant even if it is IQueryable
+
+				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
+				{
+					result = this.Visit(((IQueryable)constantExpression.Value).Expression);
+
+					return true;
+				}
+			}
+
+			result = null;
+
+			return false;
+		}
+
 		protected virtual Expression VisitPragma(SqlPragmaExpression expression)
 		{
 			return expression;
