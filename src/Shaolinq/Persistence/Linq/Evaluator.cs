@@ -147,6 +147,10 @@ namespace Shaolinq.Persistence.Linq
 
 					return Expression.Constant(value, e.Type);
 				}
+				else if (e.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
+				{
+					return e;
+				}
 				else
 				{
 					var lambda = Expression.Lambda(e);
@@ -191,7 +195,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (expression != null)
 				{
-					bool saveCannotBeEvaluated = cannotBeEvaluated;
+					var saveCannotBeEvaluated = cannotBeEvaluated;
 
 					cannotBeEvaluated = false;
 

@@ -50,8 +50,6 @@ namespace Shaolinq.Tests
 
 				var count = school.Students.Count();
 
-
-
 				var address = this.model.Address.Create();
 				address.Number = 178;
 				address.Street = "Fake Street";
@@ -422,7 +420,8 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from school in this.model.Schools
-					from student in this.model.Students.Where(x => x.School.Id == school.Id).DefaultIfEmpty()
+					from student in this.model.Students.DefaultIfEmpty()
+					where student.School == school
 					where school.Name == "Empty school"
 					select new { school, student };
 
@@ -708,13 +707,66 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Select_Many_To_List()
+		public virtual void Test_ToList()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var students = model.Students.ToList();
 
 				Assert.Greater(students.Count, 0);
+			}
+		}
+
+		[Test, Ignore("TODO")]
+		public virtual void Test_Select_Many_Students_From_Schools()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.SelectMany(c => c.Students);
+
+				var results = query.ToList();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_Students_From_Schools_Manual()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.SelectMany(c => model.Students,
+								(school, student) => new
+								{
+									school,
+									student
+								}).Where(c => c.student.School == c.school);//.Select(c => c.student);
+
+				var results = query.ToList();
+			}
+		}
+
+		[Test]
+		public virtual void Test_From_Multiple_Times()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from student in model.Students
+					from school in model.Schools
+					from product in model.Products
+					from product2 in model.Products
+					select new
+					{
+						student,
+						school,
+						product,
+						product2
+					};
+
+				var results = query.ToList();
 			}
 		}
 
