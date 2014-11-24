@@ -290,7 +290,9 @@ namespace Shaolinq.TypeBuilding
 			this.BuildIsDeflatedReferenceProperty();
 			this.BuildSetIsDeletedMethod();
 			this.BuildGetHashCodeMethod();
+			this.BuildGetHashCodeAccountForServerGeneratedMethod();
 			this.BuildEqualsMethod();
+			this.BuildEqualsAccountForServerGeneratedMethod();
 			this.BuildCompoistePrimaryKeyProperty();
 			this.BuildSetIsTransientMethod();
 			this.BuildSubmitToCacheMethod();
@@ -1288,6 +1290,63 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		private void BuildGetHashCodeAccountForServerGeneratedMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetHashCodeAccountForServerGenerated");
+
+			var retval = generator.DeclareLocal(typeof(int));
+
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Stloc, retval);
+
+			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties)
+			{
+				var valueField = valueFields[propertyDescriptor.PropertyName];
+				var next = generator.DefineLabel();
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, dataObjectField);
+				generator.Emit(OpCodes.Ldfld, valueField);
+
+				if (valueField.FieldType.IsValueType)
+				{
+					var local = generator.DeclareLocal(valueField.FieldType);
+					generator.Emit(OpCodes.Stloc, local);
+
+					generator.Emit(OpCodes.Ldloca, local);
+					generator.Emit(OpCodes.Call, valueField.FieldType.GetMethod("GetHashCode"));
+				}
+				else
+				{
+					var local = generator.DeclareLocal(valueField.FieldType);
+					generator.Emit(OpCodes.Stloc, local);
+
+					generator.Emit(OpCodes.Ldloc, local);
+					generator.Emit(OpCodes.Brfalse, next);
+					generator.Emit(OpCodes.Ldloc, local);
+
+					if (valueField.FieldType.IsDataAccessObjectType())
+					{
+						generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
+						generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectInternal).GetMethod("GetHashCodeAccountForServerGenerated"));
+					}
+					else
+					{
+						generator.Emit(OpCodes.Callvirt, valueField.FieldType.GetMethod("GetHashCode"));
+					}
+				}
+
+				generator.Emit(OpCodes.Ldloc, retval);
+				generator.Emit(OpCodes.Xor);
+				generator.Emit(OpCodes.Stloc, retval);
+
+				generator.MarkLabel(next);
+			}
+
+			generator.Emit(OpCodes.Ldloc, retval);
+			generator.Emit(OpCodes.Ret);
+		}
+
 		private void BuildGetHashCodeMethod()
 		{
 			var methodInfo = typeBuilder.BaseType.GetMethod("GetHashCode", Type.EmptyTypes);
@@ -1367,6 +1426,66 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
+		private void BuildEqualsAccountForServerGeneratedMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod("EqualsAccountForServerGenerated");
+
+			var local = generator.DeclareLocal(this.typeBuilder);
+			var returnFalseLabel = generator.DefineLabel();
+			var returnTrueLabel = generator.DefineLabel();
+
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Isinst, this.typeBuilder);
+			generator.Emit(OpCodes.Dup);
+			generator.Emit(OpCodes.Stloc, local);
+			generator.Emit(OpCodes.Brfalse, returnFalseLabel);
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ceq);
+			generator.Emit(OpCodes.Brtrue, returnTrueLabel);
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
+			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys").GetGetMethod());
+			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
+
+			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
+			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys").GetGetMethod());
+			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
+
+			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties)
+			{
+				var label = generator.DefineLabel();
+				var valueField = valueFields[propertyDescriptor.PropertyName];
+
+				// Load our value
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, dataObjectField);
+				generator.Emit(OpCodes.Ldfld, valueField);
+
+				// Load operand value
+				generator.Emit(OpCodes.Ldloc, local);
+				generator.Emit(OpCodes.Ldfld, dataObjectField);
+				generator.Emit(OpCodes.Ldfld, valueField);
+
+				EmitCompareEquals(generator, valueField.FieldType);
+
+				generator.Emit(OpCodes.Brfalse, returnFalseLabel);
+
+				generator.MarkLabel(label);
+			}
+
+			generator.MarkLabel(returnTrueLabel);
+			generator.Emit(OpCodes.Ldc_I4_1);
+			generator.Emit(OpCodes.Ret);
+
+			generator.MarkLabel(returnFalseLabel);
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Ret);
+		}
+
 		private void BuildEqualsMethod()
 		{
 			var methodInfo = typeBuilder.BaseType.GetMethod("Equals", new [] { typeof(object) });
@@ -1408,11 +1527,11 @@ namespace Shaolinq.TypeBuilding
 
 				EmitCompareEquals(generator, valueField.FieldType);
 
-				if (propertyDescriptor.PropertyType.IsValueType)
+				//if (propertyDescriptor.PropertyType.IsValueType)
 				{
 					generator.Emit(OpCodes.Brfalse, returnLabel);
 				}
-				else
+				/*else
 				{
 					generator.Emit(OpCodes.Brtrue, label);
 
@@ -1441,7 +1560,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Callvirt, MethodInfoFastRef.ObjectEqualsMethod);
 
 					generator.Emit(OpCodes.Brfalse, returnLabel);
-				}
+				}*/
 
 				generator.MarkLabel(label);
 			}
@@ -2354,7 +2473,8 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
-				// if (PropertyValue.IsNew) { retval |= MissingConstrainedForeignKeys; break }
+				// if (PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
+				// { retval |= MissingConstrainedForeignKeys; break }
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);

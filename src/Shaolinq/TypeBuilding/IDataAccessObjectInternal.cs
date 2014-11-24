@@ -62,5 +62,8 @@ namespace Shaolinq.TypeBuilding
 		/// Sets the underlying data container of the current data access object with the one in the given domain object.
 		/// </summary>
 		void SwapData(DataAccessObject source, bool transferChangedProperties);
+
+		int GetHashCodeAccountForServerGenerated();
+		bool EqualsAccountForServerGenerated(object dataAccessObject);
 	}
 }

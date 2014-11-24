@@ -57,7 +57,7 @@ namespace Shaolinq.Tests
 				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = Guid.NewGuid();
-
+					
 				scope.Complete();
 			}
 		}

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -251,7 +250,12 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				if (dataAccessObject.Advanced.HasObjectChanged || (dataAccessObject.Advanced.ObjectState & (ObjectState.Changed | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys | ObjectState.MissingUnconstrainedForeignKeys | ObjectState.ServerSidePropertiesHydrated)) != 0)
+				if ((dataAccessObject.Advanced.ObjectState & (
+					ObjectState.Changed | 
+					ObjectState.MissingConstrainedForeignKeys | 
+					ObjectState.MissingServerGeneratedForeignPrimaryKeys | 
+					ObjectState.MissingUnconstrainedForeignKeys | 
+					ObjectState.ServerSidePropertiesHydrated)) != 0)
 				{
 					var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
 
@@ -390,6 +394,10 @@ namespace Shaolinq.Persistence
 					if ((objectState & ObjectState.MissingUnconstrainedForeignKeys) != 0)
 					{
 						listToFixup.Add(dataAccessObject);
+					}
+					else
+					{
+						dataAccessObject.ToObjectInternal().ResetModified();
 					}
 				}
 				else
