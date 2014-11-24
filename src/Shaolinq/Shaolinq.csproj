@@ -130,7 +130,6 @@
     <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="EnumerableUtils.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
-    <Compile Include="IdentityEqualityComparer.cs" />
     <Compile Include="InternalListExtensions.cs" />
     <Compile Include="InvalidDataAccessModelDefinitionException.cs" />
     <Compile Include="MissingDataAccessObjectException.cs" />

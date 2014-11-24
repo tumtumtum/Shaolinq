@@ -163,6 +163,7 @@ namespace Shaolinq
 
 				if (((IDataAccessObjectAdvanced)value).IsNew)
 				{
+					HashSet<DataAccessObject> notReadyForCommitSubcache;
 					Dictionary<DataAccessObject, DataAccessObject> subcache;
 
 					if (newObjects.TryGetValue(type, out subcache))
@@ -170,11 +171,9 @@ namespace Shaolinq
 						subcache.Remove(value);
 					}
 
-					HashSet<DataAccessObject> subcache2;
-
-					if (objectsNotReadyForCommit.TryGetValue(type, out subcache2))
+					if (objectsNotReadyForCommit.TryGetValue(type, out notReadyForCommitSubcache))
 					{
-						subcache2.Remove(value);
+						notReadyForCommitSubcache.Remove(value);
 					}
 				}
 				else
@@ -317,11 +316,12 @@ namespace Shaolinq
 
 				if (dataAccessObject.Advanced.IsNew)
 				{
-					HashSet<DataAccessObject> subcache2;
-					Dictionary<DataAccessObject, DataAccessObject> subcache;
+					HashSet<DataAccessObject> notReadyForCommitSubcache;
 
 					if (dataAccessObject.Advanced.PrimaryKeyIsCommitReady)
 					{
+						Dictionary<DataAccessObject, DataAccessObject> subcache;
+
 						if (!this.newObjects.TryGetValue(type, out subcache))
 						{
 							subcache = new Dictionary<DataAccessObject, DataAccessObject>(DataAccessObjectServerSidePropertiesAccountingComparer.Default);
@@ -341,9 +341,9 @@ namespace Shaolinq
 
 						subcache[value] = value;
 
-						if (this.objectsNotReadyForCommit.TryGetValue(type, out subcache2))
+						if (this.objectsNotReadyForCommit.TryGetValue(type, out notReadyForCommitSubcache))
 						{
-							subcache2.Remove(value);
+							notReadyForCommitSubcache.Remove(value);
 						}
 
 						if (dataAccessObject.Advanced.NumberOfPrimaryKeysGeneratedOnServerSide > 0)
@@ -353,16 +353,16 @@ namespace Shaolinq
 					}
 					else
 					{
-						if (!this.objectsNotReadyForCommit.TryGetValue(type, out subcache2))
+						if (!this.objectsNotReadyForCommit.TryGetValue(type, out notReadyForCommitSubcache))
 						{
-							subcache2 = new HashSet<DataAccessObject>(IdentityEqualityComparer<IDataAccessObjectAdvanced>.Default);
+							notReadyForCommitSubcache = new HashSet<DataAccessObject>(ObjectReferenceIdentityEqualityComparer<IDataAccessObjectAdvanced>.Default);
 
-							this.objectsNotReadyForCommit[type] = subcache2;
+							this.objectsNotReadyForCommit[type] = notReadyForCommitSubcache;
 						}
 
-						if (!subcache2.Contains(value))
+						if (!notReadyForCommitSubcache.Contains(value))
 						{
-							subcache2.Add(value);
+							notReadyForCommitSubcache.Add(value);
 						}
 
 						return value;
