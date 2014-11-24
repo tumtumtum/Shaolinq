@@ -472,6 +472,38 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Update_NonDeflated_Object_Field_To_Null()
+		{
+			long id;
+
+			using (var scope = new TransactionScope())
+			{
+				var dbObj = model.ObjectWithManyTypes.Create();
+
+				dbObj.String = "foo";
+				dbObj.NullableDateTime = DateTime.UtcNow;
+
+				scope.Flush(model);
+
+				id = dbObj.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var dbObj = model.ObjectWithManyTypes.GetByPrimaryKey(id);
+
+				dbObj.String = null;
+				dbObj.NullableDateTime = null;
+
+				Assert.That(((IDataAccessObjectAdvanced)dbObj).GetChangedProperties().Count, Is.EqualTo(2));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Update_Deflated_Object_Field_To_Null()
 		{
 			long id;
@@ -485,17 +517,49 @@ namespace Shaolinq.Tests
 
 				scope.Flush(model);
 
-				scope.Complete();
-
 				id = dbObj.Id;
+
+				scope.Complete();
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.GetByPrimaryKey(id);
+				var dbObj = model.ObjectWithManyTypes.GetReference(id);
 
 				dbObj.String = null;
 				dbObj.NullableDateTime = null;
+
+				Assert.That(((IDataAccessObjectAdvanced)dbObj).GetChangedProperties().Count, Is.EqualTo(2));
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Update_Deflated_Object_Field_To_Non_Null_Different_Value()
+		{
+			long id;
+
+			using (var scope = new TransactionScope())
+			{
+				var dbObj = model.ObjectWithManyTypes.Create();
+
+				dbObj.String = "foo";
+				dbObj.NullableDateTime = DateTime.UtcNow;
+
+				scope.Flush(model);
+
+				id = dbObj.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var dbObj = model.ObjectWithManyTypes.GetReference(id);
+
+				dbObj.String = "boo";
+				dbObj.NullableDateTime = DateTime.UtcNow + TimeSpan.FromDays(1);
 
 				Assert.That(((IDataAccessObjectAdvanced)dbObj).GetChangedProperties().Count, Is.EqualTo(2));
 

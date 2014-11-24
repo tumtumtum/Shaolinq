@@ -17,6 +17,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		public abstract DateTime OpeningDate { get; set; }
 
 		[PersistedMember]
+		public abstract DateTime? CloseDate { get; set; }
+
+		[PersistedMember]
 		public abstract string Name { get; set; }
 
 		[PersistedMember]

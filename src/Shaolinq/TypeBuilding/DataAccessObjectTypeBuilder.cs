@@ -948,6 +948,8 @@ namespace Shaolinq.TypeBuilding
 							|| unwrappedNullableType == typeof(decimal))
 							|| unwrappedNullableType.IsDataAccessObjectType())
 					{
+						var quickSetLabel = privateGenerator.DefineLabel();
+
 						// Load the new  value
 						privateGenerator.Emit(OpCodes.Ldarg_1);
 
@@ -960,6 +962,18 @@ namespace Shaolinq.TypeBuilding
 						EmitCompareEquals(privateGenerator, propertyBuilder.PropertyType);
 
 						privateGenerator.Emit(OpCodes.Brfalse, continueLabel);
+
+						privateGenerator.Emit(OpCodes.Ldarg_0);
+						privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
+						privateGenerator.Emit(OpCodes.Ldfld, valueIsSetFields[propertyName]);
+						privateGenerator.Emit(OpCodes.Brtrue, quickSetLabel);
+
+						privateGenerator.Emit(OpCodes.Ldarg_0);
+						privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
+						privateGenerator.Emit(OpCodes.Ldfld, isDeflatedReferenceField);
+						privateGenerator.Emit(OpCodes.Brtrue, continueLabel);
+
+						privateGenerator.MarkLabel(quickSetLabel);
 						privateGenerator.Emit(OpCodes.Ldarg_0);
 						privateGenerator.Emit(OpCodes.Ldfld, dataObjectField);
 						privateGenerator.Emit(OpCodes.Ldc_I4_1);

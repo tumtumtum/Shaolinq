@@ -74,6 +74,37 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Set_NullableDate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var shop = model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
+
+				shop.CloseDate = DateTime.Now;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var shop = model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
+
+				Assert.IsNotNull(shop.CloseDate);
+
+				shop.CloseDate = null;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var shop = model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
+
+				Assert.IsNull(shop.CloseDate);
+			}
+		}
+
+		[Test]
 		public void Test_Complex_Explicit_Joins()
 		{
 			var query =
