@@ -200,7 +200,6 @@
     <Compile Include="PrimaryKeyInfoCache.cs" />
     <Compile Include="PrimaryKeyType.cs" />
     <Compile Include="ReadOnlyListUtils.cs" />
-    <Compile Include="RelatedDataAccessObjectsInitializeActionsCache.cs" />
     <Compile Include="SortOrder.cs" />
     <Compile Include="TypeBuilding\CachingDataAccessModelAssemblyProvider.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />

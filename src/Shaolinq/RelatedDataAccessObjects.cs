@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
@@ -63,11 +64,11 @@ namespace Shaolinq
 		private void BuildInitializeRelatedMethod()
 		{
 			var key = new Pair<Type, Type>(this.RelatedDataAccessObject.GetType(), typeof(T));
-			var initializeActionsStorage = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
+			var cache = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
 
 			Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> initializeDataAccessObject;
 
-			if (initializeActionsStorage.initializeActions.TryGetValue(key, out initializeDataAccessObject))
+			if (cache.TryGetValue(key, out initializeDataAccessObject))
 			{
 				this.InitializeDataAccessObject = initializeDataAccessObject;
 
@@ -94,7 +95,11 @@ namespace Shaolinq
 
 					this.InitializeDataAccessObject = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
 
-					initializeActionsStorage.initializeActions[key] = this.InitializeDataAccessObject;
+					var newCache = new Dictionary<Pair<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache);
+
+					newCache[key] = this.InitializeDataAccessObject;
+
+					this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache = newCache;
 
 					break;
 				}
