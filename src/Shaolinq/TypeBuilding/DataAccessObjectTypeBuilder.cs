@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text.RegularExpressions;
 using Shaolinq.Persistence;
 using Platform;
 using Platform.Reflection;
@@ -12,15 +13,19 @@ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.TypeBuilding
 {
+	// ReSharper disable UnusedMember.Local
+
 	public sealed class DataAccessObjectTypeBuilder
 	{
 		internal const string ForceSetPrefix = "$$ForceSet";
-		private const string IsSetSuffix = "$$IsSet";
-		private const string HasChangedSuffix = "$$Changed";
-		private const string DataObjectFieldName = "$$data";
+		internal const string IsSetSuffix = "$$isSet";
+		internal const string HasChangedSuffix = "$$changed";
+		internal const string DataObjectFieldName = "$$data";
 
-		private ModuleBuilder ModuleBuilder { get; set; }
-		private AssemblyBuildContext AssemblyBuildContext { get; set; }
+		private static readonly Regex BuildMethodRegex = new Regex("^Build(.*)(Method|Property)$", RegexOptions.Compiled);
+
+		public ModuleBuilder ModuleBuilder { get; private set; }
+		public AssemblyBuildContext AssemblyBuildContext { get; private set; }
 
 		private readonly Type baseType;
 		private TypeBuilder typeBuilder;
@@ -250,7 +255,7 @@ namespace Shaolinq.TypeBuilding
 					else if (propertyDescriptor.PropertyType.IsValueType && Nullable.GetUnderlyingType(propertyDescriptor.PropertyType) == null && !propertyDescriptor.IsPrimaryKey)
 					{
 						constructorGenerator.Emit(OpCodes.Ldarg_0);
-						EmitDefaultValue(constructorGenerator, propertyDescriptor.PropertyType);
+						constructorGenerator.EmitDefaultValue(propertyDescriptor.PropertyType);
 						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
 					}
 				}
@@ -259,83 +264,21 @@ namespace Shaolinq.TypeBuilding
 
 				dataObjectTypeTypeBuilder.CreateType();
 
-				this.ImplementDataAccessObjectMethods();
+				this.BuildAbstractMethods();
+
+				typeBuilder.CreateType();
 			}
 		}
 
-		private void ImplementDataAccessObjectMethods()
+		private void BuildAbstractMethods()
 		{
-			this.BuildKeyTypeProperty();
-			this.BuildFinishedInitializingMethod();
-			this.BuildPrimaryKeyIsCommitReadyProperty();
-			this.BuildNumberOfPrimaryKeysProperty();
-			this.BuildNumberOfPrimaryKeysGeneratedOnServerSideProperty();
-			this.BuildCompositeKeyTypesProperty();
-			this.BuildGetPrimaryKeysMethod();
-			this.BuildGetRelatedObjectPropertiesMethod();
-			this.BuildSetPrimaryKeysMethod();
-			this.BuildGetPrimaryKeysFlattenedMethod();
-			this.BuildGetPrimaryKeysForUpdateFlattenedMethod();
-			this.BuildResetModifiedMethod();
-			this.BuildGetAllPropertiesMethod();
-			this.BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod();
-			this.BuildGetChangedPropertiesMethod();
-			this.BuildGetChangedPropertiesMethodFlattenedMethod();
-			this.BuildObjectStateProperty();
-			this.BuildNumberOfPropertiesGeneratedOnTheServerSideProperty();
-			this.BuildSwapDataMethod();
-			this.BuildHasPropertyChangedMethod();
-			this.BuildSetIsNewMethod();
-			this.BuildSetIsDeflatedReferenceMethod();
-			this.BuildIsDeflatedReferenceProperty();
-			this.BuildSetIsDeletedMethod();
-			this.BuildGetHashCodeMethod();
-			this.BuildGetHashCodeAccountForServerGeneratedMethod();
-			this.BuildEqualsMethod();
-			this.BuildEqualsAccountForServerGeneratedMethod();
-			this.BuildCompoistePrimaryKeyProperty();
-			this.BuildSetIsTransientMethod();
-			this.BuildSubmitToCacheMethod();
-			this.BuildMarkServerSidePropertiesAsAppliedMethod();
-			this.BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod();
-			this.BuildGetPropertiesGeneratedOnTheServerSideMethod();
-
-			typeBuilder.CreateType();
-		}
-
-		private void EmitDefaultValue(ILGenerator generator, Type type)
-		{
-			if (type.IsValueType)
+			foreach (var method in this
+				.GetType()
+				.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+				.Where(c => BuildMethodRegex.IsMatch(c.Name))
+				.Where(c => c.GetParameters().Length == 0))
 			{
-				if (type == typeof(short))
-				{
-					generator.Emit(OpCodes.Ldc_I4_0);
-				}
-				else if (type == typeof(int))
-				{
-					generator.Emit(OpCodes.Ldc_I4_0);
-				}
-				else if (type == typeof(long))
-				{
-					generator.Emit(OpCodes.Ldc_I8, 0L);
-				}
-				else if (type == typeof(Guid))
-				{
-					generator.Emit(OpCodes.Ldsfld, FieldInfoFastRef.GuidEmptyGuid);
-				}
-				else
-				{
-					var local = generator.DeclareLocal(type);
-
-					generator.Emit(OpCodes.Ldloca, local);
-					generator.Emit(OpCodes.Initobj, local.LocalType);
-
-					generator.Emit(OpCodes.Ldloc, local);
-				}
-			}
-			else
-			{
-				generator.Emit(OpCodes.Ldnull);
+				method.Invoke(this, null);
 			}
 		}
 
@@ -511,7 +454,8 @@ namespace Shaolinq.TypeBuilding
 
 			// Load "this.DataAccessModel"
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
+			//generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
+			generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetMethod("GetDataAccessModel", BindingFlags.Instance | BindingFlags.Public));
 
 			// Load relationship type
 			generator.Emit(OpCodes.Ldc_I4, (int)relationshipType);
@@ -1731,7 +1675,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("SubmitToCache");
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Callvirt, this.baseType.GetProperty("DataAccessModel").GetGetMethod());
+			generator.Emit(OpCodes.Callvirt, this.baseType.GetMethod("GetDataAccessModel", BindingFlags.Public | BindingFlags.Instance));
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetCurrentDataContext", BindingFlags.Instance | BindingFlags.Public, null, new [] { typeof(bool) }, null));
 			generator.Emit(OpCodes.Ldarg_0);
@@ -2002,7 +1946,6 @@ namespace Shaolinq.TypeBuilding
 				});
 			}
 
-			// Return array
 			generator.Emit(OpCodes.Ldloc, retval);
 			generator.Emit(OpCodes.Ret);
 		}
@@ -2128,7 +2071,7 @@ namespace Shaolinq.TypeBuilding
 
 					if (defaultIfNotAvailable)
 					{
-						EmitDefaultValue(generator, localValueField.FieldType);
+						generator.EmitDefaultValue(localValueField.FieldType);
 
 						generator.Emit(OpCodes.Stloc, value);
 						generator.Emit(OpCodes.Br, gotValueLabel);
@@ -2207,7 +2150,7 @@ namespace Shaolinq.TypeBuilding
 
 				if (defaultIfNotAvailable)
 				{
-					EmitDefaultValue(generator, localValueField.FieldType);
+					generator.EmitDefaultValue(localValueField.FieldType);
 					generator.Emit(OpCodes.Stloc, value);
 					generator.Emit(OpCodes.Br, gotValueLabel);
 				}
@@ -2371,7 +2314,7 @@ namespace Shaolinq.TypeBuilding
 				
 					EmitGetValueRecursive(columnInfoValue, generator, nextLabel, false, true);
 
-					EmitDefaultValue(generator, columnInfoValue.DefinitionProperty.PropertyType);
+					generator.EmitDefaultValue(columnInfoValue.DefinitionProperty.PropertyType);
 					EmitCompareEquals(generator, columnInfoValue.DefinitionProperty.PropertyType);
 
 					generator.Emit(OpCodes.Brfalse, nextLabel);
@@ -2384,6 +2327,60 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Ret);
 			}
+		}
+
+		private static string TrimCurrentMethodName(string methodName)
+		{
+			return BuildMethodRegex.Replace(methodName, c => c.Groups[1].Value);
+		}
+
+		private void BuildIsMissingAnyPrimaryKeysMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+
+			var columnInfos = QueryBinder.GetColumnInfos
+			(
+				this.typeDescriptorProvider,
+				this.typeDescriptor.PrimaryKeyProperties,
+				(c, d) => d == 0 || c.IsPrimaryKey,
+				(c, d) => c.IsPropertyThatIsCreatedOnTheServerSide
+			);
+
+			foreach (var columnInfo in columnInfos)
+			{
+				this.EmitGetValueRecursive(columnInfo, generator, new Label(), false, true);
+
+				switch (Type.GetTypeCode(columnInfo.DefinitionProperty.PropertyType))
+				{
+
+				case TypeCode.Byte:
+				case TypeCode.Int16:
+				generator.Emit(OpCodes.Ldc_I4_S, 0);
+				generator.Emit(OpCodes.Ceq);
+				break;
+				case TypeCode.Int32:
+				generator.Emit(OpCodes.Ldc_I4_0);
+				generator.Emit(OpCodes.Ceq);
+				break;
+				case TypeCode.Int64:
+				generator.Emit(OpCodes.Ldc_I8, 0L);
+				generator.Emit(OpCodes.Ceq);
+				break;
+				default:
+				throw new NotSupportedException(columnInfo.DefinitionProperty.PropertyType.ToString());
+				}
+
+				var label = generator.DefineLabel();
+
+				generator.Emit(OpCodes.Brfalse, label);
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Ret);
+
+				generator.MarkLabel(label);
+			}
+
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Ret);
 		}
 
 		private void BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod()
@@ -2624,4 +2621,6 @@ namespace Shaolinq.TypeBuilding
 			return methodBuilder.GetILGenerator();
 		}
 	}
+
+	// ReSharper restore UnusedMember.Local
 }

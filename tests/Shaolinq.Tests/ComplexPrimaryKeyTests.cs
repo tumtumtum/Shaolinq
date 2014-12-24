@@ -168,8 +168,8 @@ namespace Shaolinq.Tests
 
 			var first = query.First();
 
-			Assert.IsFalse(first.region1.IsDeflatedReference);
-			Assert.IsFalse(first.region2.IsDeflatedReference);
+			Assert.IsFalse(first.region1.IsDeflatedReference());
+			Assert.IsFalse(first.region2.IsDeflatedReference());
 			Assert.AreEqual(2000, first.region1.Diameter);
 			Assert.AreEqual(100, first.region2.Diameter);
 			Assert.IsNull(first.region3a);
@@ -257,9 +257,9 @@ namespace Shaolinq.Tests
 
 				Assert.AreSame(first.address4, first.address5);
 
-				Assert.IsFalse(first.address1.Region.IsDeflatedReference);
-				Assert.IsFalse(first.address2.Region.IsDeflatedReference);
-				Assert.IsFalse(first.address4.Region.IsDeflatedReference);
+				Assert.IsFalse(first.address1.Region.IsDeflatedReference());
+				Assert.IsFalse(first.address2.Region.IsDeflatedReference());
+				Assert.IsFalse(first.address4.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.address1.Street);
 				Assert.AreEqual("Jefferson Avenue", first.address2.Street);
 				Assert.AreEqual("Jefferson Avenue", first.address4.Street);
@@ -293,14 +293,14 @@ namespace Shaolinq.Tests
 
 			var first = query.First();
 
-			Assert.IsTrue(first.address1.Region.IsDeflatedReference);
-			Assert.IsTrue(first.address2.Region.IsDeflatedReference);
+			Assert.IsTrue(first.address1.Region.IsDeflatedReference());
+			Assert.IsTrue(first.address2.Region.IsDeflatedReference());
 			Assert.AreEqual("Madison Street", first.address1.Street);
 			Assert.AreEqual("Jefferson Avenue", first.address2.Street);
 			Assert.AreEqual(2000, first.address1.Region.Diameter);
 			Assert.AreEqual(100, first.address2.Region.Diameter);
-			Assert.IsFalse(first.address1.Region.IsDeflatedReference);
-			Assert.IsFalse(first.address2.Region.IsDeflatedReference);
+			Assert.IsFalse(first.address1.Region.IsDeflatedReference());
+			Assert.IsFalse(first.address2.Region.IsDeflatedReference());
 			Assert.IsNull(first.address3);
 		}
 
@@ -831,7 +831,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
 			}
 		}
 
@@ -944,8 +944,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -960,8 +960,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -976,8 +976,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -992,8 +992,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -1008,8 +1008,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -1024,8 +1024,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -1040,7 +1040,7 @@ namespace Shaolinq.Tests
 				var first = query.First();
 
 				Assert.IsNotNull(first.Address);
-				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
 			}
 		}
 
@@ -1069,8 +1069,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 		
@@ -1085,8 +1085,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -1101,8 +1101,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 			}
 		}
 
@@ -1118,7 +1118,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
 			}
 		}
 
@@ -1133,7 +1133,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
 			}
 		}
 
@@ -1152,7 +1152,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
 			}
 		}
 
@@ -1183,8 +1183,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 				Assert.AreEqual("Washington", first.Address.Region.Name);
 			}
@@ -1229,8 +1229,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsTrue(first.SecondAddress.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsTrue(first.SecondAddress.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1247,8 +1247,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsTrue(first.SecondAddress.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsTrue(first.SecondAddress.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1265,8 +1265,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.SecondAddress.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 				Assert.AreEqual("Jefferson Avenue", first.SecondAddress.Street);
 			}
@@ -1283,8 +1283,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Mall.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Mall.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1300,8 +1300,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.shop.IsDeflatedReference);
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
+				Assert.IsFalse(first.shop.IsDeflatedReference());
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
 			}
 		}
 
@@ -1316,8 +1316,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1333,8 +1333,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1351,8 +1351,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1369,8 +1369,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1386,7 +1386,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.Address.Street);
 			}
 		}
@@ -1405,8 +1405,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
-				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
+				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1440,8 +1440,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.x.y.shop.Address.IsDeflatedReference);
-				Assert.IsFalse(first.x.y.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.x.y.shop.Address.IsDeflatedReference());
+				Assert.IsFalse(first.x.y.shop.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1462,8 +1462,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.x.shop.Address.IsDeflatedReference);
-				Assert.IsTrue(first.x.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.x.shop.Address.IsDeflatedReference());
+				Assert.IsTrue(first.x.shop.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1481,8 +1481,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
-				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
+				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1500,8 +1500,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.shop.Address.IsDeflatedReference);
-				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsTrue(first.shop.Address.IsDeflatedReference());
+				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1519,7 +1519,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.c.shop.Address.IsDeflatedReference);
+				Assert.IsFalse(first.c.shop.Address.IsDeflatedReference());
 			}
 		}
 
@@ -1550,8 +1550,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1569,8 +1569,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1591,8 +1591,8 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsFalse(first.Address.IsDeflatedReference);
-				Assert.IsFalse(first.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.Address.Region.IsDeflatedReference());
 			}
 		}
 
@@ -1617,8 +1617,8 @@ namespace Shaolinq.Tests
 				var first = query.First();
 				Assert.IsNotNull(first.shop);
 				Assert.IsNotNull(first.address);
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
-				Assert.IsFalse(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
+				Assert.IsFalse(first.shop.Address.Region.IsDeflatedReference());
 				Assert.AreEqual(first.shop.Address, first.address);
 			}
 		}
@@ -1644,8 +1644,8 @@ namespace Shaolinq.Tests
 				var first = query.First();
 				Assert.IsNotNull(first.shop);
 				Assert.IsNotNull(first.address);
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
-				Assert.IsFalse(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
+				Assert.IsFalse(first.shop.Address.Region.IsDeflatedReference());
 				Assert.AreEqual(first.shop.Address, first.address);
 			}
 		}
@@ -1671,8 +1671,8 @@ namespace Shaolinq.Tests
 				var first = query.First();
 				Assert.IsNotNull(first.shop);
 				Assert.IsNotNull(first.address);
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
-				Assert.IsFalse(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
+				Assert.IsFalse(first.shop.Address.Region.IsDeflatedReference());
 				Assert.AreEqual(first.shop.Address, first.address);
 			}
 		}
@@ -1698,8 +1698,8 @@ namespace Shaolinq.Tests
 				var first = query.First();
 				Assert.IsNotNull(first.shop);
 				Assert.IsNotNull(first.address);
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
-				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
+				Assert.IsTrue(first.shop.Address.Region.IsDeflatedReference());
 				Assert.AreEqual(first.shop.Address, first.address);
 			}
 		}
@@ -1725,7 +1725,7 @@ namespace Shaolinq.Tests
 				var first = query.First();
 				Assert.IsNotNull(first.shop);
 				Assert.IsNotNull(first.address);
-				Assert.IsFalse(first.shop.Address.IsDeflatedReference);
+				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
 				Assert.AreEqual(first.shop.Address, first.address);
 			}
 		}
@@ -1789,7 +1789,7 @@ namespace Shaolinq.Tests
 
 				var first = query.First();
 
-				Assert.IsTrue(first.Address.IsDeflatedReference);
+				Assert.IsTrue(first.Address.IsDeflatedReference());
 			}
 		}
 

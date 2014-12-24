@@ -13,7 +13,7 @@ using Platform;
 namespace Shaolinq
 {
 	public abstract class DataAccessModel
-		 : MarshalByRefObject, IDisposable
+		 : IDisposable
 	{
 		private class RawPrimaryKeysPlaceholderType<T>
 		{
@@ -43,10 +43,8 @@ namespace Shaolinq
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<Type, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
-		
 		internal Dictionary<Pair<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<Pair<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>();
 		
-
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
 			where T : DataAccessObject
 		{
@@ -680,8 +678,8 @@ namespace Shaolinq
 				throw new ArgumentNullException("dataAccessObject");
 			}
 
-			Func<DataAccessObject, DataAccessObject> func; 
-			var definitionType = dataAccessObject.Advanced.DefinitionType;
+			Func<DataAccessObject, DataAccessObject> func;
+			var definitionType = dataAccessObject.GetAdvanced().DefinitionType;
 			
 			if (!inflateFuncsByType.TryGetValue(definitionType, out func))
 			{
@@ -706,7 +704,7 @@ namespace Shaolinq
 		protected internal T Inflate<T>(T obj)
 			where T : DataAccessObject
 		{
-			if (!obj.IsDeflatedReference)
+			if (!obj.IsDeflatedReference())
 			{
 				return obj;
 			}

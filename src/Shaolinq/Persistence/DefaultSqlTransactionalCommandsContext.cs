@@ -250,7 +250,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				if ((dataAccessObject.Advanced.ObjectState & (
+				if ((dataAccessObject.GetAdvanced().ObjectState & (
 					ObjectState.Changed | 
 					ObjectState.MissingConstrainedForeignKeys | 
 					ObjectState.MissingServerGeneratedForeignPrimaryKeys | 
@@ -312,7 +312,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				var objectState = dataAccessObject.Advanced.ObjectState;
+				var objectState = dataAccessObject.GetAdvanced().ObjectState;
                 
 				switch (objectState & ObjectState.NewChanged)
 				{
@@ -368,7 +368,7 @@ namespace Shaolinq.Persistence
 
 					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foreign keys
 
-					if (dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+					if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 					{
 						var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
 
@@ -413,7 +413,7 @@ namespace Shaolinq.Persistence
 
 		private DataAccessObject ApplyPropertiesGeneratedOnServerSide(DataAccessObject dataAccessObject, IDataReader reader)
 		{
-			if (!dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+			if (!dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 			{
 				return dataAccessObject;
 			}
@@ -424,7 +424,7 @@ namespace Shaolinq.Persistence
 			{
 				var objectParameter = Expression.Parameter(typeof(DataAccessObject));
 				var readerParameter = Expression.Parameter(typeof(IDataReader));
-				var propertiesGeneratedOnServerSide = dataAccessObject.Advanced.GetPropertiesGeneratedOnTheServerSide();
+				var propertiesGeneratedOnServerSide = dataAccessObject.GetAdvanced().GetPropertiesGeneratedOnTheServerSide();
 				var local = Expression.Variable(dataAccessObject.GetType());
 				
 				var statements = new List<Expression>();
@@ -501,14 +501,14 @@ namespace Shaolinq.Persistence
 		{
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
-			var updatedProperties = dataAccessObject.Advanced.GetChangedPropertiesFlattened();
+			var updatedProperties = dataAccessObject.GetAdvanced().GetChangedPropertiesFlattened();
 			
 			if (updatedProperties.Count == 0)
 			{
 				return null;
 			}
 
-			var primaryKeys = dataAccessObject.Advanced.GetPrimaryKeysForUpdateFlattened();
+			var primaryKeys = dataAccessObject.GetAdvanced().GetPrimaryKeysForUpdateFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
@@ -564,7 +564,7 @@ namespace Shaolinq.Persistence
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
 
-			var updatedProperties = dataAccessObject.Advanced.GetChangedPropertiesFlattened();
+			var updatedProperties = dataAccessObject.GetAdvanced().GetChangedPropertiesFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))
@@ -578,7 +578,7 @@ namespace Shaolinq.Persistence
 			
 			IReadOnlyList<string> returningAutoIncrementColumnNames = null;
 
-			if (dataAccessObject.Advanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+			if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 			{
 				var propertyDescriptors = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 

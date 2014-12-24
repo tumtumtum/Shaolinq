@@ -89,6 +89,8 @@ namespace Shaolinq
 		/// </summary>
 		bool IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys { get; }
 
+		bool IsMissingAnyPrimaryKeys { get; }
+
 		/// <summary>
 		/// Returns the number of direct properties generated on the server side.
 		/// </summary>

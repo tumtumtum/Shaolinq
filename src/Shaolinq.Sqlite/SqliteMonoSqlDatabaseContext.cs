@@ -72,7 +72,7 @@ namespace Shaolinq.Sqlite
 				{
 					if (dataAccessObject != null)
 					{
-						var primaryKeyNames = dataAccessObject.Advanced.TypeDescriptor.PrimaryKeyProperties.Select(c => c.DeclaringTypeDescriptor.PersistedName + "." + c.PersistedName);
+						var primaryKeyNames = dataAccessObject.GetAdvanced().TypeDescriptor.PrimaryKeyProperties.Select(c => c.DeclaringTypeDescriptor.PersistedName + "." + c.PersistedName);
 
 						if (primaryKeyNames.Any(c => sqliteException.Message.IndexOf(c, StringComparison.Ordinal) >= 0))
 						{

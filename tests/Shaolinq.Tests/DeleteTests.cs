@@ -143,11 +143,11 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				Assert.IsFalse(school.IsDeleted);
+				Assert.IsFalse(school.IsDeleted());
 				school.Delete();
-				Assert.IsTrue(school.IsDeleted);
+				Assert.IsTrue(school.IsDeleted());
 				scope.Flush(model);
-				Assert.IsTrue(school.IsDeleted);
+				Assert.IsTrue(school.IsDeleted());
 
 				scope.Complete();
 			}
@@ -193,13 +193,13 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.First(c => c.Id == schoolId);
 
-				Assert.IsFalse(school.IsDeleted); 
+				Assert.IsFalse(school.IsDeleted()); 
 				school.Delete();
-				Assert.IsTrue(school.IsDeleted);
+				Assert.IsTrue(school.IsDeleted());
 
 				school = this.model.Schools.First(c => c.Id == schoolId);
 
-				Assert.IsTrue(school.IsDeleted);
+				Assert.IsTrue(school.IsDeleted());
 			}
 
 			using (var scope = new TransactionScope())
@@ -211,13 +211,13 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.First(c => c.Id == schoolId);
 
-				Assert.IsFalse(school.IsDeleted);
+				Assert.IsFalse(school.IsDeleted());
 				school.Delete();
-				Assert.IsTrue(school.IsDeleted);
+				Assert.IsTrue(school.IsDeleted());
 
 				school = this.model.Schools.First(c => c.Id == schoolId);
 
-				Assert.IsTrue(school.IsDeleted);
+				Assert.IsTrue(school.IsDeleted());
 				Assert.AreEqual("Yoga Decorum", school.Name);
 
 				scope.Complete();

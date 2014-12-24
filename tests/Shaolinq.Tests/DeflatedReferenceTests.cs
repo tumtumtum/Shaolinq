@@ -64,7 +64,7 @@ namespace Shaolinq.Tests
 
 				var firstStudent = schoolAndStudent.FirstOrDefault().student;
 
-				Assert.IsFalse(firstStudent.School.IsDeflatedReference);
+				Assert.IsFalse(firstStudent.School.IsDeflatedReference());
 
 				scope.Complete();
 			}
@@ -329,9 +329,9 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Bruce");
 
-				Assert.IsTrue(student.BestFriend.IsDeflatedReference);
+				Assert.IsTrue(student.BestFriend.IsDeflatedReference());
 				Assert.AreEqual("Chuck", student.BestFriend.Firstname);
-				Assert.IsFalse(student.BestFriend.IsDeflatedReference);
+				Assert.IsFalse(student.BestFriend.IsDeflatedReference());
 
 				scope.Complete();
 			}
@@ -367,11 +367,11 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.GetReference(new { Id = studentId });
 
-				Assert.IsTrue(student.IsDeflatedReference);
+				Assert.IsTrue(student.IsDeflatedReference());
 
 				Assert.AreEqual("Bruce", student.Firstname);
 
-				Assert.IsFalse(student.IsDeflatedReference);
+				Assert.IsFalse(student.IsDeflatedReference());
 
 				Assert.AreEqual("Bruce", student.Firstname);
 
@@ -382,11 +382,11 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.GetReference(studentId);
 
-				Assert.IsTrue(student.IsDeflatedReference);
+				Assert.IsTrue(student.IsDeflatedReference());
 
 				Assert.AreEqual("Bruce", student.Firstname);
 
-				Assert.IsFalse(student.IsDeflatedReference);
+				Assert.IsFalse(student.IsDeflatedReference());
 
 				Assert.AreEqual("Bruce", student.Firstname);
 
@@ -398,11 +398,11 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.GetReference(studentId);
 
-				Assert.IsTrue(student.IsDeflatedReference);
+				Assert.IsTrue(student.IsDeflatedReference());
 
 				var sameStudent = this.model.Students.First(c => c.Id == studentId);
 
-				Assert.IsFalse(student.IsDeflatedReference);
+				Assert.IsFalse(student.IsDeflatedReference());
 
 				Assert.AreSame(student, sameStudent);
 				Assert.AreEqual("Bruce", student.Firstname);
@@ -414,11 +414,11 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.GetReference(studentId);
 
-				Assert.IsTrue(student.IsDeflatedReference);
+				Assert.IsTrue(student.IsDeflatedReference());
 
 				student.Inflate();
 
-				Assert.IsFalse(student.IsDeflatedReference);
+				Assert.IsFalse(student.IsDeflatedReference());
 
 				Assert.AreEqual("Bruce", student.Firstname);
 
@@ -429,11 +429,11 @@ namespace Shaolinq.Tests
 			{
 				var student = this.model.Students.GetReference(studentId);
 
-				Assert.IsTrue(student.IsDeflatedReference);
+				Assert.IsTrue(student.IsDeflatedReference());
 
 				student.Inflate();
 
-				Assert.IsFalse(student.IsDeflatedReference);
+				Assert.IsFalse(student.IsDeflatedReference());
 
 				Assert.AreEqual("Bruce", student.Firstname);
 
@@ -445,11 +445,11 @@ namespace Shaolinq.Tests
 				var student = model.Students.First(c => c.Id == studentId);
 
 				Assert.AreEqual(schoolId, student.School.Id);
-				Assert.IsTrue(student.School.IsDeflatedReference);
+				Assert.IsTrue(student.School.IsDeflatedReference());
 
 				Assert.AreEqual("The Shaolinq School of Kung Fu", student.School.Name);
 
-				Assert.IsFalse(student.School.IsDeflatedReference);
+				Assert.IsFalse(student.School.IsDeflatedReference());
 
 				scope.Complete();
 			}
@@ -459,11 +459,11 @@ namespace Shaolinq.Tests
 				var student = model.Students.First(c => c.Id == studentId);
 
 				Assert.AreEqual(schoolId, student.School.Id);
-				Assert.IsTrue(student.School.IsDeflatedReference);
+				Assert.IsTrue(student.School.IsDeflatedReference());
 
 				var school = model.Schools.FirstOrDefault(c => c.Id == schoolId);
 
-				Assert.IsFalse(student.School.IsDeflatedReference);
+				Assert.IsFalse(student.School.IsDeflatedReference());
 
 				Assert.AreEqual(school, student.School);
 

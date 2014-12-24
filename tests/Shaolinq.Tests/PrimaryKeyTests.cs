@@ -166,8 +166,8 @@ namespace Shaolinq.Tests
 
 				obj.Id = 10007;
 
-				Assert.IsTrue(obj.Advanced.GetChangedProperties().Any(c => c.PropertyName == "Id"));
-				Assert.IsTrue(obj.Advanced.GetChangedPropertiesFlattened().Any(c => c.PropertyName == "Id"));
+				Assert.IsTrue(obj.GetAdvanced().GetChangedProperties().Any(c => c.PropertyName == "Id"));
+				Assert.IsTrue(obj.GetAdvanced().GetChangedPropertiesFlattened().Any(c => c.PropertyName == "Id"));
 
 				scope.Complete();
 			}
@@ -319,11 +319,11 @@ namespace Shaolinq.Tests
 					Student = student
 				});
 
-				Assert.IsTrue(obj.IsDeflatedReference);
+				Assert.IsTrue(obj.IsDeflatedReference());
 
 				Assert.AreEqual("Obj1", obj.Name);
 
-				Assert.IsFalse(obj.IsDeflatedReference);
+				Assert.IsFalse(obj.IsDeflatedReference());
 
 				scope.Complete();
 			}
@@ -339,7 +339,7 @@ namespace Shaolinq.Tests
 					Student = student
 				});
 
-				Assert.IsTrue(obj1.IsDeflatedReference);
+				Assert.IsTrue(obj1.IsDeflatedReference());
 
 				var objs = this.model.ObjectWithCompositePrimaryKeys.Where(c => c == obj1 && c.Name != "");
 

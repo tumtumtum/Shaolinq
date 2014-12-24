@@ -22,15 +22,39 @@ namespace Shaolinq
     public abstract class DataAccessObject
         : IDataAccessObjectAdvanced
 	{
-		public DataAccessModel DataAccessModel { get; private set; }
-		public SqlDatabaseContext DatabaseConnection { get { return this.DataAccessModel.GetCurrentSqlDatabaseContext(); } }
+		private DataAccessModel dataAccessModel;
 
-		public IDataAccessObjectAdvanced Advanced { get { return this; } }
+		public DataAccessModel GetDataAccessModel()
+		{
+			return this.dataAccessModel;
+		}
 
-		public bool IsNew { get { return (((IDataAccessObjectAdvanced)this).IsNew); } }
-		public bool IsTransient { get { return (((IDataAccessObjectAdvanced)this).IsTransient); } }
-		public bool IsDeleted { get { return (((IDataAccessObjectAdvanced)this).IsDeleted); } }
-		public bool IsDeflatedReference { get { return ((IDataAccessObjectAdvanced)this).IsDeflatedReference; } }
+		public SqlDatabaseContext DatabaseConnection { get { return this.GetDataAccessModel().GetCurrentSqlDatabaseContext(); } }
+
+		public IDataAccessObjectAdvanced GetAdvanced()
+		{
+			return this;
+		}
+
+		public bool IsNew()
+		{
+			return (((IDataAccessObjectAdvanced)this).IsNew);
+		}
+
+		public bool IsTransient()
+		{
+			return (((IDataAccessObjectAdvanced)this).IsTransient);
+		}
+
+		public bool IsDeleted()
+		{
+			return (((IDataAccessObjectAdvanced)this).IsDeleted);
+		}
+
+		public bool IsDeflatedReference()
+		{
+			return ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
+		}
 		
 		public virtual DataAccessObject Inflate()
 		{
@@ -39,7 +63,7 @@ namespace Shaolinq
 				return this;
 			}
 
-			var inflated = this.DataAccessModel.Inflate(this);
+			var inflated = this.dataAccessModel.Inflate(this);
 
 			this.ToObjectInternal().SwapData(inflated, true);
 			this.ToObjectInternal().SetIsDeflatedReference(false);
@@ -49,19 +73,19 @@ namespace Shaolinq
 
 		public virtual void Delete()
 		{
-			this.DataAccessModel.GetCurrentDataContext(true).Deleted(this);
+			this.dataAccessModel.GetCurrentDataContext(true).Deleted(this);
 
 			this.ToObjectInternal().SetIsDeleted(true);
 		}
 
 		protected void SetDataAccessModel(DataAccessModel dataAccessModel)
 		{
-			if (this.DataAccessModel != null)
+			if (this.dataAccessModel != null)
 			{
 				throw new InvalidOperationException("DataAccessModel already set");
 			}
 
-			this.DataAccessModel = dataAccessModel;
+			this.dataAccessModel = dataAccessModel;
 		}
 
 		public abstract ObjectPropertyValue[] GetAllProperties();
@@ -69,6 +93,7 @@ namespace Shaolinq
 		public abstract List<ObjectPropertyValue> GetChangedProperties();
 		
 		#region IDataAccessObjectAdvanced
+		DataAccessModel IDataAccessObjectAdvanced.DataAccessModel { get { return this.dataAccessModel; } }
 		ObjectState IDataAccessObjectAdvanced.ObjectState { get { throw new NotImplementedException(); } }
 		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObjectAdvanced)this).NumberOfPropertiesGeneratedOnTheServerSide > 0; } }
 		bool IDataAccessObjectAdvanced.IsNew { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.New) != 0; } }
@@ -76,11 +101,12 @@ namespace Shaolinq
 		bool IDataAccessObjectAdvanced.IsTransient { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Transient) != 0; } }
 		bool IDataAccessObjectAdvanced.HasCompositeKey { get { return ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys > 1; } }
 		bool IDataAccessObjectAdvanced.HasObjectChanged { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Changed) != 0; } }
-		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor { get { return this.DataAccessModel.GetTypeDescriptor(this.GetType()); } }
-		Type IDataAccessObjectAdvanced.DefinitionType { get { return this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
+		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor { get { return this.dataAccessModel.GetTypeDescriptor(this.GetType()); } }
+		Type IDataAccessObjectAdvanced.DefinitionType { get { return this.dataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
 		#endregion
 
 		#region Reflection emitted explicit interface implementations
+		bool IDataAccessObjectAdvanced.IsMissingAnyPrimaryKeys { get { throw new NotImplementedException(); } }
 		Type IDataAccessObjectAdvanced.KeyType { get { throw new NotImplementedException(); } }
 		bool IDataAccessObjectAdvanced.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys { get { throw new NotImplementedException(); } }
 		Type[] IDataAccessObjectAdvanced.CompositeKeyTypes { get { throw new NotImplementedException(); } }

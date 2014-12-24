@@ -506,7 +506,7 @@ namespace Shaolinq.Tests
 			{
 				var student = model.Students.First(c => c.Id == studentId);
 
-				Assert.IsTrue(student.School.IsDeflatedReference);
+				Assert.IsTrue(student.School.IsDeflatedReference());
 
 				Assert.AreEqual(schoolId, student.School.Id);
 
@@ -547,7 +547,7 @@ namespace Shaolinq.Tests
 			{
 				var student = model.Students.First(c => c.Id == studentId);
 
-				Assert.IsTrue(student.School.IsDeflatedReference);
+				Assert.IsTrue(student.School.IsDeflatedReference());
 
 				Assert.AreEqual(schoolId, student.School.Id);
 

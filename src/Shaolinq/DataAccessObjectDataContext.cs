@@ -114,7 +114,7 @@ namespace Shaolinq
 					{
 						var x = kvp.Value.Count;
 
-						foreach (var value in (kvp.Value.Where(c => c.Advanced.PrimaryKeyIsCommitReady)).ToList())
+						foreach (var value in (kvp.Value.Where(c => c.GetAdvanced().PrimaryKeyIsCommitReady)).ToList())
 						{
 							dataAccessObjectDataContext.CacheObject(value, false);
 
@@ -123,7 +123,7 @@ namespace Shaolinq
 
 						if (x > 0)
 						{
-							var obj = kvp.Value.First(c => !c.Advanced.PrimaryKeyIsCommitReady);
+							var obj = kvp.Value.First(c => !c.GetAdvanced().PrimaryKeyIsCommitReady);
 
 							throw new MissingOrInvalidPrimaryKeyException(string.Format("The object {0} is missing a primary key", obj.ToString()));
 						}
@@ -181,7 +181,7 @@ namespace Shaolinq
 					if (((IDataAccessObjectAdvanced)value).NumberOfPrimaryKeys > 1)
 					{
 						Dictionary<CompositePrimaryKey, DataAccessObject> subcache;
-						var key = new CompositePrimaryKey(value.Advanced.GetPrimaryKeys());
+						var key = new CompositePrimaryKey(value.GetAdvanced().GetPrimaryKeys());
 
 						if (objectsByIdCacheComposite == null)
 						{
@@ -298,7 +298,6 @@ namespace Shaolinq
 
 				public int GetHashCode(DataAccessObject obj)
 				{
-					return 0;
 					return obj.ToObjectInternal().GetHashCodeAccountForServerGenerated();
 				}
 			}
@@ -314,11 +313,11 @@ namespace Shaolinq
 
 				var type = value.GetType();
 
-				if (dataAccessObject.Advanced.IsNew)
+				if (dataAccessObject.GetAdvanced().IsNew)
 				{
 					HashSet<DataAccessObject> notReadyForCommitSubcache;
 
-					if (dataAccessObject.Advanced.PrimaryKeyIsCommitReady)
+					if (dataAccessObject.GetAdvanced().PrimaryKeyIsCommitReady)
 					{
 						Dictionary<DataAccessObject, DataAccessObject> subcache;
 
@@ -346,7 +345,7 @@ namespace Shaolinq
 							notReadyForCommitSubcache.Remove(value);
 						}
 
-						if (dataAccessObject.Advanced.NumberOfPrimaryKeysGeneratedOnServerSide > 0)
+						if (dataAccessObject.GetAdvanced().NumberOfPrimaryKeysGeneratedOnServerSide > 0)
 						{
 							return value;
 						}
@@ -369,16 +368,16 @@ namespace Shaolinq
 					}
 				}
 
-				if (dataAccessObject.Advanced.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
+				if (dataAccessObject.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
 				{
 					return value;
 				}
-				
-				if (dataAccessObject.Advanced.NumberOfPrimaryKeys > 1)
+
+				if (dataAccessObject.GetAdvanced().NumberOfPrimaryKeys > 1)
 				{
 					Dictionary<CompositePrimaryKey, DataAccessObject> subcache;
 
-					var key = new CompositePrimaryKey(value.Advanced.GetPrimaryKeys());
+					var key = new CompositePrimaryKey(value.GetAdvanced().GetPrimaryKeys());
 
 					if (this.objectsByIdCacheComposite == null)
 					{
@@ -398,10 +397,10 @@ namespace Shaolinq
 
 						if (subcache.TryGetValue(key, out outValue))
 						{
-							var deleted = outValue.IsDeleted;
+							var deleted = outValue.IsDeleted();
 
 							outValue.ToObjectInternal().SwapData(value, true);
-							outValue.ToObjectInternal().SetIsDeflatedReference(value.IsDeflatedReference);
+							outValue.ToObjectInternal().SetIsDeflatedReference(value.IsDeflatedReference());
 
 							if (deleted)
 							{
@@ -431,7 +430,7 @@ namespace Shaolinq
 								}
 								else
 								{
-									if (value.IsDeleted)
+									if (value.IsDeleted())
 									{
 										subList[key] = value;
 									}
@@ -469,10 +468,10 @@ namespace Shaolinq
 
 						if (subcache.TryGetValue(id, out outValue))
 						{
-							var deleted = outValue.IsDeleted;
+							var deleted = outValue.IsDeleted();
 
 							outValue.ToObjectInternal().SwapData(value, true);
-							outValue.ToObjectInternal().SetIsDeflatedReference(value.IsDeflatedReference);
+							outValue.ToObjectInternal().SetIsDeflatedReference(value.IsDeflatedReference());
 
 							if (deleted)
 							{
@@ -502,7 +501,7 @@ namespace Shaolinq
 								}
 								else
 								{
-									if (value.IsDeleted)
+									if (value.IsDeleted())
 									{
 										subList[id] = value;
 									}
@@ -623,7 +622,7 @@ namespace Shaolinq
 
 			alreadyVisited.Add(value);
 
-			foreach (var propertyInfoAndValue in value.Advanced.GetAllProperties())
+			foreach (var propertyInfoAndValue in value.GetAdvanced().GetAllProperties())
 			{
 				var propertyValue = propertyInfoAndValue.Value as DataAccessObject;
 
@@ -693,11 +692,11 @@ namespace Shaolinq
 				return value;
 			}
 
-			var keyType = value.Advanced.KeyType;
+			var keyType = value.GetAdvanced().KeyType;
 
-			if (keyType == null && value.Advanced.NumberOfPrimaryKeys > 1)
+			if (keyType == null && value.GetAdvanced().NumberOfPrimaryKeys > 1)
 			{
-				keyType = value.Advanced.CompositeKeyTypes[0];
+				keyType = value.GetAdvanced().CompositeKeyTypes[0];
 			}
 
 			switch (Type.GetTypeCode(keyType))

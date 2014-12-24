@@ -1468,7 +1468,7 @@ namespace Shaolinq.Tests
 
 				var z = query.ToList();
 
-				Assert.IsFalse(query.ToList().First().School.IsDeflatedReference);
+				Assert.IsFalse(query.ToList().First().School.IsDeflatedReference());
 
 				var studentsBySchool = query.ToLookup(x => x.School, x => x.MaleStudents);
 
@@ -1506,14 +1506,14 @@ namespace Shaolinq.Tests
 						continue;
 					}
 
-					Assert.IsFalse(student.BestFriend.IsDeflatedReference);
+					Assert.IsFalse(student.BestFriend.IsDeflatedReference());
 
 					if (student.BestFriend.Address == null)
 					{
 						continue;
 					}
 
-					Assert.IsFalse(student.BestFriend.Address.IsDeflatedReference);
+					Assert.IsFalse(student.BestFriend.Address.IsDeflatedReference());
 
 					count++;
 				}
@@ -1538,7 +1538,7 @@ namespace Shaolinq.Tests
 
 				foreach (var student in query.ToList())
 				{
-					Assert.IsTrue(student.School.IsDeflatedReference);
+					Assert.IsTrue(student.School.IsDeflatedReference());
 				}
 
 				var firstStudent =
@@ -1552,7 +1552,7 @@ namespace Shaolinq.Tests
 							student.Include(c => c.Address)).First();
 
 				Assert.AreEqual("Bruce's Kung Fu School", firstStudent.School.Name);
-				Assert.IsFalse(firstStudent.IsDeflatedReference);
+				Assert.IsFalse(firstStudent.IsDeflatedReference());
 				Assert.AreEqual(178, firstStudent.Address.Number);
 			}
 		}
