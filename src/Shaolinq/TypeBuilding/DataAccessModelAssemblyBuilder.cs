@@ -40,13 +40,13 @@ namespace Shaolinq.TypeBuilding
 			foreach (var typeDescriptor in typeDescriptors)
 			{
 				dataAccessObjectTypeBuilder = new DataAccessObjectTypeBuilder(typeDescriptorProvider, assemblyBuildContext, moduleBuilder, typeDescriptor.Type);
-				dataAccessObjectTypeBuilder.BuildFirstPhase(1);
+				dataAccessObjectTypeBuilder.Build(new DataAccessObjectTypeBuilder.TypeBuildContext(1));
 			}
 
 			foreach (var typeDescriptor in typeDescriptors)
 			{
 				dataAccessObjectTypeBuilder = assemblyBuildContext.TypeBuilders[typeDescriptor.Type];
-				dataAccessObjectTypeBuilder.BuildFirstPhase(2);
+				dataAccessObjectTypeBuilder.Build(new DataAccessObjectTypeBuilder.TypeBuildContext(2));
 			}
 
 			bool saveConcreteAssembly;

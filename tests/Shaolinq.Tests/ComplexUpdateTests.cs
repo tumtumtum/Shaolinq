@@ -1,19 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Transactions;
+﻿using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
 {
-	///[TestFixture("MySql")]
 	[TestFixture("Sqlite")]
-	//[TestFixture("SqliteInMemory")]
-	//[TestFixture("SqliteClassicInMemory")]
-	//[TestFixture("Postgres")]
-	//[TestFixture("Postgres.DotConnect")]
 	public class ComplexUpdateTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
 	{
@@ -25,9 +16,9 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Set_Object_Property_To_Null()
 		{
-			long addressId;
 			long regionId;
-
+			long addressId;
+			
 			using (var scope = new TransactionScope())
 			{
 				var address = this.model.Addresses.Create();
@@ -73,7 +64,7 @@ namespace Shaolinq.Tests
 					address.Region2 = null;
 
 					var changedProperties = address.GetChangedProperties();
-					var changedPropertiesFlattened = address.GetAdvanced().GetChangedPropertiesFlattened();
+					var changedPropesrtiesFlattened = address.GetAdvanced().GetChangedPropertiesFlattened();
 					
 					Assert.IsTrue(address.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys);
 					Assert.IsFalse(address.GetAdvanced().PrimaryKeyIsCommitReady);
