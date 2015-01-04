@@ -840,7 +840,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First();
+				var student = this.model.Students.First();
 
 				Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
 

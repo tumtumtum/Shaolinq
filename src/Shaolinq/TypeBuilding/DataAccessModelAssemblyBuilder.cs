@@ -26,7 +26,7 @@ namespace Shaolinq.TypeBuilding
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 
 			var configMd5 = configuration.GetMd5();
-			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + ".Concrete");
+			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + "." + typeDescriptorProvider.DataAccessModelType.Name);
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + configMd5 + ".dll");
 
