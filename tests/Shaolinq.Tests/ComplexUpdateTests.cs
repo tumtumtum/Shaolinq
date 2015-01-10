@@ -44,9 +44,7 @@ namespace Shaolinq.Tests
 				var changedPropertiesFlattened = address.GetAdvanced().GetChangedPropertiesFlattened();
 
 				Assert.AreEqual(1, changedProperties.Count);
-				Assert.AreEqual(1, changedPropertiesFlattened.Count);
-
-				scope.Complete();
+				Assert.AreEqual(this.model.TypeDescriptorProvider.GetTypeDescriptor(typeof(Region)).PrimaryKeyCount, changedPropertiesFlattened.Count);
 			}
 		}
 

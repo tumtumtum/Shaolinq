@@ -54,7 +54,7 @@ namespace Shaolinq
 		MissingServerGeneratedForeignPrimaryKeys = 32,
 
 		/// <summary>
-		/// The object has been inserted in the transaction but may or may not be completely fulfilled.s
+		/// The object has been inserted in the transaction but may or may not be completely fulfilled.
 		/// </summary>
 		ObjectInsertedWithinTransaction = 64,
 

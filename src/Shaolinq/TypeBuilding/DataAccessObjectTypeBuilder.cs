@@ -420,6 +420,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
+
+					return valueField.FieldType;
 				});
 
 				generator.MarkLabel(skipLabel);
@@ -1883,21 +1885,24 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void EmitPropertyValue(ILGenerator generator, LocalBuilder result, Type valueType, string propertyName, string persistedName, int index, Action loadValue)
+		private void EmitPropertyValue(ILGenerator generator, LocalBuilder result, Type valueType, string propertyName, string persistedName, int index, Func<Type> loadValue)
 		{
 			var value = generator.DeclareLocal(typeof(object));
 
-			// Load value
-			loadValue();
+			var type = loadValue();
 
-			if (valueType.IsValueType)
+			if (type.IsValueType)
 			{
-				generator.Emit(OpCodes.Box, valueType);
+				generator.Emit(OpCodes.Box, type);
 			}
 
 			generator.Emit(OpCodes.Stloc, value);
 
-			// Load retval
+			this.EmitPropertyValue(generator, result, valueType, propertyName, persistedName, index, value);
+		}
+
+		private void EmitPropertyValue(ILGenerator generator, LocalBuilder result, Type valueType, string propertyName, string persistedName, int index, LocalBuilder value)
+		{
 			generator.Emit(OpCodes.Ldloc, result);
 
 			if (result.LocalType.IsArray)
@@ -1922,6 +1927,11 @@ namespace Shaolinq.TypeBuilding
 
 			// Load the value
 			generator.Emit(OpCodes.Ldloc, value);
+
+			if (value.LocalType.IsValueType)
+			{
+				generator.Emit(OpCodes.Box, value.LocalType);
+			}
 
 			// Construct the ObjectPropertyValue
 			generator.Emit(OpCodes.Newobj, ConstructorInfoFastRef.ObjectPropertyValueConstructor);
@@ -1962,6 +1972,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
+
+					return valueField.FieldType;
 				});
 			}
 
@@ -1991,6 +2003,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
+
+					return valueField.FieldType;
 				});
 			}
 
@@ -2014,13 +2028,15 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
+			var objectVariable = generator.DeclareLocal(typeof(object));
+			
 			foreach (var columnInfoValue in columnInfos)
 			{
 				var columnInfo = columnInfoValue;
 				var skipLabel = generator.DefineLabel();
 
-				this.EmitPropertyValue(generator, arrayLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, 
-					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, false, true));
+				this.EmitPropertyValueRecursive(generator, objectVariable, columnInfo, skipLabel, false);
+				this.EmitPropertyValue(generator, arrayLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, objectVariable);
 
 				generator.MarkLabel(skipLabel);
 			}
@@ -2050,143 +2066,114 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void EmitGetValueRecursive(ColumnInfo columnInfo, ILGenerator generator, Label skipLabel, bool checkChanged, bool defaultIfNotAvailable)
+		private void EmitPropertyValueRecursive(ILGenerator generator, LocalBuilder result, ColumnInfo columnInfo, Label continueLabel, bool checkChanged)
 		{
-			var first = true;
-			
+			generator.Emit(OpCodes.Ldnull);
+			generator.Emit(OpCodes.Stloc, result);
+
 			generator.Emit(OpCodes.Ldarg_0);
 
-			var last = new Tuple<PropertyDescriptor, string>(columnInfo.DefinitionProperty, columnInfo.DefinitionProperty.PropertyName);
+			var first = true;
+			var changedSet = false;
+			var changed = generator.DeclareLocal(typeof(bool));
 
-			var isNew = generator.DeclareLocal(typeof(bool));
-			
-			generator.Emit(OpCodes.Ldc_I4_0);
-			generator.Emit(OpCodes.Stloc, isNew);
-					
-			foreach (var visited in columnInfo
-				.VisitedProperties
-				.Select(c => new Tuple<PropertyDescriptor, string>(c, c.PropertyName))
-				.Concat(last))
+			var last = columnInfo.DefinitionProperty;
+			var done = generator.DefineLabel();
+
+			foreach (var visited in columnInfo.VisitedProperties.Concat(last))
 			{
-				var loadValueLabel = generator.DefineLabel();
-				var readValueLabel = generator.DefineLabel();
-				var gotValueLabel = generator.DefineLabel();
-				var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[visited.Item1.PropertyInfo.ReflectedType];
-				var valueChangedField = referencedTypeBuilder.valueChangedFields[visited.Item2];
-				var valueIsSetField = referencedTypeBuilder.valueIsSetFields[visited.Item2];
+				var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[visited.PropertyInfo.ReflectedType];
 				var localDataObjectField = referencedTypeBuilder.dataObjectField;
-				var localValueField = referencedTypeBuilder.valueFields[visited.Item2];
+				var localValueField = referencedTypeBuilder.valueFields[visited.PropertyName];
 				var currentObject = generator.DeclareLocal(referencedTypeBuilder.typeBuilder);
-				var value = generator.DeclareLocal(localValueField.FieldType);
-
+				var valueChangedField = referencedTypeBuilder.valueChangedFields[visited.PropertyName];
+					
 				generator.Emit(OpCodes.Stloc, currentObject);
 
-				if (currentObject.LocalType.IsClass && !first)
+				if (currentObject.LocalType.IsDataAccessObjectType() && !first)
 				{
 					generator.Emit(OpCodes.Ldloc, currentObject);
 					generator.Emit(OpCodes.Ldnull);
 					generator.Emit(OpCodes.Ceq);
-					generator.Emit(OpCodes.Brfalse, readValueLabel);
 
-					if (defaultIfNotAvailable)
+					if (checkChanged && changedSet)
 					{
-						generator.EmitDefaultValue(localValueField.FieldType);
+						var next = generator.DefineLabel();
+						
+						generator.Emit(OpCodes.Brfalse, next);
 
-						generator.Emit(OpCodes.Stloc, value);
-						generator.Emit(OpCodes.Br, gotValueLabel);
+						generator.Emit(OpCodes.Ldloc, changed);
+						generator.Emit(OpCodes.Brfalse, continueLabel);
+
+						generator.Emit(OpCodes.Ldnull);
+						generator.Emit(OpCodes.Stloc, result);
+						generator.Emit(OpCodes.Br, done);
+
+						generator.MarkLabel(next);
 					}
 					else
 					{
-						generator.Emit(OpCodes.Br, skipLabel);
+						generator.Emit(OpCodes.Brtrue, continueLabel);
 					}
 				}
 
-				if (!columnInfo.DefinitionProperty.IsPropertyThatIsCreatedOnTheServerSide)
+				if (object.ReferenceEquals(visited, last))
 				{
-					var l1 = generator.DefineLabel();
-
-					generator.Emit(OpCodes.Ldloc, currentObject);
-					generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
-					generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.New));
-					generator.Emit(OpCodes.And);
-					generator.Emit(OpCodes.Ldc_I4_0);
-					generator.Emit(OpCodes.Ceq);
-					generator.Emit(OpCodes.Brtrue, l1);
-					generator.Emit(OpCodes.Ldc_I4_1);
-					generator.Emit(OpCodes.Stloc, isNew);
-					generator.MarkLabel(l1);
-				}
-
-				first = false;
-
-				generator.MarkLabel(readValueLabel);
-
-				if (checkChanged)
-				{
-					var l5 = generator.DefineLabel();
-
-					generator.Emit(OpCodes.Ldloc, currentObject);
-					generator.Emit(OpCodes.Ldfld, localDataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueChangedField);
-					generator.Emit(OpCodes.Brfalse, l5);
-
-					generator.Emit(OpCodes.Ldc_I4_1);
-					generator.Emit(OpCodes.Stloc, isNew);
-					generator.Emit(OpCodes.Br, loadValueLabel);
-
-					generator.MarkLabel(l5);
-				}
-				else
-				{
+					var valueIsSetField = referencedTypeBuilder.valueIsSetFields[visited.PropertyName];
+				
 					generator.Emit(OpCodes.Ldloc, currentObject);
 					generator.Emit(OpCodes.Ldfld, localDataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueIsSetField);
-					generator.Emit(OpCodes.Brtrue, loadValueLabel);
-				}
+					generator.Emit(OpCodes.Brfalse, continueLabel);
 
-				generator.Emit(OpCodes.Ldloc, isNew);
-				generator.Emit(OpCodes.Brtrue, loadValueLabel);
+					if (checkChanged)
+					{
+						if (!changedSet)
+						{
+							generator.Emit(OpCodes.Ldloc, currentObject);
+							generator.Emit(OpCodes.Ldfld, localDataObjectField);
+							generator.Emit(OpCodes.Ldfld, valueChangedField);
+							generator.Emit(OpCodes.Stloc, changed);
 
-				if (localValueField.FieldType.IsDataAccessObjectType())
-				{
+							changedSet = true;
+						}
+
+						generator.Emit(OpCodes.Ldloc, changed);
+						generator.Emit(OpCodes.Brfalse, continueLabel);
+					}
+
 					generator.Emit(OpCodes.Ldloc, currentObject);
 					generator.Emit(OpCodes.Ldfld, localDataObjectField);
 					generator.Emit(OpCodes.Ldfld, localValueField);
-					generator.Emit(OpCodes.Ldnull);
-					generator.Emit(OpCodes.Ceq);
-					generator.Emit(OpCodes.Brtrue, loadValueLabel);
 
-					generator.Emit(OpCodes.Ldloc, currentObject);
-					generator.Emit(OpCodes.Ldfld, localDataObjectField);
-					generator.Emit(OpCodes.Ldfld, localValueField);
-					generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
-					generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.New));
-					generator.Emit(OpCodes.And);
-					generator.Emit(OpCodes.Ldc_I4_0);
-					generator.Emit(OpCodes.Ceq);
-					generator.Emit(OpCodes.Brfalse, loadValueLabel);
-				}
+					if (localValueField.FieldType.IsValueType)
+					{
+						generator.Emit(OpCodes.Box, localValueField.FieldType);
+					}
 
-				if (defaultIfNotAvailable)
-				{
-					generator.EmitDefaultValue(localValueField.FieldType);
-					generator.Emit(OpCodes.Stloc, value);
-					generator.Emit(OpCodes.Br, gotValueLabel);
+					generator.Emit(OpCodes.Stloc, result);
 				}
 				else
 				{
-					generator.Emit(OpCodes.Br, skipLabel);
+					if (!changedSet)
+					{
+						generator.Emit(OpCodes.Ldloc, currentObject);
+						generator.Emit(OpCodes.Ldfld, localDataObjectField);
+						generator.Emit(OpCodes.Ldfld, valueChangedField);
+						generator.Emit(OpCodes.Stloc, changed);
+
+						changedSet = true;
+					}
+
+					generator.Emit(OpCodes.Ldloc, currentObject);
+					generator.Emit(OpCodes.Ldfld, localDataObjectField);
+					generator.Emit(OpCodes.Ldfld, localValueField);
 				}
 
-				generator.MarkLabel(loadValueLabel);
-				generator.Emit(OpCodes.Ldloc, currentObject);
-				generator.Emit(OpCodes.Ldfld, localDataObjectField);
-				generator.Emit(OpCodes.Ldfld, localValueField);
-				generator.Emit(OpCodes.Stloc, value);
-				
-				generator.MarkLabel(gotValueLabel);
-				generator.Emit(OpCodes.Ldloc, value);
+				first = false;
 			}
+
+			generator.MarkLabel(done);
 		}
 
 		private void BuildGetAllPropertiesMethod()
@@ -2211,6 +2198,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
+
+					return valueField.FieldType;
 				});
 			}
 
@@ -2258,6 +2247,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueField);
+
+					return valueField.FieldType;
 				});
 				
 				generator.MarkLabel(label);
@@ -2267,15 +2258,12 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildGetChangedPropertiesMethodFlattenedMethod()
+		private void BuildGetChangedPropertiesFlattenedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedPropertiesFlattened");
-			var properties = this.typeDescriptor
-				.PersistedAndRelatedObjectProperties
-				.ToList();
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			var properties = this.typeDescriptor.PersistedAndRelatedObjectProperties.ToList();
 
 			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, properties);
-
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
 
 			generator.Emit(OpCodes.Ldc_I4, columnInfos.Length);
@@ -2283,14 +2271,15 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Stloc, listLocal);
 
 			var index = 0;
+			var objectVariable = generator.DeclareLocal(typeof(object));
 
 			foreach (var columnInfoValue in columnInfos)
 			{
 				var columnInfo = columnInfoValue;
 				var skipLabel = generator.DefineLabel();
 
-				this.EmitPropertyValue(generator, listLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, 
-					() => this.EmitGetValueRecursive(columnInfo, generator, skipLabel, true, false));
+				this.EmitPropertyValueRecursive(generator, objectVariable, columnInfo, skipLabel, true);
+				this.EmitPropertyValue(generator, listLocal, columnInfo.DefinitionProperty.PropertyType, columnInfo.GetFullPropertyName(), columnInfo.ColumnName, index++, objectVariable);
 
 				generator.MarkLabel(skipLabel);
 			}
@@ -2418,7 +2407,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildNumberOfPropertiesGeneratedOnTheServerSideProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfPropertiesGeneratedOnTheServerSide");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
 
 			var count = this.typeDescriptor.PersistedProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 

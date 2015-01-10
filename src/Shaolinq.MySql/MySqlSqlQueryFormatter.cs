@@ -98,6 +98,11 @@ namespace Shaolinq.MySql
 			this.Write("; SELECT LAST_INSERT_ID()");
 		}
 
+		protected override void WriteInsertDefaultValuesSuffix()
+		{
+			this.Write(" VALUES ()");
+		}
+
 		protected override void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)
 		{
 		}

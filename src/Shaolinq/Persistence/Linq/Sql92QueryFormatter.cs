@@ -119,6 +119,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void WriteInsertDefaultValuesSuffix()
 		{
+			this.Write(" DEFAULT VALUES");
 		}
 
 		protected virtual void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
@@ -1249,21 +1250,21 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Write("INSERT INTO ");
 			this.WriteTableName(expression.TableName);
-			this.Write("(");
-			this.WriteDeliminatedListOfItems(expression.ColumnNames,this.WriteQuotedIdentifier);
 
 			if (expression.ValueExpressions == null || expression.ValueExpressions.Count == 0)
 			{
-				this.Write(")");
 				this.WriteInsertDefaultValuesSuffix();
-				this.Write(",");
-
-				return expression;
 			}
+			else
+			{
+				this.Write("(");
+				this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
 
-			this.Write(") VALUES (");
-			this.WriteDeliminatedListOfItems(expression.ValueExpressions, this.Visit);
-			this.Write(")");
+
+				this.Write(") VALUES (");
+				this.WriteDeliminatedListOfItems(expression.ValueExpressions, this.Visit);
+				this.Write(")");
+			}
 
 			this.WriteInsertIntoReturning(expression);
 			this.Write(";");
