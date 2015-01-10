@@ -25,6 +25,8 @@ namespace Shaolinq.Tests
 
 				address.Region = this.model.Regions.Create();
 				address.Region.Name = "RegionName";
+				address.Region2 = this.model.Regions.Create();
+				address.Region2.Name = "RegionName2";
 
 				this.model.Flush();
 
@@ -45,6 +47,21 @@ namespace Shaolinq.Tests
 
 				Assert.AreEqual(1, changedProperties.Count);
 				Assert.AreEqual(this.model.TypeDescriptorProvider.GetTypeDescriptor(typeof(Region)).PrimaryKeyCount, changedPropertiesFlattened.Count);
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var address = this.model.Addresses.GetByPrimaryKey(this.model.Addresses.GetReference(new { Id = addressId, Region = this.model.Regions.GetReference(new { Id = regionId, Name = "RegionName" }) }));
+
+				address.Region2 = null;
+
+				var changedProperties = address.GetChangedProperties();
+				var changedPropertiesFlattened = address.GetAdvanced().GetChangedPropertiesFlattened();
+
+				Assert.AreEqual(1, changedProperties.Count);
+				Assert.AreEqual(this.model.TypeDescriptorProvider.GetTypeDescriptor(typeof(Region)).PrimaryKeyCount, changedPropertiesFlattened.Count);
+
+				scope.Complete();
 			}
 		}
 
