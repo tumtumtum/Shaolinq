@@ -400,8 +400,7 @@ namespace Shaolinq
 							var deleted = outValue.IsDeleted();
 
 							outValue.ToObjectInternal().SwapData(value, true);
-							outValue.ToObjectInternal().SetIsDeflatedReference(value.IsDeflatedReference());
-
+							
 							if (deleted)
 							{
 								outValue.ToObjectInternal().SetIsDeleted(true);
@@ -471,8 +470,7 @@ namespace Shaolinq
 							var deleted = outValue.IsDeleted();
 
 							outValue.ToObjectInternal().SwapData(value, true);
-							outValue.ToObjectInternal().SetIsDeflatedReference(value.IsDeflatedReference());
-
+							
 							if (deleted)
 							{
 								outValue.ToObjectInternal().SetIsDeleted(true);

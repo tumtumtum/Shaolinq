@@ -252,6 +252,10 @@ namespace Shaolinq.TypeBuilding
 				constructorGenerator.Emit(OpCodes.Ldarg_2);
 				constructorGenerator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectInternal).GetMethod("SetIsNew"));
 
+				var skipSetDefault = constructorGenerator.DefineLabel();
+				constructorGenerator.Emit(OpCodes.Ldarg_2);
+				constructorGenerator.Emit(OpCodes.Brfalse, skipSetDefault);
+
 				foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties)
 				{
 					if (propertyDescriptor.IsAutoIncrement
@@ -286,8 +290,23 @@ namespace Shaolinq.TypeBuilding
 						constructorGenerator.EmitDefaultValue(propertyDescriptor.PropertyType);
 						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
 					}
+					else if (propertyDescriptor.PropertyType == typeof(string) && !propertyDescriptor.IsComputedTextMember)
+					{
+						constructorGenerator.Emit(OpCodes.Ldarg_0);
+						constructorGenerator.Emit(OpCodes.Ldnull);
+
+						if (this.propertyBuilders.ContainsKey(ForceSetPrefix + propertyDescriptor.PropertyName))
+						{
+							constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[ForceSetPrefix + propertyDescriptor.PropertyName].GetSetMethod());
+						}
+						else
+						{
+							constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
+						}
+					}
 				}
 
+				constructorGenerator.MarkLabel(skipSetDefault);
 				constructorGenerator.Emit(OpCodes.Ret);
 
 				this.dataObjectTypeTypeBuilder.CreateType();

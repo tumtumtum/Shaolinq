@@ -53,6 +53,7 @@ namespace Shaolinq.Tests
 			{
 				var address = this.model.Addresses.GetByPrimaryKey(this.model.Addresses.GetReference(new { Id = addressId, Region = this.model.Regions.GetReference(new { Id = regionId, Name = "RegionName" }) }));
 
+				Assert.IsNotNull(address.Region2);
 				address.Region2 = null;
 
 				var changedProperties = address.GetChangedProperties();
@@ -62,6 +63,13 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(this.model.TypeDescriptorProvider.GetTypeDescriptor(typeof(Region)).PrimaryKeyCount, changedPropertiesFlattened.Count);
 
 				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var address = this.model.Addresses.GetByPrimaryKey(this.model.Addresses.GetReference(new { Id = addressId, Region = this.model.Regions.GetReference(new { Id = regionId, Name = "RegionName" }) }));
+
+				Assert.IsNull(address.Region2);
 			}
 		}
 

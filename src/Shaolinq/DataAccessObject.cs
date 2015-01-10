@@ -66,8 +66,7 @@ namespace Shaolinq
 			var inflated = this.dataAccessModel.Inflate(this);
 
 			this.ToObjectInternal().SwapData(inflated, true);
-			this.ToObjectInternal().SetIsDeflatedReference(false);
-
+			
 			return this;
 		}
 
