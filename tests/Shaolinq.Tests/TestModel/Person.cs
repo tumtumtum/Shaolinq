@@ -48,6 +48,7 @@ namespace Shaolinq.Tests.TestModel
 				return this.Id.ToString("N");
 			}
 		}
+
 		[PersistedMember]
 		[ComputedTextMember("urn:$(TYPENAME_LOWER):{CompactIdString}")]
 		public abstract string Urn { get; set; }

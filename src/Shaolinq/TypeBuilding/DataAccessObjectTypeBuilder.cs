@@ -560,14 +560,16 @@ namespace Shaolinq.TypeBuilding
 			if (typeBuildContext.IsSecondPass())
 			{
 				var propertiesToLoad = new List<PropertyInfo>();
-				var ilGenerator = methodBuilder.GetILGenerator();
+				var generator = methodBuilder.GetILGenerator();
 
 				var formatString = VariableSubstitutor.Substitute(attribute.Format, value =>
 				{
 					switch (value)
 					{
+						case "$(TABLENAME)":
 						case "$(PERSISTEDTYPENAME)":
 							return this.typeDescriptor.PersistedName;
+						case "$(TABLENAME_LOWER)":
 						case "$(PERSISTEDTYPENAME_LOWER)":
 							return this.typeDescriptor.PersistedName.ToLower();
 						case "$(TYPENAME)":
@@ -596,40 +598,68 @@ namespace Shaolinq.TypeBuilding
 							pi = pb;
 						}
 
-					propertiesToLoad.Add(pi);
+						propertiesToLoad.Add(pi);
 
 					    return "{" + (propertiesToLoad.Count - 1) + "}";
 					}
 				);
 
-				var arrayLocal = ilGenerator.DeclareLocal(typeof(Object[]));
+				foreach (var propertyDescriptor in propertiesToLoad
+					.SelectMany(c =>
+					{
+						var attributes = this.typeDescriptor.Type.GetProperty(c.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetCustomAttributes(typeof(DependsOnPropertyAttribute), true);
 
-				ilGenerator.Emit(OpCodes.Ldc_I4, propertiesToLoad.Count);
-				ilGenerator.Emit(OpCodes.Newarr, typeof(object));
-				ilGenerator.Emit(OpCodes.Stloc, arrayLocal);
+						if (attributes.Length > 0)
+						{
+							return attributes.OfType<DependsOnPropertyAttribute>().Select(d => this.typeDescriptor.GetPropertyDescriptorByPropertyName(d.PropertyName));
+						}
+
+						return new[] { this.typeDescriptor.GetPropertyDescriptorByPropertyName(c.Name) };
+					})
+					.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide))
+				{
+					var next = generator.DefineLabel();
+
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+					generator.Emit(OpCodes.Ldfld, this.valueIsSetFields[propertyDescriptor.PropertyName]);
+					generator.Emit(OpCodes.Brtrue, next);
+					generator.Emit(OpCodes.Ret);
+
+					generator.MarkLabel(next);
+				}
+
+				var arrayLocal = generator.DeclareLocal(typeof(Object[]));
+
+				generator.Emit(OpCodes.Ldc_I4, propertiesToLoad.Count);
+				generator.Emit(OpCodes.Newarr, typeof(object));
+				generator.Emit(OpCodes.Stloc, arrayLocal);
 
 				var i = 0;
 
 				foreach (var componentPropertyInfo in propertiesToLoad)
 				{
-					ilGenerator.Emit(OpCodes.Ldloc, arrayLocal);
-					ilGenerator.Emit(OpCodes.Ldc_I4, i);
-					ilGenerator.Emit(OpCodes.Ldarg_0);
-					ilGenerator.Emit(OpCodes.Callvirt, componentPropertyInfo.GetGetMethod(true));
+					generator.Emit(OpCodes.Ldloc, arrayLocal);
+					generator.Emit(OpCodes.Ldc_I4, i);
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Callvirt, componentPropertyInfo.GetGetMethod(true));
+					
 					if (componentPropertyInfo.PropertyType.IsValueType)
 					{
-						ilGenerator.Emit(OpCodes.Box, componentPropertyInfo.PropertyType);
+						generator.Emit(OpCodes.Box, componentPropertyInfo.PropertyType);
 					}
-					ilGenerator.Emit(OpCodes.Stelem, typeof(object));
+
+					generator.Emit(OpCodes.Stelem, typeof(object));
+
 					i++;
 				}
 
-				ilGenerator.Emit(OpCodes.Ldarg_0);
-				ilGenerator.Emit(OpCodes.Ldstr, formatString);
-				ilGenerator.Emit(OpCodes.Ldloc, arrayLocal);
-				ilGenerator.Emit(OpCodes.Call, typeof(String).GetMethod("Format",  new[]{ typeof(string), typeof(object[]) }));
-				ilGenerator.Emit(OpCodes.Call, this.propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod());
-				ilGenerator.Emit(OpCodes.Ret);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldstr, formatString);
+				generator.Emit(OpCodes.Ldloc, arrayLocal);
+				generator.Emit(OpCodes.Call, typeof(String).GetMethod("Format",  new[]{ typeof(string), typeof(object[]) }));
+				generator.Emit(OpCodes.Call, this.propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod());
+				generator.Emit(OpCodes.Ret);
 			}
 		}
 
