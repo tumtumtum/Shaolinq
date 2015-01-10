@@ -548,7 +548,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				const MethodAttributes methodAttributes = MethodAttributes.Public;
 
-				methodBuilder = this.typeBuilder.DefineMethod("SetComputedProperty" + propertyInfo.Name, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(void), null);
+				methodBuilder = this.typeBuilder.DefineMethod("$$SetComputedProperty" + propertyInfo.Name, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(void), null);
 
 				this.setComputedValueMethods[propertyInfo.Name] = methodBuilder;
 			}
