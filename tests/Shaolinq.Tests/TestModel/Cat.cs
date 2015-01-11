@@ -18,6 +18,7 @@
 		public abstract Dog Companion { get; set; }
 
 		[BackReference("ParentCatFoo")]
+		[ForeignObjectConstraint(OnDeleteAction = ForeignObjectAction.Restrict, OnUpdateAction = ForeignObjectAction.Restrict)]
 		[Index("CompositeIndexOverObjectAndNonObject", CompositeOrder = 3)]
 		public abstract Cat Parent { get; set; }
 

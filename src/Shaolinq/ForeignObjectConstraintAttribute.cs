@@ -15,13 +15,11 @@ namespace Shaolinq
 	public class ForeignObjectConstraintAttribute
 		: Attribute
 	{
-		public bool DisableConstraint { get; set; }
 		public ForeignObjectAction OnDeleteAction { get; set; }
 		public ForeignObjectAction OnUpdateAction { get; set; }
 
-		public ForeignObjectConstraintAttribute(bool disableConstraint = false)
+		public ForeignObjectConstraintAttribute()
 		{
-			this.DisableConstraint = true;
 		}
 	}
 }

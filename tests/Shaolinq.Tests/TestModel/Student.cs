@@ -23,6 +23,7 @@ namespace Shaolinq.Tests.TestModel
 
 		[Index]
 		[PersistedMember, ValueRequired(false)]
+		[ForeignObjectConstraint(OnDeleteAction = ForeignObjectAction.Restrict, OnUpdateAction = ForeignObjectAction.Restrict)]
 		public abstract Student BestFriend { get; set; }
 
 		[PersistedMember]

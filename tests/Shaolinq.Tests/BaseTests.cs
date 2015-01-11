@@ -8,6 +8,7 @@ using Shaolinq.MySql;
 ﻿using Shaolinq.Postgres.DotConnect;
 ﻿using Shaolinq.Sqlite;
 using log4net.Config;
+using Shaolinq.SqlServer;
 
 namespace Shaolinq.Tests
 {
@@ -21,6 +22,12 @@ namespace Shaolinq.Tests
 	    {
 		    useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_USING_MONODATA"));
 	    }
+
+
+		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
+		{
+			return SqlServerConfiguration.Create(databaseName, "localhost", null, null);
+		}
 
 	    protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)
         {

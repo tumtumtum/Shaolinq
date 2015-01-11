@@ -1442,6 +1442,14 @@ namespace Shaolinq.TypeBuilding
 
 			if (columnInfos.Length > 0)
 			{
+				foreach (var property in columnInfos.Select(c => c.DefinitionProperty).Distinct())
+				{
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+					generator.Emit(OpCodes.Ldc_I4_0);
+					generator.Emit(OpCodes.Stfld, this.valueChangedFields[property.PropertyName]);
+				}
+
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.ObjectInsertedWithinTransaction));

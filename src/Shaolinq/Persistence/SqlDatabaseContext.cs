@@ -33,8 +33,12 @@ namespace Shaolinq.Persistence
 		public string ServerConnectionString { get; protected set; }
 		
 		public abstract DbProviderFactory CreateDbProviderFactory();
-		public abstract SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction);
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
+
+		public virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
+		{
+			return new DefaultSqlTransactionalCommandsContext(this, transaction);
+		}
 
 		public virtual IDbConnection OpenConnection()
 		{

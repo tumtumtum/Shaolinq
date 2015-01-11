@@ -188,6 +188,10 @@
       <Project>{5fd0c2b3-f601-452a-8c72-d5962b6a089a}</Project>
       <Name>Shaolinq.Sqlite</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Shaolinq.SqlServer\Shaolinq.SqlServer.csproj">
+      <Project>{1074bf68-a350-48a8-9769-43ad73537879}</Project>
+      <Name>Shaolinq.SqlServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Shaolinq\Shaolinq.csproj">
       <Project>{0c8321d6-4df6-4b90-af5a-92537d4a7e54}</Project>
       <Name>Shaolinq</Name>

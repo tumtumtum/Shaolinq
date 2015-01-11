@@ -1061,7 +1061,7 @@ namespace Shaolinq.Persistence.Linq
 			return createTableExpression;
 		}
 
-		private void Write(SqlColumnReferenceAction action)
+		protected virtual void Write(SqlColumnReferenceAction action)
 		{
 			switch (action)
 			{
@@ -1260,13 +1260,24 @@ namespace Shaolinq.Persistence.Linq
 				this.Write("(");
 				this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
 
+				this.Write(") ");
 
-				this.Write(") VALUES (");
+				if (this.sqlDialect.SupportsFeature(SqlFeature.InsertOutput))
+				{
+					this.WriteInsertIntoReturning(expression);
+					this.Write(" ");
+				}
+
+				this.Write("VALUES (");
 				this.WriteDeliminatedListOfItems(expression.ValueExpressions, this.Visit);
 				this.Write(")");
 			}
 
-			this.WriteInsertIntoReturning(expression);
+			if (!this.sqlDialect.SupportsFeature(SqlFeature.InsertOutput))
+			{
+				this.WriteInsertIntoReturning(expression);
+			}
+
 			this.Write(";");
 
 			return expression;

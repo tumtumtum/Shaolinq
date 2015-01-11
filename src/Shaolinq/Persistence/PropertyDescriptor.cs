@@ -1,12 +1,11 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
-﻿using System.Collections.ObjectModel;
-﻿using System.Linq;
-﻿using System.Reflection;
+using System;
+using System.Linq;
+using System.Reflection;
 using Platform;
-﻿using Platform.Collections;
-﻿using Platform.Reflection;
+using Platform.Collections;
+using Platform.Reflection;
 using Platform.Validation;
 
 namespace Shaolinq.Persistence
@@ -26,6 +25,7 @@ namespace Shaolinq.Persistence
 		public ValueRequiredAttribute ValueRequiredAttribute { get; private set; }
 		public BackReferenceAttribute BackReferenceAttribute { get; private set; }
 		public PersistedMemberAttribute PersistedMemberAttribute { get; private set; }
+		public ForeignObjectConstraintAttribute ForeignObjectConstraintAttribute { get; private set; }
 		public IReadOnlyList<IndexAttribute> IndexAttributes { get; private set; }
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; private set; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; private set; }
@@ -57,6 +57,7 @@ namespace Shaolinq.Persistence
 			this.RelatedDataAccessObjectsAttribute = propertyInfo.GetFirstCustomAttribute<RelatedDataAccessObjectsAttribute>(true);
 			this.PersistedMemberAttribute = propertyInfo.GetFirstCustomAttribute<PersistedMemberAttribute>(true);
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
+			this.ForeignObjectConstraintAttribute = propertyInfo.GetFirstCustomAttribute<ForeignObjectConstraintAttribute>(true);
 
 			if (this.PropertyType.IsIntegerType(true) || this.PropertyType.GetUnwrappedNullableType() == typeof(Guid))
 			{

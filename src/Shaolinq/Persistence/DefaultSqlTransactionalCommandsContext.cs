@@ -474,7 +474,7 @@ namespace Shaolinq.Persistence
 			var result = sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
 
 			parameter.DbType = GetDbType(result.Left);
-			parameter.Value = result.Right;
+			parameter.Value = result.Right ?? DBNull.Value;
 		
 			command.Parameters.Add(parameter);
 

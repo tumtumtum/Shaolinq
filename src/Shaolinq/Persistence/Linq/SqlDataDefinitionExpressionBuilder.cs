@@ -85,6 +85,32 @@ namespace Shaolinq.Persistence.Linq
 			return retval;
 		}
 
+		private static SqlColumnReferenceAction? ToSqlColumnReferenceAction(ForeignObjectAction foreignObjectAction)
+		{
+			if (foreignObjectAction == null)
+			{
+				return null;
+			}
+
+			switch (foreignObjectAction)
+			{
+			case ForeignObjectAction.Default:
+				return null;
+			case ForeignObjectAction.NoAction:
+				return SqlColumnReferenceAction.NoAction;
+			case ForeignObjectAction.Restrict:
+				return SqlColumnReferenceAction.Restrict;
+			case ForeignObjectAction.Cascade:
+				return SqlColumnReferenceAction.Cascade;
+			case ForeignObjectAction.SetNull:
+				return SqlColumnReferenceAction.SetNull;
+			case ForeignObjectAction.SetDefault:
+				return SqlColumnReferenceAction.SetDefault;
+			default:
+				throw new ArgumentOutOfRangeException("foreignObjectAction");
+			}
+		}
+
 		private IEnumerable<SqlColumnDefinitionExpression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ColumnInfo[] columnInfos)
 		{
 			var relatedPropertyTypeDescriptor = this.model.GetTypeDescriptor(referencingProperty.PropertyType);
@@ -94,6 +120,8 @@ namespace Shaolinq.Persistence.Linq
 				|| referencingProperty.IsPrimaryKey;
 			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsInlineForeignKeys);
 
+			var foreignObjectConstraintAttribute = referencingProperty.ForeignObjectConstraintAttribute;
+
 			foreach (var foreignKeyColumn in columnInfos)
 			{
 				var retval = this.BuildColumnDefinition(foreignKeyColumn);
@@ -102,7 +130,15 @@ namespace Shaolinq.Persistence.Linq
 				{
 					var names = new[] { foreignKeyColumn.DefinitionProperty.PersistedName };
 					var newConstraints = new List<Expression>(retval.ConstraintExpressions);
-					var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, names, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
+
+					var referencesColumnExpression = new SqlReferencesColumnExpression
+					(
+						referencedTableName,
+						SqlColumnReferenceDeferrability.InitiallyDeferred,
+						names,
+						(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull),
+						(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction
+					);
 
 					newConstraints.Add(referencesColumnExpression);
 
@@ -116,7 +152,16 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var currentTableColumnNames = columnInfos.Select(c => c.ColumnName);
 				var referencedTableColumnNames = columnInfos.Select(c => c.GetTailColumnName());
-				var referencesColumnExpression = new SqlReferencesColumnExpression(referencedTableName, SqlColumnReferenceDeferrability.InitiallyDeferred, referencedTableColumnNames, valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull, SqlColumnReferenceAction.NoAction);
+				
+				var referencesColumnExpression = new SqlReferencesColumnExpression
+				(
+					referencedTableName,
+					SqlColumnReferenceDeferrability.InitiallyDeferred,
+					referencedTableColumnNames,
+					(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull),
+					(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction
+				);
+
 				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
 
 				currentTableConstraints.Add(foreignKeyConstraint);
