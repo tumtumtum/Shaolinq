@@ -76,11 +76,12 @@ using MySql.Data.MySqlClient;
 				{
 					return new UniqueConstraintException(exception, relatedQuery);
 				}
-				throw new UniqueConstraintException(mySqlException, relatedQuery);
 			case 1364:
 				return new MissingPropertyValueException(dataAccessObject, mySqlException, relatedQuery);
-			case 1452:
+			case 1451:
 				throw new MissingRelatedDataAccessObjectException(null, dataAccessObject, mySqlException, relatedQuery);
+			case 1452:
+				throw new OperationConstraintViolationException((Exception)null, relatedQuery);
 			default:
 				return new DataAccessException(exception, relatedQuery);
 			}
