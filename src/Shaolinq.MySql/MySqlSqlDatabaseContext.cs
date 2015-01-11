@@ -79,9 +79,9 @@ using MySql.Data.MySqlClient;
 			case 1364:
 				return new MissingPropertyValueException(dataAccessObject, mySqlException, relatedQuery);
 			case 1451:
-				throw new MissingRelatedDataAccessObjectException(null, dataAccessObject, mySqlException, relatedQuery);
-			case 1452:
 				throw new OperationConstraintViolationException((Exception)null, relatedQuery);
+			case 1452:
+				throw new MissingRelatedDataAccessObjectException(null, dataAccessObject, mySqlException, relatedQuery);
 			default:
 				return new DataAccessException(exception, relatedQuery);
 			}
