@@ -999,7 +999,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 
 			result = result && (current.Alias == deleteExpression.Alias
-			                    && current.TableName == deleteExpression.TableName);
+			                    && current.Table == deleteExpression.Table);
 
 			if (result)
 			{
@@ -1009,6 +1009,41 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 
 			return deleteExpression;
+		}
+
+		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
+		{
+			SqlSetCommandExpression current;
+
+			if (!TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (expression.ConfigurationParameter != current.ConfigurationParameter)
+			{
+				result = false;
+
+				return expression;
+			}
+
+			currentObject = current.Target;
+			this.Visit(expression.Target);
+			currentObject = current;
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.VisitExpressionList(expression.Arguments);
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			return expression;
 		}
 	}
 }

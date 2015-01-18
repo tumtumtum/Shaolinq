@@ -13,6 +13,15 @@ namespace Shaolinq.Persistence
 		IndexToLower,
 		InsertOutput,
 		InsertIntoReturning,
-		SupportsInlineForeignKeys
+		ForeignKeys,
+		InlineForeignKeys,
+		ConstrainRestrictAction,
+		RestrictAction,
+		DeleteAction,
+		CascadeAction,
+		SetNullAction,
+		SetDefaultAction,
+		UpdateAutoIncrementColumns,
+		PragmaIdentityInsert
 	}
 }

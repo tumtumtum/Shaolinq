@@ -544,7 +544,7 @@ namespace Shaolinq.Persistence
 				i++;
 			}
 
-			var expression = new SqlUpdateExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), assignments, where);
+			var expression = new SqlUpdateExpression(new SqlTableExpression(typeDescriptor.PersistedName), assignments, where);
 
 			expression = (SqlUpdateExpression)ObjectOperandComparisonExpander.Expand(expression);
 
@@ -559,7 +559,7 @@ namespace Shaolinq.Persistence
 			return command;
 		}
 
-		protected virtual IDbCommand BuildInsertCommand(TypeDescriptor typeDescriptor,DataAccessObject dataAccessObject)
+		protected virtual IDbCommand BuildInsertCommand(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject)
 		{
 			IDbCommand command;
 			SqlCommandValue sqlCommandValue;
@@ -575,7 +575,7 @@ namespace Shaolinq.Persistence
 
 				return command;
 			}
-			
+
 			IReadOnlyList<string> returningAutoIncrementColumnNames = null;
 
 			if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
@@ -587,7 +587,19 @@ namespace Shaolinq.Persistence
 
 			var columnNames = new ReadOnlyList<string>(updatedProperties.Select(c => c.PersistedName).ToList());
 			var valueExpressions = new ReadOnlyList<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToList());
-			var expression = new SqlInsertIntoExpression(SqlQueryFormatter.PrefixedTableName(tableNamePrefix, typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
+			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
+
+			if (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
+			{
+				var list = new List<Expression>
+				{
+					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(true)),
+					expression,
+					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(false)),
+				};
+
+				expression = new SqlStatementListExpression(list);
+			}
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
@@ -595,7 +607,9 @@ namespace Shaolinq.Persistence
 
 			command = CreateCommand();
 
-			command.CommandText = result.CommandText;
+			var commandText = result.CommandText;
+
+			command.CommandText = commandText;
 			CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
 			FillParameters(command, updatedProperties, null);
 

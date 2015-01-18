@@ -83,9 +83,24 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return this.VisitEnumDefinition((SqlEnumDefinitionExpression)expression);
 			case SqlExpressionType.Pragma:
 				return this.VisitPragma((SqlPragmaExpression)expression);
+			case SqlExpressionType.SetCommand:
+				return this.VisitSetCommand((SqlSetCommandExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitSetCommand(SqlSetCommandExpression expression)
+		{
+			var target = this.Visit(expression.Target);
+			var arguments = this.VisitExpressionList(expression.Arguments);
+
+			if (target != expression.Target || arguments != expression.Arguments)
+			{
+				return new SqlSetCommandExpression(expression.ConfigurationParameter, target, arguments);
+			}
+
+			return expression;
 		}
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
@@ -167,7 +182,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (newWhere != expression.Where || newAssignments != expression.Assignments)
 			{
-				return new SqlUpdateExpression(expression.TableName, newAssignments, newWhere);
+				return new SqlUpdateExpression(expression.Table, newAssignments, newWhere);
 			}
 
 			return expression;
@@ -387,7 +402,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (deleteExpression.Where != where)
 			{
-				return new SqlDeleteExpression(deleteExpression.TableName, deleteExpression.Alias, where);
+				return new SqlDeleteExpression(deleteExpression.Table, deleteExpression.Alias, where);
 			}
 
 			return deleteExpression;

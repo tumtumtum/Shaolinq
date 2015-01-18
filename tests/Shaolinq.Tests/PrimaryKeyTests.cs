@@ -6,11 +6,13 @@ using System.Linq;
 using System.Reflection;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Persistence;
 using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
+	[TestFixture("SqlServer")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
@@ -191,8 +193,11 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(1, obj1.Id);
 				Assert.AreEqual(2, obj2.Id);
 
-				obj1.Id = 100;
-				obj2.Id = 200;
+				if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsFeature(SqlFeature.UpdateAutoIncrementColumns))
+				{
+					obj1.Id = 100;
+					obj2.Id = 200;
+				}
 
 				scope.Complete();
 			}

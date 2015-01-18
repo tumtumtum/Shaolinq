@@ -1370,7 +1370,7 @@ namespace Shaolinq.Persistence.Linq
 				expression = Visit(expression);
 			}
 
-			return new SqlDeleteExpression(tableExpression.Name, projection.Select.Alias, expression);
+			return new SqlDeleteExpression(new SqlTableExpression(tableExpression.Name), projection.Select.Alias, expression);
 		}
 
 		private static string GetExistingAlias(Expression source)

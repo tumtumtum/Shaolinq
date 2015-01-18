@@ -11,31 +11,31 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlReferencesColumnExpression
 		: SqlBaseExpression
 	{
-		public string ReferencedTableName {get;private set;}
+		public SqlTableExpression ReferencedTable {get; private set;}
 		public IReadOnlyList<string> ReferencedColumnNames {get;private set;}
 		public SqlColumnReferenceDeferrability Deferrability { get; private set; }
 		public SqlColumnReferenceAction OnDeleteAction { get; private set; }
 		public SqlColumnReferenceAction OnUpdateAction { get; private set; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ReferencesColumn; } }
 
-		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
-			: this(referencedTableName, deferrability, referencedColumnNames.ToReadOnlyList(), onDelete, onUpdate)
+		public SqlReferencesColumnExpression(SqlTableExpression referencedTable, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
+			: this(referencedTable, deferrability, referencedColumnNames.ToReadOnlyList(), onDelete, onUpdate)
 		{
 		}
 
-		public SqlReferencesColumnExpression(string referencedTableName, SqlColumnReferenceDeferrability deferrability, IReadOnlyList<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
+		public SqlReferencesColumnExpression(SqlTableExpression referencedTable, SqlColumnReferenceDeferrability deferrability, IReadOnlyList<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
 			: base(typeof(void))
 		{
 			this.OnDeleteAction = onDelete;
 			this.OnUpdateAction = onUpdate;
-			this.ReferencedTableName = referencedTableName;
+			this.ReferencedTable = referencedTable;
 			this.Deferrability = deferrability;
 			this.ReferencedColumnNames = referencedColumnNames;
 		}
 
 		public SqlReferencesColumnExpression UpdateReferencedColumnNames(IEnumerable<string> columnNames)
 		{
-			return new SqlReferencesColumnExpression(this.ReferencedTableName, this.Deferrability, columnNames, this.OnDeleteAction, this.OnUpdateAction);
+			return new SqlReferencesColumnExpression(this.ReferencedTable, this.Deferrability, columnNames, this.OnDeleteAction, this.OnUpdateAction);
 		}
 	}
 }

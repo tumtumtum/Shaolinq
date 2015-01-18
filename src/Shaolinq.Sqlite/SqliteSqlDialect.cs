@@ -7,20 +7,23 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDialect
 		: SqlDialect
 	{
-		private static readonly SqlFeature[] Features =
-		{
-			SqlFeature.Constraints, 
-			SqlFeature.IndexToLower, 
-			SqlFeature.SelectForUpdate,
-			SqlFeature.IndexToLower,
-			SqlFeature.Deferrability
-		};
-
 		public new static readonly SqliteSqlDialect Default = new SqliteSqlDialect();
 
-		public SqliteSqlDialect()
-			: base(Features)
-		{	
+		public override bool SupportsFeature(SqlFeature feature)
+		{
+			switch (feature)
+			{
+			case SqlFeature.AlterTableAddConstraints:
+				return false;
+			case SqlFeature.Constraints:
+			case SqlFeature.IndexToLower:
+			case SqlFeature.Deferrability:
+			case SqlFeature.SelectForUpdate:
+			case SqlFeature.InlineForeignKeys:
+				return true;
+			default:
+				return base.SupportsFeature(feature);
+			}
 		}
 
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)

@@ -2315,6 +2315,31 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		private void BuildHasAnyChangedPrimaryKeyServerSidePropertiesProperty()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			
+			var columnInfos = QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, this.typeDescriptor, (c, d) => true, (c, d) => c.IsPropertyThatIsCreatedOnTheServerSide);
+		
+			var objectVariable = generator.DeclareLocal(typeof(object));
+
+			foreach (var columnInfoValue in columnInfos)
+			{
+				var columnInfo = columnInfoValue;
+				var skipLabel = generator.DefineLabel();
+
+				this.EmitPropertyValueRecursive(generator, objectVariable, columnInfo, skipLabel, true);
+
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Ret);
+
+				generator.MarkLabel(skipLabel);
+			}
+
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Ret);
+		}
+
 		private void BuildGetChangedPropertiesFlattenedMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));

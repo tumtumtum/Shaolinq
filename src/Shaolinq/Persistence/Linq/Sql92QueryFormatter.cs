@@ -809,7 +809,7 @@ namespace Shaolinq.Persistence.Linq
 
 				AppendLimit(selectExpression);
 
-				if (selectExpression.ForUpdate && this.sqlDialect.SupportsFeature(SqlFeature.Constraints))
+				if (selectExpression.ForUpdate && this.sqlDialect.SupportsFeature(SqlFeature.SelectForUpdate))
 				{
 					this.Write(" FOR UPDATE");
 				}
@@ -898,7 +898,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitTable(SqlTableExpression expression)
 		{
-			this.WriteQuotedIdentifier(expression.Name);
+			this.WriteTableName(expression.Name);
 
 			return expression;
 		}
@@ -960,13 +960,13 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Write("DELETE ");
 			this.Write("FROM ");
-			this.WriteTableName(deleteExpression.TableName);
+			this.Visit(deleteExpression.Table);
 			this.WriteLine();
 			this.Write(" WHERE ");
 			this.WriteLine();
 
 			ignoreAlias = deleteExpression.Alias;
-			replaceAlias = deleteExpression.TableName;
+			replaceAlias = deleteExpression.Table.Name;
 
 			Visit(deleteExpression.Where);
 
@@ -1119,7 +1119,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
 		{
 			this.Write("REFERENCES ");
-			this.WriteTableName(referencesColumnExpression.ReferencedTableName);
+			this.Visit(referencesColumnExpression.ReferencedTable);
 			this.Write("(");
 
 			this.WriteDeliminatedListOfItems(referencesColumnExpression.ReferencedColumnNames, this.WriteQuotedIdentifier);
@@ -1249,7 +1249,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
 		{
 			this.Write("INSERT INTO ");
-			this.WriteTableName(expression.TableName);
+			this.Visit(expression.Table);
 
 			if (expression.ValueExpressions == null || expression.ValueExpressions.Count == 0)
 			{
@@ -1295,7 +1295,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitUpdate(SqlUpdateExpression expression)
 		{
 			this.Write("UPDATE ");
-			this.WriteTableName(expression.TableName);
+			this.Visit(expression.Table);
 			this.Write(" SET ");
 
 			this.WriteDeliminatedListOfItems(expression.Assignments, this.Visit);
@@ -1391,6 +1391,24 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteLine(";");
 
 			return base.VisitPragma(expression);
+		}
+
+		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
+		{
+			this.Write("SET ");
+			this.Write(expression.ConfigurationParameter);
+
+			if (expression.Target != null)
+			{
+				this.Write(" ");
+				this.Visit(expression.Target);
+				this.Write(" ");
+			}
+
+			this.Write(" ");
+			this.Write(expression.Arguments);
+
+			return base.VisitSetCommand(expression);
 		}
 	}
 }

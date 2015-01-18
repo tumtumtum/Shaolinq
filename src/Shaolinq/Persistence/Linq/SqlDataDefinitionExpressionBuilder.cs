@@ -85,13 +85,27 @@ namespace Shaolinq.Persistence.Linq
 			return retval;
 		}
 
-		private static SqlColumnReferenceAction? ToSqlColumnReferenceAction(ForeignObjectAction foreignObjectAction)
+		private SqlColumnReferenceAction FixAction(SqlColumnReferenceAction action)
 		{
-			if (foreignObjectAction == null)
+			switch (action)
 			{
-				return null;
+			case SqlColumnReferenceAction.Cascade:
+				return this.sqlDialect.SupportsFeature(SqlFeature.RestrictAction) ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.NoAction;
+			case SqlColumnReferenceAction.NoAction:
+				return SqlColumnReferenceAction.NoAction;
+			case SqlColumnReferenceAction.Restrict:
+				return this.sqlDialect.SupportsFeature(SqlFeature.RestrictAction) ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.NoAction;
+			case SqlColumnReferenceAction.SetDefault:
+				return this.sqlDialect.SupportsFeature(SqlFeature.SetDefaultAction) ? SqlColumnReferenceAction.SetDefault : SqlColumnReferenceAction.NoAction;
+			case SqlColumnReferenceAction.SetNull:
+				return this.sqlDialect.SupportsFeature(SqlFeature.SetNullAction) ? SqlColumnReferenceAction.SetNull : SqlColumnReferenceAction.NoAction;
+			default:
+				throw new ArgumentOutOfRangeException("action");
 			}
+		}
 
+		private SqlColumnReferenceAction? ToSqlColumnReferenceAction(ForeignObjectAction foreignObjectAction)
+		{
 			switch (foreignObjectAction)
 			{
 			case ForeignObjectAction.Default:
@@ -114,11 +128,11 @@ namespace Shaolinq.Persistence.Linq
 		private IEnumerable<SqlColumnDefinitionExpression> BuildForeignKeyColumnDefinitions(PropertyDescriptor referencingProperty, ColumnInfo[] columnInfos)
 		{
 			var relatedPropertyTypeDescriptor = this.model.GetTypeDescriptor(referencingProperty.PropertyType);
-			var referencedTableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, relatedPropertyTypeDescriptor.PersistedName);
+			var referencedTableName = relatedPropertyTypeDescriptor.PersistedName;
 
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required)
 				|| referencingProperty.IsPrimaryKey;
-			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.SupportsInlineForeignKeys);
+			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.InlineForeignKeys);
 
 			var foreignObjectConstraintAttribute = referencingProperty.ForeignObjectConstraintAttribute;
 
@@ -133,11 +147,11 @@ namespace Shaolinq.Persistence.Linq
 
 					var referencesColumnExpression = new SqlReferencesColumnExpression
 					(
-						referencedTableName,
+						new SqlTableExpression(referencedTableName),
 						SqlColumnReferenceDeferrability.InitiallyDeferred,
 						names,
-						(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull),
-						(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction
+						FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)),
+						FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 					);
 
 					newConstraints.Add(referencesColumnExpression);
@@ -155,11 +169,11 @@ namespace Shaolinq.Persistence.Linq
 				
 				var referencesColumnExpression = new SqlReferencesColumnExpression
 				(
-					referencedTableName,
+					new SqlTableExpression(referencedTableName),
 					SqlColumnReferenceDeferrability.InitiallyDeferred,
 					referencedTableColumnNames,
-					(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull),
-					(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction
+					FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)),
+					FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
 
 				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
@@ -241,7 +255,7 @@ namespace Shaolinq.Persistence.Linq
 
 			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
 
-			var tableName = SqlQueryFormatter.PrefixedTableName(this.tableNamePrefix, typeDescriptor.PersistedName);
+			var tableName = typeDescriptor.PersistedName;
 
 			var primaryKeys = QueryBinder.GetPrimaryKeyColumnInfos(this.model.TypeDescriptorProvider, typeDescriptor);
 
@@ -254,7 +268,7 @@ namespace Shaolinq.Persistence.Linq
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}
 
-			return new SqlCreateTableExpression(new SqlTableExpression(typeof(void), null, tableName), false, columnExpressions, this.currentTableConstraints);
+			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints);
 		}
 
 		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)
