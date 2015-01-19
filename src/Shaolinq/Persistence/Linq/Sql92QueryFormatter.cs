@@ -744,6 +744,8 @@ namespace Shaolinq.Persistence.Linq
 
 				this.Write("SELECT ");
 
+				this.AppendTop(selectExpression);
+
 				if (selectExpression.Distinct)
 				{
 					this.Write("DISTINCT ");
@@ -825,6 +827,10 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return selectExpression;
+		}
+
+		protected virtual void AppendTop(SqlSelectExpression selectExpression)
+		{
 		}
 
 		protected virtual void AppendLimit(SqlSelectExpression selectExpression)

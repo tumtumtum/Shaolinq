@@ -15,6 +15,31 @@ namespace Shaolinq.SqlServer
 		{
 		}
 
+		protected override Expression PreProcess(Expression expression)
+		{
+			expression = SqlServerLimitAmmender.Ammend(expression);
+
+			return base.PreProcess(expression);
+		}
+
+		protected override void AppendTop(SqlSelectExpression selectExpression)
+		{
+			if (selectExpression.Take != null && selectExpression.Skip == null)
+			{
+				this.Write("TOP(");
+				this.Visit(selectExpression.Take);
+				this.Write(") ");
+			}
+		}
+
+		protected override void AppendLimit(SqlSelectExpression selectExpression)
+		{
+			if (selectExpression.Skip != null && selectExpression.Take != null)
+			{
+				throw new InvalidOperationException("Skip/Take not supported");
+			}
+		}
+
 		protected override void Write(SqlColumnReferenceAction action)
 		{
 			if (action == SqlColumnReferenceAction.Restrict)
@@ -25,6 +50,29 @@ namespace Shaolinq.SqlServer
 			}
 
 			base.Write(action);
+		}
+
+		protected override Expression VisitOver(SqlOverExpression selectExpression)
+		{
+			this.Visit(selectExpression.Source);
+
+			this.Write(" OVER (ORDER BY ");
+
+			this.WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
+			{
+				this.Visit(c);
+
+				if (((SqlOrderByExpression)c).OrderType == OrderType.Descending)
+				{
+					this.Write(" DESC");
+				}
+
+				return c;
+			});
+
+			this.Write(")");
+
+			return selectExpression;
 		}
 
 		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)

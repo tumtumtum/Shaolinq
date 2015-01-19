@@ -1011,6 +1011,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return deleteExpression;
 		}
 
+		protected override Expression VisitOver(SqlOverExpression expression)
+		{
+			// TODO
+			return base.VisitOver(expression);
+		}
+
 		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
 		{
 			SqlSetCommandExpression current;

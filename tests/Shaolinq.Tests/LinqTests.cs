@@ -14,6 +14,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite")]
+	[TestFixture("SqlServer")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class LinqTests
@@ -533,7 +534,7 @@ namespace Shaolinq.Tests
 				                orderby student.Firstname
 				                select student).Skip(1).Take(2)).ToList();
 
-				Assert.AreEqual(results.Count, 2);
+				Assert.AreEqual(2, results.Count);
 
 				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).Skip(1).Take(2)));
 			}

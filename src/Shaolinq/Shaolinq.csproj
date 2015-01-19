@@ -148,6 +148,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlMemberBindingType.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlObjectReferenceExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlOverExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlPragmaExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlSetCommandExpression.cs" />
     <Compile Include="Persistence\Linq\JoinSelectorExpander.cs" />
