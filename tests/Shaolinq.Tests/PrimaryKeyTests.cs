@@ -12,11 +12,11 @@ using Shaolinq.Tests.TestModel;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
-	[TestFixture("SqlServer", "IgnoreOnMono")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite", Category = "SupportsSqlite")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
 	[TestFixture("SqliteInMemory", Category = "SupportsSqlite")]
 	[TestFixture("SqliteClassicInMemory", Category = "SupportsSqlite")]
 	public class PrimaryKeyTests
