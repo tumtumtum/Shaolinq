@@ -14,7 +14,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqlServer")]
+	[TestFixture("SqlServer", "IgnoreOnMono")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class LinqTests

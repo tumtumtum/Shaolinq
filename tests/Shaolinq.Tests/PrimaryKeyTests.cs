@@ -12,7 +12,7 @@ using Shaolinq.Tests.TestModel;
 namespace Shaolinq.Tests
 {
 	[TestFixture("MySql")]
-	[TestFixture("SqlServer")]
+	[TestFixture("SqlServer", "IgnoreOnMono")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
