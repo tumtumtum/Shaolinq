@@ -158,6 +158,11 @@ namespace Shaolinq.Persistence.Linq
 
 			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, Visit(checkItem), Visit(checkList));
 
+			if (selectorPredicateStack.Count > 0)
+			{
+				return functionExpression;
+			}
+
 			var alias = this.GetNextAlias();
 			var selectType = typeof(IEnumerable<>).MakeGenericType(typeof(bool));
 

@@ -18,7 +18,7 @@ namespace Shaolinq.Persistence.Linq
 	public class Sql92QueryFormatter
 		: SqlQueryFormatter
 	{
-		internal static readonly string ParamNamePrefix = "shaolinqparam";
+		protected internal static readonly string ParamNamePrefix = "shaolinqparam";
 
 		public struct FunctionResolveResult
 		{

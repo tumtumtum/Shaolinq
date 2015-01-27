@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
@@ -15,9 +14,63 @@ namespace Shaolinq.SqlServer
 		{
 		}
 
+		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)
+		{
+			var function = functionCallExpression.Function;
+			var arguments = functionCallExpression.Arguments;
+
+			switch (function)
+			{
+				case SqlFunction.ServerUtcNow:
+					return new FunctionResolveResult("SYSDATETIME", false, arguments);
+				case SqlFunction.ServerNow:
+					return new FunctionResolveResult("SYSUTCDATETIME", false, arguments);
+				case SqlFunction.DateTimeAddTimeSpan:
+					return new FunctionResolveResult("DATEADD", false, Expression.Constant("SECOND"), functionCallExpression.Arguments[1], functionCallExpression.Arguments[0]);
+			}
+
+			return base.ResolveSqlFunction(functionCallExpression);
+		}
+
+
+		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		{
+			if (constantExpression.Value == null)
+			{
+				return base.VisitConstant(constantExpression);
+			}
+
+			var type = constantExpression.Value.GetType();
+
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean:
+					if (Convert.ToBoolean(constantExpression.Value))
+					{
+						var trueExpression = Expression.Equal(Expression.Constant(1), Expression.Constant(1));
+
+						this.Visit(trueExpression);
+
+						return constantExpression;
+					}
+					else
+					{
+						var falseExpression = Expression.NotEqual(Expression.Constant(1), Expression.Constant(1));
+
+						this.Visit(falseExpression);
+
+						return constantExpression;
+					}
+					break;
+			}
+
+			return base.VisitConstant(constantExpression);
+		}
+
 		protected override Expression PreProcess(Expression expression)
 		{
 			expression = SqlServerLimitAmmender.Ammend(expression);
+			expression = SqlServerBooleanNormalizer.Normalize(expression);
 
 			return base.PreProcess(expression);
 		}
