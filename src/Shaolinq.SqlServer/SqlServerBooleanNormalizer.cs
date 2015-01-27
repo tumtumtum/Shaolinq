@@ -24,14 +24,14 @@ namespace Shaolinq.SqlServer
 				test = Expression.Condition(test, Expression.Constant("true"), Expression.Constant("false"));
 			}
 
-			var ifFalse = expression.IfFalse;
+			var ifFalse = this.Visit(expression.IfFalse);
 
 			if (ifFalse.Type == typeof(bool))
 			{
 				ifFalse = Expression.Condition(ifFalse, Expression.Constant("true"), Expression.Constant(("false")));
 			}
 
-			var ifTrue = expression.IfTrue;
+			var ifTrue = this.Visit(expression.IfTrue);
 
 			if (ifTrue.Type == typeof(bool))
 			{
