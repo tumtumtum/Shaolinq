@@ -223,6 +223,13 @@ namespace Shaolinq.Persistence.Linq
 			return false;
 		}
 
+		protected override Expression VisitParameter(ParameterExpression expression)
+		{
+			this.Write(expression.Name);
+
+			return expression;
+		}
+
 		protected override Expression VisitUnary(UnaryExpression unaryExpression)
 		{
 			switch (unaryExpression.NodeType)

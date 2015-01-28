@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Threading;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -21,15 +22,55 @@ namespace Shaolinq.SqlServer
 
 			switch (function)
 			{
-				case SqlFunction.ServerUtcNow:
-					return new FunctionResolveResult("SYSDATETIME", false, arguments);
-				case SqlFunction.ServerNow:
-					return new FunctionResolveResult("SYSUTCDATETIME", false, arguments);
-				case SqlFunction.DateTimeAddTimeSpan:
-					return new FunctionResolveResult("DATEADD", false, Expression.Constant("SECOND"), functionCallExpression.Arguments[1], functionCallExpression.Arguments[0]);
+			case SqlFunction.ServerUtcNow:
+				return new FunctionResolveResult("SYSDATETIME", false, arguments);
+			case SqlFunction.ServerNow:
+				return new FunctionResolveResult("SYSUTCDATETIME", false, arguments);
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);
+		}
+
+		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
+		{
+			switch (functionCallExpression.Function)
+			{
+			case SqlFunction.DateTimeAddTimeSpan:
+				this.Write("DATEADD(DAY, ");
+				this.Write("CAST(");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" AS BIGINT)");
+				this.Write(" / CAST(864000000000 AS BIGINT)");
+				this.Write(", DATEADD(MS, ");
+				this.Write("CAST(");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" AS BIGINT)");
+				this.Write(" / CAST(10000 AS BIGINT) % 86400000, " );
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write("))");
+				return functionCallExpression;
+			}
+
+			return base.VisitFunctionCall(functionCallExpression);
+		}
+
+		protected override Expression VisitUnary(UnaryExpression unaryExpression)
+		{
+			switch (unaryExpression.NodeType)
+			{
+			case ExpressionType.Convert:
+				if (unaryExpression.Type == typeof(double))
+				{
+					this.Write("CAST(");
+					this.Visit(unaryExpression.Operand);
+					this.Write(" AS FLOAT)");
+
+					return unaryExpression;
+				}
+				break;
+			}
+
+			return base.VisitUnary(unaryExpression);
 		}
 
 
@@ -71,6 +112,7 @@ namespace Shaolinq.SqlServer
 		{
 			expression = SqlServerLimitAmmender.Ammend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
+			expression = SqlServerDateTimeFunctionsAmmender.Ammend(expression);
 
 			return base.PreProcess(expression);
 		}

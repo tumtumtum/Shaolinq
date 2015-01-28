@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="SqlServerBooleanNormalizer.cs" />
+    <Compile Include="SqlServerDateTimeFunctionsAmmender.cs" />
     <Compile Include="SqlServerLimitAmmender.cs" />
     <Compile Include="SqlServerSqlDatabaseSchemaManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
