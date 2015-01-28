@@ -3,7 +3,7 @@
   <metadata>
     <id>Shaolinq.SqlServer</id>
     <version>$version$</version>
-    <title>Shaolinq ORM and Linq provider for SQL Server
+    <title>Shaolinq ORM and Linq provider for SQL Server</title>
     <summary>A thoughtful ORM and Linq provider for .NET and SQL Server</summary>
     <authors>Thong Nguyen</authors>
     <owners>Thong Nguyen</owners>
