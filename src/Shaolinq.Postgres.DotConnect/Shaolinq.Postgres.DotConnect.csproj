@@ -102,12 +102,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.333\lib\Devart.Data.PostgreSql.dll</HintPath>
     </Reference>
-    <Reference Include="Platform">
-      <HintPath>..\packages\Platform.NET.1.1.0.189\lib\net40\Platform.dll</HintPath>
-    </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.189, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.1.0.196, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.189\lib\net40\Platform.Xml.Serialization.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.1.0.196\lib\net40\Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.196, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.196\lib\net40\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">

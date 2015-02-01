@@ -13,6 +13,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Sqlite")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	public class ComplexPrimaryKeyTests
@@ -674,7 +675,7 @@ namespace Shaolinq.Tests
 			{
 				var objs = from toy in model.Toys.Where(c => c.Missing != null).OrderBy(c => c.Name)
 						   join child in model.Children.Where(c => c.Nickname != null) on toy.Owner equals child
-					where child.Good
+					where !child.Good
 					select new
 					{
 						child,

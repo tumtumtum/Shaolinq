@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Threading;
+using Platform;
+using Platform.Validation;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -88,17 +90,15 @@ namespace Shaolinq.SqlServer
 				case TypeCode.Boolean:
 					if (Convert.ToBoolean(constantExpression.Value))
 					{
-						var trueExpression = Expression.Equal(Expression.Constant(1), Expression.Constant(1));
-
-						this.Visit(trueExpression);
+						this.WriteQuotedString("true");
+						parameterValues.Add(new Pair<Type, object>(constantExpression.Type, true));
 
 						return constantExpression;
 					}
 					else
 					{
-						var falseExpression = Expression.NotEqual(Expression.Constant(1), Expression.Constant(1));
-
-						this.Visit(falseExpression);
+						this.WriteQuotedString("false");
+						parameterValues.Add(new Pair<Type, object>(constantExpression.Type, false));
 
 						return constantExpression;
 					}
@@ -212,7 +212,7 @@ namespace Shaolinq.SqlServer
 
 			if (expression.ConfigurationParameter == "IdentityInsert")
 			{
-				this.Write((bool)((ConstantExpression)expression.Arguments[0]).Value ? "ON" : "OFF");
+				this.Write((bool)((ConstantExpression)expression.Arguments[0].Reduce()).Value ? "ON" : "OFF");
 			}
 			else
 			{
@@ -223,6 +223,20 @@ namespace Shaolinq.SqlServer
 			this.WriteLine();
 
 			return expression;
+		}
+
+		protected override Expression VisitExtension(Expression expression)
+		{
+			var booleanExpression = expression as BitBooleanExpression;
+
+			if (booleanExpression != null)
+			{
+				this.Visit(booleanExpression.Expression);
+
+				return expression;
+			}
+			
+			return base.VisitExtension(expression);
 		}
 	}
 }

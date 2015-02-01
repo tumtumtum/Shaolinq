@@ -434,7 +434,7 @@ namespace Shaolinq.Persistence.Linq
 						Write(Sql92QueryFormatter.ParamNamePrefix);
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(result.argsBefore[i].Left, result.argsBefore[i].Right));
-
+						
 						if (i != n || (functionCallExpression.Arguments.Count > 0))
 						{
 							this.Write(", ");

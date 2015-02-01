@@ -2318,8 +2318,8 @@ namespace Shaolinq.TypeBuilding
 		private void BuildHasAnyChangedPrimaryKeyServerSidePropertiesProperty()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
-			
-			var columnInfos = QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, this.typeDescriptor, (c, d) => true, (c, d) => c.IsPropertyThatIsCreatedOnTheServerSide);
+
+			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, this.typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide));
 		
 			var objectVariable = generator.DeclareLocal(typeof(object));
 

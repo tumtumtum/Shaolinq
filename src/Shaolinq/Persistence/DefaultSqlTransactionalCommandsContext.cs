@@ -345,11 +345,28 @@ namespace Shaolinq.Persistence
 						Logger.Debug(FormatCommand(command));
 					}
 					
-					IDataReader reader;
-
 					try
 					{
-						reader = command.ExecuteReader();
+						using (var reader = command.ExecuteReader())
+						{
+							if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+							{
+								var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
+
+								if (reader.Read())
+								{
+									ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
+									dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
+								}
+
+								reader.Close();
+
+								if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
+								{
+									this.Update(dataAccessObject.GetType(), new[] {dataAccessObject});
+								}
+							}
+						}
 					}
 					catch (Exception e)
 					{
@@ -364,31 +381,6 @@ namespace Shaolinq.Persistence
 						}
 
 						throw;
-					}
-
-					// TODO: Don't bother loading auto increment keys if this is an end of transaction flush and we're not needed as foreign keys
-
-					if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
-					{
-						var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
-
-						using (reader)
-						{
-							if (reader.Read())
-							{
-								ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
-								dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
-							}
-						}
-
-						if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
-						{
-							this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
-						}
-					}
-					else
-					{
-						reader.Close();
 					}
 
 					if ((objectState & ObjectState.MissingUnconstrainedForeignKeys) != 0)
@@ -463,7 +455,7 @@ namespace Shaolinq.Persistence
 		private IDbDataParameter AddParameter(IDbCommand command, Type type, object value)
 		{
 			var parameter = command.CreateParameter();
-
+		
 			parameter.ParameterName = this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + command.Parameters.Count;
 
 			if (value == null)
@@ -602,6 +594,11 @@ namespace Shaolinq.Persistence
 			}
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
+
+			if (result.ParameterValues.Count() != updatedProperties.Count)
+			{
+				Console.WriteLine();
+			}
 
 			Debug.Assert(result.ParameterValues.Count() == updatedProperties.Count);
 

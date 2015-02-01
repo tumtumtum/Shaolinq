@@ -383,6 +383,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return projection;
 		}
 
+		protected virtual SqlColumnDeclaration VisitColumnDeclaration(SqlColumnDeclaration sqlColumnDeclaration)
+		{
+			var e = this.Visit(sqlColumnDeclaration.Expression);
+
+			if (e != sqlColumnDeclaration.Expression)
+			{
+				return new SqlColumnDeclaration(sqlColumnDeclaration.Name, e);
+			}
+
+			return sqlColumnDeclaration;
+		}
+
 		protected virtual IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
 			List<SqlColumnDeclaration> alternate = null;

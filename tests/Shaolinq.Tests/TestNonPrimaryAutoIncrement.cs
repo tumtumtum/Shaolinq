@@ -12,6 +12,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
 	public class TestNonPrimaryAutoIncrement
 		: BaseTests<TestDataAccessModel>
 	{
