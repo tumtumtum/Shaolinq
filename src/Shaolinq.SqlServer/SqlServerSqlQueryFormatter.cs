@@ -90,15 +90,19 @@ namespace Shaolinq.SqlServer
 				case TypeCode.Boolean:
 					if (Convert.ToBoolean(constantExpression.Value))
 					{
-						this.WriteQuotedString("true");
-						parameterValues.Add(new Pair<Type, object>(constantExpression.Type, true));
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(Sql92QueryFormatter.ParamNamePrefix);
+						this.Write(parameterValues.Count);
+						parameterValues.Add(new Pair<Type, object>(typeof(string), "true"));
 
 						return constantExpression;
 					}
 					else
 					{
-						this.WriteQuotedString("false");
-						parameterValues.Add(new Pair<Type, object>(constantExpression.Type, false));
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(Sql92QueryFormatter.ParamNamePrefix);
+						this.Write(parameterValues.Count);
+						parameterValues.Add(new Pair<Type, object>(typeof(string), "false"));
 
 						return constantExpression;
 					}

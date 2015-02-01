@@ -22,7 +22,9 @@ namespace Shaolinq.SqlServer
 			DefineSqlDataType(typeof(DateTime), "DATETIME2", "GetDateTime");
 			DefineSqlDataType(typeof(float), "FLOAT(24)", "GetFloat");
 			DefineSqlDataType(typeof(double), "FLOAT(53)", "GetDouble");
-			DefineSqlDataType(typeof(decimal), "DECIMAL", "GetDecimal");
+
+			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal), "DECIMAL(38, 9)"));
+			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal?), "DECIMAL(38, 9)"));
 		}
 	}
 }
