@@ -316,7 +316,7 @@ namespace Shaolinq.Tests
 				friend.Firstname = "Chuck";
 				friend.Lastname = "Norris";
 
-				if (this.ProviderName == "MySql" || this.ProviderName == "SqlServer")
+				if (!this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsFeature(Persistence.SqlFeature.Deferrability))
 				{
 					scope.Flush(model);
 				}

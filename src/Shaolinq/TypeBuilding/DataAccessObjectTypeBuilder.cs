@@ -941,18 +941,10 @@ namespace Shaolinq.TypeBuilding
 					{
 						privateGenerator = forcePropertySetMethod.GetILGenerator();
 						
-						var skipThrowingLabel = generator.DefineLabel();
-
-						generator.Emit(OpCodes.Ldarg_0);
-						generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsTransient").GetGetMethod());
-						generator.Emit(OpCodes.Brtrue, skipThrowingLabel);
-
 						generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 						generator.Emit(OpCodes.Newobj, typeof(InvalidPropertyAccessException).GetConstructor(new[] { typeof(string) }));
 						generator.Emit(OpCodes.Throw);
 						generator.Emit(OpCodes.Ret);
-
-						generator.MarkLabel(skipThrowingLabel);
 						
 						generator.Emit(OpCodes.Ret);
 					}
@@ -1452,7 +1444,7 @@ namespace Shaolinq.TypeBuilding
 
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated | ObjectState.ObjectInsertedWithinTransaction));
+				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated));
 				generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 				generator.Emit(OpCodes.Ret);
 			}
@@ -1763,17 +1755,6 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildSetIsTransientMethod()
-		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsTransient");
-
-			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Stfld, this.isTransientField);
-			generator.Emit(OpCodes.Ret);
-		}
-
 		private void BuildSetIsNewMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsNew");
@@ -1790,7 +1771,10 @@ namespace Shaolinq.TypeBuilding
 			generator.MarkLabel(label);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-			generator.Emit(OpCodes.Ldc_I4, (int)0);
+			generator.Emit(OpCodes.Dup);
+			generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
+			generator.Emit(OpCodes.Ldc_I4, ~(int)ObjectState.New);
+			generator.Emit(OpCodes.And);
 			generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
 		}
@@ -2431,6 +2415,42 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		private void BuildReferencesNewUncommitedRelatedObjectMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+
+			foreach (var property in this.typeDescriptor.PersistedProperties.Where(c => c.PropertyType.IsDataAccessObjectType()))
+			{
+				var skip = generator.DefineLabel();
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, this.valueIsSetFields[property.PropertyName]);
+				generator.Emit(OpCodes.Brfalse, skip);
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, this.valueFields[property.PropertyName]);
+				generator.Emit(OpCodes.Ldnull);
+				generator.Emit(OpCodes.Ceq);
+				generator.Emit(OpCodes.Brtrue, skip);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, this.valueFields[property.PropertyName]);
+				generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("ObjectState").GetGetMethod());
+				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
+				generator.Emit(OpCodes.And);
+				generator.Emit(OpCodes.Brfalse, skip);
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Ret);
+
+				generator.MarkLabel(skip);
+			}
+
+			generator.Emit(OpCodes.Ldc_I4_0);
+			generator.Emit(OpCodes.Ret);
+		}
+
 		private void BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
@@ -2540,7 +2560,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				// if (PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
-				// { retval |= MissingConstrainedForeignKeys; break }
+				// { retval |= ReferencesNewObjectWithServerSideProperties; break }
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
@@ -2548,7 +2568,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.MissingConstrainedForeignKeys);
+				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.ReferencesNewObjectWithServerSideProperties);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 				generator.Emit(OpCodes.Br, breakLabel1);
@@ -2575,7 +2595,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
-				// if (this.PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys) { retval |= MissingUnconstrainedForeignKeys; break }
+				// if (this.PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys) { retval |= ReferencesNewObjectWithServerSideProperties; break }
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
@@ -2583,7 +2603,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.MissingServerGeneratedForeignPrimaryKeys : (int)ObjectState.MissingUnconstrainedForeignKeys);
+				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties : (int)ObjectState.ReferencesNewObjectWithServerSideProperties);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 				generator.Emit(OpCodes.Br, breakLabel2);

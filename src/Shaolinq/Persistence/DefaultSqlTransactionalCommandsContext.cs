@@ -250,58 +250,54 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				if ((dataAccessObject.GetAdvanced().ObjectState & (
-					ObjectState.Changed | 
-					ObjectState.MissingConstrainedForeignKeys | 
-					ObjectState.MissingServerGeneratedForeignPrimaryKeys | 
-					ObjectState.MissingUnconstrainedForeignKeys | 
-					ObjectState.ServerSidePropertiesHydrated)) != 0)
+				var objectState = dataAccessObject.GetAdvanced().ObjectState;
+
+				if ((objectState & (ObjectState.Changed | ObjectState.ServerSidePropertiesHydrated)) == 0)
 				{
-					var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
-
-					if (command == null)
-					{
-						if (Logger.IsDebugEnabled)
-						{
-							Logger.ErrorFormat("Object {0} is reported as changed but GetChangedProperties returns an empty list", dataAccessObject);
-						}
-
-						continue;
-					}
-
-					if (Logger.IsDebugEnabled)
-					{
-						Logger.Debug(FormatCommand(command));
-					}
-
-					int result;
-
-					try
-					{
-						result = command.ExecuteNonQuery();
-					}
-					catch (Exception e)
-					{
-						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
-						var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
-
-						Logger.ErrorFormat(e.ToString());
-
-						if (decoratedException != e)
-						{
-							throw decoratedException;
-						}
-
-						throw;
-					}
-
-					if (result == 0)
-					{
-						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
-					}
-
-					dataAccessObject.ToObjectInternal().ResetModified();
+					continue;
 				}
+
+				var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
+
+				if (command == null)
+				{
+					Logger.ErrorFormat("Object {0} is reported as changed but GetChangedProperties returns an empty list", dataAccessObject);
+
+					continue;
+				}
+
+				if (Logger.IsDebugEnabled)
+				{
+					Logger.Debug(FormatCommand(command));
+				}
+
+				int result;
+
+				try
+				{
+					result = command.ExecuteNonQuery();
+				}
+				catch (Exception e)
+				{
+					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+					var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
+
+					Logger.ErrorFormat(e.ToString());
+
+					if (decoratedException != e)
+					{
+						throw decoratedException;
+					}
+
+					throw;
+				}
+
+				if (result == 0)
+				{
+					throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
+				}
+
+				dataAccessObject.ToObjectInternal().ResetModified();
 			}
 		}
 
@@ -313,31 +309,21 @@ namespace Shaolinq.Persistence
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
-                
+
 				switch (objectState & ObjectState.NewChanged)
 				{
-					case ObjectState.Unchanged:
-						continue;
-					case ObjectState.New:
-					case ObjectState.NewChanged:
-						break;
-					case ObjectState.Changed:
-						throw new NotSupportedException("Changed state not supported");
+				case ObjectState.Unchanged:
+					continue;
+				case ObjectState.New:
+				case ObjectState.NewChanged:
+					break;
+				case ObjectState.Changed:
+					throw new NotSupportedException("Changed state not supported");
 				}
 
-				var mask = ObjectState.MissingUnconstrainedForeignKeys | ObjectState.MissingConstrainedForeignKeys | ObjectState.MissingServerGeneratedForeignPrimaryKeys;
-
-				if ((objectState & mask) == 0)
+				if ((objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0)
 				{
-					// We can insert if it is not missing foreign keys
-					// (could be missing some unconstrained foreign keys)
-
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-
-					// BuildInsertCommand will call dataAccessObject.GetChangedProperties()
-					// which will include automatically update any foreign key properties
-					// that need to be set on this object
-
 					var command = BuildInsertCommand(typeDescriptor, dataAccessObject);
 
 					if (Logger.IsDebugEnabled)
@@ -383,7 +369,7 @@ namespace Shaolinq.Persistence
 						throw;
 					}
 
-					if ((objectState & ObjectState.MissingUnconstrainedForeignKeys) != 0)
+					if ((objectState & ObjectState.ReferencesNewObjectWithServerSideProperties) != 0)
 					{
 						listToFixup.Add(dataAccessObject);
 					}

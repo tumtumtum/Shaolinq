@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlJoinType JoinType { get; set; }
 		public Expression Left { get; private set; }
 		public Expression Right { get; private set; }
-		public Expression Condition { get; private set; }
+		public new Expression Condition { get; private set; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Join; } }
 
 		public SqlJoinExpression(Type type, SqlJoinType joinType, Expression left, Expression right, Expression condition)

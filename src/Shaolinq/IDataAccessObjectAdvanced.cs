@@ -91,15 +91,12 @@ namespace Shaolinq
 
 		bool IsMissingAnyPrimaryKeys { get; }
 
+		bool ReferencesNewUncommitedRelatedObject { get; }
+
 		/// <summary>
 		/// Returns the number of direct properties generated on the server side.
 		/// </summary>
 		int NumberOfPropertiesGeneratedOnTheServerSide { get; }
-
-		/// <summary>
-		/// Returns true if the current object doesn't belong to any transaction (is freeform)
-		/// </summary>
-		bool IsTransient { get; }
 
 		/// <summary>
 		/// Deletes the object.

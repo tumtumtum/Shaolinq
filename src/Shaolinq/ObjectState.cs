@@ -34,35 +34,27 @@ namespace Shaolinq
 		/// The object has just been commited.
 		/// </summary>
 		ServerSidePropertiesHydrated = 4,
+		
+		/// <summary>
+		/// The object references a new object
+		/// </summary>
+		ReferencesNewObject = 8,
 
 		/// <summary>
-		/// The object is missing some contrained foreign keys and cannot be
-		/// persisted until those foreign keys have been realised.
+		/// The object's primary key references a new object
 		/// </summary>
-		MissingConstrainedForeignKeys = 8,
+		PrimaryKeyReferencesNewObject = 16 | ReferencesNewObject,
 
 		/// <summary>
-		/// The object is missing some unconstrained foreign keys and may be
-		/// persisted and will need to be updated with the foreign keys once
-		/// they are realised.
+		/// The object references an object that has server side properties that aren't yet known
 		/// </summary>
-		MissingUnconstrainedForeignKeys = 16,
+		ReferencesNewObjectWithServerSideProperties = ReferencesNewObject | 32,
 
 		/// <summary>
-		/// The object is missing server generated primary keys
+		/// The object's primary key references an object that has server side properties that aren't yet known
 		/// </summary>
-		MissingServerGeneratedForeignPrimaryKeys = 32,
-
-		/// <summary>
-		/// The object has been inserted in the transaction but may or may not be completely fulfilled.
-		/// </summary>
-		ObjectInsertedWithinTransaction = 64,
-
-		/// <summary>
-		/// The object is not a member of any transaction
-		/// </summary>
-		Transient = 128,
-
+		PrimaryKeyReferencesNewObjectWithServerSideProperties = PrimaryKeyReferencesNewObject | 64,
+		
 		/// <summary>
 		/// The object has been deleted
 		/// </summary>

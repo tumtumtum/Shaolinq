@@ -19,11 +19,6 @@ namespace Shaolinq.TypeBuilding
 		IDataAccessObjectInternal FinishedInitializing();
 
 		/// <summary>
-		/// Makes this object as not belonging to any transaction (it will not be commited)
-		/// </summary>
-		void SetIsTransient(bool transient);
-
-		/// <summary>
 		/// Marks this object as newly created (unpersisted).
 		/// </summary>
 		void SetIsNew(bool value);
@@ -69,6 +64,7 @@ namespace Shaolinq.TypeBuilding
 		void SwapData(DataAccessObject source, bool transferChangedProperties);
 
 		int GetHashCodeAccountForServerGenerated();
+
 		bool EqualsAccountForServerGenerated(object dataAccessObject);
 	}
 }

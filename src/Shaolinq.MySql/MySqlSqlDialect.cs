@@ -17,6 +17,8 @@ namespace Shaolinq.MySql
 		{
 			switch (feature)
 			{
+			case SqlFeature.Deferrability:
+				return false;
 			default:
 				return base.SupportsFeature(feature);
 			}

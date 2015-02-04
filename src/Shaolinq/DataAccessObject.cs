@@ -41,11 +41,6 @@ namespace Shaolinq
 			return (((IDataAccessObjectAdvanced)this).IsNew);
 		}
 
-		public bool IsTransient()
-		{
-			return (((IDataAccessObjectAdvanced)this).IsTransient);
-		}
-
 		public bool IsDeleted()
 		{
 			return (((IDataAccessObjectAdvanced)this).IsDeleted);
@@ -97,7 +92,6 @@ namespace Shaolinq
 		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObjectAdvanced)this).NumberOfPropertiesGeneratedOnTheServerSide > 0; } }
 		bool IDataAccessObjectAdvanced.IsNew { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.New) != 0; } }
 		bool IDataAccessObjectAdvanced.IsDeleted { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Deleted) != 0; } }
-		bool IDataAccessObjectAdvanced.IsTransient { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Transient) != 0; } }
 		bool IDataAccessObjectAdvanced.HasCompositeKey { get { return ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys > 1; } }
 		bool IDataAccessObjectAdvanced.HasObjectChanged { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Changed) != 0; } }
 		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor { get { return this.dataAccessModel.GetTypeDescriptor(this.GetType()); } }
@@ -106,6 +100,7 @@ namespace Shaolinq
 
 		#region Reflection emitted explicit interface implementations
 		bool IDataAccessObjectAdvanced.IsMissingAnyPrimaryKeys { get { throw new NotImplementedException(); } }
+		bool IDataAccessObjectAdvanced.ReferencesNewUncommitedRelatedObject { get { throw new NotImplementedException(); } }
 		Type IDataAccessObjectAdvanced.KeyType { get { throw new NotImplementedException(); } }
 		bool IDataAccessObjectAdvanced.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys { get { throw new NotImplementedException(); } }
 		Type[] IDataAccessObjectAdvanced.CompositeKeyTypes { get { throw new NotImplementedException(); } }

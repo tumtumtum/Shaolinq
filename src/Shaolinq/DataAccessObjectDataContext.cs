@@ -289,7 +289,7 @@ namespace Shaolinq
 			private class DataAccessObjectServerSidePropertiesAccountingComparer
 				: IEqualityComparer<DataAccessObject>
 			{
-				public static readonly DataAccessObjectServerSidePropertiesAccountingComparer Default = new DataAccessObjectServerSidePropertiesAccountingComparer();
+				internal static readonly DataAccessObjectServerSidePropertiesAccountingComparer Default = new DataAccessObjectServerSidePropertiesAccountingComparer();
 
 				public bool Equals(DataAccessObject x, DataAccessObject y)
 				{
@@ -605,7 +605,6 @@ namespace Shaolinq
 				return;
 			}
 
-			value.ToObjectInternal().SetIsTransient(false);
 			ImportObject(new HashSet<DataAccessObject>(), value);
 		}
 
