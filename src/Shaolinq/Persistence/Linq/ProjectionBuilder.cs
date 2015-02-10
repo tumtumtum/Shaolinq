@@ -159,7 +159,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (functionCallExpression.Function == SqlFunction.Date)
 			{
-				return Expression.Call(Visit(functionCallExpression.Arguments[0]), typeof (DateTime).GetProperty("Date").GetGetMethod(), null);
+				return Expression.Call(Visit(functionCallExpression.Arguments[0]), typeof(DateTime).GetProperty("Date").GetGetMethod(), null);
 			}
 			
 			return base.VisitFunctionCall(functionCallExpression);

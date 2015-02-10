@@ -1450,6 +1450,27 @@ namespace Shaolinq.Tests
 			}
 		}
 
+
+		[Test]
+		public void Test_GroupBy_DateTimeDate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  group student by student.Birthdate.Value.Date
+								  into g
+								  select new
+								  {
+									  key = g.Key,
+									  count = g.Count()
+								  };
+
+				var list = results.ToList();
+
+				scope.Complete();
+			}
+		}
+
 		[Test]
 		public void Test_GroupBy_AggregateCount()
 		{
@@ -1464,6 +1485,8 @@ namespace Shaolinq.Tests
 						count = g.Count()
 					};
 
+				var list = results.ToList();
+				
 				scope.Complete();
 			}
 		}
