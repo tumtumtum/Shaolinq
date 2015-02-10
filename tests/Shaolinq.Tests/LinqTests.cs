@@ -1450,6 +1450,44 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_GroupBy_AggregateCount()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+					group student by student.Firstname
+					into g
+					select new
+					{
+						key = g.Key,
+						count = g.Count()
+					};
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_AggregateCount_With_OrderBy()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  group student by student.Firstname
+								  into g
+								  orderby g.Count() descending
+								  select new
+								  {
+									  key = g.Key
+								  };
+
+				results.ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Implicit_Join()
 		{
 			using (var scope = new TransactionScope())

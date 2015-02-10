@@ -493,9 +493,17 @@ namespace Shaolinq.Persistence.Linq
 			AddExpressionByParameter(keySelector.Parameters[0], subqueryBasis.Projector);
 			var subqueryKey = this.Visit(keySelector.Body);
 
-			// Ise same projection trick to get group by expressions based on subquery
+			// Use same projection trick to get group by expressions based on subquery
 			var subQueryProjectedColumns = ProjectColumns(subqueryKey, subqueryBasis.Select.Alias, subqueryBasis.Select.Alias);
-			var subqueryGroupExprs = new[] { subqueryKey };// CHANGED TO ALLOW FUNCTION CALL GROUPBY subQueryProjectedColumns.Columns.Select(c => c.Expression);
+			IEnumerable<Expression> subqueryGroupExprs = new[] { subqueryKey };
+
+			// TODO: HACK
+
+			if (subqueryGroupExprs.First().Type != groupExprs[0].Type)
+			{
+				subqueryGroupExprs = subQueryProjectedColumns.Columns.Select(c => c.Expression);
+			}
+
 			var subqueryCorrelation = BuildPredicateWithNullsEqual(subqueryGroupExprs, groupExprs);
 
 			// Compute element based on duplicated subquery
