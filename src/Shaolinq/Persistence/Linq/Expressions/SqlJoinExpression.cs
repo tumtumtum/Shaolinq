@@ -11,24 +11,24 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlJoinType JoinType { get; set; }
 		public Expression Left { get; private set; }
 		public Expression Right { get; private set; }
-		public Expression Condition { get; private set; }
+		public Expression JoinCondition { get; private set; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Join; } }
 
-		public SqlJoinExpression(Type type, SqlJoinType joinType, Expression left, Expression right, Expression condition)
+		public SqlJoinExpression(Type type, SqlJoinType joinType, Expression left, Expression right, Expression joinCondition)
 			: base(type)
 		{
 			if (joinType != SqlJoinType.CrossApply && joinType != SqlJoinType.CrossJoin)
 			{
-				if (condition == null)
+				if (joinCondition == null)
 				{
-					throw new ArgumentNullException("condition");
+					throw new ArgumentNullException("joinCondition");
 				}
 			}
 
 			this.JoinType = joinType; 
 			this.Left = left;
 			this.Right = right;
-			this.Condition = condition;
+			this.JoinCondition = joinCondition;
 		}
 	}
 }

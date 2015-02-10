@@ -215,9 +215,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			var left = this.Visit(join.Left);
 			var right = this.Visit(join.Right);
-			var condition = this.Visit(join.Condition);
+			var condition = this.Visit(join.JoinCondition);
 
-			if (left != join.Left || right != join.Right || condition != join.Condition)
+			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
 			{
 				return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
 			}

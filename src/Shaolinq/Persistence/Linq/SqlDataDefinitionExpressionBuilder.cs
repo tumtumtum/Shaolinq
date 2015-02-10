@@ -87,11 +87,6 @@ namespace Shaolinq.Persistence.Linq
 
 		private static SqlColumnReferenceAction? ToSqlColumnReferenceAction(ForeignObjectAction foreignObjectAction)
 		{
-			if (foreignObjectAction == null)
-			{
-				return null;
-			}
-
 			switch (foreignObjectAction)
 			{
 			case ForeignObjectAction.Default:

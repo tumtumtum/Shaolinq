@@ -719,6 +719,12 @@ namespace Shaolinq
 			return retval;
 		}
 
+		public virtual DataAccessObjects<T> ExecuteProcedure<T>(string procedureName, object[] args)
+			where T : DataAccessObject
+		{
+			return null;
+		}
+
 		protected abstract void Initialise();
 		public abstract IQueryable GetDataAccessObjects(Type type);
 	}

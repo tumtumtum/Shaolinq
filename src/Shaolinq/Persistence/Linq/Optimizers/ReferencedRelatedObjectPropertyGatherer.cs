@@ -243,8 +243,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				expression = memberExpression.Expression as MemberExpression;
 			}
 
-			var rootTake = 0;
-			Expression rootExpression = null;
 			var currentExpression = expression;
 
 			while (currentExpression != null && currentExpression.Member is PropertyInfo)
