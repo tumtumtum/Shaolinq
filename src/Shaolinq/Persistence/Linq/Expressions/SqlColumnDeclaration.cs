@@ -29,5 +29,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Name = name;
 			this.Expression = expression;
 		}
+
+		public SqlColumnDeclaration ReplaceExpression(Expression expression)
+		{
+			return new SqlColumnDeclaration(this.Name, expression);
+		}
 	}
 }

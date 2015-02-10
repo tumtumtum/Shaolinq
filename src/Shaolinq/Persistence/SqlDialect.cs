@@ -6,41 +6,32 @@ namespace Shaolinq.Persistence
 {
 	public class SqlDialect
 	{
-		public static readonly SqlDialect Default;
+		public static readonly SqlDialect Default = new SqlDialect();
 
-		static SqlDialect()
+		protected SqlDialect()
 		{
-			Default = new SqlDialect
-			(
-				new []
-				{
-					SqlFeature.AlterTableAddConstraints,
-					SqlFeature.Constraints,
-					SqlFeature.IndexNameCasing,
-					SqlFeature.IndexToLower,
-					SqlFeature.SelectForUpdate,
-					SqlFeature.Deferrability,
-					SqlFeature.InsertIntoReturning,
-					SqlFeature.SupportsInlineForeignKeys
-				}
-			);
-		}
-
-		private readonly SqlFeature[] supportedFeatures;
-		
-		public SqlDialect(params SqlFeature[] supportedFeatures)
-		{
-			this.supportedFeatures = supportedFeatures;
-		}
-
-		public SqlFeature[] GetAllSupportedFeatures()
-		{
-			return (SqlFeature[])this.supportedFeatures.Clone();
 		}
 
 		public virtual bool SupportsFeature(SqlFeature feature)
 		{
-			return this.supportedFeatures.Contains(feature);
+			switch (feature)
+			{
+			case SqlFeature.AlterTableAddConstraints:
+			case SqlFeature.Constraints:
+			case SqlFeature.IndexNameCasing:
+			case SqlFeature.IndexToLower:
+			case SqlFeature.SelectForUpdate:
+			case SqlFeature.Deferrability:
+			case SqlFeature.InsertIntoReturning:
+			case SqlFeature.ForeignKeys:
+			case SqlFeature.CascadeAction:
+			case SqlFeature.DeleteAction:
+			case SqlFeature.SetNullAction:
+			case SqlFeature.SetDefaultAction:
+				return true;
+			default:
+				return false;
+			}
 		}
 
 		public virtual string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)

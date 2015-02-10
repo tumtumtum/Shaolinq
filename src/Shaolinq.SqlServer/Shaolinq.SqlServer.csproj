@@ -32,12 +32,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Platform">
-      <HintPath>..\packages\Platform.NET.1.1.0.189\lib\net40\Platform.dll</HintPath>
-    </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.189, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.1.0.196, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.189\lib\net40\Platform.Xml.Serialization.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.1.0.196\lib\net40\Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.196, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.196\lib\net40\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -49,7 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitBooleanExpression.cs" />
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
+    <Compile Include="SqlServerBooleanNormalizer.cs" />
+    <Compile Include="SqlServerDateTimeFunctionsAmmender.cs" />
+    <Compile Include="SqlServerDecimalDataType.cs" />
+    <Compile Include="SqlServerLimitAmmender.cs" />
     <Compile Include="SqlServerSqlDatabaseSchemaManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlServerConfiguration.cs" />
@@ -58,6 +64,7 @@
     <Compile Include="SqlServerSqlDataTypeProvider.cs" />
     <Compile Include="SqlServerSqlDialect.cs" />
     <Compile Include="SqlServerSqlQueryFormatter.cs" />
+    <Compile Include="SqlServerSqlTransactionsCommandContext.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

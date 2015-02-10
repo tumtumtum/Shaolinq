@@ -3,6 +3,7 @@
 using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Transactions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -50,7 +51,7 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.UserID = this.Username;
 				connectionStringBuilder.Password = this.Password;
 			}
-			
+
 			connectionStringBuilder.Enlist = false;
 			connectionStringBuilder.DataSource = dataSource;
 			connectionStringBuilder.InitialCatalog = this.DatabaseName;
@@ -64,6 +65,11 @@ namespace Shaolinq.SqlServer
 			this.SchemaManager = new SqlServerSqlDatabaseSchemaManager(this);
 		}
 
+		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
+		{
+			return new SqlServerSqlTransactionsCommandContext(this, transaction);
+		}
+
 		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return SqlClientFactory.Instance;
@@ -72,6 +78,24 @@ namespace Shaolinq.SqlServer
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
 		{
 			return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);
+		}
+
+		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)
+		{
+			var sqlException = exception as SqlException;
+
+			if (sqlException != null)
+			{
+				switch (sqlException.Number)
+				{
+				case 2627:
+					throw new UniqueConstraintException(exception, relatedQuery);
+				case 547:
+					throw new MissingRelatedDataAccessObjectException(null, dataAccessObject, exception, relatedQuery);
+				}
+			}
+
+			return base.DecorateException(exception, dataAccessObject, relatedQuery);
 		}
 	}
 }

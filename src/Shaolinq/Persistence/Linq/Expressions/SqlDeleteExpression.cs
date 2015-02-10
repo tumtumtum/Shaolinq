@@ -8,16 +8,16 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public string Alias { get; private set; }
-		public string TableName { get; private set; }
+		public SqlTableExpression Table { get; private set; }
 		public Expression Where { get; private set; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Delete; } }
 
-		public SqlDeleteExpression(string tableName, string alias, Expression where)
+		public SqlDeleteExpression(SqlTableExpression table, string alias, Expression where)
 			: base(typeof(void))
 		{
 			this.Where = where;
 			this.Alias = alias;
-			this.TableName = tableName;
+			this.Table = table;
 		}
 	}
 }

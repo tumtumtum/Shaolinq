@@ -14,6 +14,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class LinqTests
@@ -93,7 +94,7 @@ namespace Shaolinq.Tests
 				chuck1.Lastname = "Norris";
 				chuck1.Nickname = "God";
 				chuck1.Address = address2;
-				chuck1.Height = 100000;
+				chuck1.Height = 10000;
 				chuck1.FavouriteNumber = 8;
 				chuck1.Weight = 1000;
 
@@ -533,7 +534,7 @@ namespace Shaolinq.Tests
 				                orderby student.Firstname
 				                select student).Skip(1).Take(2)).ToList();
 
-				Assert.AreEqual(results.Count, 2);
+				Assert.AreEqual(2, results.Count);
 
 				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).Skip(1).Take(2)));
 			}
@@ -596,15 +597,15 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var value = this.model
+				this.model
 					.Students
+					.Where(c => c.Birthdate != null)
 					.Select(c => new
 					{
 						Original = c.Birthdate.Value,
 						Added = c.Birthdate.Value.AddMilliseconds(1000)
-					}).First();
-
-				Assert.AreEqual(value.Original.AddMilliseconds(1000), value.Added);
+					}).ToList()
+					.ForEach(c => Assert.AreEqual(c.Original.AddMilliseconds(1000), c.Added));
 			}
 		}
 

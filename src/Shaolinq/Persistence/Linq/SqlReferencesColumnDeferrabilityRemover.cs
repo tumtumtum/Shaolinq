@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (referencesColumnExpression.Deferrability != SqlColumnReferenceDeferrability.NotDeferrable)
 			{
-				return new SqlReferencesColumnExpression(referencesColumnExpression.ReferencedTableName, SqlColumnReferenceDeferrability.NotDeferrable, referencesColumnExpression.ReferencedColumnNames, referencesColumnExpression.OnDeleteAction, referencesColumnExpression.OnUpdateAction);
+				return new SqlReferencesColumnExpression(referencesColumnExpression.ReferencedTable, SqlColumnReferenceDeferrability.NotDeferrable, referencesColumnExpression.ReferencedColumnNames, referencesColumnExpression.OnDeleteAction, referencesColumnExpression.OnUpdateAction);
 			}
 
 			return base.VisitReferencesColumn(referencesColumnExpression);

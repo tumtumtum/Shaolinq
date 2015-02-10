@@ -47,7 +47,7 @@ namespace Shaolinq.Postgres.Shared
 			DefineSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
 			DefineSqlDataType(typeof(byte), "SMALLINT", "GetByte");
 			DefineSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
-			DefineSqlDataType(typeof(decimal), "NUMERIC(60, 30)", "GetDecimal");
+			DefineSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
 
 			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", false));
 			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", true));

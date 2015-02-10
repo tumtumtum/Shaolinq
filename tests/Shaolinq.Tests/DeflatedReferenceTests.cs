@@ -12,6 +12,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
 	[TestFixture("Sqlite")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
@@ -315,7 +316,7 @@ namespace Shaolinq.Tests
 				friend.Firstname = "Chuck";
 				friend.Lastname = "Norris";
 
-				if (this.ProviderName == "MySql")
+				if (this.ProviderName == "MySql" || this.ProviderName == "SqlServer")
 				{
 					scope.Flush(model);
 				}

@@ -59,6 +59,11 @@ namespace Shaolinq.TypeBuilding
 		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
 
 		/// <summary>
+		/// 
+		/// </summary>
+		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
+
+		/// <summary>
 		/// Sets the underlying data container of the current data access object with the one in the given domain object.
 		/// </summary>
 		void SwapData(DataAccessObject source, bool transferChangedProperties);

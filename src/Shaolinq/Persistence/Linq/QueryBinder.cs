@@ -158,6 +158,11 @@ namespace Shaolinq.Persistence.Linq
 
 			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, Visit(checkItem), Visit(checkList));
 
+			if (selectorPredicateStack.Count > 0)
+			{
+				return functionExpression;
+			}
+
 			var alias = this.GetNextAlias();
 			var selectType = typeof(IEnumerable<>).MakeGenericType(typeof(bool));
 
@@ -1378,7 +1383,7 @@ namespace Shaolinq.Persistence.Linq
 				expression = Visit(expression);
 			}
 
-			return new SqlDeleteExpression(tableExpression.Name, projection.Select.Alias, expression);
+			return new SqlDeleteExpression(new SqlTableExpression(tableExpression.Name), projection.Select.Alias, expression);
 		}
 
 		private static string GetExistingAlias(Expression source)

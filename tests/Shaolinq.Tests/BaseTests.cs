@@ -23,7 +23,6 @@ namespace Shaolinq.Tests
 		    useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_USING_MONODATA"));
 	    }
 
-
 		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
 		{
 			return SqlServerConfiguration.Create(databaseName, "localhost", null, null);

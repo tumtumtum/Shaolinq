@@ -40,7 +40,7 @@ namespace Shaolinq.Sqlite
 		{
 			string primaryKeyName;
 
-			if (primaryKeyNameByTablesWithReducedPrimaryKeyName.TryGetValue(foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedTableName, out primaryKeyName))
+			if (primaryKeyNameByTablesWithReducedPrimaryKeyName.TryGetValue(foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedTable.Name, out primaryKeyName))
 			{
 				var index = foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedColumnNames.IndexOf(primaryKeyName);
 

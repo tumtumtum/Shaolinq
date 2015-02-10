@@ -125,7 +125,7 @@ namespace Shaolinq.Persistence.Linq
 						
 						if (this.isDefaultIfEmpty && this.sqlAggregateType == SqlAggregateType.Count)
 						{
-							if (dataReader.FieldCount > 0 && dataReader.GetInt64(0) == 0)
+							if (dataReader.FieldCount > 0 && Convert.ToInt64(dataReader.GetValue(0)) == 0)
 							{
 								yield return (T)Convert.ChangeType(1, typeof(T));
 							}

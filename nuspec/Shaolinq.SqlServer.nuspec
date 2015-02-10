@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Shaolinq.SqlServer</id>
+    <version>$version$</version>
+    <title>Shaolinq ORM and Linq provider for SQL Server</title>
+    <summary>A thoughtful ORM and Linq provider for .NET and SQL Server</summary>
+    <authors>Thong Nguyen</authors>
+    <owners>Thong Nguyen</owners>
+    <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/tumtumtum/Shaolinq</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Shaolinq is a thoughtfully designed ORM and Linq provider for .NET
+    
+Use this package to add Shaolinq and out-of-the-box MySql support.
+    
+Designed to perform super fast and be easy to use, Shaolinq's features also include:
+    
+- First class schema-first ORM with WYSIWYG data access and minipulation.
+- First class LINQ support (not the basic kind you see in most other OSS projects).
+- Single trip updating of objects.
+- Support for Sqlite, MySql, Postgres and SQL Server.
+- Automatic database creation and schema migration.
+- Delete LINQ extension for batch server side deletes.
+- Full support for server side date functions (Date.DayOfWeek etc).
+- Easily extensible with a simple interface for adding support for other ADO.NET compatible databases.
+- Open Source!</description>
+    <releaseNotes>$releasenotes$</releaseNotes>
+    <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
+    <tags>linq provider orm sqlite mysql sql database</tags>
+    <dependencies>
+      <dependency id="Shaolinq" version="$version$"/>
+    </dependencies>
+  </metadata>
+</package>

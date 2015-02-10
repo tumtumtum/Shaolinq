@@ -12,6 +12,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
 	[TestFixture("Sqlite")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
@@ -106,6 +107,24 @@ namespace Shaolinq.Tests
 				TimeSpan.Zero,
 				Sex.Female,
 				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)));
+
+			ExecuteTest(
+				"test",
+				Guid.NewGuid(),
+				short.MaxValue,
+				int.MaxValue,
+				long.MaxValue,
+				(ushort) short.MaxValue, // using signed max value as unsigned not supported in various databases
+				(uint) int.MaxValue, // using signed max value as unsigned not supported in various databases
+				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
+				maxDecimal / (decimal)2,
+				(float) TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
+				double.MaxValue,
+				true,
+				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
+				TimeSpan.Zero,
+				Sex.Female,
+				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)));
 		}
 
 		[Test]
@@ -133,6 +152,13 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Small_Values()
 		{
+			var decimalValue = 0.00000000000000000001m;
+
+			if (this.ProviderName.StartsWith("SqlServer"))
+			{
+				decimalValue = 0.000000001m;
+			}
+			
 			ExecuteTest(
 				"test",
 				Guid.Empty,
@@ -142,7 +168,7 @@ namespace Shaolinq.Tests
 				1,
 				1,
 				1,
-				0.00000000000000000001m,
+				decimalValue,
 				float.Epsilon,
 				double.Epsilon,
 				true,

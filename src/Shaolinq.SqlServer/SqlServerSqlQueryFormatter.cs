@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using Platform;
+using Platform.Validation;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -15,6 +17,127 @@ namespace Shaolinq.SqlServer
 		{
 		}
 
+		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)
+		{
+			var function = functionCallExpression.Function;
+			var arguments = functionCallExpression.Arguments;
+
+			switch (function)
+			{
+			case SqlFunction.ServerUtcNow:
+				return new FunctionResolveResult("SYSDATETIME", false, arguments);
+			case SqlFunction.ServerNow:
+				return new FunctionResolveResult("SYSUTCDATETIME", false, arguments);
+			}
+
+			return base.ResolveSqlFunction(functionCallExpression);
+		}
+
+		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
+		{
+			switch (functionCallExpression.Function)
+			{
+			case SqlFunction.DateTimeAddTimeSpan:
+				this.Write("DATEADD(DAY, ");
+				this.Write("CAST(");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" AS BIGINT)");
+				this.Write(" / CAST(864000000000 AS BIGINT)");
+				this.Write(", DATEADD(MS, ");
+				this.Write("CAST(");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" AS BIGINT)");
+				this.Write(" / CAST(10000 AS BIGINT) % 86400000, " );
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write("))");
+				return functionCallExpression;
+			}
+
+			return base.VisitFunctionCall(functionCallExpression);
+		}
+
+		protected override Expression VisitUnary(UnaryExpression unaryExpression)
+		{
+			switch (unaryExpression.NodeType)
+			{
+			case ExpressionType.Convert:
+				if (unaryExpression.Type == typeof(double))
+				{
+					this.Write("CAST(");
+					this.Visit(unaryExpression.Operand);
+					this.Write(" AS FLOAT)");
+
+					return unaryExpression;
+				}
+				break;
+			}
+
+			return base.VisitUnary(unaryExpression);
+		}
+
+
+		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		{
+			if (constantExpression.Value == null)
+			{
+				return base.VisitConstant(constantExpression);
+			}
+
+			var type = constantExpression.Value.GetType();
+
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean:
+					if (Convert.ToBoolean(constantExpression.Value))
+					{
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(Sql92QueryFormatter.ParamNamePrefix);
+						this.Write(parameterValues.Count);
+						parameterValues.Add(new Pair<Type, object>(typeof(string), "true"));
+
+						return constantExpression;
+					}
+					else
+					{
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(Sql92QueryFormatter.ParamNamePrefix);
+						this.Write(parameterValues.Count);
+						parameterValues.Add(new Pair<Type, object>(typeof(string), "false"));
+
+						return constantExpression;
+					}
+			}
+
+			return base.VisitConstant(constantExpression);
+		}
+
+		protected override Expression PreProcess(Expression expression)
+		{
+			expression = SqlServerLimitAmmender.Ammend(expression);
+			expression = SqlServerBooleanNormalizer.Normalize(expression);
+			expression = SqlServerDateTimeFunctionsAmmender.Ammend(expression);
+
+			return base.PreProcess(expression);
+		}
+
+		protected override void AppendTop(SqlSelectExpression selectExpression)
+		{
+			if (selectExpression.Take != null && selectExpression.Skip == null)
+			{
+				this.Write("TOP(");
+				this.Visit(selectExpression.Take);
+				this.Write(") ");
+			}
+		}
+
+		protected override void AppendLimit(SqlSelectExpression selectExpression)
+		{
+			if (selectExpression.Skip != null && selectExpression.Take != null)
+			{
+				throw new InvalidOperationException("Skip/Take not supported");
+			}
+		}
+
 		protected override void Write(SqlColumnReferenceAction action)
 		{
 			if (action == SqlColumnReferenceAction.Restrict)
@@ -25,6 +148,29 @@ namespace Shaolinq.SqlServer
 			}
 
 			base.Write(action);
+		}
+
+		protected override Expression VisitOver(SqlOverExpression selectExpression)
+		{
+			this.Visit(selectExpression.Source);
+
+			this.Write(" OVER (ORDER BY ");
+
+			this.WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
+			{
+				this.Visit(c);
+
+				if (((SqlOrderByExpression)c).OrderType == OrderType.Descending)
+				{
+					this.Write(" DESC");
+				}
+
+				return c;
+			});
+
+			this.Write(")");
+
+			return selectExpression;
 		}
 
 		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
@@ -45,6 +191,55 @@ namespace Shaolinq.SqlServer
 				return null;
 			}, ",");
 			this.Write("");
+		}
+
+		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
+		{
+			this.Write("SET ");
+			switch (expression.ConfigurationParameter)
+			{
+			case "IdentityInsert":
+				this.Write("IDENTITY_INSERT");
+				break;
+			default:
+				this.Write(expression.ConfigurationParameter);
+				break;
+			}
+			
+			if (expression.Target != null)
+			{
+				this.Write(" ");
+				this.Write(((SqlTableExpression)expression.Target).Name);
+				this.Write(" ");
+			}
+
+			if (expression.ConfigurationParameter == "IdentityInsert")
+			{
+				this.Write((bool)((ConstantExpression)expression.Arguments[0].Reduce()).Value ? "ON" : "OFF");
+			}
+			else
+			{
+				this.Write(" ");
+				this.Write(expression.Arguments);
+			}
+
+			this.WriteLine();
+
+			return expression;
+		}
+
+		protected override Expression VisitExtension(Expression expression)
+		{
+			var booleanExpression = expression as BitBooleanExpression;
+
+			if (booleanExpression != null)
+			{
+				this.Visit(booleanExpression.Expression);
+
+				return expression;
+			}
+			
+			return base.VisitExtension(expression);
 		}
 	}
 }

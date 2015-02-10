@@ -5,16 +5,29 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlDialect
 		: SqlDialect
 	{
-		public new static readonly SqlServerSqlDialect Default;
+		public new static readonly SqlServerSqlDialect Default = new SqlServerSqlDialect();
 
-		static SqlServerSqlDialect()
-		{
-			Default = new SqlServerSqlDialect(SqlFeature.AlterTableAddConstraints, SqlFeature.Constraints, SqlFeature.IndexNameCasing, SqlFeature.SelectForUpdate, SqlFeature.InsertOutput);
+		private SqlServerSqlDialect()
+		{	
 		}
 
-		private SqlServerSqlDialect(params SqlFeature[] supportedFeatures)
-			: base(supportedFeatures)
-		{	
+		public override bool SupportsFeature(SqlFeature feature)
+		{
+			switch (feature)
+			{
+			case SqlFeature.InsertOutput:
+			case SqlFeature.PragmaIdentityInsert:
+				return true;
+			case SqlFeature.Deferrability:
+			case SqlFeature.CascadeAction:
+			case SqlFeature.DeleteAction:
+			case SqlFeature.SetNullAction:
+			case SqlFeature.SetDefaultAction:
+			case SqlFeature.UpdateAutoIncrementColumns:
+				return false;
+			default:
+				return base.SupportsFeature(feature);
+			}
 		}
 
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)

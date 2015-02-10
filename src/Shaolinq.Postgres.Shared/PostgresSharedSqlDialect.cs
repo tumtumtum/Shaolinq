@@ -7,26 +7,25 @@ namespace Shaolinq.Postgres.Shared
 	public class PostgresSharedSqlDialect
 		: SqlDialect
 	{
-		public new static readonly PostgresSharedSqlDialect Default;
+		public new static readonly PostgresSharedSqlDialect Default = new PostgresSharedSqlDialect();
 
-		static PostgresSharedSqlDialect()
-		{
-			Default = new PostgresSharedSqlDialect
-			(
-				new []
-				{
-					SqlFeature.AlterTableAddConstraints, 
-					SqlFeature.Constraints, 
-					SqlFeature.IndexToLower, 
-					SqlFeature.SelectForUpdate,
-					SqlFeature.Deferrability
-				}
-			);
+		private PostgresSharedSqlDialect()
+		{	
 		}
 
-		private PostgresSharedSqlDialect(params SqlFeature[] supportedFeatures)
-			: base(supportedFeatures)
-		{	
+		public override bool SupportsFeature(SqlFeature feature)
+		{
+			switch (feature)
+			{
+			case SqlFeature.IndexToLower:
+			case SqlFeature.Deferrability:
+			case SqlFeature.SelectForUpdate:
+				return true;
+			case SqlFeature.InlineForeignKeys:
+				return false;
+			default:
+				return base.SupportsFeature(feature);
+			}
 		}
 
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
