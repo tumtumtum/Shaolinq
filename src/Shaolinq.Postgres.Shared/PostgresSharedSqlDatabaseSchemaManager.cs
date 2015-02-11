@@ -104,5 +104,32 @@ namespace Shaolinq.Postgres.Shared
 
 			return retval;
 		}
+
+		protected override void CreateDatabaseSchema()
+		{
+
+			if (!string.IsNullOrEmpty(this.SqlDatabaseContext.SchemaName))
+			{
+				var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
+
+				using (var dbConnection = factory.CreateConnection())
+				{
+					dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
+					dbConnection.Open();
+					dbConnection.ChangeDatabase(this.SqlDatabaseContext.DatabaseName);
+
+					using (var command = dbConnection.CreateCommand())
+					{
+						command.CommandText =
+							string.Format("CREATE SCHEMA IF NOT EXISTS \"{0}\";",
+								this.SqlDatabaseContext.SchemaName);
+
+						command.ExecuteNonQuery();
+					}
+				}
+			}
+
+			base.CreateDatabaseSchema();
+		}
 	}
 }
