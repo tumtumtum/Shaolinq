@@ -1450,6 +1450,32 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		private class KeyCount
+		{
+			public DateTime Key;
+			public int Count;
+		}
+
+		[Test]
+		public void Test_GroupBy_DateTimeDate_Into_StronglyTypedType()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  group student by student.Birthdate.Value.Date
+								  into g
+								  select new KeyCount
+								  {
+									  Key = g.Key,
+									  Count = g.Count()
+								  };
+
+				var list = results.ToList();
+
+				scope.Complete();
+			}
+		}
+
 
 		[Test]
 		public void Test_GroupBy_DateTimeDate()
