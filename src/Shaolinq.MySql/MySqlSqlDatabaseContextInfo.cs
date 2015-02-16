@@ -24,6 +24,12 @@ namespace Shaolinq.MySql
 		[XmlAttribute]
 		public bool PoolConnections { get; set; }
 
+		[XmlAttribute]
+		public bool ConvertZeroDateTime { get; set; }
+
+		[XmlAttribute]
+		public bool AllowConvertZeroDateTime { get; set; }
+
 		public MySqlSqlDatabaseContextInfo()
 		{
 			this.PoolConnections = true;
