@@ -31,7 +31,7 @@ using MySql.Data.MySqlClient;
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
 
-			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; AutoEnlist=false; charset=utf8", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections);
+			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; AutoEnlist=false; charset=utf8; Convert Zero Datetime={5}; Allow Zero Datetime={6};", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections, contextInfo.ConvertZeroDateTime ? "true" : "false", contextInfo.AllowConvertZeroDateTime ? "true" : "false");
 			this.ServerConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;AutoEnlist=false;Uid=", this.Username, ";Pwd=", this.Password);
 
 			this.SchemaManager = new MySqlSqlDatabaseSchemaManager(this);

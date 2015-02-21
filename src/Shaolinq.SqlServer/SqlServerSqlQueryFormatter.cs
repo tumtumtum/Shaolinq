@@ -37,6 +37,11 @@ namespace Shaolinq.SqlServer
 		{
 			switch (functionCallExpression.Function)
 			{
+			case SqlFunction.Date:
+				this.Write("CONVERT(date, ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
 			case SqlFunction.DateTimeAddTimeSpan:
 				this.Write("DATEADD(DAY, ");
 				this.Write("CAST(");
@@ -106,7 +111,6 @@ namespace Shaolinq.SqlServer
 
 						return constantExpression;
 					}
-					break;
 			}
 
 			return base.VisitConstant(constantExpression);

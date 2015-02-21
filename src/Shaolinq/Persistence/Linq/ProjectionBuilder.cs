@@ -107,11 +107,14 @@ namespace Shaolinq.Persistence.Linq
 
 			currentNewExpressionType = previousCurrentNewExpressionType;
 
-			var submitToCacheMethod = typeof(IDataAccessObjectInternal).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-			var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-			var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+			if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
+			{
+				var submitToCacheMethod = typeof(IDataAccessObjectInternal).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+				var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+				var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 
-			retval =  Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
+				retval = Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
+			}
 
 			if (nullCheck != null)
 			{
@@ -159,7 +162,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (functionCallExpression.Function == SqlFunction.Date)
 			{
-				return Expression.Call(Visit(functionCallExpression.Arguments[0]), typeof (DateTime).GetProperty("Date").GetGetMethod(), null);
+				return Expression.Call(Visit(functionCallExpression.Arguments[0]), typeof(DateTime).GetProperty("Date").GetGetMethod(), null);
 			}
 			
 			return base.VisitFunctionCall(functionCallExpression);

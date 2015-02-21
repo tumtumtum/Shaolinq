@@ -162,11 +162,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			// Visit join in reverse order
 
-			var condition = this.Visit(join.Condition);
+			var condition = this.Visit(join.JoinCondition);
 			var right = this.VisitSource(join.Right);
 			var left = this.VisitSource(join.Left);
 
-			if (left != join.Left || right != join.Right || condition != join.Condition)
+			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
 			{
 				return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
 			}

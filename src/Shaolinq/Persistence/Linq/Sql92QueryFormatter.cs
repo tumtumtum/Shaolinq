@@ -896,13 +896,13 @@ namespace Shaolinq.Persistence.Linq
 
 			this.VisitSource(join.Right);
 
-			if (join.Condition != null)
+			if (join.JoinCondition != null)
 			{
 				using (AcquireIndentationContext())
 				{
 					this.Write("ON ");
 
-					this.Visit(join.Condition);
+					this.Visit(join.JoinCondition);
 				}
 			}
 

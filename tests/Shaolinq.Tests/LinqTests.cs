@@ -1527,6 +1527,93 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		private class KeyCount
+		{
+			public DateTime Key;
+			public int Count;
+		}
+
+		[Test]
+		public void Test_GroupBy_DateTimeDate_Into_StronglyTypedType()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  group student by student.Birthdate.Value.Date
+								  into g
+								  select new KeyCount
+								  {
+									  Key = g.Key,
+									  Count = g.Count()
+								  };
+
+				var list = results.ToList();
+
+				scope.Complete();
+			}
+		}
+
+
+		[Test]
+		public void Test_GroupBy_DateTimeDate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  group student by student.Birthdate.Value.Date
+								  into g
+								  select new
+								  {
+									  key = g.Key,
+									  count = g.Count()
+								  };
+
+				var list = results.ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_AggregateCount()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+					group student by student.Firstname
+					into g
+					select new
+					{
+						key = g.Key,
+						count = g.Count()
+					};
+
+				var list = results.ToList();
+				
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_AggregateCount_With_OrderBy()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  group student by student.Firstname
+								  into g
+								  orderby g.Count() descending
+								  select new
+								  {
+									  key = g.Key
+								  };
+
+				results.ToList();
+
+				scope.Complete();
+			}
+		}
+
 		[Test]
 		public void Test_Implicit_Join()
 		{

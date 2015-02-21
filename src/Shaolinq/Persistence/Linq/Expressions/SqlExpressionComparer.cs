@@ -678,8 +678,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (result)
 			{
-				currentObject = current.Condition;
-				Visit(join.Condition);
+				currentObject = current.JoinCondition;
+				Visit(join.JoinCondition);
 
 				currentObject = current.Left;
 				Visit(join.Left);
