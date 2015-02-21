@@ -192,7 +192,6 @@ namespace Shaolinq.Persistence.Linq
 			expression = RedundantSubqueryRemover.Remove(expression);
 			expression = FunctionCoalescer.Coalesce(expression);
 			expression = ExistsSubqueryOptimizer.Optimize(expression);
-			//expression = OrderByRewriter.Rewrite(expression);
 			expression = RedundantBinaryExpressionsRemover.Remove(expression);
 
 			if (simplerPartialVal)
@@ -229,6 +228,8 @@ namespace Shaolinq.Persistence.Linq
 					expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition);
 				}
 
+				expression = OrderByRewriter.Rewrite(expression);
+				
 				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
 

@@ -327,6 +327,83 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public virtual void Test_Query_GroupBy_And_OrderBy_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+					group student by student.Firstname
+					into g
+					orderby g.Key
+					select new {Count = g.Count(), Name = g.Key};
+
+				var resultsArray = results.ToArray();
+
+				Assert.AreEqual("Chuck", resultsArray[0].Name);
+				Assert.AreEqual(2, resultsArray[0].Count);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_GroupBy_Complex_And_OrderBy_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  group student by new { student.Firstname, student.Birthdate}
+								  into g
+								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
+
+				var resultsArray = results.OrderBy(c => c.Key.Firstname).ToArray();
+
+				//Assert.AreEqual("Chuck", resultsArray[0].Name);
+				//Assert.AreEqual(2, resultsArray[0].Count);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_GroupBy_Tuple_And_OrderBy_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  group student by new Tuple<string, DateTime?>(student.Firstname, student.Birthdate)
+								  into g
+								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Item1 };
+
+				var resultsArray = results.OrderBy(c => c.Key.Item1).ToArray();
+
+				//Assert.AreEqual("Chuck", resultsArray[0].Name);
+				//Assert.AreEqual(2, resultsArray[0].Count);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_GroupBy_Complex_And_OrderBy_Key2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  group student by new { student.Firstname, student.Birthdate }
+								  into g
+								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
+
+				var resultsArray = results.OrderBy(c => c.Key).ToArray();
+
+				//Assert.AreEqual("Chuck", resultsArray[0].Name);
+				//Assert.AreEqual(2, resultsArray[0].Count);
+
+				scope.Complete();
+			}
+		}
+
 		private class TempObject
 		{
 			private readonly TestDataAccessModel model;

@@ -100,6 +100,19 @@ namespace Shaolinq.Persistence
 			this.parameterIndicatorPrefix = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 		}
 
+		internal string FormatCommand(IDbCommand command)
+		{
+			return this.SqlDatabaseContext.SqlQueryFormatterManager.Format(command.CommandText, c =>
+			{
+				if (!command.Parameters.Contains(c))
+				{
+					return "(?!)";
+				}
+
+				return ((IDbDataParameter)command.Parameters[c]).Value;
+			});
+		}
+
 		protected virtual DbType GetDbType(Type type)
 		{
 			type = type.GetUnwrappedNullableType();
@@ -195,19 +208,6 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		internal string FormatCommand(IDbCommand command)
-		{
-			return this.SqlDatabaseContext.SqlQueryFormatterManager.Format(command.CommandText, c =>
-			{
-				if (!command.Parameters.Contains(c))
-				{
-					return "[FormatCommandError!]";
-				}
-
-				return ((IDbDataParameter)command.Parameters[c]).Value;
-			});
-		}
-
 		public virtual object ExecuteScalar(string sql, IEnumerable<Pair<Type, object>> parameters)
 		{
 			var command = CreateCommand();
@@ -261,7 +261,7 @@ namespace Shaolinq.Persistence
 
 				if (command == null)
 				{
-					Logger.ErrorFormat("Object {0} is reported as changed but GetChangedProperties returns an empty list", dataAccessObject);
+					Logger.ErrorFormat("Object is reported as changed but GetChangedProperties returns an empty list ({0})", dataAccessObject);
 
 					continue;
 				}

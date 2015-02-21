@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq
 		: IGrouping<K, V>
 	{
 		public K Key { get; private set; }
-		protected IEnumerable<V> Group { get; private set; }
+		public IEnumerable<V> Group { get; private set; }
 
 		public Grouping(K key, IEnumerable<V> group)
 		{

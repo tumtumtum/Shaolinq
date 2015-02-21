@@ -558,8 +558,10 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
+				var groupingType = typeof(Grouping<,>).MakeGenericType(keyExpression.Type, subqueryElemExpr.Type);
+
 				// Result must be IGrouping<K,E>
-				resultExpression = Expression.New(typeof(Grouping<,>).MakeGenericType(keyExpression.Type, subqueryElemExpr.Type).GetConstructors()[0], new Expression[] { keyExpression, elementSubquery });
+				resultExpression = Expression.New(groupingType.GetConstructors()[0], new[] { keyExpression, elementSubquery }, groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public), groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public));
 			}
 
 			var pc = ProjectColumns(resultExpression, alias, projection.Select.Alias);
@@ -1684,6 +1686,12 @@ namespace Shaolinq.Persistence.Linq
 								return newExpression.Arguments[i];
 							}
 						}
+					}
+					else if (newExpression.Type.IsGenericType && newExpression.Type.Namespace == "System" && newExpression.Type.Assembly == typeof(Tuple<>).Assembly && newExpression.Type.Name.StartsWith("Tuple`"))
+					{
+						var i = Convert.ToInt32(memberExpression.Member.Name.Substring(4)) - 1;
+
+						return newExpression.Arguments[i];
 					}
 				break;
 				case ExpressionType.Constant:
