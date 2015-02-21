@@ -84,13 +84,21 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
-			if (memberExpression.Member.DeclaringType.IsGenericType
+			if (memberExpression.Member.DeclaringType != null && memberExpression.Member.DeclaringType.IsGenericType
 				&& memberExpression.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
 			{
 				return this.Visit(memberExpression.Expression);
 			}
 
 			return base.VisitMemberAccess(memberExpression);
+		}
+
+		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
+		{
+			this.VisitSource(selectExpression.From);
+			this.VisitColumnDeclarations(selectExpression.Columns);
+
+			return selectExpression;
 		}
         
 		private Expression ProcessExpression(Expression expression)

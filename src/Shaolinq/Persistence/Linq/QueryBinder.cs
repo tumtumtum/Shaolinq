@@ -578,7 +578,10 @@ namespace Shaolinq.Persistence.Linq
 
 			var projectedElementSubquery = ((NewExpression)pc.Projector).Arguments[1];
 
-			this.groupByMap.Add(projectedElementSubquery, info);
+			if (projectedElementSubquery != elementSubquery)
+			{
+				this.groupByMap.Add(projectedElementSubquery, info);
+			}
 
 			return new SqlProjectionExpression
 			(
