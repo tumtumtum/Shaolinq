@@ -188,7 +188,7 @@ namespace Shaolinq.Persistence.Linq
 
 			while (IsColumnNameInUse(name))
 			{
-				name = baseName + (suffix++);
+				name = baseName + "_" + (suffix++);
 			}
 
 			return name;
@@ -196,7 +196,15 @@ namespace Shaolinq.Persistence.Linq
         
 		private string GetNextColumnName()
 		{
-			return GetUniqueColumnName("COL" + (columnIndex++));
+			string name;
+
+			do
+			{
+				name = GetUniqueColumnName("COL" + (columnIndex++));
+			}
+			while (!IsColumnNameInUse(name));
+
+			return name;
 		}
 	}
 }
