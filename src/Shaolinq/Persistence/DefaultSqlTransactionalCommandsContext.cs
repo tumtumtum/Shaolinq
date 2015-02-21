@@ -369,7 +369,7 @@ namespace Shaolinq.Persistence
 						throw;
 					}
 
-					if ((objectState & ObjectState.ReferencesNewObjectWithServerSideProperties) != 0)
+					if ((objectState & ObjectState.ReferencesNewObjectWithServerSideProperties) == ObjectState.ReferencesNewObjectWithServerSideProperties)
 					{
 						listToFixup.Add(dataAccessObject);
 					}
@@ -580,11 +580,6 @@ namespace Shaolinq.Persistence
 			}
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
-
-			if (result.ParameterValues.Count() != updatedProperties.Count)
-			{
-				Console.WriteLine();
-			}
 
 			Debug.Assert(result.ParameterValues.Count() == updatedProperties.Count);
 
