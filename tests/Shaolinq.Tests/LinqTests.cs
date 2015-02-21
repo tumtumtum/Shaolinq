@@ -385,33 +385,6 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		private class Foo
-		{
-			public int Count { get; set; }
-			public DateTime? Date { get; set; }
-		}
-
-		[Test]
-		public virtual void Test_Query_GroupBy_Tuple_And_OrderBy_Key3()
-		{
-			using (var scope = new TransactionScope())
-			{
-				var results = this.model.Students
-							.Where(c => c.Birthdate > DateTime.Now)
-							  .GroupBy(c => new Tuple<string, DateTime?>(c.Firstname, c.Birthdate.Value.Date ))
-							  .OrderBy(c => c.Key.Item2)
-							  .Select(c => new {  Obj = new Foo { Count = c.Count(), Date = c.Key.Item2 } });
-
-				var resultsArray = results.ToArray();
-
-				//Assert.AreEqual("Chuck", resultsArray[0].Name);
-				//Assert.AreEqual(2, resultsArray[0].Count);
-
-				scope.Complete();
-			}
-		}
-
-
 		[Test]
 		public virtual void Test_Query_GroupBy_Complex_And_OrderBy_Key2()
 		{

@@ -202,7 +202,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				name = GetUniqueColumnName("COL" + (columnIndex++));
 			}
-			while (!IsColumnNameInUse(name));
+			while (IsColumnNameInUse(name));
 
 			return name;
 		}
