@@ -183,6 +183,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
+			expression = OrderByRewriter.Rewrite(expression);
 			expression = ObjectOperandComparisonExpander.Expand(expression); 
 			expression = EnumTypeNormalizer.Normalize(expression, typeForEnums);
 			expression = GroupByCollator.Collate(expression);
@@ -228,8 +229,6 @@ namespace Shaolinq.Persistence.Linq
 					expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition);
 				}
 
-				expression = OrderByRewriter.Rewrite(expression);
-				
 				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
 
