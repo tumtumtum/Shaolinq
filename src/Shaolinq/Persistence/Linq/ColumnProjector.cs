@@ -79,6 +79,14 @@ namespace Shaolinq.Persistence.Linq
 
 			expression = projector.Visit(expression);
 
+			var x = projector.columns.Select(c => c.Name).Count();
+			var y = projector.columns.Select(c => c.Name).Distinct().Count();
+
+			if (x != y)
+			{
+				Console.WriteLine();
+			}
+
 			return new ProjectedColumns(expression, projector.columns.ToReadOnlyList());
 		}
 
@@ -134,7 +142,8 @@ namespace Shaolinq.Persistence.Linq
 			else
 			{
 				var columnName = GetNextColumnName();
-				
+
+				columnNames.Add(columnName);
 				columns.Add(new SqlColumnDeclaration(columnName, expression));
 
 				return new SqlColumnExpression(expression.Type, newAlias, columnName);
