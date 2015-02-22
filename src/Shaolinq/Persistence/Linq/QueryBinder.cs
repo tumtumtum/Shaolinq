@@ -749,6 +749,24 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            this.selectorPredicateStack.Pop();
 					return result;
+				case "Any":
+		            if (methodCallExpression.Arguments.Count == 1)
+		            {
+			            return new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(methodCallExpression.Arguments[0]));
+		            }
+					else if (methodCallExpression.Arguments.Count == 2)
+					{
+						this.selectorPredicateStack.Push(methodCallExpression);
+						result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
+						this.selectorPredicateStack.Pop();
+
+						return new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, result);
+					}
+					else
+					{
+						throw new NotSupportedException("Queryable.Any");
+					}
+		            break;
 	            case "Count":
 	            case "Min":
 	            case "Max":

@@ -1721,5 +1721,29 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(178, firstStudent.Address.Number);
 			}
 		}
+
+		[Test]
+		public void Test_Select_Any_1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.FirstOrDefault();
+				var result = model.Students.Where(c => school.Students.Where(d => d.Id == c.Id).Any()).ToList();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Select_Any_2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.FirstOrDefault();
+				var result = model.Students.Where(c => school.Students.Any(d => d.Id == c.Id)).ToList();
+
+				scope.Complete();
+			}
+		}
 	}
 }
