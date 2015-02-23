@@ -8,12 +8,17 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
+	public interface IHasExtraCondition
+	{
+		LambdaExpression ExtraCondition { get; }
+	}
+
 	/// <summary>
 	/// Base class that represents a queryable set of <c>DataAccessObjects</c>
 	/// </summary>
 	/// <typeparam name="T">The type data access object</typeparam>
 	public class DataAccessObjectsQueryable<T>
-		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator<T>
+		: ReusableQueryable<T>, IHasDataAccessModel, IHasExtraCondition, IDataAccessObjectActivator<T>
 		where T : DataAccessObject
 	{
 		private readonly TypeDescriptor typeDescriptor;

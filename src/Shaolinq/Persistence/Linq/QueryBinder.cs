@@ -1146,9 +1146,9 @@ namespace Shaolinq.Persistence.Linq
 			return this.Visit(source);
 		}
 
-		private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate, bool forUpdate)
+		private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate, bool forUpdate, bool sourceAlreadyVisited = false)
 		{
-			var projection = (SqlProjectionExpression)this.Visit(source);
+			var projection = (SqlProjectionExpression)(sourceAlreadyVisited ? source : this.Visit(source));
 
 			AddExpressionByParameter(predicate.Parameters[0], projection.Projector);
 
@@ -1545,17 +1545,8 @@ namespace Shaolinq.Persistence.Linq
 			if (type.IsGenericType)
 			{
 				var genericType = type.GetGenericTypeDefinition();
-				var elementType = type.GetGenericArguments()[0];
 
-				var retval = 
-					genericType == TypeHelper.DataAccessObjectsType 
-					|| genericType == TypeHelper.RelatedDataAccessObjectsType
-					|| genericType == typeof(IQueryable<>) && elementType.IsDataAccessObjectType()
-					|| genericType == typeof(SqlQueryable<>) && elementType.IsDataAccessObjectType()
-					|| genericType == typeof(ReusableQueryable<>) && elementType.IsDataAccessObjectType()
-					|| genericType.GetInterfaces().Any(c => c == typeof(IQueryable)) && elementType.IsDataAccessObjectType();
-
-				return retval;
+				return genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType;
 			}
 
 			return false;
@@ -1596,9 +1587,16 @@ namespace Shaolinq.Persistence.Linq
 				type = constantExpression.Value.GetType();
 			}
 
-			if (IsTable(type))
+			if (IsTable(type) && (!(constantExpression.Value is IHasDataAccessModel) || ((IHasDataAccessModel)constantExpression.Value).DataAccessModel == this.DataAccessModel))
 			{
 				var retval = GetTableProjection(type);
+
+				var hasExtraCondition = constantExpression.Value as IHasExtraCondition;
+
+				if (hasExtraCondition != null && hasExtraCondition.ExtraCondition != null)
+				{
+					return this.BindWhere(retval.Type, retval, hasExtraCondition.ExtraCondition, false, true);
+				}
 
 				return retval;
 			}

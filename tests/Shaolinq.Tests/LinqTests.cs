@@ -1742,6 +1742,8 @@ namespace Shaolinq.Tests
 				var school = model.Schools.FirstOrDefault();
 				var result = model.Students.Where(c => school.Students.Any(d => d.Id == c.Id)).ToList();
 
+				Assert.IsTrue(result.All(c => c.School == school));
+
 				scope.Complete();
 			}
 		}
