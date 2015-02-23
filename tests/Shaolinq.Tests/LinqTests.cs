@@ -1739,7 +1739,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.FirstOrDefault();
+				var a = model.Schools.FirstOrDefault();
+				var school = model.Schools.GetReference(a.Id);
 				var result = model.Students.Where(c => school.Students.Any(d => d.Id == c.Id)).ToList();
 
 				Assert.IsTrue(result.All(c => c.School == school));
