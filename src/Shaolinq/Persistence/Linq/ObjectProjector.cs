@@ -60,7 +60,7 @@ namespace Shaolinq.Persistence.Linq
 
 					var value = func(dataReader);
 
-					return Expression.Constant(value);
+					return Expression.Constant(value, column.Type);
 				}
 
 				return null;

@@ -79,8 +79,14 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return null;
 			}
-
-			return selector(expression) ?? base.Visit(expression);
+			try
+			{
+				return selector(expression) ?? base.Visit(expression);
+			}
+			catch (InvalidOperationException)
+			{
+				return selector(expression) ?? base.Visit(expression);
+			}
 		}
 	}
 }

@@ -63,14 +63,29 @@ namespace Shaolinq.Persistence.Linq
 		{
 		}
 
+		protected override Expression VisitJoin(SqlJoinExpression join)
+		{
+			var left = this.Visit(join.Left);
+			var right = this.Visit(join.Right);
+
+			var condition = join.JoinCondition;
+
+			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
+			{
+				return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
+			}
+
+			return join;
+		}
+
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
 			var from = VisitSource(selectExpression.From);
-			
-			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
-			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
-			var skip = this.Visit(selectExpression.Skip);
-			var take = this.Visit(selectExpression.Take);
+
+			var orderBy = selectExpression.OrderBy;
+			var groupBy = selectExpression.GroupBy;
+			var skip = selectExpression.Skip;
+			var take = selectExpression.Take;
 			var columns = VisitColumnDeclarations(selectExpression.Columns);
 
 			if (from != selectExpression.From || columns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
