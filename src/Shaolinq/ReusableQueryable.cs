@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
+﻿using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq
 {
@@ -24,9 +25,9 @@ namespace Shaolinq
 
 		public ReusableQueryable(IPersistenceQueryProvider provider, Expression expression)
 		{
-            if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
+            if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type) && !(expression is SqlProjectionExpression))
 			{
-                throw new ArgumentOutOfRangeException("expression");
+				throw new ArgumentOutOfRangeException("expression");
             }
             
 			this.PersistenceQueryProvider = provider;

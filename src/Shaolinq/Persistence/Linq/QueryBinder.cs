@@ -149,7 +149,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private ProjectedColumns ProjectColumns(Expression expression, string newAlias, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, QueryBinder.IsIntegralType, expression, newAlias, existingAliases);
+			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, new NormalNominator(QueryBinder.IsIntegralType), expression, newAlias, existingAliases);
 		}
 
 		private Expression BindContains(Expression checkList, Expression checkItem)
@@ -489,8 +489,7 @@ namespace Shaolinq.Persistence.Linq
 
 			// Use ProjectColumns to get group-by expressions from key expression
 			var keyProjection = ProjectColumns(keyExpression, projection.Select.Alias, projection.Select.Alias);
-			var groupExprs = new[] { keyExpression };
-
+			
 			// Make duplicate of source query as basis of element subquery by visiting the source again
 			var subqueryBasis = this.VisitSequence(source);
 
@@ -499,15 +498,11 @@ namespace Shaolinq.Persistence.Linq
 			var subqueryKey = this.Visit(keySelector.Body);
 
 			// Use same projection trick to get group by expressions based on subquery
+			
 			var subQueryProjectedColumns = ProjectColumns(subqueryKey, subqueryBasis.Select.Alias, subqueryBasis.Select.Alias);
-			IEnumerable<Expression> subqueryGroupExprs = new[] { subqueryKey };
 
-			// TODO: HACK
-
-			if (subqueryGroupExprs.First().Type != groupExprs[0].Type)
-			{
-				subqueryGroupExprs = subQueryProjectedColumns.Columns.Select(c => c.Expression);
-			}
+			var groupExprs = keyProjection.Columns.Select(c => c.Expression).ToArray();
+			var subqueryGroupExprs = subQueryProjectedColumns.Columns.Select(c => c.Expression).ToArray();
 
 			var subqueryCorrelation = BuildPredicateWithNullsEqual(subqueryGroupExprs, groupExprs);
 
@@ -568,13 +563,26 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var groupingType = typeof(Grouping<,>).MakeGenericType(keyExpression.Type, subqueryElemExpr.Type);
 
+				var x = ExpressionReplacer.Replace(elementSubquery, c =>
+				{
+					var column = c as SqlColumnExpression;
+
+					if (column != null && column.SelectAlias == projection.Select.Alias)
+					{
+						return new SqlColumnExpression(column.Type, "GROUPBYCOLUMNS-" + elementAlias, column.Name);
+					}
+
+					return null;
+				});
+
 				// Result must be IGrouping<K,E>
-				resultExpression = Expression.New(groupingType.GetConstructors()[0], new[] { keyExpression, elementSubquery }, groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public), groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public));
+
+				resultExpression = Expression.New(groupingType.GetConstructors()[0], new Expression[] { keyExpression, x}, groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public), groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public));
 			}
 
 			var pc = ProjectColumns(resultExpression, alias, projection.Select.Alias);
-
-			// Make it possible to tie aggregates back to this Group By
+			
+			// Make it possible to tie aggregates back to this GroupBy
 
 			var projectedElementSubquery = ((NewExpression)pc.Projector).Arguments[1];
 
@@ -614,8 +622,7 @@ namespace Shaolinq.Persistence.Linq
 				(
 					Expression.And
 					(
-						new SqlFunctionCallExpression(typeof(bool),
-						SqlFunction.IsNull, enumerator1.Current),
+						new SqlFunctionCallExpression(typeof(bool), SqlFunction.IsNull, enumerator1.Current),
 						new SqlFunctionCallExpression(typeof(bool), SqlFunction.IsNull, enumerator2.Current)
 					),
 					Expression.Equal(enumerator1.Current, enumerator2.Current)
@@ -766,7 +773,6 @@ namespace Shaolinq.Persistence.Linq
 					{
 						throw new NotSupportedException("Queryable.Any");
 					}
-		            break;
 	            case "Count":
 	            case "Min":
 	            case "Max":

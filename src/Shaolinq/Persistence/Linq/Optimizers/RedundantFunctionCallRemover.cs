@@ -35,7 +35,25 @@ namespace Shaolinq.Persistence.Linq.Optimizers
         
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
-			if (functionCallExpression.Function == SqlFunction.In)
+			if (functionCallExpression.Function == SqlFunction.IsNull)
+			{
+				if (functionCallExpression.Arguments[0].NodeType == ExpressionType.Constant)
+				{
+					return Expression.Constant(((ConstantExpression) functionCallExpression.Arguments[0]).Value == null);
+				}
+
+				return functionCallExpression;
+			}
+			else if (functionCallExpression.Function == SqlFunction.IsNotNull)
+			{
+				if (functionCallExpression.Arguments[0].NodeType == ExpressionType.Constant)
+				{
+					return Expression.Constant(((ConstantExpression)functionCallExpression.Arguments[0]).Value != null);
+				}
+
+				return functionCallExpression;
+			}
+			else if (functionCallExpression.Function == SqlFunction.In)
 			{
 				var value = this.Visit(functionCallExpression.Arguments[1]) as ConstantExpression;
 				var placeholderValue = this.Visit(functionCallExpression.Arguments[1]) as SqlConstantPlaceholderExpression;

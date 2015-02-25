@@ -18,6 +18,11 @@ namespace Shaolinq.Persistence.Linq
 			this.Group = group;
 		}
 
+		public Grouping(K key, ObjectProjector projector)
+		{
+			this.Key = key;
+		}
+
 		public IEnumerator<V> GetEnumerator()
 		{
 			return this.Group.GetEnumerator();

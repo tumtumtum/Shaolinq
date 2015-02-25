@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Transactions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
@@ -35,26 +36,39 @@ namespace Shaolinq.Persistence.Linq
 			this.relatedDataAccessObjectContext = relatedDataAccessObjectContext;
 		}
 
-		public virtual IEnumerable<T> ExecuteSubQuery<T>(LambdaExpression query)
+		public virtual IEnumerable<T> ExecuteSubQuery<T>(LambdaExpression query, IDataReader dataReader)
 		{
-			var projection = (SqlProjectionExpression)ExpressionReplacer.Replace
-				(
-					query.Body,
-					query.Parameters[0],
-					Expression.Constant(this)
-				);
-		
-			projection = (SqlProjectionExpression) Evaluator.PartialEval(projection, CanEvaluateLocally);
-            
-			var result = (IEnumerable<T>) this.provider.Execute(projection);
-			var list = new List<T>(result);
+			var projection = (SqlProjectionExpression)query.Body;
 
-			if (typeof (IQueryable<T>).IsAssignableFrom(query.Body.Type))
+			var expectedSelector = "GROUPBYCOLUMNS-" + projection.Select.Alias;
+
+			projection = (SqlProjectionExpression)ExpressionReplacer.Replace(projection, c =>
 			{
-				return list.AsQueryable();
-			}
+				if (query.Parameters[0] == c)
+				{
+					return Expression.Constant(this);
+				}
 
-			return list;
+				var column = c as SqlColumnExpression;
+
+				if (column != null && column.SelectAlias.StartsWith(expectedSelector))
+				{
+					var sqlDataTypeProvider = this.SqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
+
+					var parameter = Expression.Parameter(typeof(IDataReader));
+					var func = Expression.Lambda<Func<IDataReader, object>>(Expression.Convert(sqlDataTypeProvider.GetReadExpression(parameter, dataReader.GetOrdinal(column.Name)), typeof(object)), parameter).Compile();
+
+					var value = func(dataReader);
+
+					return Expression.Constant(value);
+				}
+
+				return null;
+			});
+
+			projection = (SqlProjectionExpression)SqlQueryProvider.Optimize(projection, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
+
+			return this.provider.CreateQuery<T>(projection);
 		}
 
 		private static bool CanEvaluateLocally(Expression expression)

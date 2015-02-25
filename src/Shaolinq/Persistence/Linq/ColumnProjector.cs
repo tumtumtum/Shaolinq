@@ -8,48 +8,131 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class ColumnProjector
+	public class Nominator
 		: SqlExpressionVisitor
 	{
-		private class Nominator
-			: SqlExpressionVisitor
+		public readonly HashSet<Expression> candidates;
+		protected readonly Func<Expression, bool> fnCanBeColumn;
+
+		public Nominator(Func<Expression, bool> canBeColumn)
 		{
-			private readonly HashSet<Expression> candidates;
-			private readonly Func<Expression, bool> fnCanBeColumn;
+			this.fnCanBeColumn = canBeColumn;
+			candidates = new HashSet<Expression>();
+		}
 
-			private Nominator(Func<Expression, bool> canBeColumn)
-			{
-				this.fnCanBeColumn = canBeColumn;
-				candidates = new HashSet<Expression>();
-			}
+		public virtual HashSet<Expression> Nominate(Expression expression)
+		{
+			this.Visit(expression);
 
-			public static HashSet<Expression> Nominate(Func<Expression, bool> canBeColumn, Expression expression)
-			{
-				var nominator = new Nominator(canBeColumn);
-                
-				nominator.Visit(expression);
+			return this.candidates;
+		}
 
-				return nominator.candidates;
-			}
-            
-			protected override Expression Visit(Expression expression)
+		protected override Expression Visit(Expression expression)
+		{
+			if (expression != null)
 			{
-				if (expression != null)
+				if (expression.NodeType != (ExpressionType)SqlExpressionType.Subquery)
 				{
-					if (expression.NodeType != (ExpressionType)SqlExpressionType.Subquery)
-					{
-						base.Visit(expression);
-					}
+					base.Visit(expression);
+				}
 
-					if (fnCanBeColumn(expression))
+				if (fnCanBeColumn(expression))
+				{
+					candidates.Add(expression);
+				}
+			}
+
+			return expression;
+		}
+	
+	}
+	public class IncludeWhereClauseNominator
+		: Nominator
+	{
+		public IncludeWhereClauseNominator(Func<Expression, bool> canBeColumn)
+			: base(canBeColumn)
+		{
+		}
+	}
+
+	public class NormalNominator
+		: IncludeWhereClauseNominator
+	{
+		public NormalNominator(Func<Expression, bool> canBeColumn)
+			: base(canBeColumn)
+		{
+		}
+
+		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
+		{
+			var from = VisitSource(selectExpression.From);
+			
+			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
+			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
+			var skip = this.Visit(selectExpression.Skip);
+			var take = this.Visit(selectExpression.Take);
+			var columns = VisitColumnDeclarations(selectExpression.Columns);
+
+			if (from != selectExpression.From || columns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
+			{
+				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, columns, from, selectExpression.Where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate);
+			}
+
+			return selectExpression;
+		}
+	}
+
+	public class OnlyWhereClauseNominator
+		: IncludeWhereClauseNominator
+	{
+		private bool inWhereClause;
+
+		public OnlyWhereClauseNominator(Func<Expression, bool> canBeColumn)
+			: base(canBeColumn)
+		{
+		}
+
+		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
+		{
+			this.VisitSource(selectExpression.From);
+			this.VisitColumnDeclarations(selectExpression.Columns);
+
+			var localInWhereClause = this.inWhereClause;
+
+			this.inWhereClause = true;
+
+			this.Visit(selectExpression.Where);
+			this.inWhereClause = localInWhereClause;
+
+			return selectExpression;
+		}
+
+		protected override Expression Visit(Expression expression)
+		{
+			if (expression != null)
+			{
+				if (expression.NodeType != (ExpressionType)SqlExpressionType.Subquery)
+				{
+					base.Visit(expression);
+				}
+
+				if (fnCanBeColumn(expression))
+				{
+					if (this.inWhereClause)
 					{
 						candidates.Add(expression);
 					}
 				}
-
-				return expression;
 			}
+
+			return expression;
 		}
+	}
+
+	public class ColumnProjector
+		: SqlExpressionVisitor
+	{
+		
 
 		private int columnIndex; 
 		private readonly string newAlias;
@@ -59,23 +142,25 @@ namespace Shaolinq.Persistence.Linq
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
+		private readonly Nominator nominator;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, params string[] existingAliases)
+		internal ColumnProjector(TypeDescriptorProvider typeDescriptorProvider, Nominator nominator, Expression expression, string newAlias, params string[] existingAliases)
 		{
 			columnNames = new HashSet<string>();
 			columns = new List<SqlColumnDeclaration>();
 			mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 
 			this.typeDescriptorProvider = typeDescriptorProvider;
+			this.nominator = nominator;
 			this.newAlias = newAlias;
 			this.existingAliases = existingAliases;
-			this.candidates = Nominator.Nominate(canBeColumn, expression);
+			this.candidates = nominator.Nominate(expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(TypeDescriptorProvider typeDescriptorProvider, Func<Expression, bool> canBeColumn, Expression expression, string newAlias, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(TypeDescriptorProvider typeDescriptorProvider, Nominator nominator, Expression expression, string newAlias, params string[] existingAliases)
 		{
-			var projector = new ColumnProjector(typeDescriptorProvider, canBeColumn, expression, newAlias, existingAliases);
+			var projector = new ColumnProjector(typeDescriptorProvider, nominator, expression, newAlias, existingAliases);
 
 			expression = projector.Visit(expression);
 
@@ -91,14 +176,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return base.VisitMemberAccess(memberExpression);
-		}
-
-		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
-		{
-			this.VisitSource(selectExpression.From);
-			this.VisitColumnDeclarations(selectExpression.Columns);
-
-			return selectExpression;
 		}
         
 		private Expression ProcessExpression(Expression expression)

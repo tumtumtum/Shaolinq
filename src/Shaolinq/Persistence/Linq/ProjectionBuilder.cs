@@ -168,7 +168,7 @@ namespace Shaolinq.Persistence.Linq
 			return base.VisitFunctionCall(functionCallExpression);
 		}
 
-		protected override NewExpression VisitNew(NewExpression expression)
+		protected override Expression VisitNew(NewExpression expression)
 		{
 			if (expression.Type.IsDataAccessObjectType())
 			{
@@ -319,11 +319,11 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var subQuery = Expression.Lambda(base.VisitProjection(projection), this.objectProjector);
+			var subQuery = Expression.Lambda(projection, this.objectProjector);
 			var elementType = TypeHelper.GetElementType(subQuery.Body.Type);
 			var boundExecuteSubQueryMethod = ExecuteSubQueryMethod.MakeGenericMethod(elementType);
 
-			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery)), projection.Type);
+			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), dataReader), projection.Type);
 		}
 	}
 }

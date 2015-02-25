@@ -3,6 +3,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+﻿using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq
 {
@@ -39,6 +40,11 @@ namespace Shaolinq
 
 		public static Type GetElementType(Type sequenceType)
 		{
+			if (sequenceType.IsGenericType && sequenceType.GetGenericTypeDefinition() == typeof(Grouping<,>))
+			{
+				return sequenceType;
+			}
+
 			var retval = FindElementType(sequenceType);
 
 			return retval ?? sequenceType;

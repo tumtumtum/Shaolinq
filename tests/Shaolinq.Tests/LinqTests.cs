@@ -104,6 +104,7 @@ namespace Shaolinq.Tests
 				chuck2.Lastname = "Yeager";
 				chuck2.Height = 182;
 				chuck2.Weight = 70;
+				chuck2.Sex = Sex.Male;
 			
 				scope.Complete();
 			}
@@ -1734,7 +1735,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_Select_Any_2()
 		{
 			using (var scope = new TransactionScope())
@@ -1746,6 +1747,84 @@ namespace Shaolinq.Tests
 				Assert.IsTrue(result.All(c => c.School == school));
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_Project_Group1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+					group student by student.Sex
+					into g
+					select new { sex = g.Key , date = g.Max(c => c.Birthdate), count=g.Count(), g = g };
+
+				foreach (var value in results.ToList())
+				{
+					var xx = value.g.ToList();
+
+					Console.WriteLine(value);
+				}
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_Project_Group2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = (from student in model.Students
+					group student by student.Nickname
+					into g
+					select g).Select(c => c.Key);
+
+				var list = results.ToList();
+
+				foreach (var item in list)
+				{
+					Console.WriteLine(item);
+				}
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_Project_Group3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  group student by student.Firstname
+								  into g
+								  select g;
+
+				var list = results.ToList();
+
+				foreach (var item in list)
+				{
+					Console.WriteLine(item.Key);
+					Console.WriteLine(item.Count());
+				}
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_Project_Group4()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+					group student by new {student.Firstname, student.Lastname}
+					into g
+					select g;
+
+				var list = results.ToList();
+
+				foreach (var item in list)
+				{
+					Console.WriteLine(item.Key);
+					Console.WriteLine(item.Count());
+				}
 			}
 		}
 	}

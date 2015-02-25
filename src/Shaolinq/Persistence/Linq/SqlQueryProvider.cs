@@ -274,6 +274,7 @@ namespace Shaolinq.Persistence.Linq
 			if (elementType.IsDataAccessObjectType())
 			{
 				Type type;
+				TypeHelper.GetElementType(cacheInfo.elementType);
 				elementType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(elementType);
 				concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
 
