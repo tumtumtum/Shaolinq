@@ -3,7 +3,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Transactions;
+﻿using System.Linq.Expressions;
+﻿using System.Transactions;
 using Shaolinq.Tests.TestModel;
 using NUnit.Framework;
 
@@ -1907,6 +1908,28 @@ namespace Shaolinq.Tests
 					Console.WriteLine(item);
 				}
 			}
+		}
+
+		private void Test_Check_Null<T>(Expression<Func<Student, T>> grouping)
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = model.Students.GroupBy(grouping)
+					.Where(c => c.Key != null);
+
+				var list = results.ToList();
+
+				foreach (var item in list)
+				{
+					Console.WriteLine(item);
+				}
+			}
+		}
+
+		[Test]
+		public void Test_Check_Grouping_Expression_From_Generic_Method()
+		{
+			Test_Check_Null(c => c.SexOptional);
 		}
 	}
 }

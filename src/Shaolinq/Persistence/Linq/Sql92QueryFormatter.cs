@@ -238,10 +238,10 @@ namespace Shaolinq.Persistence.Linq
 				var unaryType = Nullable.GetUnderlyingType(unaryExpression.Type) ?? unaryExpression.Type;
 				var operandType = Nullable.GetUnderlyingType(unaryExpression.Operand.Type) ?? unaryExpression.Operand.Type;
 
-				if (operandType == typeof(object)
-				    || unaryType == operandType
-				    || (IsNumeric(unaryType) && IsNumeric(operandType))
-				    || unaryExpression.Operand.Type.IsDataAccessObjectType())
+				if (operandType == typeof(object) || unaryType == typeof(object)
+					|| unaryType == operandType
+					|| (IsNumeric(unaryType) && IsNumeric(operandType))
+					|| unaryExpression.Operand.Type.IsDataAccessObjectType())
 				{
 					Visit(unaryExpression.Operand);
 				}

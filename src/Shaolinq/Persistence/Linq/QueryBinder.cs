@@ -1115,12 +1115,14 @@ namespace Shaolinq.Persistence.Linq
 			var myThenBys = this.thenBys;
 			
 			this.thenBys = null;
-			
-			var orderings = new List<SqlOrderByExpression>();
-			var projection = (SqlProjectionExpression)this.Visit(source);
 
+			var projection = (SqlProjectionExpression)this.Visit(source);
+			var alias = this.GetNextAlias();
+			var projectedColumns = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
+			
 			AddExpressionByParameter(orderSelector.Parameters[0], projection.Projector);
-			orderings.Add(new SqlOrderByExpression(orderType, this.Visit(orderSelector.Body)));
+
+			var orderings = ProjectColumns(this.Visit(orderSelector.Body), alias, projection.Select.Alias).Columns.Select(column => new SqlOrderByExpression(orderType, column.Expression)).ToList();
 
 			if (myThenBys != null)
 			{
@@ -1133,9 +1135,6 @@ namespace Shaolinq.Persistence.Linq
 					orderings.Add(new SqlOrderByExpression(thenBy.OrderType, this.Visit(lambda.Body)));
 				}
 			}
-
-			var alias = this.GetNextAlias();
-			var projectedColumns = ProjectColumns(projection.Projector, alias, projection.Select.Alias);
 			
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, projection.Select, null, orderings.AsReadOnly(), projection.Select.ForUpdate), projectedColumns.Projector, null);
 		}
