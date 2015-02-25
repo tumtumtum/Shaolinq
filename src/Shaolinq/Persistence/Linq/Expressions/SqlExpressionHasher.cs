@@ -213,7 +213,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitLambda(expression);
 		}
 
-		protected override NewExpression VisitNew(NewExpression expression)
+		protected override Expression VisitNew(NewExpression expression)
 		{
 			hashCode ^= expression.Arguments.Count;
 			

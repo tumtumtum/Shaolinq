@@ -239,7 +239,7 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		protected override NewExpression VisitNew(NewExpression expression)
+		protected override Expression VisitNew(NewExpression expression)
 		{
 			output.AppendFormat("new {0}", expression.Constructor.ReflectedType.FullName);
 			output.Append("(");

@@ -1827,5 +1827,24 @@ namespace Shaolinq.Tests
 				}
 			}
 		}
+
+		[Test, Ignore]
+		public void Test_GroupBy_Project_Group5()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+					group student by new {student.Firstname, student.Lastname}
+					into g
+					select new {g, first = g.First(c => c.Firstname != "")};
+
+				var list = results.ToList();
+
+				foreach (var item in list)
+				{
+					Console.WriteLine(item.first);
+				}
+			}
+		}
 	}
 }

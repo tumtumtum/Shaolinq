@@ -500,7 +500,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return expression;
 		}
 
-		protected override NewExpression VisitNew(NewExpression expression)
+		protected override Expression VisitNew(NewExpression expression)
 		{
 			NewExpression current;
 
