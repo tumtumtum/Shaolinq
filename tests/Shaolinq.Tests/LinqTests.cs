@@ -1866,5 +1866,47 @@ namespace Shaolinq.Tests
 				}
 			}
 		}
+
+		[Test]
+		public void Test_GroupBy_Project_Group7()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+					join school in model.Schools on student.School equals school
+					group student by new {student, school}
+					into g
+					orderby g.Key.student.Nickname, g.Key.school.Name
+					select g;
+
+				var list = results.ToList();
+
+				foreach (var item in list)
+				{
+					Console.WriteLine(item);
+				}
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_Project_Group8()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in model.Students
+							  join school in model.Schools on student.School equals school
+							  group student by new { student, school }
+								  into g
+								  orderby g.Key.student.Nickname, g.Count()
+								  select g;
+
+				var list = results.ToList();
+
+				foreach (var item in list)
+				{
+					Console.WriteLine(item);
+				}
+			}
+		}
 	}
 }

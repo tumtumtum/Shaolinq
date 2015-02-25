@@ -183,7 +183,6 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
-			expression = OrderByRewriter.Rewrite(expression);
 			expression = ObjectOperandComparisonExpander.Expand(expression); 
 			expression = EnumTypeNormalizer.Normalize(expression, typeForEnums);
 			expression = GroupByCollator.Collate(expression);
@@ -208,7 +207,8 @@ namespace Shaolinq.Persistence.Linq
 			expression = ConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
 			expression = SumAggregatesDefaultValueCoalescer.Coalesce(expression);
-
+			expression = OrderByRewriter.Rewrite(expression);
+			
 			return expression;
 		}
 

@@ -789,6 +789,15 @@ namespace Shaolinq.Persistence.Linq
 					Visit(selectExpression.Where);
 				}
 
+
+				if (selectExpression.GroupBy != null && selectExpression.GroupBy.Count > 0)
+				{
+					this.WriteLine();
+					this.Write("GROUP BY ");
+
+					this.WriteDeliminatedListOfItems(selectExpression.GroupBy, this.Visit);
+				}
+
 				if (selectExpression.OrderBy != null && selectExpression.OrderBy.Count > 0)
 				{
 					this.WriteLine();
@@ -806,14 +815,6 @@ namespace Shaolinq.Persistence.Linq
 
 						return c;
 					});
-				}
-
-				if (selectExpression.GroupBy != null && selectExpression.GroupBy.Count > 0)
-				{
-					this.WriteLine();
-					this.Write("GROUP BY ");
-
-					this.WriteDeliminatedListOfItems(selectExpression.GroupBy, this.Visit);
 				}
 
 				AppendLimit(selectExpression);
