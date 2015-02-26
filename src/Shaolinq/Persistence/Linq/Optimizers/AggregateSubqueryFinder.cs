@@ -12,20 +12,20 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class AggregateSubqueryFinder
 		: SqlExpressionVisitor
 	{
-		private readonly List<SqlAggregateSubqueryExpression> aggregatesFound;
+		private readonly List<Expression> aggregatesFound;
 		
 		private AggregateSubqueryFinder()
 		{
-			aggregatesFound = new List<SqlAggregateSubqueryExpression>();
+			aggregatesFound = new List<Expression>();
 		}
 
-		public static List<SqlAggregateSubqueryExpression> Find(Expression expression)
+		public static List<Expression> Find(Expression expression)
 		{
-			var gatherer = new AggregateSubqueryFinder();
+			var finder = new AggregateSubqueryFinder();
 
-			gatherer.Visit(expression);
+			finder.Visit(expression);
 
-			return gatherer.aggregatesFound;
+			return finder.aggregatesFound;
 		}
 
 		protected override Expression VisitAggregateSubquery(SqlAggregateSubqueryExpression aggregate)

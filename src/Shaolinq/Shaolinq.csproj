@@ -154,7 +154,7 @@
     <Compile Include="Persistence\Linq\JoinSelectorExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\EnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExistsSubqueryOptimizer.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\ExpressionTypeFinder.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\ExpressionsFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\IncludedPropertyInfo.cs" />
     <Compile Include="Persistence\Linq\Optimizers\QueryableIncludeExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObject.cs" />

@@ -1531,8 +1531,8 @@ namespace Shaolinq.Tests
 
 		private class KeyCount
 		{
-			public DateTime Key;
-			public int Count;
+			public DateTime Key { get; set; }
+			public int Count { get; set; }
 		}
 
 		[Test]
@@ -1930,6 +1930,15 @@ namespace Shaolinq.Tests
 		public void Test_Check_Grouping_Expression_From_Generic_Method()
 		{
 			Test_Check_Null(c => c.SexOptional);
+		}
+
+		[Test]
+		public void Test_OrderBy_Then_Count()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.OrderBy(c => c.Nickname).Count();
+			}
 		}
 	}
 }
