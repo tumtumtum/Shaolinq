@@ -27,9 +27,11 @@ namespace Shaolinq.SqlServer
 
 			try
 			{
+				this.isOuterMostSelect = false;
+
 				if (!saveIsOuterMostSelect && selectExpression.OrderBy != null && selectExpression.Take == null)
 				{
-					return selectExpression.ChangeSkipTake(selectExpression.Skip, Expression.Constant(100.0d));
+					return selectExpression.ChangeSkipTake(selectExpression.Skip, new SqlTakeAllValueExpression());
 				}
 
 				return base.VisitSelect(selectExpression);

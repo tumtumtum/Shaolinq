@@ -66,6 +66,7 @@
     <Compile Include="SqlServerSqlQueryFormatter.cs" />
     <Compile Include="SqlServerSqlTransactionsCommandContext.cs" />
     <Compile Include="SqlServerSubqueryOrderByFixer.cs" />
+    <Compile Include="SqlTakeAllValueExpression.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

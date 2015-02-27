@@ -1940,5 +1940,23 @@ namespace Shaolinq.Tests
 				var result = model.Students.OrderBy(c => c.Nickname).Count();
 			}
 		}
+
+		[Test]
+		public void Test_OrderBy_Then_Skip_Then_Count()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.OrderBy(c => c.Nickname).Skip(1).Count();
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_Then_Skip_Then_Take_Then_Count()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.OrderBy(c => c.Nickname).Skip(1).Take(10).Count();
+			}
+		}
 	}
 }

@@ -34,7 +34,7 @@ namespace Shaolinq.SqlServer
 
 				Expression rowPredicate = Expression.GreaterThan(new SqlColumnExpression(typeof(int), newAlias, additionalColumn.Name), selectExpression.Skip);
 
-				if (selectExpression.Take != null)
+				if (selectExpression.Take != null && !(selectExpression.Take is SqlTakeAllValueExpression))
 				{
 					rowPredicate = Expression.And
 					(

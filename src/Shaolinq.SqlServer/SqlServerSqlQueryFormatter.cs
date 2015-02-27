@@ -128,18 +128,9 @@ namespace Shaolinq.SqlServer
 		{
 			if (selectExpression.Take != null && selectExpression.Skip == null)
 			{
-				if (selectExpression.Take.Type == typeof(double) && selectExpression.Take.NodeType == ExpressionType.Constant)
-				{
-					this.Write("TOP(");
-					this.Visit(Expression.Constant(Int64.MaxValue));
-					this.Write(") ");
-				}
-				else
-				{
-					this.Write("TOP(");
-					this.Visit(selectExpression.Take);
-					this.Write(") ");
-				}
+				this.Write("TOP(");
+				this.Visit(selectExpression.Take);
+				this.Write(") ");
 			}
 		}
 
@@ -248,6 +239,15 @@ namespace Shaolinq.SqlServer
 			if (booleanExpression != null)
 			{
 				this.Visit(booleanExpression.Expression);
+
+				return expression;
+			}
+
+			var sqlTakeAllValueExpression = expression as SqlTakeAllValueExpression;
+
+			if (sqlTakeAllValueExpression != null)
+			{
+				this.Write(Expression.Constant(Int64.MaxValue));
 
 				return expression;
 			}
