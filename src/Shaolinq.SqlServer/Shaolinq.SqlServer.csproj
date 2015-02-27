@@ -65,6 +65,7 @@
     <Compile Include="SqlServerSqlDialect.cs" />
     <Compile Include="SqlServerSqlQueryFormatter.cs" />
     <Compile Include="SqlServerSqlTransactionsCommandContext.cs" />
+    <Compile Include="SqlServerSubqueryOrderByFixer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

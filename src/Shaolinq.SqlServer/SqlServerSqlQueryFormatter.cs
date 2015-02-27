@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Threading;
 using Platform;
-using Platform.Validation;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -96,7 +94,7 @@ namespace Shaolinq.SqlServer
 					if (Convert.ToBoolean(constantExpression.Value))
 					{
 						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(Sql92QueryFormatter.ParamNamePrefix);
+						this.Write(ParamNamePrefix);
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(typeof(string), "true"));
 
@@ -105,7 +103,7 @@ namespace Shaolinq.SqlServer
 					else
 					{
 						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(Sql92QueryFormatter.ParamNamePrefix);
+						this.Write(ParamNamePrefix);
 						this.Write(parameterValues.Count);
 						parameterValues.Add(new Pair<Type, object>(typeof(string), "false"));
 
@@ -118,6 +116,7 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression PreProcess(Expression expression)
 		{
+			expression = SqlServerSubqueryOrderByFixer.Fix(expression);
 			expression = SqlServerLimitAmmender.Ammend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
 			expression = SqlServerDateTimeFunctionsAmmender.Ammend(expression);
@@ -129,9 +128,18 @@ namespace Shaolinq.SqlServer
 		{
 			if (selectExpression.Take != null && selectExpression.Skip == null)
 			{
-				this.Write("TOP(");
-				this.Visit(selectExpression.Take);
-				this.Write(") ");
+				if (selectExpression.Take.Type == typeof(double) && selectExpression.Take.NodeType == ExpressionType.Constant)
+				{
+					this.Write("TOP(");
+					this.Visit(Expression.Constant(Int64.MaxValue));
+					this.Write(") ");
+				}
+				else
+				{
+					this.Write("TOP(");
+					this.Visit(selectExpression.Take);
+					this.Write(") ");
+				}
 			}
 		}
 
