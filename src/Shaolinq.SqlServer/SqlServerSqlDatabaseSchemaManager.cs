@@ -21,7 +21,7 @@ namespace Shaolinq.SqlServer
 
 			using (var connection = factory.CreateConnection())
 			{
-				connection.ConnectionString = this.SqlDatabaseContext.ConnectionString;
+				connection.ConnectionString = deleteDatabaseDropsTablesOnly ? this.SqlDatabaseContext.ConnectionString : this.SqlDatabaseContext.ServerConnectionString;
 
 				connection.Open();
 
@@ -51,7 +51,7 @@ end
 						{
 							command.CommandTimeout = Math.Min((int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds, 300);
 							command.CommandText = @"
-while(exists(select 1 from INFORMATION_SCHEMA.TABLES where TABLE_SCHEMA != 'sys'))
+while(exists(select 1 from INFORMATION_SCHEMA.TABLES))
 begin
  declare @sql nvarchar(2000)
  SELECT TOP 1 @sql=('DROP TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME
