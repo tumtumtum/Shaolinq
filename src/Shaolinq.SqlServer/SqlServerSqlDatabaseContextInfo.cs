@@ -22,6 +22,12 @@ namespace Shaolinq.SqlServer
 		[XmlAttribute]
 		public string Password { get; set; }
 
+		[XmlAttribute]
+		public bool Encrypt { get; set; }
+
+		[XmlAttribute]
+		public bool TrustedConnection { get; set; }
+
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
 			return SqlServerSqlDatabaseContext.Create(this, model);

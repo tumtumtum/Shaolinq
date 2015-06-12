@@ -55,6 +55,9 @@ namespace Shaolinq.SqlServer
 			connectionStringBuilder.Enlist = false;
 			connectionStringBuilder.DataSource = dataSource;
 			connectionStringBuilder.InitialCatalog = this.DatabaseName;
+			connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout;
+			connectionStringBuilder.Encrypt = contextInfo.Encrypt;
+			connectionStringBuilder.IntegratedSecurity = contextInfo.TrustedConnection;
 
 			this.ConnectionString = connectionStringBuilder.ConnectionString;
 

@@ -577,7 +577,7 @@ namespace Shaolinq.Persistence.Linq
 
 				// Result must be IGrouping<K,E>
 
-				resultExpression = Expression.New(groupingType.GetConstructors()[0], new Expression[] { keyExpression, x}, groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public), groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public));
+				resultExpression = Expression.New(groupingType.GetConstructors()[0], new [] { keyExpression, x}, groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public), groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public));
 			}
 
 			var pc = ProjectColumns(resultExpression, alias, projection.Select.Alias);
