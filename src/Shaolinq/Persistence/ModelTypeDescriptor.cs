@@ -1,10 +1,8 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Platform;
 using Platform.Reflection;
 
 namespace Shaolinq.Persistence
@@ -22,7 +20,6 @@ namespace Shaolinq.Persistence
 
 			this.DataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
 
-			/*
 			foreach (var propertyInfo in this.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
 			{
 				var queryableAttribute = propertyInfo.GetFirstCustomAttribute<DataAccessObjectsAttribute>(true);
@@ -56,18 +53,7 @@ namespace Shaolinq.Persistence
 				{
 					throw new InvalidDataAccessObjectModelDefinition(string.Format("Type {0} is referenced by model but not resolvable", genericType.Name));
 				}
-
-				this.typeDescriptors[typeDescriptor.Type] = typeDescriptor;
 			}
-
-			var allEnumTypes = this.GetPersistedObjectTypeDescriptors()
-			                       .SelectMany(c => c.PersistedProperties)
-			                       .Where(c => (Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType).IsEnum)
-								   .Select(c => (Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType));
-
-			enumTypeDescriptors = Enumerable.Distinct(allEnumTypes).ToDictionary(c => c, c => new EnumTypeDescriptor(c));
-
-			this.TypeDescriptorProvider.AddEnumTypeDescriptors(enumTypeDescriptors.Values);*/
 		}
 	}
 }

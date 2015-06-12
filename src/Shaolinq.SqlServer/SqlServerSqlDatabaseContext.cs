@@ -32,7 +32,7 @@ namespace Shaolinq.SqlServer
 			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
 			{
 				this.ConnectionString = contextInfo.ConnectionString;
-				this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Initial Catalog\s*\=[^;$]+[;$]", "");
+				this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Initial Catalog\s*\=[^;$]+[;$]", "Initial Catalog=master;");
 			}
 			else
 			{

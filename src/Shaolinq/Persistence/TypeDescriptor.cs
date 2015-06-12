@@ -248,7 +248,7 @@ namespace Shaolinq.Persistence
 					
 					if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} is not virtual or abstract", propertyInfo.Name);
+						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
 					}
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
@@ -286,7 +286,7 @@ namespace Shaolinq.Persistence
 
 					if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} is not virtual or abstract", propertyInfo.Name);
+						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
 					}
 
 					var propertyDescriptor = new PropertyDescriptor(this, this.Type, propertyInfo);
@@ -314,7 +314,7 @@ namespace Shaolinq.Persistence
 
 					if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} is not virtual or abstract", propertyInfo.Name);
+						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
 					}
 
 					var propertyDescriptor = new PropertyDescriptor(this, this.Type, propertyInfo);
