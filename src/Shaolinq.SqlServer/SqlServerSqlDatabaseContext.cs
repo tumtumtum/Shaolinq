@@ -16,6 +16,7 @@ namespace Shaolinq.SqlServer
 		public string Password { get; private set; }
 		public string ServerName { get; private set; }
 		public string Instance { get; private set; }
+		public bool DeleteDatabaseDropsTablesOnly { get; set; }
 
 		public static SqlServerSqlDatabaseContext Create(SqlServerSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
@@ -29,6 +30,12 @@ namespace Shaolinq.SqlServer
 		private SqlServerSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlServerSqlDatabaseContextInfo contextInfo)
 			: base(model, SqlServerSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
+			this.ServerName = contextInfo.ServerName;
+			this.Username = contextInfo.UserName;
+			this.Password = contextInfo.Password;
+			this.Instance = contextInfo.Instance;
+			this.DeleteDatabaseDropsTablesOnly = contextInfo.DeleteDatabaseDropsTablesOnly;
+
 			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
 			{
 				this.ConnectionString = contextInfo.ConnectionString;
@@ -36,11 +43,6 @@ namespace Shaolinq.SqlServer
 			}
 			else
 			{
-				this.ServerName = contextInfo.ServerName;
-				this.Username = contextInfo.UserName;
-				this.Password = contextInfo.Password;
-				this.Instance = contextInfo.Instance;
-
 				var connectionStringBuilder = new SqlConnectionStringBuilder();
 
 				var dataSource = this.ServerName;

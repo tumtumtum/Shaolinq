@@ -28,6 +28,9 @@ namespace Shaolinq.SqlServer
 		[XmlAttribute]
 		public bool TrustedConnection { get; set; }
 
+		[XmlAttribute]
+		public bool DeleteDatabaseDropsTablesOnly { get; set; }
+
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
 			return SqlServerSqlDatabaseContext.Create(this, model);
