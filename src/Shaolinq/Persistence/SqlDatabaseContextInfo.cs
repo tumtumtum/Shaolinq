@@ -8,6 +8,9 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseContextInfo
 	{
 		[XmlAttribute]
+		public string ConnectionString { get; set; }
+
+		[XmlAttribute]
 		public string Categories { get; set; }
 
 		[XmlAttribute]

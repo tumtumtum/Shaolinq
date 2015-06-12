@@ -3,6 +3,7 @@
 using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Text.RegularExpressions;
 using System.Transactions;
 using Shaolinq.Persistence;
 
@@ -28,42 +29,47 @@ namespace Shaolinq.SqlServer
 		private SqlServerSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlServerSqlDatabaseContextInfo contextInfo)
 			: base(model, SqlServerSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
-			this.ServerName = contextInfo.ServerName;
-			this.Username = contextInfo.UserName;
-			this.Password = contextInfo.Password;
-			this.Instance = contextInfo.Instance;
-
-			var connectionStringBuilder = new SqlConnectionStringBuilder();
-
-			var dataSource = this.ServerName;
-
-			if (!string.IsNullOrEmpty(this.Instance))
+			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
 			{
-				dataSource += @"\" + this.Instance;
-			}
-
-			if (string.IsNullOrEmpty(this.Username))
-			{
-				connectionStringBuilder.IntegratedSecurity = true;
+				this.ConnectionString = contextInfo.ConnectionString;
+				this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Initial Catalog\s*\=[^;$]+[;$]", "");
 			}
 			else
 			{
-				connectionStringBuilder.UserID = this.Username;
-				connectionStringBuilder.Password = this.Password;
+				this.ServerName = contextInfo.ServerName;
+				this.Username = contextInfo.UserName;
+				this.Password = contextInfo.Password;
+				this.Instance = contextInfo.Instance;
+
+				var connectionStringBuilder = new SqlConnectionStringBuilder();
+
+				var dataSource = this.ServerName;
+
+				if (!string.IsNullOrEmpty(this.Instance))
+				{
+					dataSource += @"\" + this.Instance;
+				}
+
+				if (string.IsNullOrEmpty(this.Username) || contextInfo.TrustedConnection)
+				{
+					connectionStringBuilder.IntegratedSecurity = true;
+				}
+				else
+				{
+					connectionStringBuilder.UserID = this.Username;
+					connectionStringBuilder.Password = this.Password;
+				}
+
+				connectionStringBuilder.Enlist = false;
+				connectionStringBuilder.DataSource = dataSource;
+				connectionStringBuilder.InitialCatalog = this.DatabaseName;
+				connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout;
+				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
+
+				this.ConnectionString = connectionStringBuilder.ConnectionString;
+				connectionStringBuilder.InitialCatalog = "master";
+				this.ServerConnectionString = connectionStringBuilder.ConnectionString;
 			}
-
-			connectionStringBuilder.Enlist = false;
-			connectionStringBuilder.DataSource = dataSource;
-			connectionStringBuilder.InitialCatalog = this.DatabaseName;
-			connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout;
-			connectionStringBuilder.Encrypt = contextInfo.Encrypt;
-			connectionStringBuilder.IntegratedSecurity = contextInfo.TrustedConnection;
-
-			this.ConnectionString = connectionStringBuilder.ConnectionString;
-
-			connectionStringBuilder.InitialCatalog = "master";
-
-			this.ServerConnectionString = connectionStringBuilder.ConnectionString;
 
 			this.SchemaManager = new SqlServerSqlDatabaseSchemaManager(this);
 		}
