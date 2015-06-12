@@ -204,6 +204,7 @@
     <Compile Include="PrimaryKeyType.cs" />
     <Compile Include="ReadOnlyListUtils.cs" />
     <Compile Include="SortOrder.cs" />
+    <Compile Include="TransactionScopeFactory.cs" />
     <Compile Include="TypeBuilding\CachingDataAccessModelAssemblyProvider.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
