@@ -51,12 +51,12 @@ end
 						{
 							command.CommandTimeout = Math.Min((int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds, 300);
 							command.CommandText = @"
-while(exists(select 1 from INFORMATION_SCHEMA.TABLES))
+while(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys'))
 begin
  declare @sql nvarchar(2000)
  SELECT TOP 1 @sql=('DROP TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME
  + ']')
- FROM INFORMATION_SCHEMA.TABLES
+ FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys'
 exec (@sql)
  PRINT @sql
 end
