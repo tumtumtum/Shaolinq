@@ -26,7 +26,7 @@ OPEN table_cursor;
 FETCH NEXT FROM table_cursor INTO @table_name;
 
 WHILE @@FETCH_STATUS = 0 BEGIN
-  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' NOCHECK CONSTRAINT ALL';
+  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' WITH NOCHECK CONSTRAINT ALL';
   EXEC (@cmd);
   FETCH NEXT FROM table_cursor INTO @table_name;
 END
@@ -52,7 +52,7 @@ OPEN table_cursor;
 FETCH NEXT FROM table_cursor INTO @table_name;
 
 WHILE @@FETCH_STATUS = 0 BEGIN
-  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' CHECK CHECK CONSTRAINT ALL';
+  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' WITH CHECK CHECK CONSTRAINT ALL';
   EXEC (@cmd);
   FETCH NEXT FROM table_cursor INTO @table_name;
 END
