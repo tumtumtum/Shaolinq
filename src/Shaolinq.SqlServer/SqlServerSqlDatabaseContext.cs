@@ -42,7 +42,7 @@ namespace Shaolinq.SqlServer
 
 				this.ConnectionString = contextInfo.ConnectionString;
 
-				this.ConnectionString = Regex.Replace(this.ConnectionString, "Enlist=[^;$]+", c =>
+				this.ConnectionString = Regex.Replace(this.ConnectionString, @"Enlist\s*=[^;$]+", c =>
 				{
 					found = true;
 
