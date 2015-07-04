@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -248,7 +249,7 @@ namespace Shaolinq
 
 		public static DataAccessModelConfiguration GetConfiguration(string path)
 		{
-			return ConfigurationBlock<DataAccessModelConfiguration>.Load(path);
+			return (DataAccessModelConfiguration)ConfigurationManager.GetSection(path);
 		}
 
 		public static DataAccessModelConfiguration GetDefaultConfiguration(Type type)
@@ -265,10 +266,7 @@ namespace Shaolinq
 			{
 				configuration = DataAccessModel.GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
 
-				if (configuration != null)
-				{
-					return configuration;
-				}
+				return configuration;
 			}
 
 			return null;

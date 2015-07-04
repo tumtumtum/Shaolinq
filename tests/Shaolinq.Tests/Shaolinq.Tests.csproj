@@ -148,6 +148,7 @@
     <Compile Include="TypeTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="TestDataAccessModel.configx" />
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>

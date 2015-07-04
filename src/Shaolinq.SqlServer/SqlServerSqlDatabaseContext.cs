@@ -38,7 +38,22 @@ namespace Shaolinq.SqlServer
 
 			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
 			{
+				var found = false;
+
 				this.ConnectionString = contextInfo.ConnectionString;
+
+				this.ConnectionString = Regex.Replace(this.ConnectionString, "Enlist=[^;$]+", c =>
+				{
+					found = true;
+
+					return "Enlist=False";
+				});
+
+				if (!found)
+				{
+					this.ConnectionString += ";Enlist=False;";
+				}
+
 				this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Initial Catalog\s*\=[^;$]+[;$]", "Initial Catalog=master;");
 			}
 			else
