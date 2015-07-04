@@ -1185,6 +1185,7 @@ namespace Shaolinq.Persistence.Linq
 				if (simpleConstraintExpression.Value != null)
 				{
 					this.Write("DEFAULT");
+					this.Write(" ");
 					this.Write(simpleConstraintExpression.Value);
 				}
 				break;
