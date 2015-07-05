@@ -651,7 +651,7 @@ namespace Shaolinq
 		{
 			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
 			{
-				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema((options & DatabaseCreationOptions.DeleteExisting) != 0);
+				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema(options == DatabaseCreationOptions.DeleteExisting);
 
 				scope.Complete();
 			}

@@ -181,6 +181,10 @@
       <Project>{0c8321d6-4df6-4b90-af5a-92537d4a7e54}</Project>
       <Name>Shaolinq</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Shaolinq.Tests.OtherDataAccessObjects\Shaolinq.Tests.OtherDataAccessObjects.csproj">
+      <Project>{737a2e9a-a1b9-4bc8-94bd-5327134142cb}</Project>
+      <Name>Shaolinq.Tests.OtherDataAccessObjects</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -109,6 +109,13 @@ namespace Shaolinq.Tests
 			
 				scope.Complete();
 			}
+
+			using (var scope = new TransactionScope())
+			{
+				var apple = this.model.Apples.Create();
+
+				scope.Complete();
+			}
 		}
 
 		[Test]

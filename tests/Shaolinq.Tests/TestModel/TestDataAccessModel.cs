@@ -1,11 +1,16 @@
 ﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using Shaolinq.Tests.OtherDataAccessObjects;
+
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessModel]
 	public abstract class TestDataAccessModel
 		: DataAccessModel
 	{
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Apple> Apples { get; }
+
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Address> Address { get; }
 
