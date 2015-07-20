@@ -9,6 +9,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public abstract string Name { get; set; }
 
+		[PersistedMember]
+		public abstract Address Address { get; set; }
+
 		[RelatedDataAccessObjects]
 		public abstract RelatedDataAccessObjects<Shop> Shops { get; }
 	}

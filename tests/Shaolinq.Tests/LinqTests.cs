@@ -1965,5 +1965,14 @@ namespace Shaolinq.Tests
 				var result = model.Students.OrderBy(c => c.Nickname).Skip(1).Take(10).Count();
 			}
 		}
+
+		[Test]
+		public void Test_Any_On_DAOs()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.Any();
+			}
+		}
 	}
 }
