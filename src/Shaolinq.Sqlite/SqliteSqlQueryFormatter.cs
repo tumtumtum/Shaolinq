@@ -138,12 +138,12 @@ namespace Shaolinq.Sqlite
 				}
 				else
 				{
-					this.WriteLine(" LIMIT -1 ");
+					this.Write(" LIMIT -1 ");
 				}
 
 				if (selectExpression.Skip != null)
 				{
-					this.Write(" OFFSET ");
+					this.Write("OFFSET ");
 
 					Visit(selectExpression.Skip);
 				}

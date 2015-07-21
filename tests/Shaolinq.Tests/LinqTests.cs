@@ -1967,11 +1967,29 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Skip_Only()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.Skip(1).ToList();
+			}
+		}
+
+		[Test]
 		public void Test_Any_On_DAOs()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var result = model.Students.Any();
+			}
+		}
+
+		[Test]
+		public void Test_Any_On_DAOs_With_Predicate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.Any(c => c.Email != null);
 			}
 		}
 	}

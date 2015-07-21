@@ -29,6 +29,7 @@ namespace Shaolinq.Persistence.Linq
 					case "Single":
 					case "SingleOrDefault":
 					case "Count":
+					case "Any":
 						break;
 					default:
 						return base.VisitMethodCall(methodCallExpression);

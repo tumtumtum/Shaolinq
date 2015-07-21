@@ -203,6 +203,34 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlProjectionExpression(new SqlSelectExpression(select.Type, alias, pc.Columns, projection.Select, null, null, null, false, null, Expression.Constant(limit), select.ForUpdate), pc.Projector, null, false, selectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 		}
 
+		private Expression BindAny(Expression source)
+		{
+			const string columnName = "EXISTS_COL";
+
+			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, Visit(source));
+
+			if (selectorPredicateStack.Count > 0)
+			{
+				return functionExpression;
+			}
+
+			var alias = this.GetNextAlias();
+			var selectType = typeof(IEnumerable<>).MakeGenericType(typeof(bool));
+
+			var select = new SqlSelectExpression
+			(
+				selectType,
+				alias,
+				new[] { new SqlColumnDeclaration(columnName, functionExpression) },
+				null,
+				null,
+				null,
+				false
+			);
+
+			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
+		}
+
 		private Expression BindTake(Expression source, Expression take)
 		{
 			var projection = this.VisitSequence(source);
@@ -757,22 +785,7 @@ namespace Shaolinq.Persistence.Linq
 		            this.selectorPredicateStack.Pop();
 					return result;
 				case "Any":
-		            if (methodCallExpression.Arguments.Count == 1)
-		            {
-			            return new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(methodCallExpression.Arguments[0]));
-		            }
-					else if (methodCallExpression.Arguments.Count == 2)
-					{
-						this.selectorPredicateStack.Push(methodCallExpression);
-						result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
-						this.selectorPredicateStack.Pop();
-
-						return new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, result);
-					}
-					else
-					{
-						throw new NotSupportedException("Queryable.Any");
-					}
+		            return BindAny(methodCallExpression.Arguments[0]);
 	            case "Count":
 	            case "Min":
 	            case "Max":
@@ -841,41 +854,11 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            break;
 	            case "FirstOrDefault":
-		            if (methodCallExpression.Arguments.Count == 1)
-		            {
-			            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.FirstOrDefault);
-		            }
-		            else if (methodCallExpression.Arguments.Count == 2)
-		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
-
-			            return this.BindFirst(where, SelectFirstType.FirstOrDefault);
-		            }
-		            break;
+		            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.FirstOrDefault);
 	            case "Single":
-		            if (methodCallExpression.Arguments.Count == 1)
-		            {
-			            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.Single);
-		            }
-		            else if (methodCallExpression.Arguments.Count == 2)
-		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
-
-			            return this.BindFirst(where, SelectFirstType.Single);
-		            }
-		            break;
+		            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.Single);
 	            case "SingleOrDefault":
-		            if (methodCallExpression.Arguments.Count == 1)
-		            {
-			            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.SingleOrDefault);
-		            }
-		            else if (methodCallExpression.Arguments.Count == 2)
-		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
-
-			            return this.BindFirst(where, SelectFirstType.SingleOrDefault);
-		            }
-		            break;
+					return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.SingleOrDefault);
 	            case "DefaultIfEmpty":
 		            if (methodCallExpression.Arguments.Count == 1)
 		            {
