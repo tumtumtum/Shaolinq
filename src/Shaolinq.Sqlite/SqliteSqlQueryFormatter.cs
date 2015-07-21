@@ -135,6 +135,8 @@ namespace Shaolinq.Sqlite
 					this.Write(" LIMIT ");
 
 					Visit(selectExpression.Take);
+
+					this.Write(" ");
 				}
 				else
 				{

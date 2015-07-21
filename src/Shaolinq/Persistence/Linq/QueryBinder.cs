@@ -167,15 +167,15 @@ namespace Shaolinq.Persistence.Linq
 			var selectType = typeof(IEnumerable<>).MakeGenericType(typeof(bool));
 
 			var select = new SqlSelectExpression
-			(
+				(
 				selectType,
 				alias,
-				new[] { new SqlColumnDeclaration(columnName, functionExpression) },
+				new[] {new SqlColumnDeclaration(columnName, functionExpression)},
 				null,
 				null,
 				null,
 				false
-			);
+				);
 
 			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
 		}

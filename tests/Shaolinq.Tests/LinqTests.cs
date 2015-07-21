@@ -1975,6 +1975,17 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test, Ignore("TODO")]
+		public void Test_Contains_On_DAOs()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = model.Students.First();
+
+				var result = model.Students.Contains(student);
+			}
+		}
+
 		[Test]
 		public void Test_Any_On_DAOs()
 		{
