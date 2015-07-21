@@ -94,13 +94,13 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Devart.Data, Version=5.0.1239.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
+    <Reference Include="Devart.Data, Version=5.0.1249.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.447\lib\Devart.Data.dll</HintPath>
+      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.457\lib\Devart.Data.dll</HintPath>
     </Reference>
-    <Reference Include="Devart.Data.PostgreSql, Version=7.3.447.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
+    <Reference Include="Devart.Data.PostgreSql, Version=7.3.457.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.447\lib\Devart.Data.PostgreSql.dll</HintPath>
+      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.3.457\lib\Devart.Data.PostgreSql.dll</HintPath>
     </Reference>
     <Reference Include="Platform, Version=1.1.0.204, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
