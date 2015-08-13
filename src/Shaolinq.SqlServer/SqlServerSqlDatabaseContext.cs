@@ -18,6 +18,25 @@ namespace Shaolinq.SqlServer
 		public string Instance { get; private set; }
 		public bool DeleteDatabaseDropsTablesOnly { get; set; }
 
+		private static readonly Regex ConnectionStringDatabaseNameRegex = new Regex(@".*Initial Catalog\s*\=([^;$]+)[;$]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+		private static string GetDatabaseName(SqlServerSqlDatabaseContextInfo contextInfo)
+		{
+			if (string.IsNullOrEmpty(contextInfo.ConnectionString))
+			{
+				return contextInfo.DatabaseName;
+			}
+
+			var match = ConnectionStringDatabaseNameRegex.Match(contextInfo.ConnectionString);
+
+			if (match.Success)
+			{
+				return match.Groups[1].Value;
+			}
+
+			return string.Empty;
+		}
+
 		public static SqlServerSqlDatabaseContext Create(SqlServerSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaults;
@@ -28,7 +47,7 @@ namespace Shaolinq.SqlServer
 		}
 
 		private SqlServerSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlServerSqlDatabaseContextInfo contextInfo)
-			: base(model, SqlServerSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
+			: base(model, SqlServerSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, GetDatabaseName(contextInfo).Trim(), contextInfo)
 		{
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;

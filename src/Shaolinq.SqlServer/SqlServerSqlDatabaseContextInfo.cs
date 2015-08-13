@@ -1,4 +1,5 @@
-﻿using Platform.Xml.Serialization;
+﻿using System.Text.RegularExpressions;
+using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
