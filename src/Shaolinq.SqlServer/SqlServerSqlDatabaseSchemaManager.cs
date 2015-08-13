@@ -21,8 +21,7 @@ namespace Shaolinq.SqlServer
 		{
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
 			var deleteDatabaseDropsTablesOnly = ((SqlServerSqlDatabaseContext)this.SqlDatabaseContext).DeleteDatabaseDropsTablesOnly;
-			var databaseName = this.SqlDatabaseContext.DatabaseName.Trim();
-
+			
 			using (var connection = factory.CreateConnection())
 			{
 				connection.ConnectionString = deleteDatabaseDropsTablesOnly ? this.SqlDatabaseContext.ConnectionString : this.SqlDatabaseContext.ServerConnectionString;
@@ -72,6 +71,8 @@ namespace Shaolinq.SqlServer
 				{
 					try
 					{
+						var databaseName = this.SqlDatabaseContext.DatabaseName.Trim();
+
 						if (options == DatabaseCreationOptions.DeleteExistingDatabase)
 						{
 							command.CommandText = string.Format("IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = '{0}') DROP DATABASE [{0}];", databaseName);

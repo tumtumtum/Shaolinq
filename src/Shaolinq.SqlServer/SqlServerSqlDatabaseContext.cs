@@ -73,7 +73,7 @@ namespace Shaolinq.SqlServer
 					this.ConnectionString += ";Enlist=False;";
 				}
 
-				this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Initial Catalog\s*\=[^;$]+[;$]", "Initial Catalog=master;");
+				this.ServerConnectionString = ConnectionStringDatabaseNameRegex.Replace(this.ConnectionString, "Initial Catalog=master;");
 			}
 			else
 			{
