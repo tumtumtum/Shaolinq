@@ -3,6 +3,7 @@
 using System;
 using System.Data;
 using System.IO;
+using System.Linq.Expressions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
@@ -37,11 +38,12 @@ namespace Shaolinq.Sqlite
 
 		protected abstract void CreateFile(string path);
 
-		protected override bool CreateDatabaseOnly(bool overwrite)
+		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			var retval = false;
 			var sqliteSqlDatabaseContext = (SqliteSqlDatabaseContext)this.SqlDatabaseContext;
-			
+			var overwrite = options == DatabaseCreationOptions.DeleteExistingDatabase;
+
 			var path = sqliteSqlDatabaseContext.FileName;
 
 			if (sqliteSqlDatabaseContext.IsInMemoryConnection)

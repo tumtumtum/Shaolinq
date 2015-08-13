@@ -2,6 +2,7 @@
 
 using System;
 using System.Data;
+using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
@@ -27,11 +28,12 @@ namespace Shaolinq.Postgres.Shared
 			return retval;
 		}
 
-		protected override bool CreateDatabaseOnly(bool overwrite)
+		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			var retval = false;
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
 			var databaseName = this.SqlDatabaseContext.DatabaseName;
+			var overwrite = options == DatabaseCreationOptions.DeleteExistingDatabase;
 
 			this.SqlDatabaseContext.DropAllConnections();
 
@@ -105,9 +107,8 @@ namespace Shaolinq.Postgres.Shared
 			return retval;
 		}
 
-		protected override void CreateDatabaseSchema()
+		protected override void CreateDatabaseSchema(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
-
 			if (!string.IsNullOrEmpty(this.SqlDatabaseContext.SchemaName))
 			{
 				var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
@@ -120,16 +121,14 @@ namespace Shaolinq.Postgres.Shared
 
 					using (var command = dbConnection.CreateCommand())
 					{
-						command.CommandText =
-							string.Format("CREATE SCHEMA IF NOT EXISTS \"{0}\";",
-								this.SqlDatabaseContext.SchemaName);
+						command.CommandText = string.Format("CREATE SCHEMA IF NOT EXISTS \"{0}\";", this.SqlDatabaseContext.SchemaName);
 
 						command.ExecuteNonQuery();
 					}
 				}
 			}
 
-			base.CreateDatabaseSchema();
+			base.CreateDatabaseSchema(dataDefinitionExpressions, options);
 		}
 	}
 }

@@ -6,6 +6,20 @@ namespace Shaolinq.MySql
 {
 	public static class MySqlConfiguration
 	{
+		public static DataAccessModelConfiguration Create(string connectionString)
+		{
+			return new DataAccessModelConfiguration
+			{
+				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				{
+					new MySqlSqlDatabaseContextInfo
+					{
+						ConnectionString = connectionString
+					},
+				}
+			};
+		}
+
 		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password)
 		{
 			return Create(databaseName, serverName, userName, password, true);
@@ -18,11 +32,11 @@ namespace Shaolinq.MySql
 
 		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password,  bool poolConnections, string categories)
 		{
-			return new DataAccessModelConfiguration()
+			return new DataAccessModelConfiguration
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
-					new MySqlSqlDatabaseContextInfo()
+					new MySqlSqlDatabaseContextInfo
 					{
 						DatabaseName = databaseName,
 						Categories = categories,

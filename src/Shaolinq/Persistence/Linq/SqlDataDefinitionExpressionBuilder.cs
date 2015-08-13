@@ -15,13 +15,15 @@ namespace Shaolinq.Persistence.Linq
 		private readonly SqlDialect sqlDialect;
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private readonly DataAccessModel model;
+		private readonly DatabaseCreationOptions options;
 		private readonly string tableNamePrefix;
 		private List<Expression> currentTableConstraints;
 		private readonly SqlDataDefinitionBuilderFlags flags;
 		
-		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
 		{
 			this.model = model;
+			this.options = options;
 			this.sqlDialect = sqlDialect;
 			this.tableNamePrefix = tableNamePrefix;
 			this.flags = flags;
@@ -360,9 +362,9 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlCreateTypeExpression(sqlTypeExpression, asExpression, true);
 		}
 
-		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
 		{
-			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model, tableNamePrefix, flags);
+			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model, options, tableNamePrefix, flags);
 
 			var retval = builder.Build();
 

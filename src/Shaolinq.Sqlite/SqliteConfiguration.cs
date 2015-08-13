@@ -6,6 +6,20 @@ namespace Shaolinq.Sqlite
 {
 	public static class SqliteConfiguration
 	{
+		public static DataAccessModelConfiguration Create(string connectionString)
+		{
+			return new DataAccessModelConfiguration
+			{
+				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+       			{
+       				new SqliteSqlDatabaseContextInfo
+       				{
+       					ConnectionString = connectionString
+       				},
+       			}
+			};
+		}
+
 		public static DataAccessModelConfiguration Create(string fileName, string categories = null, bool useMonoData = false)
 		{
 			return new DataAccessModelConfiguration

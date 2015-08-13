@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.MySql
@@ -11,10 +12,11 @@ namespace Shaolinq.MySql
 		{
 		}
 
-		protected override bool CreateDatabaseOnly(bool overwrite)
+		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			var retval = false;
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
+			var overwrite = options == DatabaseCreationOptions.DeleteExistingDatabase;
 
 			using (var dbConnection = factory.CreateConnection())
 			{

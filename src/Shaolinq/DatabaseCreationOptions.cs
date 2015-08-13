@@ -1,9 +1,12 @@
-﻿namespace Shaolinq
+﻿using System;
+
+namespace Shaolinq
 {
 	public enum DatabaseCreationOptions
 	{
-		IfNotExist,
-		DeleteExisting,
-		IfTableNotExist
+		[Obsolete] IfNotExist,
+		IfDatabaseNotExist = 0,
+		[Obsolete] DeleteExisting = 1,
+		DeleteExistingDatabase = 1,
 	}
 }
