@@ -53,9 +53,6 @@ namespace Shaolinq.TypeBuilding
 		/// </summary>
 		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
 
-		/// <summary>
-		/// 
-		/// </summary>
 		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
 
 		/// <summary>

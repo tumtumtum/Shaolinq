@@ -316,11 +316,6 @@ namespace Shaolinq.Tests
 				friend.Firstname = "Chuck";
 				friend.Lastname = "Norris";
 
-				if (!this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsFeature(Persistence.SqlFeature.Deferrability))
-				{
-					scope.Flush(model);
-				}
-
 				student.BestFriend = friend;
 
 				scope.Complete();

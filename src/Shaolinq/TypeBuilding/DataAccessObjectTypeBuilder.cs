@@ -2438,12 +2438,11 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, this.valueFields[property.PropertyName]);
 				generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("ObjectState").GetGetMethod());
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
+				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.New));
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, skip);
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Ret);
-
 				generator.MarkLabel(skip);
 			}
 
@@ -2550,6 +2549,7 @@ namespace Shaolinq.TypeBuilding
 				.Where(c => c.IsBackReferenceProperty))
 			{
 				var innerLabel1 = generator.DefineLabel();
+				var innerLabel2 = generator.DefineLabel();
 				var fieldInfo = this.valueFields[propertyDescriptor.PropertyName];
 
 				// if (this.PropertyValue == null) { break }
@@ -2557,10 +2557,9 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
-				generator.Emit(OpCodes.Brfalse, innerLabel1);
+				generator.Emit(OpCodes.Brfalse, innerLabel2);
 
-				// if (PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
-				// { retval |= ReferencesNewObjectWithServerSideProperties; break }
+				// if (PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys) { retval |= ReferencesNewObjectWithServerSideProperties; break }
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
@@ -2574,6 +2573,22 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Br, breakLabel1);
 
 				generator.MarkLabel(innerLabel1);
+
+				// If (this.PropertyValue.ObjectState & New)  { retval |= ReferencesNewObject; break }
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, fieldInfo);
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
+				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
+				generator.Emit(OpCodes.And);
+				generator.Emit(OpCodes.Brfalse, innerLabel2);
+
+				generator.Emit(OpCodes.Ldloc, local);
+				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.ReferencesNewObject);
+				generator.Emit(OpCodes.Or);
+				generator.Emit(OpCodes.Stloc, local);
+
+				generator.MarkLabel(innerLabel2);
 			}
 
 			generator.MarkLabel(breakLabel1);
@@ -2587,13 +2602,14 @@ namespace Shaolinq.TypeBuilding
 				.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
 				var innerLabel1 = generator.DefineLabel();
+				var innerLabel2 = generator.DefineLabel();
 				var fieldInfo = this.valueFields[propertyDescriptor.PropertyName];
 
 				// if (this.PropertyValue == null) { break }
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
-				generator.Emit(OpCodes.Brfalse, innerLabel1);
+				generator.Emit(OpCodes.Brfalse, innerLabel2);
 
 				// if (this.PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys) { retval |= ReferencesNewObjectWithServerSideProperties; break }
 				generator.Emit(OpCodes.Ldarg_0);
@@ -2606,9 +2622,24 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties : (int)ObjectState.ReferencesNewObjectWithServerSideProperties);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
-				generator.Emit(OpCodes.Br, breakLabel2);
 
 				generator.MarkLabel(innerLabel1);
+
+				// If (this.PropertyValue.ObjectState & New)  { retval |= ReferencesNewObject; break }
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, fieldInfo);
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
+				generator.Emit(OpCodes.Ldc_I4, (int) ObjectState.New);
+				generator.Emit(OpCodes.And);
+				generator.Emit(OpCodes.Brfalse, innerLabel2);
+
+				generator.Emit(OpCodes.Ldloc, local);
+				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.ReferencesNewObject);
+				generator.Emit(OpCodes.Or);
+				generator.Emit(OpCodes.Stloc, local);
+				
+				generator.MarkLabel(innerLabel2);
 			}
 
 			generator.MarkLabel(breakLabel2);
