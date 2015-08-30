@@ -1,5 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer

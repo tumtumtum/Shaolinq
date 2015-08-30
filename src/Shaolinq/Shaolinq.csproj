@@ -129,6 +129,7 @@
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="EnumerableUtils.cs" />
+    <Compile Include="ForeignObjectAction.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
     <Compile Include="InternalListExtensions.cs" />
     <Compile Include="InvalidDataAccessModelDefinitionException.cs" />

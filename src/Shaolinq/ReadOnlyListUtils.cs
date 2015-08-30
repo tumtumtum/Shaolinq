@@ -1,4 +1,6 @@
-﻿using Platform.Collections;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Collections;
 
 namespace Shaolinq
 {

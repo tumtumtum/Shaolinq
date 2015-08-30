@@ -1,9 +1,10 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-namespace Shaolinq.Persistence.Linq.Expressions
+namespace Shaolinq
 {
-	public enum SqlColumnReferenceAction
+	public enum ForeignObjectAction
 	{
+		Default,
 		NoAction,
 		Restrict,
 		Cascade,

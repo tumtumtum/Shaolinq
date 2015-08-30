@@ -1,4 +1,6 @@
-﻿using Platform.Xml.Serialization;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
