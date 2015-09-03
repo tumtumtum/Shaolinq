@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -19,9 +21,11 @@ namespace Shaolinq.SqlServer
 			DefineSqlDataType(typeof(ushort), "NUMERIC(5)", "GetUInt16");
 			DefineSqlDataType(typeof(long), "BIGINT", "GetInt64");
 			DefineSqlDataType(typeof(ulong), "NUMERIC(20)", "GetUInt64");
-			DefineSqlDataType(typeof(DateTime), "DATETIME2", "GetDateTime");
 			DefineSqlDataType(typeof(float), "FLOAT(24)", "GetFloat");
 			DefineSqlDataType(typeof(double), "FLOAT(53)", "GetDouble");
+
+			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME2", false));
+			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME2", true));
 
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal), "DECIMAL(38, 9)"));
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal?), "DECIMAL(38, 9)"));

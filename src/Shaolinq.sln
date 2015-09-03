@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Postgres.DotConnec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.SqlServer", "Shaolinq.SqlServer\Shaolinq.SqlServer.csproj", "{1074BF68-A350-48A8-9769-43AD73537879}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Tests.OtherDataAccessObjects", "..\tests\Shaolinq.Tests.OtherDataAccessObjects\Shaolinq.Tests.OtherDataAccessObjects.csproj", "{737A2E9A-A1B9-4BC8-94BD-5327134142CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -121,6 +123,14 @@ Global
 		{1074BF68-A350-48A8-9769-43AD73537879}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1074BF68-A350-48A8-9769-43AD73537879}.Release|x64.ActiveCfg = Release|Any CPU
 		{1074BF68-A350-48A8-9769-43AD73537879}.Release|x86.ActiveCfg = Release|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Release|x64.ActiveCfg = Release|Any CPU
+		{737A2E9A-A1B9-4BC8-94BD-5327134142CB}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

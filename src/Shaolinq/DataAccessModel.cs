@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -246,7 +247,7 @@ namespace Shaolinq
 
 		public static DataAccessModelConfiguration GetConfiguration(string path)
 		{
-			return ConfigurationBlock<DataAccessModelConfiguration>.Load(path);
+			return (DataAccessModelConfiguration)ConfigurationManager.GetSection(path);
 		}
 
 		public static DataAccessModelConfiguration GetDefaultConfiguration(Type type)
@@ -263,10 +264,7 @@ namespace Shaolinq
 			{
 				configuration = DataAccessModel.GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
 
-				if (configuration != null)
-				{
-					return configuration;
-				}
+				return configuration;
 			}
 
 			return null;
@@ -657,7 +655,7 @@ namespace Shaolinq
 		{
 			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
 			{
-				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema((options & DatabaseCreationOptions.DeleteExisting) != 0);
+				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema(options);
 
 				scope.Complete();
 			}

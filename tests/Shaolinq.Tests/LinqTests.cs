@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
 using System.Collections.Generic;
@@ -107,6 +107,13 @@ namespace Shaolinq.Tests
 				chuck2.Weight = 70;
 				chuck2.Sex = Sex.Male;
 			
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var apple = this.model.Apples.Create();
+
 				scope.Complete();
 			}
 		}
@@ -1956,6 +1963,44 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var result = model.Students.OrderBy(c => c.Nickname).Skip(1).Take(10).Count();
+			}
+		}
+
+		[Test]
+		public void Test_Skip_Only()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.Skip(1).ToList();
+			}
+		}
+
+		[Test, Ignore("TODO")]
+		public void Test_Contains_On_DAOs()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = model.Students.First();
+
+				var result = model.Students.Contains(student);
+			}
+		}
+
+		[Test]
+		public void Test_Any_On_DAOs()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.Any();
+			}
+		}
+
+		[Test]
+		public void Test_Any_On_DAOs_With_Predicate()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = model.Students.Any(c => c.Email != null);
 			}
 		}
 	}

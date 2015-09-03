@@ -98,13 +98,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Platform">
-      <HintPath>..\packages\Platform.NET.1.1.0.197\lib\net40\Platform.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.197, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.1.0.204, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.197\lib\net40\Platform.Xml.Serialization.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.1.0.204\lib\net40\Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.204, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.204\lib\net40\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -129,6 +129,7 @@
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="EnumerableUtils.cs" />
+    <Compile Include="ForeignObjectAction.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
     <Compile Include="InternalListExtensions.cs" />
     <Compile Include="InvalidDataAccessModelDefinitionException.cs" />
@@ -204,6 +205,7 @@
     <Compile Include="PrimaryKeyType.cs" />
     <Compile Include="ReadOnlyListUtils.cs" />
     <Compile Include="SortOrder.cs" />
+    <Compile Include="TransactionScopeFactory.cs" />
     <Compile Include="TypeBuilding\CachingDataAccessModelAssemblyProvider.cs" />
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />

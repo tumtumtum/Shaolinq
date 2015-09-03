@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -29,10 +31,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						var newSelect = projector.Select.ChangeWhere(newWhere);
 						var newProjection = new SqlProjectionExpression(newSelect, projector, projector.Aggregator);
 
-						return new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Exists, new Expression[] { newProjection });
+						return new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Exists, newProjection);
 					}
 				}
 			}
+
 			return base.VisitFunctionCall(functionCallExpression);
 		}
 	}

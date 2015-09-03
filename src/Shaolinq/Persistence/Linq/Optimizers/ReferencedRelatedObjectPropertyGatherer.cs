@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -99,9 +99,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				this.currentParent = methodCallExpression.Arguments[0];
 
-				referencedRelatedObjects = new List<ReferencedRelatedObject>();
+				this.referencedRelatedObjects = new List<ReferencedRelatedObject>();
 
-				nesting++;
+				this.nesting++;
 
 				this.Visit(newSelector);
 
@@ -117,7 +117,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				var retval = this.Visit(methodCallExpression.Arguments[0]);
 
-				if (nesting > 1 &&  (retval != sourceParameterExpression) && retval is MemberExpression)
+				if (nesting > 1 && (retval != sourceParameterExpression) && retval is MemberExpression)
 				{
 					// For supporting: Select(c => c.Include(d => d.Address.Include(e => e.Region)))
 
@@ -208,7 +208,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (memberExpression.Type.IsDataAccessObjectType())
 			{
-				if (forProjection)
+				if (this.forProjection)
 				{
 					memberIsDataAccessObjectGatheringForProjection = true;
 
@@ -235,12 +235,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 
-				if (property.IsPrimaryKey)
+				if (property.IsPrimaryKey && memberExpression.Expression is MemberExpression)
 				{
-					return memberExpression;
+					expression = ((MemberExpression) memberExpression.Expression).Expression as MemberExpression;
 				}
-
-				expression = memberExpression.Expression as MemberExpression;
+				else
+				{
+					expression = memberExpression.Expression as MemberExpression;
+				}
 			}
 
 			var currentExpression = expression;
@@ -312,9 +314,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					objectInfo.TargetExpressions.Add(currentExpression);
 				}
-				else if (currentExpression == expression && memberExpression.Expression is MemberExpression)
+				else if (currentExpression == expression)
 				{
-					objectInfo.TargetExpressions.Add(memberExpression.Expression);
+					objectInfo.TargetExpressions.Add(expression);
 				}
 
 				i++;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -315,11 +315,6 @@ namespace Shaolinq.Tests
 				
 				friend.Firstname = "Chuck";
 				friend.Lastname = "Norris";
-
-				if (!this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsFeature(Persistence.SqlFeature.Deferrability))
-				{
-					scope.Flush(model);
-				}
 
 				student.BestFriend = friend;
 

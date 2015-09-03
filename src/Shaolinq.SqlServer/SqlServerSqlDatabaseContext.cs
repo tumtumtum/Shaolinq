@@ -3,6 +3,7 @@
 using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Text.RegularExpressions;
 using System.Transactions;
 using Shaolinq.Persistence;
 
@@ -15,6 +16,26 @@ namespace Shaolinq.SqlServer
 		public string Password { get; private set; }
 		public string ServerName { get; private set; }
 		public string Instance { get; private set; }
+		public bool DeleteDatabaseDropsTablesOnly { get; set; }
+
+		private static readonly Regex ConnectionStringDatabaseNameRegex = new Regex(@".*Initial Catalog\s*\=([^;$]+)[;$]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+		private static string GetDatabaseName(SqlServerSqlDatabaseContextInfo contextInfo)
+		{
+			if (string.IsNullOrEmpty(contextInfo.ConnectionString))
+			{
+				return contextInfo.DatabaseName;
+			}
+
+			var match = ConnectionStringDatabaseNameRegex.Match(contextInfo.ConnectionString);
+
+			if (match.Success)
+			{
+				return match.Groups[1].Value;
+			}
+
+			return string.Empty;
+		}
 
 		public static SqlServerSqlDatabaseContext Create(SqlServerSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
@@ -26,41 +47,65 @@ namespace Shaolinq.SqlServer
 		}
 
 		private SqlServerSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlServerSqlDatabaseContextInfo contextInfo)
-			: base(model, SqlServerSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
+			: base(model, SqlServerSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, GetDatabaseName(contextInfo).Trim(), contextInfo)
 		{
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
 			this.Instance = contextInfo.Instance;
+			this.DeleteDatabaseDropsTablesOnly = contextInfo.DeleteDatabaseDropsTablesOnly;
 
-			var connectionStringBuilder = new SqlConnectionStringBuilder();
-
-			var dataSource = this.ServerName;
-
-			if (!string.IsNullOrEmpty(this.Instance))
+			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
 			{
-				dataSource += @"\" + this.Instance;
-			}
+				var found = false;
 
-			if (string.IsNullOrEmpty(this.Username))
-			{
-				connectionStringBuilder.IntegratedSecurity = true;
+				this.ConnectionString = contextInfo.ConnectionString;
+
+				this.ConnectionString = Regex.Replace(this.ConnectionString, @"Enlist\s*=[^;$]+", c =>
+				{
+					found = true;
+
+					return "Enlist=False";
+				});
+
+				if (!found)
+				{
+					this.ConnectionString += ";Enlist=False;";
+				}
+
+				this.ServerConnectionString = ConnectionStringDatabaseNameRegex.Replace(this.ConnectionString, "Initial Catalog=master;");
 			}
 			else
 			{
-				connectionStringBuilder.UserID = this.Username;
-				connectionStringBuilder.Password = this.Password;
+				var connectionStringBuilder = new SqlConnectionStringBuilder();
+
+				var dataSource = this.ServerName;
+
+				if (!string.IsNullOrEmpty(this.Instance))
+				{
+					dataSource += @"\" + this.Instance;
+				}
+
+				if (string.IsNullOrEmpty(this.Username) || contextInfo.TrustedConnection)
+				{
+					connectionStringBuilder.IntegratedSecurity = true;
+				}
+				else
+				{
+					connectionStringBuilder.UserID = this.Username;
+					connectionStringBuilder.Password = this.Password;
+				}
+
+				connectionStringBuilder.Enlist = false;
+				connectionStringBuilder.DataSource = dataSource;
+				connectionStringBuilder.InitialCatalog = this.DatabaseName;
+				connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout;
+				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
+
+				this.ConnectionString = connectionStringBuilder.ConnectionString;
+				connectionStringBuilder.InitialCatalog = "master";
+				this.ServerConnectionString = connectionStringBuilder.ConnectionString;
 			}
-
-			connectionStringBuilder.Enlist = false;
-			connectionStringBuilder.DataSource = dataSource;
-			connectionStringBuilder.InitialCatalog = this.DatabaseName;
-
-			this.ConnectionString = connectionStringBuilder.ConnectionString;
-
-			connectionStringBuilder.InitialCatalog = "master";
-
-			this.ServerConnectionString = connectionStringBuilder.ConnectionString;
 
 			this.SchemaManager = new SqlServerSqlDatabaseSchemaManager(this);
 		}

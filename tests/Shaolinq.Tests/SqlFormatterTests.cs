@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -42,7 +42,7 @@ namespace Shaolinq.Tests
 		public void Test_DataDefinitionBuilder()
 		{
 			var dbConnection = this.model.GetCurrentSqlDatabaseContext();
-			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model, string.Empty, SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes);
+			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model, DatabaseCreationOptions.DeleteExistingDatabase, string.Empty, SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes);
 
 			var formatter = dbConnection.SqlQueryFormatterManager.CreateQueryFormatter();
 

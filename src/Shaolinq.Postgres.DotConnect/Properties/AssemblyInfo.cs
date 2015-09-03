@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Postgres support for Shaolinq (the fast, thoughtful ORM and Linq provider) based on DotConnect's ADO provider")]
 [assembly: AssemblyCompany("Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyProduct("Shaolinq.Postgres.DotConnect")]
-[assembly: AssemblyCopyright("Copyright © 2007-2014 Thong Nguyen (tumtumtum@gmail.com)")]
+[assembly: AssemblyCopyright("Copyright © 2007-2015 Thong Nguyen (tumtumtum@gmail.com)")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -95,20 +95,21 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <Private>True</Private>
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Npgsql.2.2.2\lib\net40\Mono.Security.dll</HintPath>
+      <HintPath>..\packages\Npgsql.2.2.5\lib\net40\Mono.Security.dll</HintPath>
     </Reference>
-    <Reference Include="Npgsql, Version=2.2.1.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
+    <Reference Include="Npgsql, Version=2.2.5.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Npgsql.2.2.2\lib\net40\Npgsql.dll</HintPath>
+      <HintPath>..\packages\Npgsql.2.2.5\lib\net40\Npgsql.dll</HintPath>
     </Reference>
-    <Reference Include="Platform, Version=1.1.0.197, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform, Version=1.1.0.204, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.NET.1.1.0.197\lib\net40\Platform.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.1.0.204\lib\net40\Platform.dll</HintPath>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.197, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.204, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.197\lib\net40\Platform.Xml.Serialization.dll</HintPath>
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.204\lib\net40\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">

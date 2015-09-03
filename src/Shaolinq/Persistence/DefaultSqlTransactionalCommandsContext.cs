@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -321,7 +321,12 @@ namespace Shaolinq.Persistence
 					throw new NotSupportedException("Changed state not supported");
 				}
 
-				if ((objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0)
+				var primaryKeyIsCompelte = (objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
+				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.Deferrability) || ((objectState & ObjectState.ReferencesNewObject) == 0));
+				
+				var objectReadyToBeCommited = primaryKeyIsCompelte && deferrableOrNotReferencingNewObject;
+				
+				if (objectReadyToBeCommited)
 				{
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 					var command = BuildInsertCommand(typeDescriptor, dataAccessObject);

@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data.Common;
+using System.Text.RegularExpressions;
 using System.Transactions;
 ﻿using Shaolinq.Persistence;
 using MySql.Data.MySqlClient;
@@ -32,7 +33,7 @@ using MySql.Data.MySqlClient;
 			this.Password = contextInfo.Password;
 
 			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; AutoEnlist=false; charset=utf8; Convert Zero Datetime={5}; Allow Zero Datetime={6};", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections, contextInfo.ConvertZeroDateTime ? "true" : "false", contextInfo.AllowConvertZeroDateTime ? "true" : "false");
-			this.ServerConnectionString = String.Concat("Server=", this.ServerName, ";Database=mysql;AutoEnlist=false;Uid=", this.Username, ";Pwd=", this.Password);
+			this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;$]+[;$]", "");
 
 			this.SchemaManager = new MySqlSqlDatabaseSchemaManager(this);
 		}

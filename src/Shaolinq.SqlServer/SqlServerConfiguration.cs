@@ -1,26 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
 {
 	public class SqlServerConfiguration
 	{
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password, bool deleteDatabaseDropsTablesOnly = false)
 		{
 			return Create(databaseName, serverName, userName, password, null);
 		}
 
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password, string categories)
+		public static DataAccessModelConfiguration Create(string connectionString, bool deleteDatabaseDropsTablesOnly = false)
+		{
+			return new DataAccessModelConfiguration
+			{
+				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				{
+					new SqlServerSqlDatabaseContextInfo()
+					{
+						ConnectionString = connectionString,
+						DeleteDatabaseDropsTablesOnly = deleteDatabaseDropsTablesOnly
+					}
+				}
+			}; 
+		}
+
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password, string categories, bool deleteDatabaseDropsTablesOnly = false)
 		{
 			return new DataAccessModelConfiguration()
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
-					new SqlServerSqlDatabaseContextInfo()
+					new SqlServerSqlDatabaseContextInfo
 					{
 						DatabaseName = databaseName,
 						Categories = categories,

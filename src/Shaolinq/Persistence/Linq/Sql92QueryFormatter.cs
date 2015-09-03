@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -1185,6 +1185,7 @@ namespace Shaolinq.Persistence.Linq
 				if (simpleConstraintExpression.Value != null)
 				{
 					this.Write("DEFAULT");
+					this.Write(" ");
 					this.Write(simpleConstraintExpression.Value);
 				}
 				break;

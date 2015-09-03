@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -870,7 +870,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
 					.Select(c => c.Id);
 
@@ -883,12 +883,48 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
 					.Select(c => c);
 
 				var first = query.First();
 			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_With_Back_Reference_Then_Project1()
+		{
+			var results = this.model.Shops.Where(c => c.Mall.Address.Id == 0).ToList();
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_With_Back_Reference_Then_Project2()
+		{
+			var results = this.model.Shops.Where(c => c.Mall.Id == Guid.Empty).ToList();
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_With_Back_Reference_Then_Project3()
+		{
+			var results = this.model.Shops.Include(c => c.Mall).Where(c => c.Mall.Address.Id == 0).ToList();
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_With_Back_Reference_Then_Project4()
+		{
+			var results = this.model.Shops.Select(c => c.Mall.Address.Id == 0).ToList();
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_With_Back_Reference_Then_Project4b()
+		{
+			var results = this.model.Shops.Include(c => c.Mall).Select(c => c.Mall.Address.Id == 0).ToList();
+		}
+
+		[Test]
+		public void Test_Implicit_Join_In_Where_With_Back_Reference_Then_Project5()
+		{
+			var results = this.model.Shops.Select(c => c.Mall.Address.Street == null).ToList();
 		}
 
 		[Test]

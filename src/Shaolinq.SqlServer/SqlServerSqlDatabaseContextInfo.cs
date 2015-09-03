@@ -1,4 +1,7 @@
-﻿using Platform.Xml.Serialization;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Text.RegularExpressions;
+using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -21,6 +24,15 @@ namespace Shaolinq.SqlServer
 
 		[XmlAttribute]
 		public string Password { get; set; }
+
+		[XmlAttribute]
+		public bool Encrypt { get; set; }
+
+		[XmlAttribute]
+		public bool TrustedConnection { get; set; }
+
+		[XmlAttribute]
+		public bool DeleteDatabaseDropsTablesOnly { get; set; }
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{

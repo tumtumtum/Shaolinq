@@ -1,5 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -15,7 +17,24 @@ namespace Shaolinq.SqlServer
 
 			var command = ((DefaultSqlTransactionalCommandsContext)context).DbConnection.CreateCommand();
 
-			command.CommandText = "EXEC sp_msforeachtable \"ALTER TABLE ? NOCHECK CONSTRAINT all\"";
+			// Not Azure compatible - command.CommandText = "EXEC sp_msforeachtable \"ALTER TABLE ? NOCHECK CONSTRAINT all\"";
+
+			command.CommandText = 
+@"DECLARE @table_name SYSNAME;
+DECLARE @cmd NVARCHAR(MAX);
+DECLARE table_cursor CURSOR FOR SELECT name FROM sys.tables;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @table_name;
+
+WHILE @@FETCH_STATUS = 0 BEGIN
+  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' NOCHECK CONSTRAINT ALL';
+  EXEC (@cmd);
+  FETCH NEXT FROM table_cursor INTO @table_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;";
 
 			command.ExecuteNonQuery();
 		}
@@ -24,7 +43,24 @@ namespace Shaolinq.SqlServer
 		{
 			var command = ((DefaultSqlTransactionalCommandsContext)this.context).DbConnection.CreateCommand();
 
-			command.CommandText = "exec sp_msforeachtable @command1=\"print '?'\", @command2=\"ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all\";";
+			// Not Azure compatible - command.CommandText = "exec sp_msforeachtable @command1=\"print '?'\", @command2=\"ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all\";";
+
+			command.CommandText =
+@"DECLARE @table_name SYSNAME;
+DECLARE @cmd NVARCHAR(MAX);
+DECLARE table_cursor CURSOR FOR SELECT name FROM sys.tables;
+
+OPEN table_cursor;
+FETCH NEXT FROM table_cursor INTO @table_name;
+
+WHILE @@FETCH_STATUS = 0 BEGIN
+  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' WITH CHECK CHECK CONSTRAINT ALL';
+  EXEC (@cmd);
+  FETCH NEXT FROM table_cursor INTO @table_name;
+END
+
+CLOSE table_cursor;
+DEALLOCATE table_cursor;";
 
 			command.ExecuteNonQuery();
 		}

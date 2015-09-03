@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -32,32 +32,40 @@ namespace Shaolinq.Postgres.DotConnect
 		protected PostgresDotConnectSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDotConnectSqlDatabaseContextInfo contextInfo)
 			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
         {
-            this.Host = contextInfo.ServerName;
-            this.UserId = contextInfo.UserId;
-            this.Password = contextInfo.Password;
-			this.Port = contextInfo.Port;
-			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
-			
-            var connectionStringBuilder = new PgSqlConnectionStringBuilder
+			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
 			{
-				Host = contextInfo.ServerName,
-				UserId = contextInfo.UserId,
-				Password = contextInfo.Password,
-				Port = contextInfo.Port,
-				Pooling = contextInfo.Pooling,
-				Enlist = false,
-				ConnectionTimeout = contextInfo.ConnectionTimeout,
-				Charset = "UTF8",
-				Unicode = true,
-				MaxPoolSize = contextInfo.MaxPoolSize,
-				DefaultCommandTimeout = contextInfo.CommandTimeout,
-				UnpreparedExecute = contextInfo.UnpreparedExecute
-			};
+				this.ConnectionString = contextInfo.ConnectionString;
+				this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;$]+[;$]", "");
+			}
+			else
+			{
+				this.Host = contextInfo.ServerName;
+				this.UserId = contextInfo.UserId;
+				this.Password = contextInfo.Password;
+				this.Port = contextInfo.Port;
+				this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
 
-            this.ServerConnectionString = connectionStringBuilder.ConnectionString;
+				var connectionStringBuilder = new PgSqlConnectionStringBuilder
+				{
+					Host = contextInfo.ServerName,
+					UserId = contextInfo.UserId,
+					Password = contextInfo.Password,
+					Port = contextInfo.Port,
+					Pooling = contextInfo.Pooling,
+					Enlist = false,
+					ConnectionTimeout = contextInfo.ConnectionTimeout,
+					Charset = "UTF8",
+					Unicode = true,
+					MaxPoolSize = contextInfo.MaxPoolSize,
+					DefaultCommandTimeout = contextInfo.CommandTimeout,
+					UnpreparedExecute = contextInfo.UnpreparedExecute
+				};
 
-			connectionStringBuilder.Database = contextInfo.DatabaseName;
-            this.ConnectionString = connectionStringBuilder.ConnectionString;
+				this.ServerConnectionString = connectionStringBuilder.ConnectionString;
+				connectionStringBuilder.Database = contextInfo.DatabaseName;
+				this.ConnectionString = connectionStringBuilder.ConnectionString;
+			}
+
 			this.SchemaManager = new PostgresSharedSqlDatabaseSchemaManager(this);
         }
 

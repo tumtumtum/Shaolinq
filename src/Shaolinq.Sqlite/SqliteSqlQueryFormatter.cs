@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -135,15 +135,17 @@ namespace Shaolinq.Sqlite
 					this.Write(" LIMIT ");
 
 					Visit(selectExpression.Take);
+
+					this.Write(" ");
 				}
 				else
 				{
-					this.WriteLine(" LIMIT -1 ");
+					this.Write(" LIMIT -1 ");
 				}
 
 				if (selectExpression.Skip != null)
 				{
-					this.Write(" OFFSET ");
+					this.Write("OFFSET ");
 
 					Visit(selectExpression.Skip);
 				}

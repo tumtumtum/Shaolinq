@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using Platform.Xml.Serialization;
 
@@ -7,6 +7,9 @@ namespace Shaolinq.Persistence
 	[XmlElement]
 	public abstract class SqlDatabaseContextInfo
 	{
+		[XmlAttribute]
+		public string ConnectionString { get; set; }
+
 		[XmlAttribute]
 		public string Categories { get; set; }
 

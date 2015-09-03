@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 namespace Shaolinq.TypeBuilding
 {
@@ -53,9 +53,6 @@ namespace Shaolinq.TypeBuilding
 		/// </summary>
 		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
 
-		/// <summary>
-		/// 
-		/// </summary>
 		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
 
 		/// <summary>

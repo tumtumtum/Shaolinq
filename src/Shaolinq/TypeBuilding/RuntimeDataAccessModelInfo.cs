@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -80,22 +80,17 @@ namespace Shaolinq.TypeBuilding
 			{
 				Type type;
                 
-				if (dataAccessObjectType.Assembly == this.ConcreteAssembly || dataAccessObjectType.Assembly == this.DefinitionAssembly)
+				if (!this.concreteTypesByType.TryGetValue(dataAccessObjectType, out type))
 				{
-					if (!this.concreteTypesByType.TryGetValue(dataAccessObjectType, out type))
-					{
-						throw new InvalidDataAccessObjectModelDefinition("Could not find metadata for {0}", dataAccessObjectType);
-					}
-				}
-				else
-				{
-					throw new InvalidOperationException("The type is not part of " + this.dataAccessModelType.Name);
+					throw new InvalidDataAccessObjectModelDefinition("{0} it not part of {1}", dataAccessObjectType.Name, this.dataAccessModelType.Name);
 				}
 
 				var isNewParam = Expression.Parameter(typeof(bool));
 				var dataAccessModelParam = Expression.Parameter(typeof(DataAccessModel));
 
-				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) }), dataAccessModelParam, isNewParam), dataAccessObjectType), dataAccessModelParam, isNewParam).Compile();
+				var constructorInfo = type.GetConstructor(new[] {typeof(DataAccessModel), typeof(bool)});
+
+				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(constructorInfo, dataAccessModelParam, isNewParam), dataAccessObjectType), dataAccessModelParam, isNewParam).Compile();
 
 				var newDataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>(dataAccessObjectConstructors);
 
