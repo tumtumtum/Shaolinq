@@ -23,9 +23,9 @@ namespace Shaolinq.SqlServer
 			case SqlFeature.Deferrability:
 			case SqlFeature.CascadeAction:
 			case SqlFeature.DeleteAction:
-			case SqlFeature.SetNullAction:
 			case SqlFeature.SetDefaultAction:
 			case SqlFeature.UpdateAutoIncrementColumns:
+			case SqlFeature.SetNullAction:
 				return false;
 			default:
 				return base.SupportsFeature(feature);

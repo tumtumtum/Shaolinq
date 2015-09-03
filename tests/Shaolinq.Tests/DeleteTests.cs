@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Persistence;
 using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
@@ -35,38 +36,24 @@ namespace Shaolinq.Tests
 				
 				scope.Flush(model);
 
-				if (this.ProviderName == "MySql")
-				{
-					// MySql does not support deferred foreign key checks so create student2 first
+				var student1 = school.Students.Create(); 
+				var student2 = school.Students.Create();
 
-					var student2 = school.Students.Create();
+				student1Id = student1.Id;
+				student2Id = student2.Id;
 
-					scope.Flush(model);
+				student1.BestFriend = student2;
 
-					var student1 = school.Students.Create();
-
-					student1Id = student1.Id;
-					student2Id = student2.Id;
-
-					student1.BestFriend = student2;
-				}
-				else
-				{
-					var student1 = school.Students.Create(); 
-					var student2 = school.Students.Create();
-
-					student1Id = student1.Id;
-					student2Id = student2.Id;
-
-					student1.BestFriend = student2;
-				}
-				
-				
 				scope.Complete();
 			}
 
 			using (var scope = new TransactionScope())
 			{
+				if (!this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsFeature(SqlFeature.SetNullAction))
+				{
+					this.model.Students.Single(c => c.Id == student1Id).BestFriend = null;
+				}
+
 				this.model.Students.DeleteWhere(c => c.Id == student2Id);
 
 				scope.Complete();
