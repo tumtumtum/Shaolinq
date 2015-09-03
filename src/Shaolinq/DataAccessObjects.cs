@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2014 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq
@@ -21,6 +22,12 @@ namespace Shaolinq
 		public virtual T GetReference<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
 			return this.DataAccessModel.GetReference<T, K>(primaryKey, primaryKeyType);
+		}
+
+		public virtual T GetReference<K>(Expression<Func<T, K>> condition)
+		{
+			return null;
+			//return this.DataAccessModel.GetReference<T, K>(condition);
 		}
 	}
 }

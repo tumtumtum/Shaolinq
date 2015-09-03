@@ -15,6 +15,7 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : IDisposable
 	{
+		#region Nested Types
 		private class RawPrimaryKeysPlaceholderType<T>
 		{
 		}
@@ -32,14 +33,17 @@ namespace Shaolinq
 				};
 			}
 		}
+		#endregion
 
 		public virtual event EventHandler Disposed;
 
+		private bool disposed;
 		public Assembly DefinitionAssembly { get; private set; }
-		public RuntimeDataAccessModelInfo RuntimeDataAccessModelInfo { get; private set; }
+		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 		public DataAccessModelConfiguration Configuration { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
-		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
+		public RuntimeDataAccessModelInfo RuntimeDataAccessModelInfo { get; private set; }
+		private Dictionary<Type, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<Type, Func<IQueryable>>();
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<Type, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
@@ -50,9 +54,6 @@ namespace Shaolinq
 		{
 			return (DataAccessObjects<T>)GetDataAccessObjects(typeof(T));
 		}
-
-		
-		private Dictionary<Type, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<Type, Func<IQueryable>>();
 
 		protected virtual IQueryable CreateDataAccessObjects(Type type)
 		{
@@ -92,7 +93,6 @@ namespace Shaolinq
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
 		{
-
 			var onDisposed = this.Disposed;
 
 			if (onDisposed != null)
@@ -117,8 +117,6 @@ namespace Shaolinq
 				context.Dispose();
 			}
 		}
-
-		private bool disposed;
 
 		public virtual void Dispose()
 		{
@@ -398,7 +396,7 @@ namespace Shaolinq
 			return func(primaryKeyValues);
 		}
 
-		protected  internal ObjectPropertyValue[] GetObjectPropertyValues<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+		protected internal ObjectPropertyValue[] GetObjectPropertyValues<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
 			if (object.Equals(primaryKey, default(K)) && typeof(K).IsClass)
 			{
@@ -481,6 +479,12 @@ namespace Shaolinq
 			var propertyValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
 			return this.GetReference<T>(propertyValues);
+		}
+
+		public virtual T GetReference<T, K>(Expression<Func<K, T>> condition, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+			where T : DataAccessObject
+		{
+			return null;
 		}
 
 		public virtual DataAccessObject CreateDataAccessObject(Type type)
