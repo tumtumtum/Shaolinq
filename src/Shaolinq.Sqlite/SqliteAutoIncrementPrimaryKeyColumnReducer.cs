@@ -55,7 +55,8 @@ namespace Shaolinq.Sqlite
 						.TableConstraints
 						.Where(c => c != primaryKeyConstraint);
 
-					if (primaryKeyConstraint.ColumnNames.Length > 1)
+					if (primaryKeyConstraint.ColumnNames.Length > 1
+						|| autoIncrementColumn.ColumnDefinition.ConstraintExpressions.OfType<SqlSimpleConstraintExpression>().All(c => c.Constraint != SqlSimpleConstraint.PrimaryKey))
 					{
 						var uniqueConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames);
 

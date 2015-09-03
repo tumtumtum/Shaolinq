@@ -3,6 +3,7 @@
 using System;
 using System.Linq.Expressions;
 using Platform;
+using Platform.Collections;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -28,6 +29,15 @@ namespace Shaolinq.SqlServer
 				return new FunctionResolveResult("SYSDATETIME", false, arguments);
 			case SqlFunction.ServerNow:
 				return new FunctionResolveResult("SYSUTCDATETIME", false, arguments);
+			case SqlFunction.Substring:
+				if (arguments.Count == 2)
+				{
+					return new FunctionResolveResult("SUBSTRING", false, new ReadOnlyList<Expression>(arguments.Concat(Expression.Constant(Int32.MaxValue))));
+				}
+				else
+				{
+					return new FunctionResolveResult("SUBSTRING", false, arguments);
+				}
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);

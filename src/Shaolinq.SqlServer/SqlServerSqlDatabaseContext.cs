@@ -134,9 +134,11 @@ namespace Shaolinq.SqlServer
 				switch (sqlException.Number)
 				{
 				case 2627:
-					throw new UniqueConstraintException(exception, relatedQuery);
+					return new UniqueConstraintException(exception, relatedQuery);
 				case 547:
-					throw new MissingRelatedDataAccessObjectException(null, dataAccessObject, exception, relatedQuery);
+					return new MissingRelatedDataAccessObjectException(null, dataAccessObject, exception, relatedQuery);
+				case 515:
+					return new MissingPropertyValueException(dataAccessObject, sqlException, relatedQuery);
 				}
 			}
 

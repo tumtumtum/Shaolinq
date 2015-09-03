@@ -115,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
+    <Compile Include="MySqlAutoIncrementAmmender.cs" />
     <Compile Include="MySqlConfiguration.cs" />
     <Compile Include="MySqlSqlDatabaseContextInfo.cs" />
     <Compile Include="MySqlSqlDatabaseContext.cs" />
