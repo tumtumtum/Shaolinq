@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Platform.Collections;
 using Shaolinq.Persistence;
 using Platform;
+using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
@@ -31,7 +33,35 @@ namespace Shaolinq
 			}
 		}
 
-		#region CompositePrimaryKeyComparer
+		#region ConditionObjectIdentifier
+		protected internal struct ConditionalKey
+		{
+			internal readonly Expression condition;
+
+			public ConditionalKey(Expression condition)
+			{
+				this.condition = condition;
+			}
+		}
+
+		protected internal class ConditionalKeyComparer
+			: IEqualityComparer<ConditionalKey>
+		{
+			public static readonly ConditionalKeyComparer Default = new ConditionalKeyComparer();
+
+			public bool Equals(ConditionalKey x, ConditionalKey y)
+			{
+				return SqlExpressionComparer.Equals(x.condition, y.condition, false);
+			}
+
+			public int GetHashCode(ConditionalKey obj)
+			{
+				return SqlExpressionHasher.Hash(obj.condition);
+			}
+		}
+		#endregion
+
+		#region CompositePrimaryKey
 
 		protected internal struct CompositePrimaryKey
 		{
@@ -81,24 +111,57 @@ namespace Shaolinq
 
 		#endregion
 
+		#region ObjectsByCondition
+
+		private class ObjectsByCondition
+		{
+			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
+
+			internal Dictionary<ConditionalKey, DataAccessObject> objectsDeletedByCondition;
+			internal Dictionary<ConditionalKey, DataAccessObject> objectsForUpdateByCondition;
+			
+			public ObjectsByCondition(DataAccessObjectDataContext dataAccessObjectDataContext)
+			{
+				this.dataAccessObjectDataContext = dataAccessObjectDataContext;
+
+				this.objectsDeletedByCondition = new Dictionary<ConditionalKey, DataAccessObject>(ConditionalKeyComparer.Default);
+				this.objectsForUpdateByCondition = new Dictionary<ConditionalKey, DataAccessObject>(ConditionalKeyComparer.Default);
+			}
+
+			public DataAccessObject Get(ConditionalKey key)
+			{
+				DataAccessObject retval;
+
+				if (this.objectsForUpdateByCondition.TryGetValue(key, out retval))
+				{
+					return retval;
+				}
+
+				return null;
+			}
+		}
+
+		#endregion
+
 		#region ObjectsByIdCache
 
 		private class ObjectsByIdCache<T>
 		{
 			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
-			internal readonly Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>> newObjects;
-			internal readonly Dictionary<Type, Dictionary<T, DataAccessObject>> objectsByIdCache;
 			private readonly Dictionary<Type, HashSet<DataAccessObject>> objectsNotReadyForCommit;
+			
 			internal Dictionary<Type, Dictionary<T, DataAccessObject>> objectsDeleted;
+			internal readonly Dictionary<Type, Dictionary<T, DataAccessObject>> objectsByIdCache;
+			internal readonly Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>> newObjects;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>> objectsDeletedComposite;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>> objectsByIdCacheComposite;
 
 			public ObjectsByIdCache(DataAccessObjectDataContext dataAccessObjectDataContext)
 			{
 				this.dataAccessObjectDataContext = dataAccessObjectDataContext;
-				newObjects = new Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>>(PrimeNumbers.Prime67);
-				objectsByIdCache = new Dictionary<Type, Dictionary<T, DataAccessObject>>(PrimeNumbers.Prime67);
-				objectsNotReadyForCommit = new Dictionary<Type, HashSet<DataAccessObject>>(PrimeNumbers.Prime67);
+				this.objectsByIdCache = new Dictionary<Type, Dictionary<T, DataAccessObject>>(PrimeNumbers.Prime67);
+				this.objectsNotReadyForCommit = new Dictionary<Type, HashSet<DataAccessObject>>(PrimeNumbers.Prime67);
+				this.newObjects = new Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>>(PrimeNumbers.Prime67);
 			}
 
 			public void AssertObjectsAreReadyForCommit()
@@ -528,6 +591,7 @@ namespace Shaolinq
 		private ObjectsByIdCache<long> cacheByLong;
 		private ObjectsByIdCache<Guid> cacheByGuid;
 		private ObjectsByIdCache<string> cacheByString;
+		private ObjectsByCondition cacheByCondition;
 
 		protected bool DisableCache { get; private set; }
 		public DataAccessModel DataAccessModel { get; private set; }
@@ -589,6 +653,13 @@ namespace Shaolinq
 					}
 					cacheByGuid.Deleted((DataAccessObject<Guid>)value);
 				}
+				else if (typeof(Expression).IsAssignableFrom(keyType))
+				{
+					if (cacheByCondition == null)
+					{
+						cacheByCondition = new ObjectsByCondition(this);
+					}
+				}
 				break;
 			}
 		}
@@ -643,40 +714,47 @@ namespace Shaolinq
 
 			switch (Type.GetTypeCode(keyType))
 			{
-				case TypeCode.Int32:
-					if (cacheByInt == null)
+			case TypeCode.Int32:
+				if (cacheByInt == null)
+				{
+					return null;
+				}
+
+				return cacheByInt.Get(type, primaryKeys);
+			case TypeCode.Int64:
+				if (cacheByLong == null)
+				{
+					return null;
+				}
+
+				return cacheByLong.Get(type, primaryKeys);
+			case TypeCode.String:
+				if (cacheByString == null)
+				{
+					return null;
+				}
+
+				return cacheByString.Get(type, primaryKeys);
+			default:
+				if (keyType == typeof(Guid))
+				{
+					if (cacheByGuid == null)
 					{
 						return null;
 					}
 
-					return cacheByInt.Get(type, primaryKeys);
-				case TypeCode.Int64:
-					if (cacheByLong == null)
+					return cacheByGuid.Get(type, primaryKeys);
+				}
+				else if (typeof(Expression).IsAssignableFrom(keyType))
+				{
+					if (cacheByCondition == null)
 					{
 						return null;
 					}
 
-					return cacheByLong.Get(type, primaryKeys);
-				default:
-					if (keyType == typeof(Guid))
-					{
-						if (cacheByGuid == null)
-						{
-							return null;
-						}
-
-						return cacheByGuid.Get(type, primaryKeys);
-					}
-					else if (keyType == typeof(string))
-					{
-						if (cacheByString == null)
-						{
-							return null;
-						}
-
-						return cacheByString.Get(type, primaryKeys);
-					}
-					break;
+					return cacheByCondition.Get(new ConditionalKey((Expression)primaryKeys[0].Value));
+				}
+				break;
 			}
 
 			return null;
@@ -698,36 +776,38 @@ namespace Shaolinq
 
 			switch (Type.GetTypeCode(keyType))
 			{
-				case TypeCode.Int32:
-					if (cacheByInt == null)
+			case TypeCode.Int32:
+				if (cacheByInt == null)
+				{
+					cacheByInt = new ObjectsByIdCache<int>(this);
+				}
+
+				return cacheByInt.Cache((DataAccessObject<int>)value, forImport);
+			case TypeCode.Int64:
+				if (cacheByLong == null)
+				{
+					cacheByLong = new ObjectsByIdCache<long>(this);
+				}
+
+				return cacheByLong.Cache((DataAccessObject<long>)value, forImport);
+			case TypeCode.String:
+				if (cacheByString == null)
+				{
+					cacheByString = new ObjectsByIdCache<string>(this);
+				}
+
+				return cacheByString.Cache((DataAccessObject<string>)value, forImport);
+			default:
+				if (keyType == typeof(Guid))
+				{
+					if (cacheByGuid == null)
 					{
-						cacheByInt = new ObjectsByIdCache<int>(this);
+						cacheByGuid = new ObjectsByIdCache<Guid>(this);
 					}
-					return cacheByInt.Cache((DataAccessObject<int>)value, forImport);
-				case TypeCode.Int64:
-					if (cacheByLong == null)
-					{
-						cacheByLong = new ObjectsByIdCache<long>(this);
-					}
-					return cacheByLong.Cache((DataAccessObject<long>)value, forImport);
-				default:
-					if (keyType == typeof(Guid))
-					{
-						if (cacheByGuid == null)
-						{
-							cacheByGuid = new ObjectsByIdCache<Guid>(this);
-						}
-						return cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
-					}
-					else if (keyType == typeof(string))
-					{
-						if (cacheByString == null)
-						{
-							cacheByString = new ObjectsByIdCache<string>(this);
-						}
-						return cacheByString.Cache((DataAccessObject<string>)value, forImport);
-					}
-					break;
+
+					return cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
+				}
+				break;
 			}
 
 			return value;
