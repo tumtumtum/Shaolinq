@@ -188,26 +188,7 @@ namespace Shaolinq.Parser
 					}
 					else
 					{
-						var property = this.propertyInfo.DeclaringType.GetProperty(identifier, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase);
-
-						if (property != null)
-						{
-							current = Expression.Property(current, property);
-						}
-						else
-						{
-							var field = this.propertyInfo.DeclaringType.GetField(identifier, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase);
-
-							if (field != null)
-							{
-								current = Expression.Field(current, field);
-							}
-						}
-
-						if (current == null)
-						{
-							throw new InvalidOperationException();
-						}
+						current = Expression.PropertyOrField(current, identifier);
 					}
 
 					if (this.token == ComputedExpressionToken.Period)

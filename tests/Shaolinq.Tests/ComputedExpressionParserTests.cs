@@ -22,7 +22,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void TestParse()
 		{
-			var parser = new ComputedExpressionParser<TestObject, int>(new StringReader("C"), typeof(TestObject).GetProperty("A"));
+			var parser = new ComputedExpressionParser<TestObject, int>(new StringReader("C.B"), typeof(TestObject).GetProperty("A"));
 
 			var func = parser.Parse().Compile();
 
