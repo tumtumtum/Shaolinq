@@ -1,6 +1,6 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 ﻿using System.Linq.Expressions;
@@ -1471,7 +1471,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("Not working on postgres yet")]
+		[Test, Ignore("LogicalNot working on postgres yet")]
 		public virtual void Test_GroupBy_Date_With_Date_Only()
 		{
 			using (var scope = new TransactionScope())

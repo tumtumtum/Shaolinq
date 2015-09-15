@@ -107,6 +107,7 @@
     <Compile Include="ComplexPrimaryKeyModel\Shop.cs" />
     <Compile Include="ComplexPrimaryKeyTests.cs" />
     <Compile Include="ComplexUpdateTests.cs" />
+    <Compile Include="ComputedExpressionParserTests.cs" />
     <Compile Include="ConfigurationTests.cs" />
     <Compile Include="ConstraintTests.cs" />
     <Compile Include="DirectAccessTests.cs" />

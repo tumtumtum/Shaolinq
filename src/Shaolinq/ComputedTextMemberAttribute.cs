@@ -7,22 +7,12 @@ using System.Text.RegularExpressions;
 
 namespace Shaolinq
 {
-	[AttributeUsage(AttributeTargets.Property)]
 	public class ComputedTextMemberAttribute
 		: Attribute
 	{
 		internal static readonly Regex FormatRegex = new Regex(@"\{([^\}]+)\}", RegexOptions.Compiled);
 
-		public string Format
-		{
-			get;
-			set;
-		}
-
-		public ComputedTextMemberAttribute()
-			: this("")
-		{
-		}
+		public string Format { get; set; }
 
 		public ComputedTextMemberAttribute(string format)
 		{

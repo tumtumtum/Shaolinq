@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoIncrementAttribute.cs" />
+    <Compile Include="ComputedMemberAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
     <Compile Include="ConstraintDefaults.cs" />
@@ -141,6 +142,9 @@
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="ObjectAlreadyExistsException.cs" />
     <Compile Include="OperationConstraintViolationException.cs" />
+    <Compile Include="Parser\ComputedExpressionParser.cs" />
+    <Compile Include="Parser\ComputedExpressionToken.cs" />
+    <Compile Include="Parser\ComputedExpressionTokenizer.cs" />
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />

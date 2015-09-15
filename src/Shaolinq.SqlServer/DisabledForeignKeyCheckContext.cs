@@ -17,7 +17,7 @@ namespace Shaolinq.SqlServer
 
 			var command = ((DefaultSqlTransactionalCommandsContext)context).DbConnection.CreateCommand();
 
-			// Not Azure compatible - command.CommandText = "EXEC sp_msforeachtable \"ALTER TABLE ? NOCHECK CONSTRAINT all\"";
+			// LogicalNot Azure compatible - command.CommandText = "EXEC sp_msforeachtable \"ALTER TABLE ? NOCHECK CONSTRAINT all\"";
 
 			command.CommandText = 
 @"DECLARE @table_name SYSNAME;
@@ -43,7 +43,7 @@ DEALLOCATE table_cursor;";
 		{
 			var command = ((DefaultSqlTransactionalCommandsContext)this.context).DbConnection.CreateCommand();
 
-			// Not Azure compatible - command.CommandText = "exec sp_msforeachtable @command1=\"print '?'\", @command2=\"ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all\";";
+			// LogicalNot Azure compatible - command.CommandText = "exec sp_msforeachtable @command1=\"print '?'\", @command2=\"ALTER TABLE ? WITH CHECK CHECK CONSTRAINT all\";";
 
 			command.CommandText =
 @"DECLARE @table_name SYSNAME;

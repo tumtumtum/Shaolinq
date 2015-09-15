@@ -1,0 +1,29 @@
+namespace Shaolinq.Parser
+{
+	public enum ComputedExpressionToken
+	{
+		IntegerLiteral,
+		StringLiteral,
+		Semicolon,
+		Period,
+		Assign,
+		Add,
+		Subtract,
+		Multiply,
+		Divide,
+		Comma,
+		Identifier,
+		LeftParen,
+		RightParen,
+		CompareStart,
+		GreaterThan,
+		LessThan,
+		GreaterThanOrEqual,
+		LessThanOrEqual,
+		Equals,
+		NotEquals,
+		CompareEnd,
+		LogicalNot,
+		Eof
+	}
+}

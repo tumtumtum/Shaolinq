@@ -648,7 +648,7 @@ namespace Shaolinq
 
 		public virtual void CreateIfNotExist()
 		{
-			this.Create(DatabaseCreationOptions.IfNotExist);
+			this.Create(DatabaseCreationOptions.IfDatabaseNotExist);
 		}
 
 		public virtual void Create(DatabaseCreationOptions options)

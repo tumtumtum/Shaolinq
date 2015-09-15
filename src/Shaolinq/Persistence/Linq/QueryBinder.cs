@@ -1017,7 +1017,7 @@ namespace Shaolinq.Persistence.Linq
 
 							if (newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
 							{
-								throw new NotSupportedException("String.Trim(char[])");
+								throw new NotSupportedException("StringLiteral.Trim(char[])");
 							}
 						}
 
@@ -1036,7 +1036,7 @@ namespace Shaolinq.Persistence.Linq
 							if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
 								&& constantExpression == null && constantPlaceholderExpression == null)
 							{
-								throw new NotSupportedException("String.TrimStart(char[])");
+								throw new NotSupportedException("StringLiteral.TrimStart(char[])");
 							}
 						}
 
@@ -1055,7 +1055,7 @@ namespace Shaolinq.Persistence.Linq
 							if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
 								&& constantExpression == null && constantPlaceholderExpression == null)
 							{
-								throw new NotSupportedException("String.TrimEnd(char[])");
+								throw new NotSupportedException("StringLiteral.TrimEnd(char[])");
 							}
 						}
 
@@ -1067,7 +1067,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (methodCallExpression.Arguments.Count != 0)
 						{
-							throw new NotSupportedException("String.Upper()");
+							throw new NotSupportedException("StringLiteral.Upper()");
 						}
 
 						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Upper, operand0);
@@ -1078,7 +1078,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (methodCallExpression.Arguments.Count != 0)
 						{
-							throw new NotSupportedException("String.Lower()");
+							throw new NotSupportedException("StringLiteral.Lower()");
 						}
 
 						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Lower, operand0);

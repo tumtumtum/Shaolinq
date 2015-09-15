@@ -120,7 +120,7 @@ namespace Shaolinq.Tests
                     model = DataAccessModel.BuildDataAccessModel<T>(configuration);
                 }
 
-                model.Create(DatabaseCreationOptions.DeleteExisting);
+                model.Create(DatabaseCreationOptions.DeleteExistingDatabase);
             }
             catch (Exception e)
             {

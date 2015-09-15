@@ -135,7 +135,7 @@ namespace Shaolinq.TypeBuilding
 
 			while (type != null)
 			{
-				foreach (var propertyInfo in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+				foreach (var propertyInfo in type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
 				{
 					if (propertyInfo.DeclaringType != type || alreadyImplementedProperties.Contains(propertyInfo.Name))
 					{
@@ -878,7 +878,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldfld, this.valueIsSetFields[propertyName]);
 						generator.Emit(OpCodes.Brtrue, loadAndReturnLabel);
 
-						// Not allowed to access primary key property if it's not set (not yet set by DB)
+						// LogicalNot allowed to access primary key property if it's not set (not yet set by DB)
 
 						generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 						generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
