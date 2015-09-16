@@ -19,17 +19,17 @@ namespace Shaolinq.Persistence
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; private set; }
 		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; private set; }
 		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; private set; }
 		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; private set; }
+
 		public string TypeName { get { return this.Type.Name; } }
 		public bool HasPrimaryKeys { get { return this.PrimaryKeyProperties.Count > 0; } }
 		public int PrimaryKeyCount { get { return this.PrimaryKeyProperties.Count; } }
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; private set; }
 
-		private readonly List<PropertyDescriptor> propertyDescriptorsInOrder;
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
-		private readonly IDictionary<PropertyInfo, PropertyDescriptor> propertyDescriptorsByPropertyInfo;
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
 
 		public static bool IsSimpleType(Type type)
@@ -203,6 +203,8 @@ namespace Shaolinq.Persistence
 
 		public TypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
+			var propertyDescriptorsInOrder = new List<PropertyDescriptor>();
+			
 			this.Type = type;
 			this.TypeDescriptorProvider = typeDescriptorProvider;
 
@@ -211,9 +213,7 @@ namespace Shaolinq.Persistence
 			this.relationshipInfos = new Dictionary<TypeDescriptor, TypeRelationshipInfo>();
 			this.propertyDescriptorByColumnName = new Dictionary<string, PropertyDescriptor>();
 			this.propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
-			this.propertyDescriptorsByPropertyInfo = new Dictionary<PropertyInfo, PropertyDescriptor>();
-			this.propertyDescriptorsInOrder = new List<PropertyDescriptor>();
-
+			
 			var alreadyEnteredProperties = new HashSet<string>();
 
 			foreach (var propertyInfo in this.GetPropertiesInOrder())
@@ -252,7 +252,6 @@ namespace Shaolinq.Persistence
 					}
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
-					propertyDescriptorsByPropertyInfo[propertyInfo] = propertyDescriptor;
 					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 					propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
 				}
@@ -328,7 +327,8 @@ namespace Shaolinq.Persistence
 			this.RelatedProperties = new ReadOnlyList<PropertyDescriptor>(relatedProperties);
 			this.PersistedProperties = new ReadOnlyList<PropertyDescriptor>(propertyDescriptorsInOrder);
 			this.PrimaryKeyProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
-			this.ComputedTextProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.ComputedTextMemberAttribute != null && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
+			this.ComputedTextProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.IsComputedTextMember && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
+			this.ComputedProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.IsComputedMember && !String.IsNullOrEmpty(c.ComputedMemberAttribute.Expression)).ToList());
 			this.PersistedAndRelatedObjectProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToList());
 
 			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)

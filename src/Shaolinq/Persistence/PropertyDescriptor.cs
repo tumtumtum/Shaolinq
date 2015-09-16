@@ -27,12 +27,14 @@ namespace Shaolinq.Persistence
 		public PersistedMemberAttribute PersistedMemberAttribute { get; private set; }
 		public ForeignObjectConstraintAttribute ForeignObjectConstraintAttribute { get; private set; }
 		public IReadOnlyList<IndexAttribute> IndexAttributes { get; private set; }
+		public ComputedMemberAttribute ComputedMemberAttribute { get; private set; }
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; private set; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; private set; }
 		public string PropertyName { get { return this.PropertyInfo.Name; } }
 		public Type PropertyType { get { return this.PropertyInfo.PropertyType; } }
 		public bool HasUniqueAttribute { get { return this.UniqueAttribute != null; } }
 		public bool IsBackReferenceProperty { get { return this.BackReferenceAttribute != null; } }
+		public bool IsComputedMember { get { return this.ComputedMemberAttribute != null; } }
 		public bool IsComputedTextMember { get { return this.ComputedTextMemberAttribute != null; } }
 		public bool IsRelatedDataAccessObjectsProperty { get { return this.RelatedDataAccessObjectsAttribute != null; } }
 		public bool IsAutoIncrement { get { return this.AutoIncrementAttribute != null && this.AutoIncrementAttribute.AutoIncrement; } }
@@ -56,6 +58,7 @@ namespace Shaolinq.Persistence
 			this.BackReferenceAttribute = propertyInfo.GetFirstCustomAttribute<BackReferenceAttribute>(true);
 			this.RelatedDataAccessObjectsAttribute = propertyInfo.GetFirstCustomAttribute<RelatedDataAccessObjectsAttribute>(true);
 			this.PersistedMemberAttribute = propertyInfo.GetFirstCustomAttribute<PersistedMemberAttribute>(true);
+			this.ComputedMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedMemberAttribute>(true);
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 			this.ForeignObjectConstraintAttribute = propertyInfo.GetFirstCustomAttribute<ForeignObjectConstraintAttribute>(true);
 

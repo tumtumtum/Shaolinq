@@ -178,7 +178,7 @@ namespace Shaolinq.TypeBuilding
 						{
 							if (propertyDescriptor.IsComputedTextMember)
 							{
-								this.BuildSetComputedPropertyMethod(propertyInfo, typeBuildContext);
+								this.BuildSetComputedTextPropertyMethod(propertyInfo, typeBuildContext);
 							}
 						}
 					}
@@ -224,7 +224,7 @@ namespace Shaolinq.TypeBuilding
 
 							if (propertyDescriptor.IsComputedTextMember)
 							{
-								this.BuildSetComputedPropertyMethod(propertyInfo, typeBuildContext);
+								this.BuildSetComputedTextPropertyMethod(propertyInfo, typeBuildContext);
 							}
 						}
 					}
@@ -279,7 +279,7 @@ namespace Shaolinq.TypeBuilding
 						constructorGenerator.Emit(OpCodes.Ldloc, guidLocal);
 						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
 
-						this.EmitUpdatedComputedPropertes(constructorGenerator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
+						this.EmitUpdateComputedProperties(constructorGenerator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
 					}
 					else if (propertyDescriptor.PropertyType.IsValueType 
 						&& Nullable.GetUnderlyingType(propertyDescriptor.PropertyType) == null 
@@ -534,7 +534,7 @@ namespace Shaolinq.TypeBuilding
 			return type.GetProperties().First(c => c.Name == name);
 		}
 
-		private void BuildSetComputedPropertyMethod(PropertyInfo propertyInfo, TypeBuildContext typeBuildContext)
+		private void BuildSetComputedTextPropertyMethod(PropertyInfo propertyInfo, TypeBuildContext typeBuildContext)
 		{
 			MethodBuilder methodBuilder;
 			var attribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
@@ -930,7 +930,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldfld, this.valueIsSetFields[propertyName]);
 						generator.Emit(OpCodes.Brfalse, skipLabel);
 
-						this.EmitUpdatedComputedPropertes(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
+						this.EmitUpdateComputedProperties(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
 
 						generator.Emit(OpCodes.Ret);
 
@@ -985,7 +985,7 @@ namespace Shaolinq.TypeBuilding
 						privateGenerator.Emit(OpCodes.Ldfld, this.valueIsSetFields[propertyName]);
 						privateGenerator.Emit(OpCodes.Brfalse, continueLabel);
 
-						this.EmitUpdatedComputedPropertes(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
+						this.EmitUpdateComputedProperties(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
 
 						privateGenerator.Emit(OpCodes.Ret);
 					}
@@ -1071,7 +1071,7 @@ namespace Shaolinq.TypeBuilding
 					}
 
 					privateGenerator.MarkLabel(skipCachingObjectLabel);
-					this.EmitUpdatedComputedPropertes(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
+					this.EmitUpdateComputedProperties(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
 
 					privateGenerator.Emit(OpCodes.Ret);
 
@@ -1849,7 +1849,7 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		private void EmitUpdatedComputedPropertes(ILGenerator generator, string changedPropertyName, bool propertyIsPrimaryKey)
+		private void EmitUpdateComputedProperties(ILGenerator generator, string changedPropertyName, bool propertyIsPrimaryKey)
 		{
 			var propertyNames = new List<string>();
 

@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
+using Shaolinq.Parser;
 
 namespace Shaolinq
 {
@@ -8,14 +10,15 @@ namespace Shaolinq
 		: Attribute
 	{
 		public string Expression { get; set; }
-
+		
 		public ComputedMemberAttribute(string expression)
 		{
+			this.Expression = expression;
 		}
 
-		public IEnumerable<string> GetPropertyReferences()
+		public LambdaExpression GetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			yield break;
+			return ComputedExpressionParser.Parse(Expression, propertyInfo);
 		}
 	}
 }

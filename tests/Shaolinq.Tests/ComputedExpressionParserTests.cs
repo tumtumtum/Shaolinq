@@ -17,12 +17,17 @@ namespace Shaolinq.Tests
 			public int B { get; set; }
 
 			public TestObject C;
+
+			public long Foo()
+			{
+				return 101;
+			}
 		}
 
 		[Test]
 		public void TestParse()
 		{
-			var parser = new ComputedExpressionParser<TestObject, int>(new StringReader("C.B"), typeof(TestObject).GetProperty("A"));
+			var parser = new ComputedExpressionParser(new StringReader("C.Foo()"), typeof(TestObject).GetProperty("A"));
 
 			var func = parser.Parse().Compile();
 
@@ -32,7 +37,7 @@ namespace Shaolinq.Tests
 				C = new TestObject {B = 20}
 			};
 
-			Console.WriteLine(func(obj));
+			Console.WriteLine(((Func<TestObject, int>)func)(obj));
 		}
 	}
 }

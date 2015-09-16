@@ -145,6 +145,7 @@
     <Compile Include="Parser\ComputedExpressionParser.cs" />
     <Compile Include="Parser\ComputedExpressionToken.cs" />
     <Compile Include="Parser\ComputedExpressionTokenizer.cs" />
+    <Compile Include="Parser\ReferencedPropertiesGatherer.cs" />
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />

@@ -1,37 +1,53 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Shaolinq.Parser
 {
-	public class ComputedExpressionParser<OBJECT_TYPE, PROPERTY_TYPE>
+	public class ComputedExpressionParser
 	{
 		private ComputedExpressionToken token;
 		private readonly PropertyInfo propertyInfo;
 		private readonly ParameterExpression targetObject;
 		private readonly ComputedExpressionTokenizer tokenizer;
-		
+
 		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo)
 		{
 			this.propertyInfo = propertyInfo;
 			this.tokenizer = new ComputedExpressionTokenizer(reader);
-			this.targetObject = Expression.Parameter(typeof(OBJECT_TYPE), "object");
+			this.targetObject = Expression.Parameter(propertyInfo.DeclaringType, "object");
 		}
 
 		public void Consume()
 		{
-			tokenizer.ReadNextToken();
-			token = tokenizer.CurrentToken;
+			this.tokenizer.ReadNextToken();
+			this.token = this.tokenizer.CurrentToken;
 		}
 
-		public virtual Expression<Func<OBJECT_TYPE, PROPERTY_TYPE>> Parse()
+		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo)
+		{
+			return Parse(new StringReader(expressionText), propertyInfo);
+		}
+
+		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo)
+		{
+			return new ComputedExpressionParser(reader, propertyInfo).Parse();
+		}
+
+		public virtual LambdaExpression Parse()
 		{
 			this.Consume();
 
 			var body = this.ParseExpression();
 
-			var retval = Expression.Lambda<Func<OBJECT_TYPE, PROPERTY_TYPE>>(body, targetObject);
+			if (body.Type != propertyInfo.PropertyType)
+			{
+				body = Expression.Convert(body, propertyInfo.PropertyType);
+			}
+
+			var retval = Expression.Lambda(body, targetObject);
 
 			return retval;
 		}
@@ -156,6 +172,39 @@ namespace Shaolinq.Parser
 			}
 		}
 
+		protected Expression ParseMethodCall(Expression target, string methodName)
+		{
+			this.Consume();
+			var arguments = new List<Expression>();
+
+			while (true)
+			{
+				if (this.token == ComputedExpressionToken.RightParen)
+				{
+					break;
+				}
+
+				var argument = this.ParseExpression();
+
+				if (this.token == ComputedExpressionToken.Comma)
+				{
+					this.Consume();
+
+					continue;
+				}
+				else if (this.token != ComputedExpressionToken.RightParen)
+				{
+					throw new InvalidOperationException("Expected ')'");
+				}
+
+				arguments.Add(argument);
+
+				break;
+			}
+
+			return Expression.Call(target, methodName, null, arguments.ToArray());
+		}
+
 		protected Expression ParseOperand()
 		{
 			if (this.token == ComputedExpressionToken.LeftParen)
@@ -173,7 +222,6 @@ namespace Shaolinq.Parser
 
 			Expression current = targetObject;
 
-
 			if (this.token == ComputedExpressionToken.Identifier)
 			{
 				while (true)
@@ -184,7 +232,7 @@ namespace Shaolinq.Parser
 
 					if (this.token == ComputedExpressionToken.LeftParen)
 					{
-						throw new NotSupportedException();
+						current = this.ParseMethodCall(current, identifier);
 					}
 					else
 					{
