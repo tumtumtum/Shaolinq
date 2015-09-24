@@ -56,7 +56,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var newResultSelector = Expression.Lambda(Expression.MemberInit(resultValue.Type.CreateNewExpression(), Expression.Bind(resultValue.Type.GetProperty("Outer"), outerKey),  Expression.Bind(resultValue.Type.GetProperty("Inner"), innerKey)), outerKey, innerKey);
 
-			var newJoin = Expression.Call(null, MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod(outer.Type.GetSequenceElementType(), inner.Type.GetSequenceElementType(), outerKeySelector.ReturnType, newResultSelector.ReturnType), outer, inner, outerKeySelector, innerKeySelector, newResultSelector);
+			var newJoin = Expression.Call(null, MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod(outer.Type.GetSequenceElementType() ?? outer.Type, inner.Type.GetSequenceElementType() ?? inner.Type, outerKeySelector.ReturnType, newResultSelector.ReturnType), outer, inner, outerKeySelector, innerKeySelector, newResultSelector);
 
 			var selectorParameter = Expression.Parameter(resultValue.Type);
 			var selectProjectorBody = ExpressionReplacer.Replace(resultSelector.Body, originalOuterKeyParam, Expression.Property(selectorParameter, "Outer"));
