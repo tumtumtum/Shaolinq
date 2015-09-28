@@ -1144,6 +1144,10 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return VisitBinary(Expression.Equal(methodCallExpression.Object, methodCallExpression.Arguments[0]));
 			}
+			else if (methodCallExpression.Method == MethodInfoFastRef.ObjectStaticEqualsMethod || methodCallExpression.Method == MethodInfoFastRef.ObjectStaticReferenceEqualsMethod)
+			{
+				return VisitBinary(Expression.Equal(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]));
+			}
 
 			return base.VisitMethodCall(methodCallExpression);
 		}

@@ -337,7 +337,6 @@ namespace Shaolinq.Tests
 		public void Test_Equals_With_Deflated()
 		{
 			Guid studentId;
-			long schoolId;
 
 			using (var scope = new TransactionScope())
 			{
@@ -348,13 +347,10 @@ namespace Shaolinq.Tests
 				var student = school.Students.Create();
 
 				student.Birthdate = new DateTime(1940, 11, 27);
-				student.Firstname = "Bruce";
-				student.Lastname = "Lee";
 
 				scope.Flush(model);
 
 				studentId = student.Id;
-				schoolId = school.Id;
 
 				scope.Complete();
 			}
@@ -370,17 +366,15 @@ namespace Shaolinq.Tests
 				Assert.IsFalse(student.IsDeflatedReference());
 
 				Assert.AreSame(student, sameStudent);
-				Assert.AreEqual("Bruce", student.Firstname);
 
 				scope.Complete();
 			}
 		}
 
 		[Test]
-		public void Test_CompareTo_With_Deflated()
+		public void Test_ReferenceEquals_With_Deflated()
 		{
 			Guid studentId;
-			long schoolId;
 
 			using (var scope = new TransactionScope())
 			{
@@ -391,13 +385,48 @@ namespace Shaolinq.Tests
 				var student = school.Students.Create();
 
 				student.Birthdate = new DateTime(1940, 11, 27);
-				student.Firstname = "Bruce";
-				student.Lastname = "Lee";
-
+				
 				scope.Flush(model);
 
 				studentId = student.Id;
-				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.GetReference(studentId);
+
+				Assert.IsTrue(student.IsDeflatedReference());
+
+				var sameStudent = this.model.Students.First(c => object.ReferenceEquals(c, student));
+
+				Assert.IsFalse(student.IsDeflatedReference());
+
+				Assert.AreSame(student, sameStudent);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_CompareTo_With_Deflated()
+		{
+			Guid studentId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.Create();
+
+				school.Name = "The Shaolinq School of Kung Fu";
+
+				var student = school.Students.Create();
+
+				student.Birthdate = new DateTime(1940, 11, 27);
+				
+				scope.Flush(model);
+
+				studentId = student.Id;
 
 				scope.Complete();
 			}
@@ -413,7 +442,6 @@ namespace Shaolinq.Tests
 				Assert.IsFalse(student.IsDeflatedReference());
 
 				Assert.AreSame(student, sameStudent);
-				Assert.AreEqual("Bruce", student.Firstname);
 
 				scope.Complete();
 			}

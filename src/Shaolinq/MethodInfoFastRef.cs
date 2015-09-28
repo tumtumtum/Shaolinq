@@ -31,6 +31,7 @@ namespace Shaolinq
 		public static readonly MethodInfo StringStaticEqualsMethod = typeof(string).GetMethod("Equals", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string), typeof(string) }, null);
 		public static readonly MethodInfo ObjectEqualsMethod = typeof(object).GetMethod("Equals", BindingFlags.Instance | BindingFlags.Public, null, new[] { typeof(object) }, null);
 		public static readonly MethodInfo ObjectStaticEqualsMethod = typeof(object).GetMethod("Equals", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(object), typeof(object) }, null);
+		public static readonly MethodInfo ObjectStaticReferenceEqualsMethod = typeof(object).GetMethod("ReferenceEquals", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(object), typeof(object) }, null);
 		public static readonly MethodInfo StringConcatMethod2 = typeof(string).GetMethod("Concat", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string), typeof(string) }, null);
 		public static readonly MethodInfo StringConcatMethod3 = typeof(string).GetMethod("Concat", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string), typeof(string), typeof(string) }, null);
 		public static readonly MethodInfo StringConcatMethod4 = typeof(string).GetMethod("Concat", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string), typeof(string), typeof(string), typeof(string) }, null);
