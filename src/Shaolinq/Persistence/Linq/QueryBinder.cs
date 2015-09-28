@@ -1140,7 +1140,7 @@ namespace Shaolinq.Persistence.Linq
 				return CreateObjectReference(methodCallExpression);
 			}
 			else if (methodCallExpression.Method == MethodInfoFastRef.ObjectEqualsMethod
-			         || methodCallExpression.Method.Name == "Equals" && methodCallExpression.Method.ReturnType == typeof(bool) && methodCallExpression.Arguments.Count == 1 && methodCallExpression.Arguments[0].Type == typeof(object))
+			         || methodCallExpression.Method.Name == "Equals" && methodCallExpression.Method.ReturnType == typeof(bool) && methodCallExpression.Arguments.Count == 1)
 			{
 				return VisitBinary(Expression.Equal(methodCallExpression.Object, methodCallExpression.Arguments[0]));
 			}
