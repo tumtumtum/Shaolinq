@@ -8,6 +8,8 @@ using Shaolinq.MySql;
 ﻿using Shaolinq.Postgres.DotConnect;
 ﻿using Shaolinq.Sqlite;
 using log4net.Config;
+using Platform;
+using Platform.Reflection;
 using Shaolinq.SqlServer;
 
 namespace Shaolinq.Tests

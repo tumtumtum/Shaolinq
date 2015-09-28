@@ -236,7 +236,14 @@ namespace Shaolinq.Parser
 					}
 					else
 					{
-						current = Expression.PropertyOrField(current, identifier);
+						if (identifier == "value" && current.Type.GetField("value") == null)
+						{
+							current = Expression.Property(targetObject, propertyInfo);
+						}
+						else
+						{
+							current = Expression.PropertyOrField(current, identifier);
+						}
 					}
 
 					if (this.token == ComputedExpressionToken.Period)

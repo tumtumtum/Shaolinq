@@ -31,8 +31,17 @@ namespace Shaolinq.Tests.TestModel
 		public abstract int FavouriteNumber { get; set; }
 
 		[PersistedMember]
+		[ComputedMember("Test(Height)")]
+		public abstract long HeightAndWeight { get; set; }
+
+		public long Test(double x)
+		{
+			return 100;
+		}
+
+		[PersistedMember]
 		[ComputedTextMember("{Firstname} {Lastname}")]
-		public abstract string	Fullname { get; set; }
+		public abstract string Fullname { get; set; }
 
 		[PersistedMember]
 		public abstract DateTime? Birthdate { get; set; }
