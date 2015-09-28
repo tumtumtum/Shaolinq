@@ -277,23 +277,69 @@ namespace Shaolinq.Persistence.Linq
 			if ((binaryExpression.NodeType == ExpressionType.GreaterThan
 				|| binaryExpression.NodeType == ExpressionType.GreaterThanOrEqual
 				|| binaryExpression.NodeType == ExpressionType.LessThan
-				|| binaryExpression.NodeType == ExpressionType.LessThanOrEqual)
-				&& binaryExpression.Left.NodeType == ExpressionType.Call)
+				|| binaryExpression.NodeType == ExpressionType.LessThanOrEqual
+				|| binaryExpression.NodeType == ExpressionType.Equal
+				|| binaryExpression.NodeType == ExpressionType.NotEqual))
 			{
-				var methodCallExpression = (MethodCallExpression)binaryExpression.Left;
+				var methodCallExpressionLeft = binaryExpression.Left as MethodCallExpression;
+				var methodCallExpressionRight = binaryExpression.Right as MethodCallExpression;
+				var constantExpressionLeft = binaryExpression.Left as ConstantExpression;
+				var constantExpressionRight = binaryExpression.Right as ConstantExpression;
+
+				left = right = null;
+				var operation = binaryExpression.NodeType;
 				
-				if (methodCallExpression.Method.Name == "CompareTo" && methodCallExpression.Arguments.Count == 1 && methodCallExpression.Method.ReturnType == typeof(int)
-					&& binaryExpression.Right.NodeType == ExpressionType.Constant && ((ConstantExpression)binaryExpression.Right).Value.Equals(0))
+				if (methodCallExpressionLeft != null && constantExpressionRight != null)
 				{
-					return new SqlFunctionCallExpression(typeof(bool), SqlFunction.CompareObject, Expression.Constant(binaryExpression.NodeType), Visit(methodCallExpression.Object), Visit(methodCallExpression.Arguments[0]));
+					left = methodCallExpressionLeft.Object;
+					right = methodCallExpressionLeft.Arguments[0];
+
+					if (Convert.ToInt32(constantExpressionRight.Value) != 0)
+					{
+						throw new InvalidOperationException("Expected CompareTo argument to be 0");
+					}
+				}
+				else if (methodCallExpressionRight != null && constantExpressionLeft != null)
+				{
+					left = methodCallExpressionRight.Object;
+					right = methodCallExpressionRight.Arguments[0];
+					
+					if (Convert.ToInt32(constantExpressionLeft.Value) != 0)
+					{
+						throw new InvalidOperationException("Expected CompareTo argument to be 0");
+					}
+
+					switch (operation)
+					{
+					case ExpressionType.GreaterThan:
+						operation = ExpressionType.LessThanOrEqual;
+						break;
+					case ExpressionType.GreaterThanOrEqual:
+						operation = ExpressionType.LessThan;
+						break;
+					case ExpressionType.LessThan:
+						operation = ExpressionType.GreaterThanOrEqual;
+						break;
+					case ExpressionType.LessThanOrEqual:
+						operation = ExpressionType.GreaterThan;
+						break;
+					}
+				}
+
+				if (left != null && right != null)
+				{
+					if (operation == ExpressionType.Equal || operation == ExpressionType.NotEqual)
+					{
+						return this.VisitBinary(Expression.MakeBinary(operation, left, right));
+					}
+
+					return new SqlFunctionCallExpression(typeof(bool), SqlFunction.CompareObject, Expression.Constant(operation), Visit(left), Visit(right));
 				}
 			}
 
 			if (binaryExpression.NodeType == ExpressionType.NotEqual
 				|| binaryExpression.NodeType == ExpressionType.Equal)
 			{
-				var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
-
 				var leftConstantExpression = binaryExpression.Left as ConstantExpression;
 				var rightConstantExpression = binaryExpression.Right as ConstantExpression;
 
@@ -303,6 +349,8 @@ namespace Shaolinq.Persistence.Linq
 					{
 						if (leftConstantExpression == null || leftConstantExpression.Value != null)
 						{
+							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
+
 							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Left));
 						}
 					}
@@ -314,6 +362,8 @@ namespace Shaolinq.Persistence.Linq
 					{
 						if (rightConstantExpression == null || rightConstantExpression.Value != null)
 						{
+							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
+
 							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Right));
 						}
 					}
@@ -1088,6 +1138,11 @@ namespace Shaolinq.Persistence.Linq
 			else if (methodCallExpression.Method.ReturnType.IsDataAccessObjectType())
 			{
 				return CreateObjectReference(methodCallExpression);
+			}
+			else if (methodCallExpression.Method == MethodInfoFastRef.ObjectEqualsMethod
+			         || methodCallExpression.Method.Name == "Equals" && methodCallExpression.Method.ReturnType == typeof(bool) && methodCallExpression.Arguments.Count == 1 && methodCallExpression.Arguments[0].Type == typeof(object))
+			{
+				return VisitBinary(Expression.Equal(methodCallExpression.Object, methodCallExpression.Arguments[0]));
 			}
 
 			return base.VisitMethodCall(methodCallExpression);

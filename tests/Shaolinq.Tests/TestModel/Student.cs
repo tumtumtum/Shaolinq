@@ -7,7 +7,7 @@ namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
 	public abstract class Student
-		: Person
+		: Person, IComparable<Student>
 	{
 		[PersistedMember]
 		public abstract Sex Sex { get; set; }
@@ -32,5 +32,10 @@ namespace Shaolinq.Tests.TestModel
 
 		[PersistedMember]
 		public abstract Address Address { get; set; }
+
+		public int CompareTo(Student other)
+		{
+			return other == this ? 0 : 1;
+		}
 	}
 }
