@@ -3,12 +3,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using Shaolinq.Persistence;
 using Platform;
 using Platform.Reflection;
+using Shaolinq.Parser;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.TypeBuilding
@@ -48,6 +50,7 @@ namespace Shaolinq.TypeBuilding
 		private readonly Dictionary<string, FieldBuilder> valueChangedFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, PropertyBuilder> propertyBuilders = new Dictionary<string, PropertyBuilder>();
 		private readonly Dictionary<string, MethodBuilder> setComputedValueMethods = new Dictionary<string, MethodBuilder>();
+		private readonly Dictionary<string, FieldBuilder> computedFuncFields = new Dictionary<string, FieldBuilder>();
 
 		public struct TypeBuildContext
 		{
@@ -180,6 +183,10 @@ namespace Shaolinq.TypeBuilding
 							{
 								this.BuildSetComputedTextPropertyMethod(propertyInfo, typeBuildContext);
 							}
+							else if (propertyDescriptor.IsComputedMember)
+							{
+								this.BuildSetComputedPropertyMethod(propertyInfo, typeBuildContext);
+							}
 						}
 					}
 					else if (persistedMemberAttribute != null && propertyInfo.PropertyType.IsDataAccessObjectType())
@@ -225,6 +232,10 @@ namespace Shaolinq.TypeBuilding
 							if (propertyDescriptor.IsComputedTextMember)
 							{
 								this.BuildSetComputedTextPropertyMethod(propertyInfo, typeBuildContext);
+							}
+							else if (propertyDescriptor.IsComputedMember)
+							{
+								this.BuildSetComputedPropertyMethod(propertyInfo, typeBuildContext);
 							}
 						}
 					}
@@ -532,6 +543,78 @@ namespace Shaolinq.TypeBuilding
 		public static PropertyInfo GetPropertyInfo(Type type, string name)
 		{
 			return type.GetProperties().First(c => c.Name == name);
+		}
+
+		private void BuildSetComputedPropertyMethod(PropertyInfo propertyInfo, TypeBuildContext typeBuildContext)
+		{
+			FieldBuilder fieldBuilder;
+			MethodBuilder methodBuilder;
+			var attribute = propertyInfo.GetFirstCustomAttribute<ComputedMemberAttribute>(true);
+
+			if (typeBuildContext.IsFirstPass())
+			{
+				fieldBuilder = this.typeBuilder.DefineField("$$$" + propertyInfo.Name + "ComputeFunc", typeof(Func<,>).MakeGenericType(this.typeBuilder.BaseType, propertyInfo.PropertyType), FieldAttributes.Public);
+
+				const MethodAttributes methodAttributes = MethodAttributes.Public;
+
+				methodBuilder = this.typeBuilder.DefineMethod("$$SetComputedProperty" + propertyInfo.Name, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, typeof(void), null);
+
+				this.setComputedValueMethods[propertyInfo.Name] = methodBuilder;
+				this.computedFuncFields[propertyInfo.Name] = fieldBuilder;
+			}
+			else
+			{
+				methodBuilder = this.setComputedValueMethods[propertyInfo.Name];
+				fieldBuilder = this.computedFuncFields[propertyInfo.Name];
+			}
+
+			if (typeBuildContext.IsSecondPass())
+			{
+				var generator = methodBuilder.GetILGenerator();
+
+				var skip = generator.DefineLabel();
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, fieldBuilder);
+				generator.Emit(OpCodes.Brtrue, skip);
+
+				var lambdaLocal = generator.DeclareLocal(typeof(LambdaExpression));
+				var computedMemberAttribute = generator.DeclareLocal(typeof(ComputedMemberAttribute));
+				var propertyInfoLocal = generator.DeclareLocal(typeof(PropertyInfo));
+
+				generator.Emit(OpCodes.Ldtoken, propertyInfo.DeclaringType);
+				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+				generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
+				generator.Emit(OpCodes.Ldc_I4, (int)(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+				generator.Emit(OpCodes.Callvirt, typeof(Type).GetMethod("GetProperty", BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(string), typeof(BindingFlags) }, null));
+				generator.Emit(OpCodes.Stloc, propertyInfoLocal);
+
+				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Call, typeof(MemberInfoUtils).GetMethod("GetFirstCustomAttribute", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(typeof(ComputedMemberAttribute)));
+
+				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
+				generator.Emit(OpCodes.Callvirt, computedMemberAttribute.LocalType.GetMethod("GetLambdaExpression", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit(OpCodes.Stloc, lambdaLocal);
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldloc, lambdaLocal);
+				generator.Emit(OpCodes.Callvirt, typeof(LambdaExpression).GetMethod("Compile", BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null));
+				generator.Emit(OpCodes.Castclass, fieldBuilder.FieldType);
+				generator.Emit(OpCodes.Stfld, fieldBuilder);
+
+				generator.MarkLabel(skip);
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, fieldBuilder);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Callvirt, fieldBuilder.FieldType.GetMethod("Invoke"));
+
+				generator.Emit(OpCodes.Callvirt, propertyInfo.GetSetMethod());
+
+				generator.Emit(OpCodes.Ret);
+			}
 		}
 
 		private void BuildSetComputedTextPropertyMethod(PropertyInfo propertyInfo, TypeBuildContext typeBuildContext)
@@ -1856,6 +1939,24 @@ namespace Shaolinq.TypeBuilding
 			foreach (var propertyDescriptor in this.typeDescriptor.ComputedTextProperties)
 			{
 				foreach (var referencedPropertyName in this.GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences()))
+				{
+					if (referencedPropertyName == changedPropertyName)
+					{
+						propertyNames.Add(propertyDescriptor.PropertyName);
+
+						break;
+					}
+				}
+			}
+
+			foreach (var propertyDescriptor in this.typeDescriptor.ComputedProperties)
+			{
+				var expression = propertyDescriptor.ComputedMemberAttribute.GetLambdaExpression(propertyDescriptor.PropertyInfo);
+				var target = expression.Parameters.First();
+
+				var referencedProperties = ReferencedPropertiesGatherer.Gather(expression, target).Select(c => c.Name).ToArray();
+
+				foreach (var referencedPropertyName in this.GetPropertyNamesAndDependentPropertyNames(referencedProperties))
 				{
 					if (referencedPropertyName == changedPropertyName)
 					{
