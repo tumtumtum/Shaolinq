@@ -18,7 +18,7 @@ namespace Shaolinq.Tests
 		where T : DataAccessModel
     {
         protected T model;
-	    protected static readonly bool useMonoData;
+	    protected internal static readonly bool useMonoData;
 
 	    static BaseTests()
 	    {
@@ -45,7 +45,7 @@ namespace Shaolinq.Tests
             return SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
         }
 
-        protected internal static DataAccessModelConfiguration CreateSqliteClassicInMemoryConfiguration(string databaseName)
+        protected DataAccessModelConfiguration CreateSqliteClassicInMemoryConfiguration(string databaseName)
         {
             return SqliteConfiguration.Create(":memory:", null, useMonoData);
         }

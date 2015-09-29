@@ -16,7 +16,7 @@ namespace Shaolinq.Tests
 
 		public IdentityModelTests()
 		{
-			model = DataAccessModel.BuildDataAccessModel<IdentityModel>(BaseTests<IdentityModel>.CreateSqliteClassicInMemoryConfiguration(":memory:"));
+			model = DataAccessModel.BuildDataAccessModel<IdentityModel>(SqliteConfiguration.Create(":memory:", null, BaseTests<IdentityModel>.useMonoData));
 			model.Create(DatabaseCreationOptions.IfDatabaseNotExist);
 
 			userStore = new ShaolinqIdentityUserStore<ShaolinqIdentityUser<Guid>, IdentityModel, Guid, DbUser, DbUserLogin, DbUserClaim, DbUserRole>(model);
