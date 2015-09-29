@@ -8,7 +8,7 @@ using Shaolinq.Tests.GenericModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture]
+	[TestFixture(Category = "IgnoreOnMono")]
 	public class IdentityModelTests
 	{
 		private IdentityModel model;
