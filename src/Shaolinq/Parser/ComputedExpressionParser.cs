@@ -71,7 +71,7 @@ namespace Shaolinq.Parser
 
 		protected Expression ParseComparison()
 		{
-			var leftOperand = ParseAddOrSubtract();
+			var leftOperand = ParseNullCoalescing();
 			var retval = leftOperand;
 
 			while (token >= ComputedExpressionToken.CompareStart && token <= ComputedExpressionToken.CompareEnd)
@@ -80,7 +80,7 @@ namespace Shaolinq.Parser
 
 				Consume();
 
-				var rightOperand = ParseAddOrSubtract();
+				var rightOperand = ParseNullCoalescing();
 
 				switch (operationToken)
 				{
@@ -105,6 +105,25 @@ namespace Shaolinq.Parser
 				}
 
 				Consume();
+			}
+
+			return retval;
+		}
+
+
+
+		protected Expression ParseNullCoalescing()
+		{
+			var leftOperand = ParseAddOrSubtract();
+			var retval = leftOperand;
+
+			if (token == ComputedExpressionToken.DoubleQuestionMark)
+			{
+				Consume();
+
+				var rightOperand = ParseAddOrSubtract();
+
+				return Expression.Coalesce(leftOperand, rightOperand);
 			}
 
 			return retval;
@@ -186,6 +205,8 @@ namespace Shaolinq.Parser
 
 				var argument = this.ParseExpression();
 
+				arguments.Add(argument);
+
 				if (this.token == ComputedExpressionToken.Comma)
 				{
 					this.Consume();
@@ -196,8 +217,6 @@ namespace Shaolinq.Parser
 				{
 					throw new InvalidOperationException("Expected ')'");
 				}
-
-				arguments.Add(argument);
 
 				break;
 			}
@@ -212,8 +231,6 @@ namespace Shaolinq.Parser
 				this.Consume();
 
 				var retval = this.ParseExpression();
-
-				this.Consume();
 
 				this.Expect(ComputedExpressionToken.RightParen);
 

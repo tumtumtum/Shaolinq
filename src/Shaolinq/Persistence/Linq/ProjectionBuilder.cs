@@ -144,7 +144,7 @@ namespace Shaolinq.Persistence.Linq
 					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(currentNewExpressionType);
 					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
 
-					if (propertyDescriptor.IsComputedTextMember)
+					if (propertyDescriptor.IsComputedTextMember || propertyDescriptor.IsComputedMember)
 					{
 						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(currentNewExpressionType);
 						var propertyInfo = concreteType.GetProperty(DataAccessObjectTypeBuilder.ForceSetPrefix + assignment.Member.Name);

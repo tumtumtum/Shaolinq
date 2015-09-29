@@ -31,12 +31,12 @@ namespace Shaolinq.Tests.TestModel
 		public abstract int FavouriteNumber { get; set; }
 
 		[PersistedMember]
-		[ComputedMember("Test(Height)")]
+		[ComputedMember("Height + (Weight ?? 0)")]
 		public abstract long HeightAndWeight { get; set; }
 
-		public long Test(double x)
+		public long Test()
 		{
-			return 100;
+			return (int)(this.Height + (this.Weight ?? 0));
 		}
 
 		[PersistedMember]

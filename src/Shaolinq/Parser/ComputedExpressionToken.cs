@@ -24,6 +24,8 @@ namespace Shaolinq.Parser
 		NotEquals,
 		CompareEnd,
 		LogicalNot,
+		QuestionMark,
+		DoubleQuestionMark,
 		Eof
 	}
 }

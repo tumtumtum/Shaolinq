@@ -236,7 +236,7 @@ namespace Shaolinq.Persistence
 						throw new InvalidDataAccessObjectModelDefinition("The property {0} is missing a required getter method", propertyInfo.Name);
 					}
 
-					if (propertyInfo.GetSetMethod() == null && !propertyDescriptor.IsComputedTextMember)
+					if (propertyInfo.GetSetMethod() == null && !propertyDescriptor.IsComputedTextMember && !propertyDescriptor.IsComputedMember)
 					{
 						throw new InvalidDataAccessObjectModelDefinition("The property {0} is missing a required setter method", propertyInfo.Name);
 					}

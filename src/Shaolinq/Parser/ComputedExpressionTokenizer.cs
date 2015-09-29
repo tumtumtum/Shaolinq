@@ -66,6 +66,22 @@ namespace Shaolinq.Parser
 
 				return this.CurrentToken;
 			}
+			else if (this.currentChar == '?')
+			{
+				this.ConsumeChar();
+
+				if (this.currentChar == '?')
+				{
+					this.ConsumeChar();
+					this.CurrentToken = ComputedExpressionToken.DoubleQuestionMark;
+				}
+				else
+				{
+					this.CurrentToken = ComputedExpressionToken.QuestionMark;
+				}
+
+				return this.CurrentToken;
+			}
 			else if (this.currentChar == '!')
 			{
 				this.ConsumeChar();
@@ -152,6 +168,20 @@ namespace Shaolinq.Parser
 
 				return this.CurrentToken;
 			}
+			else if (this.currentChar == '+')
+			{
+				this.ConsumeChar();
+				this.CurrentToken = ComputedExpressionToken.Add;
+
+				return this.CurrentToken;
+			}
+			else if (this.currentChar == '-')
+			{
+				this.ConsumeChar();
+				this.CurrentToken = ComputedExpressionToken.Subtract;
+
+				return this.CurrentToken;
+			}
 			else if (Char.IsDigit((char)this.currentChar))
 			{
 				this.stringBuilder.Length = 0;
@@ -167,6 +197,8 @@ namespace Shaolinq.Parser
 
 				this.CurrentToken = ComputedExpressionToken.IntegerLiteral;
 				this.CurrentInteger = Convert.ToInt64(s);
+
+				return this.CurrentToken;
 			}
 			else if (Char.IsLetter((char)this.currentChar))
 			{

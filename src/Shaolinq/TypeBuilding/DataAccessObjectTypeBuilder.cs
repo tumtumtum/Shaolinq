@@ -160,7 +160,7 @@ namespace Shaolinq.TypeBuilding
 							throw new InvalidDataAccessObjectModelDefinition("Type '{0}' defines a property '{1}' that is missing a get accessor", propertyInfo.Name, this.typeDescriptor.Type.Name);
 						}
 
-						if (propertyInfo.GetSetMethod() == null && !propertyDescriptor.IsComputedTextMember)
+						if (propertyInfo.GetSetMethod() == null && !propertyDescriptor.IsComputedTextMember && !propertyDescriptor.IsComputedMember)
 						{
 							throw new InvalidDataAccessObjectModelDefinition("Type '{0}' defines a property '{1}' that is missing a set accessor", propertyInfo.Name, this.typeDescriptor.Type.Name);
 						}
@@ -289,19 +289,20 @@ namespace Shaolinq.TypeBuilding
 						constructorGenerator.Emit(OpCodes.Ldarg_0);
 						constructorGenerator.Emit(OpCodes.Ldloc, guidLocal);
 						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
-
-						this.EmitUpdateComputedProperties(constructorGenerator, propertyDescriptor.PropertyName, propertyDescriptor.IsPrimaryKey);
 					}
 					else if (propertyDescriptor.PropertyType.IsValueType 
 						&& Nullable.GetUnderlyingType(propertyDescriptor.PropertyType) == null 
 						&& !propertyDescriptor.IsPrimaryKey
-						&& !propertyDescriptor.IsAutoIncrement)
+						&& !propertyDescriptor.IsAutoIncrement
+						&& !propertyDescriptor.IsComputedMember)
 					{
 						constructorGenerator.Emit(OpCodes.Ldarg_0);
 						constructorGenerator.EmitDefaultValue(propertyDescriptor.PropertyType);
 						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
 					}
-					else if (propertyDescriptor.PropertyType == typeof(string) && !propertyDescriptor.IsComputedTextMember)
+					else if (propertyDescriptor.PropertyType == typeof(string)
+						&& !propertyDescriptor.IsComputedMember
+						&& !propertyDescriptor.IsComputedTextMember)
 					{
 						constructorGenerator.Emit(OpCodes.Ldarg_0);
 						constructorGenerator.Emit(OpCodes.Ldnull);
@@ -611,7 +612,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Callvirt, fieldBuilder.FieldType.GetMethod("Invoke"));
 
-				generator.Emit(OpCodes.Callvirt, propertyInfo.GetSetMethod());
+				generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod());
 
 				generator.Emit(OpCodes.Ret);
 			}
@@ -842,7 +843,7 @@ namespace Shaolinq.TypeBuilding
 			propertyName = propertyName ?? propertyInfo.Name;
 
 			var currentPropertyDescriptor = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName);
-			var shouldBuildForceMethod = currentPropertyDescriptor.IsComputedTextMember;
+			var shouldBuildForceMethod = currentPropertyDescriptor.IsComputedTextMember || currentPropertyDescriptor.IsComputedMember;
 			
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyInfo.GetGetMethod().Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 
@@ -939,7 +940,7 @@ namespace Shaolinq.TypeBuilding
 
 					var loadAndReturnLabel = generator.DefineLabel();
 
-					if (propertyDescriptor.IsComputedTextMember)
+					if (propertyDescriptor.IsComputedTextMember || propertyDescriptor.IsComputedMember)
 					{
 						// if (!this.data.PropertyIsSet)
 
@@ -1739,7 +1740,7 @@ namespace Shaolinq.TypeBuilding
 
 				var name = property.PropertyName;
 
-				if (property.IsComputedTextMember)
+				if (property.IsComputedTextMember || property.IsComputedMember)
 				{
 					name = ForceSetPrefix + name;
 				}
@@ -1914,8 +1915,15 @@ namespace Shaolinq.TypeBuilding
 
 		private IEnumerable<string> GetPropertyNamesAndDependentPropertyNames(IEnumerable<string> propertyNames)
 		{
-			foreach (var propertyName in propertyNames)
+			return GetPropertyNamesAndDependentPropertyNames(propertyNames, new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
+		}
+
+		private IEnumerable<string> GetPropertyNamesAndDependentPropertyNames(IEnumerable<string> propertyNames, HashSet<string> visited)
+		{
+			foreach (var propertyName in propertyNames.Where(c => !visited.Contains(c)))
 			{
+				visited.Add(propertyName);
+
 				yield return propertyName;
 
 				var propertyInfo = this.baseType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -1925,9 +1933,22 @@ namespace Shaolinq.TypeBuilding
 					continue;
 				}
 
-				foreach (DependsOnPropertyAttribute attribute in propertyInfo.GetCustomAttributes(typeof(DependsOnPropertyAttribute), true))
+				var referenced = propertyInfo.GetCustomAttributes(typeof(DependsOnPropertyAttribute), true)
+					.Cast<DependsOnPropertyAttribute>()
+					.Select(c => c.PropertyName)
+					.Where(c => !visited.Contains(c))
+					.ToArray();
+
+				foreach (var referencedPropertyName in referenced.Where(c => !visited.Contains(c)))
 				{
-					yield return attribute.PropertyName;
+					visited.Add(referencedPropertyName);
+
+					yield return referencedPropertyName;
+				}
+
+				foreach (var result in this.GetPropertyNamesAndDependentPropertyNames(referenced, visited))
+				{
+					yield return result;
 				}
 			}
 		}
@@ -1955,8 +1976,8 @@ namespace Shaolinq.TypeBuilding
 				var target = expression.Parameters.First();
 
 				var referencedProperties = ReferencedPropertiesGatherer.Gather(expression, target).Select(c => c.Name).ToArray();
-
-				foreach (var referencedPropertyName in this.GetPropertyNamesAndDependentPropertyNames(referencedProperties))
+				
+				foreach (var referencedPropertyName in this.GetPropertyNamesAndDependentPropertyNames(referencedProperties.Concat(propertyDescriptor.PropertyName)))
 				{
 					if (referencedPropertyName == changedPropertyName)
 					{
