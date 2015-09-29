@@ -45,7 +45,7 @@ namespace Shaolinq.Tests
             return SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
         }
 
-        protected DataAccessModelConfiguration CreateSqliteClassicInMemoryConfiguration(string databaseName)
+        protected internal static DataAccessModelConfiguration CreateSqliteClassicInMemoryConfiguration(string databaseName)
         {
             return SqliteConfiguration.Create(":memory:", null, useMonoData);
         }

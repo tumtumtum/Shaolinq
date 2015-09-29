@@ -16,7 +16,7 @@ namespace Shaolinq.Tests
 
 		public IdentityModelTests()
 		{
-			model = DataAccessModel.BuildDataAccessModel<IdentityModel>(SqliteConfiguration.Create(":memory:", null));
+			model = DataAccessModel.BuildDataAccessModel<IdentityModel>(BaseTests<IdentityModel>.CreateSqliteClassicInMemoryConfiguration(":memory:"));
 			model.Create(DatabaseCreationOptions.IfDatabaseNotExist);
 
 			userStore = new ShaolinqIdentityUserStore<ShaolinqIdentityUser<Guid>, IdentityModel, Guid, DbUser, DbUserLogin, DbUserClaim, DbUserRole>(model);
@@ -25,9 +25,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test()
 		{
-			Guid empty = Guid.Empty;
-
-			//var test = model.Users.SingleOrDefault(c => c.Id.Equals(empty));
+			var empty = Guid.Empty;
 
 			userStore.FindById(empty);
 		}
