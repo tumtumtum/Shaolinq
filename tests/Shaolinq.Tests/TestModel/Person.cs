@@ -5,9 +5,14 @@ using Platform.Validation;
 
 namespace Shaolinq.Tests.TestModel
 {
+	public interface IIdentified<T>
+	{
+		T Id { get; set; }
+	}
+
 	[DataAccessObject(NotPersisted = true)]
 	public abstract class Person
-		: DataAccessObject<Guid>
+		: DataAccessObject<Guid>, IIdentified<Guid>
 	{
 		[PersistedMember]
 		public abstract string Firstname { get; set; }

@@ -20,7 +20,7 @@ namespace Shaolinq.Sqlite
 			};
 		}
 
-		public static DataAccessModelConfiguration Create(string fileName, string categories = null, bool useMonoData = false)
+		public static DataAccessModelConfiguration Create(string fileName, string categories, bool useMonoData = false)
 		{
 			return new DataAccessModelConfiguration
 			{

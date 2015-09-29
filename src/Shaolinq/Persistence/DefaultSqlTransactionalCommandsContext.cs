@@ -197,6 +197,7 @@ namespace Shaolinq.Persistence
 				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
 				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
+				Logger.Error(FormatCommand(command));
 				Logger.ErrorFormat(e.ToString());
 
 				if (decoratedException != e)

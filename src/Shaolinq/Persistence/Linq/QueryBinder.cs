@@ -1804,8 +1804,9 @@ namespace Shaolinq.Persistence.Linq
 
 			if (a.GetType() == b.GetType())
 			{
-				if (a.Name == b.Name
-					&& ((a.DeclaringType == b.DeclaringType) || a.DeclaringType.IsAssignableFrom(b.DeclaringType) || b.DeclaringType.IsAssignableFrom(a.DeclaringType)))
+				if (a.Name == b.Name && ((a.DeclaringType == b.DeclaringType) 
+						|| (a.ReflectedType ?? a.DeclaringType).IsAssignableFrom(b.ReflectedType ?? b.DeclaringType) 
+						|| (b.ReflectedType ?? b.DeclaringType).IsAssignableFrom(a.ReflectedType ?? a.DeclaringType)))
 				{
 					return true;
 				}

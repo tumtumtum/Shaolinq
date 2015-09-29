@@ -399,7 +399,7 @@ namespace Shaolinq.Tests
 
 				Assert.IsTrue(student.IsDeflatedReference());
 
-				var sameStudent = this.model.Students.SingleOrDefault(c => c.Id.Equals(studentId));
+				var sameStudent = this.model.Students.SingleOrDefault(c => c.Id.Equals(student.Id));
 
 				Assert.IsFalse(student.IsDeflatedReference());
 
