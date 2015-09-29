@@ -330,7 +330,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (operation == ExpressionType.Equal || operation == ExpressionType.NotEqual)
 					{
-						return this.VisitBinary(Expression.MakeBinary(operation, left, right));
+						return this.VisitBinary(Expression.MakeBinary(operation, Visit(left), Visit(right)));
 					}
 
 					return new SqlFunctionCallExpression(typeof(bool), SqlFunction.CompareObject, Expression.Constant(operation), Visit(left), Visit(right));
