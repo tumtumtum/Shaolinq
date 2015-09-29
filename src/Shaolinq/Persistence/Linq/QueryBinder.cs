@@ -340,8 +340,11 @@ namespace Shaolinq.Persistence.Linq
 			if (binaryExpression.NodeType == ExpressionType.NotEqual
 				|| binaryExpression.NodeType == ExpressionType.Equal)
 			{
-				var leftConstantExpression = this.Visit(binaryExpression.Left) as ConstantExpression;
-				var rightConstantExpression = this.Visit(binaryExpression.Right) as ConstantExpression;
+				left = this.Visit(binaryExpression.Left);
+				right = this.Visit(binaryExpression.Right);
+
+				var leftConstantExpression = left as ConstantExpression;
+				var rightConstantExpression = right as ConstantExpression;
 
 				if (rightConstantExpression != null)
 				{
@@ -351,7 +354,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
 
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, leftConstantExpression);
+							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Left));
 						}
 					}
 				}
@@ -364,7 +367,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
 
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, rightConstantExpression);
+							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Right));
 						}
 					}
 				}
@@ -1079,7 +1082,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
+							var newArrayExpression = this.Visit(methodCallExpression.Arguments[0]) as NewArrayExpression;
 							var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
 							var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
 
