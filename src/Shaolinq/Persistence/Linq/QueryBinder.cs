@@ -1082,7 +1082,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							var newArrayExpression = this.Visit(methodCallExpression.Arguments[0]) as NewArrayExpression;
+							var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
 							var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
 							var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
 
