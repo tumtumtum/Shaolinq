@@ -372,6 +372,44 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_IdEquals_With_Deflated()
+		{
+			Guid studentId;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = model.Schools.Create();
+
+				school.Name = "The Shaolinq School of Kung Fu";
+
+				var student = school.Students.Create();
+
+				student.Birthdate = new DateTime(1940, 11, 27);
+
+				scope.Flush(model);
+
+				studentId = student.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.GetReference(studentId);
+
+				Assert.IsTrue(student.IsDeflatedReference());
+
+				var sameStudent = this.model.Students.SingleOrDefault(c => c.Id.Equals(studentId));
+
+				Assert.IsFalse(student.IsDeflatedReference());
+
+				Assert.AreSame(student, sameStudent);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_EqualsId_With_Deflated()
 		{
 			Guid studentId;

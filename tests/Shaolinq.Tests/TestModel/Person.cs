@@ -34,10 +34,18 @@ namespace Shaolinq.Tests.TestModel
 		[ComputedMember("Height + (Weight ?? 0)")]
 		public abstract long HeightAndWeight { get; set; }
 
-		public long Test()
+		/*
+		[PersistedMember]
+		[ComputedMember("CalculateHeightAndWeight()")]
+		public abstract long HeightAndWeight2 { get; set; }
+
+		[DependsOnProperty("Height")]
+		[DependsOnProperty("Weight")]
+		public long CalculateHeightAndWeight()
 		{
 			return (int)(this.Height + (this.Weight ?? 0));
 		}
+		*/
 
 		[PersistedMember]
 		[ComputedTextMember("{Firstname} {Lastname}")]

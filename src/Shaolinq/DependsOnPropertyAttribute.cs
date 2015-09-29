@@ -4,7 +4,7 @@ using System;
 
 namespace Shaolinq
 {
-	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true)]
 	public class DependsOnPropertyAttribute
 		: Attribute
 	{
