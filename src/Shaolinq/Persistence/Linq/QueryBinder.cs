@@ -283,8 +283,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var methodCallExpressionLeft = binaryExpression.Left as MethodCallExpression;
 				var methodCallExpressionRight = binaryExpression.Right as MethodCallExpression;
-				var constantExpressionLeft = binaryExpression.Left as ConstantExpression;
-				var constantExpressionRight = binaryExpression.Right as ConstantExpression;
+				var constantExpressionLeft = this.Visit(binaryExpression.Left) as ConstantExpression;
+				var constantExpressionRight = this.Visit(binaryExpression.Right) as ConstantExpression;
 
 				left = right = null;
 				var operation = binaryExpression.NodeType;
@@ -330,7 +330,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (operation == ExpressionType.Equal || operation == ExpressionType.NotEqual)
 					{
-						return this.VisitBinary(Expression.MakeBinary(operation, Visit(left), Visit(right)));
+						return this.VisitBinary(Expression.MakeBinary(operation, left, right));
 					}
 
 					return new SqlFunctionCallExpression(typeof(bool), SqlFunction.CompareObject, Expression.Constant(operation), Visit(left), Visit(right));
@@ -340,8 +340,8 @@ namespace Shaolinq.Persistence.Linq
 			if (binaryExpression.NodeType == ExpressionType.NotEqual
 				|| binaryExpression.NodeType == ExpressionType.Equal)
 			{
-				var leftConstantExpression = binaryExpression.Left as ConstantExpression;
-				var rightConstantExpression = binaryExpression.Right as ConstantExpression;
+				var leftConstantExpression = this.Visit(binaryExpression.Left) as ConstantExpression;
+				var rightConstantExpression = this.Visit(binaryExpression.Right) as ConstantExpression;
 
 				if (rightConstantExpression != null)
 				{
@@ -351,7 +351,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
 
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Left));
+							return new SqlFunctionCallExpression(binaryExpression.Type, function, leftConstantExpression);
 						}
 					}
 				}
@@ -364,7 +364,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
 
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Right));
+							return new SqlFunctionCallExpression(binaryExpression.Type, function, rightConstantExpression);
 						}
 					}
 				}
@@ -375,7 +375,7 @@ namespace Shaolinq.Persistence.Linq
                 left = Visit(binaryExpression.Left);
                 right = Visit(binaryExpression.Right);
 
-                return new SqlFunctionCallExpression(binaryExpression.Type, SqlFunction.Coalesce, new[] { left, right });
+                return new SqlFunctionCallExpression(binaryExpression.Type, SqlFunction.Coalesce, left, right);
             }
 
 			left = Visit(binaryExpression.Left);
