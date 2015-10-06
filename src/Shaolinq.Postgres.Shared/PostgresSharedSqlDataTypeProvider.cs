@@ -10,8 +10,8 @@ namespace Shaolinq.Postgres.Shared
 	{
 		private readonly SqlDataType blobSqlDataType;
 
-		public bool NativeUuids { get; private set; }
-		public bool NativeEnums { get; private set; }
+		public bool NativeUuids { get; }
+		public bool NativeEnums { get; }
 
 		protected override SqlDataType GetBlobDataType()
 		{

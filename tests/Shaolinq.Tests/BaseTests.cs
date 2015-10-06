@@ -85,7 +85,7 @@ namespace Shaolinq.Tests
                 UserId = "postgres",
                 Password = "postgres",
                 Categories = null,
-                UnpreparedExecute = true
+                UnpreparedExecute = false
             });
         }
 

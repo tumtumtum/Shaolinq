@@ -715,7 +715,13 @@ namespace Shaolinq.Tests
 
 				male.SexOptional = Sex.Male;
 
-				scope.Complete();
+			    scope.Flush(model);
+
+                count = this.model.Students.Count(c => c.SexOptional == Sex.Male);
+
+			    Assert.AreEqual(1, count);
+
+                scope.Complete();
 			}
 		}
 

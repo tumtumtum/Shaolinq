@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
@@ -138,7 +139,8 @@ namespace Shaolinq.Persistence.Linq
 
 					// return Expression.Constant(value, e.Type);
 				}
-				else if (e.NodeType == ExpressionType.Convert && ((UnaryExpression)e).Operand.NodeType == ExpressionType.MemberAccess && ((UnaryExpression)e).Operand.Type.IsEnum)
+				else if (e.NodeType == ExpressionType.Convert 
+                    && ((UnaryExpression)e).Operand.Type.GetUnwrappedNullableType().IsEnum)
 				{
 					var lambda = Expression.Lambda(e);
 					var fn = lambda.Compile();
