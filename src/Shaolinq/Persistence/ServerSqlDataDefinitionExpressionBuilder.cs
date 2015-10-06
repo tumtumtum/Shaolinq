@@ -7,7 +7,7 @@ namespace Shaolinq.Persistence
 {
 	public class ServerSqlDataDefinitionExpressionBuilder
 	{
-		public SqlDatabaseSchemaManager SchemaManager { get; private set; }
+		public SqlDatabaseSchemaManager SchemaManager { get; }
 
 		public ServerSqlDataDefinitionExpressionBuilder(SqlDatabaseSchemaManager schemaManager)
 		{

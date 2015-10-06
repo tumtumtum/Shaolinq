@@ -7,7 +7,7 @@ namespace Shaolinq.Persistence
 	public class DbConnectionWrapper
 		: IDbConnection
 	{
-		public IDbConnection Inner { get; private set; }
+		public IDbConnection Inner { get; }
 
 		public DbConnectionWrapper(IDbConnection inner)
 		{

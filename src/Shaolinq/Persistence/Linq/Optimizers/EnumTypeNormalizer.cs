@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class EnumTypeNormalizer
 		: SqlExpressionVisitor
 	{
-		public Type PersistedType { get; private set; }
+		public Type PersistedType { get; }
 
 		public EnumTypeNormalizer(Type persistedType)
 		{

@@ -1,7 +1,5 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
-using System.Runtime.InteropServices;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 

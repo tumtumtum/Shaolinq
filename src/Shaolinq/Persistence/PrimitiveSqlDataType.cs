@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence
 	public class PrimitiveSqlDataType
 		: SqlDataType
 	{
-		public string SqlName { get; private set; }
+		public string SqlName { get; }
 		public MethodInfo GetMethod { get; private set; }
 
 		public PrimitiveSqlDataType(ConstraintDefaults constraintDefaults, Type type, string sqlName, MethodInfo getMethod)

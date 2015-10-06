@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence
 {
 	public class ModelTypeDescriptor
 	{
-		public Type Type { get; private set; }
-		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
+		public Type Type { get; }
+		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public DataAccessModelAttribute DataAccessModelAttribute { get; private set; }
 		
 		public ModelTypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)

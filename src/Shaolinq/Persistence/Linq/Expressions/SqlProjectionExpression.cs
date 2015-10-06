@@ -8,11 +8,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public bool IsDefaultIfEmpty { get; private set; }
-		public bool IsElementTableProjection { get; private set; }
-		public SqlSelectExpression Select { get; private set; }
-		public Expression Projector { get; private set; }
-		public LambdaExpression Aggregator { get; private set; }
-		public SelectFirstType SelectFirstType { get; private set; }
+		public bool IsElementTableProjection { get; }
+		public SqlSelectExpression Select { get; }
+		public Expression Projector { get; }
+		public LambdaExpression Aggregator { get; }
+		public SelectFirstType SelectFirstType { get; }
 		public Expression DefaultValueExpression { get; private set; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Projection; } }
 

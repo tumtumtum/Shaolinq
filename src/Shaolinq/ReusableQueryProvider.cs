@@ -13,7 +13,7 @@ namespace Shaolinq
 	public abstract class ReusableQueryProvider
 		: IPersistenceQueryProvider
 	{
-		protected Type QueryableType { get; private set; }
+		protected Type QueryableType { get; }
 
 		protected ReusableQueryProvider(Type queryableType)
 		{

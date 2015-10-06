@@ -11,9 +11,9 @@ namespace Shaolinq
 	public class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
-		public Transaction Transaction { get; private set; }
+		public Transaction Transaction { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
-		public DataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; }
 		private readonly IDictionary<SqlDatabaseContext, TransactionEntry> persistenceTransactionContextsBySqlDatabaseContexts;
 
 		public DataAccessObjectDataContext CurrentDataContext

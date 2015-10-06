@@ -14,7 +14,7 @@ namespace Shaolinq
 	public class BackReferenceAttribute
 		: Attribute
 	{
-		public string Name { get; private set; }
+	    public string Name { get; set; }
 
 		public BackReferenceAttribute()
 		{

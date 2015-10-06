@@ -16,7 +16,7 @@ namespace Shaolinq
 		private int disposed;
 		public Transaction Transaction { get; private set; }
 		public IDbConnection DbConnection { get; private set; }
-		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		protected IDbTransaction dbTransaction;
 		public DataAccessModel DataAccessModel { get; private set; }

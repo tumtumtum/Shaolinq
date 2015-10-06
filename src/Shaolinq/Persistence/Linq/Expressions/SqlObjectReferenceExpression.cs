@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlObjectReferenceExpression
 		: SqlBaseExpression
 	{
-		public ReadOnlyCollection<MemberBinding> Bindings { get; private set; }
+		public ReadOnlyCollection<MemberBinding> Bindings { get; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ObjectReference; } }
 
 		public IEnumerable<MemberBinding> GetBindingsFlattened()

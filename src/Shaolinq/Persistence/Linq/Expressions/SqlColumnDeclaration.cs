@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// <summary>
 		/// The alias/name of the column declaration
 		/// </summary>
-		public string Name { get; private set; }
+		public string Name { get; }
 
 		/// <summary>
 		/// A SqlColumnExpression, SqlAggregateExpression or SqlOrderExpression.

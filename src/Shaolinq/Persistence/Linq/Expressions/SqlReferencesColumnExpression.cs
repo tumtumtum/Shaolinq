@@ -11,11 +11,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlReferencesColumnExpression
 		: SqlBaseExpression
 	{
-		public SqlTableExpression ReferencedTable {get; private set;}
+		public SqlTableExpression ReferencedTable {get; }
 		public IReadOnlyList<string> ReferencedColumnNames {get;private set;}
-		public SqlColumnReferenceDeferrability Deferrability { get; private set; }
-		public SqlColumnReferenceAction OnDeleteAction { get; private set; }
-		public SqlColumnReferenceAction OnUpdateAction { get; private set; }
+		public SqlColumnReferenceDeferrability Deferrability { get; }
+		public SqlColumnReferenceAction OnDeleteAction { get; }
+		public SqlColumnReferenceAction OnUpdateAction { get; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ReferencesColumn; } }
 
 		public SqlReferencesColumnExpression(SqlTableExpression referencedTable, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)

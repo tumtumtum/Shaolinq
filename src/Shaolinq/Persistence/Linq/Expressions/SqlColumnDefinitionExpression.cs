@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlColumnDefinitionExpression
 		: SqlBaseExpression
 	{
-		public string ColumnName { get; private set; }
-		public Expression ColumnType { get; private set; }
+		public string ColumnName { get; }
+		public Expression ColumnType { get; }
 		public IReadOnlyList<Expression> ConstraintExpressions { get; private set; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ColumnDefinition; } }
 

@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq
 	public class Grouping<K, V>
 		: IGrouping<K, V>
 	{
-		public K Key { get; private set; }
-		public IEnumerable<V> Group { get; private set; }
+		public K Key { get; }
+		public IEnumerable<V> Group { get; }
 
 		public Grouping(K key, IEnumerable<V> group)
 		{

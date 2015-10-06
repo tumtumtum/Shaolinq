@@ -54,7 +54,7 @@ namespace Shaolinq.Persistence.Linq
 		private int depth;
 		protected TextWriter writer;
 		protected List<Pair<Type, object>> parameterValues;
-		internal int IndentationWidth { get; private set; }
+		internal int IndentationWidth { get; }
 		public string ParameterIndicatorPrefix { get; protected set; }
 		protected readonly SqlDialect sqlDialect;
 

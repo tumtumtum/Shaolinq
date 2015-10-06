@@ -24,7 +24,7 @@ namespace Shaolinq.Persistence
 		public string SchemaName { get; protected set; }
 		public string[] ContextCategories { get; protected set; }
 		public string TableNamePrefix { get; protected set; }
-		public DataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; }
 		public SqlDialect SqlDialect { get; protected set; }
 		public SqlDataTypeProvider SqlDataTypeProvider { get; protected set; }
 		public SqlDatabaseSchemaManager SchemaManager { get; protected set; }

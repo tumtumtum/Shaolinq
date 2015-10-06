@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence
 {
 	public class TypeDescriptorProvider
 	{
-		public Type DataAccessModelType { get; private set; }
+		public Type DataAccessModelType { get; }
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 
 		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType;

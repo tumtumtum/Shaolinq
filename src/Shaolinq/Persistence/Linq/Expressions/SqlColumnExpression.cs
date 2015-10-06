@@ -13,9 +13,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlColumnExpression
 		: SqlBaseExpression
 	{
-		public string Name { get; private set; }
-		public string SelectAlias { get; private set; }
-		public string AliasedName { get; private set; }
+		public string Name { get; }
+		public string SelectAlias { get; }
+		public string AliasedName { get; }
 
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Column; } }
 

@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence
 	{
 		public SqlDataTypeProvider SqlDataTypeProvider { get; set; }
 		public SqlDialect SqlDialect { get; set; }
-		public SqlQueryFormatterConstructorMethod ConstructorMethod { get; private set; }
+		public SqlQueryFormatterConstructorMethod ConstructorMethod { get; }
 		public delegate SqlQueryFormatter SqlQueryFormatterConstructorMethod(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider);
 
 		private static SqlQueryFormatterConstructorMethod CreateConstructorMethodFromType(Type type)

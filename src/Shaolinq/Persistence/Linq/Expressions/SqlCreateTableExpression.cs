@@ -9,10 +9,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlCreateTableExpression
 		: SqlBaseExpression
 	{
-		public bool IfNotExist { get; private set; }
-		public SqlTableExpression Table { get; private set; }
+		public bool IfNotExist { get; }
+		public SqlTableExpression Table { get; }
 		public IReadOnlyList<Expression> TableConstraints { get; private set; }
-		public IReadOnlyList<SqlColumnDefinitionExpression> ColumnDefinitionExpressions { get; private set; }
+		public IReadOnlyList<SqlColumnDefinitionExpression> ColumnDefinitionExpressions { get; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.CreateTable; } }
 
 		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IEnumerable<SqlColumnDefinitionExpression> columnExpressions, IEnumerable<Expression> tableConstraintExpressions)

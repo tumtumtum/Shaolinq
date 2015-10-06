@@ -26,8 +26,8 @@ namespace Shaolinq.TypeBuilding
 
 		private static readonly Regex BuildMethodRegex = new Regex("^Build(.*)(Method|Property)$", RegexOptions.Compiled);
 
-		public ModuleBuilder ModuleBuilder { get; private set; }
-		public AssemblyBuildContext AssemblyBuildContext { get; private set; }
+		public ModuleBuilder ModuleBuilder { get; }
+		public AssemblyBuildContext AssemblyBuildContext { get; }
 
 		private readonly Type baseType;
 		private TypeBuilder typeBuilder;

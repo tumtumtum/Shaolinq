@@ -14,8 +14,8 @@ namespace Shaolinq.Persistence
 		protected readonly ConstraintDefaults constraintDefaults;
 		protected static readonly MethodInfo IsDbNullMethod = DataRecordMethods.IsNullMethod;
 
-		public Type SupportedType { get; private set; }
-		public Type UnderlyingType { get; private set; }
+		public Type SupportedType { get; }
+		public Type UnderlyingType { get; }
 		public bool IsUserDefinedType { get; private set; }
 
 		/// <summary>

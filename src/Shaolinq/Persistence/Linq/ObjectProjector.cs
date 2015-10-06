@@ -13,9 +13,9 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class ObjectProjector
 	{
-		public SqlQueryFormatResult FormatResult { get; private set; }
-		public DataAccessModel DataAccessModel { get; private set; }
-		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
+		public SqlQueryFormatResult FormatResult { get; }
+		public DataAccessModel DataAccessModel { get; }
+		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		protected int count = 0;
 		protected readonly IQueryProvider provider;

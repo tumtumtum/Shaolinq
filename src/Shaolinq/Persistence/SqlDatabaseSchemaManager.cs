@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseSchemaManager
 		: IDisposable
 	{
-		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; }
 		public ServerSqlDataDefinitionExpressionBuilder ServerSqlDataDefinitionExpressionBuilder { get; private set; } 
 		private static readonly ILog Log = LogManager.GetLogger(typeof(SqlDatabaseSchemaManager).Name);
 

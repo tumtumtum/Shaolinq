@@ -6,7 +6,7 @@ namespace Shaolinq.Persistence
 {
 	public abstract class SqlDataTypeProvider
 	{
-		public ConstraintDefaults ConstraintDefaults { get; private set; }
+		public ConstraintDefaults ConstraintDefaults { get; }
 
 		protected SqlDataTypeProvider(ConstraintDefaults constraintDefaults)
 		{

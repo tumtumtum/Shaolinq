@@ -48,9 +48,7 @@ namespace Shaolinq
 
 		public DataAccessModel DataAccessModel
 		{
-			get;
-			private set;
-		}
+			get; }
 
 		~DataAccessModelTransactionManager()
 		{

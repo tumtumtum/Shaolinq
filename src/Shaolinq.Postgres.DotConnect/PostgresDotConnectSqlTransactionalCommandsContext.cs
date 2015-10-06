@@ -1,9 +1,7 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Data;
 using System.Transactions;
-using Platform;
 using Devart.Data.PostgreSql;
 ﻿using Shaolinq.Persistence;
 

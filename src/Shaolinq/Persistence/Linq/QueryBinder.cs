@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq
 	public class QueryBinder
 		: Platform.Linq.ExpressionVisitor
 	{
-		public DataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; }
 
 		private int aliasCount;
 		private readonly Type conditionType;

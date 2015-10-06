@@ -11,16 +11,16 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlSelectExpression
 		: SqlBaseExpression
 	{
-		public string Alias { get; private set; }
+		public string Alias { get; }
 		public bool Distinct { get; protected internal set; }
-		public IReadOnlyList<SqlColumnDeclaration> Columns { get; private set; }
-		public Expression From { get; private set; }
-		public Expression Where { get; private set; }
-		public Expression Take { get; private set; }
-		public Expression Skip { get; private set; }
-		public bool ForUpdate { get; private set; }
-		public IReadOnlyList<Expression> OrderBy { get; private set; }
-		public IReadOnlyList<Expression> GroupBy { get; private set; }
+		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
+		public Expression From { get; }
+		public Expression Where { get; }
+		public Expression Take { get; }
+		public Expression Skip { get; }
+		public bool ForUpdate { get; }
+		public IReadOnlyList<Expression> OrderBy { get; }
+		public IReadOnlyList<Expression> GroupBy { get; }
 		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Select; } }
 
 		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate)

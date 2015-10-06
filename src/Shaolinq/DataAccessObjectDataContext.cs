@@ -22,8 +22,8 @@ namespace Shaolinq
 	{
 		protected internal struct TypeAndTransactionalCommandsContext
 		{
-			public Type Type { get; private set; }
-			public SqlTransactionalCommandsContext CommandsContext { get; private set; }
+			public Type Type { get; }
+			public SqlTransactionalCommandsContext CommandsContext { get; }
 
 			public TypeAndTransactionalCommandsContext(Type type, SqlTransactionalCommandsContext sqlTransactionalCommandsContext)
 				: this()
@@ -593,9 +593,9 @@ namespace Shaolinq
 		private ObjectsByIdCache<string> cacheByString;
 		private ObjectsByCondition cacheByCondition;
 
-		protected bool DisableCache { get; private set; }
+		protected bool DisableCache { get; }
 		public DataAccessModel DataAccessModel { get; private set; }
-		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		public DataAccessObjectDataContext(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, bool disableCache)
 		{

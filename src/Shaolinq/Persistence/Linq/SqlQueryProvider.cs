@@ -91,8 +91,8 @@ namespace Shaolinq.Persistence.Linq
 
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
 
-		public DataAccessModel DataAccessModel { get; private set; }
-		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
+		public DataAccessModel DataAccessModel { get; }
+		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		public SqlQueryProvider(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext)
 			: base(typeof(SqlQueryable<>))

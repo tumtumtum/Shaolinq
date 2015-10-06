@@ -6,11 +6,11 @@ namespace Shaolinq
 {
 	public struct ObjectPropertyValue
 	{
-		public object Value { get; private set; }
+		public object Value { get; }
 		public Type PropertyType { get; private set; }
-		public string PropertyName { get; private set; }
-		public string PersistedName { get; private set; }
-		public int PropertyNameHashCode { get; private set; }
+		public string PropertyName { get; }
+		public string PersistedName { get; }
+		public int PropertyNameHashCode { get; }
 		
 		public ObjectPropertyValue(Type propertyType, string propertyName, string persistedName, int propertyNameHashcode, object value)
 			: this()

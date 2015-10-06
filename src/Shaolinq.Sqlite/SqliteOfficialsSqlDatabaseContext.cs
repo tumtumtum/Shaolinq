@@ -16,11 +16,11 @@ namespace Shaolinq.Sqlite
 		: SqliteSqlDatabaseContext
 	{
 		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
-		private static readonly Regex sqliteUriRegex = new Regex(@"file:(?<path>(:memory:)|([^\?]*))(?<query>\?.*)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex SqliteUriRegex = new Regex(@"file:(?<path>(:memory:)|([^\?]*))(?<query>\?.*)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		public static string ConvertNewStyleUriToOldStyleUri(string uri, out bool isInMemory)
 		{
-			var match = sqliteUriRegex.Match(uri);
+			var match = SqliteUriRegex.Match(uri);
 
 			if (match.Success)
 			{

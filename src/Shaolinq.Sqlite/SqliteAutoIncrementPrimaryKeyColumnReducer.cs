@@ -11,7 +11,7 @@ namespace Shaolinq.Sqlite
 	public class SqliteAutoIncrementPrimaryKeyColumnReducer
 		: SqlExpressionVisitor
 	{
-		private HashSet<string> columnsToMakeNotNull = new HashSet<string>();
+		private readonly HashSet<string> columnsToMakeNotNull = new HashSet<string>();
 		private readonly IDictionary<string, string> primaryKeyNameByTablesWithReducedPrimaryKeyName = new Dictionary<string, string>();
 		
 		private SqliteAutoIncrementPrimaryKeyColumnReducer()

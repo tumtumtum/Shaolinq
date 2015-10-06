@@ -13,11 +13,11 @@ namespace Shaolinq.Persistence
 {
 	public class TypeDescriptor
 	{
-		public Type Type { get; private set; }
+		public Type Type { get; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
-		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; private set; }
-		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; private set; }
-		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
 		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; private set; }
 		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; private set; }
@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence
 		public string TypeName { get { return this.Type.Name; } }
 		public bool HasPrimaryKeys { get { return this.PrimaryKeyProperties.Count > 0; } }
 		public int PrimaryKeyCount { get { return this.PrimaryKeyProperties.Count; } }
-		public DataAccessObjectAttribute DataAccessObjectAttribute { get; private set; }
+		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
 
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;

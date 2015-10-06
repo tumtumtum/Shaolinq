@@ -14,22 +14,22 @@ namespace Shaolinq.Persistence
 	{
 		public Type OwnerType { get; private set; }
 		public bool IsPrimaryKey { get; private set; }
-		public string PersistedName { get; private set; }
+		public string PersistedName { get; }
 		public string PersistedShortName { get; private set; }
-		public PropertyInfo PropertyInfo { get; private set; }
-		public UniqueAttribute UniqueAttribute { get; private set; }
-		public TypeDescriptor DeclaringTypeDescriptor { get; private set; }
-		public PrimaryKeyAttribute PrimaryKeyAttribute { get; private set; }
+		public PropertyInfo PropertyInfo { get; }
+		public UniqueAttribute UniqueAttribute { get; }
+		public TypeDescriptor DeclaringTypeDescriptor { get; }
+		public PrimaryKeyAttribute PrimaryKeyAttribute { get; }
 		public DefaultValueAttribute DefaultValueAttribute { get; private set; }
-		public AutoIncrementAttribute AutoIncrementAttribute { get; private set; }
+		public AutoIncrementAttribute AutoIncrementAttribute { get; }
 		public ValueRequiredAttribute ValueRequiredAttribute { get; private set; }
-		public BackReferenceAttribute BackReferenceAttribute { get; private set; }
-		public PersistedMemberAttribute PersistedMemberAttribute { get; private set; }
+		public BackReferenceAttribute BackReferenceAttribute { get; }
+		public PersistedMemberAttribute PersistedMemberAttribute { get; }
 		public ForeignObjectConstraintAttribute ForeignObjectConstraintAttribute { get; private set; }
 		public IReadOnlyList<IndexAttribute> IndexAttributes { get; private set; }
-		public ComputedMemberAttribute ComputedMemberAttribute { get; private set; }
-		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; private set; }
-		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; private set; }
+		public ComputedMemberAttribute ComputedMemberAttribute { get; }
+		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; }
+		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; }
 		public string PropertyName { get { return this.PropertyInfo.Name; } }
 		public Type PropertyType { get { return this.PropertyInfo.PropertyType; } }
 		public bool HasUniqueAttribute { get { return this.UniqueAttribute != null; } }

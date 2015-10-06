@@ -13,8 +13,8 @@ namespace Shaolinq.TypeBuilding
 	{
 		private readonly Type dataAccessModelType;
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
-		public Assembly ConcreteAssembly { get; private set; }
-		public Assembly DefinitionAssembly { get; private set; }
+		public Assembly ConcreteAssembly { get; }
+		public Assembly DefinitionAssembly { get; }
 		
 		private readonly Dictionary<Type, Type> enumerableTypes = new Dictionary<Type, Type>();
 		private readonly Dictionary<Type, Type> typesByConcreteType = new Dictionary<Type, Type>();

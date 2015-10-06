@@ -14,10 +14,10 @@ namespace Shaolinq
 		where T : DataAccessObject
 	{
 		public override Type ElementType { get { return typeof(T); } }
-		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; private set; }
+		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 
 		public string PropertyName { get; private set; }
-		public EntityRelationshipType RelationshipType { get; private set; }
+		public EntityRelationshipType RelationshipType { get; }
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; private set; }
 
 		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, EntityRelationshipType relationshipType, string propertyName)
