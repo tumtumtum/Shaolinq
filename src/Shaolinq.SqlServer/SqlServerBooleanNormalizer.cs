@@ -68,32 +68,48 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			if (binaryExpression.NodeType == ExpressionType.Or 
-				|| binaryExpression.NodeType == ExpressionType.And
-				|| binaryExpression.NodeType == ExpressionType.OrElse
-				|| binaryExpression.NodeType == ExpressionType.AndAlso
-				&& binaryExpression.Type.GetUnwrappedNullableType() == typeof(bool))
-			{
-				var left = this.Visit(binaryExpression.Left);
-				var right = this.Visit(binaryExpression.Right);
+		    if ((binaryExpression.NodeType == ExpressionType.Or
+		         || binaryExpression.NodeType == ExpressionType.And
+		         || binaryExpression.NodeType == ExpressionType.OrElse
+		         || binaryExpression.NodeType == ExpressionType.AndAlso)
+		        && binaryExpression.Type.GetUnwrappedNullableType() == typeof(bool))
+		    {
+		        var left = this.Visit(binaryExpression.Left);
+		        var right = this.Visit(binaryExpression.Right);
 
-				if (left.Type.GetUnwrappedNullableType() == typeof(bool) && (left is BitBooleanExpression))
-				{
-					left = Expression.Equal(left, Expression.Constant(true));
-				}
+		        if (left.Type.GetUnwrappedNullableType() == typeof(bool) && (left is BitBooleanExpression))
+		        {
+		            left = Expression.Equal(left, Expression.Constant(true));
+		        }
 
-				if (right.Type.GetUnwrappedNullableType() == typeof(bool) && (right is BitBooleanExpression))
-				{
-					right = Expression.Equal(right, Expression.Constant(false));
-				}
+		        if (right.Type.GetUnwrappedNullableType() == typeof(bool) && (right is BitBooleanExpression))
+		        {
+		            right = Expression.Equal(right, Expression.Constant(false));
+		        }
 
-				if (left != binaryExpression.Left || right != binaryExpression.Right)
-				{
-					return Expression.MakeBinary(binaryExpression.NodeType, left, right);
-				}
-			}
+		        if (left != binaryExpression.Left || right != binaryExpression.Right)
+		        {
+		            return Expression.MakeBinary(binaryExpression.NodeType, left, right);
+		        }
 
-			return base.VisitBinary(binaryExpression);
+                var expression = this.Visit(binaryExpression.Conversion);
+
+		        if (left == binaryExpression.Left && right == binaryExpression.Right && expression == binaryExpression.Conversion)
+		        {
+		            return binaryExpression;
+		        }
+
+		        if (binaryExpression.NodeType == ExpressionType.Coalesce && binaryExpression.Conversion != null)
+		        {
+		            return Expression.Coalesce(left, right, expression as LambdaExpression);
+		        }
+
+		        return Expression.MakeBinary(binaryExpression.NodeType, left, right, binaryExpression.IsLiftedToNull, binaryExpression.Method);
+		    }
+		    else
+		    {
+		        return base.VisitBinary(binaryExpression);
+		    }
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
