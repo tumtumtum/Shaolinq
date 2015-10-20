@@ -15,6 +15,8 @@ namespace Shaolinq
 	public class AutoIncrementAttribute
 		: Attribute
 	{
+		public object Seed { get; set; }
+		public long Step { get; set; }
 		public bool AutoIncrement { get; set; }
 
 		public AutoIncrementAttribute()

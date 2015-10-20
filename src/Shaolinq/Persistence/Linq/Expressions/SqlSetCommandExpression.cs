@@ -8,10 +8,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlSetCommandExpression
 		: SqlBaseExpression
 	{
-		public string ConfigurationParameter { get; private set; }
-		public Expression  Target { get; private set; }
-		public IReadOnlyList<Expression> Arguments { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.SetCommand; } }
+		public string ConfigurationParameter { get; }
+		public Expression  Target { get; }
+		public IReadOnlyList<Expression> Arguments { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.SetCommand;
 
 		public SqlSetCommandExpression(string configurationParameter, Expression target, params Expression[] arguments)
 			: this(configurationParameter, target, arguments.ToReadOnlyList())

@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlTupleExpression
 		: SqlBaseExpression
 	{
-		public IReadOnlyList<Expression> SubExpressions { get; private set; }
+		public IReadOnlyList<Expression> SubExpressions { get; }
 
 		internal protected static Type GetTupleExpressionType(IEnumerable<Expression> subExpressions)
 		{

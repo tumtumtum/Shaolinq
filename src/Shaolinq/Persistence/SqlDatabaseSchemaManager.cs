@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence
 		: IDisposable
 	{
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-		public ServerSqlDataDefinitionExpressionBuilder ServerSqlDataDefinitionExpressionBuilder { get; private set; } 
+		public ServerSqlDataDefinitionExpressionBuilder ServerSqlDataDefinitionExpressionBuilder { get; } 
 		private static readonly ILog Log = LogManager.GetLogger(typeof(SqlDatabaseSchemaManager).Name);
 
 		protected SqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)

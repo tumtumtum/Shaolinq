@@ -9,10 +9,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 {
 	public struct ReferencedRelatedObject
 	{
-		public PropertyPath IncludedPropertyPath { get; private set; }
-		public PropertyPath FullAccessPropertyPath { get; private set; }
-		public Expression ObjectExpression { get; private set; }
-		public ICollection<Expression> TargetExpressions { get; private set; }
+		public PropertyPath IncludedPropertyPath { get; }
+		public PropertyPath FullAccessPropertyPath { get; }
+		public Expression ObjectExpression { get; }
+		public ICollection<Expression> TargetExpressions { get; }
 
 		public ReferencedRelatedObject(PropertyPath fullAccessPropertyPath, PropertyPath includedPropertyPath, Expression objectExpression)
 			: this()

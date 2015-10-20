@@ -7,7 +7,7 @@ namespace Shaolinq
 	public struct ObjectPropertyValue
 	{
 		public object Value { get; }
-		public Type PropertyType { get; private set; }
+		public Type PropertyType { get; }
 		public string PropertyName { get; }
 		public string PersistedName { get; }
 		public int PropertyNameHashCode { get; }

@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public string SelectAlias { get; }
 		public string AliasedName { get; }
 
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Column; } }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Column;
 
 		public SqlColumnExpression(Type type, string alias, string name)
 			: base(type)

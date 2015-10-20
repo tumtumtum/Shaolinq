@@ -54,7 +54,7 @@ namespace Shaolinq
 		private string[] databaseContextCategories;
 
 		public string DatabaseContextCategoriesKey { get; private set; }
-		public Guid ResourceManagerIdentifier { get; private set; }
+		public Guid ResourceManagerIdentifier { get; }
 
 		public TransactionContext(DataAccessModel dataAccessModel, Transaction transaction)
 		{

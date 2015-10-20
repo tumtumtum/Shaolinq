@@ -8,10 +8,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlAggregateSubqueryExpression
 		: SqlBaseExpression
 	{
-		public String GroupByAlias { get; private set; }
-		public Expression AggregateInGroupSelect { get; private set; }
+		public String GroupByAlias { get; }
+		public Expression AggregateInGroupSelect { get; }
 		public SqlSubqueryExpression AggregateAsSubquery { get; set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.AggregateSubquery; } }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.AggregateSubquery;
 
 		public SqlAggregateSubqueryExpression(string groupByAlias, Expression aggregateInGroupSelect, SqlSubqueryExpression aggregateAsSubquery)
 			: base(aggregateAsSubquery.Type)

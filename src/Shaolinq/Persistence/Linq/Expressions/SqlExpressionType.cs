@@ -39,6 +39,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		Pragma,
 		ObjectReference,
 		SetCommand,
+		TableOption,
 		Over
 	}
 }

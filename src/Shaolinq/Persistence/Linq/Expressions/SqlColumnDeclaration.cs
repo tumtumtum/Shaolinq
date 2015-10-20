@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// <summary>
 		/// A SqlColumnExpression, SqlAggregateExpression or SqlOrderExpression.
 		/// </summary>
-		public Expression Expression { get; private set; }
+		public Expression Expression { get; }
 
 		/// <summary>
 		/// Constructs a new <see cref="SqlColumnDeclaration"/>

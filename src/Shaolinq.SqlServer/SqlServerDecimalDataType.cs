@@ -18,7 +18,7 @@ namespace Shaolinq.SqlServer
 		: SqlDataType
 	{
 		private readonly MethodInfo method;
-		public string SqlName { get; private set; }
+		public string SqlName { get; }
 		
 		public SqlServerDecimalDataType(ConstraintDefaults constraintDefaults, Type type, string sqlName)
 			: base(constraintDefaults, type)

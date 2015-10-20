@@ -7,10 +7,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlDeleteExpression
 		: SqlBaseExpression
 	{
-		public string Alias { get; private set; }
-		public SqlTableExpression Table { get; private set; }
-		public Expression Where { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Delete; } }
+		public string Alias { get; }
+		public SqlTableExpression Table { get; }
+		public Expression Where { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Delete;
 
 		public SqlDeleteExpression(SqlTableExpression table, string alias, Expression where)
 			: base(typeof(void))

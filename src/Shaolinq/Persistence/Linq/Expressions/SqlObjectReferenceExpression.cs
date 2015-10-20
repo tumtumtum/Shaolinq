@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public ReadOnlyCollection<MemberBinding> Bindings { get; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ObjectReference; } }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ObjectReference;
 
 		public IEnumerable<MemberBinding> GetBindingsFlattened()
 		{

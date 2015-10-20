@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public bool ForUpdate { get; }
 		public IReadOnlyList<Expression> OrderBy { get; }
 		public IReadOnlyList<Expression> GroupBy { get; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Select; } }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Select;
 
 		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate)
 			: this(type, alias, columns.ToReadOnlyList(), from, where, orderBy.ToReadOnlyList(), null, false, null, null, forUpdate)

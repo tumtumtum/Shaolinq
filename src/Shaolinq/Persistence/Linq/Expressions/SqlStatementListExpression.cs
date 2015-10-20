@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlStatementListExpression
 		: SqlBaseExpression
 	{
-		public IReadOnlyList<Expression> Statements { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.StatementList; } }
+		public IReadOnlyList<Expression> Statements { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.StatementList;
 
 		public SqlStatementListExpression(params Expression[] statements)
 			: this(statements.ToReadOnlyList())

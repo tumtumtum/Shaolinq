@@ -9,14 +9,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlCreateIndexExpression
 		: SqlBaseExpression
 	{
-		public bool Unique { get; private set; }
-		public string IndexName { get; private set; }
-		public bool IfNotExist { get; private set; }
-		public bool LowercaseIndex { get; private set; }
-		public IndexType IndexType { get; private set; }
-		public SqlTableExpression Table { get; private set; }
-		public IReadOnlyList<SqlIndexedColumnExpression> Columns { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.CreateIndex; } }
+		public bool Unique { get; }
+		public string IndexName { get; }
+		public bool IfNotExist { get; }
+		public bool LowercaseIndex { get; }
+		public IndexType IndexType { get; }
+		public SqlTableExpression Table { get; }
+		public IReadOnlyList<SqlIndexedColumnExpression> Columns { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateIndex;
 
 		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IEnumerable<SqlIndexedColumnExpression> columns)
 			: this(indexName, table, unique, lowercaseIndex, indexType, ifNotExist, columns.ToReadOnlyList())

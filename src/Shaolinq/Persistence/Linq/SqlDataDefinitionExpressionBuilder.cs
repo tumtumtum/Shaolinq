@@ -270,7 +270,7 @@ namespace Shaolinq.Persistence.Linq
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}
 
-			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints);
+			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, Enumerable.Empty<SqlTableOption>());
 		}
 
 		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)

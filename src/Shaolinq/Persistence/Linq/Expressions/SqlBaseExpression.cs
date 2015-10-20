@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: Expression
 	{
 		private readonly Type type; 
-		public override Type Type { get { return type; } }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Tuple; } }
+		public override Type Type => this.type;
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Tuple;
 
 		protected SqlBaseExpression(Type type)
 		{

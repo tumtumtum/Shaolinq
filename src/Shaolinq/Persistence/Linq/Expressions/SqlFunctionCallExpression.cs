@@ -13,10 +13,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlFunctionCallExpression
 		: SqlBaseExpression
 	{
-		public SqlFunction Function { get; private set; }
-		public string UserDefinedFunctionName { get; private set; }
-		public IReadOnlyList<Expression> Arguments { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.FunctionCall; } }
+		public SqlFunction Function { get; }
+		public string UserDefinedFunctionName { get; }
+		public IReadOnlyList<Expression> Arguments { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.FunctionCall;
 
 		public SqlFunctionCallExpression(Type type, SqlFunction function, params Expression[] arguments)
 			: this(type, function, arguments.ToReadOnlyList())

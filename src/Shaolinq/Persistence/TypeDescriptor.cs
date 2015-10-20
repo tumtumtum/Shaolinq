@@ -14,13 +14,13 @@ namespace Shaolinq.Persistence
 	public class TypeDescriptor
 	{
 		public Type Type { get; }
-		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
+		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
-		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; private set; }
-		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; }
 
 		public string TypeName { get { return this.Type.Name; } }
 		public bool HasPrimaryKeys { get { return this.PrimaryKeyProperties.Count > 0; } }

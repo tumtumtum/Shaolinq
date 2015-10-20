@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlEnumDefinitionExpression
 		: SqlBaseExpression
 	{
-		public IReadOnlyList<string> Labels { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.EnumDefinition; } }
+		public IReadOnlyList<string> Labels { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.EnumDefinition;
 
 		public SqlEnumDefinitionExpression(IEnumerable<string> labels)
 			: this(labels.ToReadOnlyList())

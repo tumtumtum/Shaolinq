@@ -455,7 +455,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (newTable != createTableExpression.Table || createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
 			{
-				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints);
+				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints, Enumerable.Empty< SqlTableOption>());
 			}
 			else
 			{

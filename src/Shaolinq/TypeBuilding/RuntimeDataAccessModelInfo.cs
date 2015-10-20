@@ -12,7 +12,7 @@ namespace Shaolinq.TypeBuilding
 	public class RuntimeDataAccessModelInfo
 	{
 		private readonly Type dataAccessModelType;
-		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
+		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public Assembly ConcreteAssembly { get; }
 		public Assembly DefinitionAssembly { get; }
 		

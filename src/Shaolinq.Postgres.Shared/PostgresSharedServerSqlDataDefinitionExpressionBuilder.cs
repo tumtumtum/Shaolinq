@@ -10,9 +10,9 @@ namespace Shaolinq.Postgres.Shared
 {
 	public class PostgresSharedServerSqlDataDefinitionExpressionBuilder
 	{
-		public SqlDialect SqlDialect { get; private set; }
+		public SqlDialect SqlDialect { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-		public SqlDataTypeProvider SqlDataTypeProvider { get; private set; }
+		public SqlDataTypeProvider SqlDataTypeProvider { get; }
 		
 		public PostgresSharedServerSqlDataDefinitionExpressionBuilder(SqlDatabaseContext sqlDatabaseContext, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect)
 		{

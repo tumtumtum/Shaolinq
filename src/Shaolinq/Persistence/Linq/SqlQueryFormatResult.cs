@@ -8,7 +8,7 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class SqlQueryFormatResult
 	{
-		public string CommandText { get; private set; }
+		public string CommandText { get; }
 		public IEnumerable<Pair<Type, object>> ParameterValues { get; set; }
 
 		public SqlQueryFormatResult(string commandText, IEnumerable<Pair<Type, object>> parameterValues)

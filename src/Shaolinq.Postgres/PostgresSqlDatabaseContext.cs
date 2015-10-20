@@ -14,10 +14,10 @@ using Shaolinq.Postgres.Shared;
 	public class PostgresSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		public int Port { get; private set; }
-		public string Host { get; private set; }
-		public string UserId { get; private set; }
-		public string Password { get; private set; }
+		public int Port { get; }
+		public string Host { get; }
+		public string UserId { get; }
+		public string Password { get; }
 		
 		public static PostgresSqlDatabaseContext Create(PostgresSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{

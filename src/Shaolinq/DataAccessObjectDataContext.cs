@@ -594,7 +594,7 @@ namespace Shaolinq
 		private ObjectsByCondition cacheByCondition;
 
 		protected bool DisableCache { get; }
-		public DataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		public DataAccessObjectDataContext(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, bool disableCache)

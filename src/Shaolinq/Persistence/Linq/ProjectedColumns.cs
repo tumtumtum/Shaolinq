@@ -8,8 +8,8 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class ProjectedColumns
 	{
-		public Expression Projector { get; private set; }
-		public IReadOnlyList<SqlColumnDeclaration> Columns { get; private set; }
+		public Expression Projector { get; }
+		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
 
 		public ProjectedColumns(Expression projector, IReadOnlyList<SqlColumnDeclaration> columns)
 		{

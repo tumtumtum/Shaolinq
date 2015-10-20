@@ -7,7 +7,7 @@ namespace Shaolinq
 	public class ObjectAlreadyInitializedException
 		: Exception
 	{
-		public Object RelatedObject { get; private set; }
+		public Object RelatedObject { get; }
 
 		public ObjectAlreadyInitializedException(object relatedObject)
 		{

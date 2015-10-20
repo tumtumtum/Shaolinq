@@ -9,10 +9,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public SqlJoinType JoinType { get; set; }
-		public Expression Left { get; private set; }
-		public Expression Right { get; private set; }
-		public Expression JoinCondition { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Join; } }
+		public Expression Left { get; }
+		public Expression Right { get; }
+		public Expression JoinCondition { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Join;
 
 		public SqlJoinExpression(Type type, SqlJoinType joinType, Expression left, Expression right, Expression joinCondition)
 			: base(type)

@@ -8,9 +8,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlOverExpression
 		: SqlBaseExpression
 	{
-		public Expression Source { get; private set; }
-		public IReadOnlyList<Expression> OrderBy { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Over; } }
+		public Expression Source { get; }
+		public IReadOnlyList<Expression> OrderBy { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Over;
 
 
 		public SqlOverExpression(Expression source, IReadOnlyList<Expression> orderBy)

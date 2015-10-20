@@ -13,10 +13,10 @@ namespace Shaolinq
 		: DataAccessObjectsQueryable<T>, IRelatedDataAccessObjectContext, IDataAccessObjectActivator
 		where T : DataAccessObject
 	{
-		public override Type ElementType { get { return typeof(T); } }
+		public override Type ElementType => typeof(T);
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 
-		public string PropertyName { get; private set; }
+		public string PropertyName { get; }
 		public EntityRelationshipType RelationshipType { get; }
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; private set; }
 
@@ -71,7 +71,7 @@ namespace Shaolinq
 			if (cache.TryGetValue(key, out initializeDataAccessObject))
 			{
 				this.InitializeDataAccessObject = initializeDataAccessObject;
-
+				
 				return;
 			}
 

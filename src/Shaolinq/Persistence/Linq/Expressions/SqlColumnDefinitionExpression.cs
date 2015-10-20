@@ -11,8 +11,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string ColumnName { get; }
 		public Expression ColumnType { get; }
-		public IReadOnlyList<Expression> ConstraintExpressions { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.ColumnDefinition; } }
+		public IReadOnlyList<Expression> ConstraintExpressions { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ColumnDefinition;
 
 		public SqlColumnDefinitionExpression(string columnName, Expression columnTypeName, IEnumerable<Expression> constraintExpressions)
 			: this(columnName, columnTypeName, constraintExpressions.ToReadOnlyList())

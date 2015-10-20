@@ -14,12 +14,12 @@ namespace Shaolinq
 		: IDisposable
 	{
 		private int disposed;
-		public Transaction Transaction { get; private set; }
+		public Transaction Transaction { get; }
 		public IDbConnection DbConnection { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		protected IDbTransaction dbTransaction;
-		public DataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; }
 
 		public abstract void Delete(SqlDeleteExpression deleteExpression);
 		public abstract void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects);

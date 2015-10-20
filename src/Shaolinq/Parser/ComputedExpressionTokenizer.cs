@@ -14,7 +14,7 @@ namespace Shaolinq.Parser
 		public string CurrentString { get; private set; }
 		public string CurrentIdentifier { get; private set; }
 		public long CurrentInteger { get; private set; }
-		public string CurrentKey { get { return this.CurrentIdentifier; } }
+		public string CurrentKey => this.CurrentIdentifier;
 		public ComputedExpressionToken CurrentToken { get; private set; }
 
 		public bool CurrentTokenMatches(params ComputedExpressionToken[] tokens)

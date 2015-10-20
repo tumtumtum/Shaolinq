@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		public Expression Expression { get; private set; }
+		public Expression Expression { get; }
 
 		private readonly SqlQueryFormatterOptions options;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
@@ -1198,8 +1198,15 @@ namespace Shaolinq.Persistence.Linq
 
 				if (!string.IsNullOrEmpty(s))
 				{
-					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement));
+					this.Write(s);
 				}
+
+				var autoIncrementParams = simpleConstraintExpression.Value as object[];
+
+				if (autoIncrementParams != null)
+				{	
+				}
+
 				break;
 			}
 			case SqlSimpleConstraint.PrimaryKey:

@@ -158,6 +158,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlOverExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlPragmaExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlSetCommandExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlTableOption.cs" />
     <Compile Include="Persistence\Linq\JoinSelectorExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\EnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExistsSubqueryOptimizer.cs" />

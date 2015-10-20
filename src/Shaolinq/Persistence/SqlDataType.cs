@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence
 
 		public Type SupportedType { get; }
 		public Type UnderlyingType { get; }
-		public bool IsUserDefinedType { get; private set; }
+		public bool IsUserDefinedType { get; }
 
 		/// <summary>
 		/// Converts the given value for serializing to SQL.  The default

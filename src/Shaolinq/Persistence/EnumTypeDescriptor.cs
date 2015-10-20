@@ -6,7 +6,7 @@ namespace Shaolinq.Persistence
 {
 	public class EnumTypeDescriptor
 	{
-		public string Name { get; private set; }
+		public string Name { get; }
 		public Type EnumType { get; }
 		
 		public EnumTypeDescriptor(Type enumType)

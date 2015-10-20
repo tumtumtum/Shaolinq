@@ -12,33 +12,33 @@ namespace Shaolinq.Persistence
 {
 	public class PropertyDescriptor
 	{
-		public Type OwnerType { get; private set; }
-		public bool IsPrimaryKey { get; private set; }
+		public Type OwnerType { get; }
+		public bool IsPrimaryKey { get; }
 		public string PersistedName { get; }
-		public string PersistedShortName { get; private set; }
+		public string PersistedShortName { get; }
 		public PropertyInfo PropertyInfo { get; }
 		public UniqueAttribute UniqueAttribute { get; }
 		public TypeDescriptor DeclaringTypeDescriptor { get; }
 		public PrimaryKeyAttribute PrimaryKeyAttribute { get; }
-		public DefaultValueAttribute DefaultValueAttribute { get; private set; }
+		public DefaultValueAttribute DefaultValueAttribute { get; }
 		public AutoIncrementAttribute AutoIncrementAttribute { get; }
-		public ValueRequiredAttribute ValueRequiredAttribute { get; private set; }
+		public ValueRequiredAttribute ValueRequiredAttribute { get; }
 		public BackReferenceAttribute BackReferenceAttribute { get; }
 		public PersistedMemberAttribute PersistedMemberAttribute { get; }
-		public ForeignObjectConstraintAttribute ForeignObjectConstraintAttribute { get; private set; }
-		public IReadOnlyList<IndexAttribute> IndexAttributes { get; private set; }
+		public ForeignObjectConstraintAttribute ForeignObjectConstraintAttribute { get; }
+		public IReadOnlyList<IndexAttribute> IndexAttributes { get; }
 		public ComputedMemberAttribute ComputedMemberAttribute { get; }
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; }
-		public string PropertyName { get { return this.PropertyInfo.Name; } }
-		public Type PropertyType { get { return this.PropertyInfo.PropertyType; } }
-		public bool HasUniqueAttribute { get { return this.UniqueAttribute != null; } }
-		public bool IsBackReferenceProperty { get { return this.BackReferenceAttribute != null; } }
-		public bool IsComputedMember { get { return this.ComputedMemberAttribute != null; } }
-		public bool IsComputedTextMember { get { return this.ComputedTextMemberAttribute != null; } }
-		public bool IsRelatedDataAccessObjectsProperty { get { return this.RelatedDataAccessObjectsAttribute != null; } }
-		public bool IsAutoIncrement { get { return this.AutoIncrementAttribute != null && this.AutoIncrementAttribute.AutoIncrement; } }
-		public bool IsPropertyThatIsCreatedOnTheServerSide { get { return this.IsAutoIncrement && this.PropertyType.IsIntegerType(true); } }
+		public string PropertyName => this.PropertyInfo.Name;
+		public Type PropertyType => this.PropertyInfo.PropertyType;
+		public bool HasUniqueAttribute => this.UniqueAttribute != null;
+		public bool IsBackReferenceProperty => this.BackReferenceAttribute != null;
+		public bool IsComputedMember => this.ComputedMemberAttribute != null;
+		public bool IsComputedTextMember => this.ComputedTextMemberAttribute != null;
+		public bool IsRelatedDataAccessObjectsProperty => this.RelatedDataAccessObjectsAttribute != null;
+		public bool IsAutoIncrement => this.AutoIncrementAttribute != null && this.AutoIncrementAttribute.AutoIncrement;
+		public bool IsPropertyThatIsCreatedOnTheServerSide => this.IsAutoIncrement && this.PropertyType.IsIntegerType(true);
 
 		public static bool IsPropertyPrimaryKey(PropertyInfo propertyInfo)
 		{

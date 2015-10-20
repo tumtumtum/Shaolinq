@@ -7,8 +7,8 @@ namespace Shaolinq.Persistence
 {
 	public struct InsertResults
 	{
-		public IReadOnlyList<DataAccessObject> ToFixUp { get; private set; }
-		public IReadOnlyList<DataAccessObject> ToRetry { get; private set; }
+		public IReadOnlyList<DataAccessObject> ToFixUp { get; }
+		public IReadOnlyList<DataAccessObject> ToRetry { get; }
 
 		public InsertResults(IList<DataAccessObject> toFixUp, IList<DataAccessObject> toRetry)
 			: this()
