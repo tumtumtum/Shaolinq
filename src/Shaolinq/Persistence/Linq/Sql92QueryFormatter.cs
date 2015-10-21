@@ -3,7 +3,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq.Expressions;
 using System.Text;
@@ -11,7 +10,6 @@ using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Platform;
-using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -19,6 +17,11 @@ namespace Shaolinq.Persistence.Linq
 		: SqlQueryFormatter
 	{
 		protected internal static readonly string ParamNamePrefix = "shaolinqparam";
+
+		public bool Equals(string s)
+		{
+			return s?.Length == 0;
+		}
 
 		public struct FunctionResolveResult
 		{
@@ -66,8 +69,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		public Expression Expression { get; }
-
 		private readonly SqlQueryFormatterOptions options;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		
@@ -75,19 +76,8 @@ namespace Shaolinq.Persistence.Linq
 		{
 			return new IndentationContext(this);
 		}
-
-
-		public Sql92QueryFormatter()
-			: this(SqlQueryFormatterOptions.Default, null, null)
-		{
-		}
-
-		public Sql92QueryFormatter(SqlQueryFormatterOptions options)
-			: this(options, null, null)
-		{
-		}
-
-		public Sql92QueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
+		
+		public Sql92QueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default, SqlDialect sqlDialect = null, SqlDataTypeProvider sqlDataTypeProvider = null)
 			: base(sqlDialect, new StringWriter(new StringBuilder()))
 		{
 			this.options = options;
@@ -131,7 +121,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			this.Write(" RETURNING (");
-			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, (Func<string, string>)this.WriteQuotedIdentifier, ",");
+			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, this.WriteQuotedIdentifier, ",");
 			this.Write(")");
 		}
 
@@ -189,7 +179,7 @@ namespace Shaolinq.Persistence.Linq
 				return methodCallExpression;
 			}
 
-			throw new NotSupportedException(String.Format("The method '{0}' is not supported", methodCallExpression.Method.Name));
+			throw new NotSupportedException($"The method '{methodCallExpression.Method.Name}' is not supported");
 		}
 
 		private static bool IsLikeCallExpression(Expression expression)
@@ -247,7 +237,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					throw new NotSupportedException(String.Format("The unary operator '{0}' is not supported", unaryExpression.NodeType));
+					throw new NotSupportedException($"The unary operator '{unaryExpression.NodeType}' is not supported");
 				}
 				break;
 			case ExpressionType.Negate:
@@ -262,7 +252,7 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(")");
 				break;
 			default:
-				throw new NotSupportedException(String.Format("The unary operator '{0}' is not supported", unaryExpression.NodeType));
+				throw new NotSupportedException($"The unary operator '{unaryExpression.NodeType}' is not supported");
 			}
 
 			return unaryExpression;
@@ -532,7 +522,7 @@ namespace Shaolinq.Persistence.Linq
 					Write(" = ");
 					break;
 				default:
-					throw new NotSupportedException(String.Format("The binary operator '{0}' is not supported", binaryExpression.NodeType));
+					throw new NotSupportedException($"The binary operator '{binaryExpression.NodeType}' is not supported");
 			}
 
 			Visit(binaryExpression.Right);
@@ -639,7 +629,7 @@ namespace Shaolinq.Persistence.Linq
 				case SqlAggregateType.Average:
 					return "AVG";
 				default:
-					throw new NotSupportedException(String.Concat("Unknown aggregate type: ", aggregateType));
+					throw new NotSupportedException($"Unknown aggregate type: {aggregateType}");
 			}
 		}
 
@@ -795,7 +785,7 @@ namespace Shaolinq.Persistence.Linq
 					this.WriteLine();
 					this.Write("GROUP BY ");
 
-					this.WriteDeliminatedListOfItems(selectExpression.GroupBy, this.Visit);
+					this.WriteDeliminatedListOfItems(selectExpression.GroupBy, c => this.Visit(c));
 				}
 
 				if (selectExpression.OrderBy != null && selectExpression.OrderBy.Count > 0)
@@ -812,8 +802,6 @@ namespace Shaolinq.Persistence.Linq
 						{
 							this.Write(" DESC");
 						}
-
-						return c;
 					});
 				}
 
@@ -949,7 +937,7 @@ namespace Shaolinq.Persistence.Linq
 					this.VisitJoin((SqlJoinExpression)source);
 					break;
 				default:
-					throw new InvalidOperationException(String.Format("Select source ({0}) is not valid type", source.NodeType));
+					throw new InvalidOperationException($"Select source ({source.NodeType}) is not valid type");
 			}
 
 			return source;
@@ -1018,7 +1006,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitTuple(SqlTupleExpression tupleExpression)
 		{
 			this.Write('(');
-			this.WriteDeliminatedListOfItems(tupleExpression.SubExpressions, this.Visit);
+			this.WriteDeliminatedListOfItems(tupleExpression.SubExpressions, c => this.Visit(c));
 			this.Write(')');
 
 			return tupleExpression;
@@ -1043,7 +1031,7 @@ namespace Shaolinq.Persistence.Linq
 			this.Write(" ON ");
 			this.Visit(createIndexExpression.Table);
 			this.Write("(");
-			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, this.Visit);
+			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, c => this.Visit(c));
 			this.WriteLine(");");
 
 			return createIndexExpression;
@@ -1058,7 +1046,7 @@ namespace Shaolinq.Persistence.Linq
 			
 			using (AcquireIndentationContext())
 			{
-				this.WriteDeliminatedListOfItems(createTableExpression.ColumnDefinitionExpressions, this.Visit, () => this.WriteLine(","));
+				this.WriteDeliminatedListOfItems(createTableExpression.ColumnDefinitionExpressions, c => this.Visit(c), () => this.WriteLine(","));
 
 				if (createTableExpression.ColumnDefinitionExpressions.Count > 0 && createTableExpression.TableConstraints.Count > 0)
 				{
@@ -1066,7 +1054,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				this.WriteLine();
-				this.WriteDeliminatedListOfItems(createTableExpression.TableConstraints, this.Visit, () => this.WriteLine(","));
+				this.WriteDeliminatedListOfItems(createTableExpression.TableConstraints, c => this.Visit(c), () => this.WriteLine(","));
 			}
 
 			this.WriteLine();
@@ -1112,24 +1100,35 @@ namespace Shaolinq.Persistence.Linq
 			return foreignKeyConstraintExpression;
 		}
 
-		protected virtual string WriteQuotedIdentifier(string identifierName)
+		protected virtual void WriteQuotedIdentifier(string identifierName)
 		{
 			this.Write(identifierQuoteString);
 			this.Write(identifierName);
 			this.Write(identifierQuoteString);
-
-			return identifierName;
 		}
 
-		protected virtual string WriteQuotedString(string value)
+		protected virtual void WriteQuotedString(string value)
 		{
 			this.Write(stringQuote);
 			this.Write(value);
 			this.Write(stringQuote);
-
-			return value;
 		}
 
+
+		public virtual void WriteQuotedStringOrObject(object value)
+		{
+			var s = value as string;
+
+			if (s != null)
+			{
+				this.WriteQuotedString(s);
+			}
+			else
+			{
+				this.writer.Write(value);
+			}
+		}
+		
 		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
 		{
 			this.Write("REFERENCES ");
@@ -1204,7 +1203,10 @@ namespace Shaolinq.Persistence.Linq
 				var autoIncrementParams = simpleConstraintExpression.Value as object[];
 
 				if (autoIncrementParams != null)
-				{	
+				{
+					this.Write("(");
+					this.WriteDeliminatedListOfItems(autoIncrementParams, this.WriteQuotedStringOrObject);
+					this.Write(")");
 				}
 
 				break;
@@ -1243,7 +1245,7 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(' ');
 			}
 
-			this.WriteDeliminatedListOfItems(columnDefinitionExpression.ConstraintExpressions, this.Visit, " ");
+			this.WriteDeliminatedListOfItems(columnDefinitionExpression.ConstraintExpressions, c => this.Visit(c), " ");
 
 			return columnDefinitionExpression;
 		}
@@ -1291,7 +1293,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				this.Write("VALUES (");
-				this.WriteDeliminatedListOfItems(expression.ValueExpressions, this.Visit);
+				this.WriteDeliminatedListOfItems(expression.ValueExpressions, c => this.Visit(c));
 				this.Write(")");
 			}
 
@@ -1320,7 +1322,7 @@ namespace Shaolinq.Persistence.Linq
 			this.Visit(expression.Table);
 			this.Write(" SET ");
 
-			this.WriteDeliminatedListOfItems(expression.Assignments, this.Visit);
+			this.WriteDeliminatedListOfItems(expression.Assignments, c => this.Visit(c));
 
 			if (expression.Where == null)
 			{

@@ -9,7 +9,7 @@ namespace Shaolinq
 	[Serializable]
 	[DataAccessObject(NotPersisted = true)]
 	public abstract class DataAccessObject<T>
-		: DataAccessObject, IDataAccessObjectAdvanced
+		: DataAccessObject
 	{
 		[PrimaryKey]
 		[AutoIncrement]
@@ -29,7 +29,7 @@ namespace Shaolinq
 			return this.dataAccessModel;
 		}
 
-		public SqlDatabaseContext DatabaseConnection { get { return this.GetDataAccessModel().GetCurrentSqlDatabaseContext(); } }
+		public SqlDatabaseContext DatabaseConnection => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
 
 		public IDataAccessObjectAdvanced GetAdvanced()
 		{
@@ -87,15 +87,16 @@ namespace Shaolinq
 		public abstract List<ObjectPropertyValue> GetChangedProperties();
 		
 		#region IDataAccessObjectAdvanced
-		DataAccessModel IDataAccessObjectAdvanced.DataAccessModel { get { return this.dataAccessModel; } }
+		DataAccessModel IDataAccessObjectAdvanced.DataAccessModel => this.dataAccessModel;
 		ObjectState IDataAccessObjectAdvanced.ObjectState { get { throw new NotImplementedException(); } }
-		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide { get { return ((IDataAccessObjectAdvanced)this).NumberOfPropertiesGeneratedOnTheServerSide > 0; } }
-		bool IDataAccessObjectAdvanced.IsNew { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.New) != 0; } }
-		bool IDataAccessObjectAdvanced.IsDeleted { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Deleted) != 0; } }
-		bool IDataAccessObjectAdvanced.HasCompositeKey { get { return ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys > 1; } }
-		bool IDataAccessObjectAdvanced.HasObjectChanged { get { return (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Changed) != 0; } }
-		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor { get { return this.dataAccessModel.GetTypeDescriptor(this.GetType()); } }
-		Type IDataAccessObjectAdvanced.DefinitionType { get { return this.dataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType()); } }
+		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide => ((IDataAccessObjectAdvanced)this).NumberOfPropertiesGeneratedOnTheServerSide > 0;
+		bool IDataAccessObjectAdvanced.IsNew => (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.New) != 0;
+		bool IDataAccessObjectAdvanced.IsDeleted => (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Deleted) != 0;
+		bool IDataAccessObjectAdvanced.HasCompositeKey => ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys > 1;
+		bool IDataAccessObjectAdvanced.HasObjectChanged => (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Changed) != 0;
+		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor => this.dataAccessModel.GetTypeDescriptor(this.GetType());
+		Type IDataAccessObjectAdvanced.DefinitionType => this.dataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType());
+
 		#endregion
 
 		#region Reflection emitted explicit interface implementations

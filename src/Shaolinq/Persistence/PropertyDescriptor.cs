@@ -104,7 +104,7 @@ namespace Shaolinq.Persistence
 
 		public override string ToString()
 		{
-			return string.Format("{0}.{1} PropertyDescriptor", this.DeclaringTypeDescriptor.TypeName, this.PropertyName);
+			return $"{this.DeclaringTypeDescriptor.TypeName}.{this.PropertyName} PropertyDescriptor";
 		}
 	}
 }

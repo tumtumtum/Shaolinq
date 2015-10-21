@@ -8,9 +8,9 @@ namespace Shaolinq.SqlServer
 	public class BitBooleanExpression
 		: SqlBaseExpression
 	{
-		public Expression Expression { get; set; }
-		public override bool CanReduce { get { return true; } }
-		public override ExpressionType NodeType { get { return ExpressionType.Extension; } }
+		public Expression Expression { get; }
+		public override bool CanReduce => true;
+		public override ExpressionType NodeType => ExpressionType.Extension;
 
 		public BitBooleanExpression(bool value, bool nullable = false)
 			: this(Expression.Constant(value, nullable ? typeof(bool?) : typeof(bool)))

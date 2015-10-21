@@ -12,13 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		private int maxLength = 0;
 		private object[] values;
 
-		public object[] Values
-		{
-			get
-			{
-				return values;
-			}
-		}
+		public object[] Values => this.values;
 
 		private PlaceholderValuesCollector()
 		{

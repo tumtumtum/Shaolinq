@@ -12,8 +12,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public string Alias { get; }
-		public bool Distinct { get; protected internal set; }
-		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
+		public bool Distinct { get; }
 		public Expression From { get; }
 		public Expression Where { get; }
 		public Expression Take { get; }
@@ -21,6 +20,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public bool ForUpdate { get; }
 		public IReadOnlyList<Expression> OrderBy { get; }
 		public IReadOnlyList<Expression> GroupBy { get; }
+		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Select;
 
 		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate)

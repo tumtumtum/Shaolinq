@@ -95,7 +95,7 @@ namespace Shaolinq
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
 
             // If this is an inner transaction, the outer transaction is responsible for the retry logic
@@ -148,7 +148,7 @@ namespace Shaolinq
         {
             if (action == null)
             {
-                throw new ArgumentNullException("action");
+                throw new ArgumentNullException(nameof(action));
             }
 
             if (transactionScopeOption == TransactionScopeOption.Required && Transaction.Current != null)

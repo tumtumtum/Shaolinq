@@ -72,14 +72,14 @@ namespace Shaolinq.Postgres.Shared
 					{
 						using (command = dbConnection.CreateCommand())
 						{
-							command.CommandText = String.Concat("DROP DATABASE \"", databaseName, "\";");
+							command.CommandText = $"DROP DATABASE \"{databaseName}\";";
 							command.ExecuteNonQuery();
 						}
 					}
 
 					using (command = dbConnection.CreateCommand())
 					{
-						command.CommandText = String.Concat("CREATE DATABASE \"", databaseName, "\" WITH ENCODING 'UTF8';");
+						command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
 						command.ExecuteNonQuery();
 					}
 
@@ -91,7 +91,7 @@ namespace Shaolinq.Postgres.Shared
 					{
 						using (command = dbConnection.CreateCommand())
 						{
-							command.CommandText = String.Concat("CREATE DATABASE \"", databaseName, "\" WITH ENCODING 'UTF8';");
+							command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
 							command.ExecuteNonQuery();
 						}
 
@@ -121,7 +121,7 @@ namespace Shaolinq.Postgres.Shared
 
 					using (var command = dbConnection.CreateCommand())
 					{
-						command.CommandText = string.Format("CREATE SCHEMA IF NOT EXISTS \"{0}\";", this.SqlDatabaseContext.SchemaName);
+						command.CommandText = $"CREATE SCHEMA IF NOT EXISTS \"{this.SqlDatabaseContext.SchemaName}\";";
 
 						command.ExecuteNonQuery();
 					}

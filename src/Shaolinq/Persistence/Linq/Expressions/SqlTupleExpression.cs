@@ -16,8 +16,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		internal protected static Type GetTupleExpressionType(IEnumerable<Expression> subExpressions)
 		{
 			var types = subExpressions.Select(c => c.Type).ToArray();
-
-			var genericTupleType = Type.GetType("Shaolinq.MutableTuple`" + types.Length);
+			var mutableTupleTypeName = typeof(MutableTuple<>).FullName;
+			
+			var genericTupleType = Type.GetType(mutableTupleTypeName.Remove(mutableTupleTypeName.Length - 1) + types.Length);
 
 			return genericTupleType.MakeGenericType(types);
 		}

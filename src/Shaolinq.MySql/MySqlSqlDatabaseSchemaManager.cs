@@ -52,11 +52,11 @@ namespace Shaolinq.MySql
 
 						if (drop)
 						{
-							command.CommandText = String.Concat("DROP DATABASE ", this.SqlDatabaseContext.DatabaseName);
+							command.CommandText = $"DROP DATABASE {this.SqlDatabaseContext.DatabaseName}";
 							command.ExecuteNonQuery();
 						}
 
-						command.CommandText = String.Concat("CREATE DATABASE ", this.SqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+						command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
 						command.ExecuteNonQuery();
 
 						retval = true;
@@ -65,7 +65,7 @@ namespace Shaolinq.MySql
 					{
 						try
 						{
-							command.CommandText = String.Concat("CREATE DATABASE ", this.SqlDatabaseContext.DatabaseName, "\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;");
+							command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
 							command.ExecuteNonQuery();
 
 							retval = true;

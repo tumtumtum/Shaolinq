@@ -48,7 +48,7 @@ namespace Shaolinq
 						return type;
 					}
 
-					throw new NotSupportedException(String.Format("ContextProviderType: {0}, tried: {1}", reader.Name, typeName));
+					throw new NotSupportedException($"ContextProviderType: {reader.Name}, tried: {typeName}");
 				}
 				else
 				{

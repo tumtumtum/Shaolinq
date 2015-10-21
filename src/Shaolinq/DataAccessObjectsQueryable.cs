@@ -8,11 +8,6 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public interface IHasExtraCondition
-	{
-		LambdaExpression ExtraCondition { get; }
-	}
-
 	/// <summary>
 	/// Base class that represents a queryable set of <c>DataAccessObjects</c>
 	/// </summary>
@@ -89,7 +84,7 @@ namespace Shaolinq
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
-					throw new ArgumentException("Composite primary key expected", "primaryKey");
+					throw new ArgumentException("Composite primary key expected", nameof(primaryKey));
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
@@ -103,7 +98,7 @@ namespace Shaolinq
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
-					throw new ArgumentException("Composite primary key expected", "primaryKey");
+					throw new ArgumentException("Composite primary key expected", nameof(primaryKey));
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
@@ -144,19 +139,19 @@ namespace Shaolinq
 		{
 			if (primaryKeys == null)
 			{
-				throw new ArgumentNullException("primaryKeys");
+				throw new ArgumentNullException(nameof(primaryKeys));
 			}
 
 			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == IdType && primaryKeyType != PrimaryKeyType.Composite))
 			{
 				if (!TypeDescriptor.IsSimpleType(IdType))
 				{
-					throw new ArgumentException(string.Format("Type {0} needs to be convertable to {1}", typeof(K), IdType), "primaryKeys");
+					throw new ArgumentException($"Type {typeof(K)} needs to be convertable to {IdType}", nameof(primaryKeys));
 				}
 
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
-					throw new ArgumentException("Composite primary key type expected", "primaryKeys");
+					throw new ArgumentException("Composite primary key type expected", nameof(primaryKeys));
 				}
 			}
 

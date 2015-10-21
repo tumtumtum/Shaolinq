@@ -188,7 +188,7 @@ namespace Shaolinq
 						{
 							var obj = kvp.Value.First(c => !c.GetAdvanced().PrimaryKeyIsCommitReady);
 
-							throw new MissingOrInvalidPrimaryKeyException(string.Format("The object {0} is missing a primary key", obj.ToString()));
+							throw new MissingOrInvalidPrimaryKeyException($"The object {obj.ToString()} is missing a primary key");
 						}
 					}
 				}

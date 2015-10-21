@@ -13,12 +13,6 @@ using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.Prop
 
 namespace Shaolinq.Persistence.Linq
 {
-	internal struct LeftRightJoinInfo<L, R>
-	{
-		public L Left { get; set; }
-		public R Right { get; set; }
-	}
-
 	public class RelatedPropertiesJoinExpanderResults
 	{
 		public Expression ProcessedExpression { get; set; }

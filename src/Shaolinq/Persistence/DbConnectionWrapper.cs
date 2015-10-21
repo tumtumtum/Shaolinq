@@ -61,28 +61,10 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual int ConnectionTimeout
-		{
-			get
-			{
-				return this.Inner.ConnectionTimeout;
-			}
-		}
+		public virtual int ConnectionTimeout => this.Inner.ConnectionTimeout;
 
-		public virtual string Database
-		{
-			get
-			{
-				return this.Inner.Database;
-			}
-		}
+		public virtual string Database => this.Inner.Database;
 
-		public virtual ConnectionState State
-		{
-			get
-			{
-				return this.Inner.State;
-			}
-		}
+		public virtual ConnectionState State => this.Inner.State;
 	}
 }

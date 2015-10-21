@@ -51,7 +51,7 @@ namespace Shaolinq.Persistence
 
 				if (typeDescriptor == null)
 				{
-					throw new InvalidDataAccessObjectModelDefinition(string.Format("Type {0} is referenced by model but not resolvable", genericType.Name));
+					throw new InvalidDataAccessObjectModelDefinition($"Type {genericType.Name} is referenced by model but not resolvable");
 				}
 			}
 		}

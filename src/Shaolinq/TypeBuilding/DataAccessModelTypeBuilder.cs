@@ -95,7 +95,7 @@ namespace Shaolinq.TypeBuilding
 
 					if (propertyInfo.GetSetMethod() != null && propertyInfo.GetSetMethod().IsAbstract)
 					{
-						throw new InvalidOperationException(string.Format("The property '{0}.{1}' should not have a setter because it is a [DataAccessObjects] property", baseType.Name, propertyInfo.Name));
+						throw new InvalidOperationException($"The property '{baseType.Name}.{propertyInfo.Name}' should not have a setter because it is a [DataAccessObjects] property");
 					}
 				}
 			}

@@ -145,7 +145,7 @@ namespace Shaolinq.Postgres.Shared
 			}
 
 			this.Write(" RETURNING ");
-			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, (Func<string, string>)this.WriteQuotedIdentifier, ",");
+			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames,this.WriteQuotedIdentifier, ",");
 		}
 
 		public override void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)

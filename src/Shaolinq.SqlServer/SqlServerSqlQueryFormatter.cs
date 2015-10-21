@@ -180,8 +180,6 @@ namespace Shaolinq.SqlServer
 				{
 					this.Write(" DESC");
 				}
-
-				return c;
 			});
 
 			this.Write(")");
@@ -203,8 +201,6 @@ namespace Shaolinq.SqlServer
 				this.WriteQuotedIdentifier("INSERTED");
 				this.Write(".");
 				this.WriteQuotedIdentifier(c);
-
-				return null;
 			}, ",");
 			this.Write("");
 		}

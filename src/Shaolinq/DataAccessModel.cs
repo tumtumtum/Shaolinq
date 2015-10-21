@@ -94,17 +94,12 @@ namespace Shaolinq
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
 		{
-			var onDisposed = this.Disposed;
-
-			if (onDisposed != null)
-			{
-				onDisposed(this, eventArgs);
-			}
+			this.Disposed?.Invoke(this, eventArgs);
 		}
 
 		~DataAccessModel()
 		{
-			Dispose();
+			this.Dispose();
 		}
 
 		private void DisposeAllSqlDatabaseContexts()
@@ -212,7 +207,7 @@ namespace Shaolinq
 		{
 			if (!dataAccessModelType.IsSubclassOf(typeof(DataAccessModel)))
 			{
-				throw new ArgumentException("Data access model type must derive from DataAccessModel", "dataAccessModelType");
+				throw new ArgumentException("Data access model type must derive from DataAccessModel", nameof(dataAccessModelType));
 			}
 
 			configuration = configuration ?? GetDefaultConfiguration(dataAccessModelType);
@@ -336,7 +331,7 @@ namespace Shaolinq
 		{
 			if (primaryKeyValues == null)
 			{
-				throw new ArgumentNullException("primaryKeyValues");
+				throw new ArgumentNullException(nameof(primaryKeyValues));
 			}
 
 			if (primaryKeyValues.All(c => c == null))
@@ -385,8 +380,10 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(propertyInfoAndValueGetterFuncByType);
-				newPropertyInfoAndValueGetterFuncByType[objectType] = func;
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(propertyInfoAndValueGetterFuncByType)
+				{
+					[objectType] = func
+				};
 
 				propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}
@@ -398,7 +395,7 @@ namespace Shaolinq
 		{
 			if (object.Equals(primaryKey, default(K)) && typeof(K).IsClass)
 			{
-				throw new ArgumentNullException("primaryKey");
+				throw new ArgumentNullException(nameof(primaryKey));
 			}
 
 			var idType = primaryKey.GetType();
@@ -506,7 +503,7 @@ namespace Shaolinq
 			if (!typeof(IDataAccessObjectAdvanced).IsAssignableFrom(type)
 				|| !typeof(DataAccessObject<>).IsAssignableFromIgnoreGenericParameters(type))
 			{
-				throw new ArgumentException("Type must be a DataAccessObjectType", "type");
+				throw new ArgumentException("Type must be a DataAccessObjectType", nameof(type));
 			}
 
 			var objectPropertyAndValues = GetObjectPropertyValues(type, primaryKey, primaryKeyType);
@@ -677,7 +674,7 @@ namespace Shaolinq
 		{
 			if (dataAccessObject == null)
 			{
-				throw new ArgumentNullException("dataAccessObject");
+				throw new ArgumentNullException(nameof(dataAccessObject));
 			}
 
 			Func<DataAccessObject, DataAccessObject> func;

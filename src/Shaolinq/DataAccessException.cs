@@ -20,7 +20,7 @@ namespace Shaolinq
 		}
 
 		public DataAccessException(Exception innerException, string relatedQuery)
-			: base(innerException != null ? innerException.Message : "DataAccessException", innerException)
+			: base(innerException?.Message ?? "DataAccessException", innerException)
 		{
 			this.RelatedQuery = relatedQuery;
 		}

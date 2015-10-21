@@ -262,7 +262,7 @@ namespace Shaolinq.Parser
 				return this.CurrentToken;
 			}
 			
-			throw new InvalidOperationException(string.Format("Unexpected character: {0}", (char)this.currentChar));
+			throw new InvalidOperationException($"Unexpected character: {(char) this.currentChar}");
 		}
 	}
 }

@@ -175,7 +175,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 							current = Expression.NotEqual(left, right);
 							break;
 						default:
-							throw new NotSupportedException(String.Format("Operation on DataAccessObject with {0} not supported", binaryExpression.NodeType.ToString()));
+							throw new NotSupportedException($"Operation on DataAccessObject with {binaryExpression.NodeType.ToString()} not supported");
 					}
 					
 					if (retval == null)

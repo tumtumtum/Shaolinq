@@ -22,16 +22,16 @@ namespace Shaolinq.Persistence
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
-			var sizeConstraintAttribute = propertyDescriptor == null ? null : propertyDescriptor.PropertyInfo.GetFirstCustomAttribute<SizeConstraintAttribute>(true);
+			var sizeConstraintAttribute = propertyDescriptor?.PropertyInfo.GetFirstCustomAttribute<SizeConstraintAttribute>(true);
 			
 			if (sizeConstraintAttribute != null)
 			{
 				switch (sizeConstraintAttribute.SizeFlexibility)
 				{
 					case SizeFlexibility.Fixed:
-						return String.Concat("CHAR(", sizeConstraintAttribute.MaximumLength, ")");
+						return $"CHAR({sizeConstraintAttribute.MaximumLength})";
 					case SizeFlexibility.Variable:
-						return String.Concat("VARCHAR(", sizeConstraintAttribute.MaximumLength, ")");
+						return $"VARCHAR({sizeConstraintAttribute.MaximumLength})";
 					case SizeFlexibility.LargeVariable:
 						return "TEXT";
 					default:

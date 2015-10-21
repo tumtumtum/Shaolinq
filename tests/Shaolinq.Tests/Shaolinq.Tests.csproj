@@ -131,11 +131,13 @@
     <Compile Include="IdentityModelTests.cs" />
     <Compile Include="NonPrimaryAutoIncrement.cs" />
     <Compile Include="TestModel\Address.cs" />
+    <Compile Include="AutoIncrementTests.cs" />
     <Compile Include="TestModel\Cat.cs" />
     <Compile Include="TestModel\Club.cs" />
     <Compile Include="TestModel\DefaultIfEmptyTestObject.cs" />
     <Compile Include="TestModel\Dog.cs" />
     <Compile Include="TestModel\Fraternity.cs" />
+    <Compile Include="TestModel\IIdentified.cs" />
     <Compile Include="TestModel\Lecture.cs" />
     <Compile Include="TestModel\ObjectWithCompositePrimaryKey.cs" />
     <Compile Include="TestModel\ObjectWithManyTypes.cs" />

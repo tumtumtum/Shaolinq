@@ -937,7 +937,7 @@ namespace Shaolinq.Persistence.Linq
 		            break;
 	            }
 
-	            throw new NotSupportedException(String.Format("Linq function \"{0}\" is not supported", methodCallExpression.Method.Name));
+	            throw new NotSupportedException($"Linq function \"{methodCallExpression.Method.Name}\" is not supported");
 			}
 			else if (methodCallExpression.Method.DeclaringType == typeof(DataAccessObjectsQueryableExtensions))
 			{
@@ -1241,7 +1241,7 @@ namespace Shaolinq.Persistence.Linq
 				case "Average":
 					return SqlAggregateType.Average;
 				default:
-					throw new Exception(String.Concat("Unknown aggregate type: ", methodName));
+					throw new Exception($"Unknown aggregate type: {methodName}");
 			}
 		}
 
@@ -1307,7 +1307,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 					goto default;
 				default:
-					throw new Exception(string.Format("The expression of type '{0}' is not a sequence", expression.Type));
+					throw new Exception($"The expression of type '{expression.Type}' is not a sequence");
 			}
 		}
 
@@ -1468,7 +1468,7 @@ namespace Shaolinq.Persistence.Linq
 				case SqlExpressionType.Table:
 					return ((SqlTableExpression)source).Alias;
 				default:
-					throw new InvalidOperationException(String.Concat("Invalid source node type: ", source.NodeType));
+					throw new InvalidOperationException($"Invalid source node type: {source.NodeType}");
 			}
 		}
 
@@ -1558,7 +1558,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (objectReference.Bindings.Count == 0)
 				{
-					throw new InvalidOperationException(string.Format("Missing ObjectReference bindings: {0}.{1}", property.PropertyInfo.ReflectedType , property.PropertyName));
+					throw new InvalidOperationException($"Missing ObjectReference bindings: {property.PropertyInfo.ReflectedType}.{property.PropertyName}");
 				}
 
 				parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
@@ -1568,7 +1568,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (rootObjectReference.Bindings.Count == 0)
 			{
-				throw new InvalidOperationException(string.Format("Missing ObjectReference bindings: {0}", type.Name));
+				throw new InvalidOperationException($"Missing ObjectReference bindings: {type.Name}");
 			}
 
 			var projectorExpression = Expression.MemberInit(Expression.New(elementType), rootBindings);
@@ -1716,7 +1716,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (bindings.Count == 0)
 			{
-				throw new Exception(string.Format("Missing bindings for: {0}", expression));
+				throw new Exception($"Missing bindings for: {expression}");
 			}
 
 			return new SqlObjectReferenceExpression(this.DataAccessModel.GetDefinitionTypeFromConcreteType(expression.Type), bindings);

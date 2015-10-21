@@ -1,6 +1,5 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -14,18 +13,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return new RedundantBinaryExpressionsRemover().Visit(expression);
 		}
 
-		private bool IsEmpty(IEnumerable enumerable)
-		{
-			var enumerator = enumerable.GetEnumerator();
-
-			while (enumerator.MoveNext())
-			{
-				return false;
-			}
-
-			return true;
-		}
-
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
 			var from = selectExpression.From;
@@ -37,16 +24,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var take = selectExpression.Take;
 			var columns = selectExpression.Columns;
 
-			if (where != null)
+			if (where?.NodeType == ExpressionType.Constant && where.Type == typeof(bool))
 			{
-				if (where.NodeType == ExpressionType.Constant && where.Type == typeof(bool))
-				{
-					var value = (bool)((ConstantExpression)where).Value;
+				var value = (bool)((ConstantExpression)where).Value;
 
-					if (value)
-					{
-						where = null;
-					}
+				if (value)
+				{
+					where = null;
 				}
 			}
 

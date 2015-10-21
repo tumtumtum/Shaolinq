@@ -82,7 +82,7 @@ namespace Shaolinq.Persistence
 
 			if (first != null)
 			{
-				throw new InvalidDataAccessModelDefinitionException(string.Format("Type {0} is referenced but is not declared as a property {1}", first.Name, dataAccessModelType.Name));
+				throw new InvalidDataAccessModelDefinitionException($"Type {first.Name} is referenced but is not declared as a property {dataAccessModelType.Name}");
 			}	
 
 			// Enums

@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence.Linq
 			case SqlColumnReferenceAction.SetNull:
 				return this.sqlDialect.SupportsFeature(SqlFeature.SetNullAction) ? SqlColumnReferenceAction.SetNull : SqlColumnReferenceAction.NoAction;
 			default:
-				throw new ArgumentOutOfRangeException("action");
+				throw new ArgumentOutOfRangeException(nameof(action));
 			}
 		}
 
@@ -123,7 +123,7 @@ namespace Shaolinq.Persistence.Linq
 			case ForeignObjectAction.SetDefault:
 				return SqlColumnReferenceAction.SetDefault;
 			default:
-				throw new ArgumentOutOfRangeException("foreignObjectAction");
+				throw new ArgumentOutOfRangeException(nameof(foreignObjectAction));
 			}
 		}
 

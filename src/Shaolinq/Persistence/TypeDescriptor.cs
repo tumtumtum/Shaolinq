@@ -15,6 +15,7 @@ namespace Shaolinq.Persistence
 	{
 		public Type Type { get; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; }
+		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
 		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
@@ -22,11 +23,10 @@ namespace Shaolinq.Persistence
 		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; }
 
-		public string TypeName { get { return this.Type.Name; } }
-		public bool HasPrimaryKeys { get { return this.PrimaryKeyProperties.Count > 0; } }
-		public int PrimaryKeyCount { get { return this.PrimaryKeyProperties.Count; } }
-		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
-
+		public string TypeName => this.Type.Name;
+		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
+		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
+		
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
@@ -52,13 +52,7 @@ namespace Shaolinq.Persistence
 			return false;
 		}
 
-		public string PersistedName
-		{
-			get
-			{
-				return this.DataAccessObjectAttribute.GetName(this.Type);
-			}
-		}
+		public string PersistedName => this.DataAccessObjectAttribute.GetName(this.Type);
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
@@ -149,7 +143,7 @@ namespace Shaolinq.Persistence
 
 				if (retval == null)
 				{
-					throw new InvalidOperationException(String.Format("Unable to find related property for type '{0}' on type '{1}'", type.Name, this.Type.Name));
+					throw new InvalidOperationException($"Unable to find related property for type '{type.Name}' on type '{this.Type.Name}'");
 				}
 
 				this.relatedPropertiesByType[type] = retval;

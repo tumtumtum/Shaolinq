@@ -9,9 +9,5 @@ namespace Shaolinq
 	{
 		public ForeignObjectAction OnDeleteAction { get; set; }
 		public ForeignObjectAction OnUpdateAction { get; set; }
-
-		public ForeignObjectConstraintAttribute()
-		{
-		}
 	}
 }

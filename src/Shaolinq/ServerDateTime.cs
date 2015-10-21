@@ -6,20 +6,7 @@ namespace Shaolinq
 {
 	public static class ServerDateTime
 	{
-		public static DateTime Now
-		{
-			get 
-			{
-				return DateTime.Now; 
-			}
-		}
-
-		public static DateTime UtcNow
-		{
-			get
-			{
-				return DateTime.UtcNow;
-			}
-		}
+		public static DateTime Now => DateTime.Now;
+		public static DateTime UtcNow => DateTime.UtcNow;
 	}
 }

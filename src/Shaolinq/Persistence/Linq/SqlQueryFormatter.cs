@@ -134,7 +134,7 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		protected void WriteDeliminatedListOfItems(IEnumerable listOfItems, Func<object, object> action, string deliminator = ", ")
+		protected void WriteDeliminatedListOfItems(IEnumerable listOfItems, Action<object> action, string deliminator = ", ")
 		{
 			var i = 0;
 
@@ -149,7 +149,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Func<T, object> action,  string deliminator = ", ")
+		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Action<T> action, string deliminator = ", ")
 		{
 			var i = 0;
 
@@ -163,8 +163,8 @@ namespace Shaolinq.Persistence.Linq
 				action(item);
 			}
 		}
-
-		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Func<T, object> action, Action deliminationAction)
+		
+		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Action<T> action, Action deliminationAction)
 		{
 			var i = 0;
 

@@ -13,7 +13,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		public override string ToString()
 		{
-			return string.Format("Path:{0}, Root:{1}", this.FullAccessPropertyPath, RootExpression);
+			return $"Path:{this.FullAccessPropertyPath}, Root:{this.RootExpression}";
 		}
 	}
 }

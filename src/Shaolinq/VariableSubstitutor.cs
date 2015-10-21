@@ -1,10 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Shaolinq
 {

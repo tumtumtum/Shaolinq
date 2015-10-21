@@ -133,6 +133,7 @@
     <Compile Include="EnumerableUtils.cs" />
     <Compile Include="ForeignObjectAction.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
+    <Compile Include="IHasExtraCondition.cs" />
     <Compile Include="InternalListExtensions.cs" />
     <Compile Include="InvalidDataAccessModelDefinitionException.cs" />
     <Compile Include="MissingDataAccessObjectException.cs" />
@@ -151,6 +152,7 @@
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
+    <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />
     <Compile Include="Persistence\Linq\ExpressionExtensions.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlMemberBindingType.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionEqualityComparer.cs" />
@@ -160,6 +162,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlSetCommandExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTableOption.cs" />
     <Compile Include="Persistence\Linq\JoinSelectorExpander.cs" />
+    <Compile Include="Persistence\Linq\LeftRightJoinInfo.cs" />
     <Compile Include="Persistence\Linq\Optimizers\EnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExistsSubqueryOptimizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExpressionsFinder.cs" />

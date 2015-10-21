@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Linq.Expressions;
 using Platform.Collections;
 
@@ -12,10 +10,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public SqlTableExpression ReferencedTable {get; }
-		public IReadOnlyList<string> ReferencedColumnNames {get;private set;}
 		public SqlColumnReferenceDeferrability Deferrability { get; }
 		public SqlColumnReferenceAction OnDeleteAction { get; }
 		public SqlColumnReferenceAction OnUpdateAction { get; }
+		public IReadOnlyList<string> ReferencedColumnNames { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ReferencesColumn;
 
 		public SqlReferencesColumnExpression(SqlTableExpression referencedTable, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)

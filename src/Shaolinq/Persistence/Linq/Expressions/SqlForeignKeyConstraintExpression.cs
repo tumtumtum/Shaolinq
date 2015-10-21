@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlForeignKeyConstraintExpression
 		: SqlBaseExpression
 	{
-		public string ConstraintName { get; set; }
-		public IReadOnlyList<string> ColumnNames { get; set; }
+		public string ConstraintName { get; }
+		public IReadOnlyList<string> ColumnNames { get; }
 		public SqlReferencesColumnExpression ReferencesColumnExpression { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ForeignKeyConstraint;
 

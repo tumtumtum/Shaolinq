@@ -7,12 +7,6 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
-	internal struct ExpandedJoinSelectKey<L, R>
-	{
-		public L Outer { get; set; }
-		public R Inner { get; set; }
-	}
-
 	public class JoinSelectorExpander
 		: SqlExpressionVisitor
 	{

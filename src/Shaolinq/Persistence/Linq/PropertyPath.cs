@@ -13,11 +13,11 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public static readonly ObjectPath<T> Empty = new ObjectPath<T>(new T[0]);
 
-		public int Length { get { return this.path.Length;  } }
-		public T First { get { return this.path[0];  } }
-		public bool IsEmpty { get { return this.path.Length == 0; } }
-		public T Last { get { return this.path[this.Length - 1]; } }
-		public T this[int index] { get { return this.path[index]; } }
+		public int Length => this.path.Length;
+		public T First => this.path[0];
+		public bool IsEmpty => this.path.Length == 0;
+		public T Last => this.path[this.Length - 1];
+		public T this[int index] => this.path[index];
 
 		internal readonly T[] path;
 		private readonly Func<T, string> toString;

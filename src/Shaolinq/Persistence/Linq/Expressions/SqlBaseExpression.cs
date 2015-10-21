@@ -8,13 +8,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public abstract class SqlBaseExpression
 		: Expression
 	{
-		private readonly Type type; 
-		public override Type Type => this.type;
+		public override Type Type { get; }
+
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Tuple;
 
 		protected SqlBaseExpression(Type type)
 		{
-			this.type = type;
+			this.Type = type;
 		}
 
 		public virtual string OriginalToString()

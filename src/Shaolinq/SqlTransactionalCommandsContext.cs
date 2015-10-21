@@ -58,13 +58,7 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual bool IsClosed
-		{
-			get
-			{
-				return this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
-			}
-		}
+		public virtual bool IsClosed => this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
 
 		~SqlTransactionalCommandsContext()
 		{

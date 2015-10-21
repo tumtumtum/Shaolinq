@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				if (joinCondition == null)
 				{
-					throw new ArgumentNullException("joinCondition");
+					throw new ArgumentNullException(nameof(joinCondition));
 				}
 			}
 

@@ -111,8 +111,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			private readonly IReadOnlyList<SqlColumnDeclaration> columns;
 			private readonly IReadOnlyList<SqlOrderByExpression> orderings;
-			public IReadOnlyList<SqlColumnDeclaration> Columns { get { return this.columns; } }
-			public IReadOnlyList<SqlOrderByExpression> Orderings { get { return this.orderings; } }
+			public IReadOnlyList<SqlColumnDeclaration> Columns => this.columns;
+			public IReadOnlyList<SqlOrderByExpression> Orderings => this.orderings;
 
 			public BindResult(IEnumerable<SqlColumnDeclaration> columns, IEnumerable<SqlOrderByExpression> orderings)
 			{
