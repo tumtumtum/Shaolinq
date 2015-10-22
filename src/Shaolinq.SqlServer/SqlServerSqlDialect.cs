@@ -37,7 +37,7 @@ namespace Shaolinq.SqlServer
 			switch (symbol)
 			{
 			case SqlSyntaxSymbol.AutoIncrement:
-				return "IDENTITY(1,1)";
+				return "IDENTITY";
 			default:
 				return base.GetSyntaxSymbolString(symbol);
 			}

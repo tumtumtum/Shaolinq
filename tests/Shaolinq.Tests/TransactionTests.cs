@@ -29,11 +29,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 				
 				school.Name = "Kung Fu School";
 
-				var student = model.Students.Create();
+				var student = this.model.Students.Create();
 
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
@@ -44,7 +44,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First(c => c.Firstname == "Bruce");
+				var student = this.model.Students.First(c => c.Firstname == "Bruce");
 
 				Assert.AreEqual("Bruce Lee", student.Fullname);
 
@@ -65,7 +65,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				Assert.Catch<InvalidOperationException>(() => model.Students.First(c => c.Firstname == "StudentThatShouldNotExist"));
+				Assert.Catch<InvalidOperationException>(() => this.model.Students.First(c => c.Firstname == "StudentThatShouldNotExist"));
 			}
 		}
 
@@ -79,14 +79,14 @@ namespace Shaolinq.Tests
 
 				student.Firstname = "StudentThatShouldNotExist";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
-				Assert.IsNotNull(model.Students.FirstOrDefault(c => c.Firstname == "StudentThatShouldNotExist"));
+				Assert.IsNotNull(this.model.Students.FirstOrDefault(c => c.Firstname == "StudentThatShouldNotExist"));
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				Assert.Catch<InvalidOperationException>(() => model.Students.First(c => c.Firstname == "StudentThatShouldNotExist"));
+				Assert.Catch<InvalidOperationException>(() => this.model.Students.First(c => c.Firstname == "StudentThatShouldNotExist"));
 			}
 		}
 
@@ -105,7 +105,7 @@ namespace Shaolinq.Tests
 				var address2 = this.model.Address.Create();
 				address2.Country = address2Name;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				Console.WriteLine("Address1 Id: {0}", address1.Id);
 				Console.WriteLine("Address2 Id: {0}", address2.Id);

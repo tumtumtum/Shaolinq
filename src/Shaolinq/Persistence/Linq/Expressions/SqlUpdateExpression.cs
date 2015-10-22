@@ -8,10 +8,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlUpdateExpression
 		: SqlBaseExpression
 	{
-		public SqlTableExpression Table { get; private set; }
-		public Expression Where { get; private set; }
-		public IReadOnlyList<Expression> Assignments { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Update; } }
+		public SqlTableExpression Table { get; }
+		public Expression Where { get; }
+		public IReadOnlyList<Expression> Assignments { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Update;
 
 		public SqlUpdateExpression(SqlTableExpression table, IReadOnlyList<Expression> assignments, Expression where)
 			: base(typeof(void))

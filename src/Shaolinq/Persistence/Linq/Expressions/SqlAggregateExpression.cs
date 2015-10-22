@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -11,10 +11,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlAggregateExpression
 		: SqlBaseExpression
 	{
-		public bool IsDistinct { get; private set; }
-		public Expression Argument { get; private set; }
-		public SqlAggregateType AggregateType { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Aggregate; } }
+		public bool IsDistinct { get; }
+		public Expression Argument { get; }
+		public SqlAggregateType AggregateType { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Aggregate;
 
 		public SqlAggregateExpression(Type type, SqlAggregateType aggType, Expression argument, bool isDistinct)
 			: base(type)

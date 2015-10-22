@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 using System;
 using Shaolinq.Tests.GenericModel.Interfaces;
 
@@ -21,23 +23,23 @@ namespace Shaolinq.Tests.GenericModel
 				return;
 			}
 
-			Id = dbUser.Id;
-			UserName = dbUser.UserName;
-			Email = dbUser.Email;
-			EmailConfirmed = dbUser.EmailConfirmed;
-			PasswordHash = dbUser.PasswordHash;
-			SecurityStamp = dbUser.SecurityStamp;
-			IsAnonymousUser = dbUser.IsAnonymousUser;
+			this.Id = dbUser.Id;
+			this.UserName = dbUser.UserName;
+			this.Email = dbUser.Email;
+			this.EmailConfirmed = dbUser.EmailConfirmed;
+			this.PasswordHash = dbUser.PasswordHash;
+			this.SecurityStamp = dbUser.SecurityStamp;
+			this.IsAnonymousUser = dbUser.IsAnonymousUser;
 		}
 
 		public virtual void PopulateDbUser(IShaolinqIdentityDbUser<TKey> toUser)
 		{
-			toUser.UserName = UserName;
-			toUser.Email = Email;
-			toUser.EmailConfirmed = EmailConfirmed;
-			toUser.PasswordHash = PasswordHash;
-			toUser.SecurityStamp = SecurityStamp;
-			toUser.IsAnonymousUser = IsAnonymousUser;
+			toUser.UserName = this.UserName;
+			toUser.Email = this.Email;
+			toUser.EmailConfirmed = this.EmailConfirmed;
+			toUser.PasswordHash = this.PasswordHash;
+			toUser.SecurityStamp = this.SecurityStamp;
+			toUser.IsAnonymousUser = this.IsAnonymousUser;
 		}
 	}
 }

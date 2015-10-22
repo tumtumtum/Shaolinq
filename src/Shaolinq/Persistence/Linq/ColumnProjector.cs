@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence.Linq
 		public Nominator(Func<Expression, bool> canBeColumn)
 		{
 			this.fnCanBeColumn = canBeColumn;
-			candidates = new HashSet<Expression>();
+			this.candidates = new HashSet<Expression>();
 		}
 
 		public virtual HashSet<Expression> Nominate(Expression expression)
@@ -36,9 +36,9 @@ namespace Shaolinq.Persistence.Linq
 					base.Visit(expression);
 				}
 
-				if (fnCanBeColumn(expression))
+				if (this.fnCanBeColumn(expression))
 				{
-					candidates.Add(expression);
+					this.candidates.Add(expression);
 				}
 			}
 
@@ -80,13 +80,13 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			var from = VisitSource(selectExpression.From);
+			var from = this.VisitSource(selectExpression.From);
 
 			var orderBy = selectExpression.OrderBy;
 			var groupBy = selectExpression.GroupBy;
 			var skip = selectExpression.Skip;
 			var take = selectExpression.Take;
-			var columns = VisitColumnDeclarations(selectExpression.Columns);
+			var columns = this.VisitColumnDeclarations(selectExpression.Columns);
 
 			if (from != selectExpression.From || columns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
 			{
@@ -131,11 +131,11 @@ namespace Shaolinq.Persistence.Linq
 					base.Visit(expression);
 				}
 
-				if (fnCanBeColumn(expression))
+				if (this.fnCanBeColumn(expression))
 				{
 					if (this.inWhereClause)
 					{
-						candidates.Add(expression);
+						this.candidates.Add(expression);
 					}
 				}
 			}
@@ -162,9 +162,9 @@ namespace Shaolinq.Persistence.Linq
 
 		internal ColumnProjector(TypeDescriptorProvider typeDescriptorProvider, Nominator nominator, Expression expression, string newAlias, params string[] existingAliases)
 		{
-			columnNames = new HashSet<string>();
-			columns = new List<SqlColumnDeclaration>();
-			mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
+			this.columnNames = new HashSet<string>();
+			this.columns = new List<SqlColumnDeclaration>();
+			this.mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 
 			this.typeDescriptorProvider = typeDescriptorProvider;
 			this.nominator = nominator;
@@ -201,20 +201,20 @@ namespace Shaolinq.Persistence.Linq
 
 				var column = (SqlColumnExpression)expression;
 
-				if (mappedColumnExpressions.TryGetValue(column, out mappedColumnExpression))
+				if (this.mappedColumnExpressions.TryGetValue(column, out mappedColumnExpression))
 				{
 					return mappedColumnExpression;
 				}
 
-				if (existingAliases.Contains(column.SelectAlias))
+				if (this.existingAliases.Contains(column.SelectAlias))
 				{
-					var columnName = GetUniqueColumnName(column.Name);
+					var columnName = this.GetUniqueColumnName(column.Name);
 
-					columns.Add(new SqlColumnDeclaration(columnName, column));
-					mappedColumnExpression = new SqlColumnExpression(column.Type, newAlias, columnName);
+					this.columns.Add(new SqlColumnDeclaration(columnName, column));
+					mappedColumnExpression = new SqlColumnExpression(column.Type, this.newAlias, columnName);
 
-					mappedColumnExpressions[column] = mappedColumnExpression;
-					columnNames.Add(columnName);
+					this.mappedColumnExpressions[column] = mappedColumnExpression;
+					this.columnNames.Add(columnName);
 
 					return mappedColumnExpression;
 				}
@@ -225,18 +225,18 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var columnName = GetNextColumnName();
+				var columnName = this.GetNextColumnName();
 
-				columnNames.Add(columnName);
-				columns.Add(new SqlColumnDeclaration(columnName, expression));
+				this.columnNames.Add(columnName);
+				this.columns.Add(new SqlColumnDeclaration(columnName, expression));
 
-				return new SqlColumnExpression(expression.Type, newAlias, columnName);
+				return new SqlColumnExpression(expression.Type, this.newAlias, columnName);
 			}
 		}
 
 		protected override Expression Visit(Expression expression)
 		{
-			if (candidates.Contains(expression))
+			if (this.candidates.Contains(expression))
 			{
 				if (expression.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 				{
@@ -244,7 +244,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					return ProcessExpression(expression);
+					return this.ProcessExpression(expression);
 				}
 			}
 			else
@@ -262,7 +262,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private bool IsColumnNameInUse(string name)
 		{
-			return columnNames.Contains(name);
+			return this.columnNames.Contains(name);
 		}
 
 		private string GetUniqueColumnName(string name)
@@ -270,7 +270,7 @@ namespace Shaolinq.Persistence.Linq
 			var suffix = 1; 
 			var baseName = name;
 
-			while (IsColumnNameInUse(name))
+			while (this.IsColumnNameInUse(name))
 			{
 				name = baseName + "_" + (suffix++);
 			}
@@ -284,9 +284,9 @@ namespace Shaolinq.Persistence.Linq
 
 			do
 			{
-				name = GetUniqueColumnName("COL" + (columnIndex++));
+				name = this.GetUniqueColumnName("COL" + (this.columnIndex++));
 			}
-			while (IsColumnNameInUse(name));
+			while (this.IsColumnNameInUse(name));
 
 			return name;
 		}

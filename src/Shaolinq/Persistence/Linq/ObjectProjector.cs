@@ -3,10 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Transactions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
@@ -145,18 +143,18 @@ namespace Shaolinq.Persistence.Linq
 							}
 						}
 
-						var value = this.objectReader(this, dataReader, placeholderValues);
+						var value = this.objectReader(this, dataReader, this.placeholderValues);
 
 						yield return value;
 
-						count++;
+						this.count++;
 					}
 
 					while (dataReader.Read())
 					{
-						yield return this.objectReader(this, dataReader, placeholderValues);
+						yield return this.objectReader(this, dataReader, this.placeholderValues);
 
-						count++;
+						this.count++;
 					}
 				}
 			}

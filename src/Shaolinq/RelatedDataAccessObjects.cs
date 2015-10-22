@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Shaolinq.Persistence;
 using Platform;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -13,10 +13,10 @@ namespace Shaolinq
 		: DataAccessObjectsQueryable<T>, IRelatedDataAccessObjectContext, IDataAccessObjectActivator
 		where T : DataAccessObject
 	{
-		public override Type ElementType { get { return typeof(T); } }
+		public override Type ElementType => typeof(T);
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 
-		public string PropertyName { get; private set; }
+		public string PropertyName { get; }
 		public EntityRelationshipType RelationshipType { get; }
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; private set; }
 
@@ -26,10 +26,10 @@ namespace Shaolinq
 			this.PropertyName = propertyName;
 			this.RelatedDataAccessObject = relatedDataAccessObject;
 			this.RelationshipType = relationshipType;
-			this.ExtraCondition = GetExtraCondition();
+			this.ExtraCondition = this.GetExtraCondition();
 			this.PersistenceQueryProvider.RelatedDataAccessObjectContext = this;
 
-			BuildInitializeRelatedMethod();
+			this.BuildInitializeRelatedMethod();
 		}
 
 		private LambdaExpression GetExtraCondition()
@@ -71,7 +71,7 @@ namespace Shaolinq
 			if (cache.TryGetValue(key, out initializeDataAccessObject))
 			{
 				this.InitializeDataAccessObject = initializeDataAccessObject;
-
+				
 				return;
 			}
 

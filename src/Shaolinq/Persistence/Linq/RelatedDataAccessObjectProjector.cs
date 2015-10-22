@@ -40,7 +40,7 @@ namespace Shaolinq.Persistence.Linq
 
 						yield return retval;
 
-						count++;
+						this.count++;
 					}
 				}
 			}

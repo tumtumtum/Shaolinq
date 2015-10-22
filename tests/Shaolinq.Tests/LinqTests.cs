@@ -1,12 +1,12 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
- using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-﻿using System.Linq.Expressions;
-﻿using System.Transactions;
-using Shaolinq.Tests.TestModel;
+using System.Linq.Expressions;
+using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -36,11 +36,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var schoolWithNoStudents = model.Schools.Create();
+				var schoolWithNoStudents = this.model.Schools.Create();
 
 				schoolWithNoStudents.Name = "Empty school";
 
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "Bruce's Kung Fu School";
 
@@ -78,7 +78,7 @@ namespace Shaolinq.Tests
 				mars.Birthdate = new DateTime(2003, 11, 2);
 				mars.FavouriteNumber = 1;
 
-				school = model.Schools.Create();
+				school = this.model.Schools.Create();
 
 				school.Name = "Brandon's Kung Fu School";
 
@@ -434,7 +434,7 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var results = from student in this.model.Students
-							  where student.Address == new TempObject(model).GetAddress() 
+							  where student.Address == new TempObject(this.model).GetAddress() 
 							  orderby  student.Firstname
 							  select new { student };
 
@@ -715,7 +715,7 @@ namespace Shaolinq.Tests
 
 				male.SexOptional = Sex.Male;
 
-			    scope.Flush(model);
+			    scope.Flush(this.model);
 
                 count = this.model.Students.Count(c => c.SexOptional == Sex.Male);
 
@@ -747,8 +747,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var tum = model.Students.FirstOrDefault(c => c.Firstname == "Tum");
-				var student = model.Students.FirstOrDefault(c => c.Urn == "urn:student:" + tum.Id.ToString("N"));
+				var tum = this.model.Students.FirstOrDefault(c => c.Firstname == "Tum");
+				var student = this.model.Students.FirstOrDefault(c => c.Urn == "urn:student:" + tum.Id.ToString("N"));
 
 				Assert.AreSame(tum, student);
 			}
@@ -759,8 +759,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school1 = model.Schools.First();
-				var school2 = model.Schools.First(c => c.Urn == "urn:school:" + school1.Id);
+				var school1 = this.model.Schools.First();
+				var school2 = this.model.Schools.First(c => c.Urn == "urn:school:" + school1.Id);
 
 				Assert.AreSame(school1, school2);
 			}
@@ -793,7 +793,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.FirstOrDefault();
+				var student = this.model.Students.FirstOrDefault();
 
 				Assert.IsNotNull(student);
 			}
@@ -804,7 +804,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var students = model.Students.ToList();
+				var students = this.model.Students.ToList();
 
 				Assert.Greater(students.Count, 0);
 			}
@@ -815,7 +815,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Schools
+				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
 					.SelectMany(c => c.Students);
 
@@ -828,9 +828,9 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Schools
+				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
-					.SelectMany(c => model.Students,
+					.SelectMany(c => this.model.Students,
 								(school, student) => new
 								{
 									school,
@@ -847,10 +847,10 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var query =
-					from student in model.Students
-					from school in model.Schools
-					from product in model.Products
-					from product2 in model.Products
+					from student in this.model.Students
+					from school in this.model.Schools
+					from product in this.model.Products
+					from product2 in this.model.Products
 					select new
 					{
 						student,
@@ -868,8 +868,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student1 = model.Students.Single(c => c.Firstname == "Tum");
-				var student2 = model.Students.Single(c => c.Firstname == "Tum");
+				var student1 = this.model.Students.Single(c => c.Firstname == "Tum");
+				var student2 = this.model.Students.Single(c => c.Firstname == "Tum");
 
 				Assert.AreSame(student1, student2);
 			}
@@ -878,8 +878,8 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Without_Scope()
 		{
-			var student1 = model.Students.Single(c => c.Firstname == "Tum");
-			var student2 = model.Students.Single(c => c.Firstname == "Tum");
+			var student1 = this.model.Students.Single(c => c.Firstname == "Tum");
+			var student2 = this.model.Students.Single(c => c.Firstname == "Tum");
 
 			Assert.AreNotSame(student1, student2);
 		}
@@ -917,13 +917,13 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_First1()
 		{
-			var student = model.Students.First();
+			var student = this.model.Students.First();
 		}
 
 		[Test]
 		public void Test_Query_Check_Has_Changed1()
 		{
-			var student = model.Students.First();
+			var student = this.model.Students.First();
 
 			Assert.IsFalse(((IDataAccessObjectAdvanced)student).HasObjectChanged);
 		}
@@ -962,7 +962,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student1 = model.Students.Where(c => c.Firstname == "Tum").First();
+				var student1 = this.model.Students.Where(c => c.Firstname == "Tum").First();
 				var student2 = this.model.Students.First(c => c.Firstname == "Tum");
 
 				Assert.AreSame(student1, student2);
@@ -1166,7 +1166,7 @@ namespace Shaolinq.Tests
 				product3.Name = "Belt";
 				product3.Price = 56;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var results =
 					from product in this.model.Products
@@ -1205,7 +1205,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var totalHeight = model.Students.Sum(c => c.Height);
+				var totalHeight = this.model.Students.Sum(c => c.Height);
 
 				Assert.That(totalHeight, Is.GreaterThanOrEqualTo(177));
 			}
@@ -1216,7 +1216,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var totalHeight = model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height);
+				var totalHeight = this.model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height);
 
 				Assert.AreEqual(177, totalHeight);
 			}
@@ -1227,8 +1227,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var serverSideResult = model.Students.Sum(c => c.Height);
-				var allStudents = model.Students.ToList();
+				var serverSideResult = this.model.Students.Sum(c => c.Height);
+				var allStudents = this.model.Students.ToList();
 				var clientSideResult = allStudents.Sum(c => c.Height);
 
 				Assert.That(serverSideResult, Is.GreaterThanOrEqualTo(197));
@@ -1241,8 +1241,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var serverSideResult = model.Students.Average(c => c.Height);
-				var allStudents = model.Students.ToList();
+				var serverSideResult = this.model.Students.Average(c => c.Height);
+				var allStudents = this.model.Students.ToList();
 				var clientSideResult = allStudents.Average(c => c.Height);
 
 				Assert.AreEqual(clientSideResult, serverSideResult);
@@ -1254,8 +1254,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var serverSideResult = model.Students.Average(c => c.Height * 2);
-				var allStudents = model.Students.ToList();
+				var serverSideResult = this.model.Students.Average(c => c.Height * 2);
+				var allStudents = this.model.Students.ToList();
 				var clientSideResult = allStudents.Average(c => c.Height * 2);
 
 				Assert.AreEqual(clientSideResult, serverSideResult);
@@ -1268,8 +1268,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var serverSideResult = model.Students.Average(c => c.Height + c.FavouriteNumber);
-				var allStudents = model.Students.ToList();
+				var serverSideResult = this.model.Students.Average(c => c.Height + c.FavouriteNumber);
+				var allStudents = this.model.Students.ToList();
 				var clientSideResult = allStudents.Average(c => c.Height + c.FavouriteNumber);
 
 				Assert.AreEqual(clientSideResult, serverSideResult);
@@ -1281,8 +1281,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var serverSideResult = model.Students.Max(c => c.Height);
-				var allStudents = model.Students.ToList();
+				var serverSideResult = this.model.Students.Max(c => c.Height);
+				var allStudents = this.model.Students.ToList();
 				var clientSideResult = allStudents.Max(c => c.Height);
 
 				Assert.AreEqual(clientSideResult, serverSideResult);
@@ -1294,8 +1294,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var serverSideResult = model.Students.Min(c => c.Height);
-				var allStudents = model.Students.ToList();
+				var serverSideResult = this.model.Students.Min(c => c.Height);
+				var allStudents = this.model.Students.ToList();
 				var clientSideResult = allStudents.Min(c => c.Height);
 
 				Assert.AreEqual(clientSideResult, serverSideResult);
@@ -1307,7 +1307,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var totalHeight = model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height * 2);
+				var totalHeight = this.model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height * 2);
 
 				Assert.AreEqual(354, totalHeight);
 			}
@@ -1409,7 +1409,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var tum = (from student in model.Students
+				var tum = (from student in this.model.Students
 				           where student.Nickname == ""
 				                 && student.Firstname == "Tum"
 				           select new
@@ -1422,7 +1422,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var tum = (from student in model.Students
+				var tum = (from student in this.model.Students
 				           where (student.Nickname ?? "") == ""
 				                 && student.Firstname == "Tum"
 				           select new
@@ -1439,7 +1439,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var tum2 = model.Schools.First(c => c.Name.Contains("Bruce")).Students.Create();
+				var tum2 = this.model.Schools.First(c => c.Name.Contains("Bruce")).Students.Create();
 
 				tum2.Firstname = "Tum";
 				tum2.Lastname = "Nguyen";
@@ -1447,9 +1447,9 @@ namespace Shaolinq.Tests
 				tum2.FavouriteNumber = 36;
 				tum2.Birthdate = new DateTime(1979, 12, 24, 05, 00, 00);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
-				var group = (from student in model.Students
+				var group = (from student in this.model.Students
 							 group student by student.Birthdate
 								 into g
 								 select new
@@ -1460,7 +1460,7 @@ namespace Shaolinq.Tests
 
 				Assert.That(group.Count, Is.GreaterThan(2));
 
-				group = (from student in model.Students
+				group = (from student in this.model.Students
 						 where student.Firstname == "Tum"
 						 group student by student.Birthdate
 							 into g
@@ -1482,7 +1482,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var tum2 = model.Schools.First(c => c.Name.Contains("Bruce")).Students.Create();
+				var tum2 = this.model.Schools.First(c => c.Name.Contains("Bruce")).Students.Create();
 
 				tum2.Firstname = "Tum";
 				tum2.Lastname = "Nguyen";
@@ -1490,9 +1490,9 @@ namespace Shaolinq.Tests
 				tum2.FavouriteNumber = 36;
 				tum2.Birthdate = new DateTime(1979, 12, 24, 05, 00, 00);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
-				var group = (from student in model.Students
+				var group = (from student in this.model.Students
 				             group student by student.Birthdate.GetValueOrDefault().Date
 				             into g
 				             select new
@@ -1503,7 +1503,7 @@ namespace Shaolinq.Tests
 
 				Assert.That(group.Count, Is.GreaterThan(2));
 
-				group = (from student in model.Students
+				group = (from student in this.model.Students
 				         where student.Firstname == "Tum"
 				         group student by student.Birthdate.GetValueOrDefault().Date
 				         into g
@@ -1530,11 +1530,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				Assert.IsFalse(model.Students
+				Assert.IsFalse(this.model.Students
 					               .Select(c => c.Lastname)
 					               .Contains("zzzzz"));
 
-				Assert.IsTrue(model.Students
+				Assert.IsTrue(this.model.Students
 								   .Select(c => c.Lastname)
 								   .Contains("Nguyen"));
 
@@ -1553,7 +1553,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 							  group student by student.Birthdate.Value.Date
 								  into g
 								  select new KeyCount
@@ -1574,7 +1574,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 							  group student by student.Birthdate.Value.Date
 								  into g
 								  select new
@@ -1594,7 +1594,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 					group student by student.Firstname
 					into g
 					select new
@@ -1614,7 +1614,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 							  group student by student.Firstname
 								  into g
 								  orderby g.Count() descending
@@ -1636,7 +1636,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						student in model.Students
+						student in this.model.Students
 					where
 						student.Sex == Sex.Male && student.School.Name.EndsWith("School")
 					select
@@ -1671,7 +1671,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						student in model.Students
+						student in this.model.Students
 					where
 						student.Sex == Sex.Female 
 					select
@@ -1709,7 +1709,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						student in model.Students
+						student in this.model.Students
 					where
 						student.Sex == Sex.Male &&
 						student.School.Name.EndsWith("School")
@@ -1723,7 +1723,7 @@ namespace Shaolinq.Tests
 
 				var firstStudent =
 					(from
-						student in model.Students
+						student in this.model.Students
 						where
 							student.Firstname == "Tum"
 							&& student.Sex == Sex.Male
@@ -1742,8 +1742,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.FirstOrDefault();
-				var result = model.Students.Where(c => school.Students.Where(d => d.Id == c.Id).Any()).ToList();
+				var school = this.model.Schools.FirstOrDefault();
+				var result = this.model.Students.Where(c => school.Students.Where(d => d.Id == c.Id).Any()).ToList();
 
 				scope.Complete();
 			}
@@ -1754,9 +1754,9 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var a = model.Schools.FirstOrDefault();
-				var school = model.Schools.GetReference(a.Id);
-				var result = model.Students.Where(c => school.Students.Any(d => d.Id == c.Id)).ToList();
+				var a = this.model.Schools.FirstOrDefault();
+				var school = this.model.Schools.GetReference(a.Id);
+				var result = this.model.Students.Where(c => school.Students.Any(d => d.Id == c.Id)).ToList();
 
 				Assert.IsTrue(result.All(c => c.School == school));
 
@@ -1769,7 +1769,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 					group student by student.Sex
 					into g
 					select new { sex = g.Key , date = g.Max(c => c.Birthdate), count=g.Count(), g = g };
@@ -1788,7 +1788,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = (from student in model.Students
+				var results = (from student in this.model.Students
 					group student by student.Nickname
 					into g
 					select g).Select(c => c.Key);
@@ -1807,7 +1807,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 							  group student by student.Firstname
 								  into g
 								  select g;
@@ -1827,7 +1827,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 					group student by new {student.Firstname, student.Lastname}
 					into g
 					select g;
@@ -1847,7 +1847,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
+				var results = from student in this.model.Students
 					group student by new {student.Firstname, student.Lastname}
 					into g
 					select new {g, first = g.First(c => c.Firstname != "")};
@@ -1866,8 +1866,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
-							  join school in model.Schools on student.School equals school
+				var results = from student in this.model.Students
+							  join school in this.model.Schools on student.School equals school
 					group student by new {student, school}
 					into g
 					select g;
@@ -1886,8 +1886,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
-					join school in model.Schools on student.School equals school
+				var results = from student in this.model.Students
+					join school in this.model.Schools on student.School equals school
 					group student by new {student, school}
 					into g
 					orderby g.Key.student.Nickname, g.Key.school.Name
@@ -1907,8 +1907,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = from student in model.Students
-							  join school in model.Schools on student.School equals school
+				var results = from student in this.model.Students
+							  join school in this.model.Schools on student.School equals school
 							  group student by new { student, school }
 								  into g
 								  orderby g.Key.student.Nickname, g.Count()
@@ -1927,7 +1927,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = model.Students.GroupBy(grouping)
+				var results = this.model.Students.GroupBy(grouping)
 					.Where(c => c.Key != null);
 
 				var list = results.ToList();
@@ -1942,7 +1942,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Check_Grouping_Expression_From_Generic_Method()
 		{
-			Test_Check_Null(c => c.SexOptional);
+			this.Test_Check_Null(c => c.SexOptional);
 		}
 
 		[Test]
@@ -1950,7 +1950,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = model.Students.OrderBy(c => c.Nickname).Count();
+				var result = this.model.Students.OrderBy(c => c.Nickname).Count();
 			}
 		}
 
@@ -1959,7 +1959,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = model.Students.OrderBy(c => c.Nickname).Skip(1).Count();
+				var result = this.model.Students.OrderBy(c => c.Nickname).Skip(1).Count();
 			}
 		}
 
@@ -1968,7 +1968,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = model.Students.OrderBy(c => c.Nickname).Skip(1).Take(10).Count();
+				var result = this.model.Students.OrderBy(c => c.Nickname).Skip(1).Take(10).Count();
 			}
 		}
 
@@ -1977,7 +1977,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = model.Students.Skip(1).ToList();
+				var result = this.model.Students.Skip(1).ToList();
 			}
 		}
 
@@ -1986,9 +1986,9 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First();
+				var student = this.model.Students.First();
 
-				var result = model.Students.Contains(student);
+				var result = this.model.Students.Contains(student);
 			}
 		}
 
@@ -1997,7 +1997,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = model.Students.Any();
+				var result = this.model.Students.Any();
 			}
 		}
 
@@ -2006,7 +2006,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = model.Students.Any(c => c.Email != null);
+				var result = this.model.Students.Any(c => c.Email != null);
 			}
 		}
 	}

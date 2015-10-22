@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -8,13 +8,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public abstract class SqlBaseExpression
 		: Expression
 	{
-		private readonly Type type; 
-		public override Type Type { get { return type; } }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Tuple; } }
+		public override Type Type { get; }
+
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Tuple;
 
 		protected SqlBaseExpression(Type type)
 		{
-			this.type = type;
+			this.Type = type;
 		}
 
 		public virtual string OriginalToString()

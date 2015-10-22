@@ -1,11 +1,11 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections.Generic;
-﻿using System.Data;
-﻿using System.Threading;
-﻿using System.Transactions;
-﻿using Shaolinq.Persistence;
+using System.Data;
+using System.Threading;
+using System.Transactions;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq
@@ -14,12 +14,12 @@ namespace Shaolinq
 		: IDisposable
 	{
 		private int disposed;
-		public Transaction Transaction { get; private set; }
+		public Transaction Transaction { get; }
 		public IDbConnection DbConnection { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		protected IDbTransaction dbTransaction;
-		public DataAccessModel DataAccessModel { get; private set; }
+		public DataAccessModel DataAccessModel { get; }
 
 		public abstract void Delete(SqlDeleteExpression deleteExpression);
 		public abstract void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
@@ -58,22 +58,16 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual bool IsClosed
-		{
-			get
-			{
-				return this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
-			}
-		}
+		public virtual bool IsClosed => this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
 
 		~SqlTransactionalCommandsContext()
 		{
-			Dispose();
+			this.Dispose();
 		}
 
 		public virtual IDbCommand CreateCommand()
 		{
-			var retval = CreateCommand(SqlCreateCommandOptions.Default);
+			var retval = this.CreateCommand(SqlCreateCommandOptions.Default);
 
 			if (this.dbTransaction != null)
 			{
@@ -99,7 +93,7 @@ namespace Shaolinq
 			{
 				if (this.dbTransaction != null)
 				{
-					dbTransaction.Commit();
+					this.dbTransaction.Commit();
 
 					this.dbTransaction = null;
 				}
@@ -117,19 +111,19 @@ namespace Shaolinq
 				throw;
 			}
 
-			CloseConnection();
+			this.CloseConnection();
 		}
 
 		public virtual void Rollback()
 		{
 			if (this.dbTransaction != null)
 			{
-				dbTransaction.Rollback();
+				this.dbTransaction.Rollback();
 
 				this.dbTransaction = null;
 			}
 
-			CloseConnection();
+			this.CloseConnection();
 		}
 
 		protected virtual void CloseConnection()
@@ -156,7 +150,7 @@ namespace Shaolinq
 				return;
 			}
 
-			CloseConnection();
+			this.CloseConnection();
 		}
 	}
 }

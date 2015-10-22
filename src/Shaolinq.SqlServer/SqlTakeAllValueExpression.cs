@@ -8,7 +8,7 @@ namespace Shaolinq.SqlServer
 	public class SqlTakeAllValueExpression
 		: SqlBaseExpression
 	{
-		public override ExpressionType NodeType { get { return ExpressionType.Extension; } }
+		public override ExpressionType NodeType => ExpressionType.Extension;
 
 		public SqlTakeAllValueExpression()
 			: base(typeof(int))

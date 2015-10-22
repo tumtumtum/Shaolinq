@@ -1,30 +1,29 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using System.Data.Common;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using Npgsql;
-﻿using Shaolinq.Persistence;
-using Shaolinq.Postgres.Shared;
+using Shaolinq.Persistence;
 
-﻿namespace Shaolinq.Postgres
+namespace Shaolinq.Postgres
 {
 	public class PostgresSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		public int Port { get; private set; }
-		public string Host { get; private set; }
-		public string UserId { get; private set; }
-		public string Password { get; private set; }
+		public int Port { get; }
+		public string Host { get; }
+		public string UserId { get; }
+		public string Password { get; }
 		
 		public static PostgresSqlDatabaseContext Create(PostgresSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaults;
-			var sqlDialect = PostgresSharedSqlDialect.Default;
-			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
+			var sqlDialect = PostgresSqlDialect.Default;
+			var sqlDataTypeProvider = new PostgresSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
 			return new PostgresSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -41,7 +40,7 @@ using Shaolinq.Postgres.Shared;
 			this.ConnectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
 			this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;]+[;$]", "Database=postgres;");
 
-			this.SchemaManager = new PostgresSharedSqlDatabaseSchemaManager(this);
+			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
 		}
 
 		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
@@ -63,19 +62,7 @@ using Shaolinq.Postgres.Shared;
 		{
 			NpgsqlConnection.ClearAllPools();
 		}
-
-		public override string GetRelatedSql(Exception e)
-		{
-			var postgresException = e as NpgsqlException;
-
-			if (postgresException == null)
-			{
-				return base.GetRelatedSql(e);
-			}
-
-			return postgresException.ErrorSql;
-		}
-
+		
 		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)
 		{
 			var postgresException = exception as NpgsqlException;

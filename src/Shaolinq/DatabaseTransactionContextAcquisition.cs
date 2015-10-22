@@ -9,7 +9,7 @@ namespace Shaolinq
 		: IDisposable
 	{
 		public TransactionContext TransactionContext { get; }
-		public SqlDatabaseContext SqlDatabaseContext { get; private set; }
+		public SqlDatabaseContext SqlDatabaseContext { get; }
 		public SqlTransactionalCommandsContext SqlDatabaseCommandsContext { get; }
 
 		public DatabaseTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, SqlTransactionalCommandsContext sqlDatabaseCommandsContext)

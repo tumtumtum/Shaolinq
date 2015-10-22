@@ -9,9 +9,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlAlterTableExpression
 		: SqlBaseExpression
 	{
-		public Expression Table { get; private set; }
-		public IReadOnlyList<SqlConstraintActionExpression> Actions { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.AlterTable; } }
+		public Expression Table { get; }
+		public IReadOnlyList<SqlConstraintActionExpression> Actions { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.AlterTable;
 
 		public SqlAlterTableExpression(Expression table, params SqlConstraintActionExpression[] actions)
 			: this(table, (IEnumerable<SqlConstraintActionExpression>)actions)

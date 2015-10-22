@@ -25,17 +25,17 @@ namespace Shaolinq.Persistence
 
 		public virtual SqlQueryFormatResult Format(Expression expression, SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default)
 		{
-			return CreateQueryFormatter(options).Format(expression);
+			return this.CreateQueryFormatter(options).Format(expression);
 		}
 		
 		public virtual string Format(string commandText, Func<string, object> paramNameToValue)
 		{
-			if (formatCommandRegex == null)
+			if (this.formatCommandRegex == null)
 			{
-				formatCommandRegex = new Regex(string.Format(@"\{0}" + Sql92QueryFormatter.ParamNamePrefix + "[0-9]+", this.parameterPrefix), RegexOptions.Compiled);
+				this.formatCommandRegex = new Regex(string.Format(@"\{0}" + Sql92QueryFormatter.ParamNamePrefix + "[0-9]+", this.parameterPrefix), RegexOptions.Compiled);
 			}
 
-			return formatCommandRegex.Replace(commandText, match =>
+			return this.formatCommandRegex.Replace(commandText, match =>
 			{
 				var value = paramNameToValue(match.Value);
 

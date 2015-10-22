@@ -1,10 +1,10 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Expressions;
 using Platform;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
@@ -44,12 +44,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					{
 						// Concat(something, Concat(?, ?))
 
-						var arg1Args = Visit(functionCallExpression.Arguments[0]);
+						var arg1Args = this.Visit(functionCallExpression.Arguments[0]);
 						var arg2Args = new List<Expression>();
 
 						foreach (var arg in arg2.Arguments)
 						{
-							arg2Args.Add(Visit(arg));
+							arg2Args.Add(this.Visit(arg));
 						}
 
 						retval = new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Concat, arg2Args.ToArray().Prepend(arg1Args));
@@ -60,12 +60,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					{
 						// Concat(Concat(?, ?), something)
 
-						var arg2Args = Visit(functionCallExpression.Arguments[1]);
+						var arg2Args = this.Visit(functionCallExpression.Arguments[1]);
 						var arg1Args = new List<Expression>();
 
 						foreach (var arg in arg1.Arguments)
 						{
-							arg1Args.Add(Visit(arg));
+							arg1Args.Add(this.Visit(arg));
 						}
 
 						retval = new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Concat, arg1Args.ToArray().Append(arg2Args));
@@ -80,14 +80,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 						foreach (var arg in arg1.Arguments)
 						{
-							arg1Args.Add(Visit(arg));
+							arg1Args.Add(this.Visit(arg));
 						}
 
 						var arg2Args = new List<Expression>();
 
 						foreach (var arg in arg2.Arguments)
 						{
-							arg2Args.Add(Visit(arg));
+							arg2Args.Add(this.Visit(arg));
 						}
 
 						retval = new SqlFunctionCallExpression(functionCallExpression.Type, SqlFunction.Concat, (arg1Args.Concat(arg2Args)).ToArray());

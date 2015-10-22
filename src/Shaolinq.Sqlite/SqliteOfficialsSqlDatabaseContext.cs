@@ -6,9 +6,9 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.Linq;
 using System.Text.RegularExpressions;
+using log4net;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
-using log4net;
 
 namespace Shaolinq.Sqlite
 {

@@ -39,13 +39,13 @@ namespace Shaolinq.Tests
 		{
 			if (providerName == "MySql")
 			{
-				floatSignificantFigures = 6;
+				this.floatSignificantFigures = 6;
 
-				MaxDateTime -= TimeSpan.FromSeconds(1);
+				this.MaxDateTime -= TimeSpan.FromSeconds(1);
 			}
-			else if (useMonoData && ProviderName.StartsWith("Sqlite"))
+			else if (useMonoData && this.ProviderName.StartsWith("Sqlite"))
 			{
-				floatSignificantFigures = 3;
+				this.floatSignificantFigures = 3;
 			}
 		}
 
@@ -60,7 +60,7 @@ namespace Shaolinq.Tests
 				minDecimal = long.MinValue;
 			}
 
-			ExecuteTest(
+			this.ExecuteTest(
 				"test",
 				Guid.NewGuid(),
 				short.MinValue,
@@ -70,11 +70,11 @@ namespace Shaolinq.Tests
 				uint.MinValue,
 				ulong.MinValue,
 				minDecimal,
-				(float) TruncateToSignificantDigits(float.MinValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
+				(float) TruncateToSignificantDigits(float.MinValue, this.floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MinValue,
 				false,
-				Truncate(MinDatetime, TimeSpan.FromMilliseconds(1)),
-				TimeSpan.MinValue,
+				Truncate(this.MinDatetime, TimeSpan.FromMilliseconds(1)),
+				TimeSpan.MinValue ,
 				Sex.Male,
 				null);
 		}
@@ -90,7 +90,7 @@ namespace Shaolinq.Tests
 				maxDecimal = long.MaxValue;
 			}
 
-			ExecuteTest(
+			this.ExecuteTest(
 				"test",
 				Guid.NewGuid(),
 				short.MaxValue,
@@ -100,37 +100,19 @@ namespace Shaolinq.Tests
 				(uint) int.MaxValue, // using signed max value as unsigned not supported in various databases
 				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
 				maxDecimal,
-				(float) TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
+				(float) TruncateToSignificantDigits(float.MaxValue, this.floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MaxValue,
 				true,
-				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
-				TimeSpan.Zero,
+				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)),
+				TimeSpan.FromDays(1) + TimeSpan.FromSeconds(1),
 				Sex.Female,
-				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)));
-
-			ExecuteTest(
-				"test",
-				Guid.NewGuid(),
-				short.MaxValue,
-				int.MaxValue,
-				long.MaxValue,
-				(ushort) short.MaxValue, // using signed max value as unsigned not supported in various databases
-				(uint) int.MaxValue, // using signed max value as unsigned not supported in various databases
-				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
-				maxDecimal / (decimal)2,
-				(float) TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
-				double.MaxValue,
-				true,
-				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)),
-				TimeSpan.Zero,
-				Sex.Female,
-				Truncate(MaxDateTime, TimeSpan.FromMilliseconds(1)));
+				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)));
 		}
 
 		[Test]
 		public void Test_Non_Integer_Values()
 		{
-			ExecuteTest(
+			this.ExecuteTest(
 				"test",
 				Guid.Empty,
 				987,
@@ -141,7 +123,7 @@ namespace Shaolinq.Tests
 				123456789,
 				123.456789m,
 				123.456f,
-				TruncateToSignificantDigits(987.654321, floatSignificantFigures),
+				TruncateToSignificantDigits(987.654321, this.floatSignificantFigures),
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromHours(24),
@@ -158,8 +140,8 @@ namespace Shaolinq.Tests
 			{
 				decimalValue = 0.000000001m;
 			}
-			
-			ExecuteTest(
+
+			this.ExecuteTest(
 				"test",
 				Guid.Empty,
 				1,
@@ -201,7 +183,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var subject = model.ObjectWithManyTypes.Create();
+				var subject = this.model.ObjectWithManyTypes.Create();
 
 				subject.String = @string;
 				subject.Guid = guid;
@@ -221,7 +203,7 @@ namespace Shaolinq.Tests
 				subject.NullableDateTime = nullableDateTime;
 				//subject.ByteArray = byteArray;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				dbId = subject.Id;
 
@@ -230,15 +212,15 @@ namespace Shaolinq.Tests
 
 			if (useMonoData && this.ProviderName.StartsWith("Sqlite"))
 			{
-				if (@float == TruncateToSignificantDigits(float.MaxValue, floatSignificantFigures))
+				if (@float == TruncateToSignificantDigits(float.MaxValue, this.floatSignificantFigures))
 				{
 					@float = float.PositiveInfinity;
 				}
-				else if (@float == TruncateToSignificantDigits(float.MinValue, floatSignificantFigures))
+				else if (@float == TruncateToSignificantDigits(float.MinValue, this.floatSignificantFigures))
 				{
 					@float = float.NegativeInfinity;
 				}
-				else if (@float == TruncateToSignificantDigits(float.Epsilon, floatSignificantFigures))
+				else if (@float == TruncateToSignificantDigits(float.Epsilon, this.floatSignificantFigures))
 				{
 					@float = 0;
 				}
@@ -259,7 +241,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.Single(x => x.Id == dbId);
+				var dbObj = this.model.ObjectWithManyTypes.Single(x => x.Id == dbId);
 
 				Assert.That(dbObj.String, Is.EqualTo(@string));
 				Assert.That(dbObj.Guid, Is.EqualTo(guid));
@@ -273,10 +255,10 @@ namespace Shaolinq.Tests
 				Assert.That(dbObj.Float, Is.EqualTo(@float));
 				Assert.That(dbObj.Double, Is.EqualTo(@double));
 				Assert.That(dbObj.Bool, Is.EqualTo(@bool));
-				AssertDateTime(dbObj.DateTime, dateTime);
-				Assert.That(Abs(dbObj.TimeSpan - timeSpan), Is.LessThan(timespanEpsilon));
+				this.AssertDateTime(dbObj.DateTime, dateTime);
+				Assert.That(Abs(dbObj.TimeSpan - timeSpan), Is.LessThan(this.timespanEpsilon));
 				Assert.That(dbObj.Enum, Is.EqualTo(@enum));
-				AssertNullable(dbObj.NullableDateTime, nullableDateTime, AssertDateTime);
+				AssertNullable(dbObj.NullableDateTime, nullableDateTime, this.AssertDateTime);
 				// Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
 			}
 		}
@@ -297,7 +279,7 @@ namespace Shaolinq.Tests
 
 		private void AssertDateTime(DateTime dateTime1, DateTime dateTime2)
 		{
-			Assert.That(Abs(dateTime1.ToUniversalTime() - dateTime2.ToUniversalTime()), Is.LessThan(timespanEpsilon));
+			Assert.That(Abs(dateTime1.ToUniversalTime() - dateTime2.ToUniversalTime()), Is.LessThan(this.timespanEpsilon));
 		}
 
 		private static DateTime Truncate(DateTime dateTime, TimeSpan timeSpan)

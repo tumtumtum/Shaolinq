@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 
 namespace Shaolinq
 {
@@ -15,6 +15,8 @@ namespace Shaolinq
 	public class AutoIncrementAttribute
 		: Attribute
 	{
+		public object Seed { get; set; }
+		public long Step { get; set; }
 		public bool AutoIncrement { get; set; }
 
 		public AutoIncrementAttribute()

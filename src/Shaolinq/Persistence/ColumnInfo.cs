@@ -10,12 +10,13 @@ namespace Shaolinq.Persistence
 		public TypeDescriptor ForeignType { get; set; }
 		public PropertyDescriptor[] VisitedProperties { get; set; }
 		public PropertyDescriptor DefinitionProperty { get; set; }
-		public string ColumnName { get { return this.GetColumnName(); } }
-
+		
 		private string columnName;
 		private string tailColumnName;
 		private string fullParentName;
 		private string fullPropertyName;
+
+		public string ColumnName => this.GetColumnName();
 
 		public string GetTailColumnName()
 		{
@@ -24,60 +25,60 @@ namespace Shaolinq.Persistence
 				throw new InvalidOperationException();
 			}
 
-			if (tailColumnName == null)
+			if (this.tailColumnName == null)
 			{
-				tailColumnName = string.Join("", this.VisitedProperties.Skip(1).Select(c => c.PersistedName));
+				this.tailColumnName = string.Join("", this.VisitedProperties.Skip(1).Select(c => c.PersistedName));
 
 				if (this.VisitedProperties.Length == 1)
 				{
-					tailColumnName += this.DefinitionProperty.PersistedName;
+					this.tailColumnName += this.DefinitionProperty.PersistedName;
 				}
 				else
 				{
-					tailColumnName += this.DefinitionProperty.PersistedShortName;
+					this.tailColumnName += this.DefinitionProperty.PersistedShortName;
 				}
 			}
 
-			return tailColumnName;
+			return this.tailColumnName;
 		}
 
 		public string GetColumnName()
 		{
-			if (columnName == null)
+			if (this.columnName == null)
 			{
-				columnName = string.Join("", this.VisitedProperties.Select(c => c.PersistedName));
+				this.columnName = string.Join("", this.VisitedProperties.Select(c => c.PersistedName));
 
 				if (this.VisitedProperties.Length == 0)
 				{
-					columnName += this.DefinitionProperty.PersistedName;
+					this.columnName += this.DefinitionProperty.PersistedName;
 				}
 				else
 				{
-					columnName += this.DefinitionProperty.PersistedShortName;
+					this.columnName += this.DefinitionProperty.PersistedShortName;
 				}
 			}
 
-			return columnName;
+			return this.columnName;
 		}
 
 		public string GetFullParentName()
 		{
-			if (fullParentName == null)
+			if (this.fullParentName == null)
 			{
-				fullParentName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName));
+				this.fullParentName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName));
 			}
 
-			return fullParentName;
+			return this.fullParentName;
 		}
 
 		public string GetFullPropertyName()
 		{
-			if (fullPropertyName == null)
+			if (this.fullPropertyName == null)
 			{
-				fullPropertyName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName).Concat(new [] { this.DefinitionProperty.PropertyName }));
+				this.fullPropertyName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName).Concat(new [] { this.DefinitionProperty.PropertyName }));
 			}
 
-			return fullPropertyName;
+			return this.fullPropertyName;
 		}
 
 		public override string ToString()

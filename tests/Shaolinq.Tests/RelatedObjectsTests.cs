@@ -131,7 +131,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var names = this.model.Students.Select(c => c.Firstname + "jo").ToList();
 
@@ -152,7 +152,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var students = this.model.Students.Where(c => c.Firstname == "Chuck").Select(c => c.School).ToList();
 
@@ -173,7 +173,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var schoolsAndAddresses = this.model.Students
 					.Select(c => new { c.School, c.Address}).ToList();
@@ -195,7 +195,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				//var addresses = this.model.Students
 				//.Select(c => c.School.Name == "Bruce's Kung Fu School" ? c.Address : c.Address).ToList();
@@ -221,7 +221,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 				
 				var schools = this.model.Students.Where(c => c.School == null).ToList();
 
@@ -242,7 +242,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var students = this.model.Students.Where(c => c.School == brucesSchool).ToList();
 
@@ -266,7 +266,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var values = this.model.Students.Select(c => c.School == brucesSchool  ? true : false).ToList();
 
@@ -289,7 +289,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var values = this.model.Students.Select(c => new { Nickname = c.Nickname.Substring(1) + "A", c.Sex }).ToList();
 			
@@ -312,7 +312,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var values = this.model.Students.Select(c => c.School == null ? true : false).ToList();
 
@@ -338,7 +338,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var id = brucesStudent.Address.Number;
 				var students = this.model.Students.Where(c => c.Address.Number == id).ToList();
@@ -371,7 +371,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var students = this.model.Students.Where(c => c.Address.Number == brucesStudent.Address.Number).ToList();
 
@@ -400,7 +400,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var schoolName = this.model.Students.Where(c => c == brucesStudent).Select(c => c.School.Name).First();
 
@@ -423,7 +423,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce") && c.Address.Number == 0).ToList();
 
@@ -444,7 +444,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var students = this.model.Students.Where(c => c == brucesStudent).ToList();
 
@@ -462,7 +462,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var student = model.Students.Create();
+					var student = this.model.Students.Create();
 
 					student.Firstname = "Bruce";
 					student.Lastname = "Lee";
@@ -484,7 +484,7 @@ namespace Shaolinq.Tests
 			
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "Kung Fu School 1";
 
@@ -495,7 +495,7 @@ namespace Shaolinq.Tests
 
 				Assert.AreSame(school, student.School);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 				studentId = student.Id;
@@ -505,7 +505,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First(c => c.Id == studentId);
+				var student = this.model.Students.First(c => c.Id == studentId);
 
 				Assert.IsTrue(student.School.IsDeflatedReference());
 
@@ -523,11 +523,11 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "Kung Fu School 1";
 
-				var student = model.Students.Create();
+				var student = this.model.Students.Create();
 
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
@@ -536,7 +536,7 @@ namespace Shaolinq.Tests
 
 				Assert.AreSame(school, student.School);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 				studentId = student.Id;
@@ -546,7 +546,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First(c => c.Id == studentId);
+				var student = this.model.Students.First(c => c.Id == studentId);
 
 				Assert.IsTrue(student.School.IsDeflatedReference());
 
@@ -557,20 +557,20 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.First(c => c.Id == schoolId);
+				var school = this.model.Schools.First(c => c.Id == schoolId);
 
-				var student = model.Students.First(c => c.School == school);
+				var student = this.model.Students.First(c => c.School == school);
 
 				Assert.AreEqual(studentId, student.Id);
 
-				Assert.AreEqual(1, model.Students.Count(c => c.School == school));
+				Assert.AreEqual(1, this.model.Students.Count(c => c.School == school));
 
 				Assert.AreEqual(1, school.Students.Count());
 
-				var anotherSchool = model.Schools.Create();
+				var anotherSchool = this.model.Schools.Create();
 				var anotherStudent = anotherSchool.Students.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				Assert.AreEqual(1, school.Students.Count());
 
@@ -583,7 +583,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -598,7 +598,7 @@ namespace Shaolinq.Tests
 
 				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(school.Id));
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				Assert.AreEqual(1, school.Id);
 				Assert.AreEqual(1, student.School.Id);
@@ -606,11 +606,11 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			Assert.AreEqual(1, model.Students.FirstOrDefault().School.Id);
+			Assert.AreEqual(1, this.model.Students.FirstOrDefault().School.Id);
 
-			Assert.AreEqual(1, model.Schools.FirstOrDefault().Id);
+			Assert.AreEqual(1, this.model.Schools.FirstOrDefault().Id);
 
-			var students = model.Students.Where(c => c.Firstname == "Bruce").ToList();
+			var students = this.model.Students.Where(c => c.Firstname == "Bruce").ToList();
 
 			Assert.AreEqual(1, students.Count);
 
@@ -618,12 +618,12 @@ namespace Shaolinq.Tests
 
 			Assert.AreEqual("Bruce Lee", storedStudent.Fullname);
 
-			Assert.AreEqual(1, model.Schools.Count());
-			Assert.IsNotNull(model.Schools.First(c => c.Name.IsLike("%Shaolinq%")));
-			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Id);
-			Assert.AreEqual(1, model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Count());
+			Assert.AreEqual(1, this.model.Schools.Count());
+			Assert.IsNotNull(this.model.Schools.First(c => c.Name.IsLike("%Shaolinq%")));
+			Assert.AreEqual(1, this.model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Id);
+			Assert.AreEqual(1, this.model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Count());
 
-			students = model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Where(c => c.Firstname == "Bruce" && c.Lastname.StartsWith("L")).ToList();
+			students = this.model.Schools.First(c => c.Name.IsLike("%Shaolinq%")).Students.Where(c => c.Firstname == "Bruce" && c.Lastname.StartsWith("L")).ToList();
 
 			Assert.AreEqual(1, students.Count);
 

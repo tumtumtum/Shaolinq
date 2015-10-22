@@ -7,9 +7,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Transactions;
+using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.TypeBuilding;
-using Platform;
 
 namespace Shaolinq
 {
@@ -53,14 +53,14 @@ namespace Shaolinq
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
 			where T : DataAccessObject
 		{
-			return (DataAccessObjects<T>)GetDataAccessObjects(typeof(T));
+			return (DataAccessObjects<T>) this.GetDataAccessObjects(typeof(T));
 		}
 
 		protected virtual IQueryable CreateDataAccessObjects(Type type)
 		{
 			Func<IQueryable> func;
 
-			if (!createDataAccessObjectsFuncs.TryGetValue(type, out func))
+			if (!this.createDataAccessObjectsFuncs.TryGetValue(type, out func))
 			{
 				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type)
 					.GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression) });
@@ -69,11 +69,11 @@ namespace Shaolinq
 
 				func = Expression.Lambda<Func<IQueryable>>(body).Compile();
 
-				var newDictionary = new Dictionary<Type, Func<IQueryable>>(createDataAccessObjectsFuncs);
+				var newDictionary = new Dictionary<Type, Func<IQueryable>>(this.createDataAccessObjectsFuncs);
 
 				newDictionary[type] = func;
 
-				createDataAccessObjectsFuncs = newDictionary;
+				this.createDataAccessObjectsFuncs = newDictionary;
 			}
 
 			return func();
@@ -94,17 +94,12 @@ namespace Shaolinq
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
 		{
-			var onDisposed = this.Disposed;
-
-			if (onDisposed != null)
-			{
-				onDisposed(this, eventArgs);
-			}
+			this.Disposed?.Invoke(this, eventArgs);
 		}
 
 		~DataAccessModel()
 		{
-			Dispose();
+			this.Dispose();
 		}
 
 		private void DisposeAllSqlDatabaseContexts()
@@ -121,7 +116,7 @@ namespace Shaolinq
 
 		public virtual void Dispose()
 		{
-			if (disposed)
+			if (this.disposed)
 			{
 				return;
 			}
@@ -212,7 +207,7 @@ namespace Shaolinq
 		{
 			if (!dataAccessModelType.IsSubclassOf(typeof(DataAccessModel)))
 			{
-				throw new ArgumentException("Data access model type must derive from DataAccessModel", "dataAccessModelType");
+				throw new ArgumentException("Data access model type must derive from DataAccessModel", nameof(dataAccessModelType));
 			}
 
 			configuration = configuration ?? GetDefaultConfiguration(dataAccessModelType);
@@ -253,7 +248,7 @@ namespace Shaolinq
 		public static DataAccessModelConfiguration GetDefaultConfiguration(Type type)
 		{
 			var typeName = type.Name;
-			var configuration = DataAccessModel.GetConfiguration(typeName);
+			var configuration = GetConfiguration(typeName);
 
 			if (configuration != null)
 			{
@@ -262,7 +257,7 @@ namespace Shaolinq
 
 			if (typeName.EndsWith("DataAccessModel"))
 			{
-				configuration = DataAccessModel.GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
+				configuration = GetConfiguration(typeName.Left(typeName.Length - "DataAccessModel".Length));
 
 				return configuration;
 			}
@@ -278,7 +273,7 @@ namespace Shaolinq
 		protected internal virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
 			where T : DataAccessObject
 		{
-			return (T)GetReference(typeof(T), primaryKey);
+			return (T) this.GetReference(typeof(T), primaryKey);
 		}
 
 		protected internal virtual DataAccessObject GetReference<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
@@ -327,7 +322,7 @@ namespace Shaolinq
 		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
 			where T : DataAccessObject
 		{
-			var propertyValues = GetObjectPropertyValues<T>(primaryKeyValues);
+			var propertyValues = this.GetObjectPropertyValues<T>(primaryKeyValues);
 
 			return this.GetReference<T>(propertyValues);
 		}
@@ -336,7 +331,7 @@ namespace Shaolinq
 		{
 			if (primaryKeyValues == null)
 			{
-				throw new ArgumentNullException("primaryKeyValues");
+				throw new ArgumentNullException(nameof(primaryKeyValues));
 			}
 
 			if (primaryKeyValues.All(c => c == null))
@@ -347,7 +342,7 @@ namespace Shaolinq
 			Func<object, ObjectPropertyValue[]> func;
 			var objectType = typeof(RawPrimaryKeysPlaceholderType<T>);
 
-			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
+			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
@@ -385,10 +380,12 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(propertyInfoAndValueGetterFuncByType);
-				newPropertyInfoAndValueGetterFuncByType[objectType] = func;
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType)
+				{
+					[objectType] = func
+				};
 
-				propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
+				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}
 
 			return func(primaryKeyValues);
@@ -396,16 +393,16 @@ namespace Shaolinq
 
 		protected internal ObjectPropertyValue[] GetObjectPropertyValues<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			if (object.Equals(primaryKey, default(K)) && typeof(K).IsClass)
+			if (Equals(primaryKey, default(K)) && typeof(K).IsClass)
 			{
-				throw new ArgumentNullException("primaryKey");
+				throw new ArgumentNullException(nameof(primaryKey));
 			}
 
 			var idType = primaryKey.GetType();
 			var objectType = primaryKey.GetType();
 			Func<object, ObjectPropertyValue[]> func;
 
-			if (!propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
+			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
 			{
 				var isSimpleKey = false;
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(type);
@@ -462,10 +459,10 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(propertyInfoAndValueGetterFuncByType);
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType);
 				newPropertyInfoAndValueGetterFuncByType[objectType] = func;
 
-				propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
+				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}
 
 			return func(primaryKey);
@@ -474,7 +471,7 @@ namespace Shaolinq
 		public virtual T GetReference<T, K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 			where T : DataAccessObject
 		{
-			var propertyValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
+			var propertyValues = this.GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
 			return this.GetReference<T>(propertyValues);
 		}
@@ -498,7 +495,7 @@ namespace Shaolinq
 
 		public virtual IDataAccessObjectAdvanced CreateDataAccessObject<K>(Type type, K primaryKey)
 		{
-			return CreateDataAccessObject(type, primaryKey, PrimaryKeyType.Auto);
+			return this.CreateDataAccessObject(type, primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual IDataAccessObjectAdvanced CreateDataAccessObject<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
@@ -506,10 +503,10 @@ namespace Shaolinq
 			if (!typeof(IDataAccessObjectAdvanced).IsAssignableFrom(type)
 				|| !typeof(DataAccessObject<>).IsAssignableFromIgnoreGenericParameters(type))
 			{
-				throw new ArgumentException("Type must be a DataAccessObjectType", "type");
+				throw new ArgumentException("Type must be a DataAccessObjectType", nameof(type));
 			}
 
-			var objectPropertyAndValues = GetObjectPropertyValues(type, primaryKey, primaryKeyType);
+			var objectPropertyAndValues = this.GetObjectPropertyValues(type, primaryKey, primaryKeyType);
 
 			if (objectPropertyAndValues.Any(keyValue => keyValue.Value == null))
 			{
@@ -552,13 +549,13 @@ namespace Shaolinq
 		public virtual T CreateDataAccessObject<T, K>(K primaryKey)
 			where T : DataAccessObject
 		{
-			return CreateDataAccessObject<T, K>(primaryKey, PrimaryKeyType.Auto);
+			return this.CreateDataAccessObject<T, K>(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T CreateDataAccessObject<T, K>(K primaryKey, PrimaryKeyType primaryKeyType)
 			where T : DataAccessObject
 		{
-			var objectPropertyAndValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
+			var objectPropertyAndValues = this.GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
 			if (objectPropertyAndValues.Any(keyValue => keyValue.Value == null))
 			{
@@ -677,13 +674,13 @@ namespace Shaolinq
 		{
 			if (dataAccessObject == null)
 			{
-				throw new ArgumentNullException("dataAccessObject");
+				throw new ArgumentNullException(nameof(dataAccessObject));
 			}
 
 			Func<DataAccessObject, DataAccessObject> func;
 			var definitionType = dataAccessObject.GetAdvanced().DefinitionType;
 			
-			if (!inflateFuncsByType.TryGetValue(definitionType, out func))
+			if (!this.inflateFuncsByType.TryGetValue(definitionType, out func))
 			{
 				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");
 				var methodInfo = MethodInfoFastRef.BaseDataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
@@ -693,11 +690,11 @@ namespace Shaolinq
 
 				func = lambda.Compile();
 
-				var newDictionary = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>(inflateFuncsByType);
+				var newDictionary = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>(this.inflateFuncsByType);
 
 				newDictionary[definitionType] = func;
 
-				inflateFuncsByType = newDictionary;
+				this.inflateFuncsByType = newDictionary;
 			}
 
 			return func(dataAccessObject);

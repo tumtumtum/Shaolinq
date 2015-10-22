@@ -8,11 +8,6 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public interface IHasExtraCondition
-	{
-		LambdaExpression ExtraCondition { get; }
-	}
-
 	/// <summary>
 	/// Base class that represents a queryable set of <c>DataAccessObjects</c>
 	/// </summary>
@@ -35,7 +30,7 @@ namespace Shaolinq
 
 			this.DataAccessModel = dataAccessModel; 
 			this.typeDescriptor = dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
-			base.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
+			this.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 
 		public virtual T Create()
@@ -70,17 +65,17 @@ namespace Shaolinq
 
 		public virtual T GetByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
+			return this.GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
 		}
 
 		public virtual T GetByPrimaryKeyOrDefault<K>(K primaryKey)
 		{
-			return GetByPrimaryKeyOrDefault(primaryKey, PrimaryKeyType.Auto);
+			return this.GetByPrimaryKeyOrDefault(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T GetByPrimaryKeyOrDefault<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
+			return this.GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
 		}
 
 		public virtual IQueryable<T> GetQueryableByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
@@ -89,7 +84,7 @@ namespace Shaolinq
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
-					throw new ArgumentException("Composite primary key expected", "primaryKey");
+					throw new ArgumentException("Composite primary key expected", nameof(primaryKey));
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
@@ -103,7 +98,7 @@ namespace Shaolinq
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
-					throw new ArgumentException("Composite primary key expected", "primaryKey");
+					throw new ArgumentException("Composite primary key expected", nameof(primaryKey));
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
@@ -137,26 +132,26 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys)
 		{
-			return GetManyByPrimaryKey<K>(primaryKeys, PrimaryKeyType.Auto);
+			return this.GetManyByPrimaryKey<K>(primaryKeys, PrimaryKeyType.Auto);
 		}
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys, PrimaryKeyType primaryKeyType)
 		{
 			if (primaryKeys == null)
 			{
-				throw new ArgumentNullException("primaryKeys");
+				throw new ArgumentNullException(nameof(primaryKeys));
 			}
 
 			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == IdType && primaryKeyType != PrimaryKeyType.Composite))
 			{
 				if (!TypeDescriptor.IsSimpleType(IdType))
 				{
-					throw new ArgumentException(string.Format("Type {0} needs to be convertable to {1}", typeof(K), IdType), "primaryKeys");
+					throw new ArgumentException($"Type {typeof(K)} needs to be convertable to {IdType}", nameof(primaryKeys));
 				}
 
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
-					throw new ArgumentException("Composite primary key type expected", "primaryKeys");
+					throw new ArgumentException("Composite primary key type expected", nameof(primaryKeys));
 				}
 			}
 

@@ -1,3 +1,4 @@
+// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 namespace Shaolinq.Tests.GenericModel.Interfaces
 {
 	public interface IShaolinqIdentityDbUserClaim<TPrimaryKey, TDbUser>

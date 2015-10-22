@@ -1,23 +1,24 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
-﻿using System.Collections.Generic;
-﻿using System.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
-﻿using Platform.Collections;
+using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlTupleExpression
 		: SqlBaseExpression
 	{
-		public IReadOnlyList<Expression> SubExpressions { get; private set; }
+		public IReadOnlyList<Expression> SubExpressions { get; }
 
 		internal protected static Type GetTupleExpressionType(IEnumerable<Expression> subExpressions)
 		{
 			var types = subExpressions.Select(c => c.Type).ToArray();
-
-			var genericTupleType = Type.GetType("Shaolinq.MutableTuple`" + types.Length);
+			var mutableTupleTypeName = typeof(MutableTuple<>).FullName;
+			
+			var genericTupleType = Type.GetType(mutableTupleTypeName.Remove(mutableTupleTypeName.Length - 1) + types.Length);
 
 			return genericTupleType.MakeGenericType(types);
 		}

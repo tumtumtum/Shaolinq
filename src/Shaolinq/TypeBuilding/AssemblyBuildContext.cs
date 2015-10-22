@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -8,8 +8,8 @@ namespace Shaolinq.TypeBuilding
 {
 	public class AssemblyBuildContext
 	{
-		public Assembly TargetAssembly { get; private set; }
-		public Dictionary<Type, DataAccessObjectTypeBuilder> TypeBuilders { get; private set; }
+		public Assembly TargetAssembly { get; }
+		public Dictionary<Type, DataAccessObjectTypeBuilder> TypeBuilders { get; }
 
 		public AssemblyBuildContext(Assembly targetAssembly)
 		{

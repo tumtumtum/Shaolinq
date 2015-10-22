@@ -1,10 +1,10 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
-﻿using Platform;
+using Platform;
 
 namespace Shaolinq.Persistence
 {
@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence
 		: SqlDataType
 	{
 		public string SqlName { get; }
-		public MethodInfo GetMethod { get; private set; }
+		public MethodInfo GetMethod { get; }
 
 		public PrimitiveSqlDataType(ConstraintDefaults constraintDefaults, Type type, string sqlName, MethodInfo getMethod)
 			: base(constraintDefaults, type)

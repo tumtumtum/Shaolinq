@@ -1,13 +1,13 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
 	internal struct GroupByInfo
 	{
-		public string Alias { get; private set; }
-		public Expression Element { get; private set; }
+		public string Alias { get; }
+		public Expression Element { get; }
 
 		public GroupByInfo(string alias, Expression element)
 			: this()

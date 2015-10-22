@@ -109,15 +109,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected class BindResult
 		{
-			private readonly IReadOnlyList<SqlColumnDeclaration> columns;
-			private readonly IReadOnlyList<SqlOrderByExpression> orderings;
-			public IReadOnlyList<SqlColumnDeclaration> Columns { get { return this.columns; } }
-			public IReadOnlyList<SqlOrderByExpression> Orderings { get { return this.orderings; } }
+			public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
+
+			public IReadOnlyList<SqlOrderByExpression> Orderings { get; }
 
 			public BindResult(IEnumerable<SqlColumnDeclaration> columns, IEnumerable<SqlOrderByExpression> orderings)
 			{
-				this.columns = columns.ToReadOnlyList();
-				this.orderings = orderings.ToReadOnlyList();
+				this.Columns = columns.ToReadOnlyList();
+				this.Orderings = orderings.ToReadOnlyList();
 			}
 		}
 

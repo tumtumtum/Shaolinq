@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Collections.Generic;
 using System.Linq;
 using Platform.Collections;
 
@@ -13,12 +15,9 @@ namespace Shaolinq
 				return null;
 			}
 
-			if (enumerable is ReadOnlyList<T>)
-			{
-				return (ReadOnlyList<T>)enumerable;
-			}
+			var list = enumerable as ReadOnlyList<T>;
 
-			return new ReadOnlyList<T>(enumerable.ToList());
+			return list ?? new ReadOnlyList<T>(enumerable.ToList());
 		}
 	}
 }

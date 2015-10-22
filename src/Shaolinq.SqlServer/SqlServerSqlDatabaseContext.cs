@@ -12,10 +12,10 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		public string Username { get; private set; }
-		public string Password { get; private set; }
-		public string ServerName { get; private set; }
-		public string Instance { get; private set; }
+		public string Username { get; }
+		public string Password { get; }
+		public string ServerName { get; }
+		public string Instance { get; }
 		public bool DeleteDatabaseDropsTablesOnly { get; set; }
 
 		private static readonly Regex ConnectionStringDatabaseNameRegex = new Regex(@".*Initial Catalog\s*\=([^;$]+)[;$]", RegexOptions.Compiled | RegexOptions.IgnoreCase);

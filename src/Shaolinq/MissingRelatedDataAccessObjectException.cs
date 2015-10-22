@@ -7,7 +7,7 @@ namespace Shaolinq
 	public class MissingRelatedDataAccessObjectException
 		: MissingDataAccessObjectException
 	{
-		public IDataAccessObjectAdvanced ParentObject { get; private set; }
+		public IDataAccessObjectAdvanced ParentObject { get; }
 
 		public MissingRelatedDataAccessObjectException()
 			: this(null, null)

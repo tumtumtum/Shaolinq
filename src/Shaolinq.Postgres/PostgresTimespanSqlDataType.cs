@@ -3,14 +3,14 @@ using System.Linq.Expressions;
 using Platform;
 using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedTimespanSqlDataType
+	public class PostgresTimespanSqlDataType
 		: SqlDataType
 	{
 		private readonly Type underlyingType;
 
-		public PostgresSharedTimespanSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
+		public PostgresTimespanSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
 			: base(constraintDefaults, supportedType)
 		{
 			this.underlyingType = Nullable.GetUnderlyingType(supportedType);
@@ -21,28 +21,9 @@ namespace Shaolinq.Postgres.Shared
 			return "INTERVAL";
 		}
 
-		public override Pair<Type, object> ConvertForSql(object value)
-		{
-			if (value == null)
-			{
-				return new Pair<Type, object>(typeof(object), null);
-			}
-			else
-			{
-				var timespan = (TimeSpan)value;
-				var ticks = timespan.Ticks;
-				var totalMicroseconds = ticks / 10;
-				var microSecondsComponent = totalMicroseconds - (((long)timespan.TotalSeconds) * 1000000);
-
-				var s = string.Format("{0:D2} {1:D2}:{2:D2}:{3:D2}.{4:D6}", timespan.Days, timespan.Hours, Math.Abs(timespan.Minutes), Math.Abs(timespan.Seconds), Math.Abs(microSecondsComponent));
-
-				return new Pair<Type, object>(typeof(object), s);
-			}
-		}
-
 		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
 		{
-			if (underlyingType == null)
+			if (this.underlyingType == null)
 			{
 				return Expression.Convert
 				(
@@ -64,5 +45,17 @@ namespace Shaolinq.Postgres.Shared
 				);
 			}
 		}
-	}
+
+		public override Pair<Type, object> ConvertForSql(object value)
+		{
+			if (this.UnderlyingType != null)
+			{
+				return new Pair<Type, object>(this.UnderlyingType, value);
+			}
+			else
+			{
+				return new Pair<Type, object>(this.SupportedType, value);
+			}
+		}
+    }
 }

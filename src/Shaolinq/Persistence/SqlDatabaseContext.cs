@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(PrimeNumbers.Prime131, DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(PrimeNumbers.Prime131, DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 
-		public string DatabaseName { get; private set; }
+		public string DatabaseName { get; }
 		public string SchemaName { get; protected set; }
 		public string[] ContextCategories { get; protected set; }
 		public string TableNamePrefix { get; protected set; }

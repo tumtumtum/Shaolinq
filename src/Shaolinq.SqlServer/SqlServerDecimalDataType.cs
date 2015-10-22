@@ -1,14 +1,11 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using Platform;
 using Shaolinq.Persistence;
 
@@ -18,7 +15,7 @@ namespace Shaolinq.SqlServer
 		: SqlDataType
 	{
 		private readonly MethodInfo method;
-		public string SqlName { get; private set; }
+		public string SqlName { get; }
 		
 		public SqlServerDecimalDataType(ConstraintDefaults constraintDefaults, Type type, string sqlName)
 			: base(constraintDefaults, type)
@@ -60,7 +57,7 @@ namespace Shaolinq.SqlServer
 			(
 				Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
 				Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
-				Expression.Convert(Expression.Call(null, method, dataReader, Expression.Constant(ordinal)), this.SupportedType)
+				Expression.Convert(Expression.Call(null, this.method, dataReader, Expression.Constant(ordinal)), this.SupportedType)
 			);
 		}
 	}

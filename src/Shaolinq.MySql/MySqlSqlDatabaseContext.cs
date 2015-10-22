@@ -4,17 +4,17 @@ using System;
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using System.Transactions;
-﻿using Shaolinq.Persistence;
 using MySql.Data.MySqlClient;
+using Shaolinq.Persistence;
 
-﻿namespace Shaolinq.MySql
+namespace Shaolinq.MySql
 {
 	public class MySqlSqlDatabaseContext
 		: SqlDatabaseContext
 	{
-		public string Username { get; private set; }
-		public string Password { get; private set; }
-		public string ServerName { get; private set; }
+		public string Username { get; }
+		public string Password { get; }
+		public string ServerName { get; }
 		
 		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{

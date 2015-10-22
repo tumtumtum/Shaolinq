@@ -1,6 +1,5 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +18,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		private RedundantColumnRemover()
 		{
-			visitedColumns = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
+			this.visitedColumns = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 		}
 
 		public static Expression Remove(Expression expression)

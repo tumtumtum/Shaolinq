@@ -7,10 +7,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlCreateTypeExpression
 		: SqlBaseExpression
 	{
-		public bool IfNotExist { get; private set; }
-		public Expression SqlType { get; private set; }
-		public Expression AsExpression { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.CreateType; } }
+		public bool IfNotExist { get; }
+		public Expression SqlType { get; }
+		public Expression AsExpression { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateType;
 
 		public SqlCreateTypeExpression(Expression sqlType, Expression asExpression, bool ifNotExist)
 			: base(typeof(void))

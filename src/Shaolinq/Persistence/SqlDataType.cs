@@ -1,10 +1,9 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
-using Shaolinq.Persistence.Linq;
 using Platform;
 
 namespace Shaolinq.Persistence
@@ -16,7 +15,7 @@ namespace Shaolinq.Persistence
 
 		public Type SupportedType { get; }
 		public Type UnderlyingType { get; }
-		public bool IsUserDefinedType { get; private set; }
+		public bool IsUserDefinedType { get; }
 
 		/// <summary>
 		/// Converts the given value for serializing to SQL.  The default

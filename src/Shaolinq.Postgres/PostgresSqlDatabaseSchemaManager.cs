@@ -6,12 +6,12 @@ using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedSqlDatabaseSchemaManager
+	internal class PostgresSqlDatabaseSchemaManager
 		: SqlDatabaseSchemaManager
 	{
-		public PostgresSharedSqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
+		public PostgresSqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
 			: base(sqlDatabaseContext)
 		{
 		}
@@ -20,7 +20,7 @@ namespace Shaolinq.Postgres.Shared
 		{
 			var retval = base.GetBuilderFlags();
 
-			if (((PostgresSharedSqlDataTypeProvider)this.SqlDatabaseContext.SqlDataTypeProvider).NativeEnums)
+			if (((PostgresSqlDataTypeProvider)this.SqlDatabaseContext.SqlDataTypeProvider).NativeEnums)
 			{
 				retval |= SqlDataDefinitionBuilderFlags.BuildEnums;
 			}
@@ -72,14 +72,14 @@ namespace Shaolinq.Postgres.Shared
 					{
 						using (command = dbConnection.CreateCommand())
 						{
-							command.CommandText = String.Concat("DROP DATABASE \"", databaseName, "\";");
+							command.CommandText = $"DROP DATABASE \"{databaseName}\";";
 							command.ExecuteNonQuery();
 						}
 					}
 
 					using (command = dbConnection.CreateCommand())
 					{
-						command.CommandText = String.Concat("CREATE DATABASE \"", databaseName, "\" WITH ENCODING 'UTF8';");
+						command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
 						command.ExecuteNonQuery();
 					}
 
@@ -91,7 +91,7 @@ namespace Shaolinq.Postgres.Shared
 					{
 						using (command = dbConnection.CreateCommand())
 						{
-							command.CommandText = String.Concat("CREATE DATABASE \"", databaseName, "\" WITH ENCODING 'UTF8';");
+							command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
 							command.ExecuteNonQuery();
 						}
 
@@ -121,7 +121,7 @@ namespace Shaolinq.Postgres.Shared
 
 					using (var command = dbConnection.CreateCommand())
 					{
-						command.CommandText = string.Format("CREATE SCHEMA IF NOT EXISTS \"{0}\";", this.SqlDatabaseContext.SchemaName);
+						command.CommandText = $"CREATE SCHEMA IF NOT EXISTS \"{this.SqlDatabaseContext.SchemaName}\";";
 
 						command.ExecuteNonQuery();
 					}

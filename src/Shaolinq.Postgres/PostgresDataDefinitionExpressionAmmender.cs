@@ -5,29 +5,29 @@ using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedDataDefinitionExpressionAmmender
+	public class PostgresDataDefinitionExpressionAmmender
 		: SqlExpressionVisitor
 	{
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private bool currentIsPrimaryKey;
 
-		private PostgresSharedDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
+		private PostgresDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
 		{
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 		}
 
 		public static Expression Ammend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
 		{
-			var processor = new PostgresSharedDataDefinitionExpressionAmmender(sqlDataTypeProvider);
+			var processor = new PostgresDataDefinitionExpressionAmmender(sqlDataTypeProvider);
 
 			return processor.Visit(expression);
 		}
 		
 		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
 		{
-			if (currentIsPrimaryKey && simpleConstraintExpression.Constraint == SqlSimpleConstraint.AutoIncrement)
+			if (this.currentIsPrimaryKey && simpleConstraintExpression.Constraint == SqlSimpleConstraint.AutoIncrement)
 			{
 				return null;
 			}
@@ -49,7 +49,7 @@ namespace Shaolinq.Postgres.Shared
 
 			if (isAutoIncrement)
 			{
-				var longTypeSqlName = sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
+				var longTypeSqlName = this.sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
 
 				if (((SqlTypeExpression)columnDefinitionExpression.ColumnType).TypeName == longTypeSqlName)
 				{

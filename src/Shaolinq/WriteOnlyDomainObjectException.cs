@@ -1,13 +1,13 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 
 namespace Shaolinq
 {
 	public class WriteOnlyDataAccessObjectException
 		: Exception
 	{
-		public IDataAccessObjectAdvanced DataAccessObject { get; private set; }
+		public IDataAccessObjectAdvanced DataAccessObject { get; }
 
 		public WriteOnlyDataAccessObjectException(IDataAccessObjectAdvanced dataAccessObject)
 		{

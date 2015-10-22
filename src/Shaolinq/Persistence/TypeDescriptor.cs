@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Platform;
@@ -14,19 +13,19 @@ namespace Shaolinq.Persistence
 	public class TypeDescriptor
 	{
 		public Type Type { get; }
-		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
+		public TypeDescriptorProvider TypeDescriptorProvider { get; }
+		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
 		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; private set; }
-		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; private set; }
-		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; }
 
-		public string TypeName { get { return this.Type.Name; } }
-		public bool HasPrimaryKeys { get { return this.PrimaryKeyProperties.Count > 0; } }
-		public int PrimaryKeyCount { get { return this.PrimaryKeyProperties.Count; } }
-		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
-
+		public string TypeName => this.Type.Name;
+		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
+		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
+		
 		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
@@ -52,24 +51,18 @@ namespace Shaolinq.Persistence
 			return false;
 		}
 
-		public string PersistedName
-		{
-			get
-			{
-				return this.DataAccessObjectAttribute.GetName(this.Type);
-			}
-		}
+		public string PersistedName => this.DataAccessObjectAttribute.GetName(this.Type);
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
-			return relationshipInfos.Values;
+			return this.relationshipInfos.Values;
 		}
 
 		public TypeRelationshipInfo GetRelationshipInfo(TypeDescriptor relatedTypeDescriptor)
 		{
 			TypeRelationshipInfo retval;
 
-			if (relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
+			if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
 			{
 				return retval;
 			}
@@ -81,7 +74,7 @@ namespace Shaolinq.Persistence
 		{
 			TypeRelationshipInfo retval;
 
-			if (relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
+			if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
 			{
 				retval.EntityRelationshipType = entityRelationshipType;
 				retval.ReferencingProperty = relatedProperty;
@@ -92,7 +85,7 @@ namespace Shaolinq.Persistence
 
 			retval = new TypeRelationshipInfo(relatedTypeDescriptor, entityRelationshipType, relatedProperty);
 
-			relationshipInfos[relatedTypeDescriptor] = retval;
+			this.relationshipInfos[relatedTypeDescriptor] = retval;
 
 			return retval;
 		}
@@ -101,7 +94,7 @@ namespace Shaolinq.Persistence
 		{
 			PropertyDescriptor retval;
 
-			if (!propertyDescriptorByColumnName.TryGetValue(columnName, out retval))
+			if (!this.propertyDescriptorByColumnName.TryGetValue(columnName, out retval))
 			{
 				return null;
 			}
@@ -113,7 +106,7 @@ namespace Shaolinq.Persistence
 		{
 			PropertyDescriptor retval;
 
-			if (!propertyDescriptorByPropertyName.TryGetValue(propertyName, out retval))
+			if (!this.propertyDescriptorByPropertyName.TryGetValue(propertyName, out retval))
 			{
 				return null;
 			}
@@ -149,7 +142,7 @@ namespace Shaolinq.Persistence
 
 				if (retval == null)
 				{
-					throw new InvalidOperationException(String.Format("Unable to find related property for type '{0}' on type '{1}'", type.Name, this.Type.Name));
+					throw new InvalidOperationException($"Unable to find related property for type '{type.Name}' on type '{this.Type.Name}'");
 				}
 
 				this.relatedPropertiesByType[type] = retval;
@@ -252,8 +245,8 @@ namespace Shaolinq.Persistence
 					}
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
-					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
-					propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
+					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
+					this.propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
 				}
 			}
 
@@ -292,7 +285,7 @@ namespace Shaolinq.Persistence
 
 					relatedProperties.Add(propertyDescriptor);
 
-					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
+					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 				}
 				else if (propertyInfo.GetFirstCustomAttribute<BackReferenceAttribute>(true) != null)
 				{
@@ -320,7 +313,7 @@ namespace Shaolinq.Persistence
 
 					relatedProperties.Add(propertyDescriptor);
 
-					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
+					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 				}
 			}
 

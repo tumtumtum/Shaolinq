@@ -27,13 +27,13 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = model.ObjectWithUniqueConstraints.Create();
+				var obj1 = this.model.ObjectWithUniqueConstraints.Create();
 				obj1.Name = "a";
 
-				var obj2 = model.ObjectWithUniqueConstraints.Create();
+				var obj2 = this.model.ObjectWithUniqueConstraints.Create();
 				obj2.Name = "a";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				scope.Complete();
 			}

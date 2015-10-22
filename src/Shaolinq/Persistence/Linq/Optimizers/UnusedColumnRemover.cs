@@ -1,7 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
-﻿using System.Diagnostics;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -61,7 +61,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
-			MarkColumnAsUsed(column.SelectAlias, column.Name);
+			this.MarkColumnAsUsed(column.SelectAlias, column.Name);
 
 			return column;
 		}
@@ -72,7 +72,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				Debug.Assert(subquery.Select.Columns.Count == 1);
 
-				MarkColumnAsUsed(subquery.Select.Alias, subquery.Select.Columns[0].Name);
+				this.MarkColumnAsUsed(subquery.Select.Alias, subquery.Select.Columns[0].Name);
 			}
 
 			return base.VisitSubquery(subquery);
@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				var columnDeclaration = select.Columns[i];
 
-				if (select.Distinct || IsColumnUsed(select.Alias, columnDeclaration.Name))
+				if (select.Distinct || this.IsColumnUsed(select.Alias, columnDeclaration.Name))
 				{
 					var expr = this.Visit(columnDeclaration.Expression);
 
@@ -108,7 +108,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					alternate = new List<SqlColumnDeclaration>();
 
-					for (int j = 0; j < i; j++)
+					for (var j = 0; j < i; j++)
 					{
 						alternate.Add(select.Columns[j]);
 					}
@@ -132,7 +132,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var where = this.Visit(select.Where);
 			var from = this.Visit(select.From);
 
-			ClearColumnsUsed(select.Alias);
+			this.ClearColumnsUsed(select.Alias);
 
 			if (columns != select.Columns
 				|| orderbys != select.OrderBy

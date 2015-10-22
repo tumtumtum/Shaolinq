@@ -65,7 +65,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(this.writer.ToString(), parameterValues);
+			return new SqlQueryFormatResult(this.writer.ToString(), this.parameterValues);
 		}
 
 		public virtual SqlQueryFormatResult Format(Expression expression, TextWriter writer)
@@ -75,7 +75,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(null, parameterValues);
+			return new SqlQueryFormatResult(null, this.parameterValues);
 		}
 
 		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)
@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.writer.WriteLine();
 
-			for (var i = 0; i < depth * this.IndentationWidth; i++)
+			for (var i = 0; i < this.depth * this.IndentationWidth; i++)
 			{
 				this.writer.Write(' ');
 			}
@@ -113,7 +113,7 @@ namespace Shaolinq.Persistence.Linq
 			this.writer.Write(line);
 			this.writer.WriteLine();
 
-			for (var i = 0; i < depth * this.IndentationWidth; i++)
+			for (var i = 0; i < this.depth * this.IndentationWidth; i++)
 			{
 				this.writer.Write(' ');
 			}
@@ -134,7 +134,7 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		protected void WriteDeliminatedListOfItems(IEnumerable listOfItems, Func<object, object> action, string deliminator = ", ")
+		protected void WriteDeliminatedListOfItems(IEnumerable listOfItems, Action<object> action, string deliminator = ", ")
 		{
 			var i = 0;
 
@@ -149,7 +149,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Func<T, object> action,  string deliminator = ", ")
+		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Action<T> action, string deliminator = ", ")
 		{
 			var i = 0;
 
@@ -163,8 +163,8 @@ namespace Shaolinq.Persistence.Linq
 				action(item);
 			}
 		}
-
-		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Func<T, object> action, Action deliminationAction)
+		
+		protected void WriteDeliminatedListOfItems<T>(IEnumerable<T> listOfItems, Action<T> action, Action deliminationAction)
 		{
 			var i = 0;
 

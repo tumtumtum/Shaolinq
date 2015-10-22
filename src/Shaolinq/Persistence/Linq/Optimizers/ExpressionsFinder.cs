@@ -62,11 +62,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return base.Visit(null);
 			}
 
-			if (isMatch(expression))
+			if (this.isMatch(expression))
 			{
 				this.results.Add(expression);
 
-				if (findFirst)
+				if (this.findFirst)
 				{
 					return expression;
 				}

@@ -1,20 +1,20 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlProjectionExpression
 		: SqlBaseExpression
 	{
-		public bool IsDefaultIfEmpty { get; private set; }
+		public bool IsDefaultIfEmpty { get; }
 		public bool IsElementTableProjection { get; }
 		public SqlSelectExpression Select { get; }
 		public Expression Projector { get; }
 		public LambdaExpression Aggregator { get; }
 		public SelectFirstType SelectFirstType { get; }
-		public Expression DefaultValueExpression { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Projection; } }
+		public Expression DefaultValueExpression { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Projection;
 
 		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator)
 			: this(select, projector, aggregator, false)

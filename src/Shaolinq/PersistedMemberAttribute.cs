@@ -1,8 +1,8 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Reflection;
-﻿using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -23,12 +23,12 @@ namespace Shaolinq
 
 		public string GetShortName(MemberInfo memberInfo, TypeDescriptor typeDescriptor)
 		{
-			return GetName(memberInfo, this.ShortName ?? this.Name, typeDescriptor);
+			return this.GetName(memberInfo, this.ShortName ?? this.Name, typeDescriptor);
 		}
 
 		public string GetName(MemberInfo memberInfo, TypeDescriptor typeDescriptor)
 		{
-			return GetName(memberInfo, this.Name, typeDescriptor);
+			return this.GetName(memberInfo, this.Name, typeDescriptor);
 		}
 
 		private string GetName(MemberInfo memberInfo, string autoNamePattern, TypeDescriptor typeDescriptor)

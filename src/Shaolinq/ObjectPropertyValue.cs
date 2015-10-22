@@ -1,13 +1,13 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 
 namespace Shaolinq
 {
 	public struct ObjectPropertyValue
 	{
 		public object Value { get; }
-		public Type PropertyType { get; private set; }
+		public Type PropertyType { get; }
 		public string PropertyName { get; }
 		public string PersistedName { get; }
 		public int PropertyNameHashCode { get; }
@@ -36,12 +36,12 @@ namespace Shaolinq
 
 		public static bool operator==(ObjectPropertyValue left, ObjectPropertyValue right)
 		{
-			if (!Object.ReferenceEquals(left.PropertyName, right.PropertyName))
+			if (!ReferenceEquals(left.PropertyName, right.PropertyName))
 			{
 				return false;
 			}
 
-			if (!Object.ReferenceEquals(left.PersistedName, right.PersistedName))
+			if (!ReferenceEquals(left.PersistedName, right.PersistedName))
 			{
 				return false;
 			}
@@ -66,12 +66,12 @@ namespace Shaolinq
 				return true;
 			}
 
-			if (!Object.ReferenceEquals(left.PropertyName, right.PropertyName))
+			if (!ReferenceEquals(left.PropertyName, right.PropertyName))
 			{
 				return true;
 			}
 
-			if (!Object.ReferenceEquals(left.PersistedName, right.PersistedName))
+			if (!ReferenceEquals(left.PersistedName, right.PersistedName))
 			{
 				return true;
 			}

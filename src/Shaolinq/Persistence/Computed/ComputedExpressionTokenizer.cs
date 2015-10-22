@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,7 +15,7 @@ namespace Shaolinq.Persistence.Computed
 		public string CurrentString { get; private set; }
 		public string CurrentIdentifier { get; private set; }
 		public long CurrentInteger { get; private set; }
-		public string CurrentKey { get { return this.CurrentIdentifier; } }
+		public string CurrentKey => this.CurrentIdentifier;
 		public ComputedExpressionToken CurrentToken { get; private set; }
 
 		public bool CurrentTokenMatches(params ComputedExpressionToken[] tokens)
@@ -261,7 +263,7 @@ namespace Shaolinq.Persistence.Computed
 				return this.CurrentToken;
 			}
 			
-			throw new InvalidOperationException(string.Format("Unexpected character: {0}", (char)this.currentChar));
+			throw new InvalidOperationException($"Unexpected character: {(char) this.currentChar}");
 		}
 	}
 }

@@ -1,13 +1,13 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using Shaolinq.Persistence.Linq.Expressions;
 using Platform;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
@@ -113,7 +113,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					}
 					else if (typeof(IEnumerable).IsAssignableFrom(value.Type))
 					{
-						if (IsEmpty((IEnumerable)value.Value))
+						if (this.IsEmpty((IEnumerable)value.Value))
 						{
 							return Expression.Constant(false, functionCallExpression.Type);
 						}
@@ -154,13 +154,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					switch (functionCallExpression.Arguments.Count)
 					{
 						case 2:
-							result = String.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value);
+							result = string.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value);
 							break;
 						case 3:
-							result = String.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value);
+							result = string.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value);
 							break;
 						case 4:
-							result = String.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value, (string)((ConstantExpression)arguments[3]).Value);
+							result = string.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value, (string)((ConstantExpression)arguments[3]).Value);
 							break;
 						default:
 							var builder = new StringBuilder();

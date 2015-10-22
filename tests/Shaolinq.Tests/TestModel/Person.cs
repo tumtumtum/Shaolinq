@@ -1,15 +1,10 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using Platform.Validation;
 
 namespace Shaolinq.Tests.TestModel
 {
-	public interface IIdentified<T>
-	{
-		T Id { get; set; }
-	}
-
 	[DataAccessObject(NotPersisted = true)]
 	public abstract class Person
 		: DataAccessObject<Guid>, IIdentified<Guid>
@@ -61,13 +56,7 @@ namespace Shaolinq.Tests.TestModel
 		public abstract TimeSpan TimeSinceLastSlept { get; set; }
 
 		[DependsOnProperty("Id")]
-		protected virtual string CompactIdString
-		{
-			get
-			{
-				return this.Id.ToString("N");
-			}
-		}
+		protected virtual string CompactIdString => this.Id.ToString("N");
 
 		[PersistedMember]
 		[ComputedTextMember("urn:$(TYPENAME_LOWER):{CompactIdString}")]

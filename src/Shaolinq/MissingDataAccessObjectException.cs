@@ -14,7 +14,7 @@ namespace Shaolinq
 		/// <summary>
 		/// The object that is missing (if known). Can be null if constraints are deferred.
 		/// </summary>
-		public IDataAccessObjectAdvanced MissingObject { get; private set; }
+		public IDataAccessObjectAdvanced MissingObject { get; }
 
 		public MissingDataAccessObjectException()
 			: this(null, null, null)

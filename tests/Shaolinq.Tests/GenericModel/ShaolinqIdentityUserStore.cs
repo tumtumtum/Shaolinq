@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Shaolinq.Tests.GenericModel.Interfaces;
 
 namespace Shaolinq.Tests.GenericModel

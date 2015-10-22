@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using System.Reflection;
 using Platform.Reflection;
 
@@ -11,11 +10,11 @@ namespace Shaolinq.Persistence
 	{
 		public Type Type { get; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; }
-		public DataAccessModelAttribute DataAccessModelAttribute { get; private set; }
+		public DataAccessModelAttribute DataAccessModelAttribute { get; }
 		
 		public ModelTypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
-			TypeDescriptorProvider = typeDescriptorProvider;
+			this.TypeDescriptorProvider = typeDescriptorProvider;
 			this.Type = type;
 
 			this.DataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);
@@ -51,7 +50,7 @@ namespace Shaolinq.Persistence
 
 				if (typeDescriptor == null)
 				{
-					throw new InvalidDataAccessObjectModelDefinition(string.Format("Type {0} is referenced by model but not resolvable", genericType.Name));
+					throw new InvalidDataAccessObjectModelDefinition($"Type {genericType.Name} is referenced by model but not resolvable");
 				}
 			}
 		}

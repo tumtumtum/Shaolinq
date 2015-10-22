@@ -9,11 +9,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlInsertIntoExpression
 		: SqlBaseExpression
 	{
-		public SqlTableExpression Table { get; private set; }
-		public IReadOnlyList<string> ColumnNames { get; private set; }
-		public IReadOnlyList<Expression> ValueExpressions { get; private set; }
-		public IReadOnlyList<string> ReturningAutoIncrementColumnNames { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.InsertInto; } }
+		public SqlTableExpression Table { get; }
+		public IReadOnlyList<string> ColumnNames { get; }
+		public IReadOnlyList<Expression> ValueExpressions { get; }
+		public IReadOnlyList<string> ReturningAutoIncrementColumnNames { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.InsertInto;
 
 		public SqlInsertIntoExpression(SqlTableExpression table, IEnumerable<string> columnNames, IEnumerable<string> returningAutoIncrementColumnNames, IEnumerable<Expression> valueExpressions)
 			: this(table, columnNames.ToReadOnlyList(), returningAutoIncrementColumnNames.ToReadOnlyList(), valueExpressions.ToReadOnlyList())

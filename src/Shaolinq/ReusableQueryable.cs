@@ -1,12 +1,12 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
-﻿using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq
 {
@@ -27,7 +27,7 @@ namespace Shaolinq
 		{
             if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type) && !(expression is SqlProjectionExpression))
 			{
-				throw new ArgumentOutOfRangeException("expression");
+				throw new ArgumentOutOfRangeException(nameof(expression));
             }
             
 			this.PersistenceQueryProvider = provider;
@@ -50,13 +50,7 @@ namespace Shaolinq
 			return this.GetEnumerator();
 		}
 
-		public virtual Type ElementType
-		{
-			get
-			{
-				return typeof(T);
-			}
-		}
+		public virtual Type ElementType => typeof(T);
 
 		public virtual Expression Expression
 		{
@@ -64,13 +58,7 @@ namespace Shaolinq
 			private set;
 		}
 
-		public virtual IQueryProvider Provider
-		{
-			get
-			{
-				return this.PersistenceQueryProvider;
-			}
-		}
+		public virtual IQueryProvider Provider => this.PersistenceQueryProvider;
 
 		public virtual IPersistenceQueryProvider PersistenceQueryProvider
 		{

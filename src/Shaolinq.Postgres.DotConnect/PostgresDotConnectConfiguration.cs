@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using Shaolinq.Persistence;
-using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres.DotConnect
 {
@@ -12,9 +11,9 @@ namespace Shaolinq.Postgres.DotConnect
 			string serverName,
 			string userId,
 			string password,
-			bool poolConnections = PostgresSharedSqlDatabaseContextInfo.DefaultPooling,
+			bool poolConnections = PostgresDotConnectSqlDatabaseContextInfo.DefaultPooling,
 			string categories = null,
-			int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort,
+			int port = PostgresDotConnectSqlDatabaseContextInfo.DefaultPostgresPort,
 			bool unpreparedExecute = PostgresDotConnectSqlDatabaseContextInfo.DefaultUnpreparedExecute,
 			int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout,
 			int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout

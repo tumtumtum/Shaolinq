@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -8,9 +8,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlTableExpression
 		: SqlBaseExpression
 	{
-		public string Name { get; private set; }
-		public string Alias { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Table; } }
+		public string Name { get; }
+		public string Alias { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Table;
 
 		public SqlTableExpression(string name)
 			: base(typeof(void))

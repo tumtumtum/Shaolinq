@@ -1,10 +1,10 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-﻿using Platform.Collections;
+using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -12,8 +12,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public string Alias { get; }
-		public bool Distinct { get; protected internal set; }
-		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
+		public bool Distinct { get; }
 		public Expression From { get; }
 		public Expression Where { get; }
 		public Expression Take { get; }
@@ -21,7 +20,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public bool ForUpdate { get; }
 		public IReadOnlyList<Expression> OrderBy { get; }
 		public IReadOnlyList<Expression> GroupBy { get; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Select; } }
+		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Select;
 
 		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate)
 			: this(type, alias, columns.ToReadOnlyList(), from, where, orderBy.ToReadOnlyList(), null, false, null, null, forUpdate)
@@ -52,7 +52,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
         
 		public SqlSelectExpression ChangeColumns(IEnumerable<SqlColumnDeclaration> columns)
 		{
-			return ChangeColumns(columns, false);
+			return this.ChangeColumns(columns, false);
 		}
 
 		public SqlSelectExpression ChangeColumns(IEnumerable<SqlColumnDeclaration> columns, bool columnsAlreadyOrdered)

@@ -2,14 +2,14 @@
 
 using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedSqlDialect
+	internal class PostgresSqlDialect
 		: SqlDialect
 	{
-		public new static readonly PostgresSharedSqlDialect Default = new PostgresSharedSqlDialect();
+		public new static readonly PostgresSqlDialect Default = new PostgresSqlDialect();
 
-		private PostgresSharedSqlDialect()
+		private PostgresSqlDialect()
 		{	
 		}
 

@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -9,10 +9,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public SqlJoinType JoinType { get; set; }
-		public Expression Left { get; private set; }
-		public Expression Right { get; private set; }
-		public Expression JoinCondition { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Join; } }
+		public Expression Left { get; }
+		public Expression Right { get; }
+		public Expression JoinCondition { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Join;
 
 		public SqlJoinExpression(Type type, SqlJoinType joinType, Expression left, Expression right, Expression joinCondition)
 			: base(type)
@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				if (joinCondition == null)
 				{
-					throw new ArgumentNullException("joinCondition");
+					throw new ArgumentNullException(nameof(joinCondition));
 				}
 			}
 

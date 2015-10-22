@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -12,13 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		private int maxLength = 0;
 		private object[] values;
 
-		public object[] Values
-		{
-			get
-			{
-				return values;
-			}
-		}
+		public object[] Values => this.values;
 
 		private PlaceholderValuesCollector()
 		{
@@ -39,11 +33,11 @@ namespace Shaolinq.Persistence.Linq
 				Array.Resize(ref this.values, newLength);
 			}
 
-			values[constantPlaceholder.Index] = constantPlaceholder.ConstantExpression.Value;
+			this.values[constantPlaceholder.Index] = constantPlaceholder.ConstantExpression.Value;
 
-			if (maxLength < constantPlaceholder.Index + 1)
+			if (this.maxLength < constantPlaceholder.Index + 1)
 			{
-				maxLength = constantPlaceholder.Index + 1;
+				this.maxLength = constantPlaceholder.Index + 1;
 			}
 
 			return base.VisitConstantPlaceholder(constantPlaceholder);

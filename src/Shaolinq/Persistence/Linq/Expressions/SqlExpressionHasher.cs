@@ -34,7 +34,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			if (expression != null)
 			{
-				hashCode ^= (int)expression.NodeType << 24;
+				this.hashCode ^= (int)expression.NodeType << 24;
 			}
 
 			return base.Visit(expression);
@@ -42,15 +42,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override MemberBinding VisitBinding(MemberBinding binding)
 		{
-			hashCode ^= (int)binding.BindingType;
-			hashCode ^= binding.Member.GetHashCode();
+			this.hashCode ^= (int)binding.BindingType;
+			this.hashCode ^= binding.Member.GetHashCode();
 			
 			return base.VisitBinding(binding);
 		}
 
 		protected override ElementInit VisitElementInitializer(ElementInit initializer)
 		{
-			hashCode ^= (int)initializer.Arguments.Count << 16;
+			this.hashCode ^= (int)initializer.Arguments.Count << 16;
 			
 			return base.VisitElementInitializer(initializer);
 		}
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			if (unaryExpression.Method != null)
 			{
-				hashCode ^= unaryExpression.Method.GetHashCode();
+				this.hashCode ^= unaryExpression.Method.GetHashCode();
 			}
 
 			return base.VisitUnary(unaryExpression);
@@ -69,7 +69,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			if (binaryExpression.Method != null)
 			{
-				hashCode ^= binaryExpression.Method.GetHashCode();
+				this.hashCode ^= binaryExpression.Method.GetHashCode();
 			}
 
 			return base.VisitBinary(binaryExpression);
@@ -77,7 +77,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitTypeIs(TypeBinaryExpression expression)
 		{
-			hashCode ^= expression.TypeOperand.GetHashCode();
+			this.hashCode ^= expression.TypeOperand.GetHashCode();
 
 			return base.VisitTypeIs(expression);
 		}
@@ -86,13 +86,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			var type = constantExpression.Type;
 
-			hashCode ^= type.GetHashCode();
+			this.hashCode ^= type.GetHashCode();
 
 			if (type.IsValueType)
 			{
 				if (constantExpression.Value != null)
 				{
-					hashCode ^= constantExpression.Value.GetHashCode();
+					this.hashCode ^= constantExpression.Value.GetHashCode();
 				}
 			}
 
@@ -106,21 +106,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitParameter(ParameterExpression expression)
 		{
-			hashCode ^= expression.Name == null ? 0 : expression.Name.GetHashCode();
+			this.hashCode ^= expression.Name == null ? 0 : expression.Name.GetHashCode();
 
 			return base.VisitParameter(expression);
 		}
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
-			hashCode ^= memberExpression.Member.GetHashCode();
+			this.hashCode ^= memberExpression.Member.GetHashCode();
 
 			return base.VisitMemberAccess(memberExpression);
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			hashCode ^= methodCallExpression.Arguments.Count;
+			this.hashCode ^= methodCallExpression.Arguments.Count;
 
 			return base.VisitMethodCall(methodCallExpression);
 		}
@@ -132,7 +132,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return null;
 			}
 
-			hashCode ^= original.Count;
+			this.hashCode ^= original.Count;
 
 			return base.VisitExpressionList<T>(original);
 		}
@@ -144,15 +144,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return null;
 			}
 
-			hashCode ^= original.Count;
+			this.hashCode ^= original.Count;
 
 			return base.VisitExpressionList(original);
 		}
 
 		protected override MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
 		{
-			hashCode ^= (int)assignment.BindingType;
-			hashCode ^= assignment.Member.GetHashCode();
+			this.hashCode ^= (int)assignment.BindingType;
+			this.hashCode ^= assignment.Member.GetHashCode();
 
 			return base.VisitMemberAssignment(assignment);
 		}
@@ -164,8 +164,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return binding;
 			}
 
-			hashCode ^= binding.Bindings.Count;
-			hashCode ^= binding.Member.GetHashCode();
+			this.hashCode ^= binding.Bindings.Count;
+			this.hashCode ^= binding.Member.GetHashCode();
 
 			return base.VisitMemberMemberBinding(binding);
 		}
@@ -177,9 +177,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return binding;
 			}
 
-			hashCode ^= (int)binding.BindingType;
-			hashCode ^= binding.Initializers.Count;
-			hashCode ^= binding.Member.GetHashCode();
+			this.hashCode ^= (int)binding.BindingType;
+			this.hashCode ^= binding.Initializers.Count;
+			this.hashCode ^= binding.Member.GetHashCode();
 
 			return base.VisitMemberListBinding(binding);
 		}
@@ -191,7 +191,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return original;
 			}
 
-			hashCode ^= original.Count;
+			this.hashCode ^= original.Count;
 
 			return base.VisitBindingList(original);
 		}
@@ -203,7 +203,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return original;
 			}
 
-			hashCode ^= original.Count;
+			this.hashCode ^= original.Count;
 
 			return base.VisitElementInitializerList(original);
 		}
@@ -215,44 +215,44 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitNew(NewExpression expression)
 		{
-			hashCode ^= expression.Arguments.Count;
+			this.hashCode ^= expression.Arguments.Count;
 			
 			return base.VisitNew(expression);
 		}
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
-			hashCode ^= expression.Bindings.Count << 8;
+			this.hashCode ^= expression.Bindings.Count << 8;
 			
 			return base.VisitMemberInit(expression);
 		}
 
 		protected override Expression VisitListInit(ListInitExpression expression)
 		{
-			hashCode ^= expression.Initializers.Count;
+			this.hashCode ^= expression.Initializers.Count;
 
 			return base.VisitListInit(expression);
 		}
 
 		protected override Expression VisitNewArray(NewArrayExpression expression)
 		{
-			hashCode ^= expression.Expressions.Count;
+			this.hashCode ^= expression.Expressions.Count;
 
 			return base.VisitNewArray(expression);
 		}
 
 		protected override Expression VisitInvocation(InvocationExpression expression)
 		{
-			hashCode ^= expression.Arguments.Count << 8;
+			this.hashCode ^= expression.Arguments.Count << 8;
 
 			return base.VisitInvocation(expression);
 		}
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
 		{
-			hashCode ^= constantPlaceholder.Index;
+			this.hashCode ^= constantPlaceholder.Index;
 
-			if (ignoreConstantPlaceholderValues)
+			if (this.ignoreConstantPlaceholderValues)
 			{
 				return constantPlaceholder;
 			}
@@ -269,7 +269,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			hashCode ^= ((int)join.JoinType) << 16;
+			this.hashCode ^= ((int)join.JoinType) << 16;
 
 			return base.VisitJoin(join);
 		}
@@ -286,7 +286,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
-			hashCode ^= (int)functionCallExpression.Function << 24;
+			this.hashCode ^= (int)functionCallExpression.Function << 24;
 
 			return base.VisitFunctionCall(functionCallExpression);
 		}
@@ -318,7 +318,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return null;
 			}
 
-			hashCode ^= (int)orderByExpression.OrderType;
+			this.hashCode ^= (int)orderByExpression.OrderType;
 
 			this.Visit(orderByExpression.Expression);
 
@@ -342,7 +342,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return null;
 			}
 
-			hashCode ^= columns.Count << 8;
+			this.hashCode ^= columns.Count << 8;
 
 			return base.VisitColumnDeclarations(columns);
 		}

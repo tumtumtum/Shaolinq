@@ -107,8 +107,8 @@ namespace Shaolinq.SqlServer
 					{
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
-						this.Write(parameterValues.Count);
-						parameterValues.Add(new Pair<Type, object>(typeof(string), "true"));
+						this.Write(this.parameterValues.Count);
+						this.parameterValues.Add(new Pair<Type, object>(typeof(string), "true"));
 
 						return constantExpression;
 					}
@@ -116,8 +116,8 @@ namespace Shaolinq.SqlServer
 					{
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
-						this.Write(parameterValues.Count);
-						parameterValues.Add(new Pair<Type, object>(typeof(string), "false"));
+						this.Write(this.parameterValues.Count);
+						this.parameterValues.Add(new Pair<Type, object>(typeof(string), "false"));
 
 						return constantExpression;
 					}
@@ -180,8 +180,6 @@ namespace Shaolinq.SqlServer
 				{
 					this.Write(" DESC");
 				}
-
-				return c;
 			});
 
 			this.Write(")");
@@ -203,8 +201,6 @@ namespace Shaolinq.SqlServer
 				this.WriteQuotedIdentifier("INSERTED");
 				this.Write(".");
 				this.WriteQuotedIdentifier(c);
-
-				return null;
 			}, ",");
 			this.Write("");
 		}

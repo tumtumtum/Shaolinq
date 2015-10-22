@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -15,8 +15,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlSubqueryExpression
 		: SqlBaseExpression
 	{
-		public SqlSelectExpression Select { get; private set; }
-		public override ExpressionType NodeType { get { return (ExpressionType)SqlExpressionType.Subquery; } }
+		public SqlSelectExpression Select { get; }
+		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Subquery;
 
 		public SqlSubqueryExpression(Type type, SqlSelectExpression select)
 			: base(type)

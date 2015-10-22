@@ -1,15 +1,13 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-﻿using System.Reflection;
+using System.Reflection;
+using log4net.Config;
 using NUnit.Framework;
 using Shaolinq.MySql;
-﻿using Shaolinq.Postgres;
-﻿using Shaolinq.Postgres.DotConnect;
-﻿using Shaolinq.Sqlite;
-using log4net.Config;
-using Platform;
-using Platform.Reflection;
+using Shaolinq.Postgres;
+using Shaolinq.Postgres.DotConnect;
+using Shaolinq.Sqlite;
 using Shaolinq.SqlServer;
 
 namespace Shaolinq.Tests
@@ -54,7 +52,7 @@ namespace Shaolinq.Tests
         {
             return PostgresConfiguration.Create(new PostgresSqlDatabaseContextInfo()
             {
-                DatabaseName = databaseName,
+                DatabaseName = databaseName,	
                 ServerName = "localhost",
                 UserId = "postgres",
                 Password = "postgres",
@@ -114,15 +112,15 @@ namespace Shaolinq.Tests
             {
                 if (providerName == "default")
                 {
-                    model = DataAccessModel.BuildDataAccessModel<T>();
+	                this.model = DataAccessModel.BuildDataAccessModel<T>();
                 }
                 else
                 {
-                    configuration = this.Create(providerName, this.GetType().Name);
-                    model = DataAccessModel.BuildDataAccessModel<T>(configuration);
+	                this.configuration = this.Create(providerName, this.GetType().Name);
+	                this.model = DataAccessModel.BuildDataAccessModel<T>(this.configuration);
                 }
 
-                model.Create(DatabaseCreationOptions.DeleteExistingDatabase);
+	            this.model.Create(DatabaseCreationOptions.DeleteExistingDatabase);
             }
             catch (Exception e)
             {
@@ -137,7 +135,7 @@ namespace Shaolinq.Tests
         [TestFixtureTearDown]
         public virtual void Dispose()
         {
-            model.Dispose();
+	        this.model.Dispose();
         }
     }
 }

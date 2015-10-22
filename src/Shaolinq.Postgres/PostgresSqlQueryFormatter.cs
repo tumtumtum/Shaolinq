@@ -1,29 +1,40 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-using Platform.Collections;
+using Platform;
 using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedSqlQueryFormatter
+	public class PostgresSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
+		private int selectNesting = 0;
 		private readonly string schemaName;
 		
-		public PostgresSharedSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName)
+		public PostgresSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName)
 			: base(options, sqlDialect, sqlDataTypeProvider)
 		{
 			this.schemaName = schemaName;
 		}
 
+		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
+		{
+			selectNesting++;
+
+			var retval = base.VisitSelect(selectExpression);
+
+			selectNesting--;
+
+			return retval;
+		}
+
 		protected override Expression PreProcess(Expression expression)
 		{
-			expression =  PostgresSharedDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), sqlDataTypeProvider);
+			expression =  PostgresDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), this.sqlDataTypeProvider);
 
 			return expression;
 		}
@@ -98,7 +109,7 @@ namespace Shaolinq.Postgres.Shared
 			if (column.Expression.Type == typeof(Decimal))
 			{
 				this.Write("ROUND(CAST(");
-				var c = Visit(column.Expression) as SqlColumnExpression;
+				var c = this.Visit(column.Expression) as SqlColumnExpression;
 				this.Write(" as NUMERIC)");
 				this.Write(", 20)");
 
@@ -116,6 +127,24 @@ namespace Shaolinq.Postgres.Shared
 			}
 		}
 
+		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
+		{
+            if (selectNesting == 1 && columnExpression.Type.GetUnwrappedNullableType().IsEnum)
+			{
+				base.VisitColumn(columnExpression);
+				this.Write("::TEXT");
+
+				return columnExpression;
+			}
+
+			return base.VisitColumn(columnExpression);
+		}
+
+		protected Expression OriginalVisitColumn(SqlColumnExpression columnExpression)
+		{
+			return base.VisitColumn(columnExpression);
+		}
+
 		protected override void AppendLimit(SqlSelectExpression selectExpression)
 		{
 			if (selectExpression.Skip != null || selectExpression.Take != null)
@@ -124,14 +153,14 @@ namespace Shaolinq.Postgres.Shared
 				{
 					this.Write(" LIMIT ");
 
-					Visit(selectExpression.Take);
+					this.Visit(selectExpression.Take);
 				}
 
 				if (selectExpression.Skip != null)
 				{
 					this.Write(" OFFSET ");
 
-					Visit(selectExpression.Skip);
+					this.Visit(selectExpression.Skip);
 				}
 			}
 		}
@@ -145,7 +174,7 @@ namespace Shaolinq.Postgres.Shared
 			}
 
 			this.Write(" RETURNING ");
-			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, (Func<string, string>)this.WriteQuotedIdentifier, ",");
+			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames,this.WriteQuotedIdentifier, ",");
 		}
 
 		public override void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)

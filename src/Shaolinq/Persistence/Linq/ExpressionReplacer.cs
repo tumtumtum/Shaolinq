@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -81,11 +81,11 @@ namespace Shaolinq.Persistence.Linq
 			}
 			try
 			{
-				return selector(expression) ?? base.Visit(expression);
+				return this.selector(expression) ?? base.Visit(expression);
 			}
 			catch (InvalidOperationException)
 			{
-				return selector(expression) ?? base.Visit(expression);
+				return this.selector(expression) ?? base.Visit(expression);
 			}
 		}
 	}

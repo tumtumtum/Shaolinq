@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +22,7 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> CreateQuery<T>(Expression expression)
 		{
-			return (IQueryable<T>) CreateQuery(expression);
+			return (IQueryable<T>) this.CreateQuery(expression);
 		}
 
 		public virtual IQueryable CreateQuery(Expression expression)

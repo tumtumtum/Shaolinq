@@ -1,6 +1,5 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -22,7 +21,7 @@ namespace Shaolinq.Persistence
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
-			return sqlName;
+			return this.sqlName;
 		}
 
 		public static byte[] GetBytes(IDataRecord dataRecord, int ordinal)
@@ -31,7 +30,7 @@ namespace Shaolinq.Persistence
 			
 			var buffer = new byte[length];
 
-			int offset = 0;
+			var offset = 0;
 
 			while (offset < length)
 			{
