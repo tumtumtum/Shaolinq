@@ -143,10 +143,10 @@
     <Compile Include="InvalidDataAccessObjectAccessException.cs" />
     <Compile Include="ObjectAlreadyExistsException.cs" />
     <Compile Include="OperationConstraintViolationException.cs" />
-    <Compile Include="Parser\ComputedExpressionParser.cs" />
-    <Compile Include="Parser\ComputedExpressionToken.cs" />
-    <Compile Include="Parser\ComputedExpressionTokenizer.cs" />
-    <Compile Include="Parser\ReferencedPropertiesGatherer.cs" />
+    <Compile Include="Persistence\Computed\ComputedExpressionParser.cs" />
+    <Compile Include="Persistence\Computed\ComputedExpressionToken.cs" />
+    <Compile Include="Persistence\Computed\ComputedExpressionTokenizer.cs" />
+    <Compile Include="Persistence\Computed\ReferencedPropertiesGatherer.cs" />
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />

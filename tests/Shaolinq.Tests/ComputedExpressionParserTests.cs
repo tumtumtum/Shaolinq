@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
-using Shaolinq.Parser;
+using Shaolinq.Persistence.Computed;
 
 namespace Shaolinq.Tests
 {

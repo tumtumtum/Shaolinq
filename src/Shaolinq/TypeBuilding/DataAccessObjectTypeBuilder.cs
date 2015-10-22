@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using Shaolinq.Persistence;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Parser;
+using Shaolinq.Persistence.Computed;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.TypeBuilding

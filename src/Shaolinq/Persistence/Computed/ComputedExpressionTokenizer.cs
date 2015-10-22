@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Shaolinq.Parser
+namespace Shaolinq.Persistence.Computed
 {
 	public class ComputedExpressionTokenizer
 	{

@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using ExpressionVisitor = Platform.Linq.ExpressionVisitor;
 
-namespace Shaolinq.Parser
+namespace Shaolinq.Persistence.Computed
 {
 	public class ReferencedPropertiesGatherer
 		: ExpressionVisitor
@@ -51,7 +50,7 @@ namespace Shaolinq.Parser
 
                 if (info != null)
 				{
-					results.Add(info);
+					this.results.Add(info);
 				}
 			}
 

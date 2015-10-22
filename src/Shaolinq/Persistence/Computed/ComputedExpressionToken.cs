@@ -1,4 +1,4 @@
-namespace Shaolinq.Parser
+namespace Shaolinq.Persistence.Computed
 {
 	public enum ComputedExpressionToken
 	{
