@@ -50,7 +50,7 @@ namespace Shaolinq
 				condition = Expression.Lambda<Func<T, bool>>(body, parameter);
 			}
 
-			foreach (T value in queryable.Where(condition))
+			foreach (var value in queryable.Where(condition))
 			{
 				value.Delete();
 

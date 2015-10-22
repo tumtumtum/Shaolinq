@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
@@ -35,7 +35,7 @@ namespace Shaolinq.Persistence.Linq
 
 						yield return retval;
 
-						count++;
+						this.count++;
 					}
 				}
 			}

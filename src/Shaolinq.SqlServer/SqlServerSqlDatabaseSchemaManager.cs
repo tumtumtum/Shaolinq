@@ -2,11 +2,8 @@
 
 using System;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq.SqlServer
 {

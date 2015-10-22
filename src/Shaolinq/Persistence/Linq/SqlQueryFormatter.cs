@@ -65,7 +65,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(this.writer.ToString(), parameterValues);
+			return new SqlQueryFormatResult(this.writer.ToString(), this.parameterValues);
 		}
 
 		public virtual SqlQueryFormatResult Format(Expression expression, TextWriter writer)
@@ -75,7 +75,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(null, parameterValues);
+			return new SqlQueryFormatResult(null, this.parameterValues);
 		}
 
 		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)
@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.writer.WriteLine();
 
-			for (var i = 0; i < depth * this.IndentationWidth; i++)
+			for (var i = 0; i < this.depth * this.IndentationWidth; i++)
 			{
 				this.writer.Write(' ');
 			}
@@ -113,7 +113,7 @@ namespace Shaolinq.Persistence.Linq
 			this.writer.Write(line);
 			this.writer.WriteLine();
 
-			for (var i = 0; i < depth * this.IndentationWidth; i++)
+			for (var i = 0; i < this.depth * this.IndentationWidth; i++)
 			{
 				this.writer.Write(' ');
 			}

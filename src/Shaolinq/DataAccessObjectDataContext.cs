@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Platform;
 using Platform.Collections;
 using Shaolinq.Persistence;
-using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
 {
@@ -87,7 +86,7 @@ namespace Shaolinq
 
 				for (int i = 0, n = x.keyValues.Length; i < n; i++)
 				{
-					if (!object.Equals(x.keyValues[i], y.keyValues[i]))
+					if (!Equals(x.keyValues[i], y.keyValues[i]))
 					{
 						return false;
 					}
@@ -118,7 +117,7 @@ namespace Shaolinq
 			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
 
 			internal Dictionary<ConditionalKey, DataAccessObject> objectsDeletedByCondition;
-			internal Dictionary<ConditionalKey, DataAccessObject> objectsForUpdateByCondition;
+			internal readonly Dictionary<ConditionalKey, DataAccessObject> objectsForUpdateByCondition;
 			
 			public ObjectsByCondition(DataAccessObjectDataContext dataAccessObjectDataContext)
 			{
@@ -166,12 +165,12 @@ namespace Shaolinq
 
 			public void AssertObjectsAreReadyForCommit()
 			{
-				if (objectsNotReadyForCommit.Count == 0)
+				if (this.objectsNotReadyForCommit.Count == 0)
 				{
 					return;
 				}
 
-				foreach (var kvp in objectsNotReadyForCommit)
+				foreach (var kvp in this.objectsNotReadyForCommit)
 				{
 					if (kvp.Value.Count > 0)
 					{
@@ -179,7 +178,7 @@ namespace Shaolinq
 
 						foreach (var value in (kvp.Value.Where(c => c.GetAdvanced().PrimaryKeyIsCommitReady)).ToList())
 						{
-							dataAccessObjectDataContext.CacheObject(value, false);
+							this.dataAccessObjectDataContext.CacheObject(value, false);
 
 							x--;
 						}
@@ -229,12 +228,12 @@ namespace Shaolinq
 					HashSet<DataAccessObject> notReadyForCommitSubcache;
 					Dictionary<DataAccessObject, DataAccessObject> subcache;
 
-					if (newObjects.TryGetValue(type, out subcache))
+					if (this.newObjects.TryGetValue(type, out subcache))
 					{
 						subcache.Remove(value);
 					}
 
-					if (objectsNotReadyForCommit.TryGetValue(type, out notReadyForCommitSubcache))
+					if (this.objectsNotReadyForCommit.TryGetValue(type, out notReadyForCommitSubcache))
 					{
 						notReadyForCommitSubcache.Remove(value);
 					}
@@ -246,12 +245,12 @@ namespace Shaolinq
 						Dictionary<CompositePrimaryKey, DataAccessObject> subcache;
 						var key = new CompositePrimaryKey(value.GetAdvanced().GetPrimaryKeys());
 
-						if (objectsByIdCacheComposite == null)
+						if (this.objectsByIdCacheComposite == null)
 						{
 							return;
 						}
 
-						if (!objectsByIdCacheComposite.TryGetValue(type, out subcache))
+						if (!this.objectsByIdCacheComposite.TryGetValue(type, out subcache))
 						{
 							return;
 						}
@@ -260,16 +259,16 @@ namespace Shaolinq
 
 						Dictionary<CompositePrimaryKey, DataAccessObject> subList;
 
-						if (objectsDeletedComposite == null)
+						if (this.objectsDeletedComposite == null)
 						{
-							objectsDeletedComposite = new Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>>(PrimeNumbers.Prime67);
+							this.objectsDeletedComposite = new Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>>(PrimeNumbers.Prime67);
 						}
 						
-						if (!objectsDeletedComposite.TryGetValue(type, out subList))
+						if (!this.objectsDeletedComposite.TryGetValue(type, out subList))
 						{
 							subList = new Dictionary<CompositePrimaryKey, DataAccessObject>(PrimeNumbers.Prime67, CompositePrimaryKeyComparer.Default);
 
-							objectsDeletedComposite[type] = subList;
+							this.objectsDeletedComposite[type] = subList;
 						}
 
 						subList[key] = value;
@@ -278,7 +277,7 @@ namespace Shaolinq
 					{
 						Dictionary<T, DataAccessObject> subcache;
 
-						if (!objectsByIdCache.TryGetValue(type, out subcache))
+						if (!this.objectsByIdCache.TryGetValue(type, out subcache))
 						{
 							return;
 						}
@@ -287,16 +286,16 @@ namespace Shaolinq
 
 						Dictionary<T, DataAccessObject> subList;
 
-						if (objectsDeleted == null)
+						if (this.objectsDeleted == null)
 						{
-							objectsDeleted = new Dictionary<Type, Dictionary<T, DataAccessObject>>(PrimeNumbers.Prime67);
+							this.objectsDeleted = new Dictionary<Type, Dictionary<T, DataAccessObject>>(PrimeNumbers.Prime67);
 						}
 
-						if (!objectsDeleted.TryGetValue(type, out subList))
+						if (!this.objectsDeleted.TryGetValue(type, out subList))
 						{
 							subList = new Dictionary<T, DataAccessObject>(PrimeNumbers.Prime127);
 
-							objectsDeleted[type] = subList;
+							this.objectsDeleted[type] = subList;
 						}
 
 						subList[value.Id] = value;
@@ -621,43 +620,43 @@ namespace Shaolinq
 			switch (Type.GetTypeCode(keyType))
 			{
 			case TypeCode.Int32:
-				if (cacheByInt == null)
+				if (this.cacheByInt == null)
 				{
-					cacheByInt = new ObjectsByIdCache<int>(this);
+					this.cacheByInt = new ObjectsByIdCache<int>(this);
 				}
-				cacheByInt.Deleted((DataAccessObject<int>)value);
+				this.cacheByInt.Deleted((DataAccessObject<int>)value);
 				break;
 			case TypeCode.Int64:
-				if (cacheByLong == null)
+				if (this.cacheByLong == null)
 				{
-					cacheByLong = new ObjectsByIdCache<long>(this);
+					this.cacheByLong = new ObjectsByIdCache<long>(this);
 				}
-				cacheByLong.Deleted((DataAccessObject<long>)value);
+				this.cacheByLong.Deleted((DataAccessObject<long>)value);
 				break;
 			case TypeCode.String:
 				if (keyType == typeof(string))
 				{
-					if (cacheByString == null)
+					if (this.cacheByString == null)
 					{
-						cacheByString = new ObjectsByIdCache<string>(this);
+						this.cacheByString = new ObjectsByIdCache<string>(this);
 					}
-					cacheByString.Deleted((DataAccessObject<string>)value);
+					this.cacheByString.Deleted((DataAccessObject<string>)value);
 				}
 				break;
 			default:
 				if (keyType == typeof(Guid))
 				{
-					if (cacheByGuid == null)
+					if (this.cacheByGuid == null)
 					{
-						cacheByGuid = new ObjectsByIdCache<Guid>(this);
+						this.cacheByGuid = new ObjectsByIdCache<Guid>(this);
 					}
-					cacheByGuid.Deleted((DataAccessObject<Guid>)value);
+					this.cacheByGuid.Deleted((DataAccessObject<Guid>)value);
 				}
 				else if (typeof(Expression).IsAssignableFrom(keyType))
 				{
-					if (cacheByCondition == null)
+					if (this.cacheByCondition == null)
 					{
-						cacheByCondition = new ObjectsByCondition(this);
+						this.cacheByCondition = new ObjectsByCondition(this);
 					}
 				}
 				break;
@@ -676,7 +675,7 @@ namespace Shaolinq
 				return;
 			}
 
-			ImportObject(new HashSet<DataAccessObject>(), value);
+			this.ImportObject(new HashSet<DataAccessObject>(), value);
 		}
 
 		protected void ImportObject(HashSet<DataAccessObject> alreadyVisited, DataAccessObject value)
@@ -686,7 +685,7 @@ namespace Shaolinq
 				return;
 			}
 
-			CacheObject(value, true);
+			this.CacheObject(value, true);
 
 			alreadyVisited.Add(value);
 
@@ -698,7 +697,7 @@ namespace Shaolinq
 				{
 					alreadyVisited.Add(propertyValue);
 
-					ImportObject(alreadyVisited, propertyValue);
+					this.ImportObject(alreadyVisited, propertyValue);
 				}
 			}
 		}
@@ -715,44 +714,44 @@ namespace Shaolinq
 			switch (Type.GetTypeCode(keyType))
 			{
 			case TypeCode.Int32:
-				if (cacheByInt == null)
+				if (this.cacheByInt == null)
 				{
 					return null;
 				}
 
-				return cacheByInt.Get(type, primaryKeys);
+				return this.cacheByInt.Get(type, primaryKeys);
 			case TypeCode.Int64:
-				if (cacheByLong == null)
+				if (this.cacheByLong == null)
 				{
 					return null;
 				}
 
-				return cacheByLong.Get(type, primaryKeys);
+				return this.cacheByLong.Get(type, primaryKeys);
 			case TypeCode.String:
-				if (cacheByString == null)
+				if (this.cacheByString == null)
 				{
 					return null;
 				}
 
-				return cacheByString.Get(type, primaryKeys);
+				return this.cacheByString.Get(type, primaryKeys);
 			default:
 				if (keyType == typeof(Guid))
 				{
-					if (cacheByGuid == null)
+					if (this.cacheByGuid == null)
 					{
 						return null;
 					}
 
-					return cacheByGuid.Get(type, primaryKeys);
+					return this.cacheByGuid.Get(type, primaryKeys);
 				}
 				else if (typeof(Expression).IsAssignableFrom(keyType))
 				{
-					if (cacheByCondition == null)
+					if (this.cacheByCondition == null)
 					{
 						return null;
 					}
 
-					return cacheByCondition.Get(new ConditionalKey((Expression)primaryKeys[0].Value));
+					return this.cacheByCondition.Get(new ConditionalKey((Expression)primaryKeys[0].Value));
 				}
 				break;
 			}
@@ -777,35 +776,35 @@ namespace Shaolinq
 			switch (Type.GetTypeCode(keyType))
 			{
 			case TypeCode.Int32:
-				if (cacheByInt == null)
+				if (this.cacheByInt == null)
 				{
-					cacheByInt = new ObjectsByIdCache<int>(this);
+					this.cacheByInt = new ObjectsByIdCache<int>(this);
 				}
 
-				return cacheByInt.Cache((DataAccessObject<int>)value, forImport);
+				return this.cacheByInt.Cache((DataAccessObject<int>)value, forImport);
 			case TypeCode.Int64:
-				if (cacheByLong == null)
+				if (this.cacheByLong == null)
 				{
-					cacheByLong = new ObjectsByIdCache<long>(this);
+					this.cacheByLong = new ObjectsByIdCache<long>(this);
 				}
 
-				return cacheByLong.Cache((DataAccessObject<long>)value, forImport);
+				return this.cacheByLong.Cache((DataAccessObject<long>)value, forImport);
 			case TypeCode.String:
-				if (cacheByString == null)
+				if (this.cacheByString == null)
 				{
-					cacheByString = new ObjectsByIdCache<string>(this);
+					this.cacheByString = new ObjectsByIdCache<string>(this);
 				}
 
-				return cacheByString.Cache((DataAccessObject<string>)value, forImport);
+				return this.cacheByString.Cache((DataAccessObject<string>)value, forImport);
 			default:
 				if (keyType == typeof(Guid))
 				{
-					if (cacheByGuid == null)
+					if (this.cacheByGuid == null)
 					{
-						cacheByGuid = new ObjectsByIdCache<Guid>(this);
+						this.cacheByGuid = new ObjectsByIdCache<Guid>(this);
 					}
 
-					return cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
+					return this.cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
 				}
 				break;
 			}
@@ -843,15 +842,15 @@ namespace Shaolinq
 			{
 				try
 				{
-					isCommiting = true;
-				
-					CommitNew(acquisitions, transactionContext);
-					CommitUpdated(acquisitions, transactionContext);
-					CommitDeleted(acquisitions, transactionContext);
+					this.isCommiting = true;
+
+					this.CommitNew(acquisitions, transactionContext);
+					this.CommitUpdated(acquisitions, transactionContext);
+					this.CommitDeleted(acquisitions, transactionContext);
 				}
 				finally
 				{
-					isCommiting = false;
+					this.isCommiting = false;
 				}
 				
 				if (this.cacheByInt != null)

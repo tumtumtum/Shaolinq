@@ -25,13 +25,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var previousProjection = currentProjection;
+			var previousProjection = this.currentProjection;
 
-			currentProjection = projection;
+			this.currentProjection = projection;
 
 			var retval = base.VisitProjection(projection);
 
-			currentProjection = previousProjection;
+			this.currentProjection = previousProjection;
 
 			return retval;
 		}

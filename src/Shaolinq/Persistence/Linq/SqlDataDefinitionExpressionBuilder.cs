@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
@@ -151,9 +150,7 @@ namespace Shaolinq.Persistence.Linq
 					(
 						new SqlTableExpression(referencedTableName),
 						SqlColumnReferenceDeferrability.InitiallyDeferred,
-						names,
-						FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)),
-						FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
+						names, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 					);
 
 					newConstraints.Add(referencesColumnExpression);
@@ -173,14 +170,12 @@ namespace Shaolinq.Persistence.Linq
 				(
 					new SqlTableExpression(referencedTableName),
 					SqlColumnReferenceDeferrability.InitiallyDeferred,
-					referencedTableColumnNames,
-					FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)),
-					FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
+					referencedTableColumnNames, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
 
 				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
 
-				currentTableConstraints.Add(foreignKeyConstraint);
+				this.currentTableConstraints.Add(foreignKeyConstraint);
 			}
 		}
 
@@ -213,7 +208,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var columnExpressions = new List<SqlColumnDefinitionExpression>();
 
-			currentTableConstraints = new List<Expression>();
+			this.currentTableConstraints = new List<Expression>();
 
 			var columnInfos = QueryBinder.GetColumnInfos
 			(
@@ -255,7 +250,7 @@ namespace Shaolinq.Persistence.Linq
 				columnExpressions.AddRange(this.BuildForeignKeyColumnDefinitions(property, columnInfos));
 			}
 
-			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
+			columnExpressions.AddRange(this.BuildRelatedColumnDefinitions(typeDescriptor));
 
 			var tableName = typeDescriptor.PersistedName;
 
@@ -316,37 +311,37 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var expressions = new List<Expression>();
 
-			if ((flags & SqlDataDefinitionBuilderFlags.BuildEnums) != 0)
+			if ((this.flags & SqlDataDefinitionBuilderFlags.BuildEnums) != 0)
 			{
 				foreach (var enumTypeDescriptor in this.model.TypeDescriptorProvider.GetPersistedEnumTypeDescriptors())
 				{
-					expressions.Add(BuildCreateEnumTypeExpression(enumTypeDescriptor));
+					expressions.Add(this.BuildCreateEnumTypeExpression(enumTypeDescriptor));
 				}
 			}
 
-			if ((flags & (SqlDataDefinitionBuilderFlags.BuildIndexes | SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
+			if ((this.flags & (SqlDataDefinitionBuilderFlags.BuildIndexes | SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
 			{
 				foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 				{
-					expressions.Add(BuildCreateTableExpression(typeDescriptor));
-					expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
+					expressions.Add(this.BuildCreateTableExpression(typeDescriptor));
+					expressions.AddRange(this.BuildCreateIndexExpressions(typeDescriptor));
 				}
 			}
 			else
 			{
-				if ((flags & (SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
+				if ((this.flags & (SqlDataDefinitionBuilderFlags.BuildIndexes)) != 0)
 				{
 					foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 					{
-						expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
+						expressions.AddRange(this.BuildCreateIndexExpressions(typeDescriptor));
 					}
 				}
 
-				if ((flags & (SqlDataDefinitionBuilderFlags.BuildTables)) != 0)
+				if ((this.flags & (SqlDataDefinitionBuilderFlags.BuildTables)) != 0)
 				{
 					foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 					{
-						expressions.Add(BuildCreateTableExpression(typeDescriptor));
+						expressions.Add(this.BuildCreateTableExpression(typeDescriptor));
 					}
 				}
 			}
@@ -356,7 +351,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BuildCreateEnumTypeExpression(EnumTypeDescriptor enumTypeDescriptor)
 		{
-			var sqlTypeExpression = new SqlTypeExpression(enumTypeDescriptor.Name);
+			var sqlTypeExpression = new SqlTypeExpression(enumTypeDescriptor.Name, true);
 			var asExpression = new SqlEnumDefinitionExpression(enumTypeDescriptor.GetValues());
 
 			return new SqlCreateTypeExpression(sqlTypeExpression, asExpression, true);

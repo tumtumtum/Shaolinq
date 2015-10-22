@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -52,7 +52,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			if (hasAggregate)
+			if (this.hasAggregate)
 			{
 				return projection;
 			}
@@ -92,12 +92,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			// Ignore aggregates in sub queries
 
-			if (this.hasAggregate || ignoreInSubqueries)
+			if (this.hasAggregate || this.ignoreInSubqueries)
 			{
 				return subquery;
 			}
 
-			return Visit(subquery);
+			return this.Visit(subquery);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using Platform.Reflection;
 using Platform.Validation;
@@ -42,11 +42,11 @@ namespace Shaolinq.Persistence
 			{
 				if (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0)
 				{
-					return "VARCHAR(" + constraintDefaults.IndexedStringMaximumLength + ")";
+					return "VARCHAR(" + this.constraintDefaults.IndexedStringMaximumLength + ")";
 				}
 				else
 				{
-					return "VARCHAR(" + constraintDefaults.StringMaximumLength + ")";
+					return "VARCHAR(" + this.constraintDefaults.StringMaximumLength + ")";
 				}
 			}
 		}

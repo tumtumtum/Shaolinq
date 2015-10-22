@@ -1,12 +1,12 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using System.Data.Common;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Transactions;
-﻿using Shaolinq.Persistence;
 using Devart.Data.PostgreSql;
+using Shaolinq.Persistence;
 using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres.DotConnect
@@ -23,7 +23,7 @@ namespace Shaolinq.Postgres.DotConnect
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaults;
 			var sqlDialect = PostgresSharedSqlDialect.Default;
-			var sqlDataTypeProvider = new PostgresDotConnectSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums, !contextInfo.UnpreparedExecute);
+			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
 			return new PostgresDotConnectSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);

@@ -41,7 +41,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			queryable = this.model.DefaultIfEmptyTestObjects;
+			this.queryable = this.model.DefaultIfEmptyTestObjects;
 		}
 
 		[Test]
@@ -62,8 +62,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var result = queryable.Where(c => c.Id < 0).DefaultIfEmpty().Count();
-				var expectedResult = queryable.AsEnumerable().Where(c => c.Id < 0).DefaultIfEmpty().Count();
+				var result = this.queryable.Where(c => c.Id < 0).DefaultIfEmpty().Count();
+				var expectedResult = this.queryable.AsEnumerable().Where(c => c.Id < 0).DefaultIfEmpty().Count();
 
 				Assert.AreEqual(expectedResult, result);
 				Assert.AreEqual(1, result);
@@ -76,8 +76,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Count();
-				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Count();
+				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Count();
+				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Count();
 
 				Assert.AreEqual(value, expectedValue);
 				Assert.AreEqual(0, value);
@@ -89,8 +89,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Count();
-				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Count();
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Count();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Count();
 
 				Assert.AreEqual(value, expectedValue);
 				Assert.AreEqual(0, value);
@@ -104,8 +104,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.NullableInteger).Max();
-				var expectedValue = queryable.ToList().Select(c => c.NullableInteger).Max();
+				var value = this.queryable.Select(c => c.NullableInteger).Max();
+				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);
@@ -117,8 +117,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Max();
-				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Max();
+				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Max();
+				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.IsNull(value);
@@ -130,8 +130,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.NullableInteger).DefaultIfEmpty().Max();
-				var expectedValue = queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty().Max();
+				var value = this.queryable.Select(c => c.NullableInteger).DefaultIfEmpty().Max();
+				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty().Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);
@@ -143,8 +143,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Max();
-				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Max();
+				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Max();
+				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.IsNull(null);
@@ -156,8 +156,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
-				var expectedValue = queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
+				var value = this.queryable.Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
+				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);
@@ -169,8 +169,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
-				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
+				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
+				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(707, value);
@@ -184,8 +184,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.NullableInteger).Sum();
-				var expectedValue = queryable.ToList().Select(c => c.NullableInteger).Sum();
+				var value = this.queryable.Select(c => c.NullableInteger).Sum();
+				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(70, value);
@@ -197,8 +197,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Sum();
-				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Sum();
+				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Sum();
+				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(0, value);
@@ -210,8 +210,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
-				var expectedValue = queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
+				var value = this.queryable.Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
+				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(70, value);
@@ -223,8 +223,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
-				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
+				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
+				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty().Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(0, value);
@@ -236,8 +236,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
-				var expectedValue = queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
+				var value = this.queryable.Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
+				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(70, value);
@@ -249,8 +249,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
-				var expectedValue = queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
+				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
+				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).DefaultIfEmpty(707).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(707, value);
@@ -264,8 +264,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.Integer).Max();
-				var expectedValue = queryable.ToList().Select(c => c.Integer).Max();
+				var value = this.queryable.Select(c => c.Integer).Max();
+				var expectedValue = this.queryable.ToList().Select(c => c.Integer).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);
@@ -279,12 +279,12 @@ namespace Shaolinq.Tests
 			{
 				Assert.Throws<InvalidOperationException>(()=>
 				{
-					queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Max();
+					this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Max();
 				});
 
 				Assert.Throws<InvalidOperationException>(() =>
 				{
-					queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Max();
+					this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Max();
 				});
 			}
 		}
@@ -294,8 +294,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Max();
-				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Max();
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Max();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => (int?)c.Integer).Max();
 
 				Assert.AreEqual(value, expectedValue);
 				Assert.AreEqual(null, value);
@@ -307,8 +307,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.Integer).DefaultIfEmpty().Max();
-				var expectedValue = queryable.ToList().Select(c => c.Integer).DefaultIfEmpty().Max();
+				var value = this.queryable.Select(c => c.Integer).DefaultIfEmpty().Max();
+				var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty().Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);
@@ -320,8 +320,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Max();
-				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Max();
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Max();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.IsNull(null);
@@ -333,8 +333,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.Integer).DefaultIfEmpty(707).Max();
-				var expectedValue = queryable.ToList().Select(c => c.Integer).DefaultIfEmpty(707).Max();
+				var value = this.queryable.Select(c => c.Integer).DefaultIfEmpty(707).Max();
+				var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty(707).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);
@@ -346,8 +346,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Max();
-				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Max();
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Max();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(707, value);
@@ -361,8 +361,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.Integer).Sum();
-				var expectedValue = queryable.ToList().Select(c => c.Integer).Sum();
+				var value = this.queryable.Select(c => c.Integer).Sum();
+				var expectedValue = this.queryable.ToList().Select(c => c.Integer).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(70, value);
@@ -374,8 +374,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
-				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(0, value);
@@ -387,8 +387,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.Integer).DefaultIfEmpty().Sum();
-				var expectedValue = queryable.ToList().Select(c => c.Integer).DefaultIfEmpty().Sum();
+				var value = this.queryable.Select(c => c.Integer).DefaultIfEmpty().Sum();
+				var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty().Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(70, value);
@@ -400,8 +400,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
-				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(0, value);
@@ -413,8 +413,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Select(c => c.Integer).DefaultIfEmpty(707).Sum();
-				var expectedValue = queryable.ToList().Select(c => c.Integer).DefaultIfEmpty(707).Sum();
+				var value = this.queryable.Select(c => c.Integer).DefaultIfEmpty(707).Sum();
+				var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty(707).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(70, value);
@@ -426,8 +426,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Sum();
-				var expectedValue = queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Sum();
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Sum();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty(707).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(707, value);
@@ -441,11 +441,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = queryable.Create();
-				var value = queryable.DefaultIfEmpty(obj).ToList();
+				var obj = this.queryable.Create();
+				var value = this.queryable.DefaultIfEmpty(obj).ToList();
 				Assert.AreNotEqual(obj, value.First());
 
-				var valueInMemory = queryable.ToList().DefaultIfEmpty(obj);
+				var valueInMemory = this.queryable.ToList().DefaultIfEmpty(obj);
 				Assert.AreEqual(value.First(), valueInMemory.First());
 			}
 		}
@@ -455,11 +455,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = queryable.Create();
-				var value = queryable.DefaultIfEmpty(obj).First();
+				var obj = this.queryable.Create();
+				var value = this.queryable.DefaultIfEmpty(obj).First();
 				Assert.AreNotEqual(obj, value);
 
-				var valueInMemory = queryable.ToList().DefaultIfEmpty(obj).First();
+				var valueInMemory = this.queryable.ToList().DefaultIfEmpty(obj).First();
 				Assert.AreEqual(value, valueInMemory);
 			}
 		}
@@ -469,12 +469,12 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = queryable.Create();
-				var value = queryable.Where(c => c.Id < 0).DefaultIfEmpty(obj).ToList();
+				var obj = this.queryable.Create();
+				var value = this.queryable.Where(c => c.Id < 0).DefaultIfEmpty(obj).ToList();
 
 				Assert.AreEqual(obj, value.First());
 
-				var valueInMemory = queryable.ToList().Where(c => c.Id < 0).DefaultIfEmpty(obj);
+				var valueInMemory = this.queryable.ToList().Where(c => c.Id < 0).DefaultIfEmpty(obj);
 				Assert.AreEqual(value.First(), valueInMemory.First());
 			}
 		}
@@ -484,12 +484,12 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = queryable.Create();
-				var value = queryable.Where(c => c.Id < 0).DefaultIfEmpty(obj).First();
+				var obj = this.queryable.Create();
+				var value = this.queryable.Where(c => c.Id < 0).DefaultIfEmpty(obj).First();
 
 				Assert.AreEqual(obj, value);
 
-				var valueInMemory = queryable.ToList().Where(c => c.Id < 0).DefaultIfEmpty(obj).First();
+				var valueInMemory = this.queryable.ToList().Where(c => c.Id < 0).DefaultIfEmpty(obj).First();
 				Assert.AreEqual(value, valueInMemory);
 			}
 		}

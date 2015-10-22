@@ -8,12 +8,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Transactions;
+using log4net;
+using Platform;
 using Platform.Collections;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
-using log4net;
-using Platform; 
 
 namespace Shaolinq.Persistence
 {
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence
 
 				for (int i = 0, n = x.changedProperties.Count; i < n; i++)
 				{
-					if (!Object.ReferenceEquals(x.changedProperties[i].PersistedName, y.changedProperties[i].PersistedName))
+					if (!ReferenceEquals(x.changedProperties[i].PersistedName, y.changedProperties[i].PersistedName))
 					{
 						return false;
 					}
@@ -165,27 +165,18 @@ namespace Shaolinq.Persistence
 
 		public virtual IDataReader ExecuteReader(string sql, IEnumerable<Pair<Type, object>> parameters)
 		{
-			var x = 0;
-			var command = CreateCommand();
+			var command = this.CreateCommand();
             
 			foreach (var value in parameters)
 			{
-				var parameter = command.CreateParameter();
-
-				parameter.ParameterName = this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + x;
-				parameter.DbType = GetDbType(value.Left);
-				parameter.Value = value.Right;
-
-				command.Parameters.Add(parameter);
-
-				x++;
+				this.AddParameter(command, value.Left, value.Right);
 			}
             
 			command.CommandText = sql;
 
 			if (Logger.IsDebugEnabled)
 			{
-				Logger.Debug(FormatCommand(command));
+				Logger.Debug(this.FormatCommand(command));
 			}
 
 			try
@@ -194,10 +185,10 @@ namespace Shaolinq.Persistence
 			}
 			catch (Exception e)
 			{
-				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
 				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
-				Logger.Error(FormatCommand(command));
+				Logger.Error(this.FormatCommand(command));
 				Logger.ErrorFormat(e.ToString());
 
 				if (decoratedException != e)
@@ -211,7 +202,7 @@ namespace Shaolinq.Persistence
 
 		public virtual object ExecuteScalar(string sql, IEnumerable<Pair<Type, object>> parameters)
 		{
-			var command = CreateCommand();
+			var command = this.CreateCommand();
 
 			command.CommandText = sql;
 
@@ -222,7 +213,7 @@ namespace Shaolinq.Persistence
 			
 			if (Logger.IsDebugEnabled)
 			{
-				Logger.Debug(FormatCommand(command));
+				Logger.Debug(this.FormatCommand(command));
 			}
 
 			try
@@ -231,7 +222,7 @@ namespace Shaolinq.Persistence
 			}
 			catch (Exception e)
 			{
-				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
 				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
 				Logger.ErrorFormat(e.ToString());
@@ -269,7 +260,7 @@ namespace Shaolinq.Persistence
 
 				if (Logger.IsDebugEnabled)
 				{
-					Logger.Debug(FormatCommand(command));
+					Logger.Debug(this.FormatCommand(command));
 				}
 
 				int result;
@@ -280,7 +271,7 @@ namespace Shaolinq.Persistence
 				}
 				catch (Exception e)
 				{
-					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
 					var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
 
 					Logger.ErrorFormat(e.ToString());
@@ -330,11 +321,11 @@ namespace Shaolinq.Persistence
 				if (objectReadyToBeCommited)
 				{
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-					var command = BuildInsertCommand(typeDescriptor, dataAccessObject);
+					var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject);
 
 					if (Logger.IsDebugEnabled)
 					{
-						Logger.Debug(FormatCommand(command));
+						Logger.Debug(this.FormatCommand(command));
 					}
 					
 					try
@@ -347,7 +338,7 @@ namespace Shaolinq.Persistence
 
 								if (reader.Read())
 								{
-									ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
+									this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
 									dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
 								}
 
@@ -362,7 +353,7 @@ namespace Shaolinq.Persistence
 					}
 					catch (Exception e)
 					{
-						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
 						var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
 
 						Logger.ErrorFormat(e.ToString());
@@ -404,7 +395,7 @@ namespace Shaolinq.Persistence
 
 			Func<DataAccessObject, IDataReader, DataAccessObject> applicator;
 
-			if (!serverSideGeneratedPropertySettersByType.TryGetValue(dataAccessObject.GetType(), out applicator))
+			if (!this.serverSideGeneratedPropertySettersByType.TryGetValue(dataAccessObject.GetType(), out applicator))
 			{
 				var objectParameter = Expression.Parameter(typeof(DataAccessObject));
 				var readerParameter = Expression.Parameter(typeof(IDataReader));
@@ -434,34 +425,41 @@ namespace Shaolinq.Persistence
 				
 				applicator = lambda.Compile();
 
-				var newDictionary = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>(serverSideGeneratedPropertySettersByType);
+				var newDictionary = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>(this.serverSideGeneratedPropertySettersByType);
 
 				newDictionary[dataAccessObject.GetType()] = applicator;
 
-				serverSideGeneratedPropertySettersByType = newDictionary;
+				this.serverSideGeneratedPropertySettersByType = newDictionary;
 			}
 
 			return applicator(dataAccessObject, reader);
 		}
-        
+
 		private IDbDataParameter AddParameter(IDbCommand command, Type type, object value)
+		{
+			var parameter = this.CreateParameter(command, this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
+
+			command.Parameters.Add(parameter);
+
+			return parameter;
+		}
+
+		protected virtual IDbDataParameter CreateParameter(IDbCommand command, string parameterName, Type type, object value)
 		{
 			var parameter = command.CreateParameter();
 		
-			parameter.ParameterName = this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + command.Parameters.Count;
+			parameter.ParameterName = parameterName;
 
 			if (value == null)
 			{
-				parameter.DbType = GetDbType(type);
+				parameter.DbType = this.GetDbType(type);
 			}
 
-			var result = sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
+			var result = this.sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
 
-			parameter.DbType = GetDbType(result.Left);
+			parameter.DbType = this.GetDbType(result.Left);
 			parameter.Value = result.Right ?? DBNull.Value;
 		
-			command.Parameters.Add(parameter);
-
 			return parameter;
 		}
 
@@ -469,14 +467,14 @@ namespace Shaolinq.Persistence
 		{
 			foreach (var infoAndValue in changedProperties)
 			{
-				AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
+				this.AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
 			}
 
 			if (primaryKeys != null)
 			{
 				foreach (var infoAndValue in primaryKeys)
 				{
-					AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
+					this.AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
 				}
 			}
 		}
@@ -497,9 +495,9 @@ namespace Shaolinq.Persistence
 
 			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
 			{
-				command = CreateCommand();
+				command = this.CreateCommand();
 				command.CommandText = sqlCommandValue.commandText;
-				FillParameters(command, updatedProperties, primaryKeys);
+				this.FillParameters(command, updatedProperties, primaryKeys);
 
 				return command;
 			}
@@ -534,11 +532,11 @@ namespace Shaolinq.Persistence
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
-			command = CreateCommand();
+			command = this.CreateCommand();
 
 			command.CommandText = result.CommandText;
-			CacheUpdateCommand(commandKey, new SqlCommandValue() { commandText = command.CommandText }); 
-			FillParameters(command, updatedProperties, primaryKeys);
+			this.CacheUpdateCommand(commandKey, new SqlCommandValue() { commandText = command.CommandText });
+			this.FillParameters(command, updatedProperties, primaryKeys);
 			
 			return command;
 		}
@@ -553,9 +551,9 @@ namespace Shaolinq.Persistence
 
 			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))
 			{
-				command = CreateCommand();
+				command = this.CreateCommand();
 				command.CommandText = sqlCommandValue.commandText;
-				FillParameters(command, updatedProperties, null);
+				this.FillParameters(command, updatedProperties, null);
 
 				return command;
 			}
@@ -589,13 +587,13 @@ namespace Shaolinq.Persistence
 
 			Debug.Assert(result.ParameterValues.Count() == updatedProperties.Count);
 
-			command = CreateCommand();
+			command = this.CreateCommand();
 
 			var commandText = result.CommandText;
 
 			command.CommandText = commandText;
-			CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
-			FillParameters(command, updatedProperties, null);
+			this.CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
+			this.FillParameters(command, updatedProperties, null);
 
 			return command;
 		}
@@ -632,7 +630,7 @@ namespace Shaolinq.Persistence
 		{
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
 			
-			using (var command = CreateCommand())
+			using (var command = this.CreateCommand())
 			{
 				command.CommandText = formatResult.CommandText;
 
@@ -643,7 +641,7 @@ namespace Shaolinq.Persistence
 
 				if (Logger.IsDebugEnabled)
 				{
-					Logger.Debug(FormatCommand(command));
+					Logger.Debug(this.FormatCommand(command));
 				}
 
 				try
@@ -652,7 +650,7 @@ namespace Shaolinq.Persistence
 				}
 				catch (Exception e)
 				{
-					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? FormatCommand(command);
+					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
 					var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
 					Logger.ErrorFormat(e.ToString());
@@ -710,7 +708,7 @@ namespace Shaolinq.Persistence
 			expression = ObjectOperandComparisonExpander.Expand(expression);
 			expression = SqlQueryProvider.Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
-			Delete((SqlDeleteExpression)expression);
+			this.Delete((SqlDeleteExpression)expression);
 		}
 	}
 }

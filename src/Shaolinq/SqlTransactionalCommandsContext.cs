@@ -1,11 +1,11 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections.Generic;
-﻿using System.Data;
-﻿using System.Threading;
-﻿using System.Transactions;
-﻿using Shaolinq.Persistence;
+using System.Data;
+using System.Threading;
+using System.Transactions;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq
@@ -62,12 +62,12 @@ namespace Shaolinq
 
 		~SqlTransactionalCommandsContext()
 		{
-			Dispose();
+			this.Dispose();
 		}
 
 		public virtual IDbCommand CreateCommand()
 		{
-			var retval = CreateCommand(SqlCreateCommandOptions.Default);
+			var retval = this.CreateCommand(SqlCreateCommandOptions.Default);
 
 			if (this.dbTransaction != null)
 			{
@@ -93,7 +93,7 @@ namespace Shaolinq
 			{
 				if (this.dbTransaction != null)
 				{
-					dbTransaction.Commit();
+					this.dbTransaction.Commit();
 
 					this.dbTransaction = null;
 				}
@@ -111,19 +111,19 @@ namespace Shaolinq
 				throw;
 			}
 
-			CloseConnection();
+			this.CloseConnection();
 		}
 
 		public virtual void Rollback()
 		{
 			if (this.dbTransaction != null)
 			{
-				dbTransaction.Rollback();
+				this.dbTransaction.Rollback();
 
 				this.dbTransaction = null;
 			}
 
-			CloseConnection();
+			this.CloseConnection();
 		}
 
 		protected virtual void CloseConnection()
@@ -150,7 +150,7 @@ namespace Shaolinq
 				return;
 			}
 
-			CloseConnection();
+			this.CloseConnection();
 		}
 	}
 }

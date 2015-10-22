@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -24,20 +23,20 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
 		{
 			var action = new SqlConstraintActionExpression(SqlConstraintActionType.Add, foreignKeyConstraintExpression);
-			var ammendmentEpression = new SqlAlterTableExpression(currentTable.Table, action);
+			var ammendmentEpression = new SqlAlterTableExpression(this.currentTable.Table, action);
 
-			ammendments.Add(ammendmentEpression);
+			this.ammendments.Add(ammendmentEpression);
 
 			return null;
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
-			currentTable = createTableExpression;
+			this.currentTable = createTableExpression;
 
 			var retval = base.VisitCreateTable(createTableExpression);
 
-			currentTable = null;
+			this.currentTable = null;
 
 			return retval;
 		}
@@ -52,11 +51,11 @@ namespace Shaolinq.Persistence.Linq
 
 			if (!localFoundStatementList)
 			{
-				if (ammendments.Count > 0)
+				if (this.ammendments.Count > 0)
 				{
 					var newList = new List<Expression>(retval.Statements);
 					
-					newList.AddRange(ammendments);
+					newList.AddRange(this.ammendments);
 					retval = new SqlStatementListExpression(newList);
 				}
 			}

@@ -3,7 +3,7 @@
 using System.Data;
 using System.Transactions;
 using Devart.Data.PostgreSql;
-﻿using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.DotConnect
 {

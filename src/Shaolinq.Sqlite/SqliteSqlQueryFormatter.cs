@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Sqlite
@@ -132,7 +132,7 @@ namespace Shaolinq.Sqlite
 				{
 					this.Write(" LIMIT ");
 
-					Visit(selectExpression.Take);
+					this.Visit(selectExpression.Take);
 
 					this.Write(" ");
 				}
@@ -145,7 +145,7 @@ namespace Shaolinq.Sqlite
 				{
 					this.Write("OFFSET ");
 
-					Visit(selectExpression.Skip);
+					this.Visit(selectExpression.Skip);
 				}
 			}
 		}

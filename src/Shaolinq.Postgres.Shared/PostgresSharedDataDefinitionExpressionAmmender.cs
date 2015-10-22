@@ -27,7 +27,7 @@ namespace Shaolinq.Postgres.Shared
 		
 		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
 		{
-			if (currentIsPrimaryKey && simpleConstraintExpression.Constraint == SqlSimpleConstraint.AutoIncrement)
+			if (this.currentIsPrimaryKey && simpleConstraintExpression.Constraint == SqlSimpleConstraint.AutoIncrement)
 			{
 				return null;
 			}
@@ -49,7 +49,7 @@ namespace Shaolinq.Postgres.Shared
 
 			if (isAutoIncrement)
 			{
-				var longTypeSqlName = sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
+				var longTypeSqlName = this.sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(null);
 
 				if (((SqlTypeExpression)columnDefinitionExpression.ColumnType).TypeName == longTypeSqlName)
 				{

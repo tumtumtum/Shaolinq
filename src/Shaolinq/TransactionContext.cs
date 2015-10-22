@@ -35,11 +35,11 @@ namespace Shaolinq
 		{
 			get
 			{
-				return databaseContextCategories;
+				return this.databaseContextCategories;
 			}
 			set
 			{
-				databaseContextCategories = value;
+				this.databaseContextCategories = value;
 
 				if (value == null || value.Length == 0)
 				{
@@ -83,7 +83,7 @@ namespace Shaolinq
 				throw new InvalidOperationException("Transaction required");
 			}
 
-			return AcquirePersistenceTransactionContext(sqlDatabaseContext).SqlDatabaseCommandsContext;
+			return this.AcquirePersistenceTransactionContext(sqlDatabaseContext).SqlDatabaseCommandsContext;
 		}
 
 		public virtual DatabaseTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext sqlDatabaseContext)
@@ -133,7 +133,7 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
-			if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0)
+			if (Interlocked.CompareExchange(ref this.disposed, 1, 0) == 0)
 			{
 				Exception rethrowException = null;
 
@@ -176,7 +176,7 @@ namespace Shaolinq
 			{
 				enlistment.Done();
 
-				Dispose();
+				this.Dispose();
 			}
 		}
 
@@ -207,7 +207,13 @@ namespace Shaolinq
 			{
 				foreach (var persistenceTransactionContext in this.persistenceTransactionContextsBySqlDatabaseContexts.Values)
 				{
-					persistenceTransactionContext.sqlDatabaseCommandsContext.Rollback();
+					try
+					{
+						persistenceTransactionContext.sqlDatabaseCommandsContext.Rollback();
+					}
+					catch
+					{
+					}
 				}
 
 				singlePhaseEnlistment.Aborted(e);
@@ -216,7 +222,7 @@ namespace Shaolinq
 			{
 				DataAccessModelTransactionManager.CurrentlyCommitingTransaction = null;
 
-				Dispose();
+				this.Dispose();
 			}
 		}
 
@@ -244,7 +250,7 @@ namespace Shaolinq
 
 				preparingEnlistment.ForceRollback(e);
 
-				Dispose();
+				this.Dispose();
 			}
 		}
 
@@ -255,7 +261,7 @@ namespace Shaolinq
 				persistenceTransactionContext.sqlDatabaseCommandsContext.Rollback();
 			}
 
-			Dispose();
+			this.Dispose();
 
 			enlistment.Done();
 		}

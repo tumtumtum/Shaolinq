@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Transactions;
 using NUnit.Framework;
@@ -32,7 +31,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var builder = model.GetCurrentSqlDatabaseContext().SchemaManager.ServerSqlDataDefinitionExpressionBuilder;
+				var builder = this.model.GetCurrentSqlDatabaseContext().SchemaManager.ServerSqlDataDefinitionExpressionBuilder;
 
 				builder.Build();
 			}

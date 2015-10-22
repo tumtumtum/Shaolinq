@@ -7,8 +7,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Optimizers;
 using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
 namespace Shaolinq.Persistence.Linq
@@ -29,11 +29,11 @@ namespace Shaolinq.Persistence.Linq
 			int index;
 			var indexFound = -1;
 
-			for (index = replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
+			for (index = this.replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
 			{
 				Expression retval;
 
-				if (currentJoin == replacementExpressionForPropertyPathsByJoin[index].Left)
+				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
 				{
 					indexFound = index;
 				}
@@ -49,11 +49,11 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			for (index = replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
+			for (index = this.replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
 			{
 				Expression retval;
 
-				if (currentJoin == replacementExpressionForPropertyPathsByJoin[index].Left)
+				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
 				{
 					indexFound = index;
 				}

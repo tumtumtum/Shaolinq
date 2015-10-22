@@ -32,19 +32,19 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = model.Schools.Create();
-				scope.Flush(model);
+				var obj1 = this.model.Schools.Create();
+				scope.Flush(this.model);
 
-				var obj2 = model.Schools.Create();
-				scope.Flush(model);
+				var obj2 = this.model.Schools.Create();
+				scope.Flush(this.model);
 				Assert.Greater(obj2.Id, obj1.Id);
 
-				var obj3 = model.Schools.Create();
-				scope.Flush(model);
+				var obj3 = this.model.Schools.Create();
+				scope.Flush(this.model);
 				Assert.Greater(obj3.Id, obj2.Id);
 
-				var obj4 = model.Schools.Create();
-				scope.Flush(model); 
+				var obj4 = this.model.Schools.Create();
+				scope.Flush(this.model); 
 				Assert.Greater(obj4.Id, obj3.Id);
 				
 				scope.Complete();
@@ -56,7 +56,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
+				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = Guid.NewGuid();
 					
@@ -69,13 +69,13 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
+				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
 				// AutoIncrement Guid  properties are set immediately
 
 				Assert.IsTrue(obj.Id != Guid.Empty);
 				
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				Assert.IsTrue(obj.Id != Guid.Empty);
 
@@ -90,7 +90,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
+				var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
 				obj1.Id = Guid.NewGuid();
 
@@ -103,7 +103,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
+				var obj = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = Guid.NewGuid();
 
@@ -124,8 +124,8 @@ namespace Shaolinq.Tests
 				{
 					var id = Guid.NewGuid();
 
-					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
-					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
+					var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+					var obj2 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
 					obj2.Id = id;
 
@@ -147,8 +147,8 @@ namespace Shaolinq.Tests
 				{
 					var id = Guid.NewGuid();
 
-					var obj1 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
-					var obj2 = model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+					var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+					var obj2 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
 					
 					scope.Complete();
 				}
@@ -164,7 +164,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
+				var obj = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = 10007;
 
@@ -176,7 +176,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithLongAutoIncrementPrimaryKeys.GetByPrimaryKey(10007);
+				var obj = this.model.ObjectWithLongAutoIncrementPrimaryKeys.GetByPrimaryKey(10007);
 			}
 		}
 
@@ -185,10 +185,10 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj1 = model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
-				var obj2 = model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
+				var obj1 = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
+				var obj2 = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				Assert.AreEqual(1, obj1.Id);
 				Assert.AreEqual(2, obj2.Id);
@@ -212,7 +212,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
+					var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 					obj.Name = name;
 
@@ -230,7 +230,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
+					var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 					obj.Id = 0;
 					obj.Name = name;
@@ -248,7 +248,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
+				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = 999;
 				obj.Name = name;
@@ -279,7 +279,7 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.Create();
 				var student = school.Students.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Create();
 				
@@ -297,7 +297,7 @@ namespace Shaolinq.Tests
 				obj2.Name = "Obj2";
 				obj2.Student = student;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -315,7 +315,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.GetReference(studentId);
+				var student = this.model.Students.GetReference(studentId);
 
 				var obj = this.model.ObjectWithCompositePrimaryKeys.GetReference(new
 				{
@@ -368,7 +368,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var school2 = this.model.Schools.GetByPrimaryKey(school.Id);
 			}
@@ -386,7 +386,7 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.Create();
 				var student = school.Students.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -408,7 +408,7 @@ namespace Shaolinq.Tests
 					{
 						Id = 88,
 						SecondaryKey = secondaryKey,
-						Student = model.Students.GetReference(studentId)
+						Student = this.model.Students.GetReference(studentId)
 					}
 				);
 			}

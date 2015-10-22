@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using Shaolinq.Parser;
@@ -18,7 +20,7 @@ namespace Shaolinq
 
 		public LambdaExpression GetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			return ComputedExpressionParser.Parse(Expression, propertyInfo);
+			return ComputedExpressionParser.Parse(this.Expression, propertyInfo);
 		}
 	}
 }

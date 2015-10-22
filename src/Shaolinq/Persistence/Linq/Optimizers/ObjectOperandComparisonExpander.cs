@@ -1,11 +1,11 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
-﻿using System.Collections.Generic;
-﻿using System.Linq;
-﻿using System.Linq.Expressions;
-﻿using System.Reflection;
-﻿using Shaolinq.Persistence.Linq.Expressions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
@@ -32,24 +32,24 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var source = (SqlSelectExpression)Visit(projection.Select);
+			var source = (SqlSelectExpression) this.Visit(projection.Select);
 
-			var oldInProjector = inProjector;
+			var oldInProjector = this.inProjector;
 
-			inProjector = true;
+			this.inProjector = true;
 
 			Expression projector;
 
 			try
 			{
-				projector = Visit(projection.Projector);
+				projector = this.Visit(projection.Projector);
 			}
 			finally
 			{
-				inProjector = oldInProjector;
+				this.inProjector = oldInProjector;
 			}
 
-			var aggregator = (LambdaExpression)Visit(projection.Aggregator);
+			var aggregator = (LambdaExpression) this.Visit(projection.Aggregator);
 
 			if (source != projection.Select
 				|| projector != projection.Projector
@@ -124,7 +124,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				Expression retval = null;
 				
-				foreach (var value in ObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
+				foreach (var value in GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
 				{
 					var current = new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, value);
 
@@ -146,7 +146,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			if (inProjector)
+			if (this.inProjector)
 			{
 				return binaryExpression;
 			}

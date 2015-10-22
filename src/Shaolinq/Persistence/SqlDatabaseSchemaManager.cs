@@ -3,8 +3,8 @@
 using System;
 using System.Linq.Expressions;
 using System.Transactions;
-using Shaolinq.Persistence.Linq;
 using log4net;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {

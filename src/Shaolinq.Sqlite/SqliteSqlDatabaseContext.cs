@@ -5,7 +5,7 @@ using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Transactions;
-﻿using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
 {
@@ -20,7 +20,7 @@ namespace Shaolinq.Sqlite
 
 		public override IDbConnection OpenConnection()
 		{
-			var retval = PrivateOpenConnection();
+			var retval = this.PrivateOpenConnection();
 
 			if (retval == null)
 			{

@@ -1,15 +1,15 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using System.Data.Common;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Transactions;
 using Npgsql;
-﻿using Shaolinq.Persistence;
+using Shaolinq.Persistence;
 using Shaolinq.Postgres.Shared;
 
-﻿namespace Shaolinq.Postgres
+namespace Shaolinq.Postgres
 {
 	public class PostgresSqlDatabaseContext
 		: SqlDatabaseContext
@@ -24,7 +24,7 @@ using Shaolinq.Postgres.Shared;
 			var constraintDefaults = model.Configuration.ConstraintDefaults;
 			var sqlDialect = PostgresSharedSqlDialect.Default;
 			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
 			return new PostgresSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -63,19 +63,7 @@ using Shaolinq.Postgres.Shared;
 		{
 			NpgsqlConnection.ClearAllPools();
 		}
-
-		public override string GetRelatedSql(Exception e)
-		{
-			var postgresException = e as NpgsqlException;
-
-			if (postgresException == null)
-			{
-				return base.GetRelatedSql(e);
-			}
-
-			return postgresException.ErrorSql;
-		}
-
+		
 		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)
 		{
 			var postgresException = exception as NpgsqlException;

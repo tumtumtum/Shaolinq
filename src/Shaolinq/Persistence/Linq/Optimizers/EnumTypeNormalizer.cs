@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using Platform;
 using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -51,9 +51,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				if (!right.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					var lambda = Expression.Lambda(Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type.GetUnwrappedNullableType()), Expression.Convert(right, typeof(int))), left.Type));
-
-					right = lambda.Body;
+					right = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type.GetUnwrappedNullableType()), Expression.Convert(right, typeof(int))), left.Type);
 				}
 			}
 			else if (right.Type.GetUnwrappedNullableType().IsEnum)

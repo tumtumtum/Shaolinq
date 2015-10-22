@@ -1,7 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
-﻿using System.Text.RegularExpressions;
+using System;
+using System.Text.RegularExpressions;
 
 namespace Shaolinq
 {

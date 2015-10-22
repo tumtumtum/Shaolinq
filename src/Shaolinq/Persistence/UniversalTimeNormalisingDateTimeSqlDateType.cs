@@ -18,7 +18,7 @@ namespace Shaolinq.Persistence
 		public UniversalTimeNormalisingDateTimeSqlDateType(ConstraintDefaults constraintDefaults, string typeName, bool nullable)
 			: base(constraintDefaults, nullable ? typeof(DateTime?) : typeof(DateTime), typeName, DataRecordMethods.GetMethod("GetDateTime"))
 		{
-			specifyKindMethod = nullable ? specifyKindIfUnspecifiedMethodNullable : specifyKindIfUnspecifiedMethod;
+			this.specifyKindMethod = nullable ? specifyKindIfUnspecifiedMethodNullable : specifyKindIfUnspecifiedMethod;
 		}
 
 		public override Pair<Type, object> ConvertForSql(object value)
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence
 		{
 			var expression = base.GetReadExpression(dataReader, ordinal);
 
-			return Expression.Call(specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+			return Expression.Call(this.specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
 		}
 	}
 }

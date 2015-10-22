@@ -1,7 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
-﻿using Shaolinq.Persistence;
+using System;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.Shared
 {
@@ -15,7 +15,7 @@ namespace Shaolinq.Postgres.Shared
 
 		protected override SqlDataType GetBlobDataType()
 		{
-			return blobSqlDataType;
+			return this.blobSqlDataType;
 		}
 
 		protected override SqlDataType GetEnumDataType(Type type)
@@ -36,29 +36,29 @@ namespace Shaolinq.Postgres.Shared
 			
 			this.blobSqlDataType = new DefaultBlobSqlDataType(constraintDefaults, "BYTEA");
 
-			DefineSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
-			DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
-			DefineSqlDataType(typeof(int), "INTEGER", "GetInt32");
+			this.DefineSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
+			this.DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
+			this.DefineSqlDataType(typeof(int), "INTEGER", "GetInt32");
 
-			DefineSqlDataType(typeof(ushort), "SMALLINT", "GetUInt16");
-			DefineSqlDataType(typeof(uint), "INTEGER", "GetUInt32");
-			DefineSqlDataType(typeof(ulong), "BIGINT", "GetUInt64");
+			this.DefineSqlDataType(typeof(ushort), "SMALLINT", "GetUInt16");
+			this.DefineSqlDataType(typeof(uint), "INTEGER", "GetUInt32");
+			this.DefineSqlDataType(typeof(ulong), "BIGINT", "GetUInt64");
 
-			DefineSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
-			DefineSqlDataType(typeof(byte), "SMALLINT", "GetByte");
-			DefineSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
-			DefineSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
+			this.DefineSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
+			this.DefineSqlDataType(typeof(byte), "SMALLINT", "GetByte");
+			this.DefineSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
+			this.DefineSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
 
-			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", false));
-			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", true));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", false));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", true));
 
-			DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan)));
-			DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan?)));
+			this.DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan)));
+			this.DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan?)));
 
 			if (nativeUuids)
 			{
-				DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
-				DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
+				this.DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
+				this.DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
 			}
 		}
 	}

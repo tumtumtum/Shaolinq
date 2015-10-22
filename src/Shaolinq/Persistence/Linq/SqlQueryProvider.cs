@@ -4,10 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Optimizers;
 using log4net;
 using Platform;
+using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -36,21 +36,21 @@ namespace Shaolinq.Persistence.Linq
 
 			public T GetDefaultValue()
 			{
-				if (!computedDefaultValue)
+				if (!this.computedDefaultValue)
 				{
-					if (defaultValueExpression == null)
+					if (this.defaultValueExpression == null)
 					{
-						defaultValue = default(T);
+						this.defaultValue = default(T);
 					}
 					else
 					{
-						defaultValue = (T)Expression.Lambda(this.defaultValueExpression).Compile().DynamicInvoke(null);
+						this.defaultValue = (T)Expression.Lambda(this.defaultValueExpression).Compile().DynamicInvoke(null);
 					}
 
-					computedDefaultValue = true;
+					this.computedDefaultValue = true;
 				}
 
-				return defaultValue;
+				return this.defaultValue;
 			}
 		}
 
@@ -149,12 +149,12 @@ namespace Shaolinq.Persistence.Linq
 
 		public override object Execute(Expression expression)
 		{
-			return Execute<object>(expression);
+			return this.Execute<object>(expression);
 		}
 
 		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
 		{
-			var privateExecuteResult = PrivateExecute<T>(expression);
+			var privateExecuteResult = this.PrivateExecute<T>(expression);
 
 			if (privateExecuteResult.defaultIfEmpty)
 			{

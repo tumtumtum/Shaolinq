@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Text;
+using Platform;
 using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
-using Platform;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -138,9 +138,9 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var previousCurrentProjectShouldBeDefaultIfEmpty = this.currentProjectShouldBeDefaultIfEmpty;
 
-			currentProjectShouldBeDefaultIfEmpty = projection.IsDefaultIfEmpty;
+			this.currentProjectShouldBeDefaultIfEmpty = projection.IsDefaultIfEmpty;
 
-			var retval = Visit(projection.Select);
+			var retval = this.Visit(projection.Select);
 
 			this.currentProjectShouldBeDefaultIfEmpty = previousCurrentProjectShouldBeDefaultIfEmpty;
 
@@ -151,7 +151,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (methodCallExpression.Method == MethodInfoFastRef.EnumToObjectMethod)
 			{
-				Visit(methodCallExpression.Arguments[1]);
+				this.Visit(methodCallExpression.Arguments[1]);
 
 				return methodCallExpression;
 			}
@@ -159,13 +159,13 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (methodCallExpression.Object.Type.IsEnum)
 				{
-					Visit(methodCallExpression.Object);
+					this.Visit(methodCallExpression.Object);
 
 					return methodCallExpression;
 				}
 				else
 				{
-					Visit(methodCallExpression.Object);
+					this.Visit(methodCallExpression.Object);
 
 					return methodCallExpression;
 				}
@@ -174,7 +174,7 @@ namespace Shaolinq.Persistence.Linq
 			         && methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
 			         && methodCallExpression.Method.Name == "GetValueOrDefault")
 			{
-				Visit(methodCallExpression.Object);
+				this.Visit(methodCallExpression.Object);
 
 				return methodCallExpression;
 			}
@@ -233,7 +233,7 @@ namespace Shaolinq.Persistence.Linq
 					|| (IsNumeric(unaryType) && IsNumeric(operandType))
 					|| unaryExpression.Operand.Type.IsDataAccessObjectType())
 				{
-					Visit(unaryExpression.Operand);
+					this.Visit(unaryExpression.Operand);
 				}
 				else
 				{
@@ -243,12 +243,12 @@ namespace Shaolinq.Persistence.Linq
 			case ExpressionType.Negate:
 			case ExpressionType.NegateChecked:
 				this.Write("(-(");
-				Visit(unaryExpression.Operand);
+				this.Visit(unaryExpression.Operand);
 				this.Write("))");
 				break;
 			case ExpressionType.Not:
 				this.Write("NOT (");
-				Visit(unaryExpression.Operand);
+				this.Visit(unaryExpression.Operand);
 				this.Write(")");
 				break;
 			default:
@@ -360,7 +360,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
-			var result = ResolveSqlFunction(functionCallExpression);
+			var result = this.ResolveSqlFunction(functionCallExpression);
 
 			if (result.treatAsOperator)
 			{
@@ -380,7 +380,7 @@ namespace Shaolinq.Persistence.Linq
 						this.Write("(");
 					}
 
-					Visit(result.arguments[i]);
+					this.Visit(result.arguments[i]);
 
 					if (requiresGrouping)
 					{
@@ -421,9 +421,9 @@ namespace Shaolinq.Persistence.Linq
 					for (int i = 0, n = result.argsBefore.Length - 1; i <= n; i++)
 					{
 						this.Write(this.ParameterIndicatorPrefix);
-						Write(Sql92QueryFormatter.ParamNamePrefix);
-						this.Write(parameterValues.Count);
-						parameterValues.Add(new Pair<Type, object>(result.argsBefore[i].Left, result.argsBefore[i].Right));
+						this.Write(ParamNamePrefix);
+						this.Write(this.parameterValues.Count);
+						this.parameterValues.Add(new Pair<Type, object>(result.argsBefore[i].Left, result.argsBefore[i].Right));
 						
 						if (i != n || (functionCallExpression.Arguments.Count > 0))
 						{
@@ -434,7 +434,7 @@ namespace Shaolinq.Persistence.Linq
 
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
 				{
-					Visit(result.arguments[i]);
+					this.Visit(result.arguments[i]);
 
 					if (i != n || (result.argsAfter != null && result.argsAfter.Length > 0))
 					{
@@ -446,10 +446,10 @@ namespace Shaolinq.Persistence.Linq
 				{
 					for (int i = 0, n = result.argsAfter.Length - 1; i <= n; i++)
 					{
-						Write(this.ParameterIndicatorPrefix);
-						Write(Sql92QueryFormatter.ParamNamePrefix);
-						Write(parameterValues.Count);
-						parameterValues.Add(new Pair<Type, object>(result.argsAfter[i].Left, result.argsAfter[i].Right));
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(ParamNamePrefix);
+						this.Write(this.parameterValues.Count);
+						this.parameterValues.Add(new Pair<Type, object>(result.argsAfter[i].Left, result.argsAfter[i].Right));
 
 						if (i != n)
 						{
@@ -474,60 +474,60 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			Write("(");
+			this.Write("(");
 
-			Visit(binaryExpression.Left);
+			this.Visit(binaryExpression.Left);
 
 			switch (binaryExpression.NodeType)
 			{
 				case ExpressionType.And:
 				case ExpressionType.AndAlso:
-					Write(" AND ");
+				this.Write(" AND ");
 					break;
 				case ExpressionType.Or:
 				case ExpressionType.OrElse:
-					Write(" OR ");
+				this.Write(" OR ");
 					break;
 				case ExpressionType.Equal:
-					Write(" = ");
+				this.Write(" = ");
 					break;
 				case ExpressionType.NotEqual:
-					Write(" <> ");
+				this.Write(" <> ");
 					break;
 				case ExpressionType.LessThan:
-					Write(" < ");
+				this.Write(" < ");
 					break;
 				case ExpressionType.LessThanOrEqual:
-					Write(" <= ");
+				this.Write(" <= ");
 					break;
 				case ExpressionType.GreaterThan:
-					Write(" > ");
+				this.Write(" > ");
 					break;
 				case ExpressionType.GreaterThanOrEqual:
-					Write(" >= ");
+				this.Write(" >= ");
 					break;
 				case ExpressionType.Add:
-					Write(" + ");
+				this.Write(" + ");
 					break;
 				case ExpressionType.Subtract:
-					Write(" - ");
+				this.Write(" - ");
 					break;
 				case ExpressionType.Multiply:
-					Write(" * ");
+				this.Write(" * ");
 					break;
 				case ExpressionType.Divide:
-					Write(" / ");
+				this.Write(" / ");
 					break;
 				case ExpressionType.Assign:
-					Write(" = ");
+				this.Write(" = ");
 					break;
 				default:
 					throw new NotSupportedException($"The binary operator '{binaryExpression.NodeType}' is not supported");
 			}
 
-			Visit(binaryExpression.Right);
+			this.Visit(binaryExpression.Right);
 
-			Write(")");
+			this.Write(")");
 
 			return binaryExpression;
 		}
@@ -557,9 +557,9 @@ namespace Shaolinq.Persistence.Linq
 				else
 				{
 					this.Write(this.ParameterIndicatorPrefix);
-					this.Write(Sql92QueryFormatter.ParamNamePrefix);
-					this.Write(parameterValues.Count);
-					parameterValues.Add(new Pair<Type, object>(constantExpression.Type, null));
+					this.Write(ParamNamePrefix);
+					this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, null));
 				}
 			}
 			else
@@ -570,9 +570,9 @@ namespace Shaolinq.Persistence.Linq
 				{
 					case TypeCode.Boolean:
 						this.Write (this.ParameterIndicatorPrefix);
-						this.Write(Sql92QueryFormatter.ParamNamePrefix);
-						this.Write(parameterValues.Count);
-						parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
+						this.Write(ParamNamePrefix);
+						this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
 						break;
 					case TypeCode.Object:
 						if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type))
@@ -584,28 +584,31 @@ namespace Shaolinq.Persistence.Linq
 						else
 						{
 							this.Write(this.ParameterIndicatorPrefix);
-							this.Write(Sql92QueryFormatter.ParamNamePrefix);
-							this.Write(parameterValues.Count);
+							this.Write(ParamNamePrefix);
+							this.Write(this.parameterValues.Count);
 
 							var value = constantExpression.Value as Guid?;
 
+							this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
+
 							// TEST TEST
-							if (typeof(DataAccessObject).IsAssignableFrom(constantExpression.Type))
+							//							if (typeof(DataAccessObject).IsAssignableFrom(constantExpression.Type))
 							{
-								parameterValues.Add(new Pair<Type, object>(typeof(string), constantExpression.Value.ToString()));
+								//this.parameterValues.Add(new Pair<Type, object>(typeof(string), constantExpression.Value));
 							}
-							else
+//							else
 							{
-								parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(value));
+								//this.parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(value));
 							}
 						}
 						break;
 					default:
 						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(Sql92QueryFormatter.ParamNamePrefix);
-						this.Write(parameterValues.Count);
+						this.Write(ParamNamePrefix);
+						this.Write(this.parameterValues.Count);
 
-						parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(constantExpression.Value));
+						this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
+						//this.parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(constantExpression.Value));
 						
 						break;
 				}
@@ -646,14 +649,14 @@ namespace Shaolinq.Persistence.Linq
 
 			if (sqlAggregate.IsDistinct)
 			{
-				Write("DISTINCT ");
+				this.Write("DISTINCT ");
 			}
 
 			if (sqlAggregate.Argument != null)
 			{
 				this.Visit(sqlAggregate.Argument);
 			}
-			else if (RequiresAsteriskWhenNoArgument(sqlAggregate.AggregateType))
+			else if (this.RequiresAsteriskWhenNoArgument(sqlAggregate.AggregateType))
 			{
 				this.Write("*");
 			}
@@ -667,7 +670,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Write("(");
 
-			using (AcquireIndentationContext())
+			using (this.AcquireIndentationContext())
 			{
 				this.Visit(subquery.Select);
 				this.WriteLine();
@@ -682,9 +685,9 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (!String.IsNullOrEmpty(columnExpression.SelectAlias))
 			{
-				if (ignoreAlias == columnExpression.SelectAlias)
+				if (this.ignoreAlias == columnExpression.SelectAlias)
 				{
-					this.WriteQuotedIdentifier(replaceAlias);
+					this.WriteQuotedIdentifier(this.replaceAlias);
 				}
 				else
 				{
@@ -701,7 +704,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void VisitColumn(SqlSelectExpression selectExpression, SqlColumnDeclaration column)
 		{
-			var c = Visit(column.Expression) as SqlColumnExpression;
+			var c = this.Visit(column.Expression) as SqlColumnExpression;
 
 			if ((c == null || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
 			{
@@ -728,7 +731,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			var selectNested = selectNest > 0;
+			var selectNested = this.selectNest > 0;
 
 			if (selectNested)
 			{
@@ -737,7 +740,7 @@ namespace Shaolinq.Persistence.Linq
 
 			try
 			{
-				selectNest++;
+				this.selectNest++;
 
 				this.Write("SELECT ");
 
@@ -762,21 +765,21 @@ namespace Shaolinq.Persistence.Linq
 						this.Write(", ");
 					}
 
-					VisitColumn(selectExpression, column);
+					this.VisitColumn(selectExpression, column);
 				}
 
 				if (selectExpression.From != null)
 				{
 					this.WriteLine();
 					this.Write("FROM ");
-					VisitSource(selectExpression.From);
+					this.VisitSource(selectExpression.From);
 				}
 
 				if (selectExpression.Where != null)
 				{
 					this.WriteLine();
 					this.Write("WHERE ");
-					Visit(selectExpression.Where);
+					this.Visit(selectExpression.Where);
 				}
 
 
@@ -805,7 +808,7 @@ namespace Shaolinq.Persistence.Linq
 					});
 				}
 
-				AppendLimit(selectExpression);
+				this.AppendLimit(selectExpression);
 
 				if (selectExpression.ForUpdate && this.sqlDialect.SupportsFeature(SqlFeature.SelectForUpdate))
 				{
@@ -819,7 +822,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			finally
 			{
-				selectNest--;
+				this.selectNest--;
 			}
 
 			return selectExpression;
@@ -841,14 +844,14 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					Visit(selectExpression.Skip);
+					this.Visit(selectExpression.Skip);
 				}
 
 				if (selectExpression.Take != null)
 				{
 					this.Write(", ");
 
-					Visit(selectExpression.Take);
+					this.Visit(selectExpression.Take);
 				}
 				else if (selectExpression.Skip != null)
 				{
@@ -887,7 +890,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (join.JoinCondition != null)
 			{
-				using (AcquireIndentationContext())
+				using (this.AcquireIndentationContext())
 				{
 					this.Write("ON ");
 
@@ -922,9 +925,9 @@ namespace Shaolinq.Persistence.Linq
 					this.WriteLine();
 					this.Write("(");
 
-					using (AcquireIndentationContext())
+					using (this.AcquireIndentationContext())
 					{
-						Visit(select);
+						this.Visit(select);
 						this.WriteLine();
 					}
 					
@@ -967,12 +970,12 @@ namespace Shaolinq.Persistence.Linq
 			this.Write(" WHERE ");
 			this.WriteLine();
 
-			ignoreAlias = deleteExpression.Alias;
-			replaceAlias = deleteExpression.Table.Name;
+			this.ignoreAlias = deleteExpression.Alias;
+			this.replaceAlias = deleteExpression.Table.Name;
 
-			Visit(deleteExpression.Where);
+			this.Visit(deleteExpression.Where);
 
-			ignoreAlias = "";
+			this.ignoreAlias = "";
 
 			return deleteExpression;
 		}
@@ -1044,7 +1047,7 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteLine();
 			this.Write("(");
 			
-			using (AcquireIndentationContext())
+			using (this.AcquireIndentationContext())
 			{
 				this.WriteDeliminatedListOfItems(createTableExpression.ColumnDefinitionExpressions, c => this.Visit(c), () => this.WriteLine(","));
 
@@ -1102,16 +1105,16 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void WriteQuotedIdentifier(string identifierName)
 		{
-			this.Write(identifierQuoteString);
+			this.Write(this.identifierQuoteString);
 			this.Write(identifierName);
-			this.Write(identifierQuoteString);
+			this.Write(this.identifierQuoteString);
 		}
 
 		protected virtual void WriteQuotedString(string value)
 		{
-			this.Write(stringQuote);
+			this.Write(this.stringQuote);
 			this.Write(value);
-			this.Write(stringQuote);
+			this.Write(this.stringQuote);
 		}
 
 

@@ -92,7 +92,7 @@ namespace Shaolinq.Persistence.Linq
 
 			internal Expression Eval(Expression exp)
 			{
-				return Visit(exp);
+				return this.Visit(exp);
 			}
 
 			protected override Expression Visit(Expression expression)
@@ -102,9 +102,9 @@ namespace Shaolinq.Persistence.Linq
 					return null;
 				}
 
-				if (candidates.Contains(expression))
+				if (this.candidates.Contains(expression))
 				{
-					return Evaluate(expression);
+					return this.Evaluate(expression);
 				}
 
 				return base.Visit(expression);
@@ -184,38 +184,38 @@ namespace Shaolinq.Persistence.Linq
 
 			internal HashSet<Expression> Nominate(Expression expression)
 			{
-				candidates = new HashSet<Expression>();
+				this.candidates = new HashSet<Expression>();
 
-				first = expression;
+				this.first = expression;
 
-				Visit(expression);
+				this.Visit(expression);
 
-				return candidates;
+				return this.candidates;
 			}
 
 			protected override Expression Visit(Expression expression)
 			{
 				if (expression != null)
 				{
-					var saveCannotBeEvaluated = cannotBeEvaluated;
+					var saveCannotBeEvaluated = this.cannotBeEvaluated;
 
-					cannotBeEvaluated = false;
+					this.cannotBeEvaluated = false;
 
 					base.Visit(expression);
 
-					if (!cannotBeEvaluated)
+					if (!this.cannotBeEvaluated)
 					{
-						if (expression != first && fnCanBeEvaluated(expression))
+						if (expression != this.first && this.fnCanBeEvaluated(expression))
 						{
-							candidates.Add(expression);
+							this.candidates.Add(expression);
 						}
 						else
 						{
-							cannotBeEvaluated = true;
+							this.cannotBeEvaluated = true;
 						}
 					}
 
-					cannotBeEvaluated |= saveCannotBeEvaluated;
+					this.cannotBeEvaluated |= saveCannotBeEvaluated;
 				}
 
 				return expression;

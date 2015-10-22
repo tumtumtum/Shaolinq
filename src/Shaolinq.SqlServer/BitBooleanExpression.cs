@@ -13,7 +13,7 @@ namespace Shaolinq.SqlServer
 		public override ExpressionType NodeType => ExpressionType.Extension;
 
 		public BitBooleanExpression(bool value, bool nullable = false)
-			: this(Expression.Constant(value, nullable ? typeof(bool?) : typeof(bool)))
+			: this(Constant(value, nullable ? typeof(bool?) : typeof(bool)))
 		{
 		}
 
@@ -32,11 +32,11 @@ namespace Shaolinq.SqlServer
 		{
 			var nullable = expression.Type == typeof(bool?);
 
-			var retval = new BitBooleanExpression(Expression.Condition(expression, new BitBooleanExpression(Expression.Constant(true, nullable ? typeof(bool?) : typeof(bool))), new BitBooleanExpression(Expression.Constant(false, nullable ? typeof(bool?) : typeof(bool)))));
+			var retval = new BitBooleanExpression(Condition(expression, new BitBooleanExpression(Constant(true, nullable ? typeof(bool?) : typeof(bool))), new BitBooleanExpression(Constant(false, nullable ? typeof(bool?) : typeof(bool)))));
 
 			if (nullable)
 			{
-				retval = new BitBooleanExpression(Expression.Condition(Expression.Equal(retval, Expression.Constant(null)), Expression.Constant(null, typeof(bool?)), retval));
+				retval = new BitBooleanExpression(Condition(Equal(retval, Constant(null)), Constant(null, typeof(bool?)), retval));
 			}
 
 			return retval;

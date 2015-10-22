@@ -25,28 +25,28 @@ namespace Shaolinq.TypeBuilding
 
 		public virtual Type BuildType(Type baseType)
 		{
-			typeBuilder = this.ModuleBuilder.DefineType(baseType.FullName, TypeAttributes.Class | TypeAttributes.Public, baseType);
+			this.typeBuilder = this.ModuleBuilder.DefineType(baseType.FullName, TypeAttributes.Class | TypeAttributes.Public, baseType);
 			
 			// Build constructor for DataAccessModel
-			var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
+			var constructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
 			var ctorGenerator = constructorBuilder.GetILGenerator();
 			ctorGenerator.Emit(OpCodes.Ldarg_0);
 			ctorGenerator.Emit(OpCodes.Call, baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null));
 			ctorGenerator.Emit(OpCodes.Ret);
 
-			var methodInfo = typeBuilder.BaseType.GetMethod("Initialise", BindingFlags.Instance | BindingFlags.NonPublic);
+			var methodInfo = this.typeBuilder.BaseType.GetMethod("Initialise", BindingFlags.Instance | BindingFlags.NonPublic);
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 			methodAttributes |= methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family);
 
-			var initialiseMethodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
+			var initialiseMethodBuilder = this.typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
 			var initialiseGenerator = initialiseMethodBuilder.GetILGenerator();
-			
-			dictionaryFieldBuilder = typeBuilder.DefineField("$$$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
+
+			this.dictionaryFieldBuilder = this.typeBuilder.DefineField("$$$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
 
 			initialiseGenerator.Emit(OpCodes.Ldarg_0);
 			initialiseGenerator.Emit(OpCodes.Ldc_I4, baseType.GetProperties().Count());
-			initialiseGenerator.Emit(OpCodes.Newobj, dictionaryFieldBuilder.FieldType.GetConstructor(new Type[] { typeof(int) }));
-			initialiseGenerator.Emit(OpCodes.Stfld, dictionaryFieldBuilder);
+			initialiseGenerator.Emit(OpCodes.Newobj, this.dictionaryFieldBuilder.FieldType.GetConstructor(new Type[] { typeof(int) }));
+			initialiseGenerator.Emit(OpCodes.Stfld, this.dictionaryFieldBuilder);
 
 			foreach (var propertyInfo in baseType.GetProperties())
 			{
@@ -65,7 +65,7 @@ namespace Shaolinq.TypeBuilding
 				if (propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetSetMethod().IsAbstract)
 				{
 					// Generate the field for the queryable
-					var fieldBuilder = typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
+					var fieldBuilder = this.typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
 
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
@@ -75,20 +75,20 @@ namespace Shaolinq.TypeBuilding
 					
 					// Add to dictionary
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
-					initialiseGenerator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
+					initialiseGenerator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
 					initialiseGenerator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType.GetGenericArguments()[0]);
 					initialiseGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
-					initialiseGenerator.Emit(OpCodes.Callvirt, dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
+					initialiseGenerator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
                     
-					var propertyBuilder = typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
+					var propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
 
 					// Implement get method
 
 					if (propertyInfo.GetGetMethod() != null && propertyInfo.GetGetMethod().IsAbstract)
 					{
-						propertyBuilder.SetGetMethod(BuildPropertyMethod("get", propertyInfo, fieldBuilder));
+						propertyBuilder.SetGetMethod(this.BuildPropertyMethod("get", propertyInfo, fieldBuilder));
 					}
 
 					// Implement set method
@@ -102,14 +102,14 @@ namespace Shaolinq.TypeBuilding
 
 			initialiseGenerator.Emit(OpCodes.Ret);
 
-			BuildGetDataAccessObjectsMethod();
+			this.BuildGetDataAccessObjectsMethod();
 			
-			return typeBuilder.CreateType();
+			return this.typeBuilder.CreateType();
 		}
 
 		protected virtual void BuildGetDataAccessObjectsMethod()
 		{
-			var method = typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && !c.IsGenericMethod && c.GetParameters().Length == 1);
+			var method = this.typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && !c.IsGenericMethod && c.GetParameters().Length == 1);
 			var methodAttributes = (method.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot)) | MethodAttributes.Virtual;
 			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
 			
@@ -134,7 +134,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Call, typeof(Monitor).GetMethods().Single(c => c.Name == "Enter" && c.GetParameters().Length == 2));
 			
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, dictionaryFieldBuilder);
+			generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Ldloca, local);
 			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("TryGetValue", new Type[] { typeof(Type), typeof(IQueryable).MakeByRefType() }));

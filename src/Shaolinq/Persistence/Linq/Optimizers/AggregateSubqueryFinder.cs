@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		private AggregateSubqueryFinder()
 		{
-			aggregatesFound = new List<Expression>();
+			this.aggregatesFound = new List<Expression>();
 		}
 
 		public static List<Expression> Find(Expression expression)

@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
 			var from = selectExpression.From;
-			var where = Visit(selectExpression.Where);
+			var where = this.Visit(selectExpression.Where);
 
 			var orderBy = selectExpression.OrderBy;
 			var groupBy = selectExpression.GroupBy;

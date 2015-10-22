@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using System.Reflection;
 using Platform.Reflection;
 
@@ -15,7 +14,7 @@ namespace Shaolinq.Persistence
 		
 		public ModelTypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
-			TypeDescriptorProvider = typeDescriptorProvider;
+			this.TypeDescriptorProvider = typeDescriptorProvider;
 			this.Type = type;
 
 			this.DataAccessModelAttribute = type.GetFirstCustomAttribute<DataAccessModelAttribute>(true);

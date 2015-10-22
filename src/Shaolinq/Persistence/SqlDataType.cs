@@ -1,10 +1,9 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
-using Shaolinq.Persistence.Linq;
 using Platform;
 
 namespace Shaolinq.Persistence

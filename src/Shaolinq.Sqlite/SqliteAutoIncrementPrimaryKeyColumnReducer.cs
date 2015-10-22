@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
-using Platform;
 using System.Linq;
 using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Sqlite
@@ -63,14 +63,14 @@ namespace Shaolinq.Sqlite
 						newTableConstraints = newTableConstraints.Concat(uniqueConstraint);
 					}
 
-					primaryKeyNameByTablesWithReducedPrimaryKeyName[createTableExpression.Table.Name] = autoIncrementColumn.ColumnDefinition.ColumnName;
+					this.primaryKeyNameByTablesWithReducedPrimaryKeyName[createTableExpression.Table.Name] = autoIncrementColumn.ColumnDefinition.ColumnName;
 
-					columnsToMakeNotNull.Clear();
+					this.columnsToMakeNotNull.Clear();
 
 					primaryKeyConstraint
 						.ColumnNames
 						.Where(c => c != autoIncrementColumn.ColumnDefinition.ColumnName)
-						.ForEach(c => columnsToMakeNotNull.Add(c));
+						.ForEach(c => this.columnsToMakeNotNull.Add(c));
 
 					createTableExpression = new SqlCreateTableExpression
 					(
@@ -80,7 +80,7 @@ namespace Shaolinq.Sqlite
 						newTableConstraints
 					);
 
-					columnsToMakeNotNull.Clear();
+					this.columnsToMakeNotNull.Clear();
 
 					return createTableExpression;
 				}
@@ -97,7 +97,7 @@ namespace Shaolinq.Sqlite
 
 			IEnumerable<Expression> newConstraints = columnDefinitionExpression.ConstraintExpressions;
 
-			if (columnsToMakeNotNull.Contains(columnDefinitionExpression.ColumnName))
+			if (this.columnsToMakeNotNull.Contains(columnDefinitionExpression.ColumnName))
 			{
 				newConstraints = newConstraints
 					.Concat(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
@@ -110,7 +110,7 @@ namespace Shaolinq.Sqlite
 					.Prepend(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
 			}
 
-			if (object.ReferenceEquals(newConstraints, columnDefinitionExpression.ConstraintExpressions))
+			if (ReferenceEquals(newConstraints, columnDefinitionExpression.ConstraintExpressions))
 			{
 				return base.VisitColumnDefinition(columnDefinitionExpression);
 			}

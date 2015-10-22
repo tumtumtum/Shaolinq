@@ -1,11 +1,11 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
-﻿using Shaolinq.Persistence;
-﻿
+using Shaolinq.Persistence;
+
 namespace Shaolinq.Postgres.Shared
 {
 	public class PostgresSharedUuidSqlDataType

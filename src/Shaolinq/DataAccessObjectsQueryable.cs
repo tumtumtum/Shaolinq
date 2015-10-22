@@ -30,7 +30,7 @@ namespace Shaolinq
 
 			this.DataAccessModel = dataAccessModel; 
 			this.typeDescriptor = dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
-			base.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
+			this.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 
 		public virtual T Create()
@@ -65,17 +65,17 @@ namespace Shaolinq
 
 		public virtual T GetByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
+			return this.GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
 		}
 
 		public virtual T GetByPrimaryKeyOrDefault<K>(K primaryKey)
 		{
-			return GetByPrimaryKeyOrDefault(primaryKey, PrimaryKeyType.Auto);
+			return this.GetByPrimaryKeyOrDefault(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T GetByPrimaryKeyOrDefault<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
+			return this.GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
 		}
 
 		public virtual IQueryable<T> GetQueryableByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
@@ -132,7 +132,7 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys)
 		{
-			return GetManyByPrimaryKey<K>(primaryKeys, PrimaryKeyType.Auto);
+			return this.GetManyByPrimaryKey<K>(primaryKeys, PrimaryKeyType.Auto);
 		}
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys, PrimaryKeyType primaryKeyType)

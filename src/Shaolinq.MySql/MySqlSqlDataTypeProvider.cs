@@ -15,12 +15,12 @@ namespace Shaolinq.MySql
 		public MySqlSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
 			: base(constraintDefaults)
 		{
-			DefineSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
-			DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
-			DefineSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
+			this.DefineSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
+			this.DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
+			this.DefineSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
 
-			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", false));
-			DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", true));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", false));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", true));
 		}
 	}
 }

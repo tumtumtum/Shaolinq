@@ -1,8 +1,8 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Linq.Expressions;
-﻿using Platform.Collections;
-﻿using Shaolinq.Persistence.Linq.Expressions;
+using System.Linq.Expressions;
+using Platform.Collections;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {

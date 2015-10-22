@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Shaolinq.Persistence;
 using Platform;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -26,10 +26,10 @@ namespace Shaolinq
 			this.PropertyName = propertyName;
 			this.RelatedDataAccessObject = relatedDataAccessObject;
 			this.RelationshipType = relationshipType;
-			this.ExtraCondition = GetExtraCondition();
+			this.ExtraCondition = this.GetExtraCondition();
 			this.PersistenceQueryProvider.RelatedDataAccessObjectContext = this;
 
-			BuildInitializeRelatedMethod();
+			this.BuildInitializeRelatedMethod();
 		}
 
 		private LambdaExpression GetExtraCondition()

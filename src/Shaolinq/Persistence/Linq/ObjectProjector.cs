@@ -143,18 +143,18 @@ namespace Shaolinq.Persistence.Linq
 							}
 						}
 
-						var value = this.objectReader(this, dataReader, placeholderValues);
+						var value = this.objectReader(this, dataReader, this.placeholderValues);
 
 						yield return value;
 
-						count++;
+						this.count++;
 					}
 
 					while (dataReader.Read())
 					{
-						yield return this.objectReader(this, dataReader, placeholderValues);
+						yield return this.objectReader(this, dataReader, this.placeholderValues);
 
-						count++;
+						this.count++;
 					}
 				}
 			}

@@ -13,22 +13,22 @@ namespace Shaolinq.Postgres.Shared
 		private readonly Type underlyingType;
 
 		public PostgresSharedEnumSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
-			: base(constraintDefaults, supportedType)
+			: base(constraintDefaults, supportedType, true)
 		{
-			underlyingType = Nullable.GetUnderlyingType(supportedType);
+			this.underlyingType = Nullable.GetUnderlyingType(supportedType);
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
 			var typeDescriptorProvider = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider;
-			var enumTypeDescriptor = typeDescriptorProvider.GetEnumTypeDescriptor(underlyingType ?? this.SupportedType);
+			var enumTypeDescriptor = typeDescriptorProvider.GetEnumTypeDescriptor(this.underlyingType ?? this.SupportedType);
 
 			return enumTypeDescriptor.Name;
 		}
 
 		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
 		{
-			if (underlyingType == null)
+			if (this.underlyingType == null)
 			{
 				return Expression.Condition
 				(

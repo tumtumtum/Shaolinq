@@ -33,7 +33,7 @@ namespace Shaolinq
 			{
 				transactionManagers = new Dictionary<DataAccessModel, DataAccessModelTransactionManager>();
 
-				DataAccessModelTransactionManager.AmbientTransactionManagers = transactionManagers;
+				AmbientTransactionManagers = transactionManagers;
 			}
 
 			if (!transactionManagers.TryGetValue(dataAccessModel, out retval))
@@ -88,7 +88,7 @@ namespace Shaolinq
 			var weakThis = new WeakReference(this);
 
 			this.DataAccessModel = dataAccessModel;
-			transactionContextsByTransaction = new Dictionary<Transaction, TransactionContext>();
+			this.transactionContextsByTransaction = new Dictionary<Transaction, TransactionContext>();
             
 			handler = delegate(object sender, EventArgs eventArgs)
 			{
@@ -111,7 +111,7 @@ namespace Shaolinq
 		{
 			TransactionContext retval;
 
-			if (!TryGetCurrentContext(forWrite, out retval))
+			if (!this.TryGetCurrentContext(forWrite, out retval))
 			{
 				throw new NotSupportedException("Write operation must be performed inside a transaction context");
 			}
@@ -153,7 +153,7 @@ namespace Shaolinq
 					throw new TransactionAbortedException();
 				}
 
-				if (!transactionContextsByTransaction.TryGetValue(transaction, out retval))
+				if (!this.transactionContextsByTransaction.TryGetValue(transaction, out retval))
 				{
 					retval = new TransactionContext(this.DataAccessModel, transaction);
                     
@@ -163,20 +163,20 @@ namespace Shaolinq
 					};
 
 					transaction.EnlistVolatile(retval, EnlistmentOptions.None);
-					transactionContextsByTransaction[transaction] = retval;
+					this.transactionContextsByTransaction[transaction] = retval;
 				}
 			}
 			else
 			{
-				if (rootContext == null)
+				if (this.rootContext == null)
 				{
 					retval = new TransactionContext(this.DataAccessModel, null);
 
-					rootContext = retval;
+					this.rootContext = retval;
 				}
 				else
 				{
-					retval = rootContext;
+					retval = this.rootContext;
 				}
 			}
 

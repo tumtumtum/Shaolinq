@@ -35,11 +35,11 @@ namespace Shaolinq.Tests
 				region.Name = "Washington";
 				region.Diameter = 2000;
 
-				model.Flush();
+				this.model.Flush();
 
 				var mall = this.model.Malls.Create();
 
-				model.Flush();
+				this.model.Flush();
 
 				var shop = mall.Shops.Create();
 
@@ -56,8 +56,8 @@ namespace Shaolinq.Tests
 				center.Label = "Center of Washington";
 
 				shop.Address.Region.Center = center;
-				
-				model.Flush();
+
+				this.model.Flush();
 
 				region = this.model.Regions.Create();
 				shop.SecondAddress = this.model.Addresses.Create();
@@ -66,9 +66,9 @@ namespace Shaolinq.Tests
 				shop.SecondAddress.Region.Name = "Washington";
 				shop.SecondAddress.Region.Diameter = 100;
 				
-				scope.Flush(model);
+				scope.Flush(this.model);
 
-				shopId = shop.Id;
+				this.shopId = shop.Id;
 
 				scope.Complete();
 			}
@@ -79,7 +79,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var shop = model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
+				var shop = this.model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
 
 				shop.CloseDate = DateTime.Now;
 
@@ -88,7 +88,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var shop = model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
+				var shop = this.model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
 
 				Assert.IsNotNull(shop.CloseDate);
 
@@ -99,7 +99,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var shop = model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
+				var shop = this.model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
 
 				Assert.IsNull(shop.CloseDate);
 			}
@@ -110,11 +110,11 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses on shop.Address equals address1
+				address1 in this.model.Addresses on shop.Address equals address1
 				join
-				address2 in model.Addresses on shop.SecondAddress equals address2
+				address2 in this.model.Addresses on shop.SecondAddress equals address2
 				select
 				new
 				{
@@ -131,9 +131,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join 
-				address in model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address
+				address in this.model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address
 				select
 				new
 				{
@@ -150,13 +150,13 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses on shop.Address equals address1
+				address1 in this.model.Addresses on shop.Address equals address1
 				join
-				address2 in model.Addresses on shop.SecondAddress equals address2
+				address2 in this.model.Addresses on shop.SecondAddress equals address2
 				join
-				address3 in model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
+				address3 in this.model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
 				select
 				new
 				{
@@ -181,11 +181,11 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses on shop.Address equals address1
+				address1 in this.model.Addresses on shop.Address equals address1
 				join
-				address2 in model.Addresses on address1 equals address2
+				address2 in this.model.Addresses on address1 equals address2
 				select
 				new
 				{
@@ -206,11 +206,11 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses on shop.Address equals address1
+				address1 in this.model.Addresses on shop.Address equals address1
 				join
-				address2 in model.Addresses on shop.Address equals address2
+				address2 in this.model.Addresses on shop.Address equals address2
 				select
 				new
 				{
@@ -230,17 +230,17 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses.Include(c => c.Region) on shop.Address equals address1
+				address1 in this.model.Addresses.Include(c => c.Region) on shop.Address equals address1
 				join
-				address2 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
+				address2 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
 				join
-				address3 in model.Addresses.Include(c => c.Region).DefaultIfEmpty() on shop.ThirdAddress equals address3
+				address3 in this.model.Addresses.Include(c => c.Region).DefaultIfEmpty() on shop.ThirdAddress equals address3
 				join
-				address4 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address4
+				address4 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address4
 				join
-				address5 in model.Addresses.Include(c => c.Region) on address4 equals address5
+				address5 in this.model.Addresses.Include(c => c.Region) on address4 equals address5
 				select
 				new
 				{
@@ -276,13 +276,13 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses on shop.Address equals address1
+				address1 in this.model.Addresses on shop.Address equals address1
 				join
-				address2 in model.Addresses on shop.SecondAddress equals address2
+				address2 in this.model.Addresses on shop.SecondAddress equals address2
 				join
-				address3 in model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
+				address3 in this.model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
 				select
 				new
 				{
@@ -310,9 +310,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-					shop in model.Shops
+					shop in this.model.Shops
 				join
-					address1 in model.Addresses on shop.Address equals address1
+					address1 in this.model.Addresses on shop.Address equals address1
 				select new
 				{
 					address = shop.Address
@@ -326,9 +326,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-					shop in model.Shops
+					shop in this.model.Shops
 				join
-					address1 in model.Addresses on shop.Address equals address1
+					address1 in this.model.Addresses on shop.Address equals address1
 				select new
 				{
 					shop.Address,
@@ -344,9 +344,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 				 join
-					 address1 in model.Addresses on shop.Address equals address1
+					 address1 in this.model.Addresses on shop.Address equals address1
 				 select new
 				 {
 					 address1.Region.Name,
@@ -361,9 +361,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 					join
-						address1 in model.Addresses on shop.Address equals address1
+						address1 in this.model.Addresses on shop.Address equals address1
 					select new
 					{
 						address1.Region.Diameter
@@ -377,9 +377,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 					join
-						address1 in model.Addresses on shop.Address equals address1
+						address1 in this.model.Addresses on shop.Address equals address1
 					select new
 					{
 						A = shop,
@@ -397,9 +397,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 				 join
-					 address1 in model.Addresses on shop.Address equals address1
+					 address1 in this.model.Addresses on shop.Address equals address1
 				 select new Pair<Shop, Address>{ Left = shop, Right = address1}).Select(c => new
 				 {
 					 c.Right.Region.Diameter
@@ -413,9 +413,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 				 join
-					 address1 in model.Addresses on shop.Address equals address1
+					 address1 in this.model.Addresses on shop.Address equals address1
 				 select new
 				 {
 					 address1.Region.Diameter,
@@ -430,9 +430,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 					join
-						address1 in model.Addresses on shop.Address equals address1
+						address1 in this.model.Addresses on shop.Address equals address1
 					select new
 					{
 						address1.Region.Range,
@@ -447,9 +447,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 				 join
-					 address1 in model.Addresses on shop.Address equals address1
+					 address1 in this.model.Addresses on shop.Address equals address1
 				 select new
 				 {
 					 shop,
@@ -467,7 +467,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Then_Select_With_Multiple_Implicit_Joins()
 		{
-			var query = (from address in model.Addresses
+			var query = (from address in this.model.Addresses
 						 select new
 						 {
 							 address1 = address
@@ -486,9 +486,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 				 join
-					 address1 in model.Addresses on shop.Address equals address1
+					 address1 in this.model.Addresses on shop.Address equals address1
 				 select new
 				 {
 					 shop,
@@ -507,9 +507,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-					shop in model.Shops
+					shop in this.model.Shops
 				join
-					address1 in model.Addresses on shop.Address equals address1
+					address1 in this.model.Addresses on shop.Address equals address1
 				select new
 				{
 					region = shop.Address.Region
@@ -523,11 +523,11 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-					shop in model.Shops
+					shop in this.model.Shops
 				join
-					address1 in model.Addresses on shop.Address equals address1
+					address1 in this.model.Addresses on shop.Address equals address1
 				join
-					address2 in model.Addresses on shop.SecondAddress equals address2
+					address2 in this.model.Addresses on shop.SecondAddress equals address2
 				orderby shop.Name
 				select
 					new
@@ -546,11 +546,11 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses.Include(c => c.Region) on shop.Address equals address1
+				address1 in this.model.Addresses.Include(c => c.Region) on shop.Address equals address1
 				join
-				address2 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
+				address2 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
 				select
 				new
 				{
@@ -567,9 +567,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-					address1 in model.Addresses on shop.Address.Region.Diameter equals address1.Region.Diameter
+					address1 in this.model.Addresses on shop.Address.Region.Diameter equals address1.Region.Diameter
 				select
 					new
 					{
@@ -584,9 +584,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-					address1 in model.Addresses on shop.Address equals address1
+					address1 in this.model.Addresses on shop.Address equals address1
 				select
 					new
 					{
@@ -601,9 +601,9 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-					shop in model.Shops
+					shop in this.model.Shops
 					join
-						address1 in model.Addresses on shop.Address equals address1
+						address1 in this.model.Addresses on shop.Address equals address1
 					select
 						new
 						{
@@ -625,11 +625,11 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				(from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses on shop.Address equals address1
+				address1 in this.model.Addresses on shop.Address equals address1
 				join
-				address2 in model.Addresses on shop.SecondAddress equals address2
+				address2 in this.model.Addresses on shop.SecondAddress equals address2
 				select
 				new
 				{
@@ -651,11 +651,11 @@ namespace Shaolinq.Tests
 		{
 			var query =
 				from
-				shop in model.Shops
+				shop in this.model.Shops
 				join
-				address1 in model.Addresses.Include(c => c.Region) on shop.Address equals address1
+				address1 in this.model.Addresses.Include(c => c.Region) on shop.Address equals address1
 				join
-				address2 in model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
+				address2 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
 				orderby shop.Name
 				select
 				new
@@ -673,8 +673,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var objs = from toy in model.Toys.Where(c => c.Missing != null).OrderBy(c => c.Name)
-						   join child in model.Children.Where(c => c.Nickname != null) on toy.Owner equals child
+				var objs = from toy in this.model.Toys.Where(c => c.Missing != null).OrderBy(c => c.Name)
+						   join child in this.model.Children.Where(c => c.Nickname != null) on toy.Owner equals child
 					where !child.Good
 					select new
 					{
@@ -693,8 +693,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var objs = from toy in model.GetDataAccessObjects<Toy>().Where(c => c.Missing != null).OrderBy(c => c.Name)
-						   join child in model.GetDataAccessObjects<Child>().Where(c => c.Nickname != null) on toy.Owner equals child
+				var objs = from toy in this.model.GetDataAccessObjects<Toy>().Where(c => c.Missing != null).OrderBy(c => c.Name)
+						   join child in this.model.GetDataAccessObjects<Child>().Where(c => c.Nickname != null) on toy.Owner equals child
 						   where child.Good
 						   select new
 						   {
@@ -715,8 +715,8 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
-					 join address in model.Addresses on shop.Address equals address
+						shop in this.model.Shops
+					 join address in this.model.Addresses on shop.Address equals address
 					 select new
 					 {
 						 shop,
@@ -736,8 +736,8 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
-						join address in model.Addresses on shop.Address equals address
+						shop in this.model.Shops
+						join address in this.model.Addresses on shop.Address equals address
 						select new
 						{
 							shop,
@@ -758,7 +758,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					group shop by shop.Address.Street
 					into g
 					select
@@ -775,7 +775,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					orderby shop.Address.Street
 					select
 						shop;
@@ -791,7 +791,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					orderby shop.Address.Street
 					select
 						shop.Address;
@@ -808,7 +808,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					orderby shop.Address.Street
 					select
 						shop.Name;
@@ -824,7 +824,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					where
 						shop.Address.Street == "Madison Street"
 					select
@@ -841,7 +841,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street");
 
 				var first = query.First();
@@ -855,7 +855,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
 					.Include(c => c.ThirdAddress.Region.Center);
 
@@ -932,7 +932,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Name != "" && c.OpeningDate > new DateTime())
 					.Where(c => c.Address.Street == "Madison Street"
 						&& c.SecondAddress.Number == 0
@@ -949,7 +949,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Select(c => new { shop = c, region = c.Address.Region, region2 = c.SecondAddress.Region })
 					.Where(c => c.shop.Name != null && c.region2.Diameter >= 0 && c.region.Diameter >= 0);
 
@@ -962,7 +962,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
 					.Select(c => new { c });
 
@@ -976,7 +976,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops.Where(c => c.Address.Street == "Madison Street")
+				var query = this.model.Shops.Where(c => c.Address.Street == "Madison Street")
 					.Select(c => c.Include(d => d.Address).Include(d => d.SecondAddress));
 
 				var first = query.First();
@@ -991,9 +991,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+#pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
+				var query = this.model.Shops
 					.Where(c => c.SecondAddress.Number != null)
 					.Include(c => c.SecondAddress);
+#pragma warning restore CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
 
 				var first = query.First();
 
@@ -1007,7 +1009,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.SecondAddress != null)
 					.Include(c => c.SecondAddress);
 
@@ -1023,7 +1025,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Include(c => c.SecondAddress)
 					.Where(c => c.SecondAddress != null);
 
@@ -1039,7 +1041,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Include(c => c.SecondAddress)
 					.Where(c => c != null);
 
@@ -1055,7 +1057,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address != null)
 					.Include(c => c.SecondAddress);
 
@@ -1071,7 +1073,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address != null);
 
 				var first = query.First();
@@ -1086,7 +1088,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address == null);
 
 				var first = query.FirstOrDefault();
@@ -1100,7 +1102,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Include(c => c.SecondAddress)
 					.Where(c => c.Address != null);
 
@@ -1116,7 +1118,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
+				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Select(c => c.Include(d => d.Address))
 					.Select(c => c.Include(d => d.SecondAddress));
 
@@ -1132,7 +1134,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
+				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Include(c => c.Address)
 					.Include(c => c.SecondAddress);
 
@@ -1148,7 +1150,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
+				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Select(c => c.Include(d => d.Address))
 					.Select(c => c.Include(d => d.Mall))
 					.Select(c => c.Include(d => d.Address));
@@ -1164,7 +1166,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops.Where(c => c.Address.Region.Name == "Washington")
+				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Include(c => c.Address)
 					.Include(c => c.Address);
 
@@ -1181,7 +1183,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					where
 						shop.Address.Region.Center.Label == "Center of Washington"
 					select
@@ -1200,7 +1202,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					select
 						shop.Address;
 
@@ -1214,8 +1216,8 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var query = from
-					shop in model.Shops
-					where shop.Id == shopId
+					shop in this.model.Shops
+					where shop.Id == this.shopId
 					select shop.Include(c => c.Address.Region);
 
 				var first = query.First();
@@ -1232,7 +1234,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Select(c => new { c.Address, c.Address.Region });
 
 				var first = query.First();
@@ -1244,7 +1246,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Select(c => new
 					{
 						c.Address,
@@ -1260,7 +1262,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street" && c.SecondAddress.Street == "Jefferson Avenue")
 					.Select(c => c.Include(d => d.Address));
 
@@ -1277,7 +1279,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street" )
 					.Where(c => c.SecondAddress.Street == "Jefferson Avenue")
 					.Select(c => c.Include(d => d.Address));
@@ -1295,7 +1297,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
+				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
 					.Where(c => c.SecondAddress.Street == "Jefferson Avenue")
 					.Select(c => c.Include(d => d.Address).Include(d => d.SecondAddress));
@@ -1314,8 +1316,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(c => c.Include(d => d.Address).Include(d => d.Mall));
 
 				var first = query.First();
@@ -1331,8 +1333,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = (from  mall  in model.Malls
-							join shop in model.Shops on mall equals shop.Mall
+				var query = (from  mall  in this.model.Malls
+							join shop in this.model.Shops on mall equals shop.Mall
 							select new {  mall, shop }).Include(c => c.shop.Address);
 
 				var first = query.First();
@@ -1347,8 +1349,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(c => c.Include(d => d.Address).Include(d => d.Address.Region));
 
 				var first = query.First();
@@ -1364,8 +1366,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(c => c.Include(d => d.Address.Include(e => e.Region)));
 
 				var first = query.First();
@@ -1381,8 +1383,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(c => new Pair<string, Shop>{ Left = "hi", Right = c })
 					.Select(c => c.Right.Include(e => e.Address.Region));
 
@@ -1399,8 +1401,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(c => new Pair<string, Shop> { Left = "hi", Right = c })
 					.Select(c => c.Right.Include(d => d.Address.Include(e => e.Region)));
 
@@ -1417,8 +1419,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(c => c.Include(d => d.Address));
 
 				var first = query.First();
@@ -1433,8 +1435,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						shop
@@ -1452,18 +1454,18 @@ namespace Shaolinq.Tests
 		{
 			var y = new
 			{
-				address = model.Addresses.GetReference(
+				address = this.model.Addresses.GetReference(
 				new
 				{
 					Id = 1,
-					Region = model.Regions.GetReference(new { Id = 1, Name = "" })
+					Region = this.model.Regions.GetReference(new { Id = 1, Name = "" })
 				})
 			};
 
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						x = new
@@ -1487,8 +1489,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						x = new
@@ -1509,8 +1511,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						shop
@@ -1528,8 +1530,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						shop
@@ -1547,8 +1549,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						shop
@@ -1565,8 +1567,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						shop
@@ -1581,8 +1583,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(c => c).Select(c => c.Include(d => d.Address.Region));
 
 				var first = query.First();
@@ -1597,8 +1599,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						shopp = shop
@@ -1616,8 +1618,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = model.Shops
-					.Where(c => c.Id == shopId)
+				var query = this.model.Shops
+					.Where(c => c.Id == this.shopId)
 					.Select(shop => new
 					{
 						x = new
@@ -1640,7 +1642,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
+						shop in this.model.Shops
 						select new
 						{
 							shop1 = new
@@ -1667,7 +1669,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
+						shop in this.model.Shops
 					 select new
 					 {
 						 shop = new
@@ -1694,7 +1696,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
+						shop in this.model.Shops
 					 select new
 					 {
 						 shop = new
@@ -1721,7 +1723,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
+						shop in this.model.Shops
 					 select new
 					 {
 						 shop = new
@@ -1748,7 +1750,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
+						shop in this.model.Shops
 					 select new
 					 {
 						 shop = new
@@ -1774,7 +1776,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
+						shop in this.model.Shops
 					 select new
 					 {
 						 shop = new
@@ -1796,7 +1798,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in model.Shops
+						shop in this.model.Shops
 					 select new
 					 {
 						 container = new
@@ -1818,7 +1820,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					where
 						shop.Address.Region.Name == "Washington"
 					select
@@ -1856,7 +1858,7 @@ namespace Shaolinq.Tests
 				
 				var query =
 					from
-						shop in model.Shops
+						shop in this.model.Shops
 					where shop.Mall.Name.StartsWith("Westfield")
 					select shop;
 
@@ -1882,7 +1884,7 @@ namespace Shaolinq.Tests
 
 				shop.Name = "Apple Store";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				shopId = shop.Id;
 				addressId = shop.Address.Id;

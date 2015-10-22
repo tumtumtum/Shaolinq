@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Platform;
@@ -56,14 +55,14 @@ namespace Shaolinq.Persistence
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
-			return relationshipInfos.Values;
+			return this.relationshipInfos.Values;
 		}
 
 		public TypeRelationshipInfo GetRelationshipInfo(TypeDescriptor relatedTypeDescriptor)
 		{
 			TypeRelationshipInfo retval;
 
-			if (relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
+			if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
 			{
 				return retval;
 			}
@@ -75,7 +74,7 @@ namespace Shaolinq.Persistence
 		{
 			TypeRelationshipInfo retval;
 
-			if (relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
+			if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
 			{
 				retval.EntityRelationshipType = entityRelationshipType;
 				retval.ReferencingProperty = relatedProperty;
@@ -86,7 +85,7 @@ namespace Shaolinq.Persistence
 
 			retval = new TypeRelationshipInfo(relatedTypeDescriptor, entityRelationshipType, relatedProperty);
 
-			relationshipInfos[relatedTypeDescriptor] = retval;
+			this.relationshipInfos[relatedTypeDescriptor] = retval;
 
 			return retval;
 		}
@@ -95,7 +94,7 @@ namespace Shaolinq.Persistence
 		{
 			PropertyDescriptor retval;
 
-			if (!propertyDescriptorByColumnName.TryGetValue(columnName, out retval))
+			if (!this.propertyDescriptorByColumnName.TryGetValue(columnName, out retval))
 			{
 				return null;
 			}
@@ -107,7 +106,7 @@ namespace Shaolinq.Persistence
 		{
 			PropertyDescriptor retval;
 
-			if (!propertyDescriptorByPropertyName.TryGetValue(propertyName, out retval))
+			if (!this.propertyDescriptorByPropertyName.TryGetValue(propertyName, out retval))
 			{
 				return null;
 			}
@@ -246,8 +245,8 @@ namespace Shaolinq.Persistence
 					}
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
-					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
-					propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
+					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
+					this.propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
 				}
 			}
 
@@ -286,7 +285,7 @@ namespace Shaolinq.Persistence
 
 					relatedProperties.Add(propertyDescriptor);
 
-					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
+					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 				}
 				else if (propertyInfo.GetFirstCustomAttribute<BackReferenceAttribute>(true) != null)
 				{
@@ -314,7 +313,7 @@ namespace Shaolinq.Persistence
 
 					relatedProperties.Add(propertyDescriptor);
 
-					propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
+					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 				}
 			}
 

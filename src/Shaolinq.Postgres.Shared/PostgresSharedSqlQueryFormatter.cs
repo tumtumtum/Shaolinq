@@ -1,11 +1,9 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-using Platform.Collections;
 using Shaolinq.Persistence;
-﻿using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Postgres.Shared
@@ -23,7 +21,7 @@ namespace Shaolinq.Postgres.Shared
 
 		protected override Expression PreProcess(Expression expression)
 		{
-			expression =  PostgresSharedDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), sqlDataTypeProvider);
+			expression =  PostgresSharedDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), this.sqlDataTypeProvider);
 
 			return expression;
 		}
@@ -98,7 +96,7 @@ namespace Shaolinq.Postgres.Shared
 			if (column.Expression.Type == typeof(Decimal))
 			{
 				this.Write("ROUND(CAST(");
-				var c = Visit(column.Expression) as SqlColumnExpression;
+				var c = this.Visit(column.Expression) as SqlColumnExpression;
 				this.Write(" as NUMERIC)");
 				this.Write(", 20)");
 
@@ -124,14 +122,14 @@ namespace Shaolinq.Postgres.Shared
 				{
 					this.Write(" LIMIT ");
 
-					Visit(selectExpression.Take);
+					this.Visit(selectExpression.Take);
 				}
 
 				if (selectExpression.Skip != null)
 				{
 					this.Write(" OFFSET ");
 
-					Visit(selectExpression.Skip);
+					this.Visit(selectExpression.Skip);
 				}
 			}
 		}

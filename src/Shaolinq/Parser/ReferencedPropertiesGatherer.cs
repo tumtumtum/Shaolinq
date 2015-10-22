@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using ExpressionVisitor = Platform.Linq.ExpressionVisitor;
@@ -51,7 +52,7 @@ namespace Shaolinq.Parser
 
                 if (info != null)
 				{
-					results.Add(info);
+					this.results.Add(info);
 				}
 			}
 

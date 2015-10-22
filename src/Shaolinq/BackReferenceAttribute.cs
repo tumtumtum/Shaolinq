@@ -1,8 +1,8 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
-﻿using System.Reflection;
-﻿using Shaolinq.Persistence;
+using System;
+using System.Reflection;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -27,7 +27,7 @@ namespace Shaolinq
 
 		public string GetName(MemberInfo memberInfo, TypeDescriptor typeDescriptor)
 		{
-			return GetName(memberInfo, this.Name, typeDescriptor);
+			return this.GetName(memberInfo, this.Name, typeDescriptor);
 		}
 
 		private string GetName(MemberInfo memberInfo, string autoNamePattern, TypeDescriptor typeDescriptor)

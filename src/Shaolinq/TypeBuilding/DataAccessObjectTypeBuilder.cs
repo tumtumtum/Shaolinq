@@ -7,10 +7,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text.RegularExpressions;
-using Shaolinq.Persistence;
 using Platform;
 using Platform.Reflection;
 using Shaolinq.Parser;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.TypeBuilding
@@ -612,7 +612,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Callvirt, fieldBuilder.FieldType.GetMethod("Invoke"));
 
-				generator.Emit(OpCodes.Callvirt, propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod());
+				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod());
 
 				generator.Emit(OpCodes.Ret);
 			}
@@ -792,7 +792,7 @@ namespace Shaolinq.TypeBuilding
 		public static bool AreEqual<T>(T left, T right)
 			where T : class
 		{
-			return object.Equals(left, right);
+			return Equals(left, right);
 		}
 
 		public static bool NullableAreEqual<T>(T? left, T? right)
@@ -1915,7 +1915,7 @@ namespace Shaolinq.TypeBuilding
 
 		private IEnumerable<string> GetPropertyNamesAndDependentPropertyNames(IEnumerable<string> propertyNames)
 		{
-			return GetPropertyNamesAndDependentPropertyNames(propertyNames, new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
+			return this.GetPropertyNamesAndDependentPropertyNames(propertyNames, new HashSet<string>(StringComparer.CurrentCultureIgnoreCase));
 		}
 
 		private IEnumerable<string> GetPropertyNamesAndDependentPropertyNames(IEnumerable<string> propertyNames, HashSet<string> visited)
@@ -2280,7 +2280,7 @@ namespace Shaolinq.TypeBuilding
 					}
 				}
 
-				if (object.ReferenceEquals(visited, last))
+				if (ReferenceEquals(visited, last))
 				{
 					var valueIsSetField = referencedTypeBuilder.valueIsSetFields[visited.PropertyName];
 				

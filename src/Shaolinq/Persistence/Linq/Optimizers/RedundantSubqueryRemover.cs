@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					var groupBy = select.GroupBy != null && select.GroupBy.Count > 0 ? select.GroupBy : fromSelect.GroupBy;
 					var skip = select.Skip ?? fromSelect.Skip;
 					var take = select.Take ?? fromSelect.Take;
-					bool isDistinct = select.Distinct | fromSelect.Distinct;
+					var isDistinct = select.Distinct | fromSelect.Distinct;
 
 					if (where != select.Where || orderBy != select.OrderBy || groupBy != select.GroupBy || isDistinct != select.Distinct || skip != select.Skip || take != select.Take)
 					{

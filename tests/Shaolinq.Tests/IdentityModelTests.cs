@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using NUnit.Framework;
 using Shaolinq.Sqlite;
 using Shaolinq.Tests.GenericModel;
@@ -11,15 +10,15 @@ namespace Shaolinq.Tests
 	[TestFixture(Category = "IgnoreOnMono")]
 	public class IdentityModelTests
 	{
-		private IdentityModel model;
-		private ShaolinqIdentityUserStore<ShaolinqIdentityUser<Guid>, IdentityModel, Guid, DbUser, DbUserLogin, DbUserClaim, DbUserRole> userStore;
+		private readonly IdentityModel model;
+		private readonly ShaolinqIdentityUserStore<ShaolinqIdentityUser<Guid>, IdentityModel, Guid, DbUser, DbUserLogin, DbUserClaim, DbUserRole> userStore;
 
 		public IdentityModelTests()
 		{
-			model = DataAccessModel.BuildDataAccessModel<IdentityModel>(SqliteConfiguration.Create(":memory:", null, BaseTests<IdentityModel>.useMonoData));
-			model.Create(DatabaseCreationOptions.IfDatabaseNotExist);
+			this.model = DataAccessModel.BuildDataAccessModel<IdentityModel>(SqliteConfiguration.Create(":memory:", null, BaseTests<IdentityModel>.useMonoData));
+			this.model.Create(DatabaseCreationOptions.IfDatabaseNotExist);
 
-			userStore = new ShaolinqIdentityUserStore<ShaolinqIdentityUser<Guid>, IdentityModel, Guid, DbUser, DbUserLogin, DbUserClaim, DbUserRole>(model);
+			this.userStore = new ShaolinqIdentityUserStore<ShaolinqIdentityUser<Guid>, IdentityModel, Guid, DbUser, DbUserLogin, DbUserClaim, DbUserRole>(this.model);
 		}
 
 		[Test]
@@ -27,7 +26,7 @@ namespace Shaolinq.Tests
 		{
 			var empty = Guid.Empty;
 
-			userStore.FindById(empty);
+			this.userStore.FindById(empty);
 		}
 	}
 }

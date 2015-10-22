@@ -1,12 +1,12 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
-﻿using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq
 {

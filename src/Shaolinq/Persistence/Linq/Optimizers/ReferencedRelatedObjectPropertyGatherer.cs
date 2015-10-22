@@ -1,10 +1,10 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Linq.Expressions;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using Shaolinq.Persistence.Linq.Expressions;
 using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
@@ -33,13 +33,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			public DisableCompareContext(ReferencedRelatedObjectPropertyGatherer gatherer)
 			{
 				this.gatherer = gatherer;
-				savedDisableCompare = gatherer.disableCompare;
+				this.savedDisableCompare = gatherer.disableCompare;
 				gatherer.disableCompare = true;
 			}
 
 			public void Dispose()
 			{
-				this.gatherer.disableCompare = savedDisableCompare;
+				this.gatherer.disableCompare = this.savedDisableCompare;
 			}
 		}
 
@@ -94,7 +94,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var selector = methodCallExpression.Arguments[1].StripQuotes();
 				var newSelector = ExpressionReplacer.Replace(selector.Body, selector.Parameters[0], methodCallExpression.Arguments[0]);
 
-				var originalReferencedRelatedObjects = referencedRelatedObjects;
+				var originalReferencedRelatedObjects = this.referencedRelatedObjects;
 				var originalParent = this.currentParent;
 
 				this.currentParent = methodCallExpression.Arguments[0];
@@ -105,7 +105,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				this.Visit(newSelector);
 
-				if (referencedRelatedObjects.Count == 0)
+				if (this.referencedRelatedObjects.Count == 0)
 				{
 					return this.Visit(methodCallExpression.Arguments[0]);
 				}
@@ -117,7 +117,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				var retval = this.Visit(methodCallExpression.Arguments[0]);
 
-				if (nesting > 1 && (retval != sourceParameterExpression) && retval is MemberExpression)
+				if (this.nesting > 1 && (retval != this.sourceParameterExpression) && retval is MemberExpression)
 				{
 					// For supporting: Select(c => c.Include(d => d.Address.Include(e => e.Region)))
 
@@ -134,7 +134,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 						prefixProperties.Add((PropertyInfo)current.Member);
 						
-						if (current.Expression == sourceParameterExpression)
+						if (current.Expression == this.sourceParameterExpression)
 						{
 							break;
 						}
@@ -144,14 +144,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					prefixProperties.Reverse();
 
-					AddIncludedProperty(sourceParameterExpression, referencedRelatedObject, new PropertyPath(c => c.Name, prefixProperties));
+					this.AddIncludedProperty(this.sourceParameterExpression, referencedRelatedObject, new PropertyPath(c => c.Name, prefixProperties));
 				}
 				else
 				{
-					AddIncludedProperty(retval, referencedRelatedObject, PropertyPath.Empty);
+					this.AddIncludedProperty(retval, referencedRelatedObject, PropertyPath.Empty);
 				}
 
-				nesting--;
+				this.nesting--;
 
 				return retval;
 			}
@@ -173,7 +173,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					IncludedPropertyPath = currentPropertyPath
 				};
 
-				includedPropertyInfos.Add(includedPropertyInfo);
+				this.includedPropertyInfos.Add(includedPropertyInfo);
 			}
 		}
 
@@ -262,7 +262,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			foreach (var current in visited)
 			{
 				if (!current.Member.ReflectedType.IsDataAccessObjectType()
-					|| current == currentParent /* @see: Test_Select_Project_Related_Object_And_Include1 */)
+					|| current == this.currentParent /* @see: Test_Select_Project_Related_Object_And_Include1 */)
 				{
 					root = current;
 					includedPathSkip = visited.Count - i;
@@ -292,12 +292,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (!path.Last.ReflectedType.IsDataAccessObjectType())
 				{
-					rootExpressionsByPath[path] = currentExpression;
+					this.rootExpressionsByPath[path] = currentExpression;
 					
 					break;
 				}
 
-				if (!results.TryGetValue(path, out objectInfo))
+				if (!this.results.TryGetValue(path, out objectInfo))
 				{
 					var x = i + includedPathSkip - 1;
 					var includedPropertyPath = new PropertyPath(c => c.Name, path.Skip(includedPathSkip));
@@ -305,10 +305,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, objectExpression);
 
-					results[path] = objectInfo;
+					this.results[path] = objectInfo;
 				}
 
-				referencedRelatedObjects.Add(objectInfo);
+				this.referencedRelatedObjects.Add(objectInfo);
 
 				if (memberIsDataAccessObjectGatheringForProjection)
 				{

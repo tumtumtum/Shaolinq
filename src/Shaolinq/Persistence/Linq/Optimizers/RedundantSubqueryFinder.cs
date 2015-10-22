@@ -1,8 +1,8 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
-﻿using System.Linq;
-﻿using System.Linq.Expressions;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -32,7 +32,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		internal static bool IsSimpleProjection(SqlSelectExpression select)
 		{
-			foreach (SqlColumnDeclaration decl in select.Columns)
+			foreach (var decl in select.Columns)
 			{
 				var col = decl.Expression as SqlColumnExpression;
 

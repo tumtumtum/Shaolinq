@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -31,11 +31,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			select = (SqlSelectExpression)base.VisitSelect(select);
 
-			if (aggregateSubqueriesBySelectAlias.Contains(select.Alias))
+			if (this.aggregateSubqueriesBySelectAlias.Contains(select.Alias))
 			{
 				var columnsIncludingAggregates = new List<SqlColumnDeclaration>(select.Columns);
 
-				foreach (var aggregateSubqueryExpression in aggregateSubqueriesBySelectAlias[select.Alias])
+				foreach (var aggregateSubqueryExpression in this.aggregateSubqueriesBySelectAlias[select.Alias])
 				{
 					var name = "AGGR" + columnsIncludingAggregates.Count;
 

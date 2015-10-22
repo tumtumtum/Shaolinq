@@ -1,10 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Sqlite
@@ -42,7 +40,7 @@ namespace Shaolinq.Sqlite
 		{
 			string primaryKeyName;
 
-			if (primaryKeyNameByTablesWithReducedPrimaryKeyName.TryGetValue(foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedTable.Name, out primaryKeyName))
+			if (this.primaryKeyNameByTablesWithReducedPrimaryKeyName.TryGetValue(foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedTable.Name, out primaryKeyName))
 			{
 				var index = foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedColumnNames.IndexOf(primaryKeyName);
 

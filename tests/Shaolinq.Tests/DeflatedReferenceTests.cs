@@ -84,7 +84,7 @@ namespace Shaolinq.Tests
 				school.Name = schoolName;
 				var student = school.Students.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -93,7 +93,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.GetReference((object)studentId);
+				var student = this.model.Students.GetReference((object)studentId);
 			}
 		}
 
@@ -111,7 +111,7 @@ namespace Shaolinq.Tests
 
 				school.Name = schoolName;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 
@@ -124,7 +124,7 @@ namespace Shaolinq.Tests
 
 				student.School = this.model.Schools.GetReference(schoolId);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -168,9 +168,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 
@@ -179,7 +179,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				model.Schools.DeleteWhere(c => c.Id == schoolId);
+				this.model.Schools.DeleteWhere(c => c.Id == schoolId);
 
 				scope.Complete();
 			}
@@ -188,7 +188,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var school = model.Schools.GetReference(schoolId);
+					var school = this.model.Schools.GetReference(schoolId);
 
 					school.Name = "The Temple";
 
@@ -208,9 +208,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 
@@ -219,7 +219,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.GetReference(schoolId);
+				var school = this.model.Schools.GetReference(schoolId);
 
 				school.Delete();
 
@@ -239,9 +239,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 
@@ -250,7 +250,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.GetReference(schoolId);
+				var school = this.model.Schools.GetReference(schoolId);
 
 				school.Name = "The Temple";
 
@@ -265,7 +265,7 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = new TransactionScope())
 				{
-					var school = model.Schools.GetReference(89327493);
+					var school = this.model.Schools.GetReference(89327493);
 
 					school.Name = "The Temple";
 
@@ -283,11 +283,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var obj = model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
+				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = 1077;
 
-				var obj2 = model.ObjectWithLongNonAutoIncrementPrimaryKeys.GetReference(1077);
+				var obj2 = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.GetReference(1077);
 
 				Assert.AreEqual(obj.Id, obj2.Id);
 				Assert.AreSame(obj, obj2);
@@ -301,7 +301,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -340,7 +340,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -348,7 +348,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -378,7 +378,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -386,7 +386,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -416,7 +416,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -424,7 +424,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -454,7 +454,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -462,7 +462,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 				
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -475,7 +475,7 @@ namespace Shaolinq.Tests
 
 				Assert.IsTrue(student.IsDeflatedReference());
 
-				var sameStudent = this.model.Students.First(c => object.ReferenceEquals(c, student));
+				var sameStudent = this.model.Students.First(c => ReferenceEquals(c, student));
 
 				Assert.IsFalse(student.IsDeflatedReference());
 
@@ -492,7 +492,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -500,7 +500,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 				
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 
@@ -531,7 +531,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
 				school.Name = "The Shaolinq School of Kung Fu";
 
@@ -541,7 +541,7 @@ namespace Shaolinq.Tests
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				studentId = student.Id;
 				schoolId = school.Id;
@@ -644,7 +644,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First(c => c.Id == studentId);
+				var student = this.model.Students.First(c => c.Id == studentId);
 
 				Assert.AreEqual(schoolId, student.School.Id);
 				Assert.IsTrue(student.School.IsDeflatedReference());
@@ -658,12 +658,12 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var student = model.Students.First(c => c.Id == studentId);
+				var student = this.model.Students.First(c => c.Id == studentId);
 
 				Assert.AreEqual(schoolId, student.School.Id);
 				Assert.IsTrue(student.School.IsDeflatedReference());
 
-				var school = model.Schools.FirstOrDefault(c => c.Id == schoolId);
+				var school = this.model.Schools.FirstOrDefault(c => c.Id == schoolId);
 
 				Assert.IsFalse(student.School.IsDeflatedReference());
 
@@ -680,12 +680,12 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.Create();
+				var dbObj = this.model.ObjectWithManyTypes.Create();
 
 				dbObj.String = "foo";
 				dbObj.NullableDateTime = DateTime.UtcNow;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				id = dbObj.Id;
 
@@ -694,7 +694,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.GetByPrimaryKey(id);
+				var dbObj = this.model.ObjectWithManyTypes.GetByPrimaryKey(id);
 
 				dbObj.String = null;
 				dbObj.NullableDateTime = null;
@@ -712,12 +712,12 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.Create();
+				var dbObj = this.model.ObjectWithManyTypes.Create();
 
 				dbObj.String = "foo";
 				dbObj.NullableDateTime = DateTime.UtcNow;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				id = dbObj.Id;
 
@@ -726,7 +726,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.GetReference(id);
+				var dbObj = this.model.ObjectWithManyTypes.GetReference(id);
 
 				dbObj.String = null;
 				dbObj.NullableDateTime = null;
@@ -744,12 +744,12 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.Create();
+				var dbObj = this.model.ObjectWithManyTypes.Create();
 
 				dbObj.String = "foo";
 				dbObj.NullableDateTime = DateTime.UtcNow;
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				id = dbObj.Id;
 
@@ -758,7 +758,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var dbObj = model.ObjectWithManyTypes.GetReference(id);
+				var dbObj = this.model.ObjectWithManyTypes.GetReference(id);
 
 				dbObj.String = "boo";
 				dbObj.NullableDateTime = DateTime.UtcNow + TimeSpan.FromDays(1);

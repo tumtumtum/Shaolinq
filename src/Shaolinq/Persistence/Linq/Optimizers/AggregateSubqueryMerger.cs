@@ -1,6 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -68,7 +68,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					newColumns.Add(selectExpression.Columns[0]);
 				}
 
-				var where = Visit(from.Where);
+				var where = this.Visit(from.Where);
 
 				return from.ChangeWhereAndColumns(where, newColumns.ToReadOnlyList(), from.ForUpdate || selectExpression.ForUpdate);
 			}

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
@@ -42,12 +44,12 @@ namespace Shaolinq.Parser
 
 			var body = this.ParseExpression();
 
-			if (body.Type != propertyInfo.PropertyType)
+			if (body.Type != this.propertyInfo.PropertyType)
 			{
-				body = Expression.Convert(body, propertyInfo.PropertyType);
+				body = Expression.Convert(body, this.propertyInfo.PropertyType);
 			}
 
-			var retval = Expression.Lambda(body, targetObject);
+			var retval = Expression.Lambda(body, this.targetObject);
 
 			return retval;
 		}
@@ -59,11 +61,11 @@ namespace Shaolinq.Parser
 
 		protected Expression ParseUnary()
 		{
-			if (token == ComputedExpressionToken.Subtract)
+			if (this.token == ComputedExpressionToken.Subtract)
 			{
 				this.Consume();
 
-				return Expression.Multiply(Expression.Constant(-1), ParseOperand());
+				return Expression.Multiply(Expression.Constant(-1), this.ParseOperand());
 			}
 
 			return this.ParseOperand();
@@ -71,16 +73,16 @@ namespace Shaolinq.Parser
 
 		protected Expression ParseComparison()
 		{
-			var leftOperand = ParseNullCoalescing();
+			var leftOperand = this.ParseNullCoalescing();
 			var retval = leftOperand;
 
-			while (token >= ComputedExpressionToken.CompareStart && token <= ComputedExpressionToken.CompareEnd)
+			while (this.token >= ComputedExpressionToken.CompareStart && this.token <= ComputedExpressionToken.CompareEnd)
 			{
-				var operationToken = token;
+				var operationToken = this.token;
 
-				Consume();
+				this.Consume();
 
-				var rightOperand = ParseNullCoalescing();
+				var rightOperand = this.ParseNullCoalescing();
 
 				switch (operationToken)
 				{
@@ -104,7 +106,7 @@ namespace Shaolinq.Parser
 					break;
 				}
 
-				Consume();
+				this.Consume();
 			}
 
 			return retval;
@@ -114,14 +116,14 @@ namespace Shaolinq.Parser
 
 		protected Expression ParseNullCoalescing()
 		{
-			var leftOperand = ParseAddOrSubtract();
+			var leftOperand = this.ParseAddOrSubtract();
 			var retval = leftOperand;
 
-			if (token == ComputedExpressionToken.DoubleQuestionMark)
+			if (this.token == ComputedExpressionToken.DoubleQuestionMark)
 			{
-				Consume();
+				this.Consume();
 
-				var rightOperand = ParseAddOrSubtract();
+				var rightOperand = this.ParseAddOrSubtract();
 
 				return Expression.Coalesce(leftOperand, rightOperand);
 			}
@@ -131,16 +133,16 @@ namespace Shaolinq.Parser
 
 		protected Expression ParseAddOrSubtract()
 		{
-			var leftOperand = ParseMultiplyOrDivide();
+			var leftOperand = this.ParseMultiplyOrDivide();
 			var retval = leftOperand;
 
-			while (token == ComputedExpressionToken.Add || token == ComputedExpressionToken.Subtract)
+			while (this.token == ComputedExpressionToken.Add || this.token == ComputedExpressionToken.Subtract)
 			{
-				var operationToken = token;
+				var operationToken = this.token;
 
-				Consume();
+				this.Consume();
 
-				var rightOperand = ParseMultiplyOrDivide();
+				var rightOperand = this.ParseMultiplyOrDivide();
 
 				if (operationToken == ComputedExpressionToken.Add)
 				{
@@ -159,16 +161,16 @@ namespace Shaolinq.Parser
 
 		protected Expression ParseMultiplyOrDivide()
 		{
-			var leftOperand = ParseUnary();
+			var leftOperand = this.ParseUnary();
 			var retval = leftOperand;
 
-			while (token == ComputedExpressionToken.Multiply || token == ComputedExpressionToken.Divide)
+			while (this.token == ComputedExpressionToken.Multiply || this.token == ComputedExpressionToken.Divide)
 			{
-				var operationToken = token;
+				var operationToken = this.token;
 
-				Consume();
+				this.Consume();
 
-				var rightOperand = ParseUnary();
+				var rightOperand = this.ParseUnary();
 
 				if (operationToken == ComputedExpressionToken.Multiply)
 				{
@@ -237,7 +239,7 @@ namespace Shaolinq.Parser
 				return retval;
 			}
 
-			Expression current = targetObject;
+			Expression current = this.targetObject;
 
 			if (this.token == ComputedExpressionToken.Identifier)
 			{
@@ -255,7 +257,7 @@ namespace Shaolinq.Parser
 					{
 						if (identifier == "value" && current.Type.GetField("value") == null)
 						{
-							current = Expression.Property(targetObject, propertyInfo);
+							current = Expression.Property(this.targetObject, this.propertyInfo);
 						}
 						else
 						{

@@ -43,7 +43,7 @@ namespace Shaolinq.Persistence
 
 					if (dataAccessObjectAttribute != null)
 					{
-						if (!typeDescriptorsByType.ContainsKey(currentType))
+						if (!this.typeDescriptorsByType.ContainsKey(currentType))
 						{
 							if (!typeof(DataAccessObject).IsAssignableFrom(currentType))
 							{
@@ -57,7 +57,7 @@ namespace Shaolinq.Persistence
 								throw new InvalidDataAccessObjectModelDefinition("The type {0} illegally defines a nullable primary key", currentType.Name);
 							}
 
-							typeDescriptorsByType[currentType] = typeDescriptor;
+							this.typeDescriptorsByType[currentType] = typeDescriptor;
 						}
 					}
 					else
@@ -98,7 +98,7 @@ namespace Shaolinq.Persistence
 
 			// Resolve relationships
 
-			foreach (var typeDescriptor in typeDescriptorsByType.Values)
+			foreach (var typeDescriptor in this.typeDescriptorsByType.Values)
 			{
 				foreach (var propertyDescriptor in typeDescriptor.RelatedProperties)
 				{
@@ -159,7 +159,7 @@ namespace Shaolinq.Persistence
 		{
 			EnumTypeDescriptor retval;
 
-			if (enumTypeDescriptorsByType.TryGetValue(type, out retval))
+			if (this.enumTypeDescriptorsByType.TryGetValue(type, out retval))
 			{
 				return retval;
 			}
@@ -169,14 +169,14 @@ namespace Shaolinq.Persistence
 
 		public ICollection<TypeDescriptor> GetTypeDescriptors()
 		{
-			return typeDescriptorsByType.Values;
+			return this.typeDescriptorsByType.Values;
 		}
 
 		public TypeDescriptor GetTypeDescriptor(Type type)
 		{
 			TypeDescriptor retval;
 
-			if (typeDescriptorsByType.TryGetValue(type, out retval))
+			if (this.typeDescriptorsByType.TryGetValue(type, out retval))
 			{
 				return retval;
 			}

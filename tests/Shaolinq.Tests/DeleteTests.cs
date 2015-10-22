@@ -32,9 +32,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 				
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				var student1 = school.Students.Create(); 
 				var student2 = school.Students.Create();
@@ -63,7 +63,7 @@ namespace Shaolinq.Tests
 			{
 				Assert.IsNull(this.model.Students.FirstOrDefault(c => c.Id == student2Id));
 
-				var student1 = model.Students.First(c => c.Id == student1Id);
+				var student1 = this.model.Students.First(c => c.Id == student1Id);
 
 				Assert.IsNull(student1.BestFriend);
 
@@ -78,9 +78,9 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.Create();
+				var school = this.model.Schools.Create();
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				Assert.IsEmpty(((IDataAccessObjectAdvanced)school).GetChangedPropertiesFlattened());
 				Assert.IsFalse(((IDataAccessObjectAdvanced)school).HasObjectChanged);
@@ -92,22 +92,22 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.GetReference(schoolId);
+				var school = this.model.Schools.GetReference(schoolId);
 
 				school.Delete();
 
 				Assert.IsTrue(((IDataAccessObjectAdvanced)school).IsDeleted);
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
-				Assert.IsNull(model.Schools.FirstOrDefault(c => c.Id == schoolId));
+				Assert.IsNull(this.model.Schools.FirstOrDefault(c => c.Id == schoolId));
 
 				scope.Complete();
 			}
 
 			using (var scope = new TransactionScope())
 			{
-				Assert.IsNull(model.Schools.FirstOrDefault(c => c.Id == schoolId));
+				Assert.IsNull(this.model.Schools.FirstOrDefault(c => c.Id == schoolId));
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var school = model.Schools.GetReference(100000);
+				var school = this.model.Schools.GetReference(100000);
 
 				school.Delete();
 
@@ -134,7 +134,7 @@ namespace Shaolinq.Tests
 				Assert.IsFalse(school.IsDeleted());
 				school.Delete();
 				Assert.IsTrue(school.IsDeleted());
-				scope.Flush(model);
+				scope.Flush(this.model);
 				Assert.IsTrue(school.IsDeleted());
 
 				scope.Complete();
@@ -170,7 +170,7 @@ namespace Shaolinq.Tests
 
 				school.Name = "Yoga Decorum";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 
@@ -228,7 +228,7 @@ namespace Shaolinq.Tests
 
 				school.Name = "Yoga Decorum";
 
-				scope.Flush(model);
+				scope.Flush(this.model);
 
 				schoolId = school.Id;
 

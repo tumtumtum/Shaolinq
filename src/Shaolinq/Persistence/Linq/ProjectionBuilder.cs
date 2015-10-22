@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
@@ -30,12 +29,12 @@ namespace Shaolinq.Persistence.Linq
 			var x = 0;
 			this.dataAccessModel = dataAccessModel;
 			this.sqlDatabaseContext = sqlDatabaseContext;
-			
-			columnIndexes = columns.ToDictionary(c => c, c => x++);
 
-			dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
-			objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
-			dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
+			this.columnIndexes = columns.ToDictionary(c => c, c => x++);
+
+			this.dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
+			this.objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
+			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
 		}
 
 		/// <summary>
@@ -64,9 +63,9 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
-			var previousCurrentNewExpressionType = currentNewExpressionType;
+			var previousCurrentNewExpressionType = this.currentNewExpressionType;
 
-			currentNewExpressionType = expression.NewExpression.Type;
+			this.currentNewExpressionType = expression.NewExpression.Type;
 
 			Expression nullCheck = null;
 			
@@ -105,7 +104,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var retval = base.VisitMemberInit(expression);
 
-			currentNewExpressionType = previousCurrentNewExpressionType;
+			this.currentNewExpressionType = previousCurrentNewExpressionType;
 
 			if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
 			{
@@ -135,20 +134,20 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
 		{
-			if (currentNewExpressionType != null)
+			if (this.currentNewExpressionType != null)
 			{
 				// Turn all Object.Id expressions into Object.ForceId (to bypass validation checking)
 
 				if (assignment.Member.DeclaringType.IsDataAccessObjectType())
 				{
-					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(currentNewExpressionType);
+					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(this.currentNewExpressionType);
 					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
 
 					if (propertyDescriptor.IsComputedTextMember || propertyDescriptor.IsComputedMember)
 					{
-						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(currentNewExpressionType);
+						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(this.currentNewExpressionType);
 						var propertyInfo = concreteType.GetProperty(DataAccessObjectTypeBuilder.ForceSetPrefix + assignment.Member.Name);
-						var assignmentExpression = Visit(assignment.Expression);
+						var assignmentExpression = this.Visit(assignment.Expression);
 
 						return Expression.Bind(propertyInfo, assignmentExpression);
 					}
@@ -162,7 +161,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (functionCallExpression.Function == SqlFunction.Date)
 			{
-				return Expression.Call(Visit(functionCallExpression.Arguments[0]), typeof(DateTime).GetProperty("Date").GetGetMethod(), null);
+				return Expression.Call(this.Visit(functionCallExpression.Arguments[0]), typeof(DateTime).GetProperty("Date").GetGetMethod(), null);
 			}
 			
 			return base.VisitFunctionCall(functionCallExpression);
@@ -181,7 +180,7 @@ namespace Shaolinq.Persistence.Linq
 				);
 			}
 
-			var visitedArgs = VisitExpressionList(expression.Arguments);
+			var visitedArgs = this.VisitExpressionList(expression.Arguments);
 
 			if (visitedArgs != expression.Arguments)
 			{
@@ -323,7 +322,7 @@ namespace Shaolinq.Persistence.Linq
 			var elementType = TypeHelper.GetElementType(subQuery.Body.Type);
 			var boundExecuteSubQueryMethod = ExecuteSubQueryMethod.MakeGenericMethod(elementType);
 
-			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), dataReader), projection.Type);
+			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), this.dataReader), projection.Type);
 		}
 	}
 }
