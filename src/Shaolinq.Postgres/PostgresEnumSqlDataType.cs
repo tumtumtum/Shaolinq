@@ -5,14 +5,14 @@ using System.Linq.Expressions;
 using Platform;
 using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedEnumSqlDataType
+	internal class PostgresEnumSqlDataType
 		: SqlDataType
 	{
 		private readonly Type underlyingType;
 
-		public PostgresSharedEnumSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
+		public PostgresEnumSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
 			: base(constraintDefaults, supportedType, true)
 		{
 			this.underlyingType = Nullable.GetUnderlyingType(supportedType);

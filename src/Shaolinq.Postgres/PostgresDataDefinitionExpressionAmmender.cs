@@ -5,22 +5,22 @@ using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedDataDefinitionExpressionAmmender
+	public class PostgresDataDefinitionExpressionAmmender
 		: SqlExpressionVisitor
 	{
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private bool currentIsPrimaryKey;
 
-		private PostgresSharedDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
+		private PostgresDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
 		{
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 		}
 
 		public static Expression Ammend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
 		{
-			var processor = new PostgresSharedDataDefinitionExpressionAmmender(sqlDataTypeProvider);
+			var processor = new PostgresDataDefinitionExpressionAmmender(sqlDataTypeProvider);
 
 			return processor.Visit(expression);
 		}

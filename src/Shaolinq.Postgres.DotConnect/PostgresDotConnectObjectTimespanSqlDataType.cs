@@ -2,12 +2,10 @@
 
 using System;
 using Platform;
-using Shaolinq.Postgres.Shared;
-
 namespace Shaolinq.Postgres.DotConnect
 {
 	public class PostgresDotConnectObjectTimespanSqlDataType
-		: PostgresSharedTimespanSqlDataType
+		: PostgresTimespanSqlDataType
 	{
 		public PostgresDotConnectObjectTimespanSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
 			: base(constraintDefaults, supportedType)

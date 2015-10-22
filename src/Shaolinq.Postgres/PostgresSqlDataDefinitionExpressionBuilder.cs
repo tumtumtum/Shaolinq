@@ -6,15 +6,15 @@ using System.Data;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedServerSqlDataDefinitionExpressionBuilder
+	internal class PostgresSqlDataDefinitionExpressionBuilder
 	{
 		public SqlDialect SqlDialect { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 		public SqlDataTypeProvider SqlDataTypeProvider { get; }
 		
-		public PostgresSharedServerSqlDataDefinitionExpressionBuilder(SqlDatabaseContext sqlDatabaseContext, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect)
+		public PostgresSqlDataDefinitionExpressionBuilder(SqlDatabaseContext sqlDatabaseContext, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect)
 		{
 			this.SqlDatabaseContext = sqlDatabaseContext;
 			this.SqlDataTypeProvider = sqlDataTypeProvider;

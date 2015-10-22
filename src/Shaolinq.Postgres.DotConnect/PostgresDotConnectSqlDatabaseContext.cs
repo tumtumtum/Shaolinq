@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using System.Transactions;
 using Devart.Data.PostgreSql;
 using Shaolinq.Persistence;
-using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres.DotConnect
 {
@@ -22,9 +21,9 @@ namespace Shaolinq.Postgres.DotConnect
 		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaults;
-			var sqlDialect = PostgresSharedSqlDialect.Default;
-			var sqlDataTypeProvider = new PostgresSharedSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSharedSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
+			var sqlDialect = PostgresSqlDialect.Default;
+			var sqlDataTypeProvider = new PostgresSqlDataTypeProvider(constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName));
 
 			return new PostgresDotConnectSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -66,7 +65,7 @@ namespace Shaolinq.Postgres.DotConnect
 				this.ConnectionString = connectionStringBuilder.ConnectionString;
 			}
 
-			this.SchemaManager = new PostgresSharedSqlDatabaseSchemaManager(this);
+			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
         }
 
         public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)

@@ -6,12 +6,12 @@ using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedSqlDatabaseSchemaManager
+	internal class PostgresSqlDatabaseSchemaManager
 		: SqlDatabaseSchemaManager
 	{
-		public PostgresSharedSqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
+		public PostgresSqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
 			: base(sqlDatabaseContext)
 		{
 		}
@@ -20,7 +20,7 @@ namespace Shaolinq.Postgres.Shared
 		{
 			var retval = base.GetBuilderFlags();
 
-			if (((PostgresSharedSqlDataTypeProvider)this.SqlDatabaseContext.SqlDataTypeProvider).NativeEnums)
+			if (((PostgresSqlDataTypeProvider)this.SqlDatabaseContext.SqlDataTypeProvider).NativeEnums)
 			{
 				retval |= SqlDataDefinitionBuilderFlags.BuildEnums;
 			}

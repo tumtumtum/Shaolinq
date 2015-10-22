@@ -52,7 +52,7 @@ namespace Shaolinq.Tests
         {
             return PostgresConfiguration.Create(new PostgresSqlDatabaseContextInfo()
             {
-                DatabaseName = databaseName,
+                DatabaseName = databaseName,	
                 ServerName = "localhost",
                 UserId = "postgres",
                 Password = "postgres",

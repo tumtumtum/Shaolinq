@@ -2,7 +2,7 @@
 
 using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
 	public class DisabledForeignKeyCheckContext
 		: IDisabledForeignKeyCheckContext

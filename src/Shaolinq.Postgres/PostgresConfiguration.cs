@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using Shaolinq.Persistence;
-using Shaolinq.Postgres.Shared;
 
 namespace Shaolinq.Postgres
 {
@@ -21,7 +20,7 @@ namespace Shaolinq.Postgres
 			};
 		}
 
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections = PostgresSharedSqlDatabaseContextInfo.DefaultPooling, string categories = null, int port = PostgresSharedSqlDatabaseContextInfo.DefaultPostgresPort, int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout, int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections = PostgresSqlDatabaseContextInfo.DefaultPooling, string categories = null, int port = PostgresSqlDatabaseContextInfo.DefaultPostgresPort, int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout, int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout)
 		{
 			return Create(new PostgresSqlDatabaseContextInfo
 			{

@@ -3,9 +3,9 @@
 using System;
 using Shaolinq.Persistence;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedSqlDataTypeProvider
+	internal class PostgresSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
 		private readonly SqlDataType blobSqlDataType;
@@ -25,10 +25,10 @@ namespace Shaolinq.Postgres.Shared
 				return base.GetEnumDataType(type);
 			}
 
-			return new PostgresSharedEnumSqlDataType(this.ConstraintDefaults, type);
+			return new PostgresEnumSqlDataType(this.ConstraintDefaults, type);
 		}
 
-		public PostgresSharedSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, bool nativeEnums)
+		public PostgresSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, bool nativeEnums)
 			: base(constraintDefaults)
 		{
 			this.NativeUuids = nativeUuids;
@@ -52,13 +52,13 @@ namespace Shaolinq.Postgres.Shared
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", false));
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", true));
 
-			this.DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan)));
-			this.DefineSqlDataType(new PostgresSharedTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan?)));
+			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan)));
+			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan?)));
 
 			if (nativeUuids)
 			{
-				this.DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
-				this.DefineSqlDataType(new PostgresSharedUuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
+				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
+				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
 			}
 		}
 	}

@@ -2,26 +2,39 @@
 
 using System;
 using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
-namespace Shaolinq.Postgres.Shared
+namespace Shaolinq.Postgres
 {
-	public class PostgresSharedSqlQueryFormatter
+	public class PostgresSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
+		private int selectNesting = 0;
 		private readonly string schemaName;
 		
-		public PostgresSharedSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName)
+		public PostgresSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName)
 			: base(options, sqlDialect, sqlDataTypeProvider)
 		{
 			this.schemaName = schemaName;
 		}
 
+		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
+		{
+			selectNesting++;
+
+			var retval = base.VisitSelect(selectExpression);
+
+			selectNesting--;
+
+			return retval;
+		}
+
 		protected override Expression PreProcess(Expression expression)
 		{
-			expression =  PostgresSharedDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), this.sqlDataTypeProvider);
+			expression =  PostgresDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), this.sqlDataTypeProvider);
 
 			return expression;
 		}
@@ -112,6 +125,24 @@ namespace Shaolinq.Postgres.Shared
 			{
 				base.VisitColumn(selectExpression, column);
 			}
+		}
+
+		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
+		{
+            if (selectNesting == 1 && columnExpression.Type.GetUnwrappedNullableType().IsEnum)
+			{
+				base.VisitColumn(columnExpression);
+				this.Write("::TEXT");
+
+				return columnExpression;
+			}
+
+			return base.VisitColumn(columnExpression);
+		}
+
+		protected Expression OriginalVisitColumn(SqlColumnExpression columnExpression)
+		{
+			return base.VisitColumn(columnExpression);
 		}
 
 		protected override void AppendLimit(SqlSelectExpression selectExpression)

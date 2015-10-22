@@ -120,7 +120,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PostgresConfiguration.cs" />
-    <Compile Include="PostgresQueryFormatter.cs" />
+    <Compile Include="DisabledForeignKeyCheckContext.cs" />
+    <Compile Include="PostgresDataDefinitionExpressionAmmender.cs" />
+    <Compile Include="PostgresEnumSqlDataType.cs" />
+    <Compile Include="PostgresSqlDataDefinitionExpressionBuilder.cs" />
+    <Compile Include="PostgresSqlDatabaseSchemaManager.cs" />
+    <Compile Include="PostgresSqlDataTypeProvider.cs" />
+    <Compile Include="PostgresSqlDialect.cs" />
+    <Compile Include="PostgresSqlQueryFormatter.cs" />
+    <Compile Include="PostgresUuidSqlDataType.cs" />
     <Compile Include="PostgresSqlTransactionalCommandsContext.cs" />
     <Compile Include="PostgresSqlDatabaseContextInfo.cs" />
     <Compile Include="PostgresSqlDatabaseContext.cs" />
@@ -128,10 +136,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shaolinq.Postgres.Shared\Shaolinq.Postgres.Shared.csproj">
-      <Project>{371cef26-5eb2-4fcb-9109-e821260d4189}</Project>
-      <Name>Shaolinq.Postgres.Shared</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">
       <Project>{0C8321D6-4DF6-4B90-AF5A-92537D4A7E54}</Project>
       <Name>Shaolinq</Name>
