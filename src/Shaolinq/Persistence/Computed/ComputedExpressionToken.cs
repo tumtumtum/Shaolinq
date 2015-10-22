@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
-namespace Shaolinq.Parser
+
+namespace Shaolinq.Persistence.Computed
 {
 	public enum ComputedExpressionToken
 	{
