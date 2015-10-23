@@ -103,8 +103,8 @@
       <HintPath>..\packages\MySql.Data.6.9.8\lib\net45\MySql.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform, Version=1.1.0.214, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.1.0.214\lib\net40\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.1.0.216, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.1.0.216\lib\net40\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Platform.Xml.Serialization, Version=1.1.0.214, Culture=neutral, processorArchitecture=MSIL">

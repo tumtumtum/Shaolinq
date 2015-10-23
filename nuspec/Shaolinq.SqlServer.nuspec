@@ -26,7 +26,7 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
 - Easily extensible with a simple interface for adding support for other ADO.NET compatible databases.
 - Open Source!</description>
     <releaseNotes>$releasenotes$</releaseNotes>
-    <copyright>Copyright (c) 2007-2013 Thong Nguyen (tumtumtum@gmail.com)</copyright>
+    <copyright>Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)</copyright>
     <tags>linq provider orm sqlite mysql sql database</tags>
     <dependencies>
       <dependency id="Shaolinq" version="$version$"/>
