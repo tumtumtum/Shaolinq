@@ -79,7 +79,7 @@ namespace Shaolinq.Logging
     interface ILog
     {
         /// <summary>
-        /// Logger a message the specified log level.
+        /// Log a message the specified log level.
         /// </summary>
         /// <param name="logLevel">The log level.</param>
         /// <param name="messageFunc">The message function.</param>
@@ -90,7 +90,7 @@ namespace Shaolinq.Logging
         /// Note to implementers: the message func should not be called if the loglevel is not enabled
         /// so as not to incur performance penalties.
         /// 
-        /// To check IsEnabled call Logger with only LogLevel and check the return value, no event will be written.
+        /// To check IsEnabled call Log with only LogLevel and check the return value, no event will be written.
         /// </remarks>
         bool Log(LogLevel logLevel, Func<string> messageFunc, Exception exception = null, params object[] formatParameters );
     }
@@ -421,7 +421,7 @@ namespace Shaolinq.Logging
         /// will be disabled.
         /// </summary>
         public const string DisableLoggingEnvironmentVariable = "Shaolinq_LIBLOG_DISABLE";
-        private const string NullLogProvider = "Current Logger Provider is not set. Call SetCurrentLogProvider " +
+        private const string NullLogProvider = "Current Log Provider is not set. Call SetCurrentLogProvider " +
                                                "with a non-null value first.";
         private static dynamic s_currentLogProvider;
         private static Action<ILogProvider> s_onCurrentLogProviderSet;
@@ -729,6 +729,7 @@ namespace Shaolinq.Logging.LogProviders
     using System.Linq.Expressions;
     using System.Reflection;
 #if !LIBLOG_PORTABLE
+    using System.Text;
 #endif
     using System.Text.RegularExpressions;
 
@@ -1117,9 +1118,9 @@ namespace Shaolinq.Logging.LogProviders
                 MethodCallExpression isEnabledMethodCall = Expression.Call(instanceCast, isEnabledMethodInfo, levelCast);
                 _isEnabledForDelegate = Expression.Lambda<Func<object, object, bool>>(isEnabledMethodCall, instanceParam, levelParam).Compile();
 
-                // Action<object, object, string, Exception> Logger =
+                // Action<object, object, string, Exception> Log =
                 // (logger, callerStackBoundaryDeclaringType, level, message, exception) => { ((ILogger)logger).Write(callerStackBoundaryDeclaringType, level, message, exception); }
-                MethodInfo writeExceptionMethodInfo = loggerType.GetMethodPortable("Logger",
+                MethodInfo writeExceptionMethodInfo = loggerType.GetMethodPortable("Log",
                     typeof(Type),
                     logEventLevelType,
                     typeof(string),
@@ -1405,7 +1406,7 @@ namespace Shaolinq.Logging.LogProviders
         {
             if (!IsLoggerAvailable())
             {
-                throw new InvalidOperationException("Serilog.Logger not found");
+                throw new InvalidOperationException("Serilog.Log not found");
             }
             _getLoggerByNameDelegate = GetForContextMethodCall();
         }
@@ -1462,7 +1463,7 @@ namespace Shaolinq.Logging.LogProviders
 
         private static Type GetLogManagerType()
         {
-            return Type.GetType("Serilog.Logger, Serilog");
+            return Type.GetType("Serilog.Log, Serilog");
         }
 
         private static Func<string, object> GetForContextMethodCall()
@@ -1690,7 +1691,7 @@ namespace Shaolinq.Logging.LogProviders
     internal class LoupeLogProvider : LogProviderBase
     {
         /// <summary>
-        /// The form of the Loupe Logger.Write method we're using
+        /// The form of the Loupe Log.Write method we're using
         /// </summary>
         internal delegate void WriteDelegate(
             int severity,
@@ -1713,7 +1714,7 @@ namespace Shaolinq.Logging.LogProviders
         {
             if (!IsLoggerAvailable())
             {
-                throw new InvalidOperationException("Gibraltar.Agent.Logger (Loupe) not found");
+                throw new InvalidOperationException("Gibraltar.Agent.Log (Loupe) not found");
             }
 
             _logWriteDelegate = GetLogWriteDelegate();
@@ -1743,7 +1744,7 @@ namespace Shaolinq.Logging.LogProviders
 
         private static Type GetLogManagerType()
         {
-            return Type.GetType("Gibraltar.Agent.Logger, Gibraltar.Agent");
+            return Type.GetType("Gibraltar.Agent.Log, Gibraltar.Agent");
         }
 
         private static WriteDelegate GetLogWriteDelegate()
@@ -1851,10 +1852,10 @@ namespace Shaolinq.Logging.LogProviders
 
         /// <summary>
         /// Some logging frameworks support structured logging, such as serilog. This will allow you to add names to structured data in a format string:
-        /// For example: Logger("Logger message to {user}", user). This only works with serilog, but as the user of LibLog, you don't know if serilog is actually 
+        /// For example: Log("Log message to {user}", user). This only works with serilog, but as the user of LibLog, you don't know if serilog is actually 
         /// used. So, this class simulates that. it will replace any text in {curly braces} with an index number. 
         /// 
-        /// "Logger {message} to {user}" would turn into => "Logger {0} to {1}". Then the format parameters are handled using regular .net string.Format.
+        /// "Log {message} to {user}" would turn into => "Log {0} to {1}". Then the format parameters are handled using regular .net string.Format.
         /// </summary>
         /// <param name="messageBuilder">The message builder.</param>
         /// <param name="formatParameters">The format parameters.</param>
