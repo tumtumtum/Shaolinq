@@ -152,11 +152,11 @@ namespace Shaolinq.Persistence.Linq
 			return ColumnProjector.ProjectColumns(this.typeDescriptorProvider, new NormalNominator(IsIntegralType), expression, newAlias, existingAliases);
 		}
 
-		private Expression BindContains(Expression checkList, Expression checkItem)
+		private Expression BindCollectionContains(Expression list, Expression item)
 		{
 			const string columnName = "CONTAINS";
 
-			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, this.Visit(checkItem), this.Visit(checkList));
+			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, this.Visit(item), this.Visit(list));
 
 			if (this.selectorPredicateStack.Count > 0)
 			{
@@ -167,7 +167,7 @@ namespace Shaolinq.Persistence.Linq
 			var selectType = typeof(IEnumerable<>).MakeGenericType(typeof(bool));
 
 			var select = new SqlSelectExpression
-				(
+			(
 				selectType,
 				alias,
 				new[] {new SqlColumnDeclaration(columnName, functionExpression)},
@@ -175,7 +175,7 @@ namespace Shaolinq.Persistence.Linq
 				null,
 				null,
 				false
-				);
+			);
 
 			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
 		}
@@ -932,7 +932,7 @@ namespace Shaolinq.Persistence.Linq
 	            case "Contains":
 		            if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            return this.BindContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
+			            return this.BindCollectionContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
 		            }
 		            break;
 	            }
@@ -989,7 +989,7 @@ namespace Shaolinq.Persistence.Linq
 					case "Contains":
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							return this.BindContains(methodCallExpression.Object, methodCallExpression.Arguments[0]);
+							return this.BindCollectionContains(methodCallExpression.Object, methodCallExpression.Arguments[0]);
 						}
 						break;
 				}

@@ -17,25 +17,23 @@ namespace Shaolinq.Persistence.Computed
 
 		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo)
 		{
+			if (propertyInfo.DeclaringType == null)
+			{
+				throw new ArgumentException(nameof(propertyInfo));
+			}
+
 			this.propertyInfo = propertyInfo;
 			this.tokenizer = new ComputedExpressionTokenizer(reader);
 			this.targetObject = Expression.Parameter(propertyInfo.DeclaringType, "object");
 		}
 
+		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo) => new ComputedExpressionParser(reader, propertyInfo).Parse();
+		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo) => Parse(new StringReader(expressionText), propertyInfo);
+
 		public void Consume()
 		{
 			this.tokenizer.ReadNextToken();
 			this.token = this.tokenizer.CurrentToken;
-		}
-
-		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo)
-		{
-			return Parse(new StringReader(expressionText), propertyInfo);
-		}
-
-		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo)
-		{
-			return new ComputedExpressionParser(reader, propertyInfo).Parse();
 		}
 
 		public virtual LambdaExpression Parse()
@@ -111,8 +109,6 @@ namespace Shaolinq.Persistence.Computed
 
 			return retval;
 		}
-
-
 
 		protected Expression ParseNullCoalescing()
 		{
@@ -280,8 +276,7 @@ namespace Shaolinq.Persistence.Computed
 					return current;
 				}
 			}
-
-
+			
 			if (this.token == ComputedExpressionToken.IntegerLiteral)
 			{
 				this.Consume();

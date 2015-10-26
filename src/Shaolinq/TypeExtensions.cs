@@ -19,7 +19,8 @@ namespace Shaolinq
 				   || type == typeof(Guid)
 				   || type == typeof(DateTime)
 				   || type == typeof(TimeSpan)
-				   || type == typeof(bool);
+				   || type == typeof(bool)
+				   || type == typeof(byte[]);
 		}
 
 		public static NewExpression CreateNewExpression(this Type type, params Expression[] arguments)
@@ -32,6 +33,11 @@ namespace Shaolinq
 			{
 				var constructor = type.GetConstructor(arguments.Select(c => c.Type).ToArray());
 
+				if (constructor == null)
+				{
+					throw new InvalidOperationException($"Cannot find constructor for type {type}");
+				}
+				
 				return Expression.New(constructor, arguments);
 			}
 		}

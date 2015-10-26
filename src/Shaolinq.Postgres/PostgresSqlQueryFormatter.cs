@@ -14,11 +14,13 @@ namespace Shaolinq.Postgres
 	{
 		private int selectNesting = 0;
 		private readonly string schemaName;
-		
-		public PostgresSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName)
+		internal bool ConvertEnumsToText { get; }
+
+		public PostgresSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName, bool convertEnumsToText)
 			: base(options, sqlDialect, sqlDataTypeProvider)
 		{
 			this.schemaName = schemaName;
+			this.ConvertEnumsToText = convertEnumsToText;
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
@@ -129,7 +131,7 @@ namespace Shaolinq.Postgres
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
 		{
-            if (selectNesting == 1 && columnExpression.Type.GetUnwrappedNullableType().IsEnum)
+			if (selectNesting == 1 && this.ConvertEnumsToText && columnExpression.Type.GetUnwrappedNullableType().IsEnum)
 			{
 				base.VisitColumn(columnExpression);
 				this.Write("::TEXT");
@@ -140,10 +142,6 @@ namespace Shaolinq.Postgres
 			return base.VisitColumn(columnExpression);
 		}
 
-		protected Expression OriginalVisitColumn(SqlColumnExpression columnExpression)
-		{
-			return base.VisitColumn(columnExpression);
-		}
 
 		protected override void AppendLimit(SqlSelectExpression selectExpression)
 		{

@@ -56,9 +56,7 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract DateTime? NullableDateTime { get; set; }
 
-		// Formatter doesn't correctly deal with byte array
-
-		//[PersistedMember]
-		//public abstract byte[] ByteArray { get; set; }
+		[PersistedMember]
+		public abstract byte[] ByteArray { get; set; }
 	}
 }

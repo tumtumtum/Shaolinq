@@ -156,7 +156,6 @@
     <Compile Include="PostgresDotConnectConfiguration.cs" />
     <Compile Include="PostgresDotConnectSqlDatabaseContextInfo.cs" />
     <Compile Include="PostgresDotConnectSqlDatabaseContext.cs" />
-    <Compile Include="PostgresDotConnectSqlQueryFormatter.cs" />
     <Compile Include="PostgresDotConnectSqlTransactionalCommandsContext.cs" />
     <Compile Include="PostgresDotConnectObjectTimespanSqlDataType.cs" />
     <Compile Include="PostgresDotConnectTimespanSqlDataType.cs" />

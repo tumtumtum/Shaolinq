@@ -147,8 +147,6 @@ namespace Shaolinq.Persistence.Linq
 	public class ColumnProjector
 		: SqlExpressionVisitor
 	{
-		
-
 		private int columnIndex; 
 		private readonly string newAlias;
 		private readonly string[] existingAliases;

@@ -3,12 +3,11 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using ExpressionVisitor = Platform.Linq.ExpressionVisitor;
 
 namespace Shaolinq.Persistence.Computed
 {
 	public class ReferencedPropertiesGatherer
-		: ExpressionVisitor
+		: Platform.Linq.ExpressionVisitor
 	{
 		private readonly Expression target;
 		private readonly List<PropertyInfo> results = new List<PropertyInfo>();
@@ -29,7 +28,7 @@ namespace Shaolinq.Persistence.Computed
 
         protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
         {
-            if (methodCallExpression.Object == this.target)
+            if (methodCallExpression.Object == this.target && this.target != null)
             {
                 var attributes = methodCallExpression.Method.GetCustomAttributes(typeof(DependsOnPropertyAttribute), true);
 

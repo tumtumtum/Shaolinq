@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using Platform;
+using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -19,7 +20,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return new RedundantFunctionCallRemover().Visit(expression);		
 		}
 
-		private bool IsEmpty(IEnumerable enumerable)
+		private static bool IsEmpty(IEnumerable enumerable)
 		{
 			var enumerator = enumerable.GetEnumerator();
 
@@ -31,7 +32,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return true;
 		}
 
-		private static Dictionary<Type, Func<object, int>> GenericListCountGetters = new Dictionary<Type,Func<object,int>>();
+		private static Dictionary<Type, Func<object, int>> genericListCounters = new Dictionary<Type,Func<object,int>>();
         
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
@@ -76,35 +77,27 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					{
 						// TODO: Use cached dynamic method instead of reflection call
 
-						int count;
-						Func<object, int> getter;
+						Func<object, int> counter = null;
 
-						if (GenericListCountGetters.TryGetValue(value.Type, out getter))
+						if (!genericListCounters.TryGetValue(value.Type, out counter))
 						{
-							count = getter(value.Value);	
+
+							var type = value.Type.WalkHierarchy(true, false).FirstOrDefault(c => c.Name == typeof(ICollection<>).Name);
+
+							if (type != null)
+							{
+								var prop = type.GetProperty("Count");
+
+								var param = Expression.Parameter(typeof(object), "value");
+								Expression body = Expression.Convert(param, value.Type);
+								body = Expression.Property(body, prop);
+								counter = (Func<object, int>) Expression.Lambda(body, param).Compile();
+
+								genericListCounters = new Dictionary<Type, Func<object, int>>(genericListCounters) {[value.Type] = counter};
+							}
 						}
 
-						var newGenericListCountGetters = new Dictionary<Type, Func<object, int>>();
-                        
-						var type = value.Type.WalkHierarchy(true, false).FirstOrDefault(c => c.Name == typeof(ICollection<>).Name);
-
-						var prop = type.GetProperty("Count");
-
-						foreach (var kv in GenericListCountGetters)
-						{
-							newGenericListCountGetters[kv.Key] = kv.Value;
-						}
-
-						var param = Expression.Parameter(typeof(object), "value");
-						Expression body = Expression.Convert(param, value.Type);
-						body = Expression.Property(body, prop);
-						getter = (Func<object, int>)Expression.Lambda(body, param).Compile();
-
-						count = getter(value.Value);
-
-						newGenericListCountGetters[value.Type] = getter;
-
-						GenericListCountGetters = newGenericListCountGetters;
+						var count = counter?.Invoke(value.Value);
 
 						if (count == 0)
 						{
@@ -113,7 +106,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					}
 					else if (typeof(IEnumerable).IsAssignableFrom(value.Type))
 					{
-						if (this.IsEmpty((IEnumerable)value.Value))
+						if (IsEmpty((IEnumerable)value.Value))
 						{
 							return Expression.Constant(false, functionCallExpression.Type);
 						}
@@ -124,55 +117,30 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 			else if (functionCallExpression.Function == SqlFunction.Concat)
 			{
-				var ok = true;
-				List<Expression> arguments = null;
-
-				foreach (var arg in functionCallExpression.Arguments)
-				{
-					var constantExpression = this.Visit(arg) as ConstantExpression;
-
-					if (constantExpression == null)
-					{
-						ok = false;
-
-						break;
-					}
-					else
-					{
-						if (arguments == null)
-						{
-							arguments = new List<Expression>();
-						}
-
-						arguments.Add(constantExpression);
-					}
-				}
-
-				if (ok)
+				var visitedArguments = this.VisitExpressionList(functionCallExpression.Arguments);
+				
+				if (visitedArguments.All(c => c is ConstantExpression))
 				{
 					string result;
+					
 					switch (functionCallExpression.Arguments.Count)
 					{
-						case 2:
-							result = string.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value);
-							break;
-						case 3:
-							result = string.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value);
-							break;
-						case 4:
-							result = string.Concat((string)((ConstantExpression)arguments[0]).Value, (string)((ConstantExpression)arguments[1]).Value, (string)((ConstantExpression)arguments[2]).Value, (string)((ConstantExpression)arguments[3]).Value);
-							break;
-						default:
-							var builder = new StringBuilder();
-							foreach (var arg in functionCallExpression.Arguments)
-							{
-								var constantExpression = (ConstantExpression)arg;
-								var value = (string)constantExpression.Value;
-
-								builder.Append(value);
-							}
-							result = builder.ToString();
-							break;
+					case 2:
+						result = string.Concat((string)((ConstantExpression)visitedArguments[0]).Value, (string)((ConstantExpression)visitedArguments[1]).Value);
+						break;
+					case 3:
+						result = string.Concat((string)((ConstantExpression)visitedArguments[0]).Value, (string)((ConstantExpression)visitedArguments[1]).Value, (string)((ConstantExpression)visitedArguments[2]).Value);
+						break;
+					case 4:
+						result = string.Concat((string)((ConstantExpression)visitedArguments[0]).Value, (string)((ConstantExpression)visitedArguments[1]).Value, (string)((ConstantExpression)visitedArguments[2]).Value, (string)((ConstantExpression)visitedArguments[3]).Value);
+						break;
+					default:
+						result = visitedArguments
+								.Cast<ConstantExpression>()
+								.Select(c => c.Value)
+								.Aggregate(new StringBuilder(), (s, c) => s.Append(c))
+								.ToString();
+						break;
 					}
 
 					return Expression.Constant(result);

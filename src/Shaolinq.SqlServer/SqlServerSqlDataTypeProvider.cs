@@ -22,12 +22,13 @@ namespace Shaolinq.SqlServer
 			this.DefineSqlDataType(typeof(ulong), "NUMERIC(20)", "GetUInt64");
 			this.DefineSqlDataType(typeof(float), "FLOAT(24)", "GetFloat");
 			this.DefineSqlDataType(typeof(double), "FLOAT(53)", "GetDouble");
-
+			
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME2", false));
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME2", true));
 
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal), "DECIMAL(38, 9)"));
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal?), "DECIMAL(38, 9)"));
+			this.DefineSqlDataType(new DefaultBlobSqlDataType(constraintDefaults, "VARBINARY(MAX)"));
 		}
 	}
 }

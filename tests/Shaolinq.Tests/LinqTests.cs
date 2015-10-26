@@ -643,6 +643,40 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public virtual void Test_Enum_Array_Contains()
+		{
+			var list = new []
+			{
+				Sex.Male,
+				Sex.Female
+			};
+
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => list.Contains(c.Sex));
+
+				Assert.That(count, Is.GreaterThan(0));
+			}
+		}
+
+		[Test]
+		public virtual void Test_Enum_Enumerable_Contains()
+		{
+			var list = (IEnumerable<Sex>)new List<Sex>
+			{
+				Sex.Male,
+				Sex.Female
+			};
+
+			using (var scope = new TransactionScope())
+			{
+				var count = this.model.Students.Count(c => list.Contains(c.Sex));
+
+				Assert.That(count, Is.GreaterThan(0));
+			}
+		}
+
 
 		[Test]
 		public virtual void Test_Negate()

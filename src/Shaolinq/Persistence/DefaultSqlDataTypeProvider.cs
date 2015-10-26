@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Platform;
 
 namespace Shaolinq.Persistence
 {
@@ -75,9 +76,8 @@ namespace Shaolinq.Persistence
 				return value;
 			}
 
-			var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+			var underlyingType = type.GetUnwrappedNullableType();
 			
-			// Support nullable enums
 			if (underlyingType.IsEnum)
 			{
 				var sqlDataType = this.GetEnumDataType(type);

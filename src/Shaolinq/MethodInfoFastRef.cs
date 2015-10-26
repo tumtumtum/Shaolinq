@@ -4,12 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Platform;
 
 namespace Shaolinq
 {
 	public static class MethodInfoFastRef
 	{
-		public static readonly MethodInfo EnumerableCountMethod = typeof(Enumerable).GetMethods().Single(c => c.Name == "Count" && c.GetParameters().Length == 1);
+		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => new List<string>().Count());
 		public static readonly MethodInfo EnumerableContainsMethod = typeof(Enumerable).GetMethods().Single(c => c.Name == "Contains" && c.GetParameters().Length == 2);
 		public static readonly MethodInfo QueryableCountMethod = typeof(Queryable).GetMethods().Single(c => c.Name == "Count" && c.GetParameters().Length == 1);
 		public static readonly MethodInfo QueryableWhereMethod = (from method in typeof(Queryable).GetMethods().Where(c => c.Name == "Where") let parameters = method.GetParameters() where parameters.Length == 2 let genericargs = parameters[1].ParameterType.GetGenericArguments() where genericargs.Length == 1 where genericargs[0].GetGenericArguments().Length == 2 select method).Single();

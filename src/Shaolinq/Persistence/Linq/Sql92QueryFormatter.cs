@@ -572,44 +572,20 @@ namespace Shaolinq.Persistence.Linq
 						this.Write (this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
+						this.parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
 						break;
 					case TypeCode.Object:
-						if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type))
-						{
-							this.Write("(");
-							this.WriteDeliminatedListOfItems((IEnumerable)constantExpression.Value, c => this.VisitConstant(Expression.Constant(c)));
-							this.Write(")");
-						}
-						else
-						{
-							this.Write(this.ParameterIndicatorPrefix);
-							this.Write(ParamNamePrefix);
-							this.Write(this.parameterValues.Count);
-
-							var value = constantExpression.Value as Guid?;
-
-							this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
-
-							// TEST TEST
-							//							if (typeof(DataAccessObject).IsAssignableFrom(constantExpression.Type))
-							{
-								//this.parameterValues.Add(new Pair<Type, object>(typeof(string), constantExpression.Value));
-							}
-//							else
-							{
-								//this.parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(value));
-							}
-						}
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(ParamNamePrefix);
+						this.Write(this.parameterValues.Count);
+						this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
 						break;
 					default:
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-
 						this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
-						//this.parameterValues.Add(this.sqlDataTypeProvider.GetSqlDataType(constantExpression.Type).ConvertForSql(constantExpression.Value));
-						
+					
 						break;
 				}
 			}

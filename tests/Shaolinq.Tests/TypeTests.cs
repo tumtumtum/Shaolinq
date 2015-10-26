@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
@@ -76,7 +77,8 @@ namespace Shaolinq.Tests
 				Truncate(this.MinDatetime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.MinValue ,
 				Sex.Male,
-				null);
+				null,
+				Encoding.UTF8.GetBytes("Hi Kitty Kat 😻😻😻"));
 		}
 
 		[Test]
@@ -106,7 +108,8 @@ namespace Shaolinq.Tests
 				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromDays(1) + TimeSpan.FromSeconds(1),
 				Sex.Female,
-				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)));
+				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)),
+				Encoding.UTF8.GetBytes("Hi Kitty Kat 😻😻😻"));
 		}
 
 		[Test]
@@ -128,7 +131,8 @@ namespace Shaolinq.Tests
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromHours(24),
 				Sex.Female,
-				null);
+				null,
+				Encoding.UTF8.GetBytes("Hi Kitty Kat 😻😻😻"));
 		}
 
 		[Test]
@@ -157,7 +161,8 @@ namespace Shaolinq.Tests
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromMilliseconds(1),
 				Sex.Female,
-				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)));
+				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
+				Encoding.UTF8.GetBytes("\0x0\0x0\0x1"));
 		}
 
 		private void ExecuteTest(
@@ -176,7 +181,8 @@ namespace Shaolinq.Tests
 			DateTime dateTime,
 			TimeSpan timeSpan,
 			Sex @enum,
-			DateTime? nullableDateTime
+			DateTime? nullableDateTime,
+			byte[] byteArray
 		)
 		{
 			long dbId;
@@ -201,7 +207,7 @@ namespace Shaolinq.Tests
 				subject.TimeSpan = timeSpan;
 				subject.Enum = @enum;
 				subject.NullableDateTime = nullableDateTime;
-				//subject.ByteArray = byteArray;
+				subject.ByteArray = byteArray;
 
 				scope.Flush(this.model);
 
@@ -259,13 +265,14 @@ namespace Shaolinq.Tests
 				Assert.That(Abs(dbObj.TimeSpan - timeSpan), Is.LessThan(this.timespanEpsilon));
 				Assert.That(dbObj.Enum, Is.EqualTo(@enum));
 				AssertNullable(dbObj.NullableDateTime, nullableDateTime, this.AssertDateTime);
-				// Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
+				Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
 			}
 		}
 
 		private static void AssertNullable<T>(T? nullable1, T? nullable2, Action<T, T> assertUnderlying) where T : struct
 		{
 			Assert.That(nullable1.HasValue, Is.EqualTo(nullable2.HasValue));
+
 			if (nullable1.HasValue && nullable2.HasValue)
 			{
 				assertUnderlying(nullable1.Value, nullable2.Value);
