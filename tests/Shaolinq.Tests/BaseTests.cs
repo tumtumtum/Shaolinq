@@ -100,11 +100,11 @@ namespace Shaolinq.Tests
             private set;
         }
 
-        private readonly DataAccessModelConfiguration configuration;
-
         public BaseTests(string providerName)
         {
-            this.ProviderName = providerName;
+	        DataAccessModelConfiguration configuration;
+
+	        this.ProviderName = providerName;
 
             XmlConfigurator.Configure();
 
@@ -116,8 +116,8 @@ namespace Shaolinq.Tests
                 }
                 else
                 {
-	                this.configuration = this.Create(providerName, this.GetType().Name);
-	                this.model = DataAccessModel.BuildDataAccessModel<T>(this.configuration);
+	                configuration = this.Create(providerName, this.GetType().Name);
+	                this.model = DataAccessModel.BuildDataAccessModel<T>(configuration);
                 }
 
 	            this.model.Create(DatabaseCreationOptions.DeleteExistingDatabase);

@@ -6,16 +6,15 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.Linq;
 using System.Text.RegularExpressions;
-using log4net;
+using Shaolinq.Logging;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Sqlite
 {
 	public class SqliteOfficialsSqlDatabaseContext
 		: SqliteSqlDatabaseContext
 	{
-		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
+		public static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 		private static readonly Regex SqliteUriRegex = new Regex(@"file:(?<path>(:memory:)|([^\?]*))(?<query>\?.*)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		public static string ConvertNewStyleUriToOldStyleUri(string uri, out bool isInMemory)

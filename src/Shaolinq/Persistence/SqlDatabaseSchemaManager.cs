@@ -3,7 +3,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Transactions;
-using log4net;
+using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
@@ -11,10 +11,11 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseSchemaManager
 		: IDisposable
 	{
-		public SqlDatabaseContext SqlDatabaseContext { get; }
-		public ServerSqlDataDefinitionExpressionBuilder ServerSqlDataDefinitionExpressionBuilder { get; } 
-		private static readonly ILog Log = LogManager.GetLogger(typeof(SqlDatabaseSchemaManager).Name);
+		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
+		public SqlDatabaseContext SqlDatabaseContext { get; }
+		public ServerSqlDataDefinitionExpressionBuilder ServerSqlDataDefinitionExpressionBuilder { get; }
+		
 		protected SqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
 		{
 			this.SqlDatabaseContext = sqlDatabaseContext;
@@ -59,10 +60,7 @@ namespace Shaolinq.Persistence
 						{
 							command.CommandText = result.CommandText;
 
-							if (Log.IsDebugEnabled)
-							{
-								Log.Debug(command.CommandText);
-							}
+							Logger.Debug(command.CommandText);
 
 							command.ExecuteNonQuery();
 						}

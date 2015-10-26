@@ -8,9 +8,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Transactions;
-using log4net;
 using Platform;
 using Platform.Collections;
+using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
@@ -20,8 +20,9 @@ namespace Shaolinq.Persistence
 	public class DefaultSqlTransactionalCommandsContext
 		: SqlTransactionalCommandsContext
 	{
+		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+
 		protected int disposed = 0;
-		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
 
 		protected internal struct SqlCommandValue
 		{
@@ -174,11 +175,8 @@ namespace Shaolinq.Persistence
             
 			command.CommandText = sql;
 
-			if (Logger.IsDebugEnabled)
-			{
-				Logger.Debug(this.FormatCommand(command));
-			}
-
+			Logger.Debug(() => this.FormatCommand(command));
+			
 			try
 			{
 				return command.ExecuteReader();
@@ -211,10 +209,7 @@ namespace Shaolinq.Persistence
 				command.Parameters.Add(parameter.Right);
 			}
 			
-			if (Logger.IsDebugEnabled)
-			{
-				Logger.Debug(this.FormatCommand(command));
-			}
+			Logger.Debug(() => this.FormatCommand(command));
 
 			try
 			{
@@ -258,10 +253,7 @@ namespace Shaolinq.Persistence
 					continue;
 				}
 
-				if (Logger.IsDebugEnabled)
-				{
-					Logger.Debug(this.FormatCommand(command));
-				}
+				Logger.Debug(() => this.FormatCommand(command));
 
 				int result;
 
@@ -323,10 +315,7 @@ namespace Shaolinq.Persistence
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 					var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject);
 
-					if (Logger.IsDebugEnabled)
-					{
-						Logger.Debug(this.FormatCommand(command));
-					}
+					Logger.Debug(() => this.FormatCommand(command));
 					
 					try
 					{
@@ -639,10 +628,7 @@ namespace Shaolinq.Persistence
 					this.AddParameter(command, value.Left, value.Right);
 				}
 
-				if (Logger.IsDebugEnabled)
-				{
-					Logger.Debug(this.FormatCommand(command));
-				}
+				Logger.Debug(() => this.FormatCommand(command));
 
 				try
 				{

@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using log4net;
 using Platform;
+using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 
@@ -14,6 +14,8 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
+		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+
 		internal protected struct PrivateExecuteResult<T>
 		{	
 			public IEnumerable<T> results;
@@ -88,8 +90,6 @@ namespace Shaolinq.Persistence.Linq
 				return obj.hashCode;
 			}
 		}
-
-		public static readonly ILog Logger = LogManager.GetLogger(typeof(Sql92QueryFormatter));
 
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }

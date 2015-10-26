@@ -2,14 +2,14 @@
 
 using System;
 using System.Transactions;
-using log4net;
 using Platform;
+using Shaolinq.Logging;
 
 namespace Shaolinq
 {
     public static class TransactionScopeFactory
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(TransactionScopeFactory).Name);
+	    private static readonly ILog Log = LogProvider.GetLogger(typeof(TransactionScopeFactory));
 
         public static TransactionScope CreateReadCommitted(
             TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
@@ -122,11 +122,9 @@ namespace Shaolinq
                     TimeSpan.MaxValue,
                     ex =>
                     {
-                        if (ex is TransactionAbortedException &&
-                            ex.InnerException is ConcurrencyException)
+                        if (ex is TransactionAbortedException && ex.InnerException is ConcurrencyException)
                         {
-                            var msg = string.Format("Transaction concurrency fault occured. Attempt: {0}/{1}", attempt, maxRetries);
-                            Log.Warn(msg, ex);
+							Log.InfoException($"Transaction concurrency fault occured. Attempt: {attempt}/{maxRetries}", ex);
 
                             if (attempt < maxRetries)
                             {
@@ -170,11 +168,9 @@ namespace Shaolinq
                 TimeSpan.MaxValue,
                 ex =>
                 {
-                    if (ex is TransactionAbortedException &&
-                        ex.InnerException is ConcurrencyException)
+                    if (ex is TransactionAbortedException && ex.InnerException is ConcurrencyException)
                     {
-                        var msg = string.Format("Transaction concurrency fault occured. Attempt: {0}/{1}", attempt, maxRetries);
-                        Log.Warn(msg, ex);
+                        Log.WarnException($"Transaction concurrency fault occured. Attempt: {attempt}/{maxRetries}", ex);
 
                         if (attempt < maxRetries)
                         {
