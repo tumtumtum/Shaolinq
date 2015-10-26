@@ -156,7 +156,19 @@ namespace Shaolinq.Persistence.Linq
 		{
 			const string columnName = "CONTAINS";
 
-			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, this.Visit(item), this.Visit(list));
+			var visitedList = this.Visit(list);
+			var visitedListAsConstant = visitedList as SqlConstantPlaceholderExpression;
+
+			if (visitedListAsConstant != null && 
+				(typeof(IList<>).IsAssignableFromIgnoreGenericParameters(visitedListAsConstant.ConstantExpression.Type)
+				|| typeof(ICollection<>).IsAssignableFromIgnoreGenericParameters(visitedListAsConstant.ConstantExpression.Type)
+				|| typeof(IEnumerable).IsAssignableFrom(visitedListAsConstant.ConstantExpression.Type)
+				|| typeof(IEnumerable<>).IsAssignableFromIgnoreGenericParameters(visitedListAsConstant.ConstantExpression.Type)))
+			{
+				visitedList = new SqlConstantPlaceholderExpression(visitedListAsConstant.Index, Expression.Constant(new SqlValuesEnumerable((IEnumerable)visitedListAsConstant.ConstantExpression.Value)));
+			}
+			
+			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.In, this.Visit(item), visitedList);
 
 			if (this.selectorPredicateStack.Count > 0)
 			{
@@ -754,12 +766,12 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			Expression result;
-
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
             {
+	            Expression result;
+
 	            switch (methodCallExpression.Method.Name)
 	            {
 	            case "Where":

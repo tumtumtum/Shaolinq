@@ -568,25 +568,34 @@ namespace Shaolinq.Persistence.Linq
 
 				switch (Type.GetTypeCode(type))
 				{
-					case TypeCode.Boolean:
-						this.Write (this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
-						break;
-					case TypeCode.Object:
+				case TypeCode.Boolean:
+					this.Write (this.ParameterIndicatorPrefix);
+					this.Write(ParamNamePrefix);
+					this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new Pair<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
+					break;
+				case TypeCode.Object:
+
+					if (typeof(SqlValuesEnumerable).IsAssignableFrom(type))
+					{
+						this.Write("(");
+						this.WriteDeliminatedListOfItems((IEnumerable)constantExpression.Value, c => this.VisitConstant(Expression.Constant(c)));
+						this.Write(")");
+					}
+					else
+					{
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
 						this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
-						break;
-					default:
-						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
-					
-						break;
+					}
+					break;
+				default:
+					this.Write(this.ParameterIndicatorPrefix);
+					this.Write(ParamNamePrefix);
+					this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new Pair<Type, object>(constantExpression.Type, constantExpression.Value));
+					break;
 				}
 			}
 

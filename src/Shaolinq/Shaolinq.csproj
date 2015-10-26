@@ -173,6 +173,7 @@
     <Compile Include="Persistence\Linq\PropertyPath.cs" />
     <Compile Include="Persistence\Linq\PropertyPathEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />
+    <Compile Include="Persistence\SqlValuesCollection.cs" />
     <Compile Include="Persistence\ServerSqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />
     <Compile Include="Persistence\ColumnInfo.cs" />
