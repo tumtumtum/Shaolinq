@@ -96,12 +96,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Platform, Version=1.1.0.216, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.1.0.216\lib\net40\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.1.0.220, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.1.0.220\lib\net40\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.214, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.214\lib\net40\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.220, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.220\lib\net40\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -149,6 +149,7 @@
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
+    <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />
     <Compile Include="Persistence\Linq\ExpressionExtensions.cs" />
@@ -171,6 +172,8 @@
     <Compile Include="Persistence\Linq\PropertyPath.cs" />
     <Compile Include="Persistence\Linq\PropertyPathEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionBuilderFlags.cs" />
+    <Compile Include="TypeBuilding\MethodInfoFastRef.cs" />
+    <Compile Include="TypeBuilding\PropertyInfoFastRef.cs" />
     <Compile Include="Persistence\SqlValuesCollection.cs" />
     <Compile Include="Persistence\ServerSqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\SqlDatabaseSchemaManager.cs" />
@@ -219,7 +222,6 @@
     <Compile Include="TypeBuilding\ConstructorInfoFastRef.cs" />
     <Compile Include="DataAccessException.cs" />
     <Compile Include="DataAccessObjectsQueryableExtensions.cs" />
-    <Compile Include="FieldInfoFastRef.cs" />
     <Compile Include="DatabaseReadMode.cs" />
     <Compile Include="DataAccessModelAttribute.cs" />
     <Compile Include="DataAccessObjects.cs" />
@@ -272,7 +274,6 @@
     <Compile Include="Persistence\Linq\RelatedDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\SelectFirstType.cs" />
     <Compile Include="Persistence\Linq\SqlJoinType.cs" />
-    <Compile Include="MethodInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\Optimizers\FunctionCoalescer.cs" />
     <Compile Include="Persistence\DefaultStringEnumSqlDataType.cs" />
     <Compile Include="Persistence\DefaultStringSqlDataType.cs" />
@@ -282,7 +283,6 @@
     <Compile Include="Persistence\SqlDialect.cs" />
     <Compile Include="PrimeNumbers.cs" />
     <Compile Include="ObjectPropertyValue.cs" />
-    <Compile Include="PropertyInfoFastRef.cs" />
     <Compile Include="QueryableExtensions.cs" />
     <Compile Include="BackReferenceAttribute.cs" />
     <Compile Include="ReferencedObjectPrimaryKeyPropertyAttribute.cs" />

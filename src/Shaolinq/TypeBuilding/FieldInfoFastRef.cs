@@ -2,11 +2,12 @@
 
 using System;
 using System.Reflection;
+using Platform;
 
-namespace Shaolinq
+namespace Shaolinq.TypeBuilding
 {
 	public class FieldInfoFastRef
 	{
-		public static readonly FieldInfo GuidEmptyGuid = typeof(Guid).GetField("Empty", BindingFlags.Public | BindingFlags.Static);
+		public static readonly FieldInfo GuidEmptyGuid = TypeUtils.GetField(() => Guid.Empty);
 	}
 }

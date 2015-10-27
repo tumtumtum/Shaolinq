@@ -2,6 +2,7 @@
 
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {

@@ -6,6 +6,7 @@ using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Postgres
 {

@@ -10,6 +10,7 @@ using Platform;
 using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {

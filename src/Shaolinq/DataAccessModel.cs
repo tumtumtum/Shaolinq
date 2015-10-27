@@ -683,7 +683,7 @@ namespace Shaolinq
 			if (!this.inflateFuncsByType.TryGetValue(definitionType, out func))
 			{
 				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");
-				var methodInfo = MethodInfoFastRef.BaseDataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
+				var methodInfo = MethodInfoFastRef.DataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
 				var body = Expression.Call(Expression.Constant(this), methodInfo, Expression.Convert(parameter, definitionType));
 
 				var lambda = Expression.Lambda<Func<DataAccessObject, DataAccessObject>>(body, parameter);

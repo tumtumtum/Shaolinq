@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
