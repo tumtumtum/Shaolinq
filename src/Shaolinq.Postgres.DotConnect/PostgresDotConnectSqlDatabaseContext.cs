@@ -42,7 +42,7 @@ namespace Shaolinq.Postgres.DotConnect
 				this.UserId = contextInfo.UserId;
 				this.Password = contextInfo.Password;
 				this.Port = contextInfo.Port;
-				this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
+				this.CommandTimeout = contextInfo.CommandTimeout == null ? null : (TimeSpan?)TimeSpan.FromSeconds(contextInfo.CommandTimeout.Value);
 
 				var connectionStringBuilder = new PgSqlConnectionStringBuilder
 				{
@@ -52,13 +52,21 @@ namespace Shaolinq.Postgres.DotConnect
 					Port = contextInfo.Port,
 					Pooling = contextInfo.Pooling,
 					Enlist = false,
-					ConnectionTimeout = contextInfo.ConnectionTimeout,
 					Charset = "UTF8",
 					Unicode = true,
 					MaxPoolSize = contextInfo.MaxPoolSize,
-					DefaultCommandTimeout = contextInfo.CommandTimeout,
 					UnpreparedExecute = contextInfo.UnpreparedExecute
 				};
+
+				if (contextInfo.CommandTimeout != null)
+				{
+					connectionStringBuilder.DefaultCommandTimeout = contextInfo.CommandTimeout.Value;
+				}
+
+				if (contextInfo.ConnectionTimeout != null)
+				{
+					connectionStringBuilder.ConnectionTimeout = contextInfo.ConnectionTimeout.Value;
+				}
 
 				this.ServerConnectionString = connectionStringBuilder.ConnectionString;
 				connectionStringBuilder.Database = contextInfo.DatabaseName;

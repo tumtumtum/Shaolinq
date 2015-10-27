@@ -13,7 +13,7 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseContext
 		: IDisposable
 	{
-		public TimeSpan CommandTimeout { get; protected set; }
+		public TimeSpan? CommandTimeout { get; protected set; }
 
 		protected DbProviderFactory dbProviderFactory;
 		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(PrimeNumbers.Prime131, SqlQueryProvider.ProjectorCacheEqualityComparer.Default);
@@ -74,7 +74,7 @@ namespace Shaolinq.Persistence
 		{
 			this.DatabaseName = databaseName;
 			this.DataAccessModel = model; 
-			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
+			this.CommandTimeout = contextInfo.CommandTimeout == null ? null : (TimeSpan?)TimeSpan.FromSeconds(contextInfo.CommandTimeout.Value);
 			var categories = contextInfo.Categories ?? "";
 			this.ContextCategories = categories.Trim().Length == 0 ? new string[0] : categories.Split(',').Select(c => c.Trim()).ToArray();
 			this.SqlDialect = sqlDialect;

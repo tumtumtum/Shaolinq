@@ -665,6 +665,11 @@ namespace Shaolinq
 			this.GetCurrentDataContext(true).Commit(transactionContext, true);
 		}
 
+		public virtual void FlushAsync()
+		{
+			throw new NotImplementedException();
+		}
+
 		protected internal IPersistenceQueryProvider NewQueryProvider()
 		{
 			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider();

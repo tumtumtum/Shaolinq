@@ -14,10 +14,10 @@ namespace Shaolinq.Persistence
 		public string Categories { get; set; }
 
 		[XmlAttribute]
-		public int CommandTimeout { get; set; }
+		public int? CommandTimeout { get; set; }
 
 		[XmlAttribute]
-		public int ConnectionTimeout { get; set; }
+		public int? ConnectionTimeout { get; set; }
 
 		[XmlAttribute]
 		public string TableNamePrefix { get; set; }
@@ -30,8 +30,6 @@ namespace Shaolinq.Persistence
 
 		protected SqlDatabaseContextInfo()
 		{
-			this.CommandTimeout = DefaultCommandTimeout;
-			this.ConnectionTimeout = DefaultConnectionTimeout;
 			this.SchemaName = ""; 
 			this.TableNamePrefix = "";
 			this.Categories = "";

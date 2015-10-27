@@ -82,7 +82,11 @@ namespace Shaolinq
 			var retval = this.DbConnection.CreateCommand();
 
 			retval.Transaction = this.dbTransaction;
-			retval.CommandTimeout = (int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds;
+
+			if (this.SqlDatabaseContext.CommandTimeout != null)
+			{
+				retval.CommandTimeout = (int)this.SqlDatabaseContext.CommandTimeout.Value.TotalMilliseconds;
+			}
 
 			return retval;
 		}

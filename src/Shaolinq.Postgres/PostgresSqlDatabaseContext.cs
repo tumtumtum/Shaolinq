@@ -35,10 +35,37 @@ namespace Shaolinq.Postgres
 			this.UserId = contextInfo.UserId;
 			this.Password = contextInfo.Password;
 			this.Port = contextInfo.Port;
-			this.CommandTimeout = TimeSpan.FromSeconds(contextInfo.CommandTimeout);
+			this.CommandTimeout = contextInfo.CommandTimeout == null ? null : (TimeSpan?)TimeSpan.FromSeconds(contextInfo.CommandTimeout.Value);
 
-			this.ConnectionString = String.Format("Host={0};User Id={1};Password={2};Database={3};Port={4};Pooling={5};MinPoolSize={6};MaxPoolSize={7};Enlist=false;Timeout={8};CommandTimeout={9}", contextInfo.ServerName, contextInfo.UserId, contextInfo.Password, contextInfo.DatabaseName, contextInfo.Port, contextInfo.Pooling, contextInfo.MinPoolSize, contextInfo.MaxPoolSize, contextInfo.ConnectionTimeout, contextInfo.CommandTimeout);
-			this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;]+[;$]", "Database=postgres;");
+			var connectionStringBuilder = new NpgsqlConnectionStringBuilder
+			{
+				Host = contextInfo.ServerName,
+				Username = contextInfo.UserId,
+				Password = contextInfo.Password,
+				Port = contextInfo.Port,
+				Pooling = contextInfo.Pooling,
+				Enlist = false,
+				MinPoolSize = contextInfo.MinPoolSize,
+				MaxPoolSize = contextInfo.MaxPoolSize
+			};
+
+			if (contextInfo.ConnectionTimeout.HasValue)
+			{
+				connectionStringBuilder.Timeout = contextInfo.ConnectionTimeout.Value;
+			}
+			
+			if (contextInfo.CommandTimeout.HasValue)
+			{
+				contextInfo.CommandTimeout = contextInfo.CommandTimeout.Value;
+			}
+
+			connectionStringBuilder.Database = contextInfo.DatabaseName;
+
+			this.ConnectionString = connectionStringBuilder.ToString();
+
+			connectionStringBuilder.Database = "postgres";
+
+			this.ServerConnectionString = connectionStringBuilder.ToString();
 
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
 		}

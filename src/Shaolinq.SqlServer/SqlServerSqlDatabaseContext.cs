@@ -99,8 +99,12 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.Enlist = false;
 				connectionStringBuilder.DataSource = dataSource;
 				connectionStringBuilder.InitialCatalog = this.DatabaseName;
-				connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout;
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
+
+				if (contextInfo.ConnectionTimeout != null)
+				{
+					connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout.Value;
+				}
 
 				this.ConnectionString = connectionStringBuilder.ConnectionString;
 				connectionStringBuilder.InitialCatalog = "master";

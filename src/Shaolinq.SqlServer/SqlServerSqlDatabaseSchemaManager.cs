@@ -31,7 +31,7 @@ namespace Shaolinq.SqlServer
 				{
 					using (var command = (SqlCommand) connection.CreateCommand())
 					{
-						command.CommandTimeout = Math.Min((int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds, 300);
+						command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? SqlDatabaseContextInfo.DefaultCommandTimeout), 300);
 						command.CommandText =
 						@"
 							WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLE_CONSTRAINTS where CONSTRAINT_TYPE='FOREIGN KEY'))
@@ -48,7 +48,7 @@ namespace Shaolinq.SqlServer
 
 					using (var command = (SqlCommand)connection.CreateCommand())
 					{
-						command.CommandTimeout = Math.Min((int)this.SqlDatabaseContext.CommandTimeout.TotalSeconds, 300);
+						command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? 300), 300);
 						command.CommandText =
 						@"
 							WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'))
