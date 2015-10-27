@@ -31,7 +31,7 @@ namespace Shaolinq.Postgres
 				Pooling = poolConnections,
 				UserId = userId,
 				Password = password,
-				CommandTimeout = commandTimeout,
+				ConnectionCommandTimeout = commandTimeout,
 				ConnectionTimeout = connectionTimeout
 			});
 		}

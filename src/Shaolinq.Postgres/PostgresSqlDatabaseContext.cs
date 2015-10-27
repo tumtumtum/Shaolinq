@@ -35,8 +35,7 @@ namespace Shaolinq.Postgres
 			this.UserId = contextInfo.UserId;
 			this.Password = contextInfo.Password;
 			this.Port = contextInfo.Port;
-			this.CommandTimeout = contextInfo.CommandTimeout == null ? null : (TimeSpan?)TimeSpan.FromSeconds(contextInfo.CommandTimeout.Value);
-
+			
 			var connectionStringBuilder = new NpgsqlConnectionStringBuilder
 			{
 				Host = contextInfo.ServerName,
@@ -54,9 +53,9 @@ namespace Shaolinq.Postgres
 				connectionStringBuilder.Timeout = contextInfo.ConnectionTimeout.Value;
 			}
 			
-			if (contextInfo.CommandTimeout.HasValue)
+			if (contextInfo.ConnectionCommandTimeout.HasValue)
 			{
-				contextInfo.CommandTimeout = contextInfo.CommandTimeout.Value;
+				contextInfo.ConnectionCommandTimeout = contextInfo.ConnectionCommandTimeout.Value;
 			}
 
 			connectionStringBuilder.Database = contextInfo.DatabaseName;

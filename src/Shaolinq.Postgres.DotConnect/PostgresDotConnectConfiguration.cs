@@ -29,7 +29,7 @@ namespace Shaolinq.Postgres.DotConnect
 				Password = password,
 				Pooling = poolConnections,
 				UnpreparedExecute = unpreparedExecute,
-				CommandTimeout = commandTimeout,
+				ConnectionCommandTimeout = commandTimeout,
 				ConnectionTimeout = connectionTimeout
 			});
 		}

@@ -1349,7 +1349,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var mall = model.Malls.Single();
+				var mall = model.Malls.First();
 
 				model.Shops.Where(c => c.Mall == mall).ToList();
 			}

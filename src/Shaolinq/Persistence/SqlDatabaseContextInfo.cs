@@ -14,8 +14,11 @@ namespace Shaolinq.Persistence
 		public string Categories { get; set; }
 
 		[XmlAttribute]
-		public int? CommandTimeout { get; set; }
+		public int? ConnectionCommandTimeout { get; set; }
 
+		[XmlAttribute]
+		public int? CommandTimeout { get; set; }
+		
 		[XmlAttribute]
 		public int? ConnectionTimeout { get; set; }
 

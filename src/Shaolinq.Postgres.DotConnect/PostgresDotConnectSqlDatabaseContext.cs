@@ -42,8 +42,7 @@ namespace Shaolinq.Postgres.DotConnect
 				this.UserId = contextInfo.UserId;
 				this.Password = contextInfo.Password;
 				this.Port = contextInfo.Port;
-				this.CommandTimeout = contextInfo.CommandTimeout == null ? null : (TimeSpan?)TimeSpan.FromSeconds(contextInfo.CommandTimeout.Value);
-
+				
 				var connectionStringBuilder = new PgSqlConnectionStringBuilder
 				{
 					Host = contextInfo.ServerName,
@@ -58,9 +57,9 @@ namespace Shaolinq.Postgres.DotConnect
 					UnpreparedExecute = contextInfo.UnpreparedExecute
 				};
 
-				if (contextInfo.CommandTimeout != null)
+				if (contextInfo.ConnectionCommandTimeout != null)
 				{
-					connectionStringBuilder.DefaultCommandTimeout = contextInfo.CommandTimeout.Value;
+					connectionStringBuilder.DefaultCommandTimeout = contextInfo.ConnectionCommandTimeout.Value;
 				}
 
 				if (contextInfo.ConnectionTimeout != null)
