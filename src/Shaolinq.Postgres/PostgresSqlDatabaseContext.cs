@@ -56,7 +56,7 @@ namespace Shaolinq.Postgres
 			
 			if (contextInfo.ConnectionCommandTimeout.HasValue)
 			{
-				contextInfo.ConnectionCommandTimeout = contextInfo.ConnectionCommandTimeout.Value;
+				connectionStringBuilder.CommandTimeout = contextInfo.ConnectionCommandTimeout.Value;
 			}
 
 			connectionStringBuilder.Database = contextInfo.DatabaseName;

@@ -57,14 +57,14 @@ namespace Shaolinq.Postgres.DotConnect
 					UnpreparedExecute = contextInfo.UnpreparedExecute
 				};
 
-				if (contextInfo.ConnectionCommandTimeout != null)
-				{
-					connectionStringBuilder.DefaultCommandTimeout = contextInfo.ConnectionCommandTimeout.Value;
-				}
-
 				if (contextInfo.ConnectionTimeout != null)
 				{
 					connectionStringBuilder.ConnectionTimeout = contextInfo.ConnectionTimeout.Value;
+				}
+
+				if (contextInfo.ConnectionCommandTimeout != null)
+				{
+					connectionStringBuilder.DefaultCommandTimeout = contextInfo.ConnectionCommandTimeout.Value;
 				}
 
 				this.ServerConnectionString = connectionStringBuilder.ConnectionString;
