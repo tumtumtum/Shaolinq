@@ -1345,6 +1345,17 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_NP1_Query()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var mall = model.Malls.Single();
+
+				model.Shops.Where(c => c.Mall == mall).ToList();
+			}
+		}
+
+		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects2()
 		{
 			using (var scope = new TransactionScope())

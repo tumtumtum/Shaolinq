@@ -12,8 +12,8 @@ namespace Shaolinq
 		: ISinglePhaseNotification, IDisposable
 	{
 		public Transaction Transaction { get; }
-		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
 		public DataAccessModel DataAccessModel { get; }
+		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
 		private readonly IDictionary<SqlDatabaseContext, TransactionEntry> persistenceTransactionContextsBySqlDatabaseContexts;
 
 		public DataAccessObjectDataContext CurrentDataContext
@@ -174,9 +174,14 @@ namespace Shaolinq
 			}
 			finally
 			{
-				enlistment.Done();
-
-				this.Dispose();
+				try
+				{
+					enlistment.Done();
+				}
+				finally
+				{
+					this.Dispose();
+				}
 			}
 		}
 
@@ -252,16 +257,25 @@ namespace Shaolinq
 
 				this.Dispose();
 			}
+			finally
+			{
+				this.Dispose();
+			}
 		}
 
 		public virtual void Rollback(Enlistment enlistment)
 		{
-			foreach (var persistenceTransactionContext in this.persistenceTransactionContextsBySqlDatabaseContexts.Values)
+			try
 			{
-				persistenceTransactionContext.sqlDatabaseCommandsContext.Rollback();
+				foreach (var persistenceTransactionContext in this.persistenceTransactionContextsBySqlDatabaseContexts.Values)
+				{
+					persistenceTransactionContext.sqlDatabaseCommandsContext.Rollback();
+				}
 			}
-
-			this.Dispose();
+			finally
+			{
+				this.Dispose();
+			}
 
 			enlistment.Done();
 		}
