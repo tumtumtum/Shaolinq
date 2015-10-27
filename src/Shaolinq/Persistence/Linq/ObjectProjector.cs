@@ -48,7 +48,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				var column = c as SqlColumnExpression;
-
+				
 				if (column != null && column.SelectAlias.StartsWith(expectedSelector))
 				{
 					var sqlDataTypeProvider = this.SqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);

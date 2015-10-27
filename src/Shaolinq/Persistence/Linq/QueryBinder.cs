@@ -534,17 +534,29 @@ namespace Shaolinq.Persistence.Linq
 			this.AddExpressionByParameter(collectionSelector.Parameters[0], projection.Projector);
 			var selector = Evaluator.PartialEval(collectionSelector.Body);
 			var collectionProjection = (SqlProjectionExpression)this.Visit(selector);
-			
-			if (IsTable(selector.Type))
+
+			bool didStrip;
+			Expression joinCondition = null;
+
+			if (IsTable(selector.StripDefaultIfEmptyCalls(out didStrip).Type))
 			{
-				joinType = SqlJoinType.CrossJoin;
+				if (didStrip)
+				{
+					joinType = SqlJoinType.LeftJoin;
+
+					joinCondition = Expression.Constant(true);
+				}
+				else
+				{
+					joinType = SqlJoinType.CrossJoin;
+				}
 			}
 			else
 			{
-				throw new NotSupportedException();
+				throw new InvalidOperationException();
 			}
 
-			var join = new SqlJoinExpression(resultType, joinType, projection.Select, collectionProjection.Select, null);
+			var join = new SqlJoinExpression(resultType, joinType, projection.Select, collectionProjection.Select, joinCondition);
 
 			var alias = this.GetNextAlias();
             
@@ -741,7 +753,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);
 			this.AddExpressionByParameter(resultSelector.Parameters[1], group);
-			;
+			
 			var resultExpr = this.Visit(resultSelector.Body);
 
 			var alias = this.GetNextAlias();
@@ -1609,7 +1621,10 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var genericType = type.GetGenericTypeDefinition();
 
-				return genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType;
+				if (genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType)
+				{
+					return true;
+				}
 			}
 
 			return false;
