@@ -531,8 +531,7 @@ namespace Shaolinq.Persistence.Linq
 			ProjectedColumns projectedColumns; 
 			var projection = (SqlProjectionExpression)this.VisitSequence(source);
 			this.AddExpressionByParameter(collectionSelector.Parameters[0], projection.Projector);
-			//var collection = Evaluator.PartialEval(collectionSelector.Body);
-
+			
 			Expression collection;
 			var defaultIfEmpty = false;
 			

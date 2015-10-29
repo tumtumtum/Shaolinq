@@ -120,6 +120,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected object Visit(NewExpression expression)
 		{
+			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+
+			if (expression.Constructor == null)
+			{
+				return Activator.CreateInstance(expression.Type);
+			}
+
 			var args = new object[expression.Arguments.Count];
 			
 			var i = 0;

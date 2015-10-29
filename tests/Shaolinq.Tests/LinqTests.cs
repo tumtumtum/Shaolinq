@@ -479,7 +479,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Ignore("GroupJoins not supported yet")]
+		//[Ignore("GroupJoins not supported yet")]
 		public virtual void Test_Left_Outer_Join1()
 		{
 			using (var scope = new TransactionScope())
