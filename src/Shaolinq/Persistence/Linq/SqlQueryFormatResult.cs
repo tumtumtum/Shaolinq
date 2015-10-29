@@ -10,14 +10,14 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryFormatResult
 	{
 		public string CommandText { get; }
-		public IReadOnlyList<Pair<Type, object>> ParameterValues { get; }
+		public IReadOnlyList<Tuple<Type, object>> ParameterValues { get; }
 		
-		public SqlQueryFormatResult(string commandText, IEnumerable<Pair<Type, object>> parameterValues)
+		public SqlQueryFormatResult(string commandText, IEnumerable<Tuple<Type, object>> parameterValues)
 			: this(commandText, parameterValues.ToReadOnlyList())
 		{	
 		}
 
-        public SqlQueryFormatResult(string commandText, IReadOnlyList<Pair<Type, object>> parameterValues)
+        public SqlQueryFormatResult(string commandText, IReadOnlyList<Tuple<Type, object>> parameterValues)
 		{
 			this.CommandText = commandText;
 			this.ParameterValues = parameterValues;

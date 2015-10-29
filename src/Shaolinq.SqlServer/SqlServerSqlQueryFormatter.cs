@@ -108,7 +108,7 @@ namespace Shaolinq.SqlServer
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Pair<Type, object>(typeof(string), "true"));
+						this.parameterValues.Add(new Tuple<Type, object>(typeof(string), "true"));
 
 						return constantExpression;
 					}
@@ -117,7 +117,7 @@ namespace Shaolinq.SqlServer
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Pair<Type, object>(typeof(string), "false"));
+						this.parameterValues.Add(new Tuple<Type, object>(typeof(string), "false"));
 
 						return constantExpression;
 					}
@@ -129,9 +129,9 @@ namespace Shaolinq.SqlServer
 		protected override Expression PreProcess(Expression expression)
 		{
 			expression = SqlServerSubqueryOrderByFixer.Fix(expression);
-			expression = SqlServerLimitAmmender.Ammend(expression);
+			expression = SqlServerLimitAmender.Amend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
-			expression = SqlServerDateTimeFunctionsAmmender.Ammend(expression);
+			expression = SqlServerDateTimeFunctionsAmender.Amend(expression);
 
 			return base.PreProcess(expression);
 		}

@@ -23,15 +23,15 @@ namespace Shaolinq.Persistence
 		/// </summary>
 		/// <param name="value">The value</param>
 		/// <returns>The converted value</returns>
-		public virtual Pair<Type, object> ConvertForSql(object value)
+		public virtual Tuple<Type, object> ConvertForSql(object value)
 		{
 			if (this.UnderlyingType != null)
 			{
-				return new Pair<Type, object>(this.UnderlyingType, value);
+				return new Tuple<Type, object>(this.UnderlyingType, value);
 			}
 			else
 			{
-				return new Pair<Type, object>(this.SupportedType, value);
+				return new Tuple<Type, object>(this.SupportedType, value);
 			}
 		}
 

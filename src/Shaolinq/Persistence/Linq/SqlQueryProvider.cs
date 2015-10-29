@@ -46,7 +46,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 					else
 					{
-						this.defaultValue = (T)Expression.Lambda(this.defaultValueExpression).Compile().DynamicInvoke(null);
+						this.defaultValue = (T)ExpressionInterpreter.Interpret(this.defaultValueExpression);
 					}
 
 					this.computedDefaultValue = true;

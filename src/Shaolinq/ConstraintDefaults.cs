@@ -11,25 +11,13 @@ namespace Shaolinq
 		public static readonly ConstraintDefaults Default = new ConstraintDefaults();
 
 		[XmlAttribute]
-		public int StringMaximumLength
-		{
-			get;
-			set;
-		}
+		public int StringMaximumLength { get; set; }
 
 		[XmlAttribute]
-		public int IndexedStringMaximumLength
-		{
-			get;
-			set;
-		}
+		public int IndexedStringMaximumLength { get; set; }
 
 		[XmlAttribute]
-		public SizeFlexibility StringSizeFlexibility
-		{
-			get;
-			set;
-		}
+		public SizeFlexibility StringSizeFlexibility { get; set; }
 
 		public ConstraintDefaults()
 		{

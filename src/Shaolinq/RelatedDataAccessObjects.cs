@@ -63,7 +63,7 @@ namespace Shaolinq
 		
 		private void BuildInitializeRelatedMethod()
 		{
-			var key = new Pair<Type, Type>(this.RelatedDataAccessObject.GetType(), typeof(T));
+			var key = new Tuple<Type, Type>(this.RelatedDataAccessObject.GetType(), typeof(T));
 			var cache = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
 
 			Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> initializeDataAccessObject;
@@ -95,7 +95,7 @@ namespace Shaolinq
 
 					this.InitializeDataAccessObject = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
 
-					var newCache = new Dictionary<Pair<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache);
+					var newCache = new Dictionary<Tuple<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache);
 
 					newCache[key] = this.InitializeDataAccessObject;
 

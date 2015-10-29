@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -109,7 +111,7 @@ namespace Shaolinq.Persistence.Linq
 
 				return base.Visit(expression);
 			}
-
+			
 			private Expression Evaluate(Expression e)
 			{
 				object value;
@@ -128,7 +130,7 @@ namespace Shaolinq.Persistence.Linq
 						return Expression.Constant(null, e.Type);
 					}
 
-					if (Nullable.GetUnderlyingType(unaryExpression.Type) != null)
+					if (unaryExpression.Type.IsNullableType())
 					{
 						return Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), e.Type);
 					}
@@ -136,16 +138,11 @@ namespace Shaolinq.Persistence.Linq
 					{
 						return Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type), e.Type);
 					}
-
-					// return Expression.Constant(value, e.Type);
 				}
 				else if (e.NodeType == ExpressionType.Convert 
                     && ((UnaryExpression)e).Operand.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					var lambda = Expression.Lambda(e);
-					var fn = lambda.Compile();
-
-					value = fn.DynamicInvoke(null);
+					value = ExpressionInterpreter.Interpret(e);
 
 					return Expression.Constant(value, e.Type);
 				}
@@ -155,10 +152,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					var lambda = Expression.Lambda(e);
-					var fn = lambda.Compile();
-
-					value = fn.DynamicInvoke(null);
+					value = ExpressionInterpreter.Interpret(e);
 
 					return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
 				}

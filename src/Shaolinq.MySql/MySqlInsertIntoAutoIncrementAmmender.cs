@@ -9,13 +9,13 @@ namespace Shaolinq.MySql
 {
 	/// <summary>
 	/// If an auto-increment column is set explicitly by the user LAST_INSERT_ID will not return the expected value.
-	/// This ammender makes sure the user defined value for the auto-increment column is returned by the next call
+	/// This amender makes sure the user defined value for the auto-increment column is returned by the next call
 	/// to LAST_INSERT_ID.
 	/// </summary>
-	public class MySqlInsertIntoAutoIncrementAmmender
+	public class MySqlInsertIntoAutoIncrementAmender
 		: SqlExpressionVisitor
 	{
-		private MySqlInsertIntoAutoIncrementAmmender(SqlDataTypeProvider sqlDataTypeProvider)
+		private MySqlInsertIntoAutoIncrementAmender(SqlDataTypeProvider sqlDataTypeProvider)
 		{
 		}
 
@@ -39,9 +39,9 @@ namespace Shaolinq.MySql
 			return expression;
 		}
 
-		public static Expression Ammend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
+		public static Expression Amend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
 		{
-			var processor = new MySqlInsertIntoAutoIncrementAmmender(sqlDataTypeProvider);
+			var processor = new MySqlInsertIntoAutoIncrementAmender(sqlDataTypeProvider);
 
 			return processor.Visit(expression);
 		}

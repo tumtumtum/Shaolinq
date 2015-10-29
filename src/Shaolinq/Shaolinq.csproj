@@ -149,6 +149,8 @@
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
+    <Compile Include="Persistence\Linq\Expressions\ExpressionCachedCompiler.cs" />
+    <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />

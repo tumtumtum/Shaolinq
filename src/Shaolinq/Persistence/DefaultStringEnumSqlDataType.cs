@@ -88,15 +88,15 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override Pair<Type, object> ConvertForSql(object value)
+		public override Tuple<Type, object> ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Pair<Type, object>(typeof(string), value);
+				return new Tuple<Type, object>(typeof(string), value);
 			}
 			else
 			{
-				return new Pair<Type, object>(typeof(string), Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
+				return new Tuple<Type, object>(typeof(string), Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
 			}
 		}
 

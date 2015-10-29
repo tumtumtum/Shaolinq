@@ -67,15 +67,15 @@ namespace Shaolinq.Postgres
 			}
 		}
 
-		public override Pair<Type, object> ConvertForSql(object value)
+		public override Tuple<Type, object> ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Pair<Type, object>(this.SupportedType, null);
+				return new Tuple<Type, object>(this.SupportedType, null);
 			}
 			else
 			{
-				return new Pair<Type, object>(this.SupportedType, Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
+				return new Tuple<Type, object>(this.SupportedType, Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
 			}
 		}
 	}

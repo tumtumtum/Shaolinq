@@ -53,7 +53,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private int depth;
 		protected TextWriter writer;
-		protected List<Pair<Type, object>> parameterValues;
+		protected List<Tuple<Type, object>> parameterValues;
 		internal int IndentationWidth { get; }
 		public string ParameterIndicatorPrefix { get; protected set; }
 		protected readonly SqlDialect sqlDialect;
@@ -61,7 +61,7 @@ namespace Shaolinq.Persistence.Linq
 		public virtual SqlQueryFormatResult Format(Expression expression)
 		{
 			this.writer = new StringWriter(new StringBuilder(1024));
-			this.parameterValues = new List<Pair<Type, object>>();
+			this.parameterValues = new List<Tuple<Type, object>>();
 
 			this.Visit(this.PreProcess(expression));
 
@@ -71,7 +71,7 @@ namespace Shaolinq.Persistence.Linq
 		public virtual SqlQueryFormatResult Format(Expression expression, TextWriter writer)
 		{
 			this.writer = writer;
-			this.parameterValues = new List<Pair<Type, object>>();
+			this.parameterValues = new List<Tuple<Type, object>>();
 
 			this.Visit(this.PreProcess(expression));
 

@@ -26,15 +26,15 @@ namespace Shaolinq.Persistence
 			return this.sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(propertyDescriptor);
 		}
 
-		public override Pair<Type, object> ConvertForSql(object value)
+		public override Tuple<Type, object> ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Pair<Type, object>(typeof(long), null);
+				return new Tuple<Type, object>(typeof(long), null);
 			}
 			else
 			{
-				return new Pair<Type, object>(typeof(long), ((TimeSpan)value).Ticks);
+				return new Tuple<Type, object>(typeof(long), ((TimeSpan)value).Ticks);
 			}
 		}
 

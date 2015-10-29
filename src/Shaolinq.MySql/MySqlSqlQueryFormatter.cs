@@ -18,8 +18,8 @@ namespace Shaolinq.MySql
 		protected override Expression PreProcess(Expression expression)
 		{
 			expression = base.PreProcess(expression);
-			expression = MySqlAutoIncrementAmmender.Ammend(expression);
-			expression = MySqlInsertIntoAutoIncrementAmmender.Ammend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
+			expression = MySqlAutoIncrementAmender.Amend(expression);
+			expression = MySqlInsertIntoAutoIncrementAmender.Amend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
 
 			return expression;
 		}

@@ -18,9 +18,9 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public Expression ProcessedExpression { get; set; }
 		public Dictionary<Expression, List<IncludedPropertyInfo>> IncludedPropertyInfos { get; set; }
-		private readonly List<Pair<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin;
+		private readonly List<Tuple<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin;
 
-		internal RelatedPropertiesJoinExpanderResults(List<Pair<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin)
+		internal RelatedPropertiesJoinExpanderResults(List<Tuple<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin)
 		{
 			this.replacementExpressionForPropertyPathsByJoin = replacementExpressionForPropertyPathsByJoin;
 		}
@@ -34,7 +34,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				Expression retval;
 
-				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
+				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Item1)
 				{
 					indexFound = index;
 				}
@@ -44,7 +44,7 @@ namespace Shaolinq.Persistence.Linq
 					continue;
 				}
 				
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(propertyPath, out retval))
 				{
 					return retval;	
 				}
@@ -54,7 +54,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				Expression retval;
 
-				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
+				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Item1)
 				{
 					indexFound = index;
 				}
@@ -64,12 +64,12 @@ namespace Shaolinq.Persistence.Linq
 					continue;
 				}
 
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(propertyPath, out retval))
 				{
 					return retval;
 				}
 
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(PropertyPath.Empty, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(PropertyPath.Empty, out retval))
 				{
 					foreach (var property in propertyPath)
 					{
@@ -89,7 +89,7 @@ namespace Shaolinq.Persistence.Linq
 	{
 		private readonly DataAccessModel model;
 		private readonly Dictionary<Expression, List<IncludedPropertyInfo>> includedPropertyInfos = new Dictionary<Expression, List<IncludedPropertyInfo>>();
-		private readonly List<Pair<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin = new List<Pair<Expression, Dictionary<PropertyPath, Expression>>>();
+		private readonly List<Tuple<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin = new List<Tuple<Expression, Dictionary<PropertyPath, Expression>>>();
 
 		private RelatedPropertiesJoinExpander(DataAccessModel model)
 		{
@@ -424,7 +424,7 @@ namespace Shaolinq.Persistence.Linq
 						newCall = Expression.Call(null, selectMethod, new Expression[] { newCall, selectCall });
 					}
 
-					this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression, Dictionary<PropertyPath, Expression>>(newCall, replacementExpressionForPropertyPath));
+					this.replacementExpressionForPropertyPathsByJoin.Add(new Tuple<Expression, Dictionary<PropertyPath, Expression>>(newCall, replacementExpressionForPropertyPath));
 				}
 				else if (methodCallExpression.Method.Name == ("GroupBy"))
 				{
@@ -462,7 +462,7 @@ namespace Shaolinq.Persistence.Linq
 					throw new InvalidOperationException("Method: " + methodCallExpression.Method);
 				}
 
-				this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression, Dictionary<PropertyPath, Expression>>(newCall, replacementExpressionForPropertyPath));
+				this.replacementExpressionForPropertyPathsByJoin.Add(new Tuple<Expression, Dictionary<PropertyPath, Expression>>(newCall, replacementExpressionForPropertyPath));
 
 				return newCall;
 			}

@@ -6,16 +6,16 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class SqlForeignKeyConstraintToAlterAmmender
+	public class SqlForeignKeyConstraintToAlterAmender
 		: SqlExpressionVisitor
 	{
 		private bool foundStatementList = false;
 		private SqlCreateTableExpression currentTable;
-		private readonly List<Expression> ammendments = new List<Expression>();
+		private readonly List<Expression> amendments = new List<Expression>();
 
-		public static Expression Ammend(Expression expression)
+		public static Expression Amend(Expression expression)
 		{
-			var retval = new SqlForeignKeyConstraintToAlterAmmender().Visit(expression);
+			var retval = new SqlForeignKeyConstraintToAlterAmender().Visit(expression);
 
 			return retval;
 		}
@@ -23,9 +23,9 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
 		{
 			var action = new SqlConstraintActionExpression(SqlConstraintActionType.Add, foreignKeyConstraintExpression);
-			var ammendmentEpression = new SqlAlterTableExpression(this.currentTable.Table, action);
+			var amendmentEpression = new SqlAlterTableExpression(this.currentTable.Table, action);
 
-			this.ammendments.Add(ammendmentEpression);
+			this.amendments.Add(amendmentEpression);
 
 			return null;
 		}
@@ -51,11 +51,11 @@ namespace Shaolinq.Persistence.Linq
 
 			if (!localFoundStatementList)
 			{
-				if (this.ammendments.Count > 0)
+				if (this.amendments.Count > 0)
 				{
 					var newList = new List<Expression>(retval.Statements);
 					
-					newList.AddRange(this.ammendments);
+					newList.AddRange(this.amendments);
 					retval = new SqlStatementListExpression(newList);
 				}
 			}

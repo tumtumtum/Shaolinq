@@ -485,8 +485,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
 		{
-			var outerProjection = (SqlProjectionExpression)this.Visit(outerSource);
-			var innerProjection = (SqlProjectionExpression)this.Visit(innerSource);
+			var outerProjection = (SqlProjectionExpression)this.VisitSequence(outerSource);
+			var innerProjection = (SqlProjectionExpression)this.VisitSequence(innerSource);
 
 			this.AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
 			var outerKeyExpr = StripNullCheck(this.Visit(outerKey.Body));
@@ -528,35 +528,27 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression BindSelectMany(Type resultType, Expression source, LambdaExpression collectionSelector, LambdaExpression resultSelector)
 		{
-			SqlJoinType joinType;
 			ProjectedColumns projectedColumns; 
-			var projection = (SqlProjectionExpression)this.Visit(source);
+			var projection = (SqlProjectionExpression)this.VisitSequence(source);
 			this.AddExpressionByParameter(collectionSelector.Parameters[0], projection.Projector);
-			var selector = Evaluator.PartialEval(collectionSelector.Body);
-			var collectionProjection = (SqlProjectionExpression)this.Visit(selector);
+			//var collection = Evaluator.PartialEval(collectionSelector.Body);
 
-			bool didStrip;
-			Expression joinCondition = null;
-
-			if (IsTable(selector.StripDefaultIfEmptyCalls(out didStrip).Type))
+			Expression collection;
+			var defaultIfEmpty = false;
+			
+			if (collectionSelector.Body.TryStripDefaultIfEmptyCalls(out collection))
 			{
-				if (didStrip)
-				{
-					joinType = SqlJoinType.LeftJoin;
-
-					joinCondition = Expression.Constant(true);
-				}
-				else
-				{
-					joinType = SqlJoinType.CrossJoin;
-				}
+				defaultIfEmpty = true;
 			}
 			else
 			{
-				throw new InvalidOperationException();
+				collection = collectionSelector.Body;
 			}
-
-			var join = new SqlJoinExpression(resultType, joinType, projection.Select, collectionProjection.Select, joinCondition);
+			
+			var collectionProjection = this.VisitSequence(collection);
+			var isTable = collectionProjection.Select.From is SqlTableExpression;
+			var joinType = isTable ? SqlJoinType.CrossJoin : defaultIfEmpty ? SqlJoinType.OuterApply : SqlJoinType.CrossApply;
+			var join = new SqlJoinExpression(resultType, joinType, projection.Select, collectionProjection.Select, null);
 
 			var alias = this.GetNextAlias();
             
@@ -1615,24 +1607,14 @@ namespace Shaolinq.Persistence.Linq
 			return projection;
 		}
 
-		public static bool IsTable(Type type)
+		public static bool IsQuery(Expression expression)
 		{
-			if (type.IsGenericType)
-			{
-				var genericType = type.GetGenericTypeDefinition();
-
-				if (genericType == TypeHelper.DataAccessObjectsType || genericType == TypeHelper.RelatedDataAccessObjectsType)
-				{
-					return true;
-				}
-			}
-
-			return false;
+			return typeof(IQueryable<>).IsAssignableFromIgnoreGenericParameters(expression.Type);
 		}
 
 		private bool TryProcessQueryableConstant(ConstantExpression constantExpression, out Expression result)
 		{
-			if (constantExpression.Value is IQueryable)
+			if (IsQuery(constantExpression))
 			{
 				// Mono Queryable.Join wraps inner in a constant even if it is IQueryable
 
@@ -1665,7 +1647,8 @@ namespace Shaolinq.Persistence.Linq
 				type = constantExpression.Value.GetType();
 			}
 
-			if (IsTable(type) && (!(constantExpression.Value is IHasDataAccessModel) || ((IHasDataAccessModel)constantExpression.Value).DataAccessModel == this.DataAccessModel))
+			if (typeof(DataAccessObjectsQueryable<>).IsAssignableFromIgnoreGenericParameters(type) 
+				&& (!(constantExpression.Value is IHasDataAccessModel) || ((IHasDataAccessModel)constantExpression.Value).DataAccessModel == this.DataAccessModel))
 			{
 				var retval = this.GetTableProjection(type);
 
@@ -1805,7 +1788,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						return this.CreateObjectReference(memberExpression);
 					}
-					else if (IsTable(memberExpression.Type))
+					else if (typeof(DataAccessObjectsQueryable<>).IsAssignableFromIgnoreGenericParameters(memberExpression.Type))
 					{
 						return this.GetTableProjection(memberExpression.Type);
 					}

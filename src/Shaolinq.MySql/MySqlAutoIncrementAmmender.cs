@@ -8,10 +8,10 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.MySql
 {
-	public class MySqlAutoIncrementAmmender
+	public class MySqlAutoIncrementAmender
 		: SqlExpressionVisitor
 	{
-		private MySqlAutoIncrementAmmender()
+		private MySqlAutoIncrementAmender()
 		{
 		}
 
@@ -44,9 +44,9 @@ namespace Shaolinq.MySql
 			return base.VisitCreateTable(createTableExpression);
 		}
 
-		public static Expression Ammend(Expression expression)
+		public static Expression Amend(Expression expression)
 		{
-			var processor = new MySqlAutoIncrementAmmender();
+			var processor = new MySqlAutoIncrementAmender();
 
 			return processor.Visit(expression);
 		}

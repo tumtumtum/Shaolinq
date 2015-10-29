@@ -400,9 +400,9 @@ namespace Shaolinq.Tests
 					shop in this.model.Shops
 				 join
 					 address1 in this.model.Addresses on shop.Address equals address1
-				 select new Pair<Shop, Address>{ Left = shop, Right = address1}).Select(c => new
+				 select new Tuple<Shop, Address>(shop, address1)).Select(c => new
 				 {
-					 c.Right.Region.Diameter
+					 c.Item2.Region.Diameter
 				 });
 
 			var results = query.ToList();
@@ -1396,8 +1396,8 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => new Pair<string, Shop>{ Left = "hi", Right = c })
-					.Select(c => c.Right.Include(e => e.Address.Region));
+					.Select(c => new Tuple<string, Shop>("hi",  c ))
+					.Select(c => c.Item2.Include(e => e.Address.Region));
 
 				var first = query.First();
 
@@ -1414,8 +1414,8 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => new Pair<string, Shop> { Left = "hi", Right = c })
-					.Select(c => c.Right.Include(d => d.Address.Include(e => e.Region)));
+					.Select(c => new Tuple<string, Shop>("hi", c ))
+					.Select(c => c.Item2.Include(d => d.Address.Include(e => e.Region)));
 
 				var first = query.First();
 

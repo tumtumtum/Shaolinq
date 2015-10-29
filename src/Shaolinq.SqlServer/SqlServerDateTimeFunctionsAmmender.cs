@@ -5,14 +5,14 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.SqlServer
 {
-	public class SqlServerDateTimeFunctionsAmmender
+	public class SqlServerDateTimeFunctionsAmender
 		: SqlExpressionVisitor
 	{
-		public static Expression Ammend(Expression expression)
+		public static Expression Amend(Expression expression)
 		{
-			var ammender = new SqlServerDateTimeFunctionsAmmender();
+			var amender = new SqlServerDateTimeFunctionsAmender();
 
-			return ammender.Visit(expression);
+			return amender.Visit(expression);
 		}
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)

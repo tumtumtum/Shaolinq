@@ -8,14 +8,14 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.SqlServer
 {
-	public class SqlServerLimitAmmender
+	public class SqlServerLimitAmender
 		: SqlExpressionVisitor
 	{
 		private const string RowColumnName = "Row";
 
-		public static Expression Ammend(Expression expression)
+		public static Expression Amend(Expression expression)
 		{
-			return new SqlServerLimitAmmender().Visit(expression);
+			return new SqlServerLimitAmender().Visit(expression);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)

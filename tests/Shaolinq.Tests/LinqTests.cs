@@ -479,7 +479,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Ignore("Added by Sam - left outer join not working")]
+		[Ignore("GroupJoins not supported yet")]
 		public virtual void Test_Left_Outer_Join1()
 		{
 			using (var scope = new TransactionScope())
@@ -494,10 +494,41 @@ namespace Shaolinq.Tests
 				var result = query.ToList();
 
 				Assert.That(result.Count, Is.EqualTo(1));
-				Assert.That(result[0].school, Is.EqualTo("Empty school"));
+				Assert.That(result[0].school.Name, Is.EqualTo("Empty school"));
 				Assert.That(result[0].student, Is.Null);
 			}
 		}
+
+		[Test]
+		public virtual void Test_Select_Many_With_Linq_Syntax()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from school in this.model.Schools
+					from student in this.model.Students
+					where school.Name == "Empty school"
+					select new { school, student };
+
+				var result = query.ToList();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_With_Linq_Syntax_And_DefaultIfEmpty()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from school in this.model.Schools
+					from student in this.model.Students
+					where school.Name == "Empty school"
+					select new { school, student };
+
+				var result = query.ToList();
+			}
+		}
+
 
 		[Test]
 		public virtual void Test_SelectMany_With_DefaultIfEmpty()
@@ -505,8 +536,8 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var query =
-					from school in this.model.Schools.ToList()
-					from student in this.model.Students.ToList().DefaultIfEmpty()
+					from school in this.model.Schools
+					from student in this.model.Students.DefaultIfEmpty()
 					where school.Name == "Empty school"
 					select new { school, student };
 

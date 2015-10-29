@@ -12,9 +12,9 @@ namespace Shaolinq.Postgres.DotConnect
 		{
 		}
 
-		public override Pair<Type, object> ConvertForSql(object value)
+		public override Tuple<Type, object> ConvertForSql(object value)
 		{
-			return new Pair<Type, object>(this.SupportedType.GetUnwrappedNullableType(), value);
+			return new Tuple<Type, object>(this.SupportedType.GetUnwrappedNullableType(), value);
 		}
 	}
 }

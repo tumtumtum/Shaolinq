@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence
 			this.specifyKindMethod = nullable ? specifyKindIfUnspecifiedMethodNullable : specifyKindIfUnspecifiedMethod;
 		}
 
-		public override Pair<Type, object> ConvertForSql(object value)
+		public override Tuple<Type, object> ConvertForSql(object value)
 		{
 			if (this.UnderlyingType != null)
 			{
@@ -30,13 +30,13 @@ namespace Shaolinq.Persistence
 					value = (DateTime?)((DateTime)value).ToUniversalTime();
 				}
 
-				return new Pair<Type, object>(this.UnderlyingType, value);
+				return new Tuple<Type, object>(this.UnderlyingType, value);
 			}
 			else
 			{
 				value = ((DateTime)value).ToUniversalTime();
 
-				return new Pair<Type, object>(this.SupportedType, value);
+				return new Tuple<Type, object>(this.SupportedType, value);
 			}
 		}
 

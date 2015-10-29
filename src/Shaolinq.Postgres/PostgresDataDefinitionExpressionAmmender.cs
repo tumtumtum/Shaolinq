@@ -7,20 +7,20 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Postgres
 {
-	public class PostgresDataDefinitionExpressionAmmender
+	public class PostgresDataDefinitionExpressionAmender
 		: SqlExpressionVisitor
 	{
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
 		private bool currentIsPrimaryKey;
 
-		private PostgresDataDefinitionExpressionAmmender(SqlDataTypeProvider sqlDataTypeProvider)
+		private PostgresDataDefinitionExpressionAmender(SqlDataTypeProvider sqlDataTypeProvider)
 		{
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 		}
 
-		public static Expression Ammend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
+		public static Expression Amend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
 		{
-			var processor = new PostgresDataDefinitionExpressionAmmender(sqlDataTypeProvider);
+			var processor = new PostgresDataDefinitionExpressionAmender(sqlDataTypeProvider);
 
 			return processor.Visit(expression);
 		}

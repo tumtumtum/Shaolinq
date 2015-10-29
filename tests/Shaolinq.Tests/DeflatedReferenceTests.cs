@@ -527,7 +527,7 @@ namespace Shaolinq.Tests
 		public void Test_Create_Student_Then_Access_School_As_DeflatedReference()
 		{
 			Guid studentId;
-			long schoolId;
+			long schoolId;	
 
 			using (var scope = new TransactionScope())
 			{

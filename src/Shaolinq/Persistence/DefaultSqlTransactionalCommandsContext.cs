@@ -164,13 +164,13 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual IDataReader ExecuteReader(string sql, IEnumerable<Pair<Type, object>> parameters)
+		public virtual IDataReader ExecuteReader(string sql, IEnumerable<Tuple<Type, object>> parameters)
 		{
 			var command = this.CreateCommand();
             
 			foreach (var value in parameters)
 			{
-				this.AddParameter(command, value.Left, value.Right);
+				this.AddParameter(command, value.Item1, value.Item2);
 			}
             
 			command.CommandText = sql;
@@ -198,7 +198,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual object ExecuteScalar(string sql, IEnumerable<Pair<Type, object>> parameters)
+		public virtual object ExecuteScalar(string sql, IEnumerable<Tuple<Type, object>> parameters)
 		{
 			var command = this.CreateCommand();
 
@@ -206,7 +206,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var parameter in parameters)
 			{
-				command.Parameters.Add(parameter.Right);
+				command.Parameters.Add(parameter.Item2);
 			}
 			
 			Logger.Debug(() => this.FormatCommand(command));
@@ -446,8 +446,8 @@ namespace Shaolinq.Persistence
 
 			var result = this.sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
 
-			parameter.DbType = this.GetDbType(result.Left);
-			parameter.Value = result.Right ?? DBNull.Value;
+			parameter.DbType = this.GetDbType(result.Item1);
+			parameter.Value = result.Item2 ?? DBNull.Value;
 		
 			return parameter;
 		}
@@ -625,7 +625,7 @@ namespace Shaolinq.Persistence
 
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Left, value.Right);
+					this.AddParameter(command, value.Item1, value.Item2);
 				}
 
 				Logger.Debug(() => this.FormatCommand(command));

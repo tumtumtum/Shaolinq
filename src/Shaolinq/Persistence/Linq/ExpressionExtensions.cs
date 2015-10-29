@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 
@@ -17,21 +18,39 @@ namespace Shaolinq.Persistence.Linq
 			return (LambdaExpression)expression;
 		}
 
-		public static Expression StripDefaultIfEmptyCalls(this Expression expression, out bool didStrip)
+		public static Expression Strip(this Expression expression, Func<Expression, Expression> inner)
 		{
-			MethodCallExpression methodCallExpression;
+			Expression result;
 
-			didStrip = false;
+			expression.TryStrip(inner, out result);
 
-            while ((methodCallExpression = (expression as MethodCallExpression)) != null
-				&& methodCallExpression.Method.IsGenericMethod && methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.QueryableDefaultIfEmptyMethod)
+			return result;
+		}
+
+		public static bool TryStripDefaultIfEmptyCalls(this Expression expression, out Expression retval)
+		{
+			return expression.TryStrip(c => c.NodeType == ExpressionType.Call
+										&& (((c as MethodCallExpression)?.Method.IsGenericMethod ?? false)
+										&& ((MethodCallExpression)c).Method.GetGenericMethodDefinition() == MethodInfoFastRef.QueryableDefaultIfEmptyMethod) ? ((MethodCallExpression)c).Arguments[0] : null,
+										out retval);
+		}
+
+        public static bool TryStrip(this Expression expression, Func<Expression, Expression> inner, out Expression retval)
+		{
+			var didStrip = false;
+
+            Expression current;
+	        var previous = expression;
+
+			while ((current = inner(previous)) != null)
 			{
-				expression = methodCallExpression.Arguments[0];
-
+				previous = current;
 				didStrip = true;
             }
 
-			return expression;
+			retval = previous;
+
+			return didStrip;
 		}
 	}
 }

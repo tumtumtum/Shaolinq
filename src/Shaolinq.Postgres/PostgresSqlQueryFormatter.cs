@@ -37,7 +37,7 @@ namespace Shaolinq.Postgres
 
 		protected override Expression PreProcess(Expression expression)
 		{
-			expression =  PostgresDataDefinitionExpressionAmmender.Ammend(base.PreProcess(expression), this.sqlDataTypeProvider);
+			expression =  PostgresDataDefinitionExpressionAmender.Amend(base.PreProcess(expression), this.sqlDataTypeProvider);
 
 			return expression;
 		}

@@ -24,15 +24,15 @@ namespace Shaolinq.Persistence
 			return "CHAR(32)";
 		}
 
-		public override Pair<Type, object> ConvertForSql(object value)
+		public override Tuple<Type, object> ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Pair<Type, object>(typeof(string), null);
+				return new Tuple<Type, object>(typeof(string), null);
 			}
 			else
 			{
-				return new Pair<Type, object>(typeof(string), ((Guid)value).ToString("N"));
+				return new Tuple<Type, object>(typeof(string), ((Guid)value).ToString("N"));
 			}
 		}
 		
