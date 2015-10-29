@@ -8,12 +8,21 @@ using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
-	public class SqlExpressionComparer
+	[Flags]
+	public enum SqlExpressionComparerOptions
+	{
+		None,
+		IgnoreConstants = 1,
+		IgnoreConstantPlaceholders = 2,
+		IgnoreConstantsAndConstantPlaceholders = IgnoreConstants | IgnoreConstantPlaceholders
+	}
+
+    public class SqlExpressionComparer
 		: SqlExpressionVisitor
 	{
 		private bool result;
 		private object currentObject;
-		private bool ignoreConstantPlaceholderValues;
+		private SqlExpressionComparerOptions options;
 		
 		public SqlExpressionComparer(Expression toCompareTo)
 		{
@@ -23,14 +32,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public static bool Equals(Expression left, Expression right)
 		{
-			return Equals(left, right, false);
+			return Equals(left, right, SqlExpressionComparerOptions.None);
 		}
 
-		public static bool Equals(Expression left, Expression right, bool ignoreConstantPlaceholderValues)
+		public static bool Equals(Expression left, Expression right, SqlExpressionComparerOptions options)
 		{
-			var visitor = new SqlExpressionComparer(right);
-
-			visitor.ignoreConstantPlaceholderValues = ignoreConstantPlaceholderValues;
+			var visitor = new SqlExpressionComparer(right) { options = options };
 			
 			visitor.Visit(left);
 
@@ -194,6 +201,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (!this.TryGetCurrent(constantExpression, out current))
 			{
+				return constantExpression;
+			}
+
+			if ((this.options & SqlExpressionComparerOptions.IgnoreConstantPlaceholders) != 0)
+			{
+				this.result = constantExpression.Type != current.Type;
+
 				return constantExpression;
 			}
 
@@ -629,12 +643,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.Index == constantPlaceholder.Index);
 
-			if (this.result && !this.ignoreConstantPlaceholderValues)
+			if (!this.result)
 			{
-				this.currentObject = current.ConstantExpression;
-				this.Visit(constantPlaceholder.ConstantExpression);
-				this.currentObject = current;
+				return constantPlaceholder;
 			}
+
+			if ((this.options & SqlExpressionComparerOptions.IgnoreConstantPlaceholders) != 0)
+			{
+				this.result = current.Type == constantPlaceholder.Type;
+
+				return constantPlaceholder;
+			}
+
+			this.currentObject = current.ConstantExpression;
+			this.Visit(constantPlaceholder.ConstantExpression);
+			this.currentObject = current;
 
 			return constantPlaceholder;
 		}

@@ -9,17 +9,17 @@ namespace Shaolinq.Persistence.Linq
 	/// <summary>
 	/// Replaces an expression within an expression tree with another expression
 	/// </summary>
-	public class ExpressionReplacer
+	public class SqlExpressionReplacer
 		: SqlExpressionVisitor
 	{
 		private readonly Func<Expression, Expression> selector;
 		
-		private ExpressionReplacer(Func<Expression, Expression> selector)
+		private SqlExpressionReplacer(Func<Expression, Expression> selector)
 		{
 			this.selector = selector;
 		}
 
-		private ExpressionReplacer(Expression searchFor, Expression replaceWith, Comparison<Expression> compareExpressions)
+		private SqlExpressionReplacer(Expression searchFor, Expression replaceWith, Comparison<Expression> compareExpressions)
 		{
 			if (compareExpressions != null)
 			{
@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression Replace(Expression expression, Func<Expression, Expression> selector)
 		{
-			return new ExpressionReplacer(selector).Visit(expression);
+			return new SqlExpressionReplacer(selector).Visit(expression);
 		}
 
 		/// <summary>
@@ -70,7 +70,7 @@ namespace Shaolinq.Persistence.Linq
 		/// </returns>
 		public static Expression Replace(Expression expression, Expression searchFor, Expression replaceWith, Comparison<Expression> compareExpressions)
 		{
-			return new ExpressionReplacer(searchFor, replaceWith, compareExpressions).Visit(expression);
+			return new SqlExpressionReplacer(searchFor, replaceWith, compareExpressions).Visit(expression);
 		}
 
 		protected override Expression Visit(Expression expression)
@@ -79,14 +79,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return null;
 			}
-			try
-			{
-				return this.selector(expression) ?? base.Visit(expression);
-			}
-			catch (InvalidOperationException)
-			{
-				return this.selector(expression) ?? base.Visit(expression);
-			}
+
+			return this.selector(expression) ?? base.Visit(expression);
 		}
 	}
 }

@@ -50,12 +50,12 @@ namespace Shaolinq
 
 			public bool Equals(ConditionalKey x, ConditionalKey y)
 			{
-				return SqlExpressionComparer.Equals(x.condition, y.condition, false);
+				return SqlExpressionComparer.Equals(x.condition, y.condition, SqlExpressionComparerOptions.None);
 			}
 
 			public int GetHashCode(ConditionalKey obj)
 			{
-				return SqlExpressionHasher.Hash(obj.condition);
+				return SqlExpressionHasher.Hash(obj.condition, SqlExpressionComparerOptions.None);
 			}
 		}
 		#endregion

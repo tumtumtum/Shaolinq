@@ -11,18 +11,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlExpressionVisitor
 	{
 		private int hashCode;
-		private bool ignoreConstantPlaceholderValues;
+		private SqlExpressionComparerOptions options;
 
 		public static int Hash(Expression expression)
 		{
-			return Hash(expression, false);
+			return Hash(expression, SqlExpressionComparerOptions.None);
 		}
 
-		public static int Hash(Expression expression, bool ignoreConstantPlaceholderValues)
+		public static int Hash(Expression expression, SqlExpressionComparerOptions options)
 		{
 			var hasher = new SqlExpressionHasher
 			{
-				ignoreConstantPlaceholderValues = ignoreConstantPlaceholderValues
+				options = options
 			};
 
 			hasher.Visit(expression);
@@ -88,6 +88,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.hashCode ^= type.GetHashCode();
 
+			if ((this.options & SqlExpressionComparerOptions.IgnoreConstants) != 0)
+			{
+				return constantExpression;
+			}
+
 			if (type.IsValueType)
 			{
 				if (constantExpression.Value != null)
@@ -96,7 +101,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				}
 			}
 
-			return base.VisitConstant(constantExpression);
+			return constantExpression;
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
@@ -252,7 +257,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			this.hashCode ^= constantPlaceholder.Index;
 
-			if (this.ignoreConstantPlaceholderValues)
+			if ((this.options & SqlExpressionComparerOptions.IgnoreConstantPlaceholders) != 0)
 			{
 				return constantPlaceholder;
 			}

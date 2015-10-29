@@ -17,9 +17,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			
 			if (result == interpretFailed)
 			{
-				var lambda = Expression.Lambda(expression);
-
-				return lambda.Compile().DynamicInvoke(null);
+				result = ExpressionFastCompiler.CompileAndRun(expression);
 			}
 
 			return result;

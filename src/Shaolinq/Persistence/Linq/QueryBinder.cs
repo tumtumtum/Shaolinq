@@ -661,7 +661,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var groupingType = typeof(Grouping<,>).MakeGenericType(keyExpression.Type, subqueryElemExpr.Type);
 
-				var x = ExpressionReplacer.Replace(elementSubquery, c =>
+				var x = SqlExpressionReplacer.Replace(elementSubquery, c =>
 				{
 					var column = c as SqlColumnExpression;
 
@@ -2032,7 +2032,7 @@ namespace Shaolinq.Persistence.Linq
 					var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
 					var replacement = this.Visit(originalReplacementExpression);
 
-					newExpression = ExpressionReplacer.Replace(newExpression, current, replacement);
+					newExpression = SqlExpressionReplacer.Replace(newExpression, current, replacement);
 				}
 
 				return newExpression;

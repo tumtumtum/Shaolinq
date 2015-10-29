@@ -149,7 +149,7 @@
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
-    <Compile Include="Persistence\Linq\Expressions\ExpressionCachedCompiler.cs" />
+    <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
@@ -272,7 +272,7 @@
     <Compile Include="Persistence\Linq\Optimizers\RedundantFunctionCallRemover.cs" />
     <Compile Include="Persistence\Linq\Optimizers\RedundantSubqueryFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\UnusedColumnRemover.cs" />
-    <Compile Include="Persistence\Linq\ExpressionReplacer.cs" />
+    <Compile Include="Persistence\Linq\SqlExpressionReplacer.cs" />
     <Compile Include="Persistence\Linq\RelatedDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\SelectFirstType.cs" />
     <Compile Include="Persistence\Linq\SqlJoinType.cs" />

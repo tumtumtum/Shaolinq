@@ -40,7 +40,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var expectedSelector = "GROUPBYCOLUMNS-" + projection.Select.Alias;
 
-			projection = (SqlProjectionExpression)ExpressionReplacer.Replace(projection, c =>
+			projection = (SqlProjectionExpression)SqlExpressionReplacer.Replace(projection, c =>
 			{
 				if (query.Parameters[0] == c)
 				{

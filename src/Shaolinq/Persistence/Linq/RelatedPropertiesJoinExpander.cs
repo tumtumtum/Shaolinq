@@ -164,7 +164,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				leftObject = rootExpressionsByPath[rootPath];
 
-				leftObject = ExpressionReplacer.Replace(leftObject, c =>
+				leftObject = SqlExpressionReplacer.Replace(leftObject, c =>
 				{
 					if (c == sourceParameterExpression)
 					{
@@ -325,7 +325,7 @@ namespace Shaolinq.Persistence.Linq
 
 				Func<Expression, bool, Expression> replace = null;
 				
-				replace = (e, b) => ExpressionReplacer.Replace(e, c =>
+				replace = (e, b) => SqlExpressionReplacer.Replace(e, c =>
 				{
 					Expression value;
 

@@ -93,7 +93,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 
 				var selector = methodCallExpression.Arguments[1].StripQuotes();
-				var newSelector = ExpressionReplacer.Replace(selector.Body, selector.Parameters[0], methodCallExpression.Arguments[0]);
+				var newSelector = SqlExpressionReplacer.Replace(selector.Body, selector.Parameters[0], methodCallExpression.Arguments[0]);
 
 				var originalReferencedRelatedObjects = this.referencedRelatedObjects;
 				var originalParent = this.currentParent;
