@@ -23,6 +23,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			
 		}
+
 		public SqlAlterTableExpression(Expression table, IReadOnlyList<SqlConstraintActionExpression> actions)
 			: base(typeof(void))
 		{

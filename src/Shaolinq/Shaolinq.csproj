@@ -96,12 +96,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Platform, Version=1.1.0.220, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.1.0.220\lib\net40\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.1.0.222, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.1.0.222\lib\net40\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.220, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.220\lib\net40\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.1.0.222, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.1.0.222\lib\net40\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -151,11 +151,15 @@
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlAliasedExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlScalarEpression.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\CrossApplyRewriter.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />
     <Compile Include="Persistence\Linq\ExpressionExtensions.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlMemberBindingType.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlObjectReferenceExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlOverExpression.cs" />
@@ -164,7 +168,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlTableOption.cs" />
     <Compile Include="Persistence\Linq\JoinSelectorExpander.cs" />
     <Compile Include="Persistence\Linq\LeftRightJoinInfo.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\EnumTypeNormalizer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlEnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExistsSubqueryOptimizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExpressionsFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\IncludedPropertyInfo.cs" />
@@ -201,7 +205,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlTupleExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTypeExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUpdateExpression.cs" />
-    <Compile Include="Persistence\Linq\GroupByCollator.cs" />
+    <Compile Include="Persistence\Linq\SqlGroupByCollator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AggregateFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SumAggregatesDefaultValueCoalescer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGatherer.cs" />
@@ -256,7 +260,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlDeleteExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlOrderByExpression.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryFinder.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryRewriter.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlAggregateSubqueryRewriter.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAggregateSubqueryExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAggregateType.cs" />
@@ -266,12 +270,12 @@
     <Compile Include="Persistence\Linq\Grouping.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryMerger.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ConditionalEliminator.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\ObjectOperandComparisonExpander.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\HasAggregateChecker.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlObjectOperandComparisonExpander.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlAggregateChecker.cs" />
     <Compile Include="Persistence\Linq\Optimizers\RedundantBinaryExpressionsRemover.cs" />
     <Compile Include="Persistence\Linq\Optimizers\RedundantFunctionCallRemover.cs" />
     <Compile Include="Persistence\Linq\Optimizers\RedundantSubqueryFinder.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\UnusedColumnRemover.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlUnusedColumnRemover.cs" />
     <Compile Include="Persistence\Linq\SqlExpressionReplacer.cs" />
     <Compile Include="Persistence\Linq\RelatedDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\SelectFirstType.cs" />
@@ -310,10 +314,10 @@
     <Compile Include="Persistence\Linq\ObjectProjector.cs" />
     <Compile Include="Persistence\Linq\Evaluator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionVisitor.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\RedundantSubqueryRemover.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlRedundantSubqueryRemover.cs" />
     <Compile Include="Persistence\Linq\SqlQueryFormatter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SubqueryRemover.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\RedundantColumnRemover.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlRedundantColumnRemover.cs" />
     <Compile Include="Persistence\Linq\SqlQueryable.cs" />
     <Compile Include="ReusableQueryable.cs" />
     <Compile Include="DataAccessModelConfigurationSectionHandler.cs" />

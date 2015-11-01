@@ -183,13 +183,13 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
-			expression = ObjectOperandComparisonExpander.Expand(expression); 
-			expression = EnumTypeNormalizer.Normalize(expression, typeForEnums);
-			expression = GroupByCollator.Collate(expression);
-			expression = AggregateSubqueryRewriter.Rewrite(expression);
-			expression = UnusedColumnRemover.Remove(expression);
-			expression = RedundantColumnRemover.Remove(expression);
-			expression = RedundantSubqueryRemover.Remove(expression);
+			expression = SqlObjectOperandComparisonExpander.Expand(expression); 
+			expression = SqlEnumTypeNormalizer.Normalize(expression, typeForEnums);
+			expression = SqlGroupByCollator.Collate(expression);
+			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
+			expression = SqlUnusedColumnRemover.Remove(expression);
+			expression = SqlRedundantColumnRemover.Remove(expression);
+			expression = SqlRedundantSubqueryRemover.Remove(expression);
 			expression = FunctionCoalescer.Coalesce(expression);
 			expression = ExistsSubqueryOptimizer.Optimize(expression);
 			expression = RedundantBinaryExpressionsRemover.Remove(expression);
@@ -208,7 +208,19 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
 			expression = SumAggregatesDefaultValueCoalescer.Coalesce(expression);
 			expression = OrderByRewriter.Rewrite(expression);
-			
+
+			var rewritten = SqlSqlCrossApplyRewriter.Rewrite(expression);
+
+			if (rewritten != expression)
+			{
+				expression = rewritten;
+
+				expression = SqlUnusedColumnRemover.Remove(expression);
+				expression = SqlRedundantColumnRemover.Remove(expression);
+				expression = SqlRedundantSubqueryRemover.Remove(expression);
+				expression = OrderByRewriter.Rewrite(expression);
+			}
+
 			return expression;
 		}
 

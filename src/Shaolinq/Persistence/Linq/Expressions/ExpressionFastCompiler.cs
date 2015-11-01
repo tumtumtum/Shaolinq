@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,31 +8,6 @@ using Platform;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
-	public class SubstituteConstantsResult
-	{
-		public Expression Body { get; }
-		public ParameterExpression[] AdditionalParameters { get; }
-		internal volatile Delegate compiledSimpleVersion;
-		
-		public SubstituteConstantsResult(Expression body, ParameterExpression[] additionalParameters)
-		{
-			this.Body = body;
-			this.AdditionalParameters = additionalParameters;
-		}
-	}
-
-	public struct SubstituteConstantsResultWithValues
-	{
-		public object[] Values { get; }
-		public SubstituteConstantsResult Result { get; }
-
-		public SubstituteConstantsResultWithValues(SubstituteConstantsResult result, object[] values)
-		{
-			this.Result = result;
-			this.Values = values;
-		}
-	}
-	
 	public static class ExpressionFastCompiler
 	{
 		private static Dictionary<Expression, SubstituteConstantsResult> cachedSubstitutedExpressions = new Dictionary<Expression, SubstituteConstantsResult>(new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstantsAndConstantPlaceholders));

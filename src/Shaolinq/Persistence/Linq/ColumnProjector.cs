@@ -154,26 +154,31 @@ namespace Shaolinq.Persistence.Linq
 		private readonly HashSet<string> columnNames; 
 		private readonly HashSet<Expression> candidates;
 		private readonly List<SqlColumnDeclaration> columns;
-		private readonly TypeDescriptorProvider typeDescriptorProvider;
-		private readonly Nominator nominator;
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> mappedColumnExpressions;
 
-		internal ColumnProjector(TypeDescriptorProvider typeDescriptorProvider, Nominator nominator, Expression expression, string newAlias, params string[] existingAliases)
+		internal ColumnProjector(Nominator nominator, Expression expression, IEnumerable<SqlColumnDeclaration> existingColumns, string newAlias, IEnumerable<string> existingAliases)
 		{
-			this.columnNames = new HashSet<string>();
-			this.columns = new List<SqlColumnDeclaration>();
 			this.mappedColumnExpressions = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
-
-			this.typeDescriptorProvider = typeDescriptorProvider;
-			this.nominator = nominator;
+			
+			if (existingColumns != null)
+			{
+				this.columns = new List<SqlColumnDeclaration>(existingColumns);
+				this.columnNames = new HashSet<string>(this.columns.Select(c => c.Name));
+			}
+			else
+			{
+				this.columns = new List<SqlColumnDeclaration>();
+				this.columnNames = new HashSet<string>();
+			}
+	
 			this.newAlias = newAlias;
-			this.existingAliases = existingAliases;
+			this.existingAliases = existingAliases.ToArray();
 			this.candidates = nominator.Nominate(expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(TypeDescriptorProvider typeDescriptorProvider, Nominator nominator, Expression expression, string newAlias, params string[] existingAliases)
+		public static ProjectedColumns ProjectColumns(Nominator nominator, Expression expression, IEnumerable<SqlColumnDeclaration> existingColumns, string newAlias, IEnumerable<string> existingAliases)
 		{
-			var projector = new ColumnProjector(typeDescriptorProvider, nominator, expression, newAlias, existingAliases);
+			var projector = new ColumnProjector(nominator, expression, existingColumns, newAlias, existingAliases);
 
 			expression = projector.Visit(expression);
 

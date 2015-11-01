@@ -36,7 +36,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					|| from.Skip != null
 					|| from.GroupBy != null
 					/* Don't fold a from with an orderby into the outer select if it has a count or other aggregate */
-					|| from.OrderBy != null && from.OrderBy.Count > 0 && HasAggregateChecker.HasAggregates(selectExpression))
+					|| from.OrderBy != null && from.OrderBy.Count > 0 && SqlAggregateChecker.HasAggregates(selectExpression))
 				{
 					return base.VisitSelect(selectExpression);
 				}

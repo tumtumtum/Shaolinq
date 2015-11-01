@@ -5,16 +5,16 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class GroupByCollator
+	public class SqlGroupByCollator
 		: SqlExpressionVisitor
 	{
-		private GroupByCollator()
+		private SqlGroupByCollator()
 		{
 		}
 
 		public static Expression Collate(Expression expression)
 		{
-			var visitor = new GroupByCollator();
+			var visitor = new SqlGroupByCollator();
 
 			return visitor.Visit(expression);
 		}

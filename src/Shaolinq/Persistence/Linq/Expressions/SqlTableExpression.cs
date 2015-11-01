@@ -6,24 +6,21 @@ using System.Linq.Expressions;
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlTableExpression
-		: SqlBaseExpression
+		: SqlAliasedExpression
 	{
 		public string Name { get; }
-		public string Alias { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Table;
 
 		public SqlTableExpression(string name)
-			: base(typeof(void))
+			: base(typeof(void), null)
 		{
 			this.Name = name;
-			this.Alias = null;
 		}
 
 		public SqlTableExpression(Type type, string alias, string name)
-			: base(type)
+			: base(type, alias)
 		{
 			this.Name = name;
-			this.Alias = alias;
 		}
 
 		public override string ToString()

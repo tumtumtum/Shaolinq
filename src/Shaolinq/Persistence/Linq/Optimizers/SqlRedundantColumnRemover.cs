@@ -11,19 +11,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Removes duplicate column declarations that refer to the same underlying column.
 	/// </summary>
-	public class RedundantColumnRemover
+	public class SqlRedundantColumnRemover
 		: SqlExpressionVisitor
 	{
 		private readonly Dictionary<SqlColumnExpression, SqlColumnExpression> visitedColumns;
 
-		private RedundantColumnRemover()
+		private SqlRedundantColumnRemover()
 		{
 			this.visitedColumns = new Dictionary<SqlColumnExpression, SqlColumnExpression>();
 		}
 
 		public static Expression Remove(Expression expression)
 		{
-			return new RedundantColumnRemover().Visit(expression);
+			return new SqlRedundantColumnRemover().Visit(expression);
 		}
 
 		protected override Expression VisitColumn(SqlColumnExpression column)

@@ -846,21 +846,29 @@ namespace Shaolinq.Persistence.Linq
 
 			switch (join.JoinType)
 			{
-				case SqlJoinType.CrossJoin:
-					this.Write(" CROSS JOIN ");
-					break;
-				case SqlJoinType.InnerJoin:
-					this.Write(" INNER JOIN ");
-					break;
-				case SqlJoinType.LeftJoin:
-					this.Write(" LEFT JOIN ");
-					break;
-				case SqlJoinType.RightJoin:
-					this.Write(" RIGHT JOIN ");
-					break;
-				case SqlJoinType.OuterJoin:
-					this.Write(" FULL OUTER JOIN ");
-					break;
+			case SqlJoinType.Cross:
+				this.Write(" CROSS JOIN ");
+				break;
+			case SqlJoinType.Inner:
+				this.Write(" INNER JOIN ");
+				break;
+			case SqlJoinType.Left:
+				this.Write(" LEFT JOIN ");
+				break;
+			case SqlJoinType.Right:
+				this.Write(" RIGHT JOIN ");
+				break;
+			case SqlJoinType.Outer:
+				this.Write(" FULL OUTER JOIN ");
+				break;
+			case SqlJoinType.CrossApply:
+				this.Write(" CROSS APPLY ");
+				break;
+			case SqlJoinType.OuterApply:
+				this.Write(" OUTER APPLY ");
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(join), join.JoinType, "Join type incorrect");
 			}
 
 			this.VisitSource(join.Right);
@@ -889,35 +897,35 @@ namespace Shaolinq.Persistence.Linq
 		{
 			switch ((SqlExpressionType)source.NodeType)
 			{
-				case SqlExpressionType.Table:
-					var table = (SqlTableExpression)source;
+			case SqlExpressionType.Table:
+				var table = (SqlTableExpression)source;
 
-					this.Visit(table);
-					this.Write(" AS ");
-					this.WriteQuotedIdentifier(table.Alias);
-					
-					break;
-				case SqlExpressionType.Select:
-					var select = (SqlSelectExpression)source;
+				this.Visit(table);
+				this.Write(" AS ");
+				this.WriteQuotedIdentifier(table.Alias);
+
+				break;
+			case SqlExpressionType.Select:
+				var select = (SqlSelectExpression)source;
+				this.WriteLine();
+				this.Write("(");
+
+				using (this.AcquireIndentationContext())
+				{
+					this.Visit(select);
 					this.WriteLine();
-					this.Write("(");
+				}
 
-					using (this.AcquireIndentationContext())
-					{
-						this.Visit(select);
-						this.WriteLine();
-					}
-					
-					this.Write(")");
-					this.Write(" AS ");
-					this.WriteQuotedIdentifier(select.Alias);
-					
-					break;
-				case SqlExpressionType.Join:
-					this.VisitJoin((SqlJoinExpression)source);
-					break;
-				default:
-					throw new InvalidOperationException($"Select source ({source.NodeType}) is not valid type");
+				this.Write(")");
+				this.Write(" AS ");
+				this.WriteQuotedIdentifier(select.Alias);
+
+				break;
+			case SqlExpressionType.Join:
+				this.VisitJoin((SqlJoinExpression)source);
+				break;
+			default:
+				throw new InvalidOperationException($"Select source ({source.NodeType}) is not valid type");
 			}
 
 			return source;
@@ -959,8 +967,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
-			if (memberExpression.Member.DeclaringType.IsGenericType
-				&& memberExpression.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
+			if (memberExpression.Member.DeclaringType.IsGenericType && memberExpression.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
 			{
 				return this.Visit(memberExpression.Expression);
 			}
@@ -995,7 +1002,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
 			this.Write("CREATE ");
-			
+
 			if (createIndexExpression.Unique)
 			{
 				this.Write("UNIQUE ");
@@ -1023,7 +1030,7 @@ namespace Shaolinq.Persistence.Linq
 			this.Visit(createTableExpression.Table);
 			this.WriteLine();
 			this.Write("(");
-			
+
 			using (this.AcquireIndentationContext())
 			{
 				this.WriteDeliminatedListOfItems(createTableExpression.ColumnDefinitionExpressions, c => this.Visit(c), () => this.WriteLine(","));
@@ -1047,18 +1054,18 @@ namespace Shaolinq.Persistence.Linq
 		{
 			switch (action)
 			{
-				case SqlColumnReferenceAction.Cascade:
-					this.Write("CASCADE");
-					break;
-				case SqlColumnReferenceAction.Restrict:
-					this.Write("RESTRICT");
-					break;
-				case SqlColumnReferenceAction.SetDefault:
-					this.Write("SET DEFAULT");
-					break;
-				case SqlColumnReferenceAction.SetNull:
-					this.Write("SET NULL");
-					break;
+			case SqlColumnReferenceAction.Cascade:
+				this.Write("CASCADE");
+				break;
+			case SqlColumnReferenceAction.Restrict:
+				this.Write("RESTRICT");
+				break;
+			case SqlColumnReferenceAction.SetDefault:
+				this.Write("SET DEFAULT");
+				break;
+			case SqlColumnReferenceAction.SetNull:
+				this.Write("SET NULL");
+				break;
 			}
 		}
 
@@ -1108,7 +1115,7 @@ namespace Shaolinq.Persistence.Linq
 				this.writer.Write(value);
 			}
 		}
-		
+
 		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
 		{
 			this.Write("REFERENCES ");
@@ -1118,13 +1125,13 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteDeliminatedListOfItems(referencesColumnExpression.ReferencedColumnNames, this.WriteQuotedIdentifier);
 
 			this.Write(")");
-			
+
 			if (referencesColumnExpression.OnDeleteAction != SqlColumnReferenceAction.NoAction)
 			{
 				this.Write(" ON DELETE ");
 				this.Write(referencesColumnExpression.OnDeleteAction);
 			}
-			
+
 			if (referencesColumnExpression.OnUpdateAction != SqlColumnReferenceAction.NoAction)
 			{
 				this.Write(" ON UPDATE ");
@@ -1144,15 +1151,15 @@ namespace Shaolinq.Persistence.Linq
 		{
 			switch (deferrability)
 			{
-				case SqlColumnReferenceDeferrability.Deferrable:
-					this.Write(" DEFERRABLE");
-					break;
-				case SqlColumnReferenceDeferrability.InitiallyDeferred:
-					this.Write(" INITIALLY DEFERRED");
-					break;
-				case SqlColumnReferenceDeferrability.InitiallyImmediate:
-					this.Write(" INITIALLY IMMEDIATE");
-					break;
+			case SqlColumnReferenceDeferrability.Deferrable:
+				this.Write(" DEFERRABLE");
+				break;
+			case SqlColumnReferenceDeferrability.InitiallyDeferred:
+				this.Write(" INITIALLY DEFERRED");
+				break;
+			case SqlColumnReferenceDeferrability.InitiallyImmediate:
+				this.Write(" INITIALLY IMMEDIATE");
+				break;
 			}
 		}
 
@@ -1373,7 +1380,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Visit(indexedColumnExpression.Column);
 
-			switch (indexedColumnExpression.SortOrder )
+			switch (indexedColumnExpression.SortOrder)
 			{
 			case SortOrder.Descending:
 				this.Write(" DESC");

@@ -31,7 +31,8 @@ namespace Shaolinq.Persistence.Linq
 		{
 			return expression.TryStrip(c => c.NodeType == ExpressionType.Call
 										&& (((c as MethodCallExpression)?.Method.IsGenericMethod ?? false)
-										&& ((MethodCallExpression)c).Method.GetGenericMethodDefinition() == MethodInfoFastRef.QueryableDefaultIfEmptyMethod) ? ((MethodCallExpression)c).Arguments[0] : null,
+										&& (((MethodCallExpression)c).Method.GetGenericMethodDefinition() == MethodInfoFastRef.QueryableDefaultIfEmptyMethod) || ((MethodCallExpression)c).Method.GetGenericMethodDefinition() == MethodInfoFastRef.EnumerableDefaultIfEmptyMethod)
+											? ((MethodCallExpression)c).Arguments[0] : null,
 										out retval);
 		}
 

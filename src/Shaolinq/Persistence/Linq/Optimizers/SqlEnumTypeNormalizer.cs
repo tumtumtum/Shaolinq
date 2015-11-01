@@ -8,19 +8,19 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class EnumTypeNormalizer
+	public class SqlEnumTypeNormalizer
 		: SqlExpressionVisitor
 	{
 		public Type PersistedType { get; }
 
-		public EnumTypeNormalizer(Type persistedType)
+		public SqlEnumTypeNormalizer(Type persistedType)
 		{
 			this.PersistedType = persistedType;
 		}
 
 		public static Expression Normalize(Expression expression, Type persistedType)
 		{
-			var normalizer = new EnumTypeNormalizer(persistedType);
+			var normalizer = new SqlEnumTypeNormalizer(persistedType);
 
 			return normalizer.Visit(expression);
 		}

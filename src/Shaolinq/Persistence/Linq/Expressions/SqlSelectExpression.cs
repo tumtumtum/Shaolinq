@@ -9,9 +9,8 @@ using Platform.Collections;
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlSelectExpression
-		: SqlBaseExpression
+		: SqlAliasedExpression
 	{
-		public string Alias { get; }
 		public bool Distinct { get; }
 		public Expression From { get; }
 		public Expression Where { get; }
@@ -34,9 +33,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlSelectExpression(Type type, string alias, IReadOnlyList<SqlColumnDeclaration> columns, Expression from, Expression where, IReadOnlyList<Expression> orderBy, IReadOnlyList<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate)
-			: base(type)
+			: base(type, alias)
 		{
-			this.Alias = alias;
 			this.Distinct = distinct;
 			this.Columns = columns;
 

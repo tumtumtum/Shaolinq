@@ -10,13 +10,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Rewrite aggregate expressions, moving them into same select expression that has the group-by clause.
 	/// </summary>
-	public class AggregateSubqueryRewriter
+	public class SqlAggregateSubqueryRewriter
 		: SqlExpressionVisitor
 	{
 		private readonly ILookup<string, SqlAggregateSubqueryExpression> aggregateSubqueriesBySelectAlias;
 		private readonly Dictionary<SqlAggregateSubqueryExpression, Expression> aggregateSubqueryInstances;
 
-		private AggregateSubqueryRewriter(Expression expr)
+		private SqlAggregateSubqueryRewriter(Expression expr)
 		{
 			this.aggregateSubqueryInstances = new Dictionary<SqlAggregateSubqueryExpression, Expression>();
 			this.aggregateSubqueriesBySelectAlias = AggregateSubqueryFinder.Find(expr).OfType<SqlAggregateSubqueryExpression>().ToLookup(a => a.GroupByAlias);
@@ -24,7 +24,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static Expression Rewrite(Expression expr)
 		{
-			return new AggregateSubqueryRewriter(expr).Visit(expr);
+			return new SqlAggregateSubqueryRewriter(expr).Visit(expr);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression select)

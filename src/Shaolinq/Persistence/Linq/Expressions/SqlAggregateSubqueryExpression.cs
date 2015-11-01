@@ -5,10 +5,9 @@ using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
-	public class SqlAggregateSubqueryExpression
-		: SqlBaseExpression
+	public class SqlAggregateSubqueryExpression : SqlBaseExpression
 	{
-		public String GroupByAlias { get; }
+		public string GroupByAlias { get; }
 		public Expression AggregateInGroupSelect { get; }
 		public SqlSubqueryExpression AggregateAsSubquery { get; set; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.AggregateSubquery;

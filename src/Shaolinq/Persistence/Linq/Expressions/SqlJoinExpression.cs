@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlJoinExpression(Type type, SqlJoinType joinType, Expression left, Expression right, Expression joinCondition)
 			: base(type)
 		{
-			if (joinType != SqlJoinType.CrossApply && joinType != SqlJoinType.CrossJoin)
+			if (joinType != SqlJoinType.OuterApply && joinType != SqlJoinType.CrossApply && joinType != SqlJoinType.Cross)
 			{
 				if (joinCondition == null)
 				{

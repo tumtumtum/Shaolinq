@@ -31,5 +31,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			return "COLUMN(" + this.AliasedName +  ")";
 		}
+
+		public override int GetHashCode()
+		{
+			return this.SelectAlias.GetHashCode() ^ this.Name.GetHashCode();
+		}
+
+		public override bool Equals(object obj)
+		{
+			var other = obj as SqlColumnExpression;
+
+			return other != null && (object.ReferenceEquals(this, other) || this.SelectAlias == other.SelectAlias && this.Name == other.Name);
+		}
 	}
 }

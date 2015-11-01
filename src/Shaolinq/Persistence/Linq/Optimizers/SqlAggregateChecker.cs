@@ -8,13 +8,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Determines if a Select contains any aggregate expressions
 	/// </summary>
-	public class HasAggregateChecker
+	public class SqlAggregateChecker
 		: SqlExpressionVisitor
 	{
 		private bool hasAggregate = false;
 		private readonly bool ignoreInSubqueries = true;
 
-		private HasAggregateChecker(bool ignoreInSubqueries)
+		private SqlAggregateChecker(bool ignoreInSubqueries)
 		{
 			this.ignoreInSubqueries = ignoreInSubqueries;
 		}
@@ -26,7 +26,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		internal static bool HasAggregates(SqlSelectExpression expression, bool ignoreInSubqueries)
 		{
-			var checker = new HasAggregateChecker(ignoreInSubqueries);
+			var checker = new SqlAggregateChecker(ignoreInSubqueries);
 
 			checker.Visit(expression);
 

@@ -10,19 +10,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Removes column declarations in selects that are not referenced
 	/// </summary>
-	public class UnusedColumnRemover
+	public class SqlUnusedColumnRemover
 		: SqlExpressionVisitor
 	{
 		private readonly Dictionary<string, HashSet<string>> allColumnsUsed;
 
-		private UnusedColumnRemover()
+		private SqlUnusedColumnRemover()
 		{
 			this.allColumnsUsed = new Dictionary<string, HashSet<string>>();
 		}
 
 		public static Expression Remove(Expression expression)
 		{
-			return new UnusedColumnRemover().Visit(expression);
+			return new SqlUnusedColumnRemover().Visit(expression);
 		}
 
 		private void MarkColumnAsUsed(string alias, string name)

@@ -69,7 +69,7 @@ namespace Shaolinq.Persistence.Linq
 
 			Expression nullCheck = null;
 			
-			foreach (var value in ObjectOperandComparisonExpander
+			foreach (var value in SqlObjectOperandComparisonExpander
 				.GetPrimaryKeyElementalExpressions(expression))
 			{
 				Expression current;

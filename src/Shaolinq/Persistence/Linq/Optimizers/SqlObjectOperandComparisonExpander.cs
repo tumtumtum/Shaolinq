@@ -14,18 +14,18 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// into multiple binary expressions performing the operation over the the primary
 	/// keys of the object operands.
 	/// </summary>
-	public class ObjectOperandComparisonExpander
+	public class SqlObjectOperandComparisonExpander
 		: SqlExpressionVisitor
 	{
 		private bool inProjector;
 		
-		private ObjectOperandComparisonExpander()
+		private SqlObjectOperandComparisonExpander()
 		{
 		}
 
 		public static Expression Expand(Expression expression)
 		{
-			var expander = new ObjectOperandComparisonExpander();
+			var expander = new SqlObjectOperandComparisonExpander();
 
 			return expander.Visit(expression);
 		}

@@ -86,12 +86,26 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return this.VisitSetCommand((SqlSetCommandExpression)expression);
 			case SqlExpressionType.Over:
 				return this.VisitOver((SqlOverExpression)expression);
+			case SqlExpressionType.Scalar:
+				return this.VisitScalar((SqlScalarEpression)expression);
 			default:
 				return base.Visit(expression);
 			}
 		}
 
-		protected virtual Expression VisitOver(SqlOverExpression expression)
+		protected virtual Expression VisitScalar(SqlScalarEpression expression)
+		{
+			var select = this.Visit(expression.Select);
+
+			if (select != expression.Select)
+			{
+				return expression.ChangeSelect((SqlSelectExpression)select);
+			}
+
+			return expression;
+		}
+
+        protected virtual Expression VisitOver(SqlOverExpression expression)
 		{
 			var source = this.Visit(expression.Source);
 			var orderBy = this.VisitExpressionList(expression.OrderBy);

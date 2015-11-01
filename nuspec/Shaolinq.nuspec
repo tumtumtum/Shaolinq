@@ -28,8 +28,8 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
     <tags>shaolinq linq provider orm sqlite mysql postgres sql database</tags>
     <dependencies>
       <dependency id="log4net"/>
-      <dependency id="Platform.NET" version="1.1.0.220"/>
-      <dependency id="Platform.Xml.Serialization" version="1.1.0.220"/>
+      <dependency id="Platform.NET" version="1.1.0.222"/>
+      <dependency id="Platform.Xml.Serialization" version="1.1.0.222"/>
     </dependencies>
   </metadata>
 </package>

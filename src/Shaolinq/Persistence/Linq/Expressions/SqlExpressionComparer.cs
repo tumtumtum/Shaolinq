@@ -1036,8 +1036,50 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitOver(SqlOverExpression expression)
 		{
-			// TODO
-			return base.VisitOver(expression);
+			SqlOverExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			foreach (var value in expression.OrderBy)
+			{
+				this.Visit(value);
+
+				if (!result)
+				{
+					return expression;
+				}
+			}
+			
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.Visit(expression.Source);
+
+			if (!result)
+			{
+				return expression;
+			}
+			
+			return expression;
+		}
+
+		protected override Expression VisitScalar(SqlScalarEpression expression)
+		{
+			SqlScalarEpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			this.Visit(expression.Select);
+
+			return expression;
 		}
 
 		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)

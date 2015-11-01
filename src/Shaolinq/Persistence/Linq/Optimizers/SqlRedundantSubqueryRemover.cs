@@ -8,16 +8,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Removes select expressions that don't add any additional semantic value
 	/// </summary>
-	public class RedundantSubqueryRemover
+	public class SqlRedundantSubqueryRemover
 		: SqlExpressionVisitor
 	{
-		private RedundantSubqueryRemover()
+		private SqlRedundantSubqueryRemover()
 		{
 		}
 
 		public static Expression Remove(Expression expression)
 		{
-			expression = new RedundantSubqueryRemover().Visit(expression);
+			expression = new SqlRedundantSubqueryRemover().Visit(expression);
 			expression = SubqueryMerger.Merge(expression);
 			// expression = AggregateSubqueryMerger.Merge(expression);
 
@@ -168,7 +168,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var selHasWhere = select.Where != null;
 				var selHasOrderBy = select.OrderBy != null && select.OrderBy.Count > 0;
 				var selHasGroupBy = select.GroupBy != null && select.GroupBy.Count > 0;
-				var selHasAggregates = HasAggregateChecker.HasAggregates(select);
+				var selHasAggregates = SqlAggregateChecker.HasAggregates(select);
 				var frmHasOrderBy = fromSelect.OrderBy != null && fromSelect.OrderBy.Count > 0;
 				var frmHasGroupBy = fromSelect.GroupBy != null && fromSelect.GroupBy.Count > 0;
 

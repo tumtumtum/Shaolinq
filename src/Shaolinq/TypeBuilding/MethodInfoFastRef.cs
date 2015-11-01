@@ -15,6 +15,7 @@ namespace Shaolinq.TypeBuilding
 
 		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => new List<string>().Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableContainsMethod = TypeUtils.GetMethod(() => Enumerable.Contains(new List<string>(), string.Empty)).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => new List<string>().DefaultIfEmpty()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableCountMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableWhereMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Where(c => c.Length == 0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableSelectMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Select(c => c.ToUpper())).GetGenericMethodDefinition();
