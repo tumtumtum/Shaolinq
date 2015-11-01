@@ -600,6 +600,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				case SqlAggregateType.Count:
 					return "COUNT";
+				case SqlAggregateType.LongCount:
+					return "COUNT";
 				case SqlAggregateType.Min:
 					return "MIN";
 				case SqlAggregateType.Max:
@@ -615,7 +617,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual bool RequiresAsteriskWhenNoArgument(SqlAggregateType aggregateType)
 		{
-			return aggregateType == SqlAggregateType.Count;
+			return aggregateType == SqlAggregateType.Count || aggregateType == SqlAggregateType.LongCount;
 		}
 
 		protected override Expression VisitAggregate(SqlAggregateExpression sqlAggregate)

@@ -150,7 +150,7 @@ namespace Shaolinq.Persistence.Linq
 		
         private ProjectedColumns ProjectColumns(Expression expression, string newAlias, IEnumerable<SqlColumnDeclaration> existingColumns, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(new NormalNominator(IsIntegralType), expression, existingColumns, newAlias, existingAliases);
+			return ColumnProjector.ProjectColumns(Nominator.Default, expression, existingColumns, newAlias, existingAliases);
 		}
 
 		private Expression BindCollectionContains(Expression list, Expression item)
@@ -1248,6 +1248,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				case "Count":
 					return SqlAggregateType.Count;
+				case "LongCount":
+					return SqlAggregateType.LongCount;
 				case "Min":
 					return SqlAggregateType.Min;
 				case "Max":
@@ -1263,7 +1265,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private static bool HasPredicateArg(SqlAggregateType aggregateType)
 		{
-			return aggregateType == SqlAggregateType.Count;
+			return aggregateType == SqlAggregateType.Count || aggregateType == SqlAggregateType.LongCount;
 		}
 
 		private SqlProjectionExpression VisitSequence(Expression source)

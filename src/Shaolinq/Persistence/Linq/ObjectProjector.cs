@@ -127,7 +127,7 @@ namespace Shaolinq.Persistence.Linq
 							}
 						}
 						
-						if (this.sqlAggregateType != SqlAggregateType.Sum && this.sqlAggregateType != SqlAggregateType.Count && !typeof(T).IsNullableType())
+						if (this.sqlAggregateType != SqlAggregateType.Sum && this.sqlAggregateType != SqlAggregateType.Count && this.sqlAggregateType != SqlAggregateType.LongCount && !typeof(T).IsNullableType())
 						{
 							if (dataReader.FieldCount > 0 && dataReader.IsDBNull(0))
 							{
@@ -135,7 +135,7 @@ namespace Shaolinq.Persistence.Linq
 							}
 						}
 						
-						if (this.isDefaultIfEmpty && this.sqlAggregateType == SqlAggregateType.Count)
+						if (this.isDefaultIfEmpty && (this.sqlAggregateType == SqlAggregateType.Count || this.sqlAggregateType == SqlAggregateType.LongCount))
 						{
 							if (dataReader.FieldCount > 0 && Convert.ToInt64(dataReader.GetValue(0)) == 0)
 							{

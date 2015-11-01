@@ -19,7 +19,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableCountMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableWhereMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Where(c => c.Length == 0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableSelectMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Select(c => c.ToUpper())).GetGenericMethodDefinition();
-		public static readonly MethodInfo QueryableJoinMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Join(((IQueryable<string>)null), c => c, c => c, (x, y) => x)).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryableJoinMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Join(((IQueryable<int>)null), c => c.Length, c => c, (x, y) => x)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).DefaultIfEmpty()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableExtensionsIncludeMethod = TypeUtils.GetMethod(() => QueryableExtensions.Include(((IQueryable<DataAccessObject>)null), c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => ((DataAccessObject)null).Include(c => c)).GetGenericMethodDefinition();

@@ -5,19 +5,19 @@ using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
-	public class SqlScalarEpression
+	public class SqlScalarExpression
 		: SqlSubqueryExpression
 	{
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Scalar;
 
-		public SqlScalarEpression(Type type, SqlSelectExpression select)
+		public SqlScalarExpression(Type type, SqlSelectExpression select)
 			: base(type, select)
 		{
 		}
 
-		public virtual SqlScalarEpression ChangeSelect(SqlSelectExpression select)
+		public virtual SqlScalarExpression ChangeSelect(SqlSelectExpression select)
 		{
-			return new SqlScalarEpression(this.Type, select);
+			return new SqlScalarExpression(this.Type, select);
 		}
 	}
 }

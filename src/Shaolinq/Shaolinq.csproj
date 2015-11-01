@@ -152,9 +152,11 @@
     <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAliasedExpression.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlScalarEpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlExpressionComparerOptions.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlScalarExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SubstituteConstantsResult.cs" />
     <Compile Include="Persistence\Linq\Expressions\SubstituteConstantsResultWithValues.cs" />
+    <Compile Include="Persistence\Linq\Nominator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\CrossApplyRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />

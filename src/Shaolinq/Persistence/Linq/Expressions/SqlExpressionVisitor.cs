@@ -87,13 +87,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			case SqlExpressionType.Over:
 				return this.VisitOver((SqlOverExpression)expression);
 			case SqlExpressionType.Scalar:
-				return this.VisitScalar((SqlScalarEpression)expression);
+				return this.VisitScalar((SqlScalarExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
 		}
 
-		protected virtual Expression VisitScalar(SqlScalarEpression expression)
+		protected virtual Expression VisitScalar(SqlScalarExpression expression)
 		{
 			var select = this.Visit(expression.Select);
 

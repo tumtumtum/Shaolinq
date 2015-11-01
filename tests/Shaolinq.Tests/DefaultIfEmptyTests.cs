@@ -156,8 +156,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var value = this.queryable.Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
-				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).DefaultIfEmpty(707).Max();
+				var value = this.queryable.Select(c => c.NullableInteger).ToList().DefaultIfEmpty(707).Max();
+				var expectedValue = this.queryable.ToList().Select(c => c.NullableInteger).ToList().DefaultIfEmpty(707).Max();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);

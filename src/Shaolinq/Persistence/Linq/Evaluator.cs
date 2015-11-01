@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -21,7 +19,7 @@ namespace Shaolinq.Persistence.Linq
 		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
 		public static Expression PartialEval(Expression expression, Func<Expression, bool> fnCanBeEvaluated)
 		{
-			return new SubtreeEvaluator(new Nominator(fnCanBeEvaluated).Nominate(expression)).Eval(expression);
+			return SubtreeEvaluator.Eval(new Nominator(fnCanBeEvaluated).Nominate(expression), expression);
 		}
 
 		/// <summary>
@@ -66,11 +64,13 @@ namespace Shaolinq.Persistence.Linq
 				return false;
 			}
 
-			if (expression is MethodCallExpression)
+			var callExpression = expression as MethodCallExpression;
+
+			if (callExpression != null)
 			{
-				if (((MethodCallExpression)expression).Method.DeclaringType == typeof(Enumerable)
-					|| ((MethodCallExpression)expression).Method.DeclaringType == typeof(Queryable)
-					|| ((MethodCallExpression)expression).Method.DeclaringType == typeof(QueryableExtensions))
+				var declaringType = callExpression.Method.DeclaringType;
+
+				if (declaringType == typeof(Enumerable) || declaringType == typeof(Queryable) || declaringType == typeof(QueryableExtensions))
 				{
 					return false;
 				}
@@ -92,9 +92,11 @@ namespace Shaolinq.Persistence.Linq
 				this.candidates = candidates;
 			}
 
-			internal Expression Eval(Expression exp)
+			static internal Expression Eval(HashSet<Expression> candidates, Expression expression)
 			{
-				return this.Visit(exp);
+				var evalutator = new SubtreeEvaluator(candidates);
+
+				return evalutator.Visit(expression);
 			}
 
 			protected override Expression Visit(Expression expression)
@@ -163,7 +165,8 @@ namespace Shaolinq.Persistence.Linq
 		/// Performs bottom-up analysis to determine which nodes can possibly
 		/// be part of an evaluated sub-tree.
 		/// </summary>
-		internal class Nominator : SqlExpressionVisitor
+		internal class Nominator
+			: SqlExpressionVisitor
 		{
 			private bool cannotBeEvaluated;
 			private HashSet<Expression> candidates;

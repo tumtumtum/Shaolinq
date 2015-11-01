@@ -8,16 +8,7 @@ using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
-	[Flags]
-	public enum SqlExpressionComparerOptions
-	{
-		None,
-		IgnoreConstants = 1,
-		IgnoreConstantPlaceholders = 2,
-		IgnoreConstantsAndConstantPlaceholders = IgnoreConstants | IgnoreConstantPlaceholders
-	}
-
-    public class SqlExpressionComparer
+	public class SqlExpressionComparer
 		: SqlExpressionVisitor
 	{
 		private bool result;
@@ -42,11 +33,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			visitor.Visit(left);
 
 			return visitor.result;
-		}
-
-		protected override Expression Visit(Expression expression)
-		{
-			return base.Visit(expression);
 		}
 
 		private bool TryGetCurrent<T>(T paramValue, out T current)
@@ -1068,9 +1054,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return expression;
 		}
 
-		protected override Expression VisitScalar(SqlScalarEpression expression)
+		protected override Expression VisitScalar(SqlScalarExpression expression)
 		{
-			SqlScalarEpression current;
+			SqlScalarExpression current;
 
 			if (!this.TryGetCurrent(expression, out current))
 			{

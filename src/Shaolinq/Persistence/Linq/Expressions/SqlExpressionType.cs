@@ -40,6 +40,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		SetCommand,
 		TableOption,
 		Over,
-		Scalar
+		Scalar,
+		Exists,
+		In
 	}
 }

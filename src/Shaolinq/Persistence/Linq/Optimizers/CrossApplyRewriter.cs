@@ -27,17 +27,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				else
 				{
 					var select = join.Right as SqlSelectExpression;
-
-					// Only consider rewriting cross apply if 
-					//   1) right side is a select
-					//   2) other than in the where clause in the right-side select, no left-side declared aliases are referenced
-					//   3) and has no behavior that would change semantics if the where clause is removed (like groups, aggregates, take, skip, etc).
-					// Note: it is best to attempt this after redundant subqueries have been removed.
-					if (select != null
-						&& select.Take == null
-						&& select.Skip == null
-						&& !SqlAggregateChecker.HasAggregates(select)
-						&& (select.GroupBy == null || select.GroupBy.Count == 0))
+					
+					if (select != null && select.Take == null && select.Skip == null && !SqlAggregateChecker.HasAggregates(select) && (select.GroupBy == null || select.GroupBy.Count == 0))
 					{
 						var selectWithoutWhere = select.ChangeWhere(null);
 						var referencedAliases = SqlReferencedAliasGatherer.Gather(selectWithoutWhere);
@@ -51,7 +42,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 							select = selectWithoutWhere;
 
-							var pc = ColumnProjector.ProjectColumns(new NormalNominator(CanBeColumn), where, select.Columns, select.Alias, SqlDeclaredAliasGatherer.Gather(select.From));
+							var pc = ColumnProjector.ProjectColumns(Nominator.Default, where, select.Columns, select.Alias, SqlDeclaredAliasGatherer.Gather(select.From));
 
 							select = select.ChangeColumns(pc.Columns);
 							where = pc.Projector;
@@ -65,21 +56,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			return join;
-		}
-
-		public static bool CanBeColumn(Expression expression)
-		{
-			switch (expression.NodeType)
-			{
-			case (ExpressionType)SqlExpressionType.Column:
-			case (ExpressionType)SqlExpressionType.Scalar:
-			case (ExpressionType)SqlExpressionType.FunctionCall:
-			case (ExpressionType)SqlExpressionType.AggregateSubquery:
-			case (ExpressionType)SqlExpressionType.Aggregate:
-				return true;
-			default:
-				return false;
-			}
 		}
 	}
 }
