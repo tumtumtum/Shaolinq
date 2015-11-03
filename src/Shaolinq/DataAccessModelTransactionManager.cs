@@ -10,11 +10,12 @@ namespace Shaolinq
 	public class DataAccessModelTransactionManager
 		: IDisposable
 	{
-		[ThreadStatic]
-		private static Dictionary<DataAccessModel, DataAccessModelTransactionManager> AmbientTransactionManagers;
+		[ThreadStatic] internal static Transaction currentlyCommitingTransaction;
 
-		[ThreadStatic]
-		internal static Transaction CurrentlyCommitingTransaction;
+		private static readonly ThreadLocal<Dictionary<DataAccessModel, DataAccessModelTransactionManager>> ambientTransactionManagers = new ThreadLocal<Dictionary<DataAccessModel, DataAccessModelTransactionManager>>(() => new Dictionary<DataAccessModel, DataAccessModelTransactionManager>());
+
+		public DataAccessModel DataAccessModel { get; }
+		
         
 		/// <summary>
 		/// Gets the <see cref="DataAccessModelTransactionManager "/> for the current <see cref="Shaolinq.DataAccessModel"/> for the current thread.
@@ -27,15 +28,8 @@ namespace Shaolinq
 		public static DataAccessModelTransactionManager GetAmbientTransactionManager(DataAccessModel dataAccessModel)
 		{
 			DataAccessModelTransactionManager retval;
-			var transactionManagers = AmbientTransactionManagers;
-
-			if (transactionManagers == null)
-			{
-				transactionManagers = new Dictionary<DataAccessModel, DataAccessModelTransactionManager>();
-
-				AmbientTransactionManagers = transactionManagers;
-			}
-
+			var transactionManagers = ambientTransactionManagers.Value;
+			
 			if (!transactionManagers.TryGetValue(dataAccessModel, out retval))
 			{
 				retval = new DataAccessModelTransactionManager(dataAccessModel);
@@ -46,10 +40,6 @@ namespace Shaolinq
 			return retval;
 		}
 
-		public DataAccessModel DataAccessModel
-		{
-			get; }
-
 		~DataAccessModelTransactionManager()
 		{
 			this.Dispose();
@@ -57,10 +47,7 @@ namespace Shaolinq
         
 		public void FlushConnections()
 		{
-			if (this.rootContext != null)
-			{
-				this.rootContext.FlushConnections();
-			}
+			this.rootContext?.FlushConnections();
 		}
 
 		public void Dispose()
@@ -70,10 +57,7 @@ namespace Shaolinq
 				return;
 			}
 
-			if (this.rootContext != null)
-			{
-				this.rootContext.Dispose();
-			}
+			this.rootContext?.Dispose();
 
 			GC.SuppressFinalize(this);
 		}
@@ -136,7 +120,7 @@ namespace Shaolinq
 
 			if (transaction == null)
 			{
-				transaction = CurrentlyCommitingTransaction;
+				transaction = currentlyCommitingTransaction;
 			}
 
 			if (transaction == null && forWrite)

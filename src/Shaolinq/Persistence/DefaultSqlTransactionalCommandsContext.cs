@@ -22,8 +22,6 @@ namespace Shaolinq.Persistence
 	{
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
-		protected int disposed = 0;
-
 		protected internal struct SqlCommandValue
 		{
 			public string commandText;

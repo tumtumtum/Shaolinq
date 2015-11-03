@@ -57,7 +57,8 @@ namespace Shaolinq.Tests
                 UserId = "postgres",
                 Password = "postgres",
                 NativeEnums = true,
-                Categories = null
+                Categories = null,
+				Pooling = false
             });
         }
 

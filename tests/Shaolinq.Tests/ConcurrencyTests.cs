@@ -75,11 +75,12 @@ namespace Shaolinq.Tests
 				{
 					try
 					{
-						for (var j = 0; j < 50; j++)
+						for (var j = 0; j < 100; j++)
 						{
 							Thread.Sleep(random.Next(0, 50));
 
 							var school = this.model.GetDataAccessObjects<School>().First();
+
 							Assert.IsNotNull(school);
 						}
 					}

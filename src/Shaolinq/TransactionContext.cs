@@ -194,12 +194,9 @@ namespace Shaolinq
 		{
 			try
 			{
-				DataAccessModelTransactionManager.CurrentlyCommitingTransaction = this.Transaction;
+				DataAccessModelTransactionManager.currentlyCommitingTransaction = this.Transaction;
 
-				if (this.dataAccessObjectDataContext != null)
-				{
-					this.dataAccessObjectDataContext.Commit(this, false);
-				}
+				this.dataAccessObjectDataContext?.Commit(this, false);
 
 				foreach (var persistenceTransactionContext in this.persistenceTransactionContextsBySqlDatabaseContexts.Values)
 				{
@@ -225,7 +222,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				DataAccessModelTransactionManager.CurrentlyCommitingTransaction = null;
+				DataAccessModelTransactionManager.currentlyCommitingTransaction = null;
 
 				this.Dispose();
 			}
@@ -235,10 +232,7 @@ namespace Shaolinq
 		{
 			try
 			{
-				if (this.dataAccessObjectDataContext != null)
-				{
-					this.dataAccessObjectDataContext.Commit(this, false);
-				}
+				this.dataAccessObjectDataContext?.Commit(this, false);
 
 				preparingEnlistment.Prepared();
 			}
