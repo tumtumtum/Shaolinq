@@ -219,6 +219,16 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_DefaultIfEmpty_Then_Select_Max()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value1 = this.queryable.DefaultIfEmpty().Select(c => c.NullableInteger).Max();
+				var value2 = this.queryable.DefaultIfEmpty().Select(c => c.NullableInteger).Max();
+			}
+		}
+
+		[Test]
 		public virtual void Test_Nullable_Select_DefaultIfEmpty_Then_Sum_Empty()
 		{
 			using (var scope = new TransactionScope())

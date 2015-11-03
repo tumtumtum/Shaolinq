@@ -82,12 +82,13 @@ namespace Shaolinq.Persistence.Linq
 		/// <summary>
 		/// Evaluates & replaces sub-trees when first candidate is reached (top-down)
 		/// </summary>
-		private class SubtreeEvaluator : SqlExpressionVisitor
+		private class SubtreeEvaluator
+			: SqlExpressionVisitor
 		{
 			private int index;
 			private readonly HashSet<Expression> candidates;
 
-			internal SubtreeEvaluator(HashSet<Expression> candidates)
+			private SubtreeEvaluator(HashSet<Expression> candidates)
 			{
 				this.candidates = candidates;
 			}

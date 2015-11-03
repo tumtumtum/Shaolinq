@@ -5,12 +5,12 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class RedundantBinaryExpressionsRemover
+	public class SqlRedundantBinaryExpressionsRemover
 		: SqlExpressionVisitor
 	{
 		public static Expression Remove(Expression expression)
 		{
-			return new RedundantBinaryExpressionsRemover().Visit(expression);
+			return new SqlRedundantBinaryExpressionsRemover().Visit(expression);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)

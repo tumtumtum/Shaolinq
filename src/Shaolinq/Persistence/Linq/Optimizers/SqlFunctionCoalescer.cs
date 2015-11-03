@@ -15,16 +15,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <remarks>
 	/// For example: CONCAT(CONCAT(X, Y), Z) => CONCAT(X, Y, Z)
 	/// </remarks>
-	public class FunctionCoalescer
+	public class SqlFunctionCoalescer
 		: SqlExpressionVisitor
 	{
-		private FunctionCoalescer()
+		private SqlFunctionCoalescer()
 		{
 		}
 
 		public static Expression Coalesce(Expression expression)
 		{
-			var functionCoalescer = new FunctionCoalescer();
+			var functionCoalescer = new SqlFunctionCoalescer();
 
 			return functionCoalescer.Visit(expression);
 		}

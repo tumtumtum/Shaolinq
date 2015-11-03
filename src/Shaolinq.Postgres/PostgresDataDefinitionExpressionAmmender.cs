@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Postgres

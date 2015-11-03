@@ -7,12 +7,12 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class RedundantFunctionCallRemover
+	public class SqlRedundantFunctionCallRemover
 		: SqlExpressionVisitor
 	{
 		public static Expression Remove(Expression expression)
 		{
-			return new RedundantFunctionCallRemover().Visit(expression);		
+			return new SqlRedundantFunctionCallRemover().Visit(expression);		
 		}
 		
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)

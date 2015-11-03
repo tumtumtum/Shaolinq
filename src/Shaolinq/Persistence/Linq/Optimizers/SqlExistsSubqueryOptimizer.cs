@@ -5,16 +5,16 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class ExistsSubqueryOptimizer
+	public class SqlExistsSubqueryOptimizer
 		: SqlExpressionVisitor
 	{
-		private ExistsSubqueryOptimizer()
+		private SqlExistsSubqueryOptimizer()
 		{
 		}
 
 		public static Expression Optimize(Expression expression)
 		{
-			return new ExistsSubqueryOptimizer().Visit(expression);
+			return new SqlExistsSubqueryOptimizer().Visit(expression);
 		}
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)

@@ -11,20 +11,20 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Move OrderBy expressions to the outer most select
 	/// </summary>
-	internal class OrderByRewriter
+	internal class SqlOrderByRewriter
 		: SqlExpressionVisitor
 	{
 		private bool isOuterMostSelect;
 		private IEnumerable<SqlOrderByExpression> gatheredOrderings;
 
-		private OrderByRewriter()
+		private SqlOrderByRewriter()
 		{
 			this.isOuterMostSelect = true;
 		}
 
 		public static Expression Rewrite(Expression expression)
 		{
-			var orderByRewriter = new OrderByRewriter();
+			var orderByRewriter = new SqlOrderByRewriter();
 
 			return orderByRewriter.Visit(expression);
 		}

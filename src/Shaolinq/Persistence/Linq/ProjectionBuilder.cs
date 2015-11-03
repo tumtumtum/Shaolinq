@@ -294,7 +294,6 @@ namespace Shaolinq.Persistence.Linq
 				if (!this.columnIndexes.ContainsKey(column.Name))
 				{
 					throw new InvalidOperationException();
-					return sqlDataType.GetReadExpression(this.dataReader, 0);
 				}
 				else
 				{

@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform.Collections;
+using Shaolinq.Persistence.Linq.Expressions;
 
-namespace Shaolinq.Persistence.Linq.Expressions
+namespace Shaolinq.Persistence.Linq
 {
 	public class SqlExpressionVisitor
 		: Platform.Linq.ExpressionVisitor

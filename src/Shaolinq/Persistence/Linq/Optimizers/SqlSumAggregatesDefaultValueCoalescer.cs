@@ -7,18 +7,18 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class SumAggregatesDefaultValueCoalescer
+	public class SqlSumAggregatesDefaultValueCoalescer
 		: SqlExpressionVisitor
 	{
 		private SqlProjectionExpression currentProjection;
 
-		private SumAggregatesDefaultValueCoalescer()
+		private SqlSumAggregatesDefaultValueCoalescer()
 		{	
 		}
 
 		public static Expression Coalesce(Expression expression)
 		{
-			var coalescer = new SumAggregatesDefaultValueCoalescer();
+			var coalescer = new SqlSumAggregatesDefaultValueCoalescer();
 
 			return coalescer.Visit(expression);
 		}

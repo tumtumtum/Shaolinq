@@ -1,17 +1,19 @@
-﻿using System.Linq.Expressions;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class SqlSqlCrossApplyRewriter : SqlExpressionVisitor
+	public class SqlCrossApplyRewriter : SqlExpressionVisitor
 	{
-		private SqlSqlCrossApplyRewriter()
+		private SqlCrossApplyRewriter()
 		{
 		}
 
 		public static Expression Rewrite(Expression expression)
 		{
-			return new SqlSqlCrossApplyRewriter().Visit(expression);
+			return new SqlCrossApplyRewriter().Visit(expression);
 		}
 
 		protected override Expression VisitJoin(SqlJoinExpression join)

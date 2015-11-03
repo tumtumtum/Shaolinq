@@ -18,12 +18,7 @@ namespace Shaolinq.Persistence.Linq
 		: SqlQueryFormatter
 	{
 		protected internal static readonly string ParamNamePrefix = "shaolinqparam";
-
-		public bool Equals(string s)
-		{
-			return s?.Length == 0;
-		}
-
+		
 		public struct FunctionResolveResult
 		{
 			public static Tuple<Type, object>[] MakeArguments(params object[] args)
@@ -308,7 +303,7 @@ namespace Shaolinq.Persistence.Linq
 			case SqlFunction.StartsWith:
 			{
 				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
-				newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+				newArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
 
 				var list = new List<Expression>
 				{
@@ -322,7 +317,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
 				newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), newArgument);
-				newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+				newArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
 
 				var list = new List<Expression>
 				{
@@ -335,7 +330,7 @@ namespace Shaolinq.Persistence.Linq
 			case SqlFunction.EndsWith:
 			{
 				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
-				newArgument = RedundantFunctionCallRemover.Remove(newArgument);
+				newArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
 
 				var list = new List<Expression>
 				{
@@ -969,7 +964,9 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
-			if (memberExpression.Member.DeclaringType.IsGenericType && memberExpression.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
+			var declaringType = memberExpression.Member.DeclaringType;
+
+			if (declaringType != null && Nullable.GetUnderlyingType(declaringType) != null)
 			{
 				return this.Visit(memberExpression.Expression);
 			}

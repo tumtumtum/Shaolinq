@@ -190,9 +190,10 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlUnusedColumnRemover.Remove(expression);
 			expression = SqlRedundantColumnRemover.Remove(expression);
 			expression = SqlRedundantSubqueryRemover.Remove(expression);
-			expression = FunctionCoalescer.Coalesce(expression);
-			expression = ExistsSubqueryOptimizer.Optimize(expression);
-			expression = RedundantBinaryExpressionsRemover.Remove(expression);
+			expression = SqlFunctionCoalescer.Coalesce(expression);
+			expression = SqlExistsSubqueryOptimizer.Optimize(expression);
+			expression = SqlRedundantBinaryExpressionsRemover.Remove(expression);
+			expression = SqlCrossJoinRewriter.Rewrite(expression);
 
 			if (simplerPartialVal)
 			{
@@ -203,13 +204,13 @@ namespace Shaolinq.Persistence.Linq
 				expression = Evaluator.PartialEval(expression);
 			}
 
-			expression = RedundantFunctionCallRemover.Remove(expression);
-			expression = ConditionalEliminator.Eliminate(expression);
+			expression = SqlRedundantFunctionCallRemover.Remove(expression);
+			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
-			expression = SumAggregatesDefaultValueCoalescer.Coalesce(expression);
-			expression = OrderByRewriter.Rewrite(expression);
+			expression = SqlSumAggregatesDefaultValueCoalescer.Coalesce(expression);
+			expression = SqlOrderByRewriter.Rewrite(expression);
 
-			var rewritten = SqlSqlCrossApplyRewriter.Rewrite(expression);
+			var rewritten = SqlCrossApplyRewriter.Rewrite(expression);
 
 			if (rewritten != expression)
 			{
@@ -218,7 +219,7 @@ namespace Shaolinq.Persistence.Linq
 				expression = SqlUnusedColumnRemover.Remove(expression);
 				expression = SqlRedundantColumnRemover.Remove(expression);
 				expression = SqlRedundantSubqueryRemover.Remove(expression);
-				expression = OrderByRewriter.Rewrite(expression);
+				expression = SqlOrderByRewriter.Rewrite(expression);
 			}
 
 			return expression;

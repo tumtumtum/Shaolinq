@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 
@@ -8,6 +10,43 @@ namespace Shaolinq.Persistence.Linq
 {
 	public static class ExpressionExtensions
 	{
+		public static Expression[] Split(this Expression expression, params ExpressionType[] binarySeparators)
+		{
+			var list = new List<Expression>();
+
+			Split(expression, list, binarySeparators);
+
+			return list.ToArray();
+		}
+
+		public static Expression Join(this IEnumerable<Expression> list, ExpressionType binarySeparator)
+		{
+			var array = list?.ToArray();
+			
+			return array?.Length > 0 ? array.Aggregate((x1, x2) => Expression.MakeBinary(binarySeparator, x1, x2)) : null;
+		}
+
+		private static void Split(Expression expression, ICollection<Expression> list, ExpressionType[] binarySeparators)
+		{
+			if (expression != null)
+			{
+				if (binarySeparators.Contains(expression.NodeType))
+				{
+					var binaryExpression = expression as BinaryExpression;
+
+					if (binaryExpression != null)
+					{
+						Split(binaryExpression.Left, list, binarySeparators);
+						Split(binaryExpression.Right, list, binarySeparators);
+					}
+				}
+				else
+				{
+					list.Add(expression);
+				}
+			}
+		}
+
 		public static LambdaExpression StripQuotes(this Expression expression)
 		{
 			while (expression.NodeType == ExpressionType.Quote)

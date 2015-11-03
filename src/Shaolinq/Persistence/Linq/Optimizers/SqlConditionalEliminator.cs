@@ -2,20 +2,19 @@
 
 using System;
 using System.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class ConditionalEliminator
+	public class SqlConditionalEliminator
 		: SqlExpressionVisitor
 	{
-		private ConditionalEliminator()
+		private SqlConditionalEliminator()
 		{
 		}
 
 		public static Expression Eliminate(Expression expression)
 		{
-			return new ConditionalEliminator().Visit(expression);
+			return new SqlConditionalEliminator().Visit(expression);
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
@@ -24,14 +23,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (constantExpression != null)
 			{
-				if (Convert.ToBoolean(constantExpression.Value))
-				{
-					return expression.IfTrue; 
-				}
-				else
-				{
-					return expression.IfFalse;
-				}
+				return Convert.ToBoolean(constantExpression.Value) ? expression.IfTrue : expression.IfFalse;
 			}
 
 			return base.VisitConditional(expression);
