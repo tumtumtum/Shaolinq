@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {

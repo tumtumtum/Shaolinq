@@ -2,7 +2,6 @@
 
 using System;
 using System.Reflection.Emit;
-using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {

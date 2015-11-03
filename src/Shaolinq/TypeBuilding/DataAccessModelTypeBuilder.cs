@@ -9,7 +9,6 @@ using System.Reflection.Emit;
 using System.Threading;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {

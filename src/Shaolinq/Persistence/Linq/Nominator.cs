@@ -9,6 +9,7 @@ namespace Shaolinq.Persistence.Linq
 		: SqlExpressionVisitor
 	{
 		public static readonly Nominator Default = new Nominator(CanBeColumn);
+		public static readonly Nominator NominatorIncludingIntegralTypes = new Nominator(CanBeColumnIncludingIntegral);
 
 		public readonly HashSet<Expression> candidates;
 		protected readonly Func<Expression, bool> canBeColumn;
@@ -31,10 +32,26 @@ namespace Shaolinq.Persistence.Linq
 			case (ExpressionType)SqlExpressionType.Subquery:
 				return true;
 			default:
-				return expression.Type.IsIntegralType();
+				return false;
 			}
 		}
-		
+
+		public static bool CanBeColumnIncludingIntegral(Expression expression)
+		{
+			switch (expression.NodeType)
+			{
+				case (ExpressionType)SqlExpressionType.Column:
+				case (ExpressionType)SqlExpressionType.Scalar:
+				case (ExpressionType)SqlExpressionType.FunctionCall:
+				case (ExpressionType)SqlExpressionType.AggregateSubquery:
+				case (ExpressionType)SqlExpressionType.Aggregate:
+				case (ExpressionType)SqlExpressionType.Subquery:
+					return true;
+				default:
+					return expression.Type.IsIntegralType();
+			}
+		}
+
 		public virtual HashSet<Expression> Nominate(Expression expression)
 		{
 			this.Visit(expression);

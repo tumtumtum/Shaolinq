@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			var other = obj as SqlColumnExpression;
 
-			return other != null && (object.ReferenceEquals(this, other) || this.SelectAlias == other.SelectAlias && this.Name == other.Name);
+			return other != null && (object.ReferenceEquals(this, other) || (this.SelectAlias == other.SelectAlias && this.Name == other.Name));
 		}
 	}
 }

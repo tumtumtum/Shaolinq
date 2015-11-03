@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Platform;
 using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq

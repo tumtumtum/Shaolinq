@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Text;
-using Platform;
 using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;

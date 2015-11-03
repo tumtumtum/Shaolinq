@@ -171,7 +171,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlPragmaExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlSetCommandExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTableOption.cs" />
-    <Compile Include="Persistence\Linq\JoinSelectorExpander.cs" />
+    <Compile Include="Persistence\Linq\SqlProjectionSelectExpander.cs" />
     <Compile Include="Persistence\Linq\LeftRightJoinInfo.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlEnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlExistsSubqueryOptimizer.cs" />

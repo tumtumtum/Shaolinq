@@ -7,13 +7,29 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
 using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
 namespace Shaolinq.Persistence.Linq
 {
+	internal static class JoinHelperExtensions
+	{
+		public static readonly MethodInfo LeftJoinMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).LeftJoin((IEnumerable<string>)null, x => "", y => "", (x, y) => "")).GetGenericMethodDefinition();
+
+		private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source)
+		{
+			var queryable = source as IQueryable<TSource>;
+
+			return queryable?.Expression ?? Expression.Constant(source, typeof(IEnumerable<TSource>));
+		}
+
+		public static IQueryable<TResult> LeftJoin<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner, TResult>> resultSelector)
+		{
+			return outer.Provider.CreateQuery<TResult>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TOuter), typeof(TInner), typeof(TKey), typeof(TResult)), outer.Expression, GetSourceExpression(inner), Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
+		}
+	}
+
 	public class RelatedPropertiesJoinExpanderResults
 	{
 		public Expression ProcessedExpression { get; set; }
@@ -98,7 +114,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public static RelatedPropertiesJoinExpanderResults Expand(DataAccessModel model, Expression expression)
 		{
-			expression = JoinSelectorExpander.Expand(expression);
+			expression = SqlProjectionSelectExpander.Expand(expression);
 
 			var visitor = new RelatedPropertiesJoinExpander(model);
 
@@ -194,9 +210,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var projector = MakeJoinProjector(leftElementType, rightElementType);
 
-			right = Expression.Call(null, MethodInfoFastRef.QueryableDefaultIfEmptyMethod.MakeGenericMethod(rightElementType), right);
-
-			var method = MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod(leftElementType, rightElementType, targetPath.Last().GetMemberReturnType(), projector.ReturnType);
+			var method = JoinHelperExtensions.LeftJoinMethod.MakeGenericMethod(leftElementType, rightElementType, targetPath.Last().GetMemberReturnType(), projector.ReturnType);
 			
 			return Expression.Call(null, method, left, right, Expression.Quote(leftSelector), Expression.Quote(rightSelector), Expression.Quote(projector));
 		}

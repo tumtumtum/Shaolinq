@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Transactions;
 using NUnit.Framework;
-using Platform;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
@@ -130,10 +129,9 @@ namespace Shaolinq.Tests
 		public void Test_Explicit_Left_Join_Empty_Right()
 		{
 			var query =
-				from
-				shop in this.model.Shops
-				join 
-				address in this.model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address
+				from shop in this.model.Shops
+				join address_ in this.model.Addresses on shop.ThirdAddress equals address_ into g
+				from address in g.DefaultIfEmpty()
 				select
 				new
 				{
@@ -143,6 +141,23 @@ namespace Shaolinq.Tests
 			var first = query.First();
 
 			Assert.IsNull(first.address);
+		}
+
+		[Test]
+		public void Test_Explicit_Left_Join_Empty_Right2()
+		{
+			var query =
+				from shop in this.model.Shops
+				join address in this.model.Addresses on shop.ThirdAddress equals address
+				select
+				new
+				{
+					address
+				};
+
+			var first = query.FirstOrDefault();
+
+			Assert.IsNull(first);
 		}
 
 		[Test]
@@ -156,7 +171,9 @@ namespace Shaolinq.Tests
 				join
 				address2 in this.model.Addresses on shop.SecondAddress equals address2
 				join
-				address3 in this.model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
+				//address3 in this.model.Addresses on shop.ThirdAddress equals address3 
+				_address3 in this.model.Addresses on shop.ThirdAddress equals _address3 into g
+				from address3 in g.DefaultIfEmpty()
 				select
 				new
 				{
@@ -232,11 +249,12 @@ namespace Shaolinq.Tests
 				from
 				shop in this.model.Shops
 				join
-				address1 in this.model.Addresses.Include(c => c.Region) on shop.Address equals address1
+				address1 in this.model.Addresses on shop.Address equals address1
 				join
 				address2 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
 				join
-				address3 in this.model.Addresses.Include(c => c.Region).DefaultIfEmpty() on shop.ThirdAddress equals address3
+				_address3 in this.model.Addresses on shop.ThirdAddress equals _address3  into g
+				from address3 in g.DefaultIfEmpty()
 				join
 				address4 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address4
 				join
@@ -245,9 +263,9 @@ namespace Shaolinq.Tests
 				new
 				{
 					shop,
-					address1,
+					address1 = address1.Include(c => c.Region),
 					address2,
-					address3,
+					address3 = address3.Include(c => c.Region),
 					address4,
 					address5
 				};
@@ -282,7 +300,8 @@ namespace Shaolinq.Tests
 				join
 				address2 in this.model.Addresses on shop.SecondAddress equals address2
 				join
-				address3 in this.model.Addresses.DefaultIfEmpty() on shop.ThirdAddress equals address3
+				address3_ in this.model.Addresses on shop.ThirdAddress equals address3_ into g
+				from address3 in g.DefaultIfEmpty()
 				select
 				new
 				{

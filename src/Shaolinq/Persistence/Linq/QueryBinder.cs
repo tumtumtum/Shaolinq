@@ -150,7 +150,7 @@ namespace Shaolinq.Persistence.Linq
 		
         private ProjectedColumns ProjectColumns(Expression expression, string newAlias, IEnumerable<SqlColumnDeclaration> existingColumns, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(Nominator.Default, expression, existingColumns, newAlias, existingAliases);
+			return ColumnProjector.ProjectColumns(Nominator.NominatorIncludingIntegralTypes, expression, existingColumns, newAlias, existingAliases);
 		}
 
 		private Expression BindCollectionContains(Expression list, Expression item)
@@ -483,7 +483,7 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector)
+		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector, SqlJoinType joinType = SqlJoinType.Inner)
 		{
 			var outerProjection = this.VisitSequence(outerSource);
 			var innerProjection = this.VisitSequence(innerSource);
@@ -497,26 +497,7 @@ namespace Shaolinq.Persistence.Linq
 			this.AddExpressionByParameter(resultSelector.Parameters[1], innerProjection.Projector);
 
 			var resultExpr = this.Visit(resultSelector.Body);
-
-			SqlJoinType joinType;
-
-			if (outerProjection.IsDefaultIfEmpty && innerProjection.IsDefaultIfEmpty)
-			{
-				joinType = SqlJoinType.Outer;
-			}
-			else if (outerProjection.IsDefaultIfEmpty && !innerProjection.IsDefaultIfEmpty)
-			{
-				joinType = SqlJoinType.Right;
-			}
-			else if (!outerProjection.IsDefaultIfEmpty && innerProjection.IsDefaultIfEmpty)
-			{
-				joinType = SqlJoinType.Left;
-			}
-			else
-			{
-				joinType = SqlJoinType.Inner;
-			}
-
+			
 			var join = new SqlJoinExpression(resultType, joinType, outerProjection.Select, innerProjection.Select, Expression.Equal(outerKeyExpr, innerKeyExpression));
 			
 			var alias = this.GetNextAlias();
@@ -879,21 +860,21 @@ namespace Shaolinq.Persistence.Linq
 		                                       methodCallExpression.Arguments[2].StripQuotes(),
 		                                       methodCallExpression.Arguments[3].StripQuotes(),
 		                                       methodCallExpression.Arguments[4].StripQuotes());
-	            case "SelectMany":
-		            this.selectorPredicateStack.Push(methodCallExpression);
+				case "SelectMany":
+					this.selectorPredicateStack.Push(methodCallExpression);
 					if (methodCallExpression.Arguments.Count == 2)
-		            {
-			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), null);
-		            }
-		            else if (methodCallExpression.Arguments.Count == 3)
-		            {
-			            result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), methodCallExpression.Arguments[2].StripQuotes());
-		            }
-		            else
-		            {
-			            this.selectorPredicateStack.Pop();
+					{
+						result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), null);
+					}
+					else if (methodCallExpression.Arguments.Count == 3)
+					{
+						result = this.BindSelectMany(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), methodCallExpression.Arguments[2].StripQuotes());
+					}
+					else
+					{
+						this.selectorPredicateStack.Pop();
 						break;
-		            }
+					}
 					this.selectorPredicateStack.Pop();
 		            return result;
 	            case "Skip":
@@ -1016,6 +997,16 @@ namespace Shaolinq.Persistence.Linq
 				var operand2 = this.Visit(methodCallExpression.Arguments[1]);
 
 				return new SqlFunctionCallExpression(typeof(bool), SqlFunction.Like, operand1, operand2);
+			}
+			else if (methodCallExpression.Method.DeclaringType == typeof(JoinHelperExtensions)
+				&& methodCallExpression.Method.GetGenericMethodOrRegular() == JoinHelperExtensions.LeftJoinMethod)
+			{
+				return this.BindJoin(methodCallExpression.Type, methodCallExpression.Arguments[0],
+						methodCallExpression.Arguments[1],
+						methodCallExpression.Arguments[2].StripQuotes(),
+						methodCallExpression.Arguments[3].StripQuotes(),
+						methodCallExpression.Arguments[4].StripQuotes(),
+						SqlJoinType.Left);
 			}
 			else if (methodCallExpression.Method.DeclaringType == typeof(string))
 			{

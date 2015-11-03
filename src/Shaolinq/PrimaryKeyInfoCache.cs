@@ -2,7 +2,6 @@
 
 using System.Linq;
 using System.Reflection;
-using Shaolinq.Persistence;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
