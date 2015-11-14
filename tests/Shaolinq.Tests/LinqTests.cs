@@ -804,6 +804,17 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		protected readonly Sex TestSex = Sex.Male;
+
+		[Test]
+		public virtual void Test_Check_Enum()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student = this.model.Students.Where(c => c.Sex == TestSex).ToList();
+			}
+		}
+
 		[Test]
 		public virtual void Test_Get_Advanced_Computed_Property_With_AutoIncrement_Guid()
 		{

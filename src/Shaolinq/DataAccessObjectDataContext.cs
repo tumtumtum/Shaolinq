@@ -817,26 +817,11 @@ namespace Shaolinq
 		public virtual void Commit(TransactionContext transactionContext, bool forFlush)
 		{
 			var acquisitions = new HashSet<DatabaseTransactionContextAcquisition>();
-			
-			if (this.cacheByInt != null)
-			{
-				this.cacheByInt.AssertObjectsAreReadyForCommit();
-			}
 
-			if (this.cacheByLong != null)
-			{
-				this.cacheByLong.AssertObjectsAreReadyForCommit();
-			}
-
-			if (this.cacheByGuid != null)
-			{
-				this.cacheByGuid.AssertObjectsAreReadyForCommit();
-			}
-
-			if (this.cacheByString != null)
-			{
-				this.cacheByString.AssertObjectsAreReadyForCommit();
-			}
+			this.cacheByInt?.AssertObjectsAreReadyForCommit();
+			this.cacheByLong?.AssertObjectsAreReadyForCommit();
+			this.cacheByGuid?.AssertObjectsAreReadyForCommit();
+			this.cacheByString?.AssertObjectsAreReadyForCommit();
 
 			try
 			{
@@ -852,26 +837,11 @@ namespace Shaolinq
 				{
 					this.isCommiting = false;
 				}
-				
-				if (this.cacheByInt != null)
-				{
-					this.cacheByInt.ProcessAfterCommit();
-				}
-					
-				if (this.cacheByLong != null)
-				{
-					this.cacheByLong.ProcessAfterCommit();
-				}
 
-				if (this.cacheByGuid != null)
-				{
-					this.cacheByGuid.ProcessAfterCommit();
-				}
-
-				if (this.cacheByString != null)
-				{
-					this.cacheByString.ProcessAfterCommit();
-				}
+				this.cacheByInt?.ProcessAfterCommit();
+				this.cacheByLong?.ProcessAfterCommit();
+				this.cacheByGuid?.ProcessAfterCommit();
+				this.cacheByString?.ProcessAfterCommit();
 			}
 			catch (Exception)
 			{

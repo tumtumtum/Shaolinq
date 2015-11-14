@@ -314,14 +314,26 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return InterpretFailed;
 			}
 
-			var underlyingType = expression.Type.GetUnwrappedNullableType();
+			if (result == null)
+			{
+				return Expression.Constant(null, expression.Type);
+			}
+
+			var underlyingType = expression.Operand.Type.GetUnwrappedNullableType();
 
 			if (expression.Type == underlyingType)
 			{
 				return result;
 			}
 
-			return Convert.ChangeType(result, underlyingType);
+			try
+			{
+				return Convert.ChangeType(result, expression.Type);
+			}
+			catch (InvalidCastException)
+			{
+				return InterpretFailed;
+			}
 		}
 	}
 }
