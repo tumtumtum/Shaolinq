@@ -19,6 +19,21 @@ namespace Shaolinq.Persistence
 			: base(constraintDefaults, type)
 		{
 		}
+		
+		protected virtual string CreateFixedTypeName(int maximumLength)
+		{
+			return $"CHAR({maximumLength})";
+		}
+
+		protected virtual string CreateVariableName(int maximumLength)
+		{
+			return $"VARCHAR({maximumLength})";
+		}
+
+		protected virtual string CreateTextName()
+		{
+			return "TEXT";
+		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
@@ -28,14 +43,14 @@ namespace Shaolinq.Persistence
 			{
 				switch (sizeConstraintAttribute.SizeFlexibility)
 				{
-					case SizeFlexibility.Fixed:
-						return $"CHAR({sizeConstraintAttribute.MaximumLength})";
-					case SizeFlexibility.Variable:
-						return $"VARCHAR({sizeConstraintAttribute.MaximumLength})";
-					case SizeFlexibility.LargeVariable:
-						return "TEXT";
-					default:
-						throw new NotSupportedException("SizeFlexibility: " + sizeConstraintAttribute.SizeFlexibility);
+				case SizeFlexibility.Fixed:
+					return CreateFixedTypeName(sizeConstraintAttribute.MaximumLength);
+				case SizeFlexibility.Variable:
+					return CreateVariableName(sizeConstraintAttribute.MaximumLength);
+				case SizeFlexibility.LargeVariable:
+					return CreateTextName();
+				default:
+					throw new NotSupportedException("SizeFlexibility: " + sizeConstraintAttribute.SizeFlexibility);
 				}
 			}
 			else

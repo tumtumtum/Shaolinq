@@ -67,6 +67,7 @@
     <Compile Include="SqlServerSqlDialect.cs" />
     <Compile Include="SqlServerSqlQueryFormatter.cs" />
     <Compile Include="SqlServerSqlTransactionsCommandContext.cs" />
+    <Compile Include="SqlServerStringDateTimeType.cs" />
     <Compile Include="SqlServerSubqueryOrderByFixer.cs" />
     <Compile Include="SqlTakeAllValueExpression.cs" />
   </ItemGroup>

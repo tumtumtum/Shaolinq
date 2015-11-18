@@ -29,6 +29,7 @@ namespace Shaolinq.SqlServer
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal), "DECIMAL(38, 9)"));
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal?), "DECIMAL(38, 9)"));
 			this.DefineSqlDataType(new DefaultBlobSqlDataType(constraintDefaults, "VARBINARY(MAX)"));
+			this.DefineSqlDataType(new SqlServerStringSqlDataType(constraintDefaults));
 		}
 	}
 }
