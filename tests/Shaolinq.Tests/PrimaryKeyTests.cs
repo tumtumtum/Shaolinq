@@ -413,5 +413,21 @@ namespace Shaolinq.Tests
 				);
 			}
 		}
+
+		[Test]
+		[Ignore]
+		public void Test_Create_Object_With_Dao_Primary_Key()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var parentObject = this.model.ObjectWithManyTypes.Create();
+
+				scope.Flush(this.model);
+
+				var childObject = this.model.ObjectWithDaoPrimaryKeys.Create(parentObject);
+
+				scope.Complete();
+			}
+		}
 	}
 }

@@ -66,6 +66,9 @@ namespace Shaolinq.Tests.TestModel
 		public abstract DataAccessObjects<ObjectWithLongNonAutoIncrementPrimaryKey> ObjectWithLongNonAutoIncrementPrimaryKeys { get; }
 
 		[DataAccessObjects]
+		public abstract DataAccessObjects<ObjectWithDaoPrimaryKey> ObjectWithDaoPrimaryKeys { get; }
+
+		[DataAccessObjects]
 		public abstract DataAccessObjects<ObjectWithManyTypes> ObjectWithManyTypes { get; }
 
 		[DataAccessObjects]
