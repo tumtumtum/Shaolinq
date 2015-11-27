@@ -131,7 +131,7 @@ namespace Shaolinq
 			{
 				DataAccessObject retval;
 
-				if (this.objectsForUpdateByCondition.TryGetValue(key, out retval))
+				if (objectsForUpdateByCondition.TryGetValue(key, out retval))
 				{
 					return retval;
 				}
@@ -144,14 +144,24 @@ namespace Shaolinq
 
 		#region ObjectsByIdCache
 
+		private interface IObjectsByIdCache
+		{
+			void ProcessAfterCommit();
+			void AssertObjectsAreReadyForCommit();
+            Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>> GetNewObjects();
+			DataAccessObject Cache(DataAccessObject value, bool forImport);
+			DataAccessObject Get(Type type, ObjectPropertyValue[] primaryKeys);
+		}
+
 		private class ObjectsByIdCache<T>
+			: IObjectsByIdCache
 		{
 			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
 			private readonly Dictionary<Type, HashSet<DataAccessObject>> objectsNotReadyForCommit;
 			
 			internal Dictionary<Type, Dictionary<T, DataAccessObject>> objectsDeleted;
 			internal readonly Dictionary<Type, Dictionary<T, DataAccessObject>> objectsByIdCache;
-			internal readonly Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>> newObjects;
+			private readonly Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>> newObjects;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>> objectsDeletedComposite;
 			internal Dictionary<Type, Dictionary<CompositePrimaryKey, DataAccessObject>> objectsByIdCacheComposite;
 
@@ -162,6 +172,8 @@ namespace Shaolinq
 				this.objectsNotReadyForCommit = new Dictionary<Type, HashSet<DataAccessObject>>(PrimeNumbers.Prime67);
 				this.newObjects = new Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>>(PrimeNumbers.Prime67);
 			}
+
+			public Dictionary<Type, Dictionary<DataAccessObject, DataAccessObject>> GetNewObjects() => this.newObjects;
 
 			public void AssertObjectsAreReadyForCommit()
 			{
@@ -303,7 +315,12 @@ namespace Shaolinq
 				}
 			}
 
-			public DataAccessObject<T> Get(Type type, ObjectPropertyValue[] primaryKeys)
+	        DataAccessObject IObjectsByIdCache.Get(Type type, ObjectPropertyValue[] primaryKeys)
+	        {
+		        return this.Get(type, primaryKeys);
+	        }
+
+            public DataAccessObject<T> Get(Type type, ObjectPropertyValue[] primaryKeys)
 			{
 				DataAccessObject outValue;
 
@@ -364,7 +381,12 @@ namespace Shaolinq
 				}
 			}
 
-			public DataAccessObject<T> Cache(DataAccessObject<T> value, bool forImport)
+	        DataAccessObject IObjectsByIdCache.Cache(DataAccessObject value, bool forImport)
+	        {
+		        return this.Cache((DataAccessObject<T>)value, forImport);
+	        }
+
+            public DataAccessObject<T> Cache(DataAccessObject<T> value, bool forImport)
 			{
 				if (this.dataAccessObjectDataContext.isCommiting)
 				{
@@ -590,6 +612,8 @@ namespace Shaolinq
 		private ObjectsByIdCache<long> cacheByLong;
 		private ObjectsByIdCache<Guid> cacheByGuid;
 		private ObjectsByIdCache<string> cacheByString;
+		private Dictionary<Type, IObjectsByIdCache> cacheByDao;
+
 		private ObjectsByCondition cacheByCondition;
 
 		protected bool DisableCache { get; }
@@ -744,14 +768,25 @@ namespace Shaolinq
 
 					return this.cacheByGuid.Get(type, primaryKeys);
 				}
-				else if (typeof(Expression).IsAssignableFrom(keyType))
+				else if (keyType.IsDataAccessObjectType())
 				{
-					if (this.cacheByCondition == null)
+					IObjectsByIdCache cache;
+
+					if (this.cacheByDao == null)
 					{
 						return null;
 					}
 
-					return this.cacheByCondition.Get(new ConditionalKey((Expression)primaryKeys[0].Value));
+					if (!this.cacheByDao.TryGetValue(keyType, out cache))
+					{
+						return null;
+					}
+
+					return cache.Get(type, primaryKeys);
+				}
+				else if (typeof(Expression).IsAssignableFrom(keyType))
+				{
+					return this.cacheByCondition?.Get(new ConditionalKey((Expression)primaryKeys[0].Value));
 				}
 				break;
 			}
@@ -806,6 +841,24 @@ namespace Shaolinq
 
 					return this.cacheByGuid.Cache((DataAccessObject<Guid>)value, forImport);
 				}
+				else if (keyType.IsDataAccessObjectType())
+				{
+					IObjectsByIdCache cache;
+
+					if (this.cacheByDao == null)
+					{
+						this.cacheByDao = new Dictionary<Type, IObjectsByIdCache>();
+					}
+
+					if (!this.cacheByDao.TryGetValue(keyType, out cache))
+					{
+						cache = (IObjectsByIdCache)Activator.CreateInstance(typeof(ObjectsByIdCache<>).MakeGenericType(keyType), this);
+
+						this.cacheByDao[keyType] = cache;
+					}
+
+					return cache.Cache(value, forImport);
+				}
 				break;
 			}
 
@@ -822,6 +875,7 @@ namespace Shaolinq
 			this.cacheByLong?.AssertObjectsAreReadyForCommit();
 			this.cacheByGuid?.AssertObjectsAreReadyForCommit();
 			this.cacheByString?.AssertObjectsAreReadyForCommit();
+			this.cacheByDao?.ForEach(c => c.Value.AssertObjectsAreReadyForCommit());
 
 			try
 			{
@@ -842,6 +896,7 @@ namespace Shaolinq
 				this.cacheByLong?.ProcessAfterCommit();
 				this.cacheByGuid?.ProcessAfterCommit();
 				this.cacheByString?.ProcessAfterCommit();
+				this.cacheByDao?.ForEach(c => c.Value.ProcessAfterCommit());
 			}
 			catch (Exception)
 			{
@@ -964,7 +1019,7 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitNewPhase1<T>(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, ObjectsByIdCache<T> cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>> fixups)
+		private static void CommitNewPhase1(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, IObjectsByIdCache cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>> fixups)
 		{
 			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
 
@@ -972,7 +1027,7 @@ namespace Shaolinq
 
 			var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
 
-			foreach (var j in cache.newObjects)
+			foreach (var j in cache.GetNewObjects())
 			{
 				var key = new TypeAndTransactionalCommandsContext(j.Key, persistenceTransactionContext);
 
@@ -1013,6 +1068,14 @@ namespace Shaolinq
 			if (this.cacheByString != null)
 			{
 				CommitNewPhase1(this.SqlDatabaseContext, acquisitions, this.cacheByString, transactionContext, insertResultsByType, fixups);
+			}
+
+			if (this.cacheByDao != null)
+			{
+				foreach (var value in this.cacheByDao.Values)
+				{
+					CommitNewPhase1(this.SqlDatabaseContext, acquisitions, value, transactionContext, insertResultsByType, fixups);
+				}
 			}
 
 			var currentInsertResultsByType = insertResultsByType;

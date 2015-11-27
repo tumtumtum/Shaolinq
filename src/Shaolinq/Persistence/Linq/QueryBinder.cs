@@ -1693,17 +1693,20 @@ namespace Shaolinq.Persistence.Linq
 			
 			var bindings = new List<MemberBinding>();
 
+			expressionForKey[new PropertyDescriptor[0]] = expression;
+
 			foreach (var groupedColumnInfo in groupedColumnInfos)
 			{
 				Expression parentExpression;
-				
-				if (groupedColumnInfo.Key.Length == 0)
-				{
+				var parentKey = groupedColumnInfo.Key.Length == 0 ? null : groupedColumnInfo.Key.Take(groupedColumnInfo.Key.Length - 1).ToArray();
+
+				if (parentKey == null)
+                {
 					parentExpression = expression;
 				}
 				else
 				{
-					parentExpression = Expression.Property(expressionForKey[groupedColumnInfo.Key.Take(groupedColumnInfo.Key.Length - 1).ToArray()], groupedColumnInfo.Key[groupedColumnInfo.Key.Length - 1].PropertyInfo);
+					parentExpression = Expression.Property(parentKey.Length == 0 ? expression : expressionForKey[parentKey], groupedColumnInfo.Key[groupedColumnInfo.Key.Length - 1].PropertyInfo);
 				}
 
 				expressionForKey[groupedColumnInfo.Key] = parentExpression;

@@ -81,7 +81,7 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetQueryableByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			if (typeof(K) == IdType)
+			if (typeof(K) == IdType && !IdType.IsDataAccessObjectType())
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{

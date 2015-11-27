@@ -362,7 +362,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_GetByPrimaryKey()
+		public void Test_GetByPrimaryKey1()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -371,6 +371,19 @@ namespace Shaolinq.Tests
 				scope.Flush(this.model);
 
 				var school2 = this.model.Schools.GetByPrimaryKey(school.Id);
+			}
+		}
+
+		[Test]
+		public void Test_GetByPrimaryKey2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				scope.Flush(this.model);
+
+				var school2 = this.model.Schools.GetByPrimaryKey(school);
 			}
 		}
 
@@ -415,9 +428,22 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Ignore]
+		public void Test_Create_Object_With_Dao_Primary_Key_Without_Flush()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var parentObject = this.model.ObjectWithManyTypes.Create();
+				var childObject = this.model.ObjectWithDaoPrimaryKeys.Create(parentObject);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Create_Object_With_Dao_Primary_Key()
 		{
+			long id = 0;
+
 			using (var scope = new TransactionScope())
 			{
 				var parentObject = this.model.ObjectWithManyTypes.Create();
@@ -426,8 +452,18 @@ namespace Shaolinq.Tests
 
 				var childObject = this.model.ObjectWithDaoPrimaryKeys.Create(parentObject);
 
+				this.model.Flush();
+
+				id = parentObject.Id;
+				Assert.AreEqual(id, childObject.Id.Id);
+
 				scope.Complete();
 			}
+
+			var result1 = this.model.ObjectWithManyTypes.GetByPrimaryKey(id);
+			var result2 = this.model.ObjectWithDaoPrimaryKeys.GetByPrimaryKey(result1);
+			//var result3 = this.model.ObjectWithDaoPrimaryKeys.GetByPrimaryKey(new { Id = result1 });
+			//var result4 = this.model.ObjectWithDaoPrimaryKeys.GetByPrimaryKey(result1.Id);
 		}
 	}
 }
