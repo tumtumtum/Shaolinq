@@ -3,31 +3,29 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 
 namespace Shaolinq.Persistence
 {
 	public class UniversalTimeNormalisingDateTimeSqlDateType
 		: PrimitiveSqlDataType
 	{
-		private static readonly MethodInfo specifyKindIfUnspecifiedMethod = typeof(UniversalTimeNormalisingDateTimeSqlDateType).GetMethod("SpecifyKindIfUnspecified", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(DateTime), typeof(DateTimeKind) }, null);
-		private static readonly MethodInfo specifyKindIfUnspecifiedMethodNullable = typeof(UniversalTimeNormalisingDateTimeSqlDateType).GetMethod("SpecifyKindIfUnspecified", BindingFlags.Public | BindingFlags.Static, null, new Type[] { typeof(DateTime?), typeof(DateTimeKind) }, null);
-
+		private static readonly MethodInfo SpecifyKindIfUnspecifiedMethod = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime), default(DateTimeKind)));
+		private static readonly MethodInfo SpecifyKindIfUnspecifiedMethodNullable = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime?), default(DateTimeKind)));
+		
 		private readonly MethodInfo specifyKindMethod;
 
 		public UniversalTimeNormalisingDateTimeSqlDateType(ConstraintDefaults constraintDefaults, string typeName, bool nullable)
 			: base(constraintDefaults, nullable ? typeof(DateTime?) : typeof(DateTime), typeName, DataRecordMethods.GetMethod("GetDateTime"))
 		{
-			this.specifyKindMethod = nullable ? specifyKindIfUnspecifiedMethodNullable : specifyKindIfUnspecifiedMethod;
+			this.specifyKindMethod = nullable ? SpecifyKindIfUnspecifiedMethodNullable : SpecifyKindIfUnspecifiedMethod;
 		}
 
 		public override Tuple<Type, object> ConvertForSql(object value)
 		{
 			if (this.UnderlyingType != null)
 			{
-				if (value != null)
-				{
-					value = (DateTime?)((DateTime)value).ToUniversalTime();
-				}
+				value = ((DateTime?)value)?.ToUniversalTime();
 
 				return new Tuple<Type, object>(this.UnderlyingType, value);
 			}
