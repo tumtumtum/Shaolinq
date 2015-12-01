@@ -11,16 +11,23 @@ namespace Shaolinq
 	public class ComputedMemberAttribute
 		: Attribute
 	{
-		public string Expression { get; set; }
+		public string GetExpression { get; set; }
+		public string SetExpression { get; set; }
 		
-		public ComputedMemberAttribute(string expression)
+        public ComputedMemberAttribute(string getExpression, string setExpression = null)
 		{
-			this.Expression = expression;
+			this.GetExpression = getExpression;
+	        this.SetExpression = setExpression;
 		}
 
-		public LambdaExpression GetLambdaExpression(PropertyInfo propertyInfo)
+		public LambdaExpression GetGetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			return ComputedExpressionParser.Parse(this.Expression, propertyInfo);
+			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo);
+		}
+
+		public LambdaExpression GetSetLambdaExpression(PropertyInfo propertyInfo)
+		{
+			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo);
 		}
 	}
 }

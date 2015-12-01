@@ -321,7 +321,7 @@ namespace Shaolinq.Persistence
 			this.PersistedProperties = new ReadOnlyList<PropertyDescriptor>(propertyDescriptorsInOrder);
 			this.PrimaryKeyProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
 			this.ComputedTextProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.IsComputedTextMember && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
-			this.ComputedProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.IsComputedMember && !String.IsNullOrEmpty(c.ComputedMemberAttribute.Expression)).ToList());
+			this.ComputedProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.IsComputedMember && !String.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToList());
 			this.PersistedAndRelatedObjectProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToList());
 
 			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)

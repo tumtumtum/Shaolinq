@@ -29,7 +29,7 @@ namespace Shaolinq.Tests.TestModel
 
 		[PersistedMember]
 		public abstract int FavouriteNumber { get; set; }
-
+		
 		[PersistedMember]
 		[ComputedMember("Height + (Weight ?? 0)")]
 		public abstract long HeightAndWeight { get; set; }

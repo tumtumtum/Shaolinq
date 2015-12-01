@@ -1,13 +1,18 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
 	public abstract class Cat
 		: DataAccessObject<long>
 	{
-		[Index(IndexName = "Index")]
 		[PersistedMember]
+		[Index(IndexName = "Index")]
 		public abstract string Name { get; set; }
+
+		[PersistedMember]
+		[ComputedMember("Id + 100000000", "Id = value - 100000000")]
+		public abstract long? MutatedId { get; set; }
 
 		[Index("CompositeIndexOverObjectAndNonObject", CompositeOrder = 2)]
 		[Index(IndexName = "Index", SortOrder = SortOrder.Descending)]
