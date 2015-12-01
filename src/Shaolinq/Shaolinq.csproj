@@ -146,7 +146,6 @@
     <Compile Include="Persistence\Computed\ComputedExpressionToken.cs" />
     <Compile Include="Persistence\Computed\ComputedExpressionTokenizer.cs" />
     <Compile Include="Persistence\Computed\ReferencedPropertiesGatherer.cs" />
-    <Compile Include="ResolvablePrimaryKeyAttribute.cs" />
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
