@@ -150,7 +150,7 @@ namespace Shaolinq
 			ICollection<DataAccessObject> GetNewObjects();
 			ICollection<DataAccessObject> GetDeletedObjects();
 			DataAccessObject Cache(DataAccessObject value, bool forImport);
-			DataAccessObject Get(Type type, ObjectPropertyValue[] primaryKeys);
+			DataAccessObject Get(ObjectPropertyValue[] primaryKeys);
 			void Deleted(DataAccessObject value);
 		}
 	
@@ -167,13 +167,12 @@ namespace Shaolinq
 		private class ObjectsByIdCache<K>
 			: IObjectsByIdCache
 		{
-			private readonly IEqualityComparer<K> keyComparer;
 			private readonly Func<DataAccessObject, K> getIdFunc;
 			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
 			private readonly HashSet<DataAccessObject> objectsNotReadyForCommit;
-			
-			internal Dictionary<K, DataAccessObject> objectsDeleted;
-			internal readonly Dictionary<K, DataAccessObject> objectsByIdCache;
+
+			private readonly Dictionary<K, DataAccessObject> objectsDeleted;
+			private readonly Dictionary<K, DataAccessObject> objectsByIdCache;
 			private readonly Dictionary<DataAccessObject, DataAccessObject> newObjects;
 
 			public Type Type { get; }
@@ -182,9 +181,8 @@ namespace Shaolinq
 			{
 				this.Type = type;
 				this.getIdFunc = getIdFunc;
-				this.keyComparer = keyComparer ?? EqualityComparer<K>.Default;
 				this.dataAccessObjectDataContext = dataAccessObjectDataContext;
-				this.objectsByIdCache = new Dictionary<K, DataAccessObject>();
+				this.objectsByIdCache = new Dictionary<K, DataAccessObject>(keyComparer ?? EqualityComparer<K>.Default);
 				this.objectsDeleted = new Dictionary<K, DataAccessObject>();
 				this.objectsNotReadyForCommit = new HashSet<DataAccessObject>(ObjectReferenceIdentityEqualityComparer<IDataAccessObjectAdvanced>.Default);
 				this.newObjects = new Dictionary<DataAccessObject, DataAccessObject>(DataAccessObjectServerSidePropertiesAccountingComparer.Default);
@@ -238,12 +236,7 @@ namespace Shaolinq
 
 				this.newObjects.Clear();
 			}
-
-			void IObjectsByIdCache.Deleted(DataAccessObject value)
-			{
-				this.Deleted(value);
-			}
-
+			
 			public void Deleted(DataAccessObject value)
 			{
 				if (((IDataAccessObjectAdvanced)value).IsNew)
@@ -260,12 +253,7 @@ namespace Shaolinq
 				}
 			}
 
-	        DataAccessObject IObjectsByIdCache.Get(Type type, ObjectPropertyValue[] primaryKeys)
-	        {
-		        return this.Get(type, primaryKeys);
-	        }
-
-            public DataAccessObject Get(Type type, ObjectPropertyValue[] primaryKeys)
+            public DataAccessObject Get(ObjectPropertyValue[] primaryKeys)
 			{
 				K key;
 				DataAccessObject outValue;
@@ -281,7 +269,7 @@ namespace Shaolinq
 
 				if (this.objectsByIdCache.TryGetValue(key, out outValue))
 				{
-					return (DataAccessObject)outValue;
+					return outValue;
 				}
 
 				return null;
@@ -504,7 +492,7 @@ namespace Shaolinq
 
 			IObjectsByIdCache cache;
 
-			return this.cachesByType.TryGetValue(type, out cache) ? cache.Get(type, primaryKeys) : null;
+			return this.cachesByType.TryGetValue(type, out cache) ? cache.Get(primaryKeys) : null;
 		}
 
 		private static readonly Dictionary<Type, Func<IObjectsByIdCache>> cacheConstructor = new Dictionary<Type, Func<IObjectsByIdCache>>();
@@ -545,7 +533,7 @@ namespace Shaolinq
 		{
 			if (this.DisableCache)
 			{
-				return null;
+				return value;
 			}
 
 			IObjectsByIdCache cache;
