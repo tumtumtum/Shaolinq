@@ -434,7 +434,7 @@ namespace Shaolinq
 
 			if (!this.cachesByType.TryGetValue(type, out cache))
 			{
-				cache = this.CreateCacheForDao(value);
+				cache = CreateCacheForDao(value, this);
 
 				this.cachesByType[type] = cache;
 			}
@@ -493,12 +493,12 @@ namespace Shaolinq
 			return this.cachesByType.TryGetValue(type, out cache) ? cache.Get(primaryKeys) : null;
 		}
 
-		private static Dictionary<Type, Func<IObjectsByIdCache>> cacheConstructor = new Dictionary<Type, Func<IObjectsByIdCache>>();
+		private static Dictionary<Type, Func<DataAccessObjectDataContext, IObjectsByIdCache>> cacheConstructor = new Dictionary<Type, Func<DataAccessObjectDataContext, IObjectsByIdCache>>();
 
-		private IObjectsByIdCache CreateCacheForDao(IDataAccessObjectAdvanced dao)
+		private static IObjectsByIdCache CreateCacheForDao(IDataAccessObjectAdvanced dao, DataAccessObjectDataContext context)
 		{
 			var type = dao.GetType();
-			Func<IObjectsByIdCache> func;
+			Func<DataAccessObjectDataContext, IObjectsByIdCache> func;
 
 			if (!cacheConstructor.TryGetValue(type, out func))
 			{
@@ -513,22 +513,24 @@ namespace Shaolinq
 				if (keyType != typeof(CompositePrimaryKey))
 				{
 					keyComparer = Expression.Constant(null, typeof(IEqualityComparer<>).MakeGenericType(dao.KeyType ?? dao.CompositeKeyTypes[0]));
-					getIdFunc = Delegate.CreateDelegate(getIdFuncType, this.GetType().GetMethod("GetDataAccessObjectId", BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(dao.KeyType ?? dao.CompositeKeyTypes[0]));
+					getIdFunc = Delegate.CreateDelegate(getIdFuncType, typeof(DataAccessObjectDataContext).GetMethod("GetDataAccessObjectId", BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(dao.KeyType ?? dao.CompositeKeyTypes[0]));
 				}
 				else
 				{
 					keyComparer = Expression.Constant(CompositePrimaryKeyComparer.Default);
-					getIdFunc = Delegate.CreateDelegate(getIdFuncType, this.GetType().GetMethod("GetDataAccessObjectCompositeId", BindingFlags.NonPublic | BindingFlags.Static));
+					getIdFunc = Delegate.CreateDelegate(getIdFuncType, typeof(DataAccessObjectDataContext).GetMethod("GetDataAccessObjectCompositeId", BindingFlags.NonPublic | BindingFlags.Static));
 				}
 
-				func = Expression.Lambda<Func<IObjectsByIdCache>>(Expression.New(constructor, Expression.Constant(dao.GetType()), Expression.Constant(this), Expression.Constant(getIdFunc, getIdFuncType), keyComparer)).Compile();
+				var contextParam = Expression.Parameter(typeof(DataAccessObjectDataContext));
 
-				var newCacheConstructor = new Dictionary<Type, Func<IObjectsByIdCache>>(cacheConstructor) { [type] = func };
+				func = Expression.Lambda<Func<DataAccessObjectDataContext, IObjectsByIdCache>>(Expression.New(constructor, Expression.Constant(dao.GetType()), contextParam, Expression.Constant(getIdFunc, getIdFuncType), keyComparer), contextParam).Compile();
+
+				var newCacheConstructor = new Dictionary<Type, Func<DataAccessObjectDataContext, IObjectsByIdCache>>(cacheConstructor) { [type] = func };
 
 				cacheConstructor = newCacheConstructor;
 			}
 
-			return func();
+			return func(context);
 		}
 
 		public virtual DataAccessObject CacheObject(DataAccessObject value, bool forImport)
@@ -543,7 +545,7 @@ namespace Shaolinq
 
 			if (!this.cachesByType.TryGetValue(type, out cache))
 			{
-				cache = this.CreateCacheForDao(value);
+				cache = CreateCacheForDao(value, this);
 
 				this.cachesByType[type] = cache;
 			}
