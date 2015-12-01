@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -495,7 +493,7 @@ namespace Shaolinq
 			return this.cachesByType.TryGetValue(type, out cache) ? cache.Get(primaryKeys) : null;
 		}
 
-		private static readonly Dictionary<Type, Func<IObjectsByIdCache>> cacheConstructor = new Dictionary<Type, Func<IObjectsByIdCache>>();
+		private static Dictionary<Type, Func<IObjectsByIdCache>> cacheConstructor = new Dictionary<Type, Func<IObjectsByIdCache>>();
 
 		private IObjectsByIdCache CreateCacheForDao(IDataAccessObjectAdvanced dao)
 		{
@@ -524,6 +522,10 @@ namespace Shaolinq
 				}
 
 				func = Expression.Lambda<Func<IObjectsByIdCache>>(Expression.New(constructor, Expression.Constant(dao.GetType()), Expression.Constant(this), Expression.Constant(getIdFunc, getIdFuncType), keyComparer)).Compile();
+
+				var newCacheConstructor = new Dictionary<Type, Func<IObjectsByIdCache>>(cacheConstructor) { [type] = func };
+
+				cacheConstructor = newCacheConstructor;
 			}
 
 			return func();
