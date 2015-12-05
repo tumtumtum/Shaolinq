@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -18,7 +17,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateTable;
 
 		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IEnumerable<SqlColumnDefinitionExpression> columnExpressions, IEnumerable<Expression> tableConstraintExpressions, IEnumerable<SqlTableOption> tableOptions = null)
-			: this(table, ifNotExist, columnExpressions.ToReadOnlyList(), tableConstraintExpressions.ToReadOnlyList(), tableOptions?.ToReadOnlyList())
+			: this(table, ifNotExist, columnExpressions.ToReadOnlyCollection(), tableConstraintExpressions.ToReadOnlyCollection(), tableOptions?.ToReadOnlyCollection())
 		{
 		}
 
@@ -27,7 +26,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			this.Table = table;
 			this.IfNotExist = ifNotExist;
-			this.TableOptions = tableOptions ?? Enumerable.Empty<SqlTableOption>().ToReadOnlyList();
+			this.TableOptions = tableOptions ?? Enumerable.Empty<SqlTableOption>().ToReadOnlyCollection();
 			this.TableConstraints = tableConstraintExpressions;
 			this.ColumnDefinitionExpressions = columnExpressions;
 		}

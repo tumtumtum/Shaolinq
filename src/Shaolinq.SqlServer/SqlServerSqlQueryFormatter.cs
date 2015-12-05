@@ -3,7 +3,6 @@
 using System;
 using System.Linq.Expressions;
 using Platform;
-using Platform.Collections;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -32,7 +31,7 @@ namespace Shaolinq.SqlServer
 			case SqlFunction.Substring:
 				if (arguments.Count == 2)
 				{
-					return new FunctionResolveResult("SUBSTRING", false, new ReadOnlyList<Expression>(arguments.Concat(Expression.Constant(Int32.MaxValue))));
+					return new FunctionResolveResult("SUBSTRING", false, arguments.Concat(Expression.Constant(Int32.MaxValue)).ToReadOnlyCollection());
 				}
 				else
 				{

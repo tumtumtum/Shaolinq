@@ -42,7 +42,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlObjectReferenceExpression(Type type, MemberBinding[] bindings)
-			: this(type, bindings.ToReadOnlyList())
+			: this(type, bindings.ToReadOnlyCollection())
 		{	
 		}
 

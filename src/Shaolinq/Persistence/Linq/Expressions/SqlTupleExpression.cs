@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -29,7 +28,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlTupleExpression(IEnumerable<Expression> subExpressions, Type type)
-			: this(subExpressions.ToReadOnlyList(), type)
+			: this(subExpressions.ToReadOnlyCollection(), type)
 		{
 		}
 

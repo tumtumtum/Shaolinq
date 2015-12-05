@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -19,23 +18,23 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.FunctionCall;
 
 		public SqlFunctionCallExpression(Type type, SqlFunction function, params Expression[] arguments)
-			: this(type, function, arguments.ToReadOnlyList())
+			: this(type, function, arguments.ToReadOnlyCollection())
 		{
 		}
 
 		public SqlFunctionCallExpression(Type type, string userDefinedFunctionName, params Expression[] arguments)
-			: this(type, SqlFunction.UserDefined, arguments.ToReadOnlyList())
+			: this(type, SqlFunction.UserDefined, arguments.ToReadOnlyCollection())
 		{
 			this.UserDefinedFunctionName = userDefinedFunctionName;
 		}
 
 		public SqlFunctionCallExpression(Type type, SqlFunction function, IEnumerable<Expression> arguments)
-			: this(type, function, arguments.ToReadOnlyList())
+			: this(type, function, arguments.ToReadOnlyCollection())
 		{
 		}
 
 		public SqlFunctionCallExpression(Type type, string userDefinedFunctionName, IEnumerable<Expression> arguments)
-			: this(type, SqlFunction.UserDefined, arguments.ToReadOnlyList())
+			: this(type, SqlFunction.UserDefined, arguments.ToReadOnlyCollection())
 		{
 			this.UserDefinedFunctionName = userDefinedFunctionName;
 		}

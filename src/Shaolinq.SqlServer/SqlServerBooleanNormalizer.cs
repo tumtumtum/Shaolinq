@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
-using Platform.Collections;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -191,7 +191,7 @@ namespace Shaolinq.SqlServer
 			{
 				if (newColumns != null)
 				{
-					return selectExpression.ChangeWhereAndColumns(where, new ReadOnlyList<SqlColumnDeclaration>(newColumns));
+					return selectExpression.ChangeWhereAndColumns(where, newColumns.ToReadOnlyCollection());
 				}
 				else
 				{

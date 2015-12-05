@@ -122,7 +122,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (alternate != null)
 			{
-				columns = alternate.ToReadOnlyList();
+				columns = alternate.ToReadOnlyCollection();
 			}
 
 			var take = this.Visit(select.Take);

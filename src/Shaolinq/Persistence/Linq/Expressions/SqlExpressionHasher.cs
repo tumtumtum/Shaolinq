@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -130,7 +129,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
-		protected override IReadOnlyList<T> VisitExpressionList<T>(IReadOnlyList<T> original)
+		protected override Platform.Collections.IReadOnlyList<T> VisitExpressionList<T>(Platform.Collections.IReadOnlyList<T> original)
 		{
 			if (original == null)
 			{

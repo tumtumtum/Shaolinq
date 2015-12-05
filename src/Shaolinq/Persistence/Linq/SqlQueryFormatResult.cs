@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -12,7 +11,7 @@ namespace Shaolinq.Persistence.Linq
 		public IReadOnlyList<Tuple<Type, object>> ParameterValues { get; }
 		
 		public SqlQueryFormatResult(string commandText, IEnumerable<Tuple<Type, object>> parameterValues)
-			: this(commandText, parameterValues.ToReadOnlyList())
+			: this(commandText, parameterValues.ToReadOnlyCollection())
 		{	
 		}
 

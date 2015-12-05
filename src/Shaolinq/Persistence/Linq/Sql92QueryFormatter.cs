@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Text;
-using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
@@ -42,7 +41,7 @@ namespace Shaolinq.Persistence.Linq
 			public bool excludeParenthesis;
 
 			public FunctionResolveResult(string functionName, bool treatAsOperator, params Expression[] arguments)
-				: this(functionName, treatAsOperator, null, null, arguments.ToReadOnlyList())
+				: this(functionName, treatAsOperator, null, null, arguments.ToReadOnlyCollection())
 			{
 			}
 
@@ -284,13 +283,13 @@ namespace Shaolinq.Persistence.Linq
 				switch (expressionType)
 				{
 					case ExpressionType.LessThan:
-						return new FunctionResolveResult("<", true, args.ToReadOnlyList());
+						return new FunctionResolveResult("<", true, args.ToReadOnlyCollection());
 					case ExpressionType.LessThanOrEqual:
-						return new FunctionResolveResult("<=", true, args.ToReadOnlyList());
+						return new FunctionResolveResult("<=", true, args.ToReadOnlyCollection());
 					case ExpressionType.GreaterThan:
-						return new FunctionResolveResult(">", true, args.ToReadOnlyList());
+						return new FunctionResolveResult(">", true, args.ToReadOnlyCollection());
 					case ExpressionType.GreaterThanOrEqual:
-						return new FunctionResolveResult(">=", true, args.ToReadOnlyList());
+						return new FunctionResolveResult(">=", true, args.ToReadOnlyCollection());
 				}
 				throw new InvalidOperationException();
 			case SqlFunction.NotLike:
@@ -310,7 +309,7 @@ namespace Shaolinq.Persistence.Linq
 					newArgument
 				};
 
-				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyList());
+				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyCollection());
 			}
 			case SqlFunction.ContainsString:
 			{
@@ -324,7 +323,7 @@ namespace Shaolinq.Persistence.Linq
 					newArgument
 				};
 
-				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyList());
+				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyCollection());
 			}
 			case SqlFunction.EndsWith:
 			{
@@ -337,7 +336,7 @@ namespace Shaolinq.Persistence.Linq
 					newArgument
 				};
 
-				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyList());
+				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyCollection());
 			}
 			default:
 				return new FunctionResolveResult(function.ToString().ToUpper(), false, arguments);

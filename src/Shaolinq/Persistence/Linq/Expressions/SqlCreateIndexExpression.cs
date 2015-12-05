@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -19,7 +18,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateIndex;
 
 		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IEnumerable<SqlIndexedColumnExpression> columns)
-			: this(indexName, table, unique, lowercaseIndex, indexType, ifNotExist, columns.ToReadOnlyList())
+			: this(indexName, table, unique, lowercaseIndex, indexType, ifNotExist, columns.ToReadOnlyCollection())
 		{
 		}
 

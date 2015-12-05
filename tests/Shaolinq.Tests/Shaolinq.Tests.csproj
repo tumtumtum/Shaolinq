@@ -88,8 +88,8 @@
       <HintPath>..\..\src\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform, Version=1.1.0.223, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\src\packages\Platform.NET.1.1.0.223\lib\net40\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.1.0.231, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\src\packages\Platform.NET.1.1.0.231-rc1\lib\net40\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Platform.Xml.Serialization, Version=1.1.0.223, Culture=neutral, processorArchitecture=MSIL">
