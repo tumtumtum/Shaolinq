@@ -8,12 +8,11 @@ namespace Shaolinq.Persistence.Linq
 	public class Nominator
 		: SqlExpressionVisitor
 	{
-		public static readonly Nominator NominatorIncludingIntegralTypes = new Nominator(CanBeColumnIncludingIntegral);
-
 		public readonly HashSet<Expression> candidates;
 		protected readonly Func<Expression, bool> canBeColumn;
 
 		public static Nominator CreateDefault() => new Nominator(CanBeColumn);
+		public static Nominator CreateNominatorIncludingIntegralTypes() => new Nominator(CanBeColumnIncludingIntegral);
 
 		public Nominator(Func<Expression, bool> canBeColumn)
 		{

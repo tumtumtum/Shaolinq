@@ -129,7 +129,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
-		protected override Platform.Collections.IReadOnlyList<T> VisitExpressionList<T>(Platform.Collections.IReadOnlyList<T> original)
+		protected override IReadOnlyList<T> VisitExpressionList<T>(IReadOnlyList<T> original)
 		{
 			if (original == null)
 			{
@@ -141,7 +141,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitExpressionList<T>(original);
 		}
 
-		protected override ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
+		protected override IReadOnlyList<Expression> VisitExpressionList(IReadOnlyList<Expression> original)
 		{
 			if (original == null)
 			{
@@ -188,7 +188,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitMemberListBinding(binding);
 		}
 
-		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
+		protected override IReadOnlyList<MemberBinding> VisitBindingList(IReadOnlyList<MemberBinding> original)
 		{
 			if (original == null)
 			{
@@ -200,7 +200,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitBindingList(original);
 		}
 
-		protected override IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
+		protected override IReadOnlyList<ElementInit> VisitElementInitializerList(IReadOnlyList<ElementInit> original)
 		{
 			if (original == null)
 			{

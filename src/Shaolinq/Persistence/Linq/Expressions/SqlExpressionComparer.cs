@@ -301,43 +301,23 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override IReadOnlyList<T> VisitExpressionList<T>(IReadOnlyList<T> original)
 		{
-			IReadOnlyList<Expression> current;
+			IReadOnlyList<T> current;
 
 			if (!this.TryGetCurrent(original, out current))
 			{
 				return original;
 			}
 
-			for (var i = 0; i < original.Count; i++)
-			{
-				this.currentObject = current[i];
-
-				this.Visit(original[i]);
-
-				if (!this.result)
-				{
-					break;
-				}
-			}
-
-			this.currentObject = current;
-
-			return original;
-		}
-
-		protected override ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
-		{
-			ReadOnlyCollection<Expression> current;
-
-			if (!this.TryGetCurrent(original, out current))
+			if (!(this.result = this.result && (current.Count == original.Count)))
 			{
 				return original;
 			}
 
-			for (var i = 0; i < original.Count; i++)
+			var count = current.Count;
+
+			for (var i = 0; i < count && this.result; i++)
 			{
 				this.currentObject = current[i];
-
 				this.Visit(original[i]);
 
 				if (!this.result)
@@ -360,16 +340,16 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return assignment;
 			}
 
-			this.result = this.result && (current.BindingType == assignment.BindingType
-			                    && current.Member == assignment.Member);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.BindingType == assignment.BindingType
+												&& current.Member == assignment.Member)))
 			{
-				this.currentObject = current.Expression;
-				this.Visit(assignment.Expression);
-				this.currentObject = current;
+				return assignment;
 			}
 
+			this.currentObject = current.Expression;
+			this.Visit(assignment.Expression);
+			this.currentObject = current;
+		
 			return assignment;
 		}
 
@@ -417,52 +397,58 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return binding;
 		}
 
-		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
+		protected override IReadOnlyList<MemberBinding> VisitBindingList(IReadOnlyList<MemberBinding> original)
 		{
-			ReadOnlyCollection<MemberBinding> current;
+			IReadOnlyList<MemberBinding> current;
 
 			if (!this.TryGetCurrent(original, out current))
 			{
 				return original;
 			}
 
-			this.result = this.result && (current.Count == original.Count);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.Count == original.Count)))
 			{
-				for (var i = 0; i < original.Count; i++)
-				{
-					this.currentObject = current[i];
-					this.VisitBinding(original[i]);
-				}
-
-				this.currentObject = current;
+				return original; 
 			}
+
+			var count = current.Count;
+
+			for (var i = 0; i < count && this.result; i++)
+			{
+				this.currentObject = current[i];
+
+				this.VisitBinding(original[i]);
+			}
+
+			this.currentObject = current;
 
 			return original;
 		}
 
-		protected override IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
+		protected override IReadOnlyList<ElementInit> VisitElementInitializerList(IReadOnlyList<ElementInit> original)
 		{
-			ReadOnlyCollection<ElementInit> current;
+			IReadOnlyList<ElementInit> current;
 
 			if (!this.TryGetCurrent(original, out current))
 			{
 				return original;
 			}
 
-			this.result = this.result && (current.Count == original.Count);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.Count == original.Count)))
 			{
-				for (var i = 0; i < original.Count; i++)
-				{
-					this.currentObject = current[i];
-					this.VisitElementInitializer(original[i]);
-				}
-
-				this.currentObject = current;
+				return original;
 			}
+
+			var count = current.Count;
+
+			for (var i = 0; i < count && this.result; i++)
+			{
+				this.currentObject = current[i];
+
+				this.VisitElementInitializer(original[i]);
+			}
+			
+			this.currentObject = current;
 
 			return original;
 		}
@@ -656,7 +642,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return objectReference;
 			}
 
-			if (Object.Equals(current.Type, objectReference.Type))
+			if (object.Equals(current.Type, objectReference.Type))
 			{
 				return objectReference;
 			}
@@ -816,6 +802,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			return aggregate;
 		}
+		
 
 		protected override IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
@@ -826,31 +813,36 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return columns;
 			}
 
-			this.result = this.result && (current.Count == columns.Count);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.Count == columns.Count)))
 			{
-				for (var i = 0; i < current.Count; i++)
-				{
-					if (current[i].Name != columns[i].Name)
-					{
-						this.result = false;
-
-						break;
-					}
-
-					this.currentObject = current[i].Expression;
-					this.Visit(columns[i].Expression);
-
-					if (!this.result)
-					{
-						break;
-					}
-				}
-
-				this.currentObject = current;
+				return columns;
 			}
 
+			var count = current.Count;
+
+			for (var i = 0; i < count; i++)
+			{
+				var item1 = current[i];
+				var item2 = columns[i];
+
+				if (item1.Name != item2.Name)
+				{
+					this.result = false;
+
+					break;
+				}
+
+				this.currentObject = item1.Expression;
+				this.Visit(item2.Expression);
+
+				if (!this.result)
+				{
+					break;
+				}
+			}
+
+			this.currentObject = current;
+			
 			return columns;
 		}
 

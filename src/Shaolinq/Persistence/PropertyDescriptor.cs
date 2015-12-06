@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Platform;
@@ -85,7 +86,7 @@ namespace Shaolinq.Persistence
 				this.PersistedShortName = propertyInfo.Name;
 			}
 
-			this.IndexAttributes = new ReadOnlyList<IndexAttribute>(this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToList());
+			this.IndexAttributes = this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToReadOnlyCollection();
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
 		}
 

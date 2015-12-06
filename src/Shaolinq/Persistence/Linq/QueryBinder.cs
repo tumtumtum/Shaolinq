@@ -150,7 +150,7 @@ namespace Shaolinq.Persistence.Linq
 		
         private ProjectedColumns ProjectColumns(Expression expression, string newAlias, IEnumerable<SqlColumnDeclaration> existingColumns, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(Nominator.NominatorIncludingIntegralTypes, expression, existingColumns, newAlias, existingAliases);
+			return ColumnProjector.ProjectColumns(Nominator.CreateNominatorIncludingIntegralTypes(), expression, existingColumns, newAlias, existingAliases);
 		}
 
 		private Expression BindCollectionContains(Expression list, Expression item)
