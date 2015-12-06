@@ -44,7 +44,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 							select = selectWithoutWhere;
 
-							var pc = ColumnProjector.ProjectColumns(Nominator.CreateDefault(), where, select.Columns, select.Alias, SqlDeclaredAliasGatherer.Gather(select.From));
+							var pc = ColumnProjector.ProjectColumns(new Nominator(Nominator.CanBeColumn), where, select.Columns, select.Alias, SqlDeclaredAliasGatherer.Gather(select.From));
 
 							select = select.ChangeColumns(pc.Columns);
 							where = pc.Projector;

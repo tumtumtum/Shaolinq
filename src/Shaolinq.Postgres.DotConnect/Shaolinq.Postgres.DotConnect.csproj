@@ -108,11 +108,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Platform, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.2.0.245-rc1\lib\net452\Platform.dll</HintPath>
+      <HintPath>..\packages\Platform.NET.1.2.0.246-rc1\lib\net452\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.0.5818.1251, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.242-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.0.5818.24474, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.246-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

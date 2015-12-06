@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -10,9 +12,6 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public readonly HashSet<Expression> candidates;
 		protected readonly Func<Expression, bool> canBeColumn;
-
-		public static Nominator CreateDefault() => new Nominator(CanBeColumn);
-		public static Nominator CreateNominatorIncludingIntegralTypes() => new Nominator(CanBeColumnIncludingIntegral);
 
 		public Nominator(Func<Expression, bool> canBeColumn)
 		{
@@ -40,15 +39,15 @@ namespace Shaolinq.Persistence.Linq
 		{
 			switch (expression.NodeType)
 			{
-				case (ExpressionType)SqlExpressionType.Column:
-				case (ExpressionType)SqlExpressionType.Scalar:
-				case (ExpressionType)SqlExpressionType.FunctionCall:
-				case (ExpressionType)SqlExpressionType.AggregateSubquery:
-				case (ExpressionType)SqlExpressionType.Aggregate:
-				case (ExpressionType)SqlExpressionType.Subquery:
-					return true;
-				default:
-					return expression.Type.IsIntegralType();
+			case (ExpressionType)SqlExpressionType.Column:
+			case (ExpressionType)SqlExpressionType.Scalar:
+			case (ExpressionType)SqlExpressionType.FunctionCall:
+			case (ExpressionType)SqlExpressionType.AggregateSubquery:
+			case (ExpressionType)SqlExpressionType.Aggregate:
+			case (ExpressionType)SqlExpressionType.Subquery:
+				return true;
+			default:
+				return expression.Type.IsIntegralType();
 			}
 		}
 
@@ -61,17 +60,19 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression Visit(Expression expression)
 		{
-			if (expression != null)
+			if (expression == null)
 			{
-				if (expression.NodeType != (ExpressionType)SqlExpressionType.Subquery)
-				{
-					base.Visit(expression);
-				}
+				return null;
+			}
 
-				if (this.canBeColumn(expression))
-				{
-					this.candidates.Add(expression);
-				}
+			if (expression.NodeType != (ExpressionType)SqlExpressionType.Subquery)
+			{
+				base.Visit(expression);
+			}
+
+			if (this.canBeColumn(expression))
+			{
+				this.candidates.Add(expression);
 			}
 
 			return expression;
