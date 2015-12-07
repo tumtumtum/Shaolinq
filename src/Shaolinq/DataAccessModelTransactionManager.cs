@@ -10,9 +10,11 @@ namespace Shaolinq
 	public class DataAccessModelTransactionManager
 		: IDisposable
 	{
-		[ThreadStatic] internal static Transaction currentlyCommitingTransaction;
+		[ThreadStatic]
+		internal static Transaction currentlyCommitingTransaction;
 
-		private static readonly ThreadLocal<Dictionary<DataAccessModel, DataAccessModelTransactionManager>> ambientTransactionManagers = new ThreadLocal<Dictionary<DataAccessModel, DataAccessModelTransactionManager>>(() => new Dictionary<DataAccessModel, DataAccessModelTransactionManager>());
+		[ThreadStatic]
+		private static Dictionary<DataAccessModel, DataAccessModelTransactionManager> ambientTransactionManagers;
 
 		public DataAccessModel DataAccessModel { get; }
 		
@@ -28,8 +30,14 @@ namespace Shaolinq
 		public static DataAccessModelTransactionManager GetAmbientTransactionManager(DataAccessModel dataAccessModel)
 		{
 			DataAccessModelTransactionManager retval;
-			var transactionManagers = ambientTransactionManagers.Value;
-			
+
+			if (ambientTransactionManagers == null)
+			{
+				ambientTransactionManagers = new Dictionary<DataAccessModel, DataAccessModelTransactionManager>();
+			}
+
+			var transactionManagers = ambientTransactionManagers;
+
 			if (!transactionManagers.TryGetValue(dataAccessModel, out retval))
 			{
 				retval = new DataAccessModelTransactionManager(dataAccessModel);
