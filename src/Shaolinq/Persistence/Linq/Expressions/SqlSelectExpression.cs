@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -23,12 +22,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Select;
 
 		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate)
-			: this(type, alias, columns.ToReadOnlyList(), from, where, orderBy.ToReadOnlyList(), null, false, null, null, forUpdate)
+			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), null, false, null, null, forUpdate)
 		{
 		}
 
 		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, IEnumerable<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate)
-			: this(type, alias, columns.ToReadOnlyList(), from, where, orderBy.ToReadOnlyList(), groupBy.ToReadOnlyList(), distinct, skip, take, forUpdate)
+			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), groupBy.ToReadOnlyCollection(), distinct, skip, take, forUpdate)
 		{	
 		}
 
@@ -55,7 +54,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public SqlSelectExpression ChangeColumns(IEnumerable<SqlColumnDeclaration> columns, bool columnsAlreadyOrdered)
 		{
-			return new SqlSelectExpression(this.Type, this.Alias, columnsAlreadyOrdered ? columns.ToReadOnlyList() : columns.OrderBy(c => c.Name).ToReadOnlyList(), this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, this.Take, this.Skip, this.ForUpdate);
+			return new SqlSelectExpression(this.Type, this.Alias, columnsAlreadyOrdered ? columns.ToReadOnlyCollection() : columns.OrderBy(c => c.Name).ToReadOnlyCollection(), this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, this.Take, this.Skip, this.ForUpdate);
 		}
 
 		public SqlSelectExpression ChangeWhere(Expression where)

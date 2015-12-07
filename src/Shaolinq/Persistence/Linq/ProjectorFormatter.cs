@@ -161,7 +161,7 @@ namespace Shaolinq.Persistence.Linq
 			return initializer;
 		}
 
-		protected override IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
+		protected override IReadOnlyList<ElementInit> VisitElementInitializerList(IReadOnlyList<ElementInit> original)
 		{
 			this.output.Append("{");
 
@@ -211,9 +211,10 @@ namespace Shaolinq.Persistence.Linq
 			return methodCallExpression;
 		}
 
-		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
+		protected override IReadOnlyList<MemberBinding> VisitBindingList(IReadOnlyList<MemberBinding> original)
 		{
 			this.output.Append("{");
+
 
 			foreach (var binding in original)
 			{

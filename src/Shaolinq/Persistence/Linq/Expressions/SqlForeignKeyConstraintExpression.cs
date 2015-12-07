@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -15,7 +14,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ForeignKeyConstraint;
 
 		public SqlForeignKeyConstraintExpression(string constraintName, IEnumerable<string> columnNames, SqlReferencesColumnExpression referencesColumnExpression)
-			: this(constraintName, columnNames.ToReadOnlyList(), referencesColumnExpression)
+			: this(constraintName, columnNames.ToReadOnlyCollection(), referencesColumnExpression)
 		{	
 		}
 

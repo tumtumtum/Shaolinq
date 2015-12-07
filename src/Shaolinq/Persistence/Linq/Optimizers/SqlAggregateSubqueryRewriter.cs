@@ -46,7 +46,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					columnsIncludingAggregates.Add(columnDeclaration);
 				}
 
-				return new SqlSelectExpression(select.Type, select.Alias, columnsIncludingAggregates.ToReadOnlyList(), select.From, select.Where, select.OrderBy, select.GroupBy, select.Distinct, select.Skip, select.Take, select.ForUpdate);
+				return new SqlSelectExpression(select.Type, select.Alias, columnsIncludingAggregates.ToReadOnlyCollection(), select.From, select.Where, select.OrderBy, select.GroupBy, select.Distinct, select.Skip, select.Take, select.ForUpdate);
 			}
 
 			return select;

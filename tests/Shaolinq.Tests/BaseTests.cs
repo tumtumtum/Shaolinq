@@ -103,13 +103,11 @@ namespace Shaolinq.Tests
 
         public BaseTests(string providerName)
         {
-	        DataAccessModelConfiguration configuration;
-
 	        this.ProviderName = providerName;
 
             XmlConfigurator.Configure();
 
-            try
+           // try
             {
                 if (providerName == "default")
                 {
@@ -117,19 +115,19 @@ namespace Shaolinq.Tests
                 }
                 else
                 {
-	                configuration = this.Create(providerName, this.GetType().Name);
+	                var configuration = this.Create(providerName, this.GetType().Name);
 	                this.model = DataAccessModel.BuildDataAccessModel<T>(configuration);
                 }
 
 	            this.model.Create(DatabaseCreationOptions.DeleteExistingDatabase);
             }
-            catch (Exception e)
+            //catch (Exception e)
             {
-	            Console.WriteLine("Exception while configuring provider: " + providerName);
-                Console.WriteLine(e);
-				Console.WriteLine(e.StackTrace);
+	        //    Console.WriteLine("Exception while configuring provider: " + providerName);
+            //    Console.WriteLine(e);
+			//	Console.WriteLine(e.StackTrace);
 
-                throw;
+            //    throw;
             }
         }
 

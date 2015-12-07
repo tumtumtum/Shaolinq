@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -15,7 +14,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ColumnDefinition;
 
 		public SqlColumnDefinitionExpression(string columnName, Expression columnTypeName, IEnumerable<Expression> constraintExpressions)
-			: this(columnName, columnTypeName, constraintExpressions.ToReadOnlyList())
+			: this(columnName, columnTypeName, constraintExpressions.ToReadOnlyCollection())
 		{	
 		}
 

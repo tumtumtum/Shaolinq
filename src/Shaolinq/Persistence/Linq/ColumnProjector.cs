@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence.Linq
 
 			expression = projector.Visit(expression);
 
-			return new ProjectedColumns(expression, projector.columns.ToReadOnlyList());
+			return new ProjectedColumns(expression, projector.columns.ToReadOnlyCollection());
 		}
 		
 		private Expression ProcessExpression(Expression expression)

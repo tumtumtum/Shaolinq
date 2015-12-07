@@ -4,9 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Platform;
-using Platform.Collections;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -289,12 +287,7 @@ namespace Shaolinq
 				}
 			}
 
-	        DataAccessObject IObjectsByIdCache.Cache(DataAccessObject value, bool forImport)
-	        {
-		        return this.Cache(value, forImport);
-	        }
-
-            public DataAccessObject Cache(DataAccessObject value, bool forImport)
+	        public DataAccessObject Cache(DataAccessObject value, bool forImport)
 			{
 				if (this.dataAccessObjectDataContext.isCommiting)
 				{
@@ -513,12 +506,12 @@ namespace Shaolinq
 				if (keyType != typeof(CompositePrimaryKey))
 				{
 					keyComparer = Expression.Constant(null, typeof(IEqualityComparer<>).MakeGenericType(dao.KeyType ?? dao.CompositeKeyTypes[0]));
-					getIdFunc = Delegate.CreateDelegate(getIdFuncType, typeof(DataAccessObjectDataContext).GetMethod("GetDataAccessObjectId", BindingFlags.NonPublic | BindingFlags.Static).MakeGenericMethod(dao.KeyType ?? dao.CompositeKeyTypes[0]));
+					getIdFunc = Delegate.CreateDelegate(getIdFuncType, TypeUtils.GetMethod(() => GetDataAccessObjectId<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition().MakeGenericMethod(dao.KeyType ?? dao.CompositeKeyTypes[0]));
 				}
 				else
 				{
 					keyComparer = Expression.Constant(CompositePrimaryKeyComparer.Default);
-					getIdFunc = Delegate.CreateDelegate(getIdFuncType, typeof(DataAccessObjectDataContext).GetMethod("GetDataAccessObjectCompositeId", BindingFlags.NonPublic | BindingFlags.Static));
+					getIdFunc = Delegate.CreateDelegate(getIdFuncType, TypeUtils.GetMethod(() => GetDataAccessObjectCompositeId(default(DataAccessObject))));
 				}
 
 				var contextParam = Expression.Parameter(typeof(DataAccessObjectDataContext));

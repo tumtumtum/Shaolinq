@@ -26,7 +26,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var groupBy = ((NewExpression)selectExpression.GroupBy[0]).Arguments;
 
-				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, selectExpression.Columns.ToReadOnlyList(), selectExpression.From, selectExpression.Where, selectExpression.OrderBy.ToReadOnlyList(), groupBy.ToReadOnlyList(), selectExpression.Distinct, selectExpression.Skip, selectExpression.Take, selectExpression.ForUpdate);	
+				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, selectExpression.Columns.ToReadOnlyCollection(), selectExpression.From, selectExpression.Where, selectExpression.OrderBy.ToReadOnlyCollection(), groupBy.ToReadOnlyCollection(), selectExpression.Distinct, selectExpression.Skip, selectExpression.Take, selectExpression.ForUpdate);	
 			}
 
 			return base.VisitSelect(selectExpression);

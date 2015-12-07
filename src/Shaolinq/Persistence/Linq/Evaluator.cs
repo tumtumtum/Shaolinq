@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence.Linq
 		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
 		public static Expression PartialEval(Expression expression, Func<Expression, bool> fnCanBeEvaluated)
 		{
-			return SubtreeEvaluator.Eval(new Nominator(fnCanBeEvaluated).Nominate(expression), expression);
+			return SubtreeEvaluator.Eval(new EvaluatorNominator(fnCanBeEvaluated).Nominate(expression), expression);
 		}
 
 		/// <summary>
@@ -93,7 +93,7 @@ namespace Shaolinq.Persistence.Linq
 				this.candidates = candidates;
 			}
 
-			static internal Expression Eval(HashSet<Expression> candidates, Expression expression)
+			internal static Expression Eval(HashSet<Expression> candidates, Expression expression)
 			{
 				var evalutator = new SubtreeEvaluator(candidates);
 
@@ -163,10 +163,9 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		/// <summary>
-		/// Performs bottom-up analysis to determine which nodes can possibly
-		/// be part of an evaluated sub-tree.
+		/// Performs bottom-up analysis to determine which nodes can possibly be part of an evaluated sub-tree.
 		/// </summary>
-		internal class Nominator
+		internal class EvaluatorNominator
 			: SqlExpressionVisitor
 		{
 			private bool cannotBeEvaluated;
@@ -175,7 +174,7 @@ namespace Shaolinq.Persistence.Linq
 
 			private Expression first;
 
-			internal Nominator(Func<Expression, bool> fnCanBeEvaluated)
+			internal EvaluatorNominator(Func<Expression, bool> fnCanBeEvaluated)
 			{
 				this.fnCanBeEvaluated = fnCanBeEvaluated;
 			}

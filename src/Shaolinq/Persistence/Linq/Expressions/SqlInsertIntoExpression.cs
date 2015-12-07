@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -16,7 +15,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.InsertInto;
 
 		public SqlInsertIntoExpression(SqlTableExpression table, IEnumerable<string> columnNames, IEnumerable<string> returningAutoIncrementColumnNames, IEnumerable<Expression> valueExpressions)
-			: this(table, columnNames.ToReadOnlyList(), returningAutoIncrementColumnNames.ToReadOnlyList(), valueExpressions.ToReadOnlyList())
+			: this(table, columnNames.ToReadOnlyCollection(), returningAutoIncrementColumnNames.ToReadOnlyCollection(), valueExpressions.ToReadOnlyCollection())
 		{	
 		}
 

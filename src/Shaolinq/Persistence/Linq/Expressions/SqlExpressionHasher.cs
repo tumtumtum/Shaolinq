@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -142,7 +141,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitExpressionList<T>(original);
 		}
 
-		protected override ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
+		protected override IReadOnlyList<Expression> VisitExpressionList(IReadOnlyList<Expression> original)
 		{
 			if (original == null)
 			{
@@ -189,7 +188,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitMemberListBinding(binding);
 		}
 
-		protected override IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
+		protected override IReadOnlyList<MemberBinding> VisitBindingList(IReadOnlyList<MemberBinding> original)
 		{
 			if (original == null)
 			{
@@ -201,7 +200,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return base.VisitBindingList(original);
 		}
 
-		protected override IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
+		protected override IReadOnlyList<ElementInit> VisitElementInitializerList(IReadOnlyList<ElementInit> original)
 		{
 			if (original == null)
 			{

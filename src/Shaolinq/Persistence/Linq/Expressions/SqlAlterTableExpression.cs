@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -19,7 +18,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlAlterTableExpression(Expression table, IEnumerable<SqlConstraintActionExpression> actions)
-			: this(table, actions.ToReadOnlyList())
+			: this(table, actions.ToReadOnlyCollection())
 		{
 			
 		}

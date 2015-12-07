@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -17,7 +16,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ReferencesColumn;
 
 		public SqlReferencesColumnExpression(SqlTableExpression referencedTable, SqlColumnReferenceDeferrability deferrability, IEnumerable<string> referencedColumnNames, SqlColumnReferenceAction onDelete, SqlColumnReferenceAction onUpdate)
-			: this(referencedTable, deferrability, referencedColumnNames.ToReadOnlyList(), onDelete, onUpdate)
+			: this(referencedTable, deferrability, referencedColumnNames.ToReadOnlyCollection(), onDelete, onUpdate)
 		{
 		}
 

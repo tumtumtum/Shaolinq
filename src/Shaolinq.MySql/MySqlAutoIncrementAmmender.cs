@@ -3,7 +3,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
-using Platform.Collections;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -31,14 +31,14 @@ namespace Shaolinq.MySql
 						var newPrimaryKeyConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName });
 						var newUniqueConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames.Concat(autoIncrementColumn.ColumnName).ToArray());
 
-						return createTableExpression.UpdateConstraints(new ReadOnlyList<Expression>(createTableExpression.TableConstraints.Where(c => c != primaryKeyConstraint).Concat(newPrimaryKeyConstraint).Concat(newUniqueConstraint)));
+						return createTableExpression.UpdateConstraints(createTableExpression.TableConstraints.Where(c => c != primaryKeyConstraint).Concat(newPrimaryKeyConstraint).Concat(newUniqueConstraint).ToReadOnlyCollection());
 					}
 				}
 				else
 				{
 					var newPrimaryKeyConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName });
 
-					return createTableExpression.UpdateConstraints(new ReadOnlyList<Expression>(newPrimaryKeyConstraint));
+					return createTableExpression.UpdateConstraints(new [] { newPrimaryKeyConstraint }.ToReadOnlyCollection());
 				}
 			}
 

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Shaolinq.Tests.OtherDataAccessObjects</RootNamespace>
     <AssemblyName>Shaolinq.Tests.OtherDataAccessObjects</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -34,6 +34,14 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Platform, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\src\packages\Platform.NET.1.2.0.246-rc1\lib\net452\Platform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Platform.Xml.Serialization, Version=1.0.5818.24474, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\src\packages\Platform.Xml.Serialization.1.2.0.246-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -51,6 +59,9 @@
       <Project>{0c8321d6-4df6-4b90-af5a-92537d4a7e54}</Project>
       <Name>Shaolinq</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

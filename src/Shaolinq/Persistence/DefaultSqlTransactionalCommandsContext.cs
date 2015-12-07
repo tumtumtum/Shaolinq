@@ -9,7 +9,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Transactions;
 using Platform;
-using Platform.Collections;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -489,7 +488,7 @@ namespace Shaolinq.Persistence
 				return command;
 			}
 
-			var assignments = updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.PropertyType, null, c.PersistedName), Expression.Constant(c.Value))).ToReadOnlyList();
+			var assignments = updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.PropertyType, null, c.PersistedName), Expression.Constant(c.Value))).ToReadOnlyCollection();
 
 			Expression where = null;
 
@@ -551,11 +550,11 @@ namespace Shaolinq.Persistence
 			{
 				var propertyDescriptors = typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 
-				returningAutoIncrementColumnNames = new ReadOnlyList<string>(propertyDescriptors.Select(c => c.PersistedName).ToList());
+				returningAutoIncrementColumnNames = propertyDescriptors.Select(c => c.PersistedName).ToReadOnlyCollection();
 			}
 
-			var columnNames = new ReadOnlyList<string>(updatedProperties.Select(c => c.PersistedName).ToList());
-			var valueExpressions = new ReadOnlyList<Expression>(updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToList());
+			var columnNames = updatedProperties.Select(c => c.PersistedName).ToReadOnlyCollection();
+			var valueExpressions = updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToReadOnlyCollection();
 			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
 
 			if (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)

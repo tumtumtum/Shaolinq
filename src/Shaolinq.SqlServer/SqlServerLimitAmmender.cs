@@ -1,8 +1,10 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform.Collections;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -23,11 +25,11 @@ namespace Shaolinq.SqlServer
 			if (selectExpression.Skip != null)
 			{
 				var rowNumber = new SqlFunctionCallExpression(typeof(int), "ROW_NUMBER");
-				var over = new SqlOverExpression(rowNumber, selectExpression.OrderBy ?? new ReadOnlyList<Expression>(new [] { new SqlOrderByExpression(OrderType.Ascending, selectExpression.Columns[0].Expression) }));
+				var over = new SqlOverExpression(rowNumber, (selectExpression.OrderBy ?? new [] { new SqlOrderByExpression(OrderType.Ascending, selectExpression.Columns[0].Expression) }).ToReadOnlyCollection());
 				var additionalColumn = new SqlColumnDeclaration(RowColumnName, over);
 
 				var newAlias = selectExpression.Alias + "INNER";
-				var innerColumns = new ReadOnlyList<SqlColumnDeclaration>(selectExpression.Columns.Select(c => c).Concat(new[] { additionalColumn }));
+				var innerColumns = selectExpression.Columns.Select(c => c).Concat(new[] { additionalColumn }).ToReadOnlyCollection();
 				
 				var innerSelect = new SqlSelectExpression(selectExpression.Type, newAlias, innerColumns, selectExpression.From, selectExpression.Where, null, selectExpression.GroupBy, selectExpression.Distinct, null, null, selectExpression.ForUpdate);
 

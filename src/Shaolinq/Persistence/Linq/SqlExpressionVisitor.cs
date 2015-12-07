@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
@@ -408,14 +407,14 @@ namespace Shaolinq.Persistence.Linq
 
 			return sqlColumnDeclaration;
 		}
-
+		
 		protected virtual IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
+			var i = 0;
 			List<SqlColumnDeclaration> alternate = null;
 
-			for (int i = 0, n = columns.Count; i < n; i++)
+			foreach (var column in columns)
 			{
-				var column = columns[i];
 				var e = this.Visit(column.Expression);
 
 				if (alternate == null && e != column.Expression)
@@ -423,18 +422,12 @@ namespace Shaolinq.Persistence.Linq
 					alternate = columns.Take(i).ToList();
 				}
 
-				if (alternate != null)
-				{
-					alternate.Add(new SqlColumnDeclaration(column.Name, e));
-				}
+				alternate?.Add(new SqlColumnDeclaration(column.Name, e));
+
+				i++;
 			}
 
-			if (alternate != null)
-			{
-				return alternate.ToReadOnlyList();
-			}
-
-			return columns;
+			return alternate != null ? alternate.ToReadOnlyCollection() : columns;
 		}
 
 		protected virtual Expression VisitDelete(SqlDeleteExpression deleteExpression)

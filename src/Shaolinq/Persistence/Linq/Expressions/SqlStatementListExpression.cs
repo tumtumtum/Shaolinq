@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -13,12 +12,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.StatementList;
 
 		public SqlStatementListExpression(params Expression[] statements)
-			: this(statements.ToReadOnlyList())
+			: this(statements.ToReadOnlyCollection())
 		{
 		}
 
 		public SqlStatementListExpression(IEnumerable<Expression> statements)
-			: this(statements.ToReadOnlyList())
+			: this(statements.ToReadOnlyCollection())
 		{
 		}
 		

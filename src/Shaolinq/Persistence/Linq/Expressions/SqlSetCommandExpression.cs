@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Linq.Expressions;
-using Platform.Collections;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -14,7 +14,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.SetCommand;
 
 		public SqlSetCommandExpression(string configurationParameter, Expression target, params Expression[] arguments)
-			: this(configurationParameter, target, arguments.ToReadOnlyList())
+			: this(configurationParameter, target, arguments.ToReadOnlyCollection())
 		{
 		}
 
@@ -23,7 +23,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			this.ConfigurationParameter = configurationParameter;
 			this.Target = target;
-			this.Arguments = arguments.ToReadOnlyList();
+			this.Arguments = arguments.ToReadOnlyCollection();
 		}
 	}
 }

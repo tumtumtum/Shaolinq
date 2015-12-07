@@ -70,7 +70,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				var where = this.Visit(from.Where);
 
-				return from.ChangeWhereAndColumns(where, newColumns.ToReadOnlyList(), from.ForUpdate || selectExpression.ForUpdate);
+				return from.ChangeWhereAndColumns(where, newColumns.ToReadOnlyCollection(), from.ForUpdate || selectExpression.ForUpdate);
 			}
 
 			return base.VisitSelect(selectExpression);

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Platform;
-using Platform.Collections;
 using Platform.Reflection;
 
 namespace Shaolinq.Persistence
@@ -317,12 +316,12 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-			this.RelatedProperties = new ReadOnlyList<PropertyDescriptor>(relatedProperties);
-			this.PersistedProperties = new ReadOnlyList<PropertyDescriptor>(propertyDescriptorsInOrder);
-			this.PrimaryKeyProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToList());
-			this.ComputedTextProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.IsComputedTextMember && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToList());
-			this.ComputedProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Where(c => c.IsComputedMember && !String.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToList());
-			this.PersistedAndRelatedObjectProperties = new ReadOnlyList<PropertyDescriptor>(this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToList());
+			this.RelatedProperties = relatedProperties.ToReadOnlyCollection();
+			this.PersistedProperties = propertyDescriptorsInOrder.ToReadOnlyCollection();
+			this.PrimaryKeyProperties = this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToReadOnlyCollection();
+			this.ComputedTextProperties = this.PersistedProperties.Where(c => c.IsComputedTextMember && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToReadOnlyCollection();
+			this.ComputedProperties = this.PersistedProperties.Where(c => c.IsComputedMember && !String.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToReadOnlyCollection();
+			this.PersistedAndRelatedObjectProperties = this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToReadOnlyCollection();
 
 			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)
 			{

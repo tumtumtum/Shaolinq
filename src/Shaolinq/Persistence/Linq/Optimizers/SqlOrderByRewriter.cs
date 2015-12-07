@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Platform.Collections;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -115,8 +114,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			public BindResult(IEnumerable<SqlColumnDeclaration> columns, IEnumerable<SqlOrderByExpression> orderings)
 			{
-				this.Columns = columns.ToReadOnlyList();
-				this.Orderings = orderings.ToReadOnlyList();
+				this.Columns = columns.ToReadOnlyCollection();
+				this.Orderings = orderings.ToReadOnlyCollection();
 			}
 		}
 
