@@ -1525,21 +1525,23 @@ namespace Shaolinq.Persistence.Linq
 			(
 				this.typeDescriptorProvider,
 				typeDescriptor.PersistedAndRelatedObjectProperties,
-				(c, d) => c.IsPrimaryKey,
-				(c, d) => c.IsPrimaryKey && !c.PropertyType.IsDataAccessObjectType()
+				(c, d) => d == 0 || c.IsPrimaryKey,
+				(c, d) => d == 0 || c.IsPrimaryKey
 			);
 
 			var groupedColumnInfos = columnInfos
 				.GroupBy(c => c.VisitedProperties, ArrayEqualityComparer<PropertyDescriptor>.Default)
-				.OrderBy(c => c.Key.Length);
+				.ToList();
 
 			var bindingsForKey = groupedColumnInfos
 				.ToDictionary(c => c.Key, c => c.Key.Length == 0 ? rootBindings : new List<MemberBinding>(), ArrayEqualityComparer<PropertyDescriptor>.Default);
 
+			bindingsForKey[new PropertyDescriptor[0]] = rootBindings;
+
 			var parentBindingsForKey = bindingsForKey
 				.Where(c => c.Key.Length > 0)
 				.ToDictionary(c => c.Key, c => bindingsForKey[c.Key.Take(c.Key.Length - 1).ToArray()], ArrayEqualityComparer<PropertyDescriptor>.Default);
-
+			
 			var rootPrimaryKeyProperties = new HashSet<string>(typeDescriptor.PrimaryKeyProperties.Select(c => c.PropertyName));
 
 			foreach (var groupedColumnInfo in groupedColumnInfos)
@@ -1687,7 +1689,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var groupedColumnInfos = columnInfos
 				.GroupBy(c => c.VisitedProperties, ArrayEqualityComparer<PropertyDescriptor>.Default)
-				.OrderBy(c => c.Key.Length);
+				.ToList();
 
 			var expressionForKey = new Dictionary<PropertyDescriptor[], Expression>(ArrayEqualityComparer<PropertyDescriptor>.Default);
 			
