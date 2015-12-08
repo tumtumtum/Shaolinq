@@ -448,7 +448,7 @@ namespace Shaolinq
 
 						method = method.MakeGenericMethod(propertyInfo.PropertyType, valueExpression.Type);
 
-						if (valueExpression.Type.IsDataAccessObjectType())
+						if (isSimpleKey || valueExpression.Type.IsDataAccessObjectType())
 						{
 							primaryKeyValue = valueExpression;
 						}
