@@ -361,7 +361,7 @@ namespace Shaolinq
 
 					if (property.PropertyType.IsDataAccessObjectType())
 					{
-						convertedValue = valueExpression;
+						convertedValue = Expression.Convert(valueExpression, typeof(object));
 					}
 					else
 					{
@@ -435,10 +435,32 @@ namespace Shaolinq
 					}
 					else
 					{
-						valueExpression = Expression.Convert(Expression.PropertyOrField(Expression.Convert(parameter, objectType), property.PropertyName), typeof(object));
+						valueExpression = Expression.PropertyOrField(Expression.Convert(parameter, objectType), property.PropertyName);
 					}
 
+					Expression primaryKeyValue;
+
 					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
+
+					if (isObjectType)
+					{
+						var method = TypeUtils.GetMethod<DataAccessModel>(c => this.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
+
+						method = method.MakeGenericMethod(propertyInfo.PropertyType, valueExpression.Type);
+
+						if (valueExpression.Type.IsDataAccessObjectType())
+						{
+							primaryKeyValue = valueExpression;
+						}
+						else
+						{
+							primaryKeyValue = Expression.Call(Expression.Constant(this), method, valueExpression, Expression.Constant(PrimaryKeyType.Composite));
+						}
+					}
+					else
+					{
+						primaryKeyValue = Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, Expression.Convert(valueExpression, typeof(object)), Expression.Constant(propertyInfo.PropertyType));
+					}
 
 					var newExpression = Expression.New
 					(
@@ -447,7 +469,7 @@ namespace Shaolinq
 						Expression.Constant(property.PropertyName),
 						Expression.Constant(property.PersistedName),
 						Expression.Constant(property.PropertyName.GetHashCode()),
-						isObjectType ? (Expression)Expression.Convert(valueExpression, propertyInfo.PropertyType) : (Expression)Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType))
+						Expression.Convert(primaryKeyValue, typeof(object))
 					);
 
 					initializers.Add(newExpression);
@@ -459,8 +481,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType);
-				newPropertyInfoAndValueGetterFuncByType[objectType] = func;
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType) { [objectType] = func };
 
 				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}

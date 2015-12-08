@@ -25,5 +25,8 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Toy> Toys { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<SuperMall> SuperMalls {get;}
 	}
 }

@@ -23,11 +23,5 @@ namespace Shaolinq
 		{
 			return this.DataAccessModel.GetReference<T, K>(primaryKey, primaryKeyType);
 		}
-
-		public virtual T GetReference<K>(Expression<Func<T, K>> condition)
-		{
-			return null;
-			//return this.DataAccessModel.GetReference<T, K>(condition);
-		}
 	}
 }

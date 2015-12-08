@@ -1525,8 +1525,8 @@ namespace Shaolinq.Persistence.Linq
 			(
 				this.typeDescriptorProvider,
 				typeDescriptor.PersistedAndRelatedObjectProperties,
-				(c, d) => d == 0 || c.IsPrimaryKey,
-				(c, d) => d == 0 || c.IsPrimaryKey
+				(c, d) => c.IsPrimaryKey,
+				(c, d) => c.IsPrimaryKey && !c.PropertyType.IsDataAccessObjectType()
 			);
 
 			var groupedColumnInfos = columnInfos

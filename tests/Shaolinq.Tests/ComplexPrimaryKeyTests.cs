@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
@@ -70,6 +71,71 @@ namespace Shaolinq.Tests
 				this.shopId = shop.Id;
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_SuperMall_With_Mall_PrimaryKey()
+		{
+			Guid mallId;
+			long region0, region1, region2;
+			long address0, address1, address2;
+			
+			using (var scope = new TransactionScope())
+			{
+				var mall = this.model.Malls.Create();
+				var superMall = this.model.SuperMalls.Create();
+
+				mall.Address = this.model.Addresses.Create();
+				mall.Address.Region = this.model.Regions.Create();
+				mall.Address.Region.Name = "!RegionName0";
+
+				superMall.Id = mall;
+
+				superMall.Address1 = this.model.Addresses.Create();
+				superMall.Address1.Region = this.model.Regions.Create();
+				superMall.Address1.Region.Name = "!RegionName1";
+
+				superMall.Address2 = this.model.Addresses.Create();
+				superMall.Address2.Region = this.model.Regions.Create();
+				superMall.Address2.Region.Name = "!RegionName2";
+
+				scope.Flush(model);
+
+				mallId = mall.Id;
+				address0 = mall.Address.Id;
+				address1 = superMall.Address1.Id;
+				address2 = superMall.Address2.Id;
+
+				region0 = mall.Address.Region.Id;
+				region1 = superMall.Address1.Region.Id;
+				region2 = superMall.Address2.Region.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var address = this.model.Addresses.GetReference(new { Id = address0, Region = new { Id = region0, Name = "!RegionName0" } });
+
+				address.Inflate();
+
+				var mall = this.model.Malls.GetReference(new { Id = mallId, Address = new { Id = address0, Region = new { Id = region0, Name = "!RegionName0" } } });
+
+				mall.Inflate();
+
+				var key =
+					new
+					{
+						Id = new { Id = mallId, Address = new { Id = address0, Region = new { Id = region0, Name = "!RegionName0" } } },
+						Address1 = new { Id = address1, Region = new { Id = region1, Name = "!RegionName1" } },
+						Address2 = new { Id = address2, Region = new { Id = region2, Name = "!RegionName2" } }
+					};
+
+				var reference = this.model.SuperMalls.GetReference(key);
+				reference.Inflate();
+
+				//var superMall = this.model.SuperMalls.Single(c => c == reference);
 			}
 		}
 
