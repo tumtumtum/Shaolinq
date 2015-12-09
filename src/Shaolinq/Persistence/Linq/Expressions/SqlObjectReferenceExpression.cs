@@ -27,9 +27,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					continue;
 				}
 
-				if (assignment.Expression is SqlObjectReferenceExpression)
+				var expression = assignment.Expression as SqlObjectReferenceExpression;
+
+				if (expression != null)
 				{
-					foreach (var value in ((SqlObjectReferenceExpression)assignment.Expression).GetBindingsFlattened())
+					foreach (var value in expression.GetBindingsFlattened())
 					{
 						yield return value;
 					}
@@ -47,7 +49,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlObjectReferenceExpression(Type type, IEnumerable<MemberBinding> bindings)
-			: this(type, new ReadOnlyCollection<MemberBinding>(bindings.ToList()))
+			: this(type, bindings.ToReadOnlyCollection())
 		{
 		}
 

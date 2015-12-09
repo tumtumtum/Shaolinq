@@ -45,5 +45,6 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo ConvertChangeTypeMethod = TypeUtils.GetMethod(() => Convert.ChangeType(null, typeof(string)));
 		public static readonly MethodInfo DictionaryTryGetValueMethod = TypeUtils.GetMethod<Dictionary<object, object>>(c => c.TryGetValue(default(object), out result)).GetGenericTypeDefinitionMethod();
 		public static readonly MethodInfo ObjectPropertyValueListAddMethod = TypeUtils.GetMethod<List<ObjectPropertyValue>>(c => c.Add(default(ObjectPropertyValue)));
+		public static readonly MethodInfo DataAccessModelGetReference = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
 	}
 }

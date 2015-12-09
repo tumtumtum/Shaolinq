@@ -1538,43 +1538,46 @@ namespace Shaolinq.Persistence.Linq
 
 			bindingsForKey[new PropertyDescriptor[0]] = rootBindings;
 
+			var readonlyBindingsForKey = bindingsForKey
+				.Select(c => new { c.Key, Value = c.Value.ToReadOnlyCollection() })
+				.ToDictionary(c => c.Key, c => c.Value, ArrayEqualityComparer<PropertyDescriptor>.Default);
+
 			var parentBindingsForKey = bindingsForKey
 				.Where(c => c.Key.Length > 0)
 				.ToDictionary(c => c.Key, c => bindingsForKey[c.Key.Take(c.Key.Length - 1).ToArray()], ArrayEqualityComparer<PropertyDescriptor>.Default);
 			
 			var rootPrimaryKeyProperties = new HashSet<string>(typeDescriptor.PrimaryKeyProperties.Select(c => c.PropertyName));
 
-			foreach (var groupedColumnInfo in groupedColumnInfos)
+			var parentBindingsAdded = new HashSet<PropertyInfo>();
+
+			foreach (var value in columnInfos)
 			{
-				var currentBindings = bindingsForKey[groupedColumnInfo.Key];
+				var currentBindings = bindingsForKey[value.VisitedProperties];
 
-				foreach (var value in groupedColumnInfo)
+				var propertyInfo = value.DefinitionProperty.PropertyInfo;
+				var columnExpression = new SqlColumnExpression(propertyInfo.PropertyType, selectAlias, value.ColumnName);
+
+				currentBindings.Add(Expression.Bind(propertyInfo, columnExpression));
+
+				tableColumns.Add(new SqlColumnDeclaration(value.ColumnName, new SqlColumnExpression(propertyInfo.PropertyType, tableAlias, value.ColumnName)));
+
+				if (value.VisitedProperties.Length > 0)
 				{
-					var propertyInfo = value.DefinitionProperty.PropertyInfo;
-					var columnExpression = new SqlColumnExpression(propertyInfo.PropertyType, selectAlias, value.ColumnName);
+					var property = value.VisitedProperties.Last();
+					var parentBindings = parentBindingsForKey[value.VisitedProperties];
 
-					currentBindings.Add(Expression.Bind(propertyInfo, columnExpression));
-					
-					tableColumns.Add(new SqlColumnDeclaration(value.ColumnName, new SqlColumnExpression(propertyInfo.PropertyType, tableAlias, value.ColumnName)));
+					if (!parentBindingsAdded.Contains(property.PropertyInfo))
+                    {
+						var objectReferenceType = property.PropertyType;
+						var objectReference = new SqlObjectReferenceExpression(objectReferenceType, readonlyBindingsForKey[value.VisitedProperties]);
+
+						parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
+
+	                    parentBindingsAdded.Add(property.PropertyInfo);
+                    }
 				}
 			}
-
-			foreach (var value in groupedColumnInfos.Where(c => c.Key.Length > 0).OrderByDescending(c => c.Key.Length))
-			{
-				var property = value.Key[value.Key.Length - 1];
-				var objectReferenceType = property.PropertyType;
-				var parentBindings = parentBindingsForKey[value.Key];
-
-				var objectReference = new SqlObjectReferenceExpression(objectReferenceType, bindingsForKey[value.Key]);
-
-				if (objectReference.Bindings.Count == 0)
-				{
-					throw new InvalidOperationException($"Missing ObjectReference bindings: {property.PropertyInfo.ReflectedType}.{property.PropertyName}");
-				}
-
-				parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
-			}
-
+			
 			var rootObjectReference = new SqlObjectReferenceExpression(typeDescriptor.Type, rootBindings.Where(c => rootPrimaryKeyProperties.Contains(c.Member.Name)));
 
 			if (rootObjectReference.Bindings.Count == 0)

@@ -15,9 +15,21 @@ namespace Shaolinq.Persistence
 				return null;
 			}
 
-			var list = enumerable as ReadOnlyCollection<T>;
+			var readOnlyCollection = enumerable as ReadOnlyCollection<T>;
 
-			return list ?? new ReadOnlyCollection<T>(enumerable.ToList());
+			if (readOnlyCollection != null)
+			{
+				return readOnlyCollection; 				
+			}
+
+			var list = enumerable as List<T>;
+
+			if (list != null)
+			{
+				return new ReadOnlyCollection<T>(list);
+			}
+
+			return new ReadOnlyCollection<T>(enumerable.ToList());
 		}
 	}
 }
