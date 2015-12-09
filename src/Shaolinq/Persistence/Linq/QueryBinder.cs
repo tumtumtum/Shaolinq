@@ -1497,6 +1497,8 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
+		private static readonly PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>> PropertyWiseComparerer = new PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>>(type => typeof(ObjectReferenceIdentityEqualityComparer<>).MakeGenericType(type).GetProperty("Default", BindingFlags.Static | BindingFlags.Public).GetGetMethod().Invoke(null, null));
+
 		private SqlProjectionExpression GetTableProjection(Type type)
 		{
 			Type elementType;
@@ -1548,7 +1550,7 @@ namespace Shaolinq.Persistence.Linq
 			
 			var rootPrimaryKeyProperties = new HashSet<string>(typeDescriptor.PrimaryKeyProperties.Select(c => c.PropertyName));
 
-			var parentBindingsAdded = new HashSet<PropertyInfo>();
+			var propertyAdded = new HashSet<Tuple<List<MemberBinding>, PropertyInfo>>(QueryBinder.PropertyWiseComparerer);
 
 			foreach (var value in columnInfos)
 			{
@@ -1566,15 +1568,15 @@ namespace Shaolinq.Persistence.Linq
 					var property = value.VisitedProperties.Last();
 					var parentBindings = parentBindingsForKey[value.VisitedProperties];
 
-					if (!parentBindingsAdded.Contains(property.PropertyInfo))
-                    {
+					if (parentBindings.All(c => c.Member != property.PropertyInfo))
+					{
 						var objectReferenceType = property.PropertyType;
 						var objectReference = new SqlObjectReferenceExpression(objectReferenceType, readonlyBindingsForKey[value.VisitedProperties]);
 
 						parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
 
-	                    parentBindingsAdded.Add(property.PropertyInfo);
-                    }
+						propertyAdded.Add(new Tuple<List<MemberBinding>, PropertyInfo>(parentBindings, property.PropertyInfo));
+					}
 				}
 			}
 			
