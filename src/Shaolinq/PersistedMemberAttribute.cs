@@ -2,6 +2,8 @@
 
 using System;
 using System.Reflection;
+using Platform;
+using Platform.Reflection;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -38,20 +40,27 @@ namespace Shaolinq
 				return memberInfo.Name;
 			}
 
+			var memberIsDaoId = memberInfo.DeclaringType != null
+								&& memberInfo.DeclaringType.IsGenericType
+								&& memberInfo.DeclaringType.GetGenericTypeDefinition() == typeof(DataAccessObject<>)
+								&& memberInfo.Name == "Id";
+
 			return VariableSubstitutor.Substitute(autoNamePattern, (value) =>
 			{
 				switch (value)
 				{
 					case "$(PERSISTEDTYPENAME)":
-						return typeDescriptor.PersistedName;
+						return memberIsDaoId ? "" : typeDescriptor.PersistedName;
 					case "$(PERSISTEDTYPENAME_LOWER)":
-						return memberInfo.ReflectedType.Name.ToLower();
+						return memberIsDaoId ? "" : memberInfo.ReflectedType.Name.ToLower();
 					case "$(TYPENAME)":
-						return memberInfo.ReflectedType.Name;
+						return memberIsDaoId ? "" : memberInfo.ReflectedType.Name;
 					case "$(TYPENAME_LOWER)":
-						return memberInfo.ReflectedType.Name.ToLower();
+						return memberIsDaoId ? "" : memberInfo.ReflectedType.Name.ToLower();
 					case "$(PROPERTYNAME)":
 						return memberInfo.Name;
+					case "$(PROPERTYNAME_LOWER)":
+						return memberInfo.Name.ToLower();
 					default:
 						throw new NotSupportedException(value);
 				}
