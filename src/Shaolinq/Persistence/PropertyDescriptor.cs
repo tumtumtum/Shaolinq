@@ -81,11 +81,13 @@ namespace Shaolinq.Persistence
 			{
 				this.PersistedName = this.BackReferenceAttribute.GetName(this.PropertyInfo, declaringTypeDescriptor);
 				this.PersistedShortName = this.PersistedName;
+				this.PersistedPrefixName = this.PersistedName;
 			}
 			else if (this.RelatedDataAccessObjectsAttribute != null)
 			{
 				this.PersistedName = propertyInfo.Name;
 				this.PersistedShortName = propertyInfo.Name;
+				this.PersistedPrefixName = this.PersistedName;
 			}
 
 			this.IndexAttributes = this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToReadOnlyCollection();
