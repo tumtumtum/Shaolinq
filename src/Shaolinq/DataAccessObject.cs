@@ -13,7 +13,7 @@ namespace Shaolinq
 	{
 		[PrimaryKey]
 		[AutoIncrement]
-		[PersistedMember(Name = "$(PERSISTEDTYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)")]
+		[PersistedMember(Name = "$(PERSISTEDTYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)", PrefixName = "$(PERSISTEDTYPENAME)")]
 		public abstract T Id { get; set; }
 	}
 
@@ -29,28 +29,16 @@ namespace Shaolinq
 			return this.dataAccessModel;
 		}
 
-		public SqlDatabaseContext DatabaseConnection => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
-
-		public IDataAccessObjectAdvanced GetAdvanced()
-		{
-			return this;
-		}
-
-		public bool IsNew()
-		{
-			return (((IDataAccessObjectAdvanced)this).IsNew);
-		}
-
-		public bool IsDeleted()
-		{
-			return (((IDataAccessObjectAdvanced)this).IsDeleted);
-		}
-
-		public bool IsDeflatedReference()
-		{
-			return ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
-		}
+		public abstract ObjectPropertyValue[] GetAllProperties();
+		public abstract bool HasPropertyChanged(string propertyName);
+		public abstract List<ObjectPropertyValue> GetChangedProperties();
 		
+		public SqlDatabaseContext DatabaseConnection => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
+		public IDataAccessObjectAdvanced GetAdvanced() => this;
+		public bool IsNew() => (((IDataAccessObjectAdvanced)this).IsNew);
+		public bool IsDeleted() => (((IDataAccessObjectAdvanced)this).IsDeleted);
+		public bool IsDeflatedReference() => ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
+
 		public virtual DataAccessObject Inflate()
 		{
 			if (!((IDataAccessObjectAdvanced)this).IsDeflatedReference)
@@ -72,20 +60,16 @@ namespace Shaolinq
 			this.ToObjectInternal().SetIsDeleted(true);
 		}
 
-		protected void SetDataAccessModel(DataAccessModel dataAccessModel)
+		protected void SetDataAccessModel(DataAccessModel value)
 		{
 			if (this.dataAccessModel != null)
 			{
 				throw new InvalidOperationException("DataAccessModel already set");
 			}
 
-			this.dataAccessModel = dataAccessModel;
+			this.dataAccessModel = value;
 		}
 
-		public abstract ObjectPropertyValue[] GetAllProperties();
-		public abstract bool HasPropertyChanged(string propertyName);
-		public abstract List<ObjectPropertyValue> GetChangedProperties();
-		
 		#region IDataAccessObjectAdvanced
 		DataAccessModel IDataAccessObjectAdvanced.DataAccessModel => this.dataAccessModel;
 		ObjectState IDataAccessObjectAdvanced.ObjectState { get { throw new NotImplementedException(); } }
@@ -96,7 +80,6 @@ namespace Shaolinq
 		bool IDataAccessObjectAdvanced.HasObjectChanged => (((IDataAccessObjectAdvanced)this).ObjectState & ObjectState.Changed) != 0;
 		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor => this.dataAccessModel.GetTypeDescriptor(this.GetType());
 		Type IDataAccessObjectAdvanced.DefinitionType => this.dataAccessModel.GetDefinitionTypeFromConcreteType(this.GetType());
-
 		#endregion
 
 		#region Reflection emitted explicit interface implementations

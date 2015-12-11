@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence
 
 			if (this.tailColumnName == null)
 			{
-				this.tailColumnName = string.Join("", this.VisitedProperties.Skip(1).Select(c => c.PersistedName));
+				this.tailColumnName = string.Concat(this.VisitedProperties.Skip(1).Select(c => c.PersistedPrefixName));
 
 				if (this.VisitedProperties.Length == 1)
 				{
@@ -44,17 +44,19 @@ namespace Shaolinq.Persistence
 
 		public string GetColumnName()
 		{
-			if (this.columnName == null)
+			if (this.columnName != null)
 			{
-				if (this.VisitedProperties.Length == 0)
-				{
-					this.columnName = this.DefinitionProperty.PersistedName;
-				}
-				else
-				{
-					this.columnName = string.Join("", this.VisitedProperties.Select(c => c.PersistedName));
-					this.columnName += this.DefinitionProperty.PersistedShortName;
-				}
+				return this.columnName;
+			}
+
+			if (this.VisitedProperties.Length == 0)
+			{
+				this.columnName = this.DefinitionProperty.PersistedName;
+			}
+			else
+			{
+				this.columnName = string.Concat(this.VisitedProperties.Select(c => c.PersistedPrefixName));
+				this.columnName += this.DefinitionProperty.PersistedShortName;
 			}
 
 			return this.columnName;
@@ -62,22 +64,12 @@ namespace Shaolinq.Persistence
 
 		public string GetFullParentName()
 		{
-			if (this.fullParentName == null)
-			{
-				this.fullParentName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName));
-			}
-
-			return this.fullParentName;
+			return this.fullParentName ?? (this.fullParentName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName)));
 		}
 
 		public string GetFullPropertyName()
 		{
-			if (this.fullPropertyName == null)
-			{
-				this.fullPropertyName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName).Concat(new [] { this.DefinitionProperty.PropertyName }));
-			}
-
-			return this.fullPropertyName;
+			return this.fullPropertyName ?? (this.fullPropertyName = string.Join(".", this.VisitedProperties.Select(c => c.PropertyName).Concat(new[] { this.DefinitionProperty.PropertyName })));
 		}
 
 		public override string ToString()

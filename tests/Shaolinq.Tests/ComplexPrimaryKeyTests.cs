@@ -136,7 +136,7 @@ namespace Shaolinq.Tests
 				reference.Inflate();
 
 				//var superMall = this.model.SuperMalls.Single(c => c == reference);
-			}
+			}	
 		}
 
 		[Test]

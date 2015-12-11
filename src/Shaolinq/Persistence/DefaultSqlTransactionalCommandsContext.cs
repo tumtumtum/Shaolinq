@@ -117,47 +117,47 @@ namespace Shaolinq.Persistence
 
 			switch (Type.GetTypeCode(type))
 			{
-				case TypeCode.Boolean:
-					return DbType.Boolean;
-				case TypeCode.Byte:
-				case TypeCode.SByte:
-					return DbType.Byte;
-				case TypeCode.Char:
-					return DbType.Object;
-				case TypeCode.DateTime:
-					return DbType.DateTime;
-				case TypeCode.Decimal:
-					return DbType.Decimal;
-				case TypeCode.Single:
-					return DbType.Single;
-				case TypeCode.Double:
-					return DbType.Double;
-				case TypeCode.Int16:
-				case TypeCode.UInt16:
-					return DbType.Int16;
-				case TypeCode.Int32:
-				case TypeCode.UInt32:
-					return DbType.Int32;
-				case TypeCode.Int64:
-				case TypeCode.UInt64:
-					return DbType.Int64;
-				case TypeCode.String:
+			case TypeCode.Boolean:
+				return DbType.Boolean;
+			case TypeCode.Byte:
+			case TypeCode.SByte:
+				return DbType.Byte;
+			case TypeCode.Char:
+				return DbType.Object;
+			case TypeCode.DateTime:
+				return DbType.DateTime;
+			case TypeCode.Decimal:
+				return DbType.Decimal;
+			case TypeCode.Single:
+				return DbType.Single;
+			case TypeCode.Double:
+				return DbType.Double;
+			case TypeCode.Int16:
+			case TypeCode.UInt16:
+				return DbType.Int16;
+			case TypeCode.Int32:
+			case TypeCode.UInt32:
+				return DbType.Int32;
+			case TypeCode.Int64:
+			case TypeCode.UInt64:
+				return DbType.Int64;
+			case TypeCode.String:
+				return DbType.AnsiString;
+			default:
+				if (type == typeof(Guid))
+				{
+					return DbType.Guid;
+				}
+				else if (type.IsArray && type.GetElementType() == typeof(byte))
+				{
+					return DbType.Binary;
+				}
+				else if (type.IsEnum)
+				{
 					return DbType.AnsiString;
-				default:
-					if (type == typeof (Guid))
-					{
-						return DbType.Guid;
-					}
-					else if (type.IsArray && type.GetElementType() == typeof(byte))
-					{
-						return DbType.Binary;
-					}
-					else if (type.IsEnum)
-					{
-						return DbType.AnsiString;
-					}
+				}
 
-					return DbType.Object;
+				return DbType.Object;
 			}
 		}
 

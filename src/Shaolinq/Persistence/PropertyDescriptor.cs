@@ -16,6 +16,7 @@ namespace Shaolinq.Persistence
 		public bool IsPrimaryKey { get; }
 		public string PersistedName { get; }
 		public string PersistedShortName { get; }
+		public string PersistedPrefixName { get; }
 		public PropertyInfo PropertyInfo { get; }
 		public UniqueAttribute UniqueAttribute { get; }
 		public TypeDescriptor DeclaringTypeDescriptor { get; }
@@ -74,6 +75,7 @@ namespace Shaolinq.Persistence
 			{
 				this.PersistedName = this.PersistedMemberAttribute.GetName(this.PropertyInfo, declaringTypeDescriptor);
 				this.PersistedShortName = this.PersistedMemberAttribute.GetShortName(this.PropertyInfo, this.DeclaringTypeDescriptor);
+				this.PersistedPrefixName = this.PersistedMemberAttribute.GetPrefixName(this.PropertyInfo, this.DeclaringTypeDescriptor);
 			}
 			else if (this.BackReferenceAttribute != null)
 			{
