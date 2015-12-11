@@ -13,8 +13,8 @@ namespace Shaolinq
 
         public static TransactionScope CreateReadCommitted(
             TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            TimeSpan? timeout = null)
-            //System.Transactions.TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Suppress) // .NET 4.5.1 feature
+            TimeSpan? timeout = null,
+            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
         {
             var transactionOptions = new TransactionOptions
             {
@@ -37,13 +37,13 @@ namespace Shaolinq
                 transactionOptions.Timeout = timeout.Value;
             }
 
-            return new TransactionScope(transactionScopeOption, transactionOptions/*, transactionScopeAsyncFlowOption*/);
+            return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
         }
 
         public static TransactionScope CreateRepeatableRead(
             TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            TimeSpan? timeout = null)
-            //TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Suppress) // .NET 4.5.1 feature
+            TimeSpan? timeout = null,
+            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
         {
             var transactionOptions = new TransactionOptions
             {
@@ -65,13 +65,13 @@ namespace Shaolinq
                 transactionOptions.Timeout = timeout.Value;
             }
 
-            return new TransactionScope(transactionScopeOption, transactionOptions/*, transactionScopeAsyncFlowOption*/);
+            return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
         }
 
         public static TransactionScope CreateSerializable(
             TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            TimeSpan? timeout = null)
-            //TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Suppress) // .NET 4.5.1 feature
+            TimeSpan? timeout = null,
+            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
         {
             var transactionOptions = new TransactionOptions
             {
@@ -83,15 +83,15 @@ namespace Shaolinq
                 transactionOptions.Timeout = timeout.Value;
             }
 
-            return new TransactionScope(transactionScopeOption, transactionOptions/*, transactionScopeAsyncFlowOption*/);
+            return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
         }
 
         public static void InvokeWithConcurrencyRetryAllowNested(
             Action<TransactionScope> action,
             TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
             int maxRetries = 3,
-            TimeSpan? timeout = null)
-            //TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Suppress) // .NET 4.5.1 feature
+            TimeSpan? timeout = null,
+            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
         {
             if (action == null)
             {
@@ -101,7 +101,7 @@ namespace Shaolinq
             // If this is an inner transaction, the outer transaction is responsible for the retry logic
             if (transactionScopeOption == TransactionScopeOption.Required && Transaction.Current != null)
             {
-                using (var scope = CreateSerializable(transactionScopeOption, timeout/*, transactionScopeAsyncFlowOption*/))
+                using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
                 {
                     action(scope);
                 }
@@ -114,7 +114,7 @@ namespace Shaolinq
                     () =>
                     {
                         attempt++;
-                        using (var scope = CreateSerializable(transactionScopeOption, timeout/*, transactionScopeAsyncFlowOption*/))
+                        using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
                         {
                             action(scope);
                         }
@@ -141,8 +141,8 @@ namespace Shaolinq
             Action<TransactionScope> action,
             TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
             int maxRetries = 3,
-            TimeSpan? timeout = null)
-            //TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Suppress) // .NET 4.5.1 feature
+            TimeSpan? timeout = null,
+            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
         {
             if (action == null)
             {
@@ -160,7 +160,7 @@ namespace Shaolinq
                 () =>
                 {
                     attempt++;
-                    using (var scope = CreateSerializable(transactionScopeOption, timeout/*, transactionScopeAsyncFlowOption*/))
+                    using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
                     {
                         action(scope);
                     }
