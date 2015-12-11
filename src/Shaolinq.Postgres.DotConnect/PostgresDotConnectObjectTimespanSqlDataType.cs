@@ -7,8 +7,8 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectObjectTimespanSqlDataType
 		: PostgresTimespanSqlDataType
 	{
-		public PostgresDotConnectObjectTimespanSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
-			: base(constraintDefaults, supportedType)
+		public PostgresDotConnectObjectTimespanSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType)
+			: base(constraintDefaultsConfiguration, supportedType)
 		{
 		}
 

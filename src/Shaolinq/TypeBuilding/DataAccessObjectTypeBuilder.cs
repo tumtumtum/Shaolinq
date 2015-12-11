@@ -646,24 +646,7 @@ namespace Shaolinq.TypeBuilding
 				var propertiesToLoad = new List<PropertyInfo>();
 				var generator = methodBuilder.GetILGenerator();
 
-				var formatString = VariableSubstitutor.Substitute(attribute.Format, value =>
-				{
-					switch (value)
-					{
-						case "$(TABLENAME)":
-						case "$(PERSISTEDTYPENAME)":
-							return this.typeDescriptor.PersistedName;
-						case "$(TABLENAME_LOWER)":
-						case "$(PERSISTEDTYPENAME_LOWER)":
-							return this.typeDescriptor.PersistedName.ToLower();
-						case "$(TYPENAME)":
-							return this.typeDescriptor.Type.Name;
-						case "$(TYPENAME_LOWER)":
-							return this.typeDescriptor.Type.Name.ToLower();
-						default:
-							return value;
-					}
-				});
+				var formatString = VariableSubstituter.Substitute(attribute.Format, this.typeDescriptor);
 
 				formatString = ComputedTextMemberAttribute.FormatRegex.Replace
 				(

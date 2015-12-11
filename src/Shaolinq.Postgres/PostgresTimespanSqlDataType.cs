@@ -9,8 +9,8 @@ namespace Shaolinq.Postgres
 	{
 		private readonly Type underlyingType;
 
-		public PostgresTimespanSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
-			: base(constraintDefaults, supportedType)
+		public PostgresTimespanSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType)
+			: base(constraintDefaultsConfiguration, supportedType)
 		{
 			this.underlyingType = Nullable.GetUnderlyingType(supportedType);
 		}

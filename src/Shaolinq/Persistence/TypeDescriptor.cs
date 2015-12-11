@@ -50,7 +50,7 @@ namespace Shaolinq.Persistence
 			return false;
 		}
 
-		public string PersistedName => this.DataAccessObjectAttribute.GetName(this.Type);
+		public string PersistedName => this.DataAccessObjectAttribute.GetName(this);
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
@@ -245,7 +245,7 @@ namespace Shaolinq.Persistence
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
 					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
-					this.propertyDescriptorByColumnName[attribute.GetName(propertyInfo, this)] = propertyDescriptor;
+					this.propertyDescriptorByColumnName[attribute.GetName(propertyDescriptor)] = propertyDescriptor;
 				}
 			}
 

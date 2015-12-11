@@ -6,11 +6,11 @@ namespace Shaolinq.Persistence
 {
 	public abstract class SqlDataTypeProvider
 	{
-		public ConstraintDefaults ConstraintDefaults { get; }
+		public ConstraintDefaultsConfiguration ConstraintDefaultsConfiguration { get; }
 
-		protected SqlDataTypeProvider(ConstraintDefaults constraintDefaults)
+		protected SqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
 		{
-			this.ConstraintDefaults = constraintDefaults;
+			this.ConstraintDefaultsConfiguration = constraintDefaultsConfiguration;
 		}
 
 		public virtual Type GetTypeForEnums()

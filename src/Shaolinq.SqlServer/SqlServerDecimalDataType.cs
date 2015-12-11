@@ -17,8 +17,8 @@ namespace Shaolinq.SqlServer
 		private readonly MethodInfo method;
 		public string SqlName { get; }
 		
-		public SqlServerDecimalDataType(ConstraintDefaults constraintDefaults, Type type, string sqlName)
-			: base(constraintDefaults, type)
+		public SqlServerDecimalDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type, string sqlName)
+			: base(constraintDefaultsConfiguration, type)
 		{
 			this.SqlName = sqlName;
 			this.method = this.GetType().GetMethod("Read", BindingFlags.Public | BindingFlags.Static);

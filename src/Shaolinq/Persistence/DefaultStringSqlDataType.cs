@@ -10,13 +10,13 @@ namespace Shaolinq.Persistence
 	public class DefaultStringSqlDataType
 		: SqlDataType
 	{
-		public DefaultStringSqlDataType(ConstraintDefaults constraintDefaults)
-			: base(constraintDefaults, typeof(string))
+		public DefaultStringSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+			: base(constraintDefaultsConfiguration, typeof(string))
 		{
 		}
 
-		protected DefaultStringSqlDataType(ConstraintDefaults constraintDefaults, Type type)
-			: base(constraintDefaults, type)
+		protected DefaultStringSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type)
+			: base(constraintDefaultsConfiguration, type)
 		{
 		}
 		
@@ -57,11 +57,11 @@ namespace Shaolinq.Persistence
 			{
 				if (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0)
 				{
-					return "VARCHAR(" + this.constraintDefaults.IndexedStringMaximumLength + ")";
+					return "VARCHAR(" + this.constraintDefaultsConfiguration.IndexedStringMaximumLength + ")";
 				}
 				else
 				{
-					return "VARCHAR(" + this.constraintDefaults.StringMaximumLength + ")";
+					return "VARCHAR(" + this.constraintDefaultsConfiguration.StringMaximumLength + ")";
 				}
 			}
 		}

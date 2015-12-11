@@ -8,8 +8,8 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
-		public SqliteSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
-			: base(constraintDefaults)
+		public SqliteSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+			: base(constraintDefaultsConfiguration)
 		{
 			this.DefineSqlDataType(typeof(byte), "INTEGER", "GetByte");
 			this.DefineSqlDataType(typeof(sbyte), "INTEGER", "GetByte");

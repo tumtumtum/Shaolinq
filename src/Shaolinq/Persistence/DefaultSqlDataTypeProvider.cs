@@ -24,13 +24,13 @@ namespace Shaolinq.Persistence
 
 		protected void DefineSqlDataType(Type type, string name, MethodInfo getValueMethod)
 		{
-			this.DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaults, type, name, getValueMethod));
+			this.DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaultsConfiguration, type, name, getValueMethod));
 			type = typeof(Nullable<>).MakeGenericType(type);
-			this.DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaults, type, name, getValueMethod));
+			this.DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaultsConfiguration, type, name, getValueMethod));
 		}
 
-		public DefaultSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
-			: base(constraintDefaults)
+		public DefaultSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+			: base(constraintDefaultsConfiguration)
 		{
 			this.sqlDataTypesByType = new Dictionary<Type, SqlDataType>(PrimeNumbers.Prime43);
 
@@ -48,21 +48,21 @@ namespace Shaolinq.Persistence
 			this.DefineSqlDataType(typeof(float), "FLOAT", "GetFloat");
 			this.DefineSqlDataType(typeof(double), "DOUBLE", "GetDouble");
 			this.DefineSqlDataType(typeof(decimal), "NUMERIC", "GetDecimal");
-			this.DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
-			this.DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
-			this.DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaults, typeof(TimeSpan)));
-			this.DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaults, typeof(TimeSpan?)));
-			this.DefineSqlDataType(new DefaultStringSqlDataType(this.ConstraintDefaults));
+			this.DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid)));
+			this.DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid?)));
+			this.DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaultsConfiguration, typeof(TimeSpan)));
+			this.DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaultsConfiguration, typeof(TimeSpan?)));
+			this.DefineSqlDataType(new DefaultStringSqlDataType(this.ConstraintDefaultsConfiguration));
 		}
 
 		protected virtual SqlDataType GetBlobDataType()
 		{
-			return new DefaultBlobSqlDataType(this.ConstraintDefaults, "BLOB");
+			return new DefaultBlobSqlDataType(this.ConstraintDefaultsConfiguration, "BLOB");
 		}
 
 		protected virtual SqlDataType GetEnumDataType(Type type)
 		{
-			var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultStringEnumSqlDataType<>).MakeGenericType(type), this.ConstraintDefaults);
+			var sqlDataType = (SqlDataType)Activator.CreateInstance(typeof(DefaultStringEnumSqlDataType<>).MakeGenericType(type), this.ConstraintDefaultsConfiguration);
 
 			return sqlDataType;
 		}

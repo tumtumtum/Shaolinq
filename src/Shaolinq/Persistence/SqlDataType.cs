@@ -9,7 +9,7 @@ namespace Shaolinq.Persistence
 {
 	public abstract class SqlDataType
 	{
-		protected readonly ConstraintDefaults constraintDefaults;
+		protected readonly ConstraintDefaultsConfiguration constraintDefaultsConfiguration;
 		protected static readonly MethodInfo IsDbNullMethod = DataRecordMethods.IsNullMethod;
 
 		public Type SupportedType { get; }
@@ -59,14 +59,14 @@ namespace Shaolinq.Persistence
 		}
 
 
-		protected SqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
-			: this(constraintDefaults, supportedType, false)
+		protected SqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType)
+			: this(constraintDefaultsConfiguration, supportedType, false)
 		{	
 		}
 
-		protected SqlDataType(ConstraintDefaults constraintDefaults, Type supportedType, bool isUserDefinedType)
+		protected SqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType, bool isUserDefinedType)
 		{
-			this.constraintDefaults = constraintDefaults;
+			this.constraintDefaultsConfiguration = constraintDefaultsConfiguration;
 			this.SupportedType = supportedType;
 			this.IsUserDefinedType = isUserDefinedType;
 			this.UnderlyingType = Nullable.GetUnderlyingType(supportedType);

@@ -176,6 +176,7 @@
     <Compile Include="TestNonPrimaryAutoIncrement.cs" />
     <Compile Include="TransactionTests.cs" />
     <Compile Include="TypeTests.cs" />
+    <Compile Include="VariableSubstituterTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TestDataAccessModel.configx" />

@@ -13,8 +13,8 @@ namespace Shaolinq.Persistence
 		
 		private readonly string sqlName;
 
-		public DefaultBlobSqlDataType(ConstraintDefaults constraintDefaults, string sqlName)
-			: base(constraintDefaults, typeof(byte[]))
+		public DefaultBlobSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, string sqlName)
+			: base(constraintDefaultsConfiguration, typeof(byte[]))
 		{
 			this.sqlName = sqlName;
 		}

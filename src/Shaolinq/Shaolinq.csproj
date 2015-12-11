@@ -122,16 +122,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedMemberAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
-    <Compile Include="ConstraintDefaults.cs" />
+    <Compile Include="ConstraintDefaultsConfiguration.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DataAccessTypeAttribute.cs" />
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
+    <Compile Include="NamedMemberAttribute.cs" />
+    <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="Persistence\EnumerableUtils.cs" />
     <Compile Include="ForeignObjectAction.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
@@ -165,6 +168,8 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossJoinRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
+    <Compile Include="Persistence\VariableSubstituter.cs" />
+    <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />
@@ -377,7 +382,6 @@
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="UniqueConstraintException.cs" />
     <Compile Include="UnsupportedDataAccessModelDefinitionException.cs" />
-    <Compile Include="VariableSubstitutor.cs" />
     <Compile Include="WriteOnlyDomainObjectException.cs" />
   </ItemGroup>
   <ItemGroup>

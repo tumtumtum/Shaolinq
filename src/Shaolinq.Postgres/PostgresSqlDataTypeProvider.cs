@@ -25,16 +25,16 @@ namespace Shaolinq.Postgres
 				return base.GetEnumDataType(type);
 			}
 
-			return new PostgresEnumSqlDataType(this.ConstraintDefaults, type);
+			return new PostgresEnumSqlDataType(this.ConstraintDefaultsConfiguration, type);
 		}
 
-		public PostgresSqlDataTypeProvider(ConstraintDefaults constraintDefaults, bool nativeUuids, bool nativeEnums)
-			: base(constraintDefaults)
+		public PostgresSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, bool nativeUuids, bool nativeEnums)
+			: base(constraintDefaultsConfiguration)
 		{
 			this.NativeUuids = nativeUuids;
 			this.NativeEnums = nativeEnums;
 			
-			this.blobSqlDataType = new DefaultBlobSqlDataType(constraintDefaults, "BYTEA");
+			this.blobSqlDataType = new DefaultBlobSqlDataType(constraintDefaultsConfiguration, "BYTEA");
 
 			this.DefineSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
 			this.DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
@@ -49,16 +49,16 @@ namespace Shaolinq.Postgres
 			this.DefineSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
 			this.DefineSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
 
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", false));
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "TIMESTAMP", true));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", false));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", true));
 
-			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan)));
-			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaults, typeof(TimeSpan?)));
+			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan)));
+			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan?)));
 
 			if (nativeUuids)
 			{
-				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaults, typeof(Guid)));
-				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaults, typeof(Guid?)));
+				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid)));
+				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid?)));
 			}
 		}
 	}

@@ -15,11 +15,12 @@ namespace Shaolinq.Persistence
 		public Type OwnerType { get; }
 		public bool IsPrimaryKey { get; }
 		public string PersistedName { get; }
-		public string PersistedShortName { get; }
-		public string PersistedPrefixName { get; }
+		public string SuffixName { get; }
+		public string PrefixName { get; }
 		public PropertyInfo PropertyInfo { get; }
 		public UniqueAttribute UniqueAttribute { get; }
 		public TypeDescriptor DeclaringTypeDescriptor { get; }
+		public TypeDescriptor PropertyTypeTypeDescriptor => this.DeclaringTypeDescriptor.TypeDescriptorProvider.GetTypeDescriptor(this.PropertyType);
 		public PrimaryKeyAttribute PrimaryKeyAttribute { get; }
 		public DefaultValueAttribute DefaultValueAttribute { get; }
 		public AutoIncrementAttribute AutoIncrementAttribute { get; }
@@ -70,28 +71,17 @@ namespace Shaolinq.Persistence
 
 			this.PrimaryKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
 			this.IsPrimaryKey = this.PrimaryKeyAttribute != null && this.PrimaryKeyAttribute.IsPrimaryKey;
-
-			if (this.PersistedMemberAttribute != null)
-			{
-				this.PersistedName = this.PersistedMemberAttribute.GetName(this.PropertyInfo, declaringTypeDescriptor);
-				this.PersistedShortName = this.PersistedMemberAttribute.GetShortName(this.PropertyInfo, this.DeclaringTypeDescriptor);
-				this.PersistedPrefixName = this.PersistedMemberAttribute.GetPrefixName(this.PropertyInfo, this.DeclaringTypeDescriptor);
-			}
-			else if (this.BackReferenceAttribute != null)
-			{
-				this.PersistedName = this.BackReferenceAttribute.GetName(this.PropertyInfo, declaringTypeDescriptor);
-				this.PersistedShortName = this.PersistedName;
-				this.PersistedPrefixName = this.PersistedName;
-			}
-			else if (this.RelatedDataAccessObjectsAttribute != null)
-			{
-				this.PersistedName = propertyInfo.Name;
-				this.PersistedShortName = propertyInfo.Name;
-				this.PersistedPrefixName = this.PersistedName;
-			}
-
 			this.IndexAttributes = this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToReadOnlyCollection();
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
+
+			var named = this.PersistedMemberAttribute ?? this.BackReferenceAttribute ?? (NamedMemberAttribute)this.RelatedDataAccessObjectsAttribute;
+
+			if (named != null)
+			{
+				this.PersistedName = named.GetName(this);
+				this.SuffixName = named.GetSuffixName(this);
+				this.PrefixName = named.GetPrefixName(this);
+			}
 		}
 
 		public override int GetHashCode()

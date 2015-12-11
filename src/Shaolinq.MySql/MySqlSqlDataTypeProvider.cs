@@ -9,18 +9,18 @@ namespace Shaolinq.MySql
 	{
 		protected override SqlDataType GetBlobDataType()
 		{
-			return new DefaultBlobSqlDataType(this.ConstraintDefaults, "LONGBLOB");
+			return new DefaultBlobSqlDataType(this.ConstraintDefaultsConfiguration, "LONGBLOB");
 		}
 
-		public MySqlSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
-			: base(constraintDefaults)
+		public MySqlSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+			: base(constraintDefaultsConfiguration)
 		{
 			this.DefineSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
 			this.DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
 			this.DefineSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
 
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", false));
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME", true));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", false));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", true));
 		}
 	}
 }

@@ -15,8 +15,8 @@ namespace Shaolinq.Persistence
 		private static readonly ConstructorInfo timeSpanConstructor = typeof(TimeSpan).GetConstructor(new[] { typeof(long) });
 		private static readonly ConstructorInfo nullableTimeSpanConstructor = typeof(TimeSpan?).GetConstructor(new[] { typeof(TimeSpan) });
 
-		public DefaultTimeSpanSqlDataType(SqlDataTypeProvider sqlDataTypeProvider, ConstraintDefaults constraintDefaults, Type type)
-			: base(constraintDefaults, type)
+		public DefaultTimeSpanSqlDataType(SqlDataTypeProvider sqlDataTypeProvider, ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type)
+			: base(constraintDefaultsConfiguration, type)
 		{
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 		}

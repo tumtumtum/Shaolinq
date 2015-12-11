@@ -18,7 +18,7 @@ namespace Shaolinq.MySql
 		
 		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
-			var constraintDefaults = model.Configuration.ConstraintDefaults;
+			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(MySqlSqlDialect.Default, sqlDataTypeProvider, typeof(MySqlSqlQueryFormatter));
 

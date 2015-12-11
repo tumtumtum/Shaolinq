@@ -39,7 +39,7 @@ namespace Shaolinq.SqlServer
 
 		public static SqlServerSqlDatabaseContext Create(SqlServerSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
-			var constraintDefaults = model.Configuration.ConstraintDefaults;
+			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDataTypeProvider = new SqlServerSqlDataTypeProvider(constraintDefaults);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(SqlServerSqlDialect.Default, sqlDataTypeProvider, typeof(SqlServerSqlQueryFormatter));
 

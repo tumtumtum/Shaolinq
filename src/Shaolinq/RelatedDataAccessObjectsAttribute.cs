@@ -6,8 +6,16 @@ namespace Shaolinq
 {
 	[AttributeUsage(AttributeTargets.Property)]
 	public class RelatedDataAccessObjectsAttribute
-		: Attribute
+		: NamedMemberAttribute
 	{
+		public RelatedDataAccessObjectsAttribute()
+		{
+		}
+
+        public RelatedDataAccessObjectsAttribute(string name)
+			: base(name)
+		{
+		}
 	}
 }
 

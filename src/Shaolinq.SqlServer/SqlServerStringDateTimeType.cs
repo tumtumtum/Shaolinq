@@ -6,13 +6,13 @@ namespace Shaolinq.SqlServer
 	public class SqlServerStringSqlDataType
 		: DefaultStringSqlDataType
 	{
-		public SqlServerStringSqlDataType(ConstraintDefaults constraintDefaults)
-			: base(constraintDefaults)
+		public SqlServerStringSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+			: base(constraintDefaultsConfiguration)
 		{
 		}
 
-		public SqlServerStringSqlDataType(ConstraintDefaults constraintDefaults, Type type)
-			: base(constraintDefaults, type)
+		public SqlServerStringSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type)
+			: base(constraintDefaultsConfiguration, type)
 		{
 		}
 

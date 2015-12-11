@@ -13,8 +13,8 @@ namespace Shaolinq.Postgres
 	{
 		private static readonly ConstructorInfo NullableGuidConstructor = typeof(Guid?).GetConstructor(new[] { typeof(Guid) });
 
-		public PostgresUuidSqlDataType(ConstraintDefaults constraintDefaults, Type type)
-			: base(constraintDefaults, type)
+		public PostgresUuidSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type)
+			: base(constraintDefaultsConfiguration, type)
 		{
 		}
 		

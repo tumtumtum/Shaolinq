@@ -7,8 +7,8 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
-		public SqlServerSqlDataTypeProvider(ConstraintDefaults constraintDefaults)
-			: base(constraintDefaults)
+		public SqlServerSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+			: base(constraintDefaultsConfiguration)
 		{
 			this.DefineSqlDataType(typeof(bool), "BIT", "GetBoolean");
 			this.DefineSqlDataType(typeof(byte), "TINYINT", "GetByte");
@@ -23,13 +23,13 @@ namespace Shaolinq.SqlServer
 			this.DefineSqlDataType(typeof(float), "FLOAT(24)", "GetFloat");
 			this.DefineSqlDataType(typeof(double), "FLOAT(53)", "GetDouble");
 			
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME2", false));
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaults, "DATETIME2", true));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", false));
+			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", true));
 
-			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal), "DECIMAL(38, 9)"));
-			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaults, typeof(decimal?), "DECIMAL(38, 9)"));
-			this.DefineSqlDataType(new DefaultBlobSqlDataType(constraintDefaults, "VARBINARY(MAX)"));
-			this.DefineSqlDataType(new SqlServerStringSqlDataType(constraintDefaults));
+			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaultsConfiguration, typeof(decimal), "DECIMAL(38, 9)"));
+			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaultsConfiguration, typeof(decimal?), "DECIMAL(38, 9)"));
+			this.DefineSqlDataType(new DefaultBlobSqlDataType(constraintDefaultsConfiguration, "VARBINARY(MAX)"));
+			this.DefineSqlDataType(new SqlServerStringSqlDataType(constraintDefaultsConfiguration));
 		}
 	}
 }

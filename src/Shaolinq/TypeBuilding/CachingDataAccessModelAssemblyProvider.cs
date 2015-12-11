@@ -23,7 +23,7 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			public AssemblyKey(Type dataAccessModelType, DataAccessModelConfiguration configuration)
-				: this(dataAccessModelType, configuration.GetMd5())
+				: this(dataAccessModelType, configuration.GetSha256())
 			{
 			}
 

@@ -59,7 +59,7 @@ namespace Shaolinq.Tests.TestModel
 		protected virtual string CompactIdString => this.Id.ToString("N");
 
 		[PersistedMember]
-		[ComputedTextMember("urn:$(TYPENAME_LOWER):{CompactIdString}")]
+		[ComputedTextMember("urn:$(PERSISTED_TYPENAME_TOLOWER):{CompactIdString}")]
 		public abstract string Urn { get; set; }
 	}
 }

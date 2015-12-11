@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence
 
 			if (this.tailColumnName == null)
 			{
-				this.tailColumnName = string.Concat(this.VisitedProperties.Skip(1).Select(c => c.PersistedPrefixName));
+				this.tailColumnName = string.Concat(this.VisitedProperties.Skip(1).Select(c => c.PrefixName));
 
 				if (this.VisitedProperties.Length == 1)
 				{
@@ -35,7 +35,7 @@ namespace Shaolinq.Persistence
 				}
 				else
 				{
-					this.tailColumnName += this.DefinitionProperty.PersistedShortName;
+					this.tailColumnName += this.DefinitionProperty.SuffixName;
 				}
 			}
 
@@ -55,8 +55,8 @@ namespace Shaolinq.Persistence
 			}
 			else
 			{
-				this.columnName = string.Concat(this.VisitedProperties.Select(c => c.PersistedPrefixName));
-				this.columnName += this.DefinitionProperty.PersistedShortName;
+				this.columnName = string.Concat(this.VisitedProperties.Select(c => c.PrefixName));
+				this.columnName += this.DefinitionProperty.SuffixName;
 			}
 
 			return this.columnName;

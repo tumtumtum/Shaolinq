@@ -8,6 +8,15 @@ namespace Shaolinq
 	public class DataAccessObjectAttribute
 		: DataAccessTypeAttribute
 	{
+		public DataAccessObjectAttribute()
+		{	
+		}
+
+		public DataAccessObjectAttribute(string name)
+			: base(name)
+		{
+		}
+
 		public bool NotPersisted { get; set; }
 	}
 }

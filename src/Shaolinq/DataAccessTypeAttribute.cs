@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -10,9 +11,18 @@ namespace Shaolinq
 	{
 		public string Name { get; set; }
 
-		public string GetName(Type type)
+		public DataAccessTypeAttribute()
+		{	
+		}
+
+		public DataAccessTypeAttribute(string name)
 		{
-			return this.Name ?? type.Name;
+			this.Name = name;
+		}
+
+		internal string GetName(TypeDescriptor type)
+		{
+			return VariableSubstituter.Substitute(this.Name ?? type.TypeName, type);
 		}
 	}
 }

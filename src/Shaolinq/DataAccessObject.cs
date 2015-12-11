@@ -13,7 +13,7 @@ namespace Shaolinq
 	{
 		[PrimaryKey]
 		[AutoIncrement]
-		[PersistedMember(Name = "$(PERSISTEDTYPENAME)$(PROPERTYNAME)", ShortName = "$(PROPERTYNAME)", PrefixName = "$(PERSISTEDTYPENAME)")]
+		[PersistedMember(Name = "$(PERSISTED_TYPENAME)$(PROPERTYNAME)", SuffixName = "$(PROPERTYNAME)", PrefixName = "$(PERSISTED_TYPENAME)")]
 		public abstract T Id { get; set; }
 	}
 

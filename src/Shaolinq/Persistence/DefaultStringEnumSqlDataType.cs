@@ -31,11 +31,11 @@ namespace Shaolinq.Persistence
 			return maximumSize;
 		}
 
-		private static ConstraintDefaults CreateConstraintDefaults(ConstraintDefaults defaults, Type type)
+		private static ConstraintDefaultsConfiguration CreateConstraintDefaults(ConstraintDefaultsConfiguration defaultsConfiguration, Type type)
 		{
 			var length = GetRecommendedLength(type);
 
-			return new ConstraintDefaults(defaults)
+			return new ConstraintDefaultsConfiguration(defaultsConfiguration)
 			{
 				StringMaximumLength = length,
 				IndexedStringMaximumLength = length,
@@ -43,8 +43,8 @@ namespace Shaolinq.Persistence
 			};
 		}
 
-		public DefaultStringEnumSqlDataType(ConstraintDefaults constraintDefaults)
-			: base(CreateConstraintDefaults(constraintDefaults, typeof(T)), typeof(T))
+		public DefaultStringEnumSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+			: base(CreateConstraintDefaults(constraintDefaultsConfiguration, typeof(T)), typeof(T))
 		{
 		}
         

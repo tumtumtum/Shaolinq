@@ -6,9 +6,9 @@ using Platform.Xml.Serialization;
 namespace Shaolinq
 {
 	[XmlElement]
-	public class ConstraintDefaults
+	public class ConstraintDefaultsConfiguration
 	{
-		public static readonly ConstraintDefaults Default = new ConstraintDefaults();
+		public static readonly ConstraintDefaultsConfiguration DefaultConfiguration = new ConstraintDefaultsConfiguration();
 
 		[XmlAttribute]
 		public int StringMaximumLength { get; set; }
@@ -19,13 +19,13 @@ namespace Shaolinq
 		[XmlAttribute]
 		public SizeFlexibility StringSizeFlexibility { get; set; }
 
-		public ConstraintDefaults()
+		public ConstraintDefaultsConfiguration()
 		{
 			this.StringMaximumLength = 512;
 			this.IndexedStringMaximumLength = 255;
 		}
 
-		public ConstraintDefaults(ConstraintDefaults original)
+		public ConstraintDefaultsConfiguration(ConstraintDefaultsConfiguration original)
 		{
 			this.StringMaximumLength = original.StringMaximumLength;
 			this.IndexedStringMaximumLength = original.IndexedStringMaximumLength;

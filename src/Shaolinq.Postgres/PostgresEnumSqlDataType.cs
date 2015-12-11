@@ -13,8 +13,8 @@ namespace Shaolinq.Postgres
 	{
 		private readonly Type underlyingType;
 
-		public PostgresEnumSqlDataType(ConstraintDefaults constraintDefaults, Type supportedType)
-			: base(constraintDefaults, supportedType, true)
+		public PostgresEnumSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType)
+			: base(constraintDefaultsConfiguration, supportedType, true)
 		{
 			this.underlyingType = Nullable.GetUnderlyingType(supportedType);
 		}

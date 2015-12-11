@@ -1497,7 +1497,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		private static readonly PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>> PropertyWiseComparerer = new PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>>(type => typeof(ObjectReferenceIdentityEqualityComparer<>).MakeGenericType(type).GetProperty("Default", BindingFlags.Static | BindingFlags.Public).GetGetMethod().Invoke(null, null));
+		private static readonly PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>> PropertyWiseComparerer = new PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>>(type => typeof(ObjectReferenceIdentityEqualityComparer<>).MakeGenericType(type).GetProperty("DefaultConfiguration", BindingFlags.Static | BindingFlags.Public).GetGetMethod().Invoke(null, null));
 
 		private SqlProjectionExpression GetTableProjection(Type type)
 		{
