@@ -43,15 +43,8 @@ namespace Shaolinq.Persistence
 				visitedTypes = new HashSet<TypeDescriptor>();
 			}
 
-			if (visitedTypes.Contains(typeDescriptor))
-			{
-				throw new InvalidOperationException("Recursive variable substitution");
-			}
-
 			try
 			{
-				visitedTypes.Add(typeDescriptor);
-
 				return Substitute(pattern, value =>
 				{
 					switch (value.ToUpper())
@@ -60,6 +53,11 @@ namespace Shaolinq.Persistence
 						return typeDescriptor.TypeName;
 					case "TABLENAME":
 					case "PERSISTED_TYPENAME":
+						if (visitedTypes.Contains(typeDescriptor))
+						{
+							throw new InvalidOperationException("Recursive variable substitution");
+						}
+						visitedTypes.Add(typeDescriptor);
 						return typeDescriptor.PersistedName;
 					default:
 						throw new NotSupportedException(value);
@@ -89,11 +87,6 @@ namespace Shaolinq.Persistence
 			{
 				root = true;
 				visitedProperties = new HashSet<PropertyDescriptor>();
-			}
-			
-			if (visitedProperties.Contains(propertyDescriptor))
-			{
-				throw new InvalidOperationException("Recursive variable substitution");
 			}
 
 			try

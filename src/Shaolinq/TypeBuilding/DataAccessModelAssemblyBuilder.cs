@@ -14,7 +14,7 @@ namespace Shaolinq.TypeBuilding
 	{
 		public override RuntimeDataAccessModelInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
-			var typeDescriptorProvider = new TypeDescriptorProvider(dataAccessModelType);
+			var typeDescriptorProvider = new TypeDescriptorProvider(dataAccessModelType, configuration);
 			var originalAssembly = dataAccessModelType.Assembly;
 			var builtAssembly = BuildAssembly(typeDescriptorProvider, configuration);
 
@@ -58,6 +58,7 @@ namespace Shaolinq.TypeBuilding
 			const bool isInDebugMode = false;
 #endif
 
+			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 			if (saveConcreteAssembly || isInDebugMode)
 			{
 				ActionUtils.IgnoreExceptions(() => assemblyBuilder.Save(assemblyName + "." + configSha256 + ".dll"));

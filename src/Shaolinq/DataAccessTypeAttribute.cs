@@ -20,9 +20,9 @@ namespace Shaolinq
 			this.Name = name;
 		}
 
-		internal string GetName(TypeDescriptor type)
+		internal string GetName(TypeDescriptor type, string transformString = "")
 		{
-			return VariableSubstituter.Substitute(this.Name ?? type.TypeName, type);
+			return VariableSubstituter.SedTransform(VariableSubstituter.Substitute(this.Name ?? type.TypeName, type), transformString);
 		}
 	}
 }

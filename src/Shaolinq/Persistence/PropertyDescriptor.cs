@@ -78,9 +78,9 @@ namespace Shaolinq.Persistence
 
 			if (named != null)
 			{
-				this.PersistedName = named.GetName(this);
-				this.SuffixName = named.GetSuffixName(this);
-				this.PrefixName = named.GetPrefixName(this);
+				this.PersistedName = named.GetName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberName);
+				this.PrefixName = named.GetPrefixName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberPrefixName);
+				this.SuffixName = named.GetSuffixName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberSuffixName);
 			}
 		}
 

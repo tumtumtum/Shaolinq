@@ -12,6 +12,7 @@ namespace Shaolinq.Persistence
 	public class TypeDescriptor
 	{
 		public Type Type { get; }
+		public string PersistedName { get; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
 		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; }
@@ -49,8 +50,6 @@ namespace Shaolinq.Persistence
 
 			return false;
 		}
-
-		public string PersistedName => this.DataAccessObjectAttribute.GetName(this);
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
@@ -208,6 +207,8 @@ namespace Shaolinq.Persistence
 			
 			var alreadyEnteredProperties = new HashSet<string>();
 
+			this.PersistedName = this.DataAccessObjectAttribute.GetName(this, this.TypeDescriptorProvider.Configuration.NamingTransforms?.DataAccessObjectName);
+
 			foreach (var propertyInfo in this.GetPropertiesInOrder())
 			{
 				if (alreadyEnteredProperties.Contains(propertyInfo.Name))
@@ -219,7 +220,7 @@ namespace Shaolinq.Persistence
 
 				var attribute = propertyInfo.GetFirstCustomAttribute<PersistedMemberAttribute>(true);
 
-				if (attribute != null)
+				if (attribute != null && attribute.GetType() == typeof(PersistedMemberAttribute))
 				{
 					var propertyDescriptor = new PropertyDescriptor(this, type, propertyInfo);
 

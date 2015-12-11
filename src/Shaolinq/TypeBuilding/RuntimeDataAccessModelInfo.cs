@@ -16,7 +16,6 @@ namespace Shaolinq.TypeBuilding
 		public Assembly ConcreteAssembly { get; }
 		public Assembly DefinitionAssembly { get; }
 		
-		private readonly Dictionary<Type, Type> enumerableTypes = new Dictionary<Type, Type>();
 		private readonly Dictionary<Type, Type> typesByConcreteType = new Dictionary<Type, Type>();
 		private readonly Dictionary<Type, Type> concreteTypesByType = new Dictionary<Type, Type>();
 		private readonly Dictionary<Type, Type> dataAccessObjectsTypes = new Dictionary<Type, Type>();
@@ -36,9 +35,7 @@ namespace Shaolinq.TypeBuilding
 			var concreteDataAccessModelType = concreteAssembly.GetType(this.dataAccessModelType.Namespace + "." + this.dataAccessModelType.Name);
 			this.dataAccessModelConstructor = Expression.Lambda<Func<DataAccessModel>>(Expression.Convert(Expression.New(concreteDataAccessModelType), this.dataAccessModelType)).Compile();
 
-			var typeProvider = new TypeDescriptorProvider(this.dataAccessModelType);
-
-			foreach (var type in typeProvider.GetTypeDescriptors())
+			foreach (var type in this.TypeDescriptorProvider.GetTypeDescriptors())
 			{
 				var concreteType = concreteAssembly.GetType(type.Type.Namespace + "." + type.Type.Name);
 
@@ -46,7 +43,6 @@ namespace Shaolinq.TypeBuilding
 				this.typesByConcreteType[concreteType] = type.Type;
 				
 				this.dataAccessObjectsTypes[type.Type] = TypeHelper.DataAccessObjectsType.MakeGenericType(type.Type);
-				this.enumerableTypes[type.Type] = TypeHelper.IEnumerableType.MakeGenericType(type.Type);
 			}
 		}
 		

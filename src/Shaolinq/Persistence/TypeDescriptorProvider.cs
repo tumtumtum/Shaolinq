@@ -13,12 +13,14 @@ namespace Shaolinq.Persistence
 	{
 		public Type DataAccessModelType { get; }
 		public ModelTypeDescriptor ModelTypeDescriptor { get; }
+		public DataAccessModelConfiguration Configuration { get; }
 
 		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType;
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptorsByType = new Dictionary<Type, TypeDescriptor>();
 		
-		public TypeDescriptorProvider(Type dataAccessModelType)
+		public TypeDescriptorProvider(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
+			this.Configuration = configuration;
 			this.DataAccessModelType = dataAccessModelType;
 
 			var dataAccessModelAttribute = dataAccessModelType.GetFirstCustomAttribute<DataAccessModelAttribute>(true);

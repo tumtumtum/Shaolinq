@@ -20,19 +20,19 @@ namespace Shaolinq
 			this.Name = name;
 		}
 
-		internal string GetName(PropertyDescriptor property)
+		internal string GetName(PropertyDescriptor property, string transformString = "")
 		{
-			return VariableSubstituter.Substitute(this.Name, property);
+			return VariableSubstituter.SedTransform(VariableSubstituter.Substitute(this.Name, property), transformString);
 		}
 
-		internal string GetPrefixName(PropertyDescriptor property)
+		internal string GetPrefixName(PropertyDescriptor property, string transformString = "")
 		{
-			return VariableSubstituter.Substitute(this.PrefixName, property);
+			return VariableSubstituter.SedTransform(VariableSubstituter.Substitute(this.PrefixName, property), transformString);
 		}
 
-		internal string GetSuffixName(PropertyDescriptor property)
+		internal string GetSuffixName(PropertyDescriptor property, string transformString = "")
 		{
-			return VariableSubstituter.Substitute(this.SuffixName, property);
+			return VariableSubstituter.SedTransform(VariableSubstituter.Substitute(this.SuffixName, property), transformString);
 		}
 	}
 }
