@@ -46,14 +46,13 @@ namespace Shaolinq.Persistence
 		{
 			if (this.columnName == null)
 			{
-				this.columnName = string.Join("", this.VisitedProperties.Select(c => c.PersistedName));
-
 				if (this.VisitedProperties.Length == 0)
 				{
-					this.columnName += this.DefinitionProperty.PersistedName;
+					this.columnName = this.DefinitionProperty.PersistedName;
 				}
 				else
 				{
+					this.columnName = string.Join("", this.VisitedProperties.Select(c => c.PersistedName));
 					this.columnName += this.DefinitionProperty.PersistedShortName;
 				}
 			}
