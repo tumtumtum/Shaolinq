@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
@@ -139,6 +140,21 @@ namespace Shaolinq.Tests
 
 				Assert.That(address1.Street, Is.EqualTo("Street1"));
 				Assert.That(address2.Street, Is.EqualTo("Street2"));
+			}
+		}
+
+		[Test]
+		public async Task Test_Async_TransactionScope()
+		{
+			using (var scope = TransactionScopeFactory.CreateReadCommitted(TransactionScopeOption.Required, null, TransactionScopeAsyncFlowOption.Enabled))
+			{
+				var address = this.model.Address.Create();
+
+				address.Street = "Async Street";
+
+				await Task.Delay(100);
+
+				scope.Complete();
 			}
 		}
 	}
