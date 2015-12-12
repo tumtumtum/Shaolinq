@@ -11,7 +11,7 @@ namespace Shaolinq
 		: IDisposable
 	{
 		[ThreadStatic]
-		internal static Transaction currentlyCommitingTransaction;
+		internal static TransactionContext currentlyCommitingTransactionContext;
 
 		[ThreadStatic]
 		private static Dictionary<DataAccessModel, DataAccessModelTransactionManager> ambientTransactionManagers;
@@ -30,7 +30,7 @@ namespace Shaolinq
 		public static DataAccessModelTransactionManager GetAmbientTransactionManager(DataAccessModel dataAccessModel)
 		{
 			DataAccessModelTransactionManager retval;
-
+			
 			if (ambientTransactionManagers == null)
 			{
 				ambientTransactionManagers = new Dictionary<DataAccessModel, DataAccessModelTransactionManager>();
@@ -38,12 +38,14 @@ namespace Shaolinq
 
 			var transactionManagers = ambientTransactionManagers;
 
-			if (!transactionManagers.TryGetValue(dataAccessModel, out retval))
+			if (transactionManagers.TryGetValue(dataAccessModel, out retval))
 			{
-				retval = new DataAccessModelTransactionManager(dataAccessModel);
-
-				transactionManagers[dataAccessModel] = retval;
+				return retval;
 			}
+
+			retval = new DataAccessModelTransactionManager(dataAccessModel);
+
+			transactionManagers[dataAccessModel] = retval;
 
 			return retval;
 		}
@@ -70,19 +72,19 @@ namespace Shaolinq
 			GC.SuppressFinalize(this);
 		}
 
-		private int disposed = 0;
+		private int disposed;
 		private TransactionContext rootContext;
 		private readonly IDictionary<Transaction, TransactionContext> transactionContextsByTransaction;
 
 		public DataAccessModelTransactionManager(DataAccessModel dataAccessModel)
 		{
-			EventHandler handler = null;
+			EventHandler[] handler = { null };
 			var weakThis = new WeakReference(this);
 
 			this.DataAccessModel = dataAccessModel;
 			this.transactionContextsByTransaction = new Dictionary<Transaction, TransactionContext>();
             
-			handler = delegate(object sender, EventArgs eventArgs)
+			handler[0] = delegate(object sender, EventArgs eventArgs)
 			{
 				var strongThis = (DataAccessModelTransactionManager)weakThis.Target;
 
@@ -92,11 +94,11 @@ namespace Shaolinq
 				}
 				else
 				{
-					((DataAccessModel)sender).Disposed -= handler;
+					((DataAccessModel)sender).Disposed -= handler[0];
 				}
 			};
 
-			this.DataAccessModel.Disposed += handler;
+			this.DataAccessModel.Disposed += handler[0];
 		}
 
 		public virtual TransactionContext GetCurrentContext(bool forWrite)
@@ -107,28 +109,28 @@ namespace Shaolinq
 			{
 				throw new NotSupportedException("Write operation must be performed inside a transaction context");
 			}
-			else
-			{
-				return retval;
-			}
+
+			return retval;
 		}
 
 		public virtual bool TryGetCurrentContext(bool forWrite, out TransactionContext retval)
 		{
 			Transaction transaction;
+			
+			if (currentlyCommitingTransactionContext != null)
+			{
+				retval = currentlyCommitingTransactionContext;
 
+				return true;
+			}
 			try
+
 			{
 				transaction = Transaction.Current;
 			}
 			catch (InvalidOperationException)
 			{
 				transaction = Transaction.Current = null;
-			}
-
-			if (transaction == null)
-			{
-				transaction = currentlyCommitingTransaction;
 			}
 
 			if (transaction == null && forWrite)
@@ -145,18 +147,21 @@ namespace Shaolinq
 					throw new TransactionAbortedException();
 				}
 
-				if (!this.transactionContextsByTransaction.TryGetValue(transaction, out retval))
+				if (this.transactionContextsByTransaction.TryGetValue(transaction, out retval))
 				{
-					retval = new TransactionContext(this.DataAccessModel, transaction);
-                    
-					transaction.TransactionCompleted += delegate
-					{
-						transactionContextsByTransaction.Remove(transaction);
-					};
-
-					transaction.EnlistVolatile(retval, EnlistmentOptions.None);
-					this.transactionContextsByTransaction[transaction] = retval;
+					return true;
 				}
+
+				retval = new TransactionContext(this.DataAccessModel, transaction);
+                    
+				transaction.TransactionCompleted += delegate
+				{
+					this.transactionContextsByTransaction.Remove(transaction);
+				};
+
+				transaction.EnlistVolatile(retval, EnlistmentOptions.None);
+
+				this.transactionContextsByTransaction[transaction] = retval;
 			}
 			else
 			{

@@ -194,7 +194,7 @@ namespace Shaolinq
 		{
 			try
 			{
-				DataAccessModelTransactionManager.currentlyCommitingTransaction = this.Transaction;
+				DataAccessModelTransactionManager.currentlyCommitingTransactionContext = this;
 
 				this.dataAccessObjectDataContext?.Commit(this, false);
 
@@ -222,7 +222,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				DataAccessModelTransactionManager.currentlyCommitingTransaction = null;
+				DataAccessModelTransactionManager.currentlyCommitingTransactionContext = null;
 
 				this.Dispose();
 			}

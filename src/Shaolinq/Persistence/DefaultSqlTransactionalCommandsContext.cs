@@ -87,9 +87,8 @@ namespace Shaolinq.Persistence
 
 		protected readonly string tableNamePrefix;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
-		internal static readonly MethodInfo DeleteHelperMethod = typeof(DefaultSqlTransactionalCommandsContext).GetMethod("DeleteHelper", BindingFlags.Static | BindingFlags.NonPublic);
 		protected readonly string parameterIndicatorPrefix;
-
+		
 		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
 			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection(), transaction)
 		{
@@ -161,7 +160,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual IDataReader ExecuteReader(string sql, IEnumerable<Tuple<Type, object>> parameters)
+		public virtual IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
 		{
 			var command = this.CreateCommand();
             
@@ -195,7 +194,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual object ExecuteScalar(string sql, IEnumerable<Tuple<Type, object>> parameters)
+		public virtual object ExecuteScalar(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
 		{
 			var command = this.CreateCommand();
 
@@ -647,6 +646,8 @@ namespace Shaolinq.Persistence
 				}
 			}
 		}
+
+		private static readonly MethodInfo DeleteHelperMethod = TypeUtils.GetMethod(() => DeleteHelper(0, null)).GetGenericMethodDefinition();
 
 		public static MethodInfo GetDeleteMethod(Type type)
 		{

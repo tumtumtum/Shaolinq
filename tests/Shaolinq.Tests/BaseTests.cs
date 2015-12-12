@@ -107,7 +107,7 @@ namespace Shaolinq.Tests
 
             XmlConfigurator.Configure();
 
-           // try
+			try
             {
                 if (providerName == "default")
                 {
@@ -121,13 +121,13 @@ namespace Shaolinq.Tests
 
 	            this.model.Create(DatabaseCreationOptions.DeleteExistingDatabase);
             }
-            //catch (Exception e)
+            catch (Exception e)
             {
-	        //    Console.WriteLine("Exception while configuring provider: " + providerName);
-            //    Console.WriteLine(e);
-			//	Console.WriteLine(e.StackTrace);
+	            Console.WriteLine("Exception while configuring provider: " + providerName);
+                Console.WriteLine(e);
+				Console.WriteLine(e.StackTrace);
 
-            //    throw;
+                throw;
             }
         }
 
