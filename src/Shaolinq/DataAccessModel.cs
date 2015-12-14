@@ -96,7 +96,7 @@ namespace Shaolinq
 
 		~DataAccessModel()
 		{
-			this.Dispose();
+			this.Dispose(false);
 		}
 
 		private void DisposeAllSqlDatabaseContexts()
@@ -111,18 +111,26 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual void Dispose()
+		public void Dispose()
+		{
+			this.Dispose(true);
+
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
 		{
 			if (this.disposed)
 			{
 				return;
 			}
 
+			this.rootTransactionContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
+			this.transactionContextsByTransaction.ForEach(c => ActionUtils.IgnoreExceptions(c.Value.Dispose));
+
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
 			this.OnDisposed(EventArgs.Empty);
-
-			GC.SuppressFinalize(this);
 		}
 
 		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)

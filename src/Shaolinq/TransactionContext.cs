@@ -14,8 +14,8 @@ namespace Shaolinq
 	public class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
-		private readonly DataAccessModel dataAccessModel;
 		public Transaction Transaction { get; }
+		private readonly DataAccessModel dataAccessModel;
 		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
 
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
@@ -93,7 +93,6 @@ namespace Shaolinq
 			return this.dataAccessObjectDataContext;
 		}
 		
-
 		public string[] DatabaseContextCategories
 		{
 			get
@@ -172,7 +171,9 @@ namespace Shaolinq
 
 		public static void FlushConnections(DataAccessModel dataAccessModel)
 		{
-			foreach (var commandsContext in dataAccessModel.rootTransactionContexts.Values
+			foreach (var commandsContext in dataAccessModel
+				.rootTransactionContexts
+				.Values
 				.SelectMany(context => context.commandsContextsBySqlDatabaseContexts.Values))
 			{
 				try
