@@ -23,7 +23,7 @@ namespace Shaolinq
 		{
 			queryable.DataAccessModel.Flush();
 
-			var transactionContext = queryable.DataAccessModel.AmbientTransactionManager.GetCurrentContext(true);
+			var transactionContext = queryable.DataAccessModel.GetCurrentContext(true);
 
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DataAccessModel.GetCurrentSqlDatabaseContext()))
 			{

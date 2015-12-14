@@ -1,11 +1,13 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
@@ -16,6 +18,9 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : IDisposable
 	{
+		internal ConcurrentDictionary<Thread, TransactionContext> rootTransactionContexts;
+		internal ConcurrentDictionary<Transaction, TransactionContext> transactionContextsByTransaction;
+
 		#region Nested Types
 		private class RawPrimaryKeysPlaceholderType<T>
 		{
@@ -78,18 +83,10 @@ namespace Shaolinq
 
 			return func();
 		}
-		
-		public DataAccessModelTransactionManager AmbientTransactionManager
-		{
-			get
-			{
-				if (this.disposed)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
 
-				return DataAccessModelTransactionManager.GetAmbientTransactionManager(this);
-			}
+		public TransactionContext GetCurrentContext(bool forWrite)
+		{
+			return TransactionContext.GetCurrentContext(this, forWrite);
 		}
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
@@ -104,7 +101,7 @@ namespace Shaolinq
 
 		private void DisposeAllSqlDatabaseContexts()
 		{
-			DataAccessModelTransactionManager.GetAmbientTransactionManager(this).FlushConnections();
+			TransactionContext.FlushConnections(this);
 
 			foreach (var context in this.sqlDatabaseContextsByCategory
 				.SelectMany(c => this.sqlDatabaseContextsByCategory.Values)
@@ -145,12 +142,12 @@ namespace Shaolinq
 
 		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
-			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(forWrite).CurrentDataContext;
+			return TransactionContext.GetCurrentContext(this, forWrite).GetCurrentDataContext();
 		}
 
 		public SqlTransactionalCommandsContext GetCurrentSqlDatabaseTransactionContext()
 		{
-			return DataAccessModelTransactionManager.GetAmbientTransactionManager(this).GetCurrentContext(true).GetCurrentDatabaseTransactionContext(this.GetCurrentSqlDatabaseContext());
+			return TransactionContext.GetCurrentContext(this, true).GetCurrentDatabaseTransactionContext(this.GetCurrentSqlDatabaseContext());
 		}
 
 		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
@@ -607,7 +604,7 @@ namespace Shaolinq
 		{
 			var forWrite = Transaction.Current != null;
 
-			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(forWrite);
+			var transactionContext = this.GetCurrentContext(forWrite);
 
 			if (transactionContext.SqlDatabaseContext != null)
 			{
@@ -639,7 +636,7 @@ namespace Shaolinq
 
 		public virtual void SetCurrentTransactionDatabaseCategories(params string[] categories)
 		{
-			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(false);
+			var transactionContext = this.GetCurrentContext(false);
 			
 			if (transactionContext.DatabaseContextCategories == null)
 			{
@@ -679,7 +676,7 @@ namespace Shaolinq
 
 		public virtual void Flush()
 		{
-			var transactionContext = this.AmbientTransactionManager.GetCurrentContext(true);
+			var transactionContext = this.GetCurrentContext(true);
 
 			this.GetCurrentDataContext(true).Commit(transactionContext, true);
 		}

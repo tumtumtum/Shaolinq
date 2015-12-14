@@ -100,12 +100,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Platform, Version=1.2.0.248, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.2.0.248-rc1\lib\net452\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.2.0.250, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.2.0.250-rc1\lib\net452\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.248, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.248-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.250, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.250-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -335,7 +335,6 @@
     <Compile Include="Persistence\Linq\SqlQueryable.cs" />
     <Compile Include="ReusableQueryable.cs" />
     <Compile Include="DataAccessModelConfigurationSectionHandler.cs" />
-    <Compile Include="DataAccessModelTransactionManager.cs" />
     <Compile Include="DataAccessObjectDataContext.cs" />
     <Compile Include="IDataAccessObjectAdvanced.cs" />
     <Compile Include="MissingObjectIdentifierException.cs" />

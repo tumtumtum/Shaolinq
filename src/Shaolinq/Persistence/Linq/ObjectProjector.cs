@@ -109,7 +109,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public virtual IEnumerator<T> GetEnumerator()
 		{
-			var transactionContext = this.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
+			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{

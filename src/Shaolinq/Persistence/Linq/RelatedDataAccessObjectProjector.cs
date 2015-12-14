@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override IEnumerator<T> GetEnumerator()
 		{
-			var transactionContext = this.DataAccessModel.AmbientTransactionManager.GetCurrentContext(false);
+			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
@@ -31,12 +31,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						T retval = this.objectReader(this, dataReader, this.placeholderValues);
 
-						if (this.relatedDataAccessObjectContext.InitializeDataAccessObject != null)
-						{
-							this.relatedDataAccessObjectContext.InitializeDataAccessObject(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObjectAdvanced)retval);
-						}
-
-						//retval.ResetModified();
+						this.relatedDataAccessObjectContext.InitializeDataAccessObject?.Invoke(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObjectAdvanced)retval);
 
 						yield return retval;
 
