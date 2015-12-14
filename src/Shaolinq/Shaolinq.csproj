@@ -172,6 +172,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
+    <Compile Include="TaskExtensions.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />

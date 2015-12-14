@@ -25,27 +25,27 @@ namespace Shaolinq
 
 		public virtual void Delete(SqlDeleteExpression deleteExpression)
 		{
-			this.DeleteAsync(deleteExpression).GetAwaiter().GetResult();
+			this.DeleteAsync(deleteExpression).StartAndOrGetResult();
 		}
 
 		public virtual void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			this.DeleteAsync(type, dataAccessObjects).GetAwaiter().GetResult();
+			this.DeleteAsync(type, dataAccessObjects).StartAndOrGetResult();
 		}
 
 		public virtual void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			this.UpdateAsync(type, dataAccessObjects).GetAwaiter().GetResult();
+			this.UpdateAsync(type, dataAccessObjects).StartAndOrGetResult();
 		}
 
 		public virtual InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			return this.InsertAsync(type, dataAccessObjects).GetAwaiter().GetResult();
+			return this.InsertAsync(type, dataAccessObjects).StartAndOrGetResult();
 		}
 		
 		public virtual IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
 		{
-			return ExecuteReaderAsync(sql, parameters).GetAwaiter().GetResult();
+			return ExecuteReaderAsync(sql, parameters).StartAndOrGetResult();
 		}
 
         public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
