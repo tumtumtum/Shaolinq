@@ -126,17 +126,7 @@ namespace Shaolinq
 			this.commandsContextsBySqlDatabaseContexts = new Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
 		}
 
-		internal struct TransactionEntry
-		{
-			public SqlTransactionalCommandsContext sqlDatabaseCommandsContext;
-
-			public TransactionEntry(SqlTransactionalCommandsContext value)
-			{
-				this.sqlDatabaseCommandsContext = value;
-			}
-		}
-
-		public SqlTransactionalCommandsContext GetCurrentDatabaseTransactionContext(SqlDatabaseContext sqlDatabaseContext)
+		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext)
 		{
 			if (this.Transaction == null)
 			{

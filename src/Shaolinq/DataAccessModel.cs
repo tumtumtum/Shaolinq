@@ -126,6 +126,9 @@ namespace Shaolinq
 			this.rootTransactionContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
 			this.transactionContextsByTransaction.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
 
+			this.rootTransactionContexts = null;
+			this.transactionContextsByTransaction = null;
+
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
 			this.OnDisposed(EventArgs.Empty);
@@ -153,7 +156,7 @@ namespace Shaolinq
 
 		public SqlTransactionalCommandsContext GetCurrentSqlDatabaseTransactionContext()
 		{
-			return TransactionContext.GetCurrentContext(this, true).GetCurrentDatabaseTransactionContext(this.GetCurrentSqlDatabaseContext());
+			return TransactionContext.GetCurrentContext(this, true).GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
 		}
 
 		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
