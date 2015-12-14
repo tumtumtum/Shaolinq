@@ -143,7 +143,13 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		public async Task Test_Async_TransactionScope()
+		[Test]
+		public void Test_Async_TransactionScope()
+		{
+			Test_Async_TransactionScope_Private().Wait();
+		}
+
+		private async Task Test_Async_TransactionScope_Private()
 		{
 			using (var scope = TransactionScopeFactory.CreateReadCommitted(TransactionScopeOption.Required, null, TransactionScopeAsyncFlowOption.Enabled))
 			{ 
@@ -151,7 +157,9 @@ namespace Shaolinq.Tests
 
 				address.Street = "Async Street";
 
-				await Task.Delay(100);
+				var task = Task.Delay(100);
+
+				await task;
 
 				scope.Complete();
 			}
