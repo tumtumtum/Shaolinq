@@ -123,8 +123,8 @@ namespace Shaolinq
 				return;
 			}
 
-			this.rootTransactionContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
-			this.transactionContextsByTransaction.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
+			this.rootTransactionContexts?.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
+			this.transactionContextsByTransaction?.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
 
 			this.rootTransactionContexts = null;
 			this.transactionContextsByTransaction = null;

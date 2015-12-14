@@ -161,6 +161,11 @@ namespace Shaolinq
 
 		public static void FlushConnections(DataAccessModel dataAccessModel)
 		{
+			if (dataAccessModel.rootTransactionContexts == null)
+			{
+				return;
+			}
+
 			foreach (var commandsContext in dataAccessModel
 				.rootTransactionContexts
 				.Values
