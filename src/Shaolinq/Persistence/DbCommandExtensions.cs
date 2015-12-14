@@ -13,7 +13,7 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteReaderAsync();
+				return await dbCommand.ExecuteReaderAsync().ConfigureAwait(false);
 			}
 
 			return (DbDataReader)command.ExecuteReader();
@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteReaderAsync(cancellationToken);
+				return await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			return command.ExecuteReader();
@@ -37,7 +37,7 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteNonQueryAsync();
+				return await dbCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
 			}
 
 			return command.ExecuteNonQuery();
@@ -49,7 +49,7 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteNonQueryAsync(cancellationToken);
+				return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			return command.ExecuteNonQuery();

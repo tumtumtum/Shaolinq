@@ -144,6 +144,37 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public async void Test_AsyncSelect()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				school.Name = "Kung Fu School";
+
+				var student = this.model.Students.Create();
+
+				student.Firstname = "Bruce";
+				student.Lastname = "Lee";
+				student.School = school;
+
+				scope.Complete();
+			}
+
+			await AsyncMethod();
+			await AsyncMethod();
+		}
+
+		public Task<Student> AsyncMethod()
+		{
+			var student = this.model.Students.First();
+
+			Assert.AreEqual("Bruce Lee", student.Fullname);
+
+			return Task.FromResult(student);
+		}
+
+		[Test]
 		[Category("IgnoreOnMono")]
 		public void Test_Async_TransactionScope()
 		{
