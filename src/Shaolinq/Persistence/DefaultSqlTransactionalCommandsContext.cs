@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Transactions;
 using Platform;
 using Shaolinq.Logging;
@@ -160,7 +161,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
+		public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
 		{
 			var command = this.CreateCommand();
             
@@ -175,7 +176,7 @@ namespace Shaolinq.Persistence
 			
 			try
 			{
-				return command.ExecuteReader();
+				return await command.ExecuteReaderAsync();
 			}
 			catch (Exception e)
 			{
@@ -194,40 +195,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual object ExecuteScalar(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
-		{
-			var command = this.CreateCommand();
-
-			command.CommandText = sql;
-
-			foreach (var parameter in parameters)
-			{
-				command.Parameters.Add(parameter.Item2);
-			}
-			
-			Logger.Debug(() => this.FormatCommand(command));
-
-			try
-			{
-				return command.ExecuteScalar();
-			}
-			catch (Exception e)
-			{
-				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
-				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
-
-				Logger.ErrorFormat(e.ToString());
-
-				if (decoratedException != e)
-				{
-					throw decoratedException;
-				}
-
-				throw;
-			}
-		}
-
-		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
@@ -255,7 +223,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					result = command.ExecuteNonQuery();
+					result = await command.ExecuteNonQueryAsync();
 				}
 				catch (Exception e)
 				{
@@ -281,7 +249,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
 			var listToFixup = new List<DataAccessObject>();
 			var listToRetry = new List<DataAccessObject>();
@@ -301,10 +269,10 @@ namespace Shaolinq.Persistence
 					throw new NotSupportedException("Changed state not supported");
 				}
 
-				var primaryKeyIsCompelte = (objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
+				var primaryKeyIsComplete = (objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
 				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.Deferrability) || ((objectState & ObjectState.ReferencesNewObject) == 0));
 				
-				var objectReadyToBeCommited = primaryKeyIsCompelte && deferrableOrNotReferencingNewObject;
+				var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
 				
 				if (objectReadyToBeCommited)
 				{
@@ -315,13 +283,13 @@ namespace Shaolinq.Persistence
 					
 					try
 					{
-						using (var reader = command.ExecuteReader())
+						using (var reader = await command.ExecuteReaderAsync())
 						{
 							if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 							{
 								var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
 
-								if (reader.Read())
+								if (await reader.ReadAsync())
 								{
 									this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
 									dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
@@ -386,11 +354,12 @@ namespace Shaolinq.Persistence
 				var readerParameter = Expression.Parameter(typeof(IDataReader));
 				var propertiesGeneratedOnServerSide = dataAccessObject.GetAdvanced().GetPropertiesGeneratedOnTheServerSide();
 				var local = Expression.Variable(dataAccessObject.GetType());
+
+				var statements = new List<Expression>
+				{
+					Expression.Assign(local, Expression.Convert(objectParameter, dataAccessObject.GetType()))
+				};
 				
-				var statements = new List<Expression>();
-
-				statements.Add(Expression.Assign(local, Expression.Convert(objectParameter, dataAccessObject.GetType())));
-
 				var index = 0;
 
 				foreach (var property in propertiesGeneratedOnServerSide)
@@ -410,9 +379,10 @@ namespace Shaolinq.Persistence
 				
 				applicator = lambda.Compile();
 
-				var newDictionary = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>(this.serverSideGeneratedPropertySettersByType);
-
-				newDictionary[dataAccessObject.GetType()] = applicator;
+				var newDictionary = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>(this.serverSideGeneratedPropertySettersByType)
+				{
+					[dataAccessObject.GetType()] = applicator
+				};
 
 				this.serverSideGeneratedPropertySettersByType = newDictionary;
 			}
@@ -448,7 +418,7 @@ namespace Shaolinq.Persistence
 			return parameter;
 		}
 
-		private void FillParameters(IDbCommand command, IList<ObjectPropertyValue> changedProperties, ObjectPropertyValue[] primaryKeys)
+		private void FillParameters(IDbCommand command, IEnumerable<ObjectPropertyValue> changedProperties, ObjectPropertyValue[] primaryKeys)
 		{
 			foreach (var infoAndValue in changedProperties)
 			{
@@ -491,24 +461,13 @@ namespace Shaolinq.Persistence
 
 			Expression where = null;
 
-			var i = 0;
-
 			Debug.Assert(primaryKeys.Length > 0);
 
 			foreach (var primaryKey in primaryKeys)
 			{
 				var currentExpression = Expression.Equal(new SqlColumnExpression(primaryKey.PropertyType, null, primaryKey.PersistedName), Expression.Constant(primaryKey.Value));
 				
-				if (where == null)
-				{
-					where = currentExpression;
-				}
-				else
-				{
-					where = Expression.And(where, currentExpression);
-				}
-
-				i++;
+				where = where == null ? currentExpression : Expression.And(where, currentExpression);
 			}
 
 			var expression = new SqlUpdateExpression(new SqlTableExpression(typeDescriptor.PersistedName), assignments, where);
@@ -570,7 +529,7 @@ namespace Shaolinq.Persistence
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
-			Debug.Assert(result.ParameterValues.Count() == updatedProperties.Count);
+			Debug.Assert(result.ParameterValues.Count == updatedProperties.Count);
 
 			command = this.CreateCommand();
 
@@ -585,10 +544,8 @@ namespace Shaolinq.Persistence
 
 		protected void CacheInsertCommand(SqlCommandKey sqlCommandKey, SqlCommandValue sqlCommandValue)
 		{
-			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedInsertSqlCache, CommandKeyComparer.Default);
-
-			newDictionary[sqlCommandKey] = sqlCommandValue;
-
+			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedInsertSqlCache, CommandKeyComparer.Default) { [sqlCommandKey] = sqlCommandValue };
+			
 			this.SqlDatabaseContext.formattedInsertSqlCache = newDictionary;
 		}
 
@@ -599,10 +556,8 @@ namespace Shaolinq.Persistence
 
 		protected void CacheUpdateCommand(SqlCommandKey sqlCommandKey, SqlCommandValue sqlCommandValue)
 		{
-			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedUpdateSqlCache, CommandKeyComparer.Default);
-
-			newDictionary[sqlCommandKey] = sqlCommandValue;
-
+			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedUpdateSqlCache, CommandKeyComparer.Default) { [sqlCommandKey] = sqlCommandValue };
+			
 			this.SqlDatabaseContext.formattedUpdateSqlCache = newDictionary;
 		}
 
@@ -611,7 +566,7 @@ namespace Shaolinq.Persistence
 			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
 		}
 
-		public override void Delete(SqlDeleteExpression deleteExpression)
+		public override async Task DeleteAsync(SqlDeleteExpression deleteExpression)
 		{
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
 			
@@ -628,7 +583,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					command.ExecuteNonQuery();
+					await command.ExecuteNonQueryAsync();
 				}
 				catch (Exception e)
 				{
@@ -658,7 +613,7 @@ namespace Shaolinq.Persistence
 		{
 		}
 
-		public override void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 			var parameter = Expression.Parameter(typeDescriptor.Type, "value");
@@ -692,7 +647,7 @@ namespace Shaolinq.Persistence
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 			expression = SqlQueryProvider.Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
-			this.Delete((SqlDeleteExpression)expression);
+			await this.DeleteAsync((SqlDeleteExpression)expression);
 		}
 	}
 }

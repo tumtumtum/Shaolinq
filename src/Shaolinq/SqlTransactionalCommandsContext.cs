@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -14,17 +15,55 @@ namespace Shaolinq
 		: IDisposable
 	{
 		private int disposed;
+		public bool SupportsAsync { get; }
 		public Transaction Transaction { get; }
 		public IDbConnection DbConnection { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-
+		
 		protected IDbTransaction dbTransaction;
 		public DataAccessModel DataAccessModel { get; }
 
-		public abstract void Delete(SqlDeleteExpression deleteExpression);
-		public abstract void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
-		public abstract void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
-		public abstract InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public virtual void Delete(SqlDeleteExpression deleteExpression)
+		{
+			this.DeleteAsync(deleteExpression).GetAwaiter().GetResult();
+		}
+
+		public virtual void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		{
+			this.DeleteAsync(type, dataAccessObjects).GetAwaiter().GetResult();
+		}
+
+		public virtual void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		{
+			this.UpdateAsync(type, dataAccessObjects).GetAwaiter().GetResult();
+		}
+
+		public virtual InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		{
+			return this.InsertAsync(type, dataAccessObjects).GetAwaiter().GetResult();
+		}
+		
+		public virtual IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
+		{
+			return ExecuteReaderAsync(sql, parameters).GetAwaiter().GetResult();
+		}
+
+        public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
+
+        protected SqlTransactionalCommandsContext()
+			: this(true)
+		{
+		}
+
+        protected SqlTransactionalCommandsContext(bool supportsAsync)
+		{
+			this.SupportsAsync = supportsAsync;
+		}
+
+		public abstract Task DeleteAsync(SqlDeleteExpression deleteExpression);
+		public abstract Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 
 		public static System.Data.IsolationLevel ConvertIsolationLevel(System.Transactions.IsolationLevel isolationLevel)
 		{

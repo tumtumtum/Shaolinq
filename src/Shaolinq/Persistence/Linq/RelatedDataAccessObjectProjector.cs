@@ -23,9 +23,9 @@ namespace Shaolinq.Persistence.Linq
 
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
-				var persistenceTransactionContext = (DefaultSqlTransactionalCommandsContext)acquisition.SqlDatabaseCommandsContext;
+				var transactionalCommandsContext = acquisition.SqlDatabaseCommandsContext;
 
-				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
+				using (var dataReader = transactionalCommandsContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
 				{
 					while (dataReader.Read())
 					{

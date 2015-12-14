@@ -19,10 +19,6 @@ namespace Shaolinq
 			this.SqlDatabaseCommandsContext = sqlDatabaseCommandsContext;
 		}
 
-		public void SetWasError()
-		{
-		}
-
 		public void Dispose()
 		{
 			if (this.TransactionContext.Transaction == null)

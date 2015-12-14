@@ -20,25 +20,26 @@ namespace Shaolinq.Postgres
 
 		protected override IDbDataParameter CreateParameter(IDbCommand command, string parameterName, Type type, object value)
 		{
-			if (type.GetUnwrappedNullableType().IsEnum)
+			var unwrapped = type.GetUnwrappedNullableType();
+
+            if (unwrapped.IsEnum)
 			{
 				return new NpgsqlParameter(parameterName, NpgsqlDbType.Unknown) { Value = value };
 			}
-			else if (type.GetUnwrappedNullableType() == typeof(TimeSpan))
+
+			if (unwrapped == typeof(TimeSpan))
 			{
 				return new NpgsqlParameter(parameterName, NpgsqlDbType.Interval) { Value = value };
 			}
-			else
-			{
-				return base.CreateParameter(command, parameterName, type, value);
-			}
+
+			return base.CreateParameter(command, parameterName, type, value);
 		}
 
 		protected override DbType GetDbType(Type type)
 		{
-			var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+			var unwrapped = type.GetUnwrappedNullableType();
 
-			if (underlyingType.IsEnum)
+			if (unwrapped.IsEnum)
 			{
 				return DbType.AnsiString;
 			}

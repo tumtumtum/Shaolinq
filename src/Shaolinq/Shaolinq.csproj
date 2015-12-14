@@ -135,6 +135,8 @@
     <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
+    <Compile Include="Persistence\DbCommandExtensions.cs" />
+    <Compile Include="Persistence\DataReaderExtensions.cs" />
     <Compile Include="Persistence\EnumerableUtils.cs" />
     <Compile Include="ForeignObjectAction.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />

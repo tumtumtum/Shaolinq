@@ -195,9 +195,9 @@ namespace Shaolinq
 					return;
 				}
 
-				if (objectsNotReadyForCommit.Count > 0)
+				if (this.objectsNotReadyForCommit.Count > 0)
 				{
-					var x = objectsNotReadyForCommit.Count;
+					var x = this.objectsNotReadyForCommit.Count;
 
 					foreach (var value in (objectsNotReadyForCommit.Where(c => c.GetAdvanced().PrimaryKeyIsCommitReady)).ToList())
 					{
@@ -208,7 +208,7 @@ namespace Shaolinq
 
 					if (x > 0)
 					{
-						var obj = objectsNotReadyForCommit.First(c => !c.GetAdvanced().PrimaryKeyIsCommitReady);
+						var obj = this.objectsNotReadyForCommit.First(c => !c.GetAdvanced().PrimaryKeyIsCommitReady);
 
 						throw new MissingOrInvalidPrimaryKeyException($"The object {obj} is missing a primary key");
 					}
@@ -294,11 +294,9 @@ namespace Shaolinq
 					return value;
 				}
 
-				var dataAccessObject = (DataAccessObject)value;
-
-				if (dataAccessObject.GetAdvanced().IsNew)
+				if (value.GetAdvanced().IsNew)
 				{
-					if (dataAccessObject.GetAdvanced().PrimaryKeyIsCommitReady)
+					if (value.GetAdvanced().PrimaryKeyIsCommitReady)
 					{
 						DataAccessObject result;
 
@@ -314,7 +312,7 @@ namespace Shaolinq
 
 						this.objectsNotReadyForCommit.Remove(value);
 						
-						if (dataAccessObject.GetAdvanced().NumberOfPrimaryKeysGeneratedOnServerSide > 0)
+						if (value.GetAdvanced().NumberOfPrimaryKeysGeneratedOnServerSide > 0)
 						{
 							return value;
 						}
@@ -330,7 +328,7 @@ namespace Shaolinq
 					}
 				}
 
-				if (dataAccessObject.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
+				if (value.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
 				{
 					return value;
 				}
@@ -416,13 +414,6 @@ namespace Shaolinq
 
 			var type = value.GetType();
 
-			var keyType = value.KeyType;
-
-			if (keyType == null && value.NumberOfPrimaryKeys > 1)
-			{
-				keyType = value.CompositeKeyTypes[0];
-			}
-
 			IObjectsByIdCache cache;
 
 			if (!this.cachesByType.TryGetValue(type, out cache))
@@ -476,12 +467,12 @@ namespace Shaolinq
 
 		public virtual DataAccessObject GetObject(Type type, ObjectPropertyValue[] primaryKeys)
 		{
+			IObjectsByIdCache cache;
+
 			if (this.DisableCache)
 			{
 				return null;
 			}
-
-			IObjectsByIdCache cache;
 
 			return this.cachesByType.TryGetValue(type, out cache) ? cache.Get(primaryKeys) : null;
 		}
@@ -552,8 +543,11 @@ namespace Shaolinq
 		{
 			var acquisitions = new HashSet<DatabaseTransactionContextAcquisition>();
 
-			this.cachesByType.ForEach(c => c.Value.AssertObjectsAreReadyForCommit());
-
+			foreach (var cache in this.cachesByType)
+			{
+				cache.Value.AssertObjectsAreReadyForCommit();
+			}
+			
 			try
 			{
 				try
@@ -568,17 +562,11 @@ namespace Shaolinq
 				{
 					this.isCommiting = false;
 				}
-				
-				this.cachesByType.ForEach(c => c.Value.ProcessAfterCommit());
-			}
-			catch (Exception)
-			{
-				foreach (var acquisition in acquisitions)
-				{
-					acquisition.SetWasError();
-				}
 
-				throw;
+				foreach (var cache in this.cachesByType)
+				{
+					cache.Value.ProcessAfterCommit();
+				}
 			}
 			finally
 			{
@@ -614,7 +602,10 @@ namespace Shaolinq
 
 		private void CommitDeleted(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			this.cachesByType.ForEach(c => CommitDeleted(this.SqlDatabaseContext, c.Value, acquisitions, transactionContext));
+			foreach (var cache in this.cachesByType)
+			{
+				CommitDeleted(this.SqlDatabaseContext, cache.Value, acquisitions, transactionContext);
+			}
 		}
 
 		private static void CommitUpdated(SqlDatabaseContext  sqlDatabaseContext, IObjectsByIdCache cache, HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
@@ -627,7 +618,10 @@ namespace Shaolinq
 
 		private void CommitUpdated(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			this.cachesByType.ForEach(c => CommitUpdated(this.SqlDatabaseContext, c.Value, acquisitions, transactionContext));
+			foreach (var cache in this.cachesByType)
+			{
+				CommitUpdated(this.SqlDatabaseContext, cache.Value, acquisitions, transactionContext);
+			}
 		}
 
 		private static void CommitNewPhase1(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, IObjectsByIdCache cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>> fixups)
