@@ -7,179 +7,219 @@ using Shaolinq.Logging;
 
 namespace Shaolinq
 {
-    public static class TransactionScopeFactory
-    {
-	    private static readonly ILog Log = LogProvider.GetLogger(typeof(TransactionScopeFactory));
+	public static class TransactionScopeFactory
+	{
+		private static readonly ILog Log = LogProvider.GetLogger(typeof(TransactionScopeFactory));
 
-        public static TransactionScope CreateReadCommitted(
-            TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            TimeSpan? timeout = null,
-            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
-        {
-            var transactionOptions = new TransactionOptions
-            {
-                IsolationLevel = IsolationLevel.ReadCommitted,
-            };
+		public static TransactionScope CreateReadCommitted(
+			TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
+			TimeSpan? timeout = null)
+		{
+			return CreateReadCommitted(transactionScopeOption, timeout, TransactionScopeAsyncFlowOption.Enabled);
+		}
 
-            // Upgrade isolation level if necessary
-            if (transactionScopeOption == TransactionScopeOption.Required)
-            {
-                var currentTransaction = Transaction.Current;
-                if (currentTransaction != null &&
-                    (currentTransaction.IsolationLevel == IsolationLevel.Serializable || currentTransaction.IsolationLevel == IsolationLevel.RepeatableRead))
-                {
-                    transactionOptions.IsolationLevel = currentTransaction.IsolationLevel;
-                }
-            }
+		public static TransactionScope CreateReadCommitted(
+			TransactionScopeOption transactionScopeOption,
+			TimeSpan? timeout,
+			TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption)
+		{
+			var transactionOptions = new TransactionOptions
+			{
+				IsolationLevel = IsolationLevel.ReadCommitted,
+			};
 
-            if (timeout.HasValue)
-            {
-                transactionOptions.Timeout = timeout.Value;
-            }
+			// Upgrade isolation level if necessary
+			if (transactionScopeOption == TransactionScopeOption.Required)
+			{
+				var currentTransaction = Transaction.Current;
+				if (currentTransaction != null &&
+					(currentTransaction.IsolationLevel == IsolationLevel.Serializable || currentTransaction.IsolationLevel == IsolationLevel.RepeatableRead))
+				{
+					transactionOptions.IsolationLevel = currentTransaction.IsolationLevel;
+				}
+			}
 
-            return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
-        }
+			if (timeout.HasValue)
+			{
+				transactionOptions.Timeout = timeout.Value;
+			}
 
-        public static TransactionScope CreateRepeatableRead(
-            TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            TimeSpan? timeout = null,
-            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
-        {
-            var transactionOptions = new TransactionOptions
-            {
-                IsolationLevel = IsolationLevel.RepeatableRead,
-            };
+			return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
+		}
 
-            // Upgrade isolation level if necessary
-            if (transactionScopeOption == TransactionScopeOption.Required)
-            {
-                var currentTransaction = Transaction.Current;
-                if (currentTransaction != null && currentTransaction.IsolationLevel == IsolationLevel.Serializable)
-                {
-                    transactionOptions.IsolationLevel = currentTransaction.IsolationLevel;
-                }
-            }
+		public static TransactionScope CreateRepeatableRead(
+			TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
+			TimeSpan? timeout = null)
+		
+		{
+			return CreateRepeatableRead(transactionScopeOption, timeout, TransactionScopeAsyncFlowOption.Enabled);
+		}
 
-            if (timeout.HasValue)
-            {
-                transactionOptions.Timeout = timeout.Value;
-            }
+		public static TransactionScope CreateRepeatableRead(
+			TransactionScopeOption transactionScopeOption,
+			TimeSpan? timeout,
+			TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption)
+		{
+			var transactionOptions = new TransactionOptions
+			{
+				IsolationLevel = IsolationLevel.RepeatableRead,
+			};
 
-            return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
-        }
+			// Upgrade isolation level if necessary
+			if (transactionScopeOption == TransactionScopeOption.Required)
+			{
+				var currentTransaction = Transaction.Current;
+				if (currentTransaction != null && currentTransaction.IsolationLevel == IsolationLevel.Serializable)
+				{
+					transactionOptions.IsolationLevel = currentTransaction.IsolationLevel;
+				}
+			}
 
-        public static TransactionScope CreateSerializable(
-            TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            TimeSpan? timeout = null,
-            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
-        {
-            var transactionOptions = new TransactionOptions
-            {
-                IsolationLevel = IsolationLevel.Serializable,
-            };
+			if (timeout.HasValue)
+			{
+				transactionOptions.Timeout = timeout.Value;
+			}
 
-            if (timeout.HasValue)
-            {
-                transactionOptions.Timeout = timeout.Value;
-            }
+			return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
+		}
 
-            return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
-        }
+		public static TransactionScope CreateSerializable(
+			TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
+			TimeSpan? timeout = null)
+		{
+			return CreateSerializable(transactionScopeOption, timeout, TransactionScopeAsyncFlowOption.Enabled);
+		}
+			
+		public static TransactionScope CreateSerializable(
+			TransactionScopeOption transactionScopeOption,
+			TimeSpan? timeout,
+			TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption)
+		{
+			var transactionOptions = new TransactionOptions
+			{
+				IsolationLevel = IsolationLevel.Serializable,
+			};
 
-        public static void InvokeWithConcurrencyRetryAllowNested(
-            Action<TransactionScope> action,
-            TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            int maxRetries = 3,
-            TimeSpan? timeout = null,
-            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
-        {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+			if (timeout.HasValue)
+			{
+				transactionOptions.Timeout = timeout.Value;
+			}
 
-            // If this is an inner transaction, the outer transaction is responsible for the retry logic
-            if (transactionScopeOption == TransactionScopeOption.Required && Transaction.Current != null)
-            {
-                using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
-                {
-                    action(scope);
-                }
-            }
-            else
-            {
-                var attempt = 0;
+			return new TransactionScope(transactionScopeOption, transactionOptions, transactionScopeAsyncFlowOption);
+		}
 
-                ActionUtils.RetryAction(
-                    () =>
-                    {
-                        attempt++;
-                        using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
-                        {
-                            action(scope);
-                        }
-                    },
-                    TimeSpan.MaxValue,
-                    ex =>
-                    {
-                        if (ex is TransactionAbortedException && ex.InnerException is ConcurrencyException)
-                        {
+		public static void InvokeWithConcurrencyRetryAllowNested(
+			Action<TransactionScope> action,
+			TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
+			int maxRetries = 3,
+			TimeSpan? timeout = null)
+		{
+			InvokeWithConcurrencyRetryAllowNested(action, transactionScopeOption, maxRetries, timeout, TransactionScopeAsyncFlowOption.Enabled);
+		}
+
+		public static void InvokeWithConcurrencyRetryAllowNested(
+			Action<TransactionScope> action,
+			TransactionScopeOption transactionScopeOption,
+			int maxRetries,
+			TimeSpan? timeout,
+			TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption)
+		{
+			if (action == null)
+			{
+				throw new ArgumentNullException(nameof(action));
+			}
+
+			// If this is an inner transaction, the outer transaction is responsible for the retry logic
+			if (transactionScopeOption == TransactionScopeOption.Required && Transaction.Current != null)
+			{
+				using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
+				{
+					action(scope);
+				}
+			}
+			else
+			{
+				var attempt = 0;
+
+				ActionUtils.RetryAction(
+					() =>
+					{
+						attempt++;
+						using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
+						{
+							action(scope);
+						}
+					},
+					TimeSpan.MaxValue,
+					ex =>
+					{
+						if (ex is TransactionAbortedException && ex.InnerException is ConcurrencyException)
+						{
 							Log.InfoException($"Transaction concurrency fault occured. Attempt: {attempt}/{maxRetries}", ex);
 
-                            if (attempt < maxRetries)
-                            {
-                                return true;
-                            }
-                        }
+							if (attempt < maxRetries)
+							{
+								return true;
+							}
+						}
 
-                        return false;
-                    });
-            }
-        }
+						return false;
+					});
+			}
+		}
 
-        public static void InvokeWithConcurrencyRetry(
-            Action<TransactionScope> action,
-            TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
-            int maxRetries = 3,
-            TimeSpan? timeout = null,
-            TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption = TransactionScopeAsyncFlowOption.Enabled)
-        {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+		public static void InvokeWithConcurrencyRetry(
+			Action<TransactionScope> action,
+			TransactionScopeOption transactionScopeOption = TransactionScopeOption.Required,
+			int maxRetries = 3,
+			TimeSpan? timeout = null)
+		{
+			InvokeWithConcurrencyRetry(action, transactionScopeOption, maxRetries, timeout, TransactionScopeAsyncFlowOption.Enabled);
+		}
 
-            if (transactionScopeOption == TransactionScopeOption.Required && Transaction.Current != null)
-            {
-                throw new TransactionException("Error, ambient transaction already exists. Retry must occur on outer or new transaction scope");
-            }
+		public static void InvokeWithConcurrencyRetry(
+			Action<TransactionScope> action,
+			TransactionScopeOption transactionScopeOption,
+			int maxRetries,
+			TimeSpan? timeout,
+			TransactionScopeAsyncFlowOption transactionScopeAsyncFlowOption)
+		{
+			if (action == null)
+			{
+				throw new ArgumentNullException(nameof(action));
+			}
 
-            var attempt = 0;
+			if (transactionScopeOption == TransactionScopeOption.Required && Transaction.Current != null)
+			{
+				throw new TransactionException("Error, ambient transaction already exists. Retry must occur on outer or new transaction scope");
+			}
 
-            ActionUtils.RetryAction(
-                () =>
-                {
-                    attempt++;
-                    using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
-                    {
-                        action(scope);
-                    }
-                },
-                TimeSpan.MaxValue,
-                ex =>
-                {
-                    if (ex is TransactionAbortedException && ex.InnerException is ConcurrencyException)
-                    {
-                        Log.WarnException($"Transaction concurrency fault occured. Attempt: {attempt}/{maxRetries}", ex);
+			var attempt = 0;
 
-                        if (attempt < maxRetries)
-                        {
-                            return true;
-                        }
-                    }
+			ActionUtils.RetryAction(
+				() =>
+				{
+					attempt++;
+					using (var scope = CreateSerializable(transactionScopeOption, timeout, transactionScopeAsyncFlowOption))
+					{
+						action(scope);
+					}
+				},
+				TimeSpan.MaxValue,
+				ex =>
+				{
+					if (ex is TransactionAbortedException && ex.InnerException is ConcurrencyException)
+					{
+						Log.WarnException($"Transaction concurrency fault occured. Attempt: {attempt}/{maxRetries}", ex);
 
-                    return false;
-                });
-        }
-    }
+						if (attempt < maxRetries)
+						{
+							return true;
+						}
+					}
+
+					return false;
+				});
+		}
+	}
 }
