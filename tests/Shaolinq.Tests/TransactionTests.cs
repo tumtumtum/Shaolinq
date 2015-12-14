@@ -143,11 +143,10 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
 		public async Task Test_Async_TransactionScope()
 		{
 			using (var scope = TransactionScopeFactory.CreateReadCommitted(TransactionScopeOption.Required, null, TransactionScopeAsyncFlowOption.Enabled))
-			{
+			{ 
 				var address = this.model.Address.Create();
 
 				address.Street = "Async Street";
