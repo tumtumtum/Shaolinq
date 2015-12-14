@@ -103,9 +103,7 @@ namespace Shaolinq
 		{
 			TransactionContext.FlushConnections(this);
 
-			foreach (var context in this.sqlDatabaseContextsByCategory
-				.SelectMany(c => this.sqlDatabaseContextsByCategory.Values)
-				.SelectMany(c => c.DatabaseContexts))
+			foreach (var context in this.sqlDatabaseContextsByCategory.Values.SelectMany(c => c.DatabaseContexts))
 			{
 				context.Dispose();
 			}
@@ -126,7 +124,7 @@ namespace Shaolinq
 			}
 
 			this.rootTransactionContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
-			this.transactionContextsByTransaction.ForEach(c => ActionUtils.IgnoreExceptions(c.Value.Dispose));
+			this.transactionContextsByTransaction.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
 
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
