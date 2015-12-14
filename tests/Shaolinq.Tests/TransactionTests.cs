@@ -143,7 +143,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore]
 		public async Task Test_Async_TransactionScope()
 		{
 			using (var scope = TransactionScopeFactory.CreateReadCommitted(TransactionScopeOption.Required, null, TransactionScopeAsyncFlowOption.Enabled))
