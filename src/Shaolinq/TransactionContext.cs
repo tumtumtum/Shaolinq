@@ -268,7 +268,7 @@ namespace Shaolinq
 			}
 			catch (Exception e)
 			{
-				ActionUtils.IgnoreExceptions(() => commandsContextsBySqlDatabaseContexts.Values.ForEach(c => c.Rollback()));
+				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
 
 				singlePhaseEnlistment.Aborted(e);
 			}
@@ -290,7 +290,7 @@ namespace Shaolinq
 			}
 			catch (Exception e)
 			{
-				ActionUtils.IgnoreExceptions(() => commandsContextsBySqlDatabaseContexts.Values.ForEach(c => c.Rollback()));
+				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
 
 				preparingEnlistment.ForceRollback(e);
 
