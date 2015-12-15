@@ -145,7 +145,12 @@ namespace Shaolinq.Tests
 
 		[Test]
 		[Category("IgnoreOnMono")]
-		public async Task Test_AsyncSelect()
+		private void Test_AsyncSelect()
+		{
+			this.Test_AsyncSelect_Private().Wait();
+		}
+
+        private async Task Test_AsyncSelect_Private()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -164,9 +169,9 @@ namespace Shaolinq.Tests
 
 			await AsyncMethod();
 			await AsyncMethod();
-		}
+		} 
 
-		public Task<Student> AsyncMethod()
+		private Task<Student> AsyncMethod()
 		{
 			var student = this.model.Students.First();
 
