@@ -143,6 +143,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		/*
 		[Test]
 		[Category("IgnoreOnMono")]
 		private void Test_AsyncSelect()
@@ -201,6 +202,6 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
-		}
+		}*/
 	}
 }
