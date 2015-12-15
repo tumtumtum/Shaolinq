@@ -27,5 +27,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ReturningAutoIncrementColumnNames = returningAutoIncrementColumnNames;
 			this.ValueExpressions = valueExpressions;
 		}
+
+		public SqlInsertIntoExpression ChangeTableAndValueExpressions(SqlTableExpression tableExpression, IReadOnlyList<Expression> valueExpressions)
+		{
+			return new SqlInsertIntoExpression(tableExpression, this.ColumnNames, this.ReturningAutoIncrementColumnNames, valueExpressions);
+		}
 	}
 }

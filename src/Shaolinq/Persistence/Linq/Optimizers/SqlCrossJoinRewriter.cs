@@ -29,6 +29,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (this.currentWhere != result.Where)
 				{
+					result = (SqlSelectExpression)base.VisitSelect(select);
+
 					return result.ChangeWhere(this.currentWhere);
 				}
 
@@ -62,7 +64,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var exprs = this.currentWhere.Split(ExpressionType.And, ExpressionType.AndAlso);
 				var good = exprs.Where(e => CanBeJoinCondition(e, declaredLeft, declaredRight, declared)).ToList();
 
-				if (good.Count > 0)
+				if (good.Count > 0 )
 				{
 					var condition = good.Join(ExpressionType.And);
 

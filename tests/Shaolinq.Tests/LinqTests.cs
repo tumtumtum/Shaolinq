@@ -1663,7 +1663,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_GroupBy_AggregateCount()
+		public void Test_GroupBy_AggregateCount1()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -1678,6 +1678,29 @@ namespace Shaolinq.Tests
 
 				var list = results.ToList();
 				
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_GroupBy_AggregateCount_With_Variable_Condition()
+		{
+			var x = 0;
+
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  where student.School.Id == x
+							  group student by student.Firstname
+					into g
+							  select new
+							  {
+								  key = g.Key,
+								  count = g.Count()
+							  };
+
+				var list = results.ToList();
+
 				scope.Complete();
 			}
 		}

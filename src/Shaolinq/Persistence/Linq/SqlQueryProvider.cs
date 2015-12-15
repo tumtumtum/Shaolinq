@@ -196,7 +196,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlExistsSubqueryOptimizer.Optimize(expression);
 			expression = SqlRedundantBinaryExpressionsRemover.Remove(expression);
 			expression = SqlCrossJoinRewriter.Rewrite(expression);
-
+			
 			if (simplerPartialVal)
 			{
 				expression = Evaluator.PartialEval(expression, c => c.NodeType != (ExpressionType)SqlExpressionType.ConstantPlaceholder && Evaluator.CanBeEvaluatedLocally(c));

@@ -218,6 +218,14 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitInsertInto(SqlInsertIntoExpression expression)
 		{
+			var table = (SqlTableExpression)this.VisitTable(expression.Table);
+			var valueExpressions = this.VisitExpressionList(expression.ValueExpressions);
+
+			if (table != expression.Table || valueExpressions != expression.ValueExpressions)
+			{
+				return expression.ChangeTableAndValueExpressions(table, valueExpressions);
+			}
+
 			return expression;
 		}
 
@@ -237,7 +245,12 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var result = this.VisitConstant(constantPlaceholder.ConstantExpression);
 
-			return new SqlConstantPlaceholderExpression(constantPlaceholder.Index, (ConstantExpression)result);
+			if (constantPlaceholder.ConstantExpression != result)
+			{
+				return new SqlConstantPlaceholderExpression(constantPlaceholder.Index, (ConstantExpression)result);
+			}
+
+			return constantPlaceholder;
 		}
 
 		protected virtual Expression VisitObjectReference(SqlObjectReferenceExpression objectReferenceExpression)
