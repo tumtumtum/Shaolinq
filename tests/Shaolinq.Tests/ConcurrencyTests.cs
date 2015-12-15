@@ -77,7 +77,7 @@ namespace Shaolinq.Tests
 					{
 						for (var j = 0; j < 100; j++)
 						{
-							Thread.Sleep(random.Next(0, 50));
+							Thread.Sleep(random.Next(0, 5));
 
 							var school = this.model.GetDataAccessObjects<School>().First();
 

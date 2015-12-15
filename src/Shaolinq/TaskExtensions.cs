@@ -1,35 +1,19 @@
-﻿using System.Threading.Tasks;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Threading.Tasks;
 
 namespace Shaolinq
 {
 	internal static class TaskExtensions
 	{
-		public static void StartAndOrGetResult(this Task task)
+		public static void AwaitResultOnAnyContext(this Task task)
 		{
-			switch (task.Status)
-			{
-			case TaskStatus.Created:
-				task.Start();
-				break;
-			case TaskStatus.RanToCompletion:
-				return;
-			}
-			
-			task.GetAwaiter().GetResult();
+			task.ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 
-		public static T StartAndOrGetResult<T>(this Task<T> task)
+		public static T AwaitResultOnAnyContext<T>(this Task<T> task)
 		{
-			switch (task.Status)
-			{
-			case TaskStatus.Created:
-				task.Start();
-				break;
-			case TaskStatus.RanToCompletion:
-				return task.Result;
-			}
-
-			return task.GetAwaiter().GetResult();
+			return task.ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 	}
 }

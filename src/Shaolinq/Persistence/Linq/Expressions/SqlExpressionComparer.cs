@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -37,6 +36,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		private bool TryGetCurrent<T>(T paramValue, out T current)
 			where T : class
 		{
+			if (!this.result)
+			{
+				current = null;
+
+				return false;
+			}
+
 			if (paramValue == null && this.currentObject == null)
 			{
 				current = null;
@@ -44,23 +50,24 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return false;
 			}
 
-			current = this.currentObject as T;
-
-			if (paramValue == null)
+			if (paramValue == null || this.currentObject == null)
 			{
 				this.result = false;
+				current = null;
 				
 				return false;
 			}
 
-			if (current == null)
-			{
-				this.result = false;
+			current = this.currentObject as T;
 
-				return false;
+			if (current != null)
+			{
+				return true;
 			}
 
-			return true;
+			this.result = false;
+
+			return false;
 		}
 
 		protected override MemberBinding VisitBinding(MemberBinding binding)
@@ -105,7 +112,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return initializer;
 			}
 
-			for (var i = 0; i < current.Arguments.Count; i++)
+			var count = current.Arguments.Count;
+
+            for (var i = 0; i < count; i++)
 			{
 				this.currentObject = current.Arguments[i];
 				this.Visit(initializer.Arguments[i]);
@@ -129,12 +138,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			                    && current.IsLiftedToNull == unaryExpression.IsLiftedToNull
 			                    && current.Method == unaryExpression.Method);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Operand;
-
-				this.Visit(unaryExpression.Operand);
+				return unaryExpression;
 			}
+
+			this.currentObject = current.Operand;
+			this.Visit(unaryExpression.Operand);
+			this.currentObject = current;
 
 			return unaryExpression;
 		}
@@ -166,16 +177,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.TypeOperand == expression.TypeOperand);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.TypeOperand == expression.TypeOperand)))
 			{
-				this.currentObject = current.Expression;
-
-				this.Visit(expression.Expression);
-
-				this.currentObject = current;
+				return expression;
 			}
+
+			this.currentObject = current.Expression;
+			this.Visit(expression.Expression);
+			this.currentObject = current;
 
 			return expression;
 		}
@@ -191,7 +200,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if ((this.options & SqlExpressionComparerOptions.IgnoreConstantPlaceholders) != 0)
 			{
-				this.result = constantExpression.Type != current.Type;
+				this.result = this.result && constantExpression.Type == current.Type;
 
 				return constantExpression;
 			}
@@ -261,13 +270,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.Member == memberExpression.Member);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Expression;
-				this.Visit(memberExpression.Expression);
-				this.currentObject = current;
+				return memberExpression;
 			}
 
+			this.currentObject = current.Expression;
+			this.Visit(memberExpression.Expression);
+			this.currentObject = current;
+		
 			return memberExpression;
 		}
 
@@ -282,19 +293,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.Method == methodCallExpression.Method);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Object;
-				this.Visit(methodCallExpression.Object);
-				this.currentObject = current;
+				return methodCallExpression;
 			}
 
-			if (this.result)
+			this.currentObject = current.Object;
+			this.Visit(methodCallExpression.Object);
+			
+			if (!this.result)
 			{
-				this.currentObject = current.Arguments;
-				this.VisitExpressionList(methodCallExpression.Arguments);
-				this.currentObject = current;
+				return methodCallExpression;
 			}
+
+			this.currentObject = current.Arguments;
+			this.VisitExpressionList(methodCallExpression.Arguments);
+			this.currentObject = current;
 
 			return methodCallExpression;
 		}
@@ -340,8 +354,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return assignment;
 			}
 
-			if (!(this.result = this.result && (current.BindingType == assignment.BindingType
-												&& current.Member == assignment.Member)))
+			if (!(this.result = this.result && (current.BindingType == assignment.BindingType && current.Member == assignment.Member)))
 			{
 				return assignment;
 			}
@@ -365,12 +378,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.result = this.result && (current.BindingType == binding.BindingType
 			                    && current.Member == binding.Member);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Bindings;
-				this.VisitBindingList(binding.Bindings);
-				this.currentObject = current;
+				return binding;
 			}
+
+			this.currentObject = current.Bindings;
+			this.VisitBindingList(binding.Bindings);
+			this.currentObject = current;
 
 			return binding;
 		}
@@ -387,12 +402,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.result = this.result && (current.BindingType == binding.BindingType
 			                    && current.Member == binding.Member);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Initializers;
-				this.VisitElementInitializerList(binding.Initializers);
-				this.currentObject = current;
+				return binding;
 			}
+
+			this.currentObject = current.Initializers;
+			this.VisitElementInitializerList(binding.Initializers);
+			this.currentObject = current;
 
 			return binding;
 		}
@@ -416,7 +433,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			for (var i = 0; i < count && this.result; i++)
 			{
 				this.currentObject = current[i];
-
 				this.VisitBinding(original[i]);
 			}
 
@@ -444,7 +460,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			for (var i = 0; i < count && this.result; i++)
 			{
 				this.currentObject = current[i];
-
 				this.VisitElementInitializer(original[i]);
 			}
 			
@@ -464,23 +479,30 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.Parameters.Count == expression.Parameters.Count);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Body;
-				this.Visit(expression.Body);
-			}
-
-			if (this.result)
-			{
-				for (var i = 0; i < current.Parameters.Count; i++)
-				{
-					this.currentObject = current.Parameters[i];
-
-					this.Visit(expression.Parameters[i]);
-				}
-
 				this.currentObject = current;
+
+				return expression;
 			}
+
+			this.currentObject = current.Body;
+			this.Visit(expression.Body);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			var count = current.Parameters.Count;
+
+			for (var i = 0; i < count && this.result; i++)
+			{
+				this.currentObject = current.Parameters[i];
+				this.Visit(expression.Parameters[i]);
+			}
+
+			this.currentObject = current;
 
 			return expression;
 		}
@@ -497,17 +519,20 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.result = this.result && (current.Constructor == expression.Constructor
 			                    && current.Arguments.Count == expression.Arguments.Count);
 
-			if (this.result)
+			if (!this.result)
 			{
-				for (var i = 0; i < current.Arguments.Count; i++)
-				{
-					this.currentObject = current.Arguments[i];
-
-					this.Visit(expression.Arguments[i]);
-				}
-
-				this.currentObject = current;
+				return expression;
 			}
+
+			var count = current.Arguments.Count;
+
+            for (var i = 0; i < count && this.result; i++)
+			{
+				this.currentObject = current.Arguments[i];
+				this.Visit(expression.Arguments[i]);
+			}
+
+			this.currentObject = current;
 
 			return expression;
 		}
@@ -523,20 +548,23 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.Bindings.Count == expression.Bindings.Count);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.NewExpression;
-
-				this.Visit(expression.NewExpression);
-
-				if (this.result)
-				{
-					this.currentObject = current.Bindings;
-					this.VisitBindingList(expression.Bindings);
-				}
-
-				this.currentObject = current;
+				return expression;
 			}
+
+			this.currentObject = current.NewExpression;
+
+			this.Visit(expression.NewExpression);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Bindings;
+			this.VisitBindingList(expression.Bindings);
+			this.currentObject = current;
 
 			return expression;
 		}
@@ -550,14 +578,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.Initializers.Count == expression.Initializers.Count);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.Initializers.Count == expression.Initializers.Count)))
 			{
-				this.currentObject = current.Initializers;
-				this.VisitElementInitializerList(expression.Initializers);
-				this.currentObject = current;
+				return expression;
 			}
+
+			this.currentObject = current.Initializers;
+			this.VisitElementInitializerList(expression.Initializers);
+			this.currentObject = current;
 
 			return expression;
 		}
@@ -571,15 +599,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.Expressions.Count == expression.Expressions.Count);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.Expressions.Count == expression.Expressions.Count)))
 			{
-				this.currentObject = current.Expressions;
-				this.VisitExpressionList(expression.Expressions);
-				this.currentObject = current;
+				return expression;
 			}
 
+			this.currentObject = current.Expressions;
+			this.VisitExpressionList(expression.Expressions);
+			this.currentObject = current;
+		
 			return expression;
 		}
 
@@ -592,13 +620,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.Arguments.Count == expression.Arguments.Count);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.Arguments.Count == expression.Arguments.Count)))
 			{
-				this.currentObject = current.Expression;
-				this.Visit(expression.Expression);
+				return expression;
 			}
+
+			this.currentObject = current.Expression;
+			this.Visit(expression.Expression);
+			this.currentObject = current;
 
 			return expression;
 		}
@@ -612,16 +641,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return constantPlaceholder;
 			}
 
-			this.result = this.result && (current.Index == constantPlaceholder.Index);
-
-			if (!this.result)
+			if (!(this.result = this.result && (current.Index == constantPlaceholder.Index)))
 			{
 				return constantPlaceholder;
 			}
 
 			if ((this.options & SqlExpressionComparerOptions.IgnoreConstantPlaceholders) != 0)
 			{
-				this.result = current.Type == constantPlaceholder.Type;
+				this.result = this.result && current.Type == constantPlaceholder.Type;
 
 				return constantPlaceholder;
 			}
@@ -647,14 +674,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return objectReference;
 			}
 
-			this.result = this.result && (current.Bindings.Count == objectReference.Bindings.Count);
-
-			if (this.result)
+			if (!(this.result = this.result && (current.Bindings.Count == objectReference.Bindings.Count)))
 			{
-				this.currentObject = current.Bindings;
-				this.VisitBindingList(objectReference.Bindings);
-				this.currentObject = current;
+				return objectReference;
 			}
+
+			this.currentObject = current.Bindings;
+			this.VisitBindingList(objectReference.Bindings);
+			this.currentObject = current;
 			
 			return objectReference;
 		}
@@ -670,19 +697,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.JoinType == join.JoinType);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.JoinCondition;
-				this.Visit(join.JoinCondition);
-
-				this.currentObject = current.Left;
-				this.Visit(join.Left);
-
-				this.currentObject = current.Right;
-				this.Visit(join.Right);
-
-				this.currentObject = current;
+				return join;
 			}
+
+			this.currentObject = current.JoinCondition;
+			this.Visit(join.JoinCondition);
+
+			this.currentObject = current.Left;
+			this.Visit(join.Left);
+
+			this.currentObject = current.Right;
+			this.Visit(join.Right);
+
+			this.currentObject = current;
 
 			return join;
 		}
@@ -727,12 +756,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.Function == functionCallExpression.Function);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Arguments;
-				this.VisitExpressionList(functionCallExpression.Arguments);
-				this.currentObject = current;
+				return functionCallExpression;
 			}
+
+			this.currentObject = current.Arguments;
+			this.VisitExpressionList(functionCallExpression.Arguments);
+			this.currentObject = current;
 
 			return functionCallExpression;
 		}
@@ -762,15 +793,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return sqlAggregate;
 			}
 
-			this.result &= current.IsDistinct == sqlAggregate.IsDistinct
+			this.result = this.result && current.IsDistinct == sqlAggregate.IsDistinct
 			          && current.AggregateType == sqlAggregate.AggregateType;
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Argument;
-				this.Visit(sqlAggregate.Argument);
-				this.currentObject = current;
+				return sqlAggregate;
 			}
+
+			this.currentObject = current.Argument;
+			this.Visit(sqlAggregate.Argument);
+			this.currentObject = current;
 
 			return sqlAggregate;
 		}
@@ -786,18 +819,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.GroupByAlias == aggregate.GroupByAlias);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.AggregateAsSubquery;
-				this.Visit(aggregate.AggregateAsSubquery);
-
-				if (this.result)
-				{
-					this.currentObject = current.AggregateInGroupSelect;
-					this.Visit(aggregate.AggregateInGroupSelect);
-				}
+				return aggregate;
 			}
 
+			this.currentObject = current.AggregateAsSubquery;
+			this.Visit(aggregate.AggregateAsSubquery);
+
+			if (!this.result)
+			{
+				return aggregate;
+			}
+
+			this.currentObject = current.AggregateInGroupSelect;
+			this.Visit(aggregate.AggregateInGroupSelect);
 			this.currentObject = current;
 
 			return aggregate;
@@ -820,7 +856,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			var count = current.Count;
 
-			for (var i = 0; i < count; i++)
+			for (var i = 0; i < count && this.result; i++)
 			{
 				var item1 = current[i];
 				var item2 = columns[i];
@@ -834,11 +870,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 				this.currentObject = item1.Expression;
 				this.Visit(item2.Expression);
-
-				if (!this.result)
-				{
-					break;
-				}
 			}
 
 			this.currentObject = current;
@@ -857,13 +888,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.result = this.result && (current.OrderType == orderByExpression.OrderType);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Expression;
-				this.Visit(orderByExpression.Expression);
-				this.currentObject = current;
+				return orderByExpression;
 			}
 
+			this.currentObject = current.Expression;
+			this.Visit(orderByExpression.Expression);
+			this.currentObject = current;
+		
 			return orderByExpression;
 		}
 
@@ -880,60 +913,57 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			                    && current.Distinct == selectExpression.Distinct
 			                    && current.ForUpdate == selectExpression.ForUpdate);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Skip;
-
-				this.Visit(current.Skip);
+				return selectExpression;
 			}
 
-			if (this.result)
-			{
-				this.currentObject = current.Take;
-
-				this.Visit(current.Take);
-			}
+			this.currentObject = current.Skip;
+			this.Visit(selectExpression.Skip);
 
 			if (!this.result)
 			{
 				return selectExpression;
 			}
 
-			if (this.result)
+			this.currentObject = current.Take;
+			this.Visit(selectExpression.Take);
+
+			if (!this.result)
 			{
-				this.currentObject = current.Columns;
-				this.VisitColumnDeclarations(selectExpression.Columns);
-				this.currentObject = current;
+				return selectExpression;
 			}
 
-			if (this.result)
+			this.currentObject = current.Columns;
+			this.VisitColumnDeclarations(selectExpression.Columns);
+			
+			if (!this.result)
 			{
-				this.currentObject = current.Where;
-				this.Visit(selectExpression.Where);
-				this.currentObject = current;
+				return selectExpression;
+			}
+			
+			this.currentObject = current.Where;
+			this.Visit(selectExpression.Where);
+			
+			if (!this.result)
+			{
+				return selectExpression;
 			}
 
-			if (this.result)
+			this.currentObject = current.GroupBy;
+			this.VisitExpressionList(selectExpression.GroupBy);
+
+			if (!this.result)
 			{
-				this.currentObject = current.GroupBy;
-				this.VisitExpressionList(selectExpression.GroupBy);
-				this.currentObject = current;
+				return selectExpression;
 			}
 
-			if (this.result)
-			{
-				this.currentObject = current.OrderBy;
-				this.VisitExpressionList(selectExpression.OrderBy);
-				this.currentObject = current;
-			}
+			this.currentObject = current.OrderBy;
+			this.VisitExpressionList(selectExpression.OrderBy);
 
+			this.currentObject = current;
 
 			return selectExpression;
-		}
-
-		protected override Expression VisitSource(Expression source)
-		{
-			return base.VisitSource(source);
 		}
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
@@ -981,10 +1011,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.currentObject = current.Select;
 			this.Visit(projection.Select);
 
-			if (!this.result)
-			{
-				return projection;
-			}
+			this.currentObject = current;
 
 			return projection;
 		}
@@ -1001,12 +1028,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.result = this.result && (current.Alias == deleteExpression.Alias
 			                    && current.Table == deleteExpression.Table);
 
-			if (this.result)
+			if (!this.result)
 			{
-				this.currentObject = current.Where;
-				this.Visit(deleteExpression.Where);
-				this.currentObject = current;
+				return deleteExpression;
 			}
+
+			this.currentObject = current.Where;
+			this.Visit(deleteExpression.Where);
+			this.currentObject = current;
 
 			return deleteExpression;
 		}
@@ -1022,26 +1051,24 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			foreach (var value in expression.OrderBy)
 			{
+				this.currentObject = current.OrderBy;
 				this.Visit(value);
-
+				
 				if (!result)
 				{
 					return expression;
 				}
 			}
-			
+
 			if (!result)
 			{
 				return expression;
 			}
 
+			this.currentObject = current.Source;
 			this.Visit(expression.Source);
+			this.currentObject = current;
 
-			if (!result)
-			{
-				return expression;
-			}
-			
 			return expression;
 		}
 
@@ -1054,7 +1081,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
+			this.currentObject = current.Select;
 			this.Visit(expression.Select);
+			this.currentObject = current;
 
 			return expression;
 		}
@@ -1068,10 +1097,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (expression.ConfigurationParameter != current.ConfigurationParameter)
+			if (!(this.result = (expression.ConfigurationParameter != current.ConfigurationParameter)))
 			{
-				this.result = false;
-
 				return expression;
 			}
 
@@ -1084,12 +1111,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
+			this.currentObject = current.Arguments;
 			this.VisitExpressionList(expression.Arguments);
 
 			if (!this.result)
 			{
 				return expression;
 			}
+
+			this.currentObject = current;
 
 			return expression;
 		}

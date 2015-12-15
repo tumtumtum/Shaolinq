@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using Platform;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -56,7 +58,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		internal protected struct ProjectorCacheKey
+		protected internal struct ProjectorCacheKey
 		{
 			internal readonly int hashCode;
 			internal readonly Expression projectionExpression;
@@ -68,7 +70,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		internal protected struct ProjectorCacheInfo
+		protected internal struct ProjectorCacheInfo
 		{
 			public SqlAggregateType sqlAggregateType;
 			public Type elementType;
@@ -228,6 +230,11 @@ namespace Shaolinq.Persistence.Linq
 		private PrivateExecuteResult<T> PrivateExecute<T>(Expression expression)
 		{
 			var projectionExpression = expression as SqlProjectionExpression;
+
+			var frame = new StackFrame(2);
+
+			var x = frame.GetILOffset();
+			var method = frame.GetMethod().Name;
 			
 			if (projectionExpression == null)
 			{
@@ -260,7 +267,7 @@ namespace Shaolinq.Persistence.Linq
 			if (!projectorCache.TryGetValue(key, out cacheInfo))
 			{
 				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression.Projector, columns);
-				
+
 				cacheInfo.elementType = projectionLambda.Body.Type;
 				cacheInfo.projector = projectionLambda.Compile();
 
@@ -280,7 +287,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.SqlDatabaseContext.projectorCache = newCache;
 			}
-			
+
 			var elementType = TypeHelper.GetElementType(cacheInfo.elementType);
 			var concreteElementType = elementType;
 

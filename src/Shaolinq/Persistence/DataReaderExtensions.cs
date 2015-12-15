@@ -13,7 +13,7 @@ namespace Shaolinq.Persistence
 
 			if (dbDataReader != null)
 			{
-				return await dbDataReader.ReadAsync();
+				return await dbDataReader.ReadAsync().ConfigureAwait(false);
 			}
 
 			return reader.Read();
@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence
 
 			if (dbDataReader != null)
 			{
-				return await dbDataReader.ReadAsync(cancellationToken);
+				return await dbDataReader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			return reader.Read();

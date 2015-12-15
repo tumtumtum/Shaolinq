@@ -144,7 +144,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public async void Test_AsyncSelect()
+		public async Task Test_AsyncSelect()
 		{
 			using (var scope = new TransactionScope())
 			{

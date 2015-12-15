@@ -176,7 +176,7 @@ namespace Shaolinq.Persistence
 			
 			try
 			{
-				return await command.ExecuteReaderAsync();
+				return await command.ExecuteReaderAsync().ConfigureAwait(false);
 			}
 			catch (Exception e)
 			{
@@ -223,7 +223,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					result = await command.ExecuteNonQueryAsync();
+					result = await command.ExecuteNonQueryAsync().ConfigureAwait(false);
 				}
 				catch (Exception e)
 				{
@@ -283,7 +283,7 @@ namespace Shaolinq.Persistence
 					
 					try
 					{
-						using (var reader = await command.ExecuteReaderAsync())
+						using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
 						{
 							if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 							{

@@ -58,7 +58,9 @@ namespace Shaolinq.Tests
                 Password = "postgres",
                 NativeEnums = false,
                 Categories = null,
-				Pooling = false
+				Pooling = true,
+				MinPoolSize = 10,
+				MaxPoolSize = 10
             });
         }
 
