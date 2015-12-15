@@ -144,6 +144,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		[Category("IgnoreOnMono")]
 		public async Task Test_AsyncSelect()
 		{
 			using (var scope = new TransactionScope())
@@ -175,7 +176,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Category("IgnoreOnMono")]
 		public void Test_Async_TransactionScope()
 		{
 			Test_Async_TransactionScope_Private().Wait();
