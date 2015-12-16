@@ -216,6 +216,11 @@ namespace Shaolinq.Persistence.Linq
 
 			if (constantPlaceholder.ConstantExpression != result)
 			{
+				if (!(result is ConstantExpression))
+				{
+					return result;
+				}
+
 				return new SqlConstantPlaceholderExpression(constantPlaceholder.Index, (ConstantExpression)result);
 			}
 

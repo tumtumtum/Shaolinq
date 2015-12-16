@@ -1605,17 +1605,10 @@ namespace Shaolinq.Persistence.Linq
 
 			return projection;
 		}
-
-		public static bool IsQuery(Expression expression)
-		{
-			return typeof(IQueryable).IsAssignableFrom(expression.Type)
-				   || typeof(IQueryable<>).IsAssignableFromIgnoreGenericParameters(expression.Type)
-				   || ((expression as ConstantExpression)?.Value is IQueryable);
-		}
 		
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			if (IsQuery(constantExpression) && ((IQueryable)constantExpression.Value).Expression != constantExpression)
+			if (typeof(IQueryable).IsAssignableFrom(constantExpression.Type) && ((IQueryable)constantExpression.Value).Expression != constantExpression)
 			{
 				return this.Visit(((IQueryable)constantExpression.Value).Expression);
 			}
