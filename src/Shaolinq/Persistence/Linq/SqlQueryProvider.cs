@@ -230,14 +230,10 @@ namespace Shaolinq.Persistence.Linq
 		private PrivateExecuteResult<T> PrivateExecute<T>(Expression expression)
 		{
 			var projectionExpression = expression as SqlProjectionExpression;
-
-			var frame = new StackFrame(2);
-
-			var x = frame.GetILOffset();
-			var method = frame.GetMethod().Name;
 			
 			if (projectionExpression == null)
 			{
+				expression = SqlExpressionPlatformDifferencesNormalizer.Normalize(expression);
 				expression = Evaluator.PartialEval(expression);
 
 				if (this.RelatedDataAccessObjectContext == null)

@@ -332,6 +332,7 @@ namespace Shaolinq.Persistence
 			var condition = Expression.Lambda(body, parameter);
 			var expression = (Expression)Expression.Call(null, GetDeleteMethod(typeDescriptor.Type), Expression.Constant(null, typeDescriptor.Type), condition);
 
+			expression = SqlExpressionPlatformDifferencesNormalizer.Normalize(expression);
 			expression = Evaluator.PartialEval(expression);
 			expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);

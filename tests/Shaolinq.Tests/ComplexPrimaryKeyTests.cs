@@ -73,6 +73,37 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
+		
+		private IQueryable<Address> GetAllAddresses(bool v)
+		{
+			return this.model.Addresses.Where(c => c.Number != 0);
+		}
+
+		[Test]
+		public void Test_SelectMany1()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+			
+			var query = from mall in malls
+				from address in this.model.Addresses.Where(c => c.Number != 0)
+				where mall.Address.Region == address.Region
+				select new { mall, address };
+
+			query.ToList();
+		}
+
+		[Test]
+		public void Test_SelectMany2()
+		{
+			var malls = this.model.Malls;
+
+			var query = from mall in malls
+						from address in this.GetAllAddresses(false)
+						where mall.Address.Region == address.Region
+						select new { mall, address };
+
+			query.ToList();
+		}
 
 		[Test]
 		public void Test_SuperMall_With_Mall_PrimaryKey()

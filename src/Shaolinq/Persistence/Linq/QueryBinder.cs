@@ -1610,33 +1610,12 @@ namespace Shaolinq.Persistence.Linq
 		{
 			return typeof(IQueryable<>).IsAssignableFromIgnoreGenericParameters(expression.Type);
 		}
-
-		private bool TryProcessQueryableConstant(ConstantExpression constantExpression, out Expression result)
-		{
-			if (IsQuery(constantExpression))
-			{
-				// Mono Queryable.Join wraps inner in a constant even if it is IQueryable
-
-				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
-				{
-					result = this.Visit(((IQueryable)constantExpression.Value).Expression);
-
-					return true;
-				}
-			}
-
-			result = null;
-
-			return false;
-		}
-
+		
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			Expression result;
-
-			if (this.TryProcessQueryableConstant(constantExpression, out result))
+			if (IsQuery(constantExpression) && ((IQueryable)constantExpression.Value).Expression != constantExpression)
 			{
-				return result;
+				return this.Visit(((IQueryable)constantExpression.Value).Expression);
 			}
 
 			var type = constantExpression.Type;
@@ -1653,7 +1632,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var hasExtraCondition = constantExpression.Value as IHasExtraCondition;
 
-				if (hasExtraCondition != null && hasExtraCondition.ExtraCondition != null)
+				if (hasExtraCondition?.ExtraCondition != null)
 				{
 					return this.BindWhere(retval.Type, retval, hasExtraCondition.ExtraCondition, false, true);
 				}

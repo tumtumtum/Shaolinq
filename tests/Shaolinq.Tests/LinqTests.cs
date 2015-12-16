@@ -2078,6 +2078,24 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public void Test_SelectMany()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students = this.model.Students;
+
+				var query = from student in students
+					from school in this.model.Schools
+					where student.School.Name == school.Name
+					select new { student, school };
+
+				var results = query.ToList();
+
+				scope.Complete();
+			}
+		}
+
 		[Test, Ignore("TODO")]
 		public void Test_Contains_On_DAOs()
 		{
