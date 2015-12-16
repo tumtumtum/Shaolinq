@@ -142,11 +142,10 @@ namespace Shaolinq.Tests
 				Assert.That(address2.Street, Is.EqualTo("Street2"));
 			}
 		}
-
-		/*
+		
 		[Test]
 		[Category("IgnoreOnMono")]
-		private void Test_AsyncSelect()
+		public void Test_AsyncSelect()
 		{
 			this.Test_AsyncSelect_Private().Wait();
 		}
@@ -202,6 +201,6 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
-		}*/
+		}
 	}
 }

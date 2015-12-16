@@ -242,6 +242,8 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
+			Assert.AreEqual(0, this.model.Schools.Count(c => c.Id == schoolId));
+
 			try
 			{
 				using (var scope = new TransactionScope())

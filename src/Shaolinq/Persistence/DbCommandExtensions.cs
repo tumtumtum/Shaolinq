@@ -15,10 +15,10 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteReaderAsync().ConfigureAwait(false);
+				return await dbCommand.ExecuteReaderAsync();
 			}
 
-			return (DbDataReader)command.ExecuteReader();
+			return command.ExecuteReader();
 		}
 
 		public static async Task<IDataReader> ExecuteReaderAsync(this IDbCommand command, CancellationToken cancellationToken)
@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+				return await dbCommand.ExecuteReaderAsync(cancellationToken);
 			}
 
 			return command.ExecuteReader();
@@ -51,7 +51,7 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+				return await dbCommand.ExecuteNonQueryAsync(cancellationToken);
 			}
 
 			return command.ExecuteNonQuery();

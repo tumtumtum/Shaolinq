@@ -17,7 +17,7 @@ using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq.Persistence
 {
-	public class DefaultSqlTransactionalCommandsContext
+	public partial class DefaultSqlTransactionalCommandsContext
 		: SqlTransactionalCommandsContext
 	{
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
@@ -161,180 +161,20 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
+		private Exception LogAndDecorateException(Exception e, IDbCommand command)
 		{
-			var command = this.CreateCommand();
-            
-			foreach (var value in parameters)
+			var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
+			var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
+
+			Logger.Error(this.FormatCommand(command));
+			Logger.Error(e.ToString());
+
+			if (decoratedException != e)
 			{
-				this.AddParameter(command, value.Item1, value.Item2);
-			}
-            
-			command.CommandText = sql;
-
-			Logger.Debug(() => this.FormatCommand(command));
-			
-			try
-			{
-				return await command.ExecuteReaderAsync().ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
-				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
-
-				Logger.Error(this.FormatCommand(command));
-				Logger.ErrorFormat(e.ToString());
-
-				if (decoratedException != e)
-				{
-					throw decoratedException;
-				}
-
-				throw;
-			}
-		}
-
-		public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-		{
-			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-
-			foreach (var dataAccessObject in dataAccessObjects)
-			{
-				var objectState = dataAccessObject.GetAdvanced().ObjectState;
-
-				if ((objectState & (ObjectState.Changed | ObjectState.ServerSidePropertiesHydrated)) == 0)
-				{
-					continue;
-				}
-
-				var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
-
-				if (command == null)
-				{
-					Logger.ErrorFormat("Object is reported as changed but GetChangedProperties returns an empty list ({0})", dataAccessObject);
-
-					continue;
-				}
-
-				Logger.Debug(() => this.FormatCommand(command));
-
-				int result;
-
-				try
-				{
-					result = await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-				}
-				catch (Exception e)
-				{
-					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
-					var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
-
-					Logger.ErrorFormat(e.ToString());
-
-					if (decoratedException != e)
-					{
-						throw decoratedException;
-					}
-
-					throw;
-				}
-
-				if (result == 0)
-				{
-					throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
-				}
-
-				dataAccessObject.ToObjectInternal().ResetModified();
-			}
-		}
-		
-        public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-		{
-			var listToFixup = new List<DataAccessObject>();
-			var listToRetry = new List<DataAccessObject>();
-
-			foreach (var dataAccessObject in dataAccessObjects)
-			{
-				var objectState = dataAccessObject.GetAdvanced().ObjectState;
-
-				switch (objectState & ObjectState.NewChanged)
-				{
-				case ObjectState.Unchanged:
-					continue;
-				case ObjectState.New:
-				case ObjectState.NewChanged:
-					break;
-				case ObjectState.Changed:
-					throw new NotSupportedException("Changed state not supported");
-				}
-
-				var primaryKeyIsComplete = (objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
-				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.Deferrability) || ((objectState & ObjectState.ReferencesNewObject) == 0));
-				
-				var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
-				
-				if (objectReadyToBeCommited)
-				{
-					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-					var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject);
-
-					Logger.Debug(() => this.FormatCommand(command));
-					
-					try
-					{
-						using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
-						{
-							if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
-							{
-								var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
-
-								if (await reader.ReadAsync())
-								{
-									this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
-									dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
-								}
-
-								reader.Close();
-
-								if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
-								{
-									this.Update(dataAccessObject.GetType(), new[] {dataAccessObject});
-								}
-							}
-						}
-					}
-					catch (Exception e)
-					{
-						var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
-						var decoratedException = this.SqlDatabaseContext.DecorateException(e, dataAccessObject, relatedSql);
-
-						Logger.ErrorFormat(e.ToString());
-
-						if (decoratedException != e)
-						{
-							throw decoratedException;
-						}
-
-						throw;
-					}
-
-					if ((objectState & ObjectState.ReferencesNewObjectWithServerSideProperties) == ObjectState.ReferencesNewObjectWithServerSideProperties)
-					{
-						listToFixup.Add(dataAccessObject);
-					}
-					else
-					{
-						dataAccessObject.ToObjectInternal().ResetModified();
-					}
-				}
-				else
-				{
-					listToRetry.Add(dataAccessObject);
- 				}
+				return decoratedException;
 			}
 
-			return new InsertResults(listToFixup, listToRetry);
+			return null;
 		}
 
 		private Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>> serverSideGeneratedPropertySettersByType = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>();
@@ -566,43 +406,7 @@ namespace Shaolinq.Persistence
 			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
 		}
 
-		public override async Task DeleteAsync(SqlDeleteExpression deleteExpression)
-		{
-			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
-			
-			using (var command = this.CreateCommand())
-			{
-				command.CommandText = formatResult.CommandText;
 
-				foreach (var value in formatResult.ParameterValues)
-				{
-					this.AddParameter(command, value.Item1, value.Item2);
-				}
-
-				Logger.Debug(() => this.FormatCommand(command));
-
-				try
-				{
-					await command.ExecuteNonQueryAsync();
-				}
-				catch (Exception e)
-				{
-					var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
-					var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
-
-					Logger.ErrorFormat(e.ToString());
-
-					if (decoratedException != e)
-					{
-						throw decoratedException;
-					}
-
-					throw;
-				}
-			}
-		}
-
-		private static readonly MethodInfo DeleteHelperMethod = TypeUtils.GetMethod(() => DeleteHelper(0, null)).GetGenericMethodDefinition();
 
 		public static MethodInfo GetDeleteMethod(Type type)
 		{
@@ -611,43 +415,6 @@ namespace Shaolinq.Persistence
 
 		internal static void DeleteHelper<T>(T type, Expression<Func<T, bool>> condition)
 		{
-		}
-
-		public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-		{
-			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-			var parameter = Expression.Parameter(typeDescriptor.Type, "value");
-
-			Expression body = null;
-
-			foreach (var dataAccessObject in dataAccessObjects)
-			{
-				var currentExpression = Expression.Equal(parameter, Expression.Constant(dataAccessObject));
-
-				if (body == null)
-				{
-					body = currentExpression;
-				}
-				else
-				{
-					body = Expression.OrElse(body, currentExpression);
-				}
-			}
-			
-			if (body == null)
-			{
-				return;
-			}
-
-			var condition = Expression.Lambda(body, parameter);
-			var expression = (Expression)Expression.Call(null, GetDeleteMethod(typeDescriptor.Type), Expression.Constant(null, typeDescriptor.Type), condition);
-			
-			expression = Evaluator.PartialEval(expression);
-			expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
-			expression = SqlObjectOperandComparisonExpander.Expand(expression);
-			expression = SqlQueryProvider.Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
-
-			await this.DeleteAsync((SqlDeleteExpression)expression);
 		}
 	}
 }

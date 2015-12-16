@@ -23,32 +23,42 @@ namespace Shaolinq
 		protected IDbTransaction dbTransaction;
 		public DataAccessModel DataAccessModel { get; }
 
-		public virtual void Delete(SqlDeleteExpression deleteExpression)
+		public abstract void Delete(SqlDeleteExpression deleteExpression);
+		public abstract void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
+
+		public virtual Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
 		{
-			this.DeleteAsync(deleteExpression).AwaitResultOnAnyContext();
+			this.Delete(deleteExpression);
+
+			return Task.FromResult<object>(null);
 		}
 
-		public virtual void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		public virtual Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
-			this.DeleteAsync(type, dataAccessObjects).AwaitResultOnAnyContext();
+			this.Delete(type, dataAccessObjects);
+
+			return Task.FromResult<object>(null);
 		}
 
-		public virtual void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		public virtual Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
-			this.UpdateAsync(type, dataAccessObjects).AwaitResultOnAnyContext();
+			this.Update(type, dataAccessObjects);
+
+			return Task.FromResult<object>(null);
 		}
 
-		public virtual InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		public virtual Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
-			return this.InsertAsync(type, dataAccessObjects).AwaitResultOnAnyContext();
-		}
-		
-		public virtual IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
-		{
-			return ExecuteReaderAsync(sql, parameters).AwaitResultOnAnyContext();
+			return Task.FromResult(this.Insert(type, dataAccessObjects));
 		}
 
-        public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
+		public virtual Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken)
+		{
+			return Task.FromResult(this.ExecuteReader(sql, parameters));
+		}
 
         protected SqlTransactionalCommandsContext()
 			: this(true)
@@ -59,11 +69,6 @@ namespace Shaolinq
 		{
 			this.SupportsAsync = supportsAsync;
 		}
-
-		public abstract Task DeleteAsync(SqlDeleteExpression deleteExpression);
-		public abstract Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
-		public abstract Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
-		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 
 		public static System.Data.IsolationLevel ConvertIsolationLevel(System.Transactions.IsolationLevel isolationLevel)
 		{
