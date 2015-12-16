@@ -216,7 +216,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 				else
 				{
-					expression = memberExpression;
+					expression = memberExpression.Expression as MemberExpression;
+
+					if (expression == null || !expression.Expression.Type.IsDataAccessObjectType())
+					{
+						return memberExpression;
+					}
 				}
 			}
 			else
