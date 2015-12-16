@@ -133,16 +133,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			if (constantExpression.Value is IQueryable)
-			{
-				// Mono Queryable.Join wraps inner in a constant even if it is IQueryable
-
-				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
-				{
-					return this.Visit(((IQueryable)constantExpression.Value).Expression);
-				}
-			}
-
+			
 			return base.VisitConstant(constantExpression);
 		}
 

@@ -1608,7 +1608,8 @@ namespace Shaolinq.Persistence.Linq
 
 		public static bool IsQuery(Expression expression)
 		{
-			return typeof(IQueryable<>).IsAssignableFromIgnoreGenericParameters(expression.Type);
+			return typeof(IQueryable).IsAssignableFrom(expression.Type)
+				|| typeof(IQueryable<>).IsAssignableFromIgnoreGenericParameters(expression.Type);
 		}
 		
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
