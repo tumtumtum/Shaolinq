@@ -15,12 +15,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			if (typeof(IQueryable).IsAssignableFrom(constantExpression.Type) || constantExpression.Value is IQueryable)
+			var queryable = constantExpression.Value as IQueryable;
+
+			if (queryable != null && queryable.Expression != constantExpression)
 			{
-				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
-				{
-					return this.Visit(((IQueryable)constantExpression.Value).Expression);
-				}
+				return this.Visit(queryable.Expression);
 			}
 
 			return base.VisitConstant(constantExpression);
