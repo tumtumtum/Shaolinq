@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			if (typeof(IQueryable).IsAssignableFrom(constantExpression.Type))
+			if (typeof(IQueryable).IsAssignableFrom(constantExpression.Type) || constantExpression.Value is IQueryable)
 			{
 				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
 				{

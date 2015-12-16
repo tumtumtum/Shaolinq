@@ -1608,7 +1608,9 @@ namespace Shaolinq.Persistence.Linq
 		
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			if (typeof(IQueryable).IsAssignableFrom(constantExpression.Type) && ((IQueryable)constantExpression.Value).Expression != constantExpression)
+			if ((constantExpression.Value is IQueryable 
+				|| typeof(IQueryable).IsAssignableFrom(constantExpression.Type))
+				&& ((IQueryable)constantExpression.Value).Expression != constantExpression)
 			{
 				return this.Visit(((IQueryable)constantExpression.Value).Expression);
 			}
