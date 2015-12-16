@@ -131,12 +131,6 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		protected override Expression VisitConstant(ConstantExpression constantExpression)
-		{
-			
-			return base.VisitConstant(constantExpression);
-		}
-
 		protected virtual Expression VisitPragma(SqlPragmaExpression expression)
 		{
 			return expression;

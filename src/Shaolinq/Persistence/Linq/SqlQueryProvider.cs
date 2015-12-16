@@ -233,7 +233,8 @@ namespace Shaolinq.Persistence.Linq
 			
 			if (projectionExpression == null)
 			{
-				expression = Evaluator.PartialEval(expression);
+				expression = SqlPlatformDifferencesNormalizer.Normalize(expression);
+                expression = Evaluator.PartialEval(expression);
 
 				if (this.RelatedDataAccessObjectContext == null)
 				{
