@@ -146,9 +146,10 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
+			var count = selectExpression.Columns.Count;
 			List<SqlColumnDeclaration> newColumns = null;
 
-			for (var i = 0; i < selectExpression.Columns.Count; i++)
+			for (var i = 0; i < count; i++)
 			{
 				var column = selectExpression.Columns[i];
 				var visitedColumnExpression = this.Visit(column.Expression);

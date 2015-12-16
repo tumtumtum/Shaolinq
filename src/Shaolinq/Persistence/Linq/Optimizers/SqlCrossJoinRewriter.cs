@@ -29,8 +29,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (this.currentWhere != result.Where)
 				{
-					result = (SqlSelectExpression)base.VisitSelect(select);
-
 					return result.ChangeWhere(this.currentWhere);
 				}
 

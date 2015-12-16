@@ -248,8 +248,8 @@ namespace Shaolinq.Persistence
 				dataAccessObject.ToObjectInternal().ResetModified();
 			}
 		}
-
-		public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		
+        public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
 			var listToFixup = new List<DataAccessObject>();
 			var listToRetry = new List<DataAccessObject>();

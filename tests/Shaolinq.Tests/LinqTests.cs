@@ -1668,6 +1668,7 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var results = from student in this.model.Students
+					where student.School.Id == 1
 					group student by student.Firstname
 					into g
 					select new

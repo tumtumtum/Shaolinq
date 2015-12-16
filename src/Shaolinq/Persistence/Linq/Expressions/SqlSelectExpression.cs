@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public SqlSelectExpression ChangeWhere(Expression where)
 		{
-			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, where, this.OrderBy, this.ForUpdate);
+			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, where, this.OrderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, this.ForUpdate);
 		}
 
 		public SqlSelectExpression ChangeWhereAndColumns(Expression where, IReadOnlyList<SqlColumnDeclaration> columns, bool? forUpdate = null)
