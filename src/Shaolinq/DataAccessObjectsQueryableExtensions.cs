@@ -29,8 +29,7 @@ namespace Shaolinq
 			{
 				var expression = (Expression)Expression.Call(null, MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof(DataAccessObjectsQueryable<T>)), condition);
 
-				expression = SqlExpressionPlatformDifferencesNormalizer.Normalize(expression);
-                expression = Evaluator.PartialEval(expression);
+				expression = Evaluator.PartialEval(expression);
 				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, queryable.ExtraCondition);
 				expression = SqlObjectOperandComparisonExpander.Expand(expression);
 				expression = SqlQueryProvider.Optimize(expression, transactionContext.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());

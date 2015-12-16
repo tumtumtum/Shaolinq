@@ -18,7 +18,7 @@ namespace Shaolinq.Persistence.Linq
 	{
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
-		internal protected struct PrivateExecuteResult<T>
+		protected internal struct PrivateExecuteResult<T>
 		{	
 			public IEnumerable<T> results;
 			private bool computedDefaultValue;
@@ -233,7 +233,6 @@ namespace Shaolinq.Persistence.Linq
 			
 			if (projectionExpression == null)
 			{
-				expression = SqlExpressionPlatformDifferencesNormalizer.Normalize(expression);
 				expression = Evaluator.PartialEval(expression);
 
 				if (this.RelatedDataAccessObjectContext == null)

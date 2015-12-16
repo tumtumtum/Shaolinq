@@ -171,7 +171,6 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossJoinRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
-    <Compile Include="Persistence\Linq\SqlExpressionPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="TaskExtensions.cs" />

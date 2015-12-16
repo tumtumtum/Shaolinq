@@ -105,7 +105,7 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-        protected virtual Expression VisitOver(SqlOverExpression expression)
+		protected virtual Expression VisitOver(SqlOverExpression expression)
 		{
 			var source = this.Visit(expression.Source);
 			var orderBy = this.VisitExpressionList(expression.OrderBy);
@@ -130,7 +130,22 @@ namespace Shaolinq.Persistence.Linq
 
 			return expression;
 		}
-		
+
+		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		{
+			if (constantExpression.Value is IQueryable)
+			{
+				// Mono Queryable.Join wraps inner in a constant even if it is IQueryable
+
+				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
+				{
+					return this.Visit(((IQueryable)constantExpression.Value).Expression);
+				}
+			}
+
+			return base.VisitConstant(constantExpression);
+		}
+
 		protected virtual Expression VisitPragma(SqlPragmaExpression expression)
 		{
 			return expression;
@@ -161,9 +176,9 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitAssign(SqlAssignExpression expression)
 		{
-			var newTarget = this.Visit(expression.Target); 
+			var newTarget = this.Visit(expression.Target);
 			var newValue = this.Visit(expression.Value);
-			
+
 			if (newValue != expression.Value)
 			{
 				return new SqlAssignExpression(newTarget, newValue);
@@ -250,7 +265,7 @@ namespace Shaolinq.Persistence.Linq
 			return join;
 		}
 
-        protected static SqlProjectionExpression UpdateProjection(SqlProjectionExpression projectionExpression, SqlSelectExpression select, Expression projector, LambdaExpression aggregator)
+		protected static SqlProjectionExpression UpdateProjection(SqlProjectionExpression projectionExpression, SqlSelectExpression select, Expression projector, LambdaExpression aggregator)
 		{
 			if (select != projectionExpression.Select || projector != projectionExpression.Projector || aggregator != projectionExpression.Aggregator)
 			{
@@ -269,7 +284,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			return columnExpression;
 		}
-        
+
 		protected virtual Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
 			var newArgs = this.VisitExpressionList(functionCallExpression.Arguments);
@@ -315,7 +330,7 @@ namespace Shaolinq.Persistence.Linq
 		protected virtual Expression VisitAggregateSubquery(SqlAggregateSubqueryExpression aggregate)
 		{
 			var e = this.Visit(aggregate.AggregateAsSubquery);
-			
+
 			var subquery = (SqlSubqueryExpression)e;
 
 			if (subquery != aggregate.AggregateAsSubquery)
@@ -336,7 +351,7 @@ namespace Shaolinq.Persistence.Linq
 			var skip = this.Visit(selectExpression.Skip);
 			var take = this.Visit(selectExpression.Take);
 			var columns = this.VisitColumnDeclarations(selectExpression.Columns);
-            
+
 			if (from != selectExpression.From || where != selectExpression.Where || columns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
 			{
 				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, columns, from, where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate);
@@ -356,7 +371,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return orderByExpression;
 		}
-        
+
 		protected virtual Expression VisitSource(Expression source)
 		{
 			return this.Visit(source);
@@ -364,11 +379,11 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var source = (SqlSelectExpression) this.Visit(projection.Select);
+			var source = (SqlSelectExpression)this.Visit(projection.Select);
 
 			var projector = this.Visit(projection.Projector);
 			var defaulValueExpression = this.Visit(projection.DefaultValueExpression);
-			var aggregator = (LambdaExpression) this.Visit(projection.Aggregator);
+			var aggregator = (LambdaExpression)this.Visit(projection.Aggregator);
 
 			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValueExpression || aggregator != projection.Aggregator)
 			{
@@ -389,7 +404,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return sqlColumnDeclaration;
 		}
-		
+
 		protected virtual IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
 			var i = 0;
@@ -438,13 +453,13 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
-			var newTable = (SqlTableExpression) this.Visit(createTableExpression.Table);
+			var newTable = (SqlTableExpression)this.Visit(createTableExpression.Table);
 			var constraints = this.VisitExpressionList(createTableExpression.TableConstraints);
 			var columnDefinitions = this.VisitExpressionList(createTableExpression.ColumnDefinitionExpressions);
 
 			if (newTable != createTableExpression.Table || createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
 			{
-				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints, Enumerable.Empty< SqlTableOption>());
+				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints, Enumerable.Empty<SqlTableOption>());
 			}
 			else
 			{
@@ -488,7 +503,7 @@ namespace Shaolinq.Persistence.Linq
 		protected virtual Expression VisitStatementList(SqlStatementListExpression statementListExpression)
 		{
 			List<Expression> newStatements = null;
-			
+
 			for (var i = 0; i < statementListExpression.Statements.Count; i++)
 			{
 				var expression = this.Visit(statementListExpression.Statements[i]);
