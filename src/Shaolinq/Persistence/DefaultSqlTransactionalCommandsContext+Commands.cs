@@ -14,7 +14,6 @@ using Shaolinq.Persistence.Linq.Optimizers;
 namespace Shaolinq.Persistence
 {
 	public partial class DefaultSqlTransactionalCommandsContext
-		: SqlTransactionalCommandsContext
 	{
 		private static readonly MethodInfo DeleteHelperMethod = TypeUtils.GetMethod(() => DeleteHelper(0, null)).GetGenericMethodDefinition();
 
@@ -70,9 +69,7 @@ namespace Shaolinq.Persistence
 		#region Update
 		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-#pragma warning disable 4014
 			this.UpdateAsyncHelper(type, dataAccessObjects, false, CancellationToken.None).GetAwaiter().GetResult();
-#pragma warning restore 4014
 		}
 
 		public override Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
@@ -143,7 +140,7 @@ namespace Shaolinq.Persistence
 
 		public override InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			return this.InsertAsyncHelper(type, dataAccessObjects, false, CancellationToken.None).GetAwaiter().GetResult(); ;
+			return this.InsertAsyncHelper(type, dataAccessObjects, false, CancellationToken.None).GetAwaiter().GetResult();
 		}
 
         public override Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
@@ -185,13 +182,34 @@ namespace Shaolinq.Persistence
 
 					try
 					{
-						using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+						IDataReader reader;
+
+						if (async)
+						{
+							reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+						}
+						else
+						{
+							reader = command.ExecuteReader();
+						}
+
+						using (reader)
 						{
 							if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 							{
+								bool result;
 								var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
 
-								if (await reader.ReadAsync(cancellationToken))
+								if (async)
+								{
+									result = await reader.ReadAsync(cancellationToken);
+								}
+								else
+								{
+									result = reader.Read();
+								}
+
+								if (result)
 								{
 									this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
 									dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();

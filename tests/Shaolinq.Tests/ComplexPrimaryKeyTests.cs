@@ -79,6 +79,12 @@ namespace Shaolinq.Tests
 			return this.model.Addresses.Where(c => c.Number != 0);
 		}
 
+		private IQueryable<Region> GetAllRegions(bool v)
+		{
+			return this.model.Regions.Where(c => c.Diameter != 0);
+		}
+
+
 		[Test]
 		public void Test_SelectMany1()
 		{
@@ -105,6 +111,19 @@ namespace Shaolinq.Tests
 			query.ToList();
 		}
 
+
+		[Test, Ignore]
+		public void Test_SelectMany3()
+		{
+			var malls = this.model.Malls.Where(c => c.Address.Region != null);
+
+			var query = from mall in malls
+						from region in this.GetAllRegions(false)
+						where mall.Address.Region2 == region
+						select new { mall, region };
+
+			query.ToList();
+		}
 		[Test]
 		public void Test_SuperMall_With_Mall_PrimaryKey()
 		{
