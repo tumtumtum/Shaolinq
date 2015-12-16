@@ -216,7 +216,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 				else
 				{
-					return memberExpression;
+					expression = memberExpression;
 				}
 			}
 			else

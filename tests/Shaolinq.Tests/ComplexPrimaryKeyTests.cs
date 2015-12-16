@@ -110,20 +110,21 @@ namespace Shaolinq.Tests
 
 			query.ToList();
 		}
-
-
-		[Test, Ignore]
-		public void Test_SelectMany3()
+		
+		[Test]
+		public void Test_Implicit_Join_Compare_ObjectReferences()
 		{
-			var malls = this.model.Malls.Where(c => c.Address.Region != null);
+			var malls = this.model.Malls;
+			var coordinate = this.model.Coordinates.GetReference(0);
 
 			var query = from mall in malls
-						from region in this.GetAllRegions(false)
-						where mall.Address.Region2 == region
+						from region in this.model.Regions
+						where mall.Address.Region2.Center == coordinate
 						select new { mall, region };
 
 			query.ToList();
 		}
+
 		[Test]
 		public void Test_SuperMall_With_Mall_PrimaryKey()
 		{
