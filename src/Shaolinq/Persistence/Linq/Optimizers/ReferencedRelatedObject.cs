@@ -9,14 +9,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 {
 	public struct ReferencedRelatedObject
 	{
+		public Expression SourceParameterExpression { get; }
 		public PropertyPath IncludedPropertyPath { get; }
 		public PropertyPath FullAccessPropertyPath { get; }
 		public Expression ObjectExpression { get; }
 		public ICollection<Expression> TargetExpressions { get; }
 
-		public ReferencedRelatedObject(PropertyPath fullAccessPropertyPath, PropertyPath includedPropertyPath, Expression objectExpression)
+		public ReferencedRelatedObject(PropertyPath fullAccessPropertyPath, PropertyPath includedPropertyPath, Expression objectExpression, Expression sourceParameterExpression)
 			: this()
 		{
+			this.SourceParameterExpression = sourceParameterExpression;
 			this.ObjectExpression = objectExpression;
 			this.FullAccessPropertyPath = fullAccessPropertyPath;
 			this.IncludedPropertyPath = includedPropertyPath;

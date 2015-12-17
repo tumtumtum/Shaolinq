@@ -18,7 +18,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private Expression currentParent;
 		private readonly bool forProjection; 
 		private readonly DataAccessModel model;
-		private readonly ParameterExpression sourceParameterExpression;
+		private ParameterExpression sourceParameterExpression;
 		private List<ReferencedRelatedObject> referencedRelatedObjects = new List<ReferencedRelatedObject>();
 		private readonly HashSet<IncludedPropertyInfo> includedPropertyInfos = new HashSet<IncludedPropertyInfo>(IncludedPropertyInfoEqualityComparer.Default);
 		private readonly Dictionary<PropertyPath, Expression> rootExpressionsByPath = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
@@ -55,11 +55,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			this.forProjection = forProjection;
 		}
 
-		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, Expression[] expressions, ParameterExpression sourceParameterExpression, bool forProjection)
+		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, IList<Tuple<ParameterExpression, Expression>> expressions, bool forProjection)
 		{
-			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, sourceParameterExpression, forProjection);
+			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, null, forProjection);
 
-			var reducedExpressions = expressions.Select(gatherer.Visit).ToArray();
+            var reducedExpressions = expressions.Select(c =>
+            {
+				gatherer.sourceParameterExpression = c.Item1;
+				return gatherer.Visit(c.Item2);
+            }).ToArray();
 
 			return new ReferencedRelatedObjectPropertyGathererResults
 			{
@@ -308,7 +312,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					var includedPropertyPath = new PropertyPath(c => c.Name, path.Skip(includedPathSkip));
 					var objectExpression = x >= 0 ? visited[x] : root;
 
-					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, objectExpression);
+					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, objectExpression, sourceParameterExpression);
 
 					this.results[path] = objectInfo;
 				}

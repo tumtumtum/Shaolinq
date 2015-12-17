@@ -84,6 +84,30 @@ namespace Shaolinq.Tests
 			return this.model.Regions.Where(c => c.Diameter != 0);
 		}
 
+		[Test]
+		public void Test_GroupBy1()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+
+			var query = from mall in malls
+				join r in GetAllRegions(false) on mall.Address.Region2 equals r
+				select new { mall };
+
+			var result = query.ToList();
+		}
+		
+		[Test]
+		public void Test_GroupBy2()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+
+			var query = from mall in malls
+						join r in GetAllRegions(false) on mall.Address.Region.Id equals r.Id
+						select new { mall, r };
+
+			var result = query.ToList();
+		}
+
 
 		[Test]
 		public void Test_SelectMany1()

@@ -204,13 +204,13 @@ namespace Shaolinq.Persistence.Linq
 
 			switch (selectFirstType)
 			{
-				case SelectFirstType.Single:
-				case SelectFirstType.SingleOrDefault:
-					limit = 2;
-					break;
-				default:
-					limit = 1;
-					break;
+			case SelectFirstType.Single:
+			case SelectFirstType.SingleOrDefault:
+				limit = 2;
+				break;
+			default:
+				limit = 1;
+				break;
 			}
 
 			return new SqlProjectionExpression(new SqlSelectExpression(select.Type, alias, pc.Columns, projection.Select, null, null, null, false, null, Expression.Constant(limit), select.ForUpdate), pc.Projector, null, false, selectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);

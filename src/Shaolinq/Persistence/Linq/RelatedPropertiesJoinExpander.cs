@@ -148,6 +148,8 @@ namespace Shaolinq.Persistence.Linq
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "GroupBy":
 				return this.RewriteBasicProjection(methodCallExpression, false);
+			case "Join":
+				return this.RewriteBasicProjection(methodCallExpression, false);
 			default:
 				return base.VisitMethodCall(methodCallExpression);
 			}
@@ -180,15 +182,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				leftObject = rootExpressionsByPath[rootPath];
 
-				leftObject = SqlExpressionReplacer.Replace(leftObject, c =>
-				{
-					if (c == sourceParameterExpression)
-					{
-						return leftSelectorParameter;
-					}
-
-					return null;
-				});
+				leftObject = SqlExpressionReplacer.Replace(leftObject, c => c == sourceParameterExpression ? leftSelectorParameter : null);
 			}
 			else 
 			{
@@ -242,23 +236,12 @@ namespace Shaolinq.Persistence.Linq
 
 		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression, bool forSelector)
 		{
-			Expression[] originalSelectors;
-			var originalSource = methodCallExpression.Arguments[0];
+			var originalSelectors = methodCallExpression.Arguments.Where(c => c.Type.IsGenericType && c.Type.GetGenericTypeDefinition() == typeof(Expression<>)).ToList();
+            var originalSource = methodCallExpression.Arguments[0];
 			var source = this.Visit(originalSource);
 			var sourceType = source.Type.GetGenericArguments()[0];
-			var originalPredicateOrSelector = methodCallExpression.Arguments[1];
-
-			if (methodCallExpression.Arguments.Count == 2)
-			{
-				originalSelectors = new[] { originalPredicateOrSelector };
-			}
-			else
-			{
-				originalSelectors = new[] { originalPredicateOrSelector, methodCallExpression.Arguments[2] };
-			}
-
-			var sourceParameterExpression = (originalPredicateOrSelector.StripQuotes()).Parameters[0];
-			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors, sourceParameterExpression, forSelector);
+			
+			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.StripQuotes().Parameters[0], c)).ToList(), forSelector);
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
 			var currentRootExpressionsByPath = result.RootExpressionsByPath;
 
@@ -331,7 +314,7 @@ namespace Shaolinq.Persistence.Linq
 					var property = referencedObjectPath.FullAccessPropertyPath[referencedObjectPath.FullAccessPropertyPath.Length - 1];
 					var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
 
-					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, sourceParameterExpression);
+					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
 
 					currentLeft = join;
 					index++;
@@ -445,7 +428,8 @@ namespace Shaolinq.Persistence.Linq
 					var keyType = newPredicateOrSelectors[0].ReturnType;
 					var elementType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0].GetGenericArguments()[1];
 					
-					newMethod = methodCallExpression.Method
+					newMethod = methodCallExpression
+						.Method
 						.DeclaringType
 						.GetMethods().Single(c => c.IsGenericMethod
 						    && c.GetGenericArguments().Length == 3
