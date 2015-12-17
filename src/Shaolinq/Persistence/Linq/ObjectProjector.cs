@@ -11,8 +11,8 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class ObjectProjector
 	{
-		public SqlQueryFormatResult FormatResult { get; }
 		public DataAccessModel DataAccessModel { get; }
+		public SqlQueryFormatResult FormatResult { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		protected int count = 0;
@@ -48,7 +48,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				var column = c as SqlColumnExpression;
-				
+
 				if (column != null && column.SelectAlias.StartsWith(expectedSelector))
 				{
 					var sqlDataTypeProvider = this.SqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
@@ -68,16 +68,6 @@ namespace Shaolinq.Persistence.Linq
 
 			return this.provider.CreateQuery<T>(projection);
 		}
-
-		private static bool CanEvaluateLocally(Expression expression)
-		{
-			if (expression.NodeType == ExpressionType.Parameter || (int)expression.NodeType > (int)SqlExpressionType.First)
-			{
-				return false;
-			}
-
-			return true;
-		}
 	}
 
 	/// <summary>
@@ -94,7 +84,7 @@ namespace Shaolinq.Persistence.Linq
 	/// by the TypeBuilding system using Reflection.Emit.
 	/// </typeparam>
 	public class ObjectProjector<T, U>
-		: ObjectProjector, IEnumerable<T>
+		: ObjectProjector, IEnumerable<T>, IAsyncEumerable<T>
 		where U : T
 	{
 		protected readonly object[] placeholderValues;
@@ -163,6 +153,11 @@ namespace Shaolinq.Persistence.Linq
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return this.GetEnumerator();
+		}
+
+		public IAsyncEnumerator<T> GetAsyncEnumerator()
+		{
+			return new AsyncEnumeratorAdapter<T>(this.GetEnumerator());
 		}
 	}
 }

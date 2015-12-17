@@ -3,6 +3,16 @@
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
+	public abstract class Bird
+		: DataAccessObject
+	{	
+		[PrimaryKey]
+		[AutoIncrement]
+		[PersistedMember]
+		public abstract Cat Owner { get; set; }
+	}
+
+	[DataAccessObject]
 	public abstract class Cat
 		: DataAccessObject<long>
 	{

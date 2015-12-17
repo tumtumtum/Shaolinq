@@ -34,7 +34,7 @@ namespace Shaolinq
 			this.Expression = expression;
         }
 
-		protected virtual void Initialize(IPersistenceQueryProvider provider, Expression expression)
+		protected void Initialize(IPersistenceQueryProvider provider, Expression expression)
 		{
 			this.PersistenceQueryProvider = provider;
 			this.Expression = expression ?? Expression.Constant(this);

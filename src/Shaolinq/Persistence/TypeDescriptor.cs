@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
@@ -49,6 +50,16 @@ namespace Shaolinq.Persistence
 			}
 
 			return false;
+		}
+		
+		public Expression GetPrimaryKeyExpression(Expression obj)
+		{
+			if (this.PrimaryKeyProperties.Count != 1)
+			{
+				return null;
+			}
+
+			return Expression.Property(obj, this.PrimaryKeyProperties[0].PropertyInfo);
 		}
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()

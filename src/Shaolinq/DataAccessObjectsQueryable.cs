@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using Shaolinq.Persistence;
 using Shaolinq.TypeBuilding;
 
@@ -20,7 +21,8 @@ namespace Shaolinq
 		private readonly TypeDescriptor typeDescriptor;
 		public DataAccessModel DataAccessModel { get; set; }
 		public LambdaExpression ExtraCondition { get; protected set; }
-		private static readonly Type IdType = PrimaryKeyInfoCache<T>.IdPropertyInfo.PropertyType;
+		private readonly Type idType;
+		private readonly PropertyInfo primaryKeyProperty;
 
 		protected DataAccessObjectsQueryable(DataAccessModel dataAccessModel, Expression expression)
 		{
@@ -29,8 +31,12 @@ namespace Shaolinq
 				throw new ObjectAlreadyInitializedException(this);
 			}
 
-			this.DataAccessModel = dataAccessModel; 
 			this.typeDescriptor = dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
+
+			this.idType = typeDescriptor.PrimaryKeyProperties[0].PropertyType;
+			this.primaryKeyProperty = typeDescriptor.PrimaryKeyProperties[0].PropertyInfo;
+
+            this.DataAccessModel = dataAccessModel; 
 			this.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 
@@ -81,7 +87,7 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetQueryableByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			if (typeof(K) == IdType && !IdType.IsDataAccessObjectType())
+			if (typeof(K) == idType && !idType.IsDataAccessObjectType())
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
@@ -89,7 +95,7 @@ namespace Shaolinq
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
-				var body = Expression.Equal(Expression.Property(parameterExpression, PrimaryKeyInfoCache<T>.IdPropertyInfo), Expression.Constant(primaryKey));
+				var body = Expression.Equal(Expression.Property(parameterExpression, primaryKeyProperty), Expression.Constant(primaryKey));
 
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
@@ -103,7 +109,7 @@ namespace Shaolinq
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
-				var body = Expression.Equal(Expression.Property(parameterExpression, PrimaryKeyInfoCache<T>.IdPropertyInfo), Expression.Constant(Convert.ChangeType(primaryKey, IdType)));
+				var body = Expression.Equal(Expression.Property(parameterExpression, primaryKeyProperty), Expression.Constant(Convert.ChangeType(primaryKey, idType)));
 
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
@@ -143,11 +149,11 @@ namespace Shaolinq
 				throw new ArgumentNullException(nameof(primaryKeys));
 			}
 
-			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == IdType && primaryKeyType != PrimaryKeyType.Composite))
+			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == idType && primaryKeyType != PrimaryKeyType.Composite))
 			{
-				if (!TypeDescriptor.IsSimpleType(IdType))
+				if (!TypeDescriptor.IsSimpleType(idType))
 				{
-					throw new ArgumentException($"Type {typeof(K)} needs to be convertable to {IdType}", nameof(primaryKeys));
+					throw new ArgumentException($"Type {typeof(K)} needs to be convertable to {idType}", nameof(primaryKeys));
 				}
 
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
@@ -156,9 +162,9 @@ namespace Shaolinq
 				}
 			}
 
-			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == IdType && primaryKeyType != PrimaryKeyType.Composite))
+			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == idType && primaryKeyType != PrimaryKeyType.Composite))
 			{
-				var propertyInfo = PrimaryKeyInfoCache<T>.IdPropertyInfo;
+				var propertyInfo = primaryKeyProperty;
 				var parameterExpression = Expression.Parameter(propertyInfo.PropertyType, "value");
 
 				var body = Expression.Call(null, MethodInfoFastRef.EnumerableContainsMethod.MakeGenericMethod(propertyInfo.PropertyType), Expression.Constant(primaryKeyType), Expression.Property(parameterExpression, propertyInfo));

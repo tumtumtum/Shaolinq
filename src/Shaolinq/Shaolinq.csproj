@@ -123,6 +123,7 @@
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="AssemblyAttributes.cs" />
+    <Compile Include="AsyncEnumeratorAdapter.cs" />
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedMemberAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
@@ -133,6 +134,8 @@
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
+    <Compile Include="IAsyncEnumerator.cs" />
+    <Compile Include="IAsyncEumerable.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="Persistence\DbCommandExtensions.cs" />

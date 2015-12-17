@@ -149,11 +149,6 @@ namespace Shaolinq
 			DataAccessObject Get(ObjectPropertyValue[] primaryKeys);
 			void Deleted(DataAccessObject value);
 		}
-	
-		private static T GetDataAccessObjectId<T>(DataAccessObject dataAccessObject)
-		{
-			return ((DataAccessObject<T>)dataAccessObject).Id;
-		}
 
 		private static CompositePrimaryKey GetDataAccessObjectCompositeId(DataAccessObject dataAccessObject)
 		{
@@ -497,7 +492,11 @@ namespace Shaolinq
 				if (keyType != typeof(CompositePrimaryKey))
 				{
 					keyComparer = Expression.Constant(null, typeof(IEqualityComparer<>).MakeGenericType(dao.KeyType ?? dao.CompositeKeyTypes[0]));
-					getIdFunc = Delegate.CreateDelegate(getIdFuncType, TypeUtils.GetMethod(() => GetDataAccessObjectId<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition().MakeGenericMethod(dao.KeyType ?? dao.CompositeKeyTypes[0]));
+
+					var param = Expression.Parameter(typeof(DataAccessObject));
+					var lambda = Expression.Lambda(dao.TypeDescriptor.GetPrimaryKeyExpression(Expression.Convert(param, type)), param);
+
+					getIdFunc = lambda.Compile();
 				}
 				else
 				{
@@ -507,8 +506,8 @@ namespace Shaolinq
 
 				var contextParam = Expression.Parameter(typeof(DataAccessObjectDataContext));
 
-				func = Expression.Lambda<Func<DataAccessObjectDataContext, IObjectsByIdCache>>(Expression.New(constructor, Expression.Constant(dao.GetType()), contextParam, Expression.Constant(getIdFunc, getIdFuncType), keyComparer), contextParam).Compile();
-
+				func = Expression.Lambda<Func<DataAccessObjectDataContext, IObjectsByIdCache>>(Expression.New(constructor, Expression.Constant(dao.GetType()), contextParam, Expression.Constant(getIdFunc, getIdFunc.GetType()), keyComparer), contextParam).Compile();
+					
 				var newCacheConstructor = new Dictionary<Type, Func<DataAccessObjectDataContext, IObjectsByIdCache>>(cacheConstructor) { [type] = func };
 
 				cacheConstructor = newCacheConstructor;

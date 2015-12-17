@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -40,7 +41,7 @@ namespace Shaolinq
 		/// Returns the Primary Key type for this object.  If the object defines a composite key the return value will be null
 		/// </summary>
 		Type KeyType { get; }
-
+		
 		/// <summary>
 		/// Returns an array of the types in the composite primary key
 		/// </summary>

@@ -106,6 +106,11 @@ namespace Shaolinq.Tests
 				chuck2.Height = 182;
 				chuck2.Weight = 70;
 				chuck2.Sex = Sex.Male;
+
+				var marsCat = this.model.Cats.Create();
+				marsCat.Name = "Mars";
+
+				var bird = this.model.Birds.Create(marsCat);
 			
 				scope.Complete();
 			}
@@ -118,6 +123,28 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public void Test_Get_CustomPrimaryKeyObject()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var mars = this.model.Cats.Single(c => c.Name == "Mars");
+
+				Assert.IsNotNull(this.model.Birds.Single(c => c.Owner == mars));
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var mars = this.model.Cats.Single(c => c.Name == "Mars");
+
+				Assert.IsNotNull(this.model.Birds.Single(c => c.Owner.Id == mars.Id));
+
+				scope.Complete();
+			}
+		}
+		
 		[Test]
 		public void Test_Get_Timespan()
 		{

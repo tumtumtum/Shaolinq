@@ -412,7 +412,7 @@ namespace Shaolinq
 			{
 				var isSimpleKey = false;
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(type);
-				var idPropertyType = typeDescriptor.GetPropertyDescriptorByPropertyName("Id").PropertyType;
+				var idPropertyType = typeDescriptor.PrimaryKeyProperties[0].PropertyType;
 
 				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(idType) || (idPropertyType.IsAssignableFrom(idType) && primaryKeyType == PrimaryKeyType.Auto))
 				{

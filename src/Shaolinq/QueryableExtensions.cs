@@ -26,14 +26,10 @@ namespace Shaolinq
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)
 			where U : DataAccessObject
 		{
-			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(new [] {typeof(T), typeof(U)}), new []
-			{
-				source.Expression,
-				Expression.Quote(include)
-			}));
+			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T), typeof(U)), new [] { source.Expression, Expression.Quote(include) }));
 		}
 
-		public static Task<List<T>> ToListAsync<T>()
+		public static Task<List<T>> ToListAsync<T>(this IQueryable<T> queryable)
 		{
 			throw new NotImplementedException();
 		}

@@ -8,7 +8,6 @@ namespace Shaolinq
 {
 	internal static class PrimaryKeyInfoCache<U>
 	{
-		public static readonly PropertyInfo IdPropertyInfo = typeof(U).GetProperties().FirstOrDefault(c => c.Name == "Id");
 		public static readonly MethodInfo EnumerableContainsMethod = MethodInfoFastRef.EnumerableContainsMethod.MakeGenericMethod(typeof(U));
 	}
 }
