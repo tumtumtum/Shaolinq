@@ -11,16 +11,16 @@ namespace Shaolinq
 {
 	public static class QueryableExtensions
 	{
-		public static IQueryable<T> WhereForUpdate<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
+		public static IQueryable<T> WhereForUpdate<T>(this IQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : DataAccessObject
 		{
-			return queryable.PersistenceQueryProvider.CreateQuery<T>(Expression.Call(null,  ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
+			return queryable.Provider.CreateQuery<T>(Expression.Call(null,  ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
 		}
 
-		public static IQueryable<R> SelectForUpdate<T, R>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, R>> condition)
+		public static IQueryable<R> SelectForUpdate<T, R>(this IQueryable<T> queryable, Expression<Func<T, R>> condition)
 			where T : DataAccessObject
 		{
-			return queryable.PersistenceQueryProvider.CreateQuery<R>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
+			return queryable.Provider.CreateQuery<R>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
 		}
 
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)
