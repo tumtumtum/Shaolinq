@@ -38,8 +38,8 @@ namespace Shaolinq.Tests.TestModel
 		[ComputedMember("CalculateHeightAndWeight()")]
 		public abstract long? HeightAndWeight2 { get; set; }
 
-		[DependsOnProperty("Height")]
-		[DependsOnProperty("Weight")]
+		[DependsOnProperty(nameof(Height))]
+		[DependsOnProperty(nameof(Weight))]
 		public long CalculateHeightAndWeight()
 		{
 			return (int)(this.Height + (this.Weight ?? 0));
@@ -55,7 +55,7 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract TimeSpan TimeSinceLastSlept { get; set; }
 
-		[DependsOnProperty("Id")]
+		[DependsOnProperty(nameof(Id))]
 		protected virtual string CompactIdString => this.Id.ToString("N");
 
 		[PersistedMember]

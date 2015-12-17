@@ -143,6 +143,15 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			using (var scope = new TransactionScope())
+			{
+				var mars = this.model.Cats.Single(c => c.Name == "Mars");
+
+				Assert.IsNotNull(this.model.Birds.Single(c => c.Owner.Name == mars.Name));
+
+				scope.Complete();
+			}
 		}
 		
 		[Test]
