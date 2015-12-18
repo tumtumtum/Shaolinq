@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq
@@ -40,7 +41,7 @@ namespace Shaolinq
 
 		public static Type GetElementType(Type sequenceType)
 		{
-			if (sequenceType.IsGenericType && sequenceType.GetGenericTypeDefinition() == typeof(Grouping<,>))
+			if (sequenceType.GetGenericTypeDefinitionOrNull() == typeof(Grouping<,>))
 			{
 				return sequenceType;
 			}

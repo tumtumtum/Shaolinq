@@ -1273,7 +1273,7 @@ namespace Shaolinq.Persistence.Linq
 				case ExpressionType.New:
 					var newExpression = (NewExpression)expression;
 
-					if (expression.Type.IsGenericType && expression.Type.GetGenericTypeDefinition() == typeof(Grouping<,>))
+					if (expression.Type.GetGenericTypeDefinitionOrNull() == typeof(Grouping<,>))
 					{
 						return (SqlProjectionExpression)newExpression.Arguments[1];
 					}
@@ -1282,7 +1282,7 @@ namespace Shaolinq.Persistence.Linq
 				case ExpressionType.MemberAccess:
 					var memberAccessExpression = (MemberExpression)expression;
 
-					if (expression.Type.IsGenericType && expression.Type.GetGenericTypeDefinition() == TypeHelper.RelatedDataAccessObjectsType)
+					if (expression.Type.GetGenericTypeDefinitionOrNull() == TypeHelper.RelatedDataAccessObjectsType)
 					{
 						var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(expression.Type.GetGenericArguments()[0]);
 						var parentTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(memberAccessExpression.Expression.Type);
@@ -1303,7 +1303,7 @@ namespace Shaolinq.Persistence.Linq
 
 						return (SqlProjectionExpression) this.BindWhere(expression.Type.GetGenericArguments()[0], source, condition, false);
 					}
-					else if (expression.Type.IsGenericType && expression.Type.GetGenericTypeDefinition() == TypeHelper.IQueryableType)
+					else if (expression.Type.GetGenericTypeDefinitionOrNull() == TypeHelper.IQueryableType)
 					{
 						if (memberAccessExpression.Expression.NodeType == ExpressionType.Constant)
 						{

@@ -32,14 +32,14 @@ namespace Shaolinq.Persistence
 
 			foreach (var type in this.DataAccessModelType
 				.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
-				.Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(DataAccessObjects<>))
+				.Where(c => c.PropertyType.GetGenericTypeDefinitionOrNull() == typeof(DataAccessObjects<>))
 				.Select(c => c.PropertyType.GetGenericArguments()[0]))
 			{
 				var currentType = type;
 
 				while (currentType != null 
 					&& currentType != typeof(DataAccessObject) 
-					&& !(currentType.IsGenericType && currentType.GetGenericTypeDefinition() == typeof(DataAccessObject<>)))
+					&& !(currentType.GetGenericTypeDefinitionOrNull() == typeof(DataAccessObject<>)))
 				{
 					var dataAccessObjectAttribute = currentType.GetFirstCustomAttribute<DataAccessObjectAttribute>(false);
 
@@ -108,7 +108,7 @@ namespace Shaolinq.Persistence
 					{
 						var currentType = propertyDescriptor.PropertyType;
 
-						while (!currentType.IsGenericType || (currentType.IsGenericType && currentType.GetGenericTypeDefinition() != typeof(RelatedDataAccessObjects<>)))
+						while (!currentType.IsGenericType || (currentType.GetGenericTypeDefinitionOrNull() != typeof(RelatedDataAccessObjects<>)))
 						{
 							currentType = currentType.BaseType;
 						}

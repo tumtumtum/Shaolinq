@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Text;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
@@ -155,8 +156,7 @@ namespace Shaolinq.Persistence.Linq
 
 				return methodCallExpression;
 			}
-			else if ((methodCallExpression.Method.DeclaringType?.IsGenericType ?? false)
-			         && methodCallExpression.Method.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>)
+			else if (methodCallExpression.Method.DeclaringType?.GetGenericTypeDefinitionOrNull() == typeof(Nullable<>)
 			         && methodCallExpression.Method.Name == "GetValueOrDefault")
 			{
 				this.Visit(methodCallExpression.Object);

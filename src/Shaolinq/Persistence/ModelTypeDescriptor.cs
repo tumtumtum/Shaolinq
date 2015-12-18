@@ -2,6 +2,7 @@
 
 using System;
 using System.Reflection;
+using Platform;
 using Platform.Reflection;
 
 namespace Shaolinq.Persistence
@@ -33,7 +34,7 @@ namespace Shaolinq.Persistence
 
 				while (propertyType != null)
 				{
-					if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(DataAccessObjectsQueryable<>))
+					if (propertyType.GetGenericTypeDefinitionOrNull() == typeof(DataAccessObjectsQueryable<>))
 					{
 						genericType = propertyType.GetGenericArguments()[0];
 					}
