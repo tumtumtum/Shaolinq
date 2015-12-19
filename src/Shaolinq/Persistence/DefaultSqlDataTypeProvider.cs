@@ -95,7 +95,7 @@ namespace Shaolinq.Persistence
 				return sqlDataType;
 			}
 
-			throw new NotSupportedException(this.GetType().Name + " does not support " + type.Name);
+			return null;
 		}
 	}
 }

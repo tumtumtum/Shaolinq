@@ -13,96 +13,25 @@ using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.Prop
 
 namespace Shaolinq.Persistence.Linq
 {
-	internal static class JoinHelperExtensions
-	{
-		public static readonly MethodInfo LeftJoinMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).LeftJoin((IEnumerable<string>)null, x => "", y => "", (x, y) => "")).GetGenericMethodDefinition();
-
-		private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source)
-		{
-			var queryable = source as IQueryable<TSource>;
-
-			return queryable?.Expression ?? Expression.Constant(source, typeof(IEnumerable<TSource>));
-		}
-
-		public static IQueryable<TResult> LeftJoin<TOuter, TInner, TKey, TResult>(this IQueryable<TOuter> outer, IEnumerable<TInner> inner, Expression<Func<TOuter, TKey>> outerKeySelector, Expression<Func<TInner, TKey>> innerKeySelector, Expression<Func<TOuter, TInner, TResult>> resultSelector)
-		{
-			return outer.Provider.CreateQuery<TResult>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(TOuter), typeof(TInner), typeof(TKey), typeof(TResult)), outer.Expression, GetSourceExpression(inner), Expression.Quote(outerKeySelector), Expression.Quote(innerKeySelector), Expression.Quote(resultSelector)));
-		}
-	}
-
-	public class RelatedPropertiesJoinExpanderResults
-	{
-		public Expression ProcessedExpression { get; set; }
-		public Dictionary<Expression, List<IncludedPropertyInfo>> IncludedPropertyInfos { get; set; }
-		private readonly List<Tuple<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin;
-
-		internal RelatedPropertiesJoinExpanderResults(List<Tuple<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin)
-		{
-			this.replacementExpressionForPropertyPathsByJoin = replacementExpressionForPropertyPathsByJoin;
-		}
-
-		public Expression GetReplacementExpression(Expression currentJoin, PropertyPath propertyPath)
-		{
-			int index;
-			var indexFound = -1;
-
-			for (index = this.replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
-			{
-				Expression retval;
-
-				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Item1)
-				{
-					indexFound = index;
-				}
-
-				if (index > indexFound)
-				{
-					continue;
-				}
-				
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(propertyPath, out retval))
-				{
-					return retval;	
-				}
-			}
-
-			for (index = this.replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
-			{
-				Expression retval;
-
-				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Item1)
-				{
-					indexFound = index;
-				}
-
-				if (index > indexFound)
-				{
-					continue;
-				}
-
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(propertyPath, out retval))
-				{
-					return retval;
-				}
-
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(PropertyPath.Empty, out retval))
-				{
-					foreach (var property in propertyPath)
-					{
-						retval = Expression.Property(retval, property.Name);
-					}
-
-					return retval;
-				}
-			}
-
-			throw new InvalidOperationException();
-		}
-	}
-
 	public class RelatedPropertiesJoinExpander
 		: SqlExpressionVisitor
 	{
+		protected struct RewriteBasicProjectionResults
+		{
+			public bool Changed { get; set; }
+			public Expression NewSource { get; set; }
+			public LambdaExpression[] NewSelectors { get; set; }
+			public List<ReferencedRelatedObject> ReferencedObjectPaths { get; set; }
+			public Dictionary<PropertyPath, Expression> ReplacementExpressionsByPropertyPath { get; set; }
+			public Dictionary<PropertyPath, int> IndexByPath { get; set; }
+
+			public RewriteBasicProjectionResults(bool changed)
+				: this()
+			{
+				this.Changed = changed;
+			}
+		}
+
 		private readonly DataAccessModel model;
 		private readonly Dictionary<Expression, List<IncludedPropertyInfo>> includedPropertyInfos = new Dictionary<Expression, List<IncludedPropertyInfo>>();
 		private readonly List<Tuple<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin = new List<Tuple<Expression, Dictionary<PropertyPath, Expression>>>();
@@ -303,7 +232,6 @@ namespace Shaolinq.Persistence.Linq
 
 					break;
 				case "GroupBy":
-
 					keyType = result.NewSelectors[0].ReturnType;
 					newParameterType = result.NewSelectors[0].Parameters[0].Type;
 					var elementType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0].GetGenericArguments()[1];
@@ -357,25 +285,8 @@ namespace Shaolinq.Persistence.Linq
 				(
 					methodCallExpression.Object,
 					methodCallExpression.Method,
-					result.NewSelectors.Prepend(result.NewSource).ToArray()
+					result.NewSelectors.AsEnumerable().Prepend(result.NewSource).ToArray()
 				);
-			}
-		}
-
-
-		protected struct RewriteBasicProjectionResults
-		{
-			public bool Changed { get; set; }
-			public Expression NewSource { get; set; }
-			public LambdaExpression[] NewSelectors { get; set; }
-			public List<ReferencedRelatedObject> ReferencedObjectPaths { get; set; }
-			public Dictionary<PropertyPath, Expression> ReplacementExpressionsByPropertyPath { get; set; }
-			public Dictionary<PropertyPath, int> IndexByPath { get; set; }
-
-			public RewriteBasicProjectionResults (bool changed)
-				: this()
-			{
-				this.Changed = changed;
 			}
 		}
 

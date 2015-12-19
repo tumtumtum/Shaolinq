@@ -933,7 +933,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = this.model.Shops.GroupBy(c => c.Address.Street, c => new { Key = 1, c });
+				var query = this.model.Shops.GroupBy(c => c.Address.Street, c => new { Number = 1, Key = c.Address });
 
 				var first = query.First();
 			}

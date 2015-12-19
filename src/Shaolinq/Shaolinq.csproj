@@ -169,12 +169,14 @@
     <Compile Include="Persistence\Linq\Expressions\SqlScalarExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SubstituteConstantsResult.cs" />
     <Compile Include="Persistence\Linq\Expressions\SubstituteConstantsResultWithValues.cs" />
+    <Compile Include="Persistence\Linq\JoinHelperExtensions.cs" />
     <Compile Include="Persistence\Linq\Nominator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossApplyRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossJoinRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
+    <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpanderResults.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="TaskExtensions.cs" />

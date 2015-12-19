@@ -55,7 +55,7 @@ namespace Shaolinq.Persistence
 			}
 			else
 			{
-				if (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0)
+				if (propertyDescriptor != null && (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0))
 				{
 					return "VARCHAR(" + this.constraintDefaultsConfiguration.IndexedStringMaximumLength + ")";
 				}

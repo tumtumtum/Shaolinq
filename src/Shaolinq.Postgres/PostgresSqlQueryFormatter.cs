@@ -143,7 +143,6 @@ namespace Shaolinq.Postgres
 			return base.VisitColumn(columnExpression);
 		}
 
-
 		protected override void AppendLimit(SqlSelectExpression selectExpression)
 		{
 			if (selectExpression.Skip != null || selectExpression.Take != null)

@@ -8,6 +8,7 @@ namespace Shaolinq.Postgres
 	internal class PostgresSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
+		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly SqlDataType blobSqlDataType;
 
 		public bool NativeUuids { get; set; }
@@ -25,12 +26,14 @@ namespace Shaolinq.Postgres
 				return base.GetEnumDataType(type);
 			}
 
-			return new PostgresEnumSqlDataType(this.ConstraintDefaultsConfiguration, type);
+			return new PostgresEnumSqlDataType(this.ConstraintDefaultsConfiguration, type, typeDescriptorProvider);
 		}
 
-		public PostgresSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, bool nativeUuids, bool nativeEnums)
+		public PostgresSqlDataTypeProvider(TypeDescriptorProvider typeDescriptorProvider, ConstraintDefaultsConfiguration constraintDefaultsConfiguration, bool nativeUuids, bool nativeEnums)
 			: base(constraintDefaultsConfiguration)
 		{
+			this.typeDescriptorProvider = typeDescriptorProvider;
+
 			this.NativeUuids = nativeUuids;
 			this.NativeEnums = nativeEnums;
 			

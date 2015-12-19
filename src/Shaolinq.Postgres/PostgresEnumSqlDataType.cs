@@ -11,18 +11,19 @@ namespace Shaolinq.Postgres
 	internal class PostgresEnumSqlDataType
 		: SqlDataType
 	{
+		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly Type underlyingType;
 
-		public PostgresEnumSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType)
+		public PostgresEnumSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType, TypeDescriptorProvider typeDescriptorProvider)
 			: base(constraintDefaultsConfiguration, supportedType, true)
 		{
+			this.typeDescriptorProvider = typeDescriptorProvider;
 			this.underlyingType = Nullable.GetUnderlyingType(supportedType);
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
-			var typeDescriptorProvider = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider;
-			var enumTypeDescriptor = typeDescriptorProvider.GetEnumTypeDescriptor(this.underlyingType ?? this.SupportedType);
+			var enumTypeDescriptor = this.typeDescriptorProvider.GetEnumTypeDescriptor(this.underlyingType ?? this.SupportedType);
 
 			return enumTypeDescriptor.Name;
 		}
