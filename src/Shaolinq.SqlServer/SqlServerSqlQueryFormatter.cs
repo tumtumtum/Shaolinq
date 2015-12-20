@@ -37,6 +37,8 @@ namespace Shaolinq.SqlServer
 				{
 					return new FunctionResolveResult("SUBSTRING", false, arguments);
 				}
+			case SqlFunction.StringLength:
+				return new FunctionResolveResult("LEN", false, arguments);
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);

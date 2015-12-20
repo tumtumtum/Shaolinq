@@ -209,7 +209,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var visited = new List<MemberExpression>();
 			var root = memberExpression.Expression;
 			var memberIsDataAccessObjectGatheringForProjection = false;
-
+			
 			if (memberExpression.Type.IsDataAccessObjectType())
 			{
 				if (this.forProjection)
@@ -239,14 +239,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (typeDescriptor == null)
 				{
-					return memberExpression;
+					return Expression.MakeMemberAccess(this.Visit(memberExpression.Expression), memberExpression.Member);
 				}
+				
+				typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.Type);
 
 				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 
 				if (property.IsPrimaryKey && memberExpression.Expression is MemberExpression)
 				{
-					expression = ((MemberExpression) memberExpression.Expression).Expression as MemberExpression;
+					expression = ((MemberExpression)memberExpression.Expression).Expression as MemberExpression;
 				}
 				else
 				{

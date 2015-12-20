@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Platform.Xml.Serialization;
 
 namespace Shaolinq.TypeBuilding
 {
@@ -12,24 +13,22 @@ namespace Shaolinq.TypeBuilding
 
 		private struct AssemblyKey
 		{
-			private readonly string configurationMd5;
+			private readonly string configurationXml;
+			private readonly string configurationHash;
 			private readonly Type dataAccessModelType;
-
-			private AssemblyKey(Type dataAccessModelType, string configurationMd5)
-				: this()
-			{
-				this.dataAccessModelType = dataAccessModelType;
-				this.configurationMd5 = configurationMd5;
-			}
-
+			private readonly DataAccessModelConfiguration configuration;
+			
 			public AssemblyKey(Type dataAccessModelType, DataAccessModelConfiguration configuration)
-				: this(dataAccessModelType, configuration.GetSha256())
 			{
+				this.configuration = configuration;
+				this.dataAccessModelType = dataAccessModelType;
+				this.configurationHash = configuration.GetSha256();
+				this.configurationXml = XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(configuration);
 			}
 
 			public override int GetHashCode()
 			{
-				return this.configurationMd5.GetHashCode() ^ this.dataAccessModelType.GetHashCode();
+				return this.configurationHash.GetHashCode() ^ this.dataAccessModelType.GetHashCode();
 			}
 
 			public override bool Equals(object obj)
@@ -41,8 +40,11 @@ namespace Shaolinq.TypeBuilding
 					return false;
 				}
 
-				return other.Value.configurationMd5 == this.configurationMd5
-				       && other.Value.dataAccessModelType == this.dataAccessModelType;
+				var serializer = XmlSerializer<DataAccessModelConfiguration>.New();
+				
+				return other.Value.configurationHash == this.configurationHash
+					   && other.Value.dataAccessModelType == this.dataAccessModelType
+					   && (this.configurationXml == serializer.SerializeToString(other.Value.configuration));
 			}
 		}
 

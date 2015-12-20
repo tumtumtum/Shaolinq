@@ -1,7 +1,11 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Platform;
 using Platform.Text;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
@@ -24,14 +28,14 @@ namespace Shaolinq
 		public DataAccessModelConfiguration()
 		{
 			this.SqlDatabaseContextInfos = new SqlDatabaseContextInfo[0];
-			this.ConstraintDefaultsConfiguration = ConstraintDefaultsConfiguration.DefaultConfiguration;
+			this.ConstraintDefaultsConfiguration = new ConstraintDefaultsConfiguration();
 		}
 
 		public string GetSha256()
 		{
 			var sha256 = new SHA256CryptoServiceProvider();
 
-			return TextConversion.ToHexString(sha256.ComputeHash(Encoding.UTF8.GetBytes(string.Empty)));
+			return TextConversion.ToHexString(sha256.ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
 		}
 	}
 }

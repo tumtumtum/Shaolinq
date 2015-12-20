@@ -2097,6 +2097,71 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_OrderBy_With_Implicit_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.OrderBy(c => c.BestFriend.BestFriend.BestFriend.Address.Country).ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_With_String_Length()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Count(c => c.BestFriend.Address.Country.Length == 0);
+			}
+		}
+
+		[Test]
+		public void Test_Implicit_Join_With_Aggregate_On_String_Length()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Max(c => c.BestFriend.Height);
+			}
+		}
+
+		[Test]
+		public void Test_Aggregate_With_Implicit_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Max(c => c.BestFriend.Address.Street).ToList();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Min(c => c.BestFriend.Address.Street).ToList();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Sum(c => c.BestFriend.BestFriend.BestFriend.Address.Number);
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Average(c => c.BestFriend.Address.Number);
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Count(c => c.BestFriend.Address.Number == 0);
+			}
+		}
+
+		[Test]
+		public void Test_Count_With_Implicit_Join()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model.Students.Count(c => c.BestFriend.Address.Country == "");
+			}
+		}
+
+		[Test]
 		public void Test_OrderBy_Then_Skip_Then_Take_Then_Count()
 		{
 			using (var scope = new TransactionScope())

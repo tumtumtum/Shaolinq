@@ -102,6 +102,8 @@ namespace Shaolinq.Postgres
 				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("MINUTE"), null, arguments);
 			case SqlFunction.Week:
 				return new FunctionResolveResult("date_part", false, FunctionResolveResult.MakeArguments("WEEK"), null, arguments);
+			case SqlFunction.StringLength:
+				return new FunctionResolveResult("char_length", false, arguments);
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);

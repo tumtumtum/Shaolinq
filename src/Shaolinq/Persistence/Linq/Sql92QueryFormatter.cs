@@ -76,16 +76,7 @@ namespace Shaolinq.Persistence.Linq
 			: base(sqlDialect, new StringWriter(new StringBuilder()))
 		{
 			this.options = options;
-
-			if (sqlDataTypeProvider == null)
-			{
-				this.sqlDataTypeProvider = new DefaultSqlDataTypeProvider(ConstraintDefaultsConfiguration.DefaultConfiguration);
-			}
-			else
-			{
-				this.sqlDataTypeProvider = sqlDataTypeProvider;
-			}
-
+			this.sqlDataTypeProvider = sqlDataTypeProvider ?? new DefaultSqlDataTypeProvider(new ConstraintDefaultsConfiguration());
 			this.stringQuote = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote);
 			this.identifierQuoteString = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
 		}
@@ -338,6 +329,8 @@ namespace Shaolinq.Persistence.Linq
 
 				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyCollection());
 			}
+			case SqlFunction.StringLength:
+				return new FunctionResolveResult("LENGTH", false, arguments);
 			default:
 				return new FunctionResolveResult(function.ToString().ToUpper(), false, arguments);
 			}

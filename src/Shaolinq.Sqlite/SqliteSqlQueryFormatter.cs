@@ -96,6 +96,8 @@ namespace Shaolinq.Sqlite
 				return new FunctionResolveResult("LTRIM", false, arguments);
 			case SqlFunction.TrimRight:
 				return new FunctionResolveResult("RTRIM", false, arguments);
+			case SqlFunction.StringLength:
+				return new FunctionResolveResult("LENGTH", false, arguments);
 			}
 
 			return base.ResolveSqlFunction(functionCallExpression);

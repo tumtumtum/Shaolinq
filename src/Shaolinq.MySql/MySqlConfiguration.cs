@@ -15,8 +15,9 @@ namespace Shaolinq.MySql
 					new MySqlSqlDatabaseContextInfo
 					{
 						ConnectionString = connectionString
-					},
-				}
+					}
+				},
+                ConstraintDefaultsConfiguration = { IndexedStringMaximumLength = 255 }
 			};
 		}
 
@@ -32,7 +33,7 @@ namespace Shaolinq.MySql
 
 		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password,  bool poolConnections, string categories)
 		{
-			return new DataAccessModelConfiguration
+			var retval = new DataAccessModelConfiguration
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
 				{
@@ -44,9 +45,12 @@ namespace Shaolinq.MySql
 						PoolConnections = poolConnections,
 						UserName = userName,
 						Password = password
-					},
-				}
+					}
+				},
+				ConstraintDefaultsConfiguration = { IndexedStringMaximumLength = 255 }
 			};
+			
+			return retval;
 		}
 	}
 }

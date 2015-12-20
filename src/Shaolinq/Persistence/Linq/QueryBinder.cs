@@ -855,11 +855,12 @@ namespace Shaolinq.Persistence.Linq
 	            case "Distinct":
 		            return this.BindDistinct(methodCallExpression.Type, methodCallExpression.Arguments[0]);
 	            case "Join":
-		            return this.BindJoin(methodCallExpression.Type, methodCallExpression.Arguments[0],
-		                                       methodCallExpression.Arguments[1],
-		                                       methodCallExpression.Arguments[2].StripQuotes(),
-		                                       methodCallExpression.Arguments[3].StripQuotes(),
-		                                       methodCallExpression.Arguments[4].StripQuotes());
+		            return this.BindJoin(methodCallExpression.Type, 
+						methodCallExpression.Arguments[0],
+		                methodCallExpression.Arguments[1],
+						methodCallExpression.Arguments[2].StripQuotes(),
+		                methodCallExpression.Arguments[3].StripQuotes(),
+		                methodCallExpression.Arguments[4].StripQuotes());
 				case "SelectMany":
 					this.selectorPredicateStack.Push(methodCallExpression);
 					if (methodCallExpression.Arguments.Count == 2)
@@ -1858,6 +1859,13 @@ namespace Shaolinq.Persistence.Linq
 				if (memberInfo.Name == "Count")
 				{
 					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.CollectionCount, source);
+				}
+			}
+			else if (memberInfo.DeclaringType == typeof(string))
+			{
+				if (memberInfo.Name == "Length")
+				{
+					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.StringLength, source);
 				}
 			}
 			else if (memberInfo.DeclaringType == typeof(DateTime))

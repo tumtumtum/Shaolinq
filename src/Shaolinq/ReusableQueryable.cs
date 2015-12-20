@@ -40,40 +40,12 @@ namespace Shaolinq
 			this.Expression = expression ?? Expression.Constant(this);
 		}
 
-		public virtual IEnumerator<T> GetEnumerator()
-		{
-			return this.PersistenceQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
-		}
-
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-		{
-			return this.GetEnumerator();
-		}
-
 		public virtual Type ElementType => typeof(T);
-
-		public virtual Expression Expression
-		{
-			get;
-			private set;
-		}
-
+		public virtual Expression Expression { get; private set; }
 		public virtual IQueryProvider Provider => this.PersistenceQueryProvider;
-
-		public virtual IPersistenceQueryProvider PersistenceQueryProvider
-		{
-			get;
-			private set;
-		}
-
-		public virtual string OriginalToString()
-		{
-			return base.ToString();
-		}
-
-		public override string ToString()
-		{
-			return ((SqlQueryProvider)this.Provider).GetQueryText(this.Expression);
-		}
+		public virtual IPersistenceQueryProvider PersistenceQueryProvider { get; private set; }
+		public virtual string OriginalToString() => base.ToString();
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
+		public override string ToString() => ((SqlQueryProvider)this.Provider).GetQueryText(this.Expression); public virtual IEnumerator<T> GetEnumerator() => this.PersistenceQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
 	}
 }

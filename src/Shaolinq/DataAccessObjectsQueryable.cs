@@ -18,12 +18,12 @@ namespace Shaolinq
 		: ReusableQueryable<T>, IHasDataAccessModel, IHasExtraCondition, IDataAccessObjectActivator<T>
 		where T : DataAccessObject
 	{
+		private readonly Type idType;
+		private readonly PropertyInfo primaryKeyProperty;
 		private readonly TypeDescriptor typeDescriptor;
 		public DataAccessModel DataAccessModel { get; set; }
 		public LambdaExpression ExtraCondition { get; protected set; }
-		private readonly Type idType;
-		private readonly PropertyInfo primaryKeyProperty;
-
+		
 		protected DataAccessObjectsQueryable(DataAccessModel dataAccessModel, Expression expression)
 		{
 			if (this.DataAccessModel != null)
@@ -33,10 +33,13 @@ namespace Shaolinq
 
 			this.typeDescriptor = dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
-			this.idType = typeDescriptor.PrimaryKeyProperties[0].PropertyType;
-			this.primaryKeyProperty = typeDescriptor.PrimaryKeyProperties[0].PropertyInfo;
+			if (typeDescriptor.PrimaryKeyCount > 0)
+			{
+				this.idType = typeDescriptor.PrimaryKeyProperties[0].PropertyType;
+				this.primaryKeyProperty = typeDescriptor.PrimaryKeyProperties[0].PropertyInfo;
+			}
 
-            this.DataAccessModel = dataAccessModel; 
+			this.DataAccessModel = dataAccessModel; 
 			this.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 
@@ -62,7 +65,7 @@ namespace Shaolinq
 
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create<K>(K primaryKey)
 		{
-			return this.Create<K>(primaryKey);
+			return this.Create(primaryKey);
 		}
 
 		public virtual T GetByPrimaryKey<K>(K primaryKey)
@@ -87,6 +90,11 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetQueryableByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
+			if (idType == null)
+			{
+				throw new NotSupportedException($"Type {this.typeDescriptor.PersistedName} does not define any primary keys");
+			}
+
 			if (typeof(K) == idType && !idType.IsDataAccessObjectType())
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
@@ -144,6 +152,11 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys, PrimaryKeyType primaryKeyType)
 		{
+			if (idType == null)
+			{
+				throw new NotSupportedException($"Type {this.typeDescriptor.PersistedName} does not define any primary keys");
+			}
+
 			if (primaryKeys == null)
 			{
 				throw new ArgumentNullException(nameof(primaryKeys));

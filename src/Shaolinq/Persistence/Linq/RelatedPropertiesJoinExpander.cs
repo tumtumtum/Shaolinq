@@ -72,6 +72,11 @@ namespace Shaolinq.Persistence.Linq
 			case "GroupBy":
 			case "Where":
 			case "WhereForUpdate":
+			case "Min":
+			case "Max":
+			case "Average":
+			case "Sum":
+			case "Count":
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "Select":
 			case "SelectForUpdate":
@@ -221,7 +226,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression Reselect(MethodCallExpression methodCall, List<ReferencedRelatedObject> referencedObjectPaths, Dictionary<PropertyPath, int> indexByPath)
 		{
-			if (methodCall.Method.ReturnType.GetGenericArguments()[0].GetGenericTypeDefinitionOrNull() == typeof(LeftRightJoinInfo<,>))
+			if (methodCall.Method.ReturnType.GetSequenceElementType()?.GetGenericTypeDefinitionOrNull() == typeof(LeftRightJoinInfo<,>))
 			{
 				var selectParameter = Expression.Parameter(methodCall.Method.ReturnType.GetGenericArguments()[0]);
 				var selectBody = CreateExpressionForPath(referencedObjectPaths.Count, PropertyPath.Empty, selectParameter, indexByPath);
@@ -246,61 +251,77 @@ namespace Shaolinq.Persistence.Linq
 			var selectors = methodCallExpression.Arguments.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>)).Select(c => c.StripQuotes()).ToArray();
 			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);
 
-			if (result.Changed)
+			if (!result.Changed)
 			{
-				Type keyType;
-				MethodInfo methodWithElementSelector;
-				Type newParameterType;
-				
-				switch (methodCallExpression.Method.Name)
+				if (result.NewSource == methodCallExpression.Arguments[0] && result.NewSelectors.SequenceEqual(selectors, ObjectReferenceIdentityEqualityComparer<Expression>.Default))
 				{
-				case "Select":
-				case "SelectForUpdate":
-					var projectionResultType = result.NewSelectors[0].ReturnType;
-					newParameterType = result.NewSelectors[0].Parameters[0].Type;
-					methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
+					return base.VisitMethodCall(methodCallExpression);
+				}
+			}
 
-					newCall = Expression.Call(null, methodWithElementSelector, new[]
-					{
-						result.NewSource,
-						result.NewSelectors[0]
-					});
+			Type newParameterType;
+			MethodInfo methodWithElementSelector;
+				
+			switch (methodCallExpression.Method.Name)
+			{
+			case "Select":
+			case "SelectForUpdate":
+				var projectionResultType = result.NewSelectors[0].ReturnType;
+				newParameterType = result.NewSelectors[0].Parameters[0].Type;
+				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
 
-					break;
-				case "Where":
-				case "WhereForUpdate":
-					newParameterType = result.NewSelectors[0].Parameters[0].Type;
-					methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType);
+				newCall = Expression.Call(null, methodWithElementSelector, new[]
+				{
+					result.NewSource,
+					result.NewSelectors[0]
+				});
 
-					newCall = Expression.Call(null, methodWithElementSelector, new[]
-					{
-						result.NewSource,
-						result.NewSelectors[0]
-					});
+				break;
+			case "Where":
+			case "WhereForUpdate":
+				newParameterType = result.NewSelectors[0].Parameters[0].Type;
+				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType);
 
-					break;
-				case "OrderBy":
-					keyType = result.NewSelectors[0].ReturnType;
-					newParameterType = result.NewSelectors[0].Parameters[0].Type;
-					methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, keyType);
+				newCall = Expression.Call(null, methodWithElementSelector, new[]
+				{
+					result.NewSource,
+					result.NewSelectors[0]
+				});
 
-					newCall = Expression.Call(null, methodWithElementSelector, new[]
-					{
-						result.NewSource,
-						result.NewSelectors[0]
-					});
+				break;
+			case "OrderBy":
+			case "Min":
+			case "Max":
+			case "Sum":
+			case "Average":
+			case "Count":
+				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
+				newParameterType = result.NewSource.Type.GetSequenceElementType();
+				var method = methodCallExpression.Method.GetGenericMethodDefinition();
+				methodWithElementSelector = method.GetGenericArguments().Length == 1
+					? method.MakeGenericMethod(newParameterType)
+					: method.MakeGenericMethod(newParameterType, resultType);
 
-					break;
-				case "GroupBy":
-					keyType = result.NewSelectors[0].ReturnType;
-					newParameterType = result.NewSelectors[0].Parameters[0].Type;
-					var elementType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0].GetGenericArguments()[1];
+				newCall = Expression.Call
+				(
+					null,
+					methodWithElementSelector, 
+					result.NewSelectors.Count > 0 ? new[] { result.NewSource, result.NewSelectors[0] } : new[] { result.NewSource }
+				);
 
-					methodWithElementSelector = MethodInfoFastRef
-						.QueryableGroupByWithElementSelectorMethod
-						.MakeGenericMethod(newParameterType, keyType, elementType);
+				break;
+			case "GroupBy":
+				var keyType = result.NewSelectors[0].ReturnType;
+				newParameterType = result.NewSelectors[0].Parameters[0].Type;
+				var elementType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0].GetGenericArguments()[1];
 
-					if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByMethod)
+				methodWithElementSelector = MethodInfoFastRef
+					.QueryableGroupByWithElementSelectorMethod
+					.MakeGenericMethod(newParameterType, keyType, elementType);
+		
+				if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByMethod)
+				{
+					if (result.Changed)
 					{
 						var elementSelectorParameter = Expression.Parameter(newParameterType);
 						var elementSelectorBody = CreateExpressionForPath(result.ReferencedObjectPaths.Count, PropertyPath.Empty, elementSelectorParameter, result.IndexByPath);
@@ -308,7 +329,14 @@ namespace Shaolinq.Persistence.Linq
 
 						newCall = Expression.Call(null, methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
 					}
-					else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByWithElementSelectorMethod)
+					else
+					{
+						newCall = Expression.Call(null, methodCallExpression.Method, result.NewSource, result.NewSelectors[0]);
+					}
+				}
+				else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByWithElementSelectorMethod)
+				{
+					if (result.Changed)
 					{
 						var existingElementSelector = methodCallExpression.Arguments[2].StripQuotes();
 						var elementSelectorParameter = Expression.Parameter(newParameterType);
@@ -321,33 +349,22 @@ namespace Shaolinq.Persistence.Linq
 					}
 					else
 					{
-						throw new NotSupportedException($"Unsupport method when using explicit joins: {methodCallExpression.Method}");
+						newCall = Expression.Call(null, methodCallExpression.Method, result.NewSource, result.NewSelectors[0], result.NewSelectors[1]);
 					}
-
-					break;
 				}
+				else
+				{
+					throw new NotSupportedException($"Unsupport method when using explicit joins: {methodCallExpression.Method}");
+				}
+
+				break;
+			default:
+				throw new NotSupportedException($"The method {methodCallExpression.Method} is not supported");
 			}
 
-			if (newCall != null)
-			{
-				this.replacementExpressionForPropertyPathsByJoin.Add(new Tuple<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));
+			this.replacementExpressionForPropertyPathsByJoin.Add(new Tuple<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));
 
-				return Reselect(newCall, result.ReferencedObjectPaths, result.IndexByPath);
-			}
-
-			if (result.NewSource == methodCallExpression.Arguments[0] && result.NewSelectors.SequenceEqual(selectors, ObjectReferenceIdentityEqualityComparer<Expression>.Default))
-			{
-				return base.VisitMethodCall(methodCallExpression);
-			}
-			else
-			{
-				return Expression.Call
-				(
-					methodCallExpression.Object,
-					methodCallExpression.Method,
-					result.NewSelectors.AsEnumerable().Prepend(result.NewSource).ToArray()
-				);
-			}
+			return this.Reselect(newCall, result.ReferencedObjectPaths, result.IndexByPath);
 		}
 
 		protected RewriteBasicProjectionResults RewriteBasicProjection(Expression originalSource, Tuple<LambdaExpression, ParameterExpression>[] originalSelectors, bool forProjection)
@@ -367,7 +384,8 @@ namespace Shaolinq.Persistence.Linq
 				return new RewriteBasicProjectionResults
 				{
 					NewSource = source,
-					NewSelectors = predicateOrSelectors.ToList()
+					NewSelectors = predicateOrSelectors.ToList(),
+					ReferencedObjectPaths = new List<ReferencedRelatedObject>()
 				};
 			}
 
