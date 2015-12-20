@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
+using Platform.Collections;
 using Platform.Reflection;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
@@ -20,7 +21,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			public bool Changed { get; set; }
 			public Expression NewSource { get; set; }
-			public LambdaExpression[] NewSelectors { get; set; }
+			public List<LambdaExpression> NewSelectors { get; set; }
 			public List<ReferencedRelatedObject> ReferencedObjectPaths { get; set; }
 			public Dictionary<PropertyPath, Expression> ReplacementExpressionsByPropertyPath { get; set; }
 			public Dictionary<PropertyPath, int> IndexByPath { get; set; }
@@ -241,7 +242,7 @@ namespace Shaolinq.Persistence.Linq
 		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression, bool forSelector)
 		{
 			MethodCallExpression newCall = null;
-
+			
 			var selectors = methodCallExpression.Arguments.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>)).Select(c => c.StripQuotes()).ToArray();
 			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);
 
@@ -361,130 +362,129 @@ namespace Shaolinq.Persistence.Linq
 			var predicateOrSelectors = result.ReducedExpressions.Select(c => c.StripQuotes()).ToArray();
 			var predicateOrSelectorLambdas = predicateOrSelectors.Select(c => c.StripQuotes()).ToArray();
 
-			if (memberAccessExpressionsNeedingJoins.Count > 0)
+			if (memberAccessExpressionsNeedingJoins.Count == 0)
 			{
-				var replacementExpressionForPropertyPath = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
-
-				var referencedObjectPaths = memberAccessExpressionsNeedingJoins
-					.OrderBy(c => c.Key.Length)
-					.Select(c => c.Value)
-					.ToList();
-
-				var types = referencedObjectPaths
-					.Select(c => c.FullAccessPropertyPath.Last.PropertyType)
-					.ToList();
-
-				var finalTupleType = CreateFinalTupleType(sourceType, types);
-				var replacementExpressionsByPropertyPathForSelector = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
-				var parameter = Expression.Parameter(finalTupleType);
-
-				var i = 1;
-				var indexByPath = new Dictionary<PropertyPath, int>(PropertyPathEqualityComparer.Default);
-
-				foreach (var value in referencedObjectPaths)
+				return new RewriteBasicProjectionResults
 				{
-					indexByPath[value.FullAccessPropertyPath] = i++;
-				}
-
-				indexByPath[PropertyPath.Empty] = 0;
-
-				foreach (var x in currentRootExpressionsByPath)
-				{
-					indexByPath[x.Key] = 0;
-				}
-
-				foreach (var path in referencedObjectPaths.Select(c => c.FullAccessPropertyPath))
-				{
-					var replacement = CreateExpressionForPath(referencedObjectPaths.Count, path, parameter, indexByPath);
-
-					replacementExpressionsByPropertyPathForSelector[path] = replacement;
-				}
-
-				replacementExpressionsByPropertyPathForSelector[PropertyPath.Empty] = CreateExpressionForPath(referencedObjectPaths.Count, PropertyPath.Empty, parameter, indexByPath);
-
-				foreach (var value in replacementExpressionsByPropertyPathForSelector)
-				{
-					replacementExpressionForPropertyPath[value.Key] = value.Value;
-				}
-
-				var propertyPathsByOriginalExpression = referencedObjectPaths
-					.SelectMany(d => d.TargetExpressions.Select(e => new { PropertyPath = d.FullAccessPropertyPath, Expression = e }))
-					.ToDictionary(c => c.Expression, c => c.PropertyPath);
-
-				foreach (var lambda in predicateOrSelectorLambdas)
-				{
-					propertyPathsByOriginalExpression[lambda.Parameters[0]] = PropertyPath.Empty;
-				}
-
-				var replacementExpressions = propertyPathsByOriginalExpression
-					.ToDictionary(c => c.Key, c => replacementExpressionsByPropertyPathForSelector[c.Value]);
-
-				var index = 1;
-				var currentLeft = source;
-
-				foreach (var referencedObjectPath in referencedObjectPaths)
-				{
-					var property = referencedObjectPath.FullAccessPropertyPath[referencedObjectPath.FullAccessPropertyPath.Length - 1];
-					var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
-
-					var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
-
-					currentLeft = join;
-					index++;
-				}
-
-				Func<Expression, bool, Expression> replace = null;
-
-				replace = (e, b) => SqlExpressionReplacer.Replace(e, c =>
-				{
-					Expression value;
-
-					if (forProjection && b)
-					{
-						if (result.IncludedPropertyInfoByExpression.ContainsKey(c))
-						{
-							var x = replace(c, false);
-							var y = result.IncludedPropertyInfoByExpression[c];
-
-							var newList = y.Select(includedPropertyInfo => new IncludedPropertyInfo
-							{
-								RootExpression = x,
-								FullAccessPropertyPath = includedPropertyInfo.FullAccessPropertyPath,
-								IncludedPropertyPath = includedPropertyInfo.IncludedPropertyPath
-
-							}).ToList();
-
-							this.includedPropertyInfos[x] = newList;
-
-							return x;
-						}
-					}
-
-					if (replacementExpressions.TryGetValue(c, out value))
-					{
-						return value;
-					}
-
-					return null;
-				});
-
-				var newPredicatorOrSelectorBodies = predicateOrSelectorLambdas.Select(c => replace(c.Body, true)).ToArray();
-				var newPredicateOrSelectors = newPredicatorOrSelectorBodies.Select(c => Expression.Lambda(c, parameter)).ToArray();
-				
-				return new RewriteBasicProjectionResults(true)
-				{
-					NewSource = currentLeft,
-					IndexByPath = indexByPath,
-					NewSelectors = newPredicateOrSelectors,
-					ReferencedObjectPaths = referencedObjectPaths,
-					ReplacementExpressionsByPropertyPath = replacementExpressionForPropertyPath
+					NewSource = source,
+					NewSelectors = predicateOrSelectors.ToList()
 				};
 			}
-			
-			return new RewriteBasicProjectionResults
+
+			var replacementExpressionForPropertyPath = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
+
+			var referencedObjectPaths = memberAccessExpressionsNeedingJoins
+				.OrderBy(c => c.Key.Length)
+				.Select(c => c.Value)
+				.ToList();
+
+			var types = referencedObjectPaths
+				.Select(c => c.FullAccessPropertyPath.Last.PropertyType)
+				.ToList();
+
+			var finalTupleType = CreateFinalTupleType(sourceType, types);
+			var replacementExpressionsByPropertyPathForSelector = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
+			var parameter = Expression.Parameter(finalTupleType);
+
+			var i = 1;
+			var indexByPath = new Dictionary<PropertyPath, int>(PropertyPathEqualityComparer.Default);
+
+			foreach (var value in referencedObjectPaths)
 			{
-				NewSource = source,
-				NewSelectors = predicateOrSelectors.ToArray()
+				indexByPath[value.FullAccessPropertyPath] = i++;
+			}
+
+			indexByPath[PropertyPath.Empty] = 0;
+
+			foreach (var x in currentRootExpressionsByPath)
+			{
+				indexByPath[x.Key] = 0;
+			}
+
+			foreach (var path in referencedObjectPaths.Select(c => c.FullAccessPropertyPath))
+			{
+				var replacement = CreateExpressionForPath(referencedObjectPaths.Count, path, parameter, indexByPath);
+
+				replacementExpressionsByPropertyPathForSelector[path] = replacement;
+			}
+
+			replacementExpressionsByPropertyPathForSelector[PropertyPath.Empty] = CreateExpressionForPath(referencedObjectPaths.Count, PropertyPath.Empty, parameter, indexByPath);
+
+			foreach (var value in replacementExpressionsByPropertyPathForSelector)
+			{
+				replacementExpressionForPropertyPath[value.Key] = value.Value;
+			}
+
+			var propertyPathsByOriginalExpression = referencedObjectPaths
+				.SelectMany(d => d.TargetExpressions.Select(e => new { PropertyPath = d.FullAccessPropertyPath, Expression = e }))
+				.ToDictionary(c => c.Expression, c => c.PropertyPath);
+
+			foreach (var lambda in predicateOrSelectorLambdas)
+			{
+				propertyPathsByOriginalExpression[lambda.Parameters[0]] = PropertyPath.Empty;
+			}
+
+			var replacementExpressions = propertyPathsByOriginalExpression
+				.ToDictionary(c => c.Key, c => replacementExpressionsByPropertyPathForSelector[c.Value]);
+
+			var index = 1;
+			var currentLeft = source;
+
+			foreach (var referencedObjectPath in referencedObjectPaths)
+			{
+				var property = referencedObjectPath.FullAccessPropertyPath[referencedObjectPath.FullAccessPropertyPath.Length - 1];
+				var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
+
+				var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
+
+				currentLeft = join;
+				index++;
+			}
+
+			Func<Expression, bool, Expression> replace = null;
+
+			replace = (e, b) => SqlExpressionReplacer.Replace(e, c =>
+			{
+				if (forProjection && b)
+				{
+					if (result.IncludedPropertyInfoByExpression.ContainsKey(c))
+					{
+						var x = replace(c, false);
+						var y = result.IncludedPropertyInfoByExpression[c];
+
+						var newList = y.Select(includedPropertyInfo => new IncludedPropertyInfo
+						{
+							RootExpression = x,
+							FullAccessPropertyPath = includedPropertyInfo.FullAccessPropertyPath,
+							IncludedPropertyPath = includedPropertyInfo.IncludedPropertyPath
+
+						}).ToList();
+
+						this.includedPropertyInfos[x] = newList;
+
+						return x;
+					}
+				}
+
+				return replacementExpressions.GetValueOrDefault(c);
+			});
+
+			var newPredicatorOrSelectorBodies = predicateOrSelectorLambdas
+				.Select(c => replace(c.Body, true))
+				.ToList();
+
+			var newPredicateOrSelectors = newPredicatorOrSelectorBodies
+				.Zip(originalSelectors, (x, y) => new { body = x, parameters = y.Item1.Parameters, sourceParameter = y.Item2 })
+				.Select(c => Expression.Lambda(c.body, c.parameters.Select(d => d == c.sourceParameter ? parameter : c.sourceParameter)))
+				.ToList();
+				
+			return new RewriteBasicProjectionResults(true)
+			{
+				NewSource = currentLeft,
+				IndexByPath = indexByPath,
+				NewSelectors = newPredicateOrSelectors,
+				ReferencedObjectPaths = referencedObjectPaths,
+				ReplacementExpressionsByPropertyPath = replacementExpressionForPropertyPath
 			};
 		}
 	}

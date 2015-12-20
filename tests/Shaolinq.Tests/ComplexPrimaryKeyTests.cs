@@ -85,7 +85,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_GroupBy1()
+		public void Test_Join_With_Implicit_Join_On_Join_Condition1()
 		{
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
@@ -97,7 +97,7 @@ namespace Shaolinq.Tests
 		}
 		
 		[Test]
-		public void Test_GroupBy2()
+		public void Test_Join_With_Implicit_Join_On_Join_Condition2()
 		{
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
