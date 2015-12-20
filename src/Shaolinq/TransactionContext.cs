@@ -14,6 +14,7 @@ namespace Shaolinq
 	public class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
+		private volatile bool disposed;
 		public Transaction Transaction { get; }
 		private readonly DataAccessModel dataAccessModel;
 		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
@@ -82,7 +83,6 @@ namespace Shaolinq
 			return context;
 		}
 
-
 		public DataAccessObjectDataContext GetCurrentDataContext()
 		{
 			if (dataAccessObjectDataContext == null)
@@ -146,17 +146,15 @@ namespace Shaolinq
 
 				return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, retval);
 			}
-			else
+
+			if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out retval))
 			{
-				if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out retval))
-				{
-					retval = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(this.Transaction);
+				retval = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(this.Transaction);
 
-					this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = retval;
-				}
-
-				return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, retval);
+				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = retval;
 			}
+
+			return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, retval);
 		}
 
 		public static void FlushConnections(DataAccessModel dataAccessModel)
@@ -192,8 +190,6 @@ namespace Shaolinq
 
 			GC.SuppressFinalize(this);
 		}
-
-		private bool disposed;
 
 		protected void Dispose(bool disposing)
 		{

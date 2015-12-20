@@ -84,14 +84,17 @@ namespace Shaolinq.TypeBuilding
 				var isNewParam = Expression.Parameter(typeof(bool));
 				var dataAccessModelParam = Expression.Parameter(typeof(DataAccessModel));
 
-				var constructorInfo = type.GetConstructor(new[] {typeof(DataAccessModel), typeof(bool)});
+				var constructorInfo = type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) });
+				
+				if (constructorInfo == null)
+				{
+					throw new Exception($"Unexpected missing constructor on {type.Name}");
+				}
 
 				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(constructorInfo, dataAccessModelParam, isNewParam), dataAccessObjectType), dataAccessModelParam, isNewParam).Compile();
 
-				var newDataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>(this.dataAccessObjectConstructors);
-
-				newDataAccessObjectConstructors[dataAccessObjectType] = constructor;
-
+				var newDataAccessObjectConstructors = new Dictionary<Type, Func<DataAccessModel, bool, DataAccessObject>>(this.dataAccessObjectConstructors) { [dataAccessObjectType] = constructor };
+				
 				this.dataAccessObjectConstructors = newDataAccessObjectConstructors;
 			}
 
@@ -113,12 +116,7 @@ namespace Shaolinq.TypeBuilding
 				return definitionType;
 			}
 
-			if (this.concreteTypesByType.TryGetValue(definitionType, out retval))
-			{
-				return retval;
-			}
-
-			return definitionType;
+			return this.concreteTypesByType.TryGetValue(definitionType, out retval) ? retval : definitionType;
 		}
 
 		public Type GetDefinitionType(Type concreteType)
@@ -130,12 +128,7 @@ namespace Shaolinq.TypeBuilding
 				return concreteType;
 			}
 
-			if (this.typesByConcreteType.TryGetValue(concreteType, out retval))
-			{
-				return retval;
-			}
-
-			return concreteType;
+			return this.typesByConcreteType.TryGetValue(concreteType, out retval) ? retval : concreteType;
 		}
 	}
 }
