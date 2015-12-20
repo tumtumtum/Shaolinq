@@ -290,8 +290,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			while (currentExpression != null && currentExpression.Member is PropertyInfo)
 			{
 				var path = new PropertyPath(c => c.Name, visited.Select(c=> (PropertyInfo)c.Member).Take(visited.Count - i).ToArray());
-				var expressionPath = visited.Take(visited.Count - i).ToArray();
-
+				
 				ReferencedRelatedObject objectInfo;
 
 				if (path.Length == 0)

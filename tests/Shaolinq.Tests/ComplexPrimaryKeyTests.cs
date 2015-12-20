@@ -81,22 +81,22 @@ namespace Shaolinq.Tests
 
 		private IQueryable<Region> GetAllRegions(bool v)
 		{
-			return this.model.Regions.Where(c => c.Diameter != 0);
+			return this.model.Regions.Where(c => c.Diameter > 0);
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_GroupBy1()
 		{
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
 			var query = from mall in malls
 				join r in GetAllRegions(false) on mall.Address.Region2 equals r
-				select new { mall };
+				select new { mall, r };
 
 			var result = query.ToList();
 		}
 		
-		[Test, Ignore]
+		[Test]
 		public void Test_GroupBy2()
 		{
 			var malls = this.model.Malls.Where(c => c.Name != null);
@@ -107,8 +107,7 @@ namespace Shaolinq.Tests
 
 			var result = query.ToList();
 		}
-
-
+		
 		[Test]
 		public void Test_SelectMany1()
 		{

@@ -75,6 +75,65 @@ namespace Shaolinq.Persistence.Linq
 			case "Select":
 			case "SelectForUpdate":
 				return this.RewriteBasicProjection(methodCallExpression, true);
+			case "Join":
+			{
+				var outer = methodCallExpression.Arguments[0];
+				var inner = methodCallExpression.Arguments[1];
+				var outerKeySelector = methodCallExpression.Arguments[2].StripQuotes();
+				var innerKeySelector = methodCallExpression.Arguments[3].StripQuotes();
+				var resultSelector = methodCallExpression.Arguments[4].StripQuotes();
+
+				var outerResult = this.RewriteBasicProjection
+					(
+						outer,
+						new[]
+						{
+							new Tuple<LambdaExpression, ParameterExpression>(outerKeySelector, outerKeySelector.Parameters[0]),
+							new Tuple<LambdaExpression, ParameterExpression>(resultSelector, resultSelector.Parameters[0])
+						},
+						false
+					);
+
+				if (outerResult.Changed)
+				{
+					outer = outerResult.NewSource;
+					outerKeySelector = outerResult.NewSelectors[0];
+					resultSelector = Expression.Lambda(outerResult.NewSelectors[1].Body, outerResult.NewSelectors[1].Parameters[0], resultSelector.Parameters[1]);
+				}
+
+				var innerResult = this.RewriteBasicProjection
+				(
+					inner,
+					new[]
+					{
+						new Tuple<LambdaExpression, ParameterExpression>(innerKeySelector, innerKeySelector.Parameters[0]),
+						new Tuple<LambdaExpression, ParameterExpression>(resultSelector, resultSelector.Parameters[1])
+					},
+					false
+				);
+
+				if (innerResult.Changed)
+				{
+					inner = innerResult.NewSource;
+					innerKeySelector = innerResult.NewSelectors[0];
+					resultSelector = Expression.Lambda(innerResult.NewSelectors[1].Body, resultSelector.Parameters[0], innerResult.NewSelectors[1].Parameters[1]);
+				}
+
+				if (outerResult.Changed || innerResult.Changed)
+				{
+					var newMethodInfo = MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod
+					(
+						outer.Type.GetSequenceElementType(),
+						inner.Type.GetSequenceElementType(),
+						outerKeySelector.Type.GetGenericArguments()[1],
+						resultSelector.Type.GetGenericArguments()[2]
+					);
+
+					return Expression.Call(newMethodInfo, outer, inner, outerKeySelector, innerKeySelector, resultSelector);
+				}
+
+				return base.VisitMethodCall(methodCallExpression);
+			}
 			default:
 				return base.VisitMethodCall(methodCallExpression);
 			}
@@ -184,7 +243,7 @@ namespace Shaolinq.Persistence.Linq
 			MethodCallExpression newCall = null;
 
 			var selectors = methodCallExpression.Arguments.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>)).Select(c => c.StripQuotes()).ToArray();
-			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors, forSelector);
+			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);
 
 			if (result.Changed)
 			{
@@ -290,12 +349,12 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected RewriteBasicProjectionResults RewriteBasicProjection(Expression originalSource, LambdaExpression[] originalSelectors, bool forProjection)
+		protected RewriteBasicProjectionResults RewriteBasicProjection(Expression originalSource, Tuple<LambdaExpression, ParameterExpression>[] originalSelectors, bool forProjection)
 		{
 			var source = this.Visit(originalSource);
 			var sourceType = source.Type.GetGenericArguments()[0];
 
-			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.StripQuotes().Parameters[0], c)).ToList(), forProjection);
+			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.Item2, c.Item1)).ToList(), forProjection);
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
 			var currentRootExpressionsByPath = result.RootExpressionsByPath;
 
