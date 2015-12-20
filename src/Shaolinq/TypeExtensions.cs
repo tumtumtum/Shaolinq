@@ -10,6 +10,16 @@ namespace Shaolinq
 {
 	internal static class TypeExtensions
 	{
+		public static bool IsExpressionTree(this Type type)
+		{
+			return typeof(Expression<>).IsAssignableFromIgnoreGenericParameters(type);
+		}
+
+		public static bool IsQueryable(this Type type)
+		{
+			return typeof(IQueryable<>).IsAssignableFromIgnoreGenericParameters(type);
+		}
+
 		public static bool IsIntegralType(this Type type)
 		{
 			type = type.GetUnwrappedNullableType();

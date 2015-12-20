@@ -77,6 +77,10 @@ namespace Shaolinq.Persistence.Linq
 			case "Average":
 			case "Sum":
 			case "Count":
+			case "First":
+			case "FirstOrDefault":
+			case "Single":
+			case "SingleOrDefault":
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "Select":
 			case "SelectForUpdate":
@@ -141,6 +145,13 @@ namespace Shaolinq.Persistence.Linq
 				return base.VisitMethodCall(methodCallExpression);
 			}
 			default:
+				if (methodCallExpression.Arguments[0].Type.IsQueryable()
+					&& (methodCallExpression.Arguments.Count == 1
+					|| (methodCallExpression.Arguments.Count == 2 && methodCallExpression.Arguments[1].Type.IsExpressionTree())))
+				{
+					return this.RewriteBasicProjection(methodCallExpression, false);
+				}
+
 				return base.VisitMethodCall(methodCallExpression);
 			}
 		}
@@ -295,6 +306,10 @@ namespace Shaolinq.Persistence.Linq
 			case "Sum":
 			case "Average":
 			case "Count":
+			case "First":
+			case "FirstOrDefault":
+			case "Single":
+			case "SingleOrDefault":
 				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
 				newParameterType = result.NewSource.Type.GetSequenceElementType();
 				var method = methodCallExpression.Method.GetGenericMethodDefinition();
@@ -359,7 +374,22 @@ namespace Shaolinq.Persistence.Linq
 
 				break;
 			default:
-				throw new NotSupportedException($"The method {methodCallExpression.Method} is not supported");
+				
+				resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
+				newParameterType = result.NewSource.Type.GetSequenceElementType();
+				method = methodCallExpression.Method.GetGenericMethodDefinition();
+				methodWithElementSelector = method.GetGenericArguments().Length == 1
+					? method.MakeGenericMethod(newParameterType)
+					: method.MakeGenericMethod(newParameterType, resultType);
+
+				newCall = Expression.Call
+				(
+					null,
+					methodWithElementSelector,
+					result.NewSelectors.Count > 0 ? new[] { result.NewSource, result.NewSelectors[0] } : new[] { result.NewSource }
+				);
+
+				break;
 			}
 
 			this.replacementExpressionForPropertyPathsByJoin.Add(new Tuple<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));
