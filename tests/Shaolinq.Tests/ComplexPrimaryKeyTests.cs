@@ -107,7 +107,43 @@ namespace Shaolinq.Tests
 
 			var result = query.ToList();
 		}
-		
+
+		[Test]
+		public void Test_Join_With_Implicit_Join_On_Join_Condition3()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+
+			var query = from mall in malls
+						join r in GetAllRegions(false) on mall.Address.Region equals r
+						select new { mall, r };
+
+			var result = query.ToList();
+		}
+
+		[Test]
+		public void Test_Join_With_Implicit_Join_On_Join_Condition4()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+
+			var query = from mall in malls
+						join r in GetAllRegions(false) on mall.Address.Region2 equals r
+						select new { mall, r };
+
+			var result = query.ToList();
+		}
+
+		[Test]
+		public void Test_Join_With_Implicit_Join_On_Join_Condition5()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+
+			var query = from mall in malls
+						join r in GetAllRegions(false) on mall.Address.Region2.Id equals r.Id
+						select new { mall, r };
+
+			var result = query.ToList();
+		}
+
 		[Test]
 		public void Test_SelectMany1()
 		{
