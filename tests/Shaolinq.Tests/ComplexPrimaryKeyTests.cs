@@ -107,7 +107,43 @@ namespace Shaolinq.Tests
 
 			var result = query.ToList();
 		}
-		
+
+		[Test]
+		public void Test_GroupJoin1()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+
+			var query = from mall in malls
+						join a in model.Addresses on mall.Address equals a into addresses
+						select new { mall, addresses };
+
+			var result = query.ToList();
+
+			Assert.Greater(result.Count, 0);
+
+			var rr = result.First().addresses;
+
+			Assert.Greater(rr.Count(), 0);
+		}
+
+		[Test]
+		public void Test_GroupJoin2()
+		{
+			var malls = this.model.Malls.Where(c => c.Name != null);
+
+			var query = from mall in malls
+						join r in GetAllRegions(false) on mall.Address.Region.Id equals r.Id into regions
+						select new { mall, regions };
+
+			var result = query.ToList();
+
+			Assert.Greater(result.Count, 0);
+
+			var rr = result.First().regions;
+
+			Assert.Greater(rr.Count(), 0);
+		}
+
 		[Test]
 		public void Test_SelectMany1()
 		{
