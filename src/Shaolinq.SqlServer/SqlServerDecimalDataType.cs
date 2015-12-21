@@ -51,7 +51,7 @@ namespace Shaolinq.SqlServer
 			return new Decimal(data[0], data[1], data[2], !value.IsPositive, scale);
 		}
 
-		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(Expression dataReader, int ordinal)
 		{
 			return Expression.Condition
 			(

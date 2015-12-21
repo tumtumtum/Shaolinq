@@ -51,20 +51,9 @@ namespace Shaolinq
 		}
 
 		public virtual Type ElementType => typeof(T);
-
-		public virtual Expression Expression
-		{
-			get;
-			private set;
-		}
-
+		public virtual Expression Expression { get; private set; }
 		public virtual IQueryProvider Provider => this.PersistenceQueryProvider;
-
-		public virtual IPersistenceQueryProvider PersistenceQueryProvider
-		{
-			get;
-			private set;
-		}
+		public virtual IPersistenceQueryProvider PersistenceQueryProvider { get; private set; }
 
 		public virtual string OriginalToString()
 		{

@@ -38,8 +38,6 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var projection = (SqlProjectionExpression)query.Body;
 
-			var expectedSelector = "GROUPBYCOLUMNS-" + projection.Select.Alias;
-
 			projection = (SqlProjectionExpression)SqlExpressionReplacer.Replace(projection, c =>
 			{
 				if (query.Parameters[0] == c)
@@ -49,14 +47,14 @@ namespace Shaolinq.Persistence.Linq
 
 				var column = c as SqlColumnExpression;
 
-				if (column != null && column.SelectAlias.StartsWith(expectedSelector))
+				if (column != null && column.Name.EndsWith("$GRP-COL") && column.Special)
 				{
 					var sqlDataTypeProvider = this.SqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
 
-					var parameter = Expression.Parameter(typeof(IDataReader));
-					var func = Expression.Lambda<Func<IDataReader, object>>(Expression.Convert(sqlDataTypeProvider.GetReadExpression(parameter, dataReader.GetOrdinal(column.Name)), typeof(object)), parameter).Compile();
+					var reader = Expression.Constant(dataReader);
+					var expression = Expression.Convert(sqlDataTypeProvider.GetReadExpression(reader, dataReader.GetOrdinal(column.Name.Substring(0, column.Name.Length - "$GRP-COL".Length))), typeof(object));
 
-					var value = func(dataReader);
+					var value = ExpressionFastCompiler.CompileAndRun(expression);
 
 					return Expression.Constant(value, column.Type);
 				}

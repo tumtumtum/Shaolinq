@@ -193,7 +193,7 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(1, obj1.Id);
 				Assert.AreEqual(2, obj2.Id);
 
-				if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsFeature(SqlFeature.UpdateAutoIncrementColumns))
+				if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(SqlCapability.UpdateAutoIncrementColumns))
 				{
 					obj1.Id = 100;
 					obj2.Id = 200;

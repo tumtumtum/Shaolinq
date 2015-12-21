@@ -108,7 +108,7 @@ namespace Shaolinq.Tests
 			var result = query.ToList();
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_GroupJoin1()
 		{
 			var malls = this.model.Malls.Where(c => c.Name != null);
@@ -126,7 +126,7 @@ namespace Shaolinq.Tests
 			Assert.Greater(rr.Count(), 0);
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_GroupJoin2()
 		{
 			var malls = this.model.Malls.Where(c => c.Name != null);
@@ -963,14 +963,31 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
-		public void Test_Implicit_Join_On_GroupBy2()
+		[Test, Ignore]
+		public void Test_GroupBy()
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = this.model.Shops.GroupBy(c => c.Address.Street, c => new { Number = 1, Key = c.Address });
+				var query = this.model.Shops.GroupBy(c => c.Name, c => new { Number = 1, c.Name });
 
-				var first = query.First();
+				foreach (var value in query)
+				{
+					var names = value.ToList().Select(c => c.Name);
+				}
+			}
+		}
+
+		[Test, Ignore]
+		public void Test_Implicit_Join_On_GroupBy3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Shops.GroupBy(c => c.Address.Region2.Name, c => new { Number = 1, c.Address });
+
+				foreach (var value in query)
+				{
+					var addresses = value.ToList().Select(c => c.Address);
+				}
 			}
 		}
 

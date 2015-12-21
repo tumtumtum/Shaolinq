@@ -22,17 +22,15 @@ namespace Shaolinq.Persistence.Linq
 		{	
 			public IEnumerable<T> results;
 			private bool computedDefaultValue;
-			public SqlAggregateType sqlAggregateType;
 			private T defaultValue;
 			public SelectFirstType selectFirstType;
 			public bool defaultIfEmpty;
 			public Expression defaultValueExpression;
 
-			public PrivateExecuteResult(IEnumerable<T> results, SelectFirstType selectFirstType, SqlAggregateType sqlAggregateType, bool defaultIfEmpty, Expression defaultValueExpression)
+			public PrivateExecuteResult(IEnumerable<T> results, SelectFirstType selectFirstType, bool defaultIfEmpty, Expression defaultValueExpression)
 				: this()
 			{
 				this.results = results;
-				this.sqlAggregateType = sqlAggregateType;
 				this.selectFirstType = selectFirstType;
 				this.defaultIfEmpty = defaultIfEmpty;
 				this.defaultValueExpression = defaultValueExpression;
@@ -108,56 +106,8 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlQueryable<T>(this, expression);
 		}
 
-		public override T Execute<T>(Expression expression)
+		internal static IEnumerable<T> ProcessResults<T>(PrivateExecuteResult<T> privateExecuteResult)
 		{
-			IEnumerable<T> results;
-			var privateExecuteResult = this.PrivateExecute<T>(expression);
-
-			if (privateExecuteResult.defaultIfEmpty)
-			{
-				T firstValue;
-
-				if (!privateExecuteResult.results.TryGetFirst(out firstValue))
-				{
-					results = new List<T>
-					{
-						privateExecuteResult.GetDefaultValue()
-					};
-				}
-				else
-				{
-					results = new [] { firstValue }.Concat(privateExecuteResult.results);
-				}
-			}
-			else
-			{
-				results = privateExecuteResult.results;
-			}
-
-			switch (privateExecuteResult.selectFirstType)
-			{
-				case SelectFirstType.First:
-					return results.First();
-				case SelectFirstType.FirstOrDefault:
-					return results.FirstOrDefault();
-				case SelectFirstType.Single:
-					return results.Single();
-				case SelectFirstType.SingleOrDefault:
-					return results.SingleOrDefault();
-				default:
-					return results.First();
-			}
-		}
-
-		public override object Execute(Expression expression)
-		{
-			return this.Execute<object>(expression);
-		}
-
-		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
-		{
-			var privateExecuteResult = this.PrivateExecute<T>(expression);
-
 			if (privateExecuteResult.defaultIfEmpty)
 			{
 				var found = false;
@@ -181,6 +131,65 @@ namespace Shaolinq.Persistence.Linq
 					yield return result;
 				}
 			}
+		}
+
+		internal static T ProcessResult<T>(PrivateExecuteResult<T> privateExecuteResult)
+		{
+			IEnumerable<T> results;
+
+			if (privateExecuteResult.defaultIfEmpty)
+			{
+				T firstValue;
+
+				if (!privateExecuteResult.results.TryGetFirst(out firstValue))
+				{
+					results = new List<T>
+					{
+						privateExecuteResult.GetDefaultValue()
+					};
+				}
+				else
+				{
+					results = new[] { firstValue }.Concat(privateExecuteResult.results);
+				}
+			}
+			else
+			{
+				results = privateExecuteResult.results;
+			}
+
+			switch (privateExecuteResult.selectFirstType)
+			{
+			case SelectFirstType.First:
+				return results.First();
+			case SelectFirstType.FirstOrDefault:
+				return results.FirstOrDefault();
+			case SelectFirstType.Single:
+				return results.Single();
+			case SelectFirstType.SingleOrDefault:
+				return results.SingleOrDefault();
+			default:
+				return results.First();
+			}
+		}
+
+		public override T Execute<T>(Expression expression)
+		{
+			var privateExecuteResult = this.PrivateExecute<T>(expression);
+
+			return ProcessResult(privateExecuteResult);
+		}
+
+		public override object Execute(Expression expression)
+		{
+			return this.Execute<object>(expression);
+		}
+
+		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
+		{
+			var privateExecuteResult = this.PrivateExecute<T>(expression);
+
+			return ProcessResults(privateExecuteResult);
 		}
 
 		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
@@ -319,7 +328,6 @@ namespace Shaolinq.Persistence.Linq
 						placeholderValues
 					),
 					projectionExpression.SelectFirstType,
-					cacheInfo.sqlAggregateType,
 					projectionExpression.IsDefaultIfEmpty,
 					projectionExpression.DefaultValueExpression
 				);
@@ -343,7 +351,6 @@ namespace Shaolinq.Persistence.Linq
 						placeholderValues
 					),
 					projectionExpression.SelectFirstType,
-					cacheInfo.sqlAggregateType,
 					projectionExpression.IsDefaultIfEmpty,
 					projectionExpression.DefaultValueExpression
 				);

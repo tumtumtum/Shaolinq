@@ -13,14 +13,14 @@ namespace Shaolinq.MySql
 		{	
 		}
 
-		public override bool SupportsFeature(SqlFeature feature)
+		public override bool SupportsCapability(SqlCapability capability)
 		{
-			switch (feature)
+			switch (capability)
 			{
-			case SqlFeature.Deferrability:
+			case SqlCapability.Deferrability:
 				return false;
 			default:
-				return base.SupportsFeature(feature);
+				return base.SupportsCapability(capability);
 			}
 		}
 

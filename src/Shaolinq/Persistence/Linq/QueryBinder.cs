@@ -150,7 +150,7 @@ namespace Shaolinq.Persistence.Linq
 		
         private ProjectedColumns ProjectColumns(Expression expression, string newAlias, IEnumerable<SqlColumnDeclaration> existingColumns, params string[] existingAliases)
 		{
-			return ColumnProjector.ProjectColumns(new Nominator(Nominator.CanBeColumnIncludingIntegral), expression, existingColumns, newAlias, existingAliases);
+			return ColumnProjector.ProjectColumns(new Nominator(Nominator.CanBeColumn, true), expression, existingColumns, newAlias, existingAliases);
 		}
 
 		private Expression BindCollectionContains(Expression list, Expression item)
@@ -197,7 +197,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			int limit;
 
-			var projection = this.VisitSequence(source);
+			var projection = source.NodeType == (ExpressionType)SqlExpressionType.Projection ? (SqlProjectionExpression)source : this.VisitSequence(source);
 			var select = projection.Select;
 			var alias = this.GetNextAlias();
 			var pc = this.ProjectColumns(projection.Projector, alias, null, projection.Select.Alias);
@@ -603,7 +603,7 @@ namespace Shaolinq.Persistence.Linq
 			(
 				new SqlSelectExpression
 				(
-					TypeHelper.GetSequenceType(subqueryElemExpr.Type),
+					TypeHelper.GetQueryableSequenceType(subqueryElemExpr.Type),
 					elementAlias,
 					elementProjectedColumns.Columns,
 					subqueryBasis.Select,
@@ -647,7 +647,7 @@ namespace Shaolinq.Persistence.Linq
 
 					if (column != null && column.SelectAlias == projection.Select.Alias)
 					{
-						return new SqlColumnExpression(column.Type, "GROUPBYCOLUMNS-" + elementAlias, column.Name);
+						return new SqlColumnExpression(column.Type, elementAlias, column.Name + "$GRP-COL", true);
 					}
 
 					return null;
@@ -673,7 +673,7 @@ namespace Shaolinq.Persistence.Linq
 			(
 				new SqlSelectExpression
 				(
-					TypeHelper.GetSequenceType(resultExpression.Type),
+					TypeHelper.GetQueryableSequenceType(resultExpression.Type),
 					alias,
 					pc.Columns,
 					projection.Select,
@@ -898,9 +898,24 @@ namespace Shaolinq.Persistence.Linq
 		            }
 		            else if (methodCallExpression.Arguments.Count == 2)
 		            {
-						var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
+			            Expression gbe;
 
-			            return this.BindFirst(where, SelectFirstType.First);
+			            if (methodCallExpression.Arguments[0].NodeType == ExpressionType.Parameter
+							&& this.expressionsByParameter.TryGetValue((ParameterExpression)methodCallExpression.Arguments[0], out gbe))
+			            {
+				            if (gbe is NewExpression)
+				            {
+					            var replacement = ((NewExpression)gbe).Arguments[1];
+
+								var w = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), replacement, methodCallExpression.Arguments[1].StripQuotes());
+
+								return this.BindFirst(w, SelectFirstType.First);
+							}
+			            }
+
+			            var where = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(methodCallExpression.Type), methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
+
+				        return this.BindFirst(where, SelectFirstType.First);
 		            }
 		            break;
 	            case "FirstOrDefault":
@@ -2038,6 +2053,8 @@ namespace Shaolinq.Persistence.Linq
 
 				return expression;
 			case (ExpressionType)SqlExpressionType.Column:
+				return expression;
+			case (ExpressionType)SqlExpressionType.Projection:
 				return expression;
 			}
 

@@ -14,16 +14,19 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public string Name { get; }
+		public bool Special { get; }
 		public string SelectAlias { get; }
 		public string AliasedName { get; }
 
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Column;
 
-		public SqlColumnExpression(Type type, string alias, string name)
+		public SqlColumnExpression(Type type, string alias, string name, bool special = false)
 			: base(type)
 		{
-			this.Name = name; 
+			this.Name = name;
+			this.Special = special;
 			this.SelectAlias = alias;
+			this.Special = special;
 			this.AliasedName = string.IsNullOrEmpty(this.SelectAlias) ? this.Name : this.SelectAlias + "." + this.Name;
 		}
 

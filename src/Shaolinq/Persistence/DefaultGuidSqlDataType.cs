@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence
 			return reader.GetString(ordinal);
 		}
 
-		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(Expression dataReader, int ordinal)
 		{
 			if (this.UnderlyingType == null)
 			{

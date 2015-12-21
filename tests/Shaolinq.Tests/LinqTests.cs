@@ -1882,7 +1882,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Select_Any_2()
 		{
 			using (var scope = new TransactionScope())
@@ -1905,7 +1905,7 @@ namespace Shaolinq.Tests
 				var results = from student in this.model.Students
 					group student by student.Sex
 					into g
-					select new { sex = g.Key , date = g.Max(c => c.Birthdate), count=g.Count(), g = g };
+					select new { sex = g.Key , date = g.Max(c => c.Birthdate), count = g.Count(), g };
 
 				foreach (var value in results.ToList())
 				{
@@ -1975,7 +1975,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_GroupBy_Project_Group5()
 		{
 			using (var scope = new TransactionScope())

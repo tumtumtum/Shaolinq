@@ -11,7 +11,7 @@ namespace Shaolinq.SqlServer
 			return Create(databaseName, serverName, userName, password, null);
 		}
 
-		public static DataAccessModelConfiguration Create(string connectionString, bool deleteDatabaseDropsTablesOnly = false)
+		public static DataAccessModelConfiguration Create(string connectionString, bool deleteDatabaseDropsTablesOnly = false, bool multipleActiveResultsets = false)
 		{
 			return new DataAccessModelConfiguration
 			{
@@ -20,13 +20,14 @@ namespace Shaolinq.SqlServer
 					new SqlServerSqlDatabaseContextInfo()
 					{
 						ConnectionString = connectionString,
-						DeleteDatabaseDropsTablesOnly = deleteDatabaseDropsTablesOnly
+						DeleteDatabaseDropsTablesOnly = deleteDatabaseDropsTablesOnly,
+						MultipleActiveResultSets = multipleActiveResultsets
 					}
 				}
 			}; 
 		}
 
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password, string categories, bool deleteDatabaseDropsTablesOnly = false)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName = null, string password = null, string categories = null, bool deleteDatabaseDropsTablesOnly = false, bool multipleActiveResultsets = false)
 		{
 			return new DataAccessModelConfiguration()
 			{

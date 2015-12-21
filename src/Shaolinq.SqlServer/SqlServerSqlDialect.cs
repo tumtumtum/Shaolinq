@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Text.RegularExpressions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -7,28 +8,43 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlDialect
 		: SqlDialect
 	{
+		private readonly bool marsEnabled;
 		public new static readonly SqlServerSqlDialect Default = new SqlServerSqlDialect();
 
 		private SqlServerSqlDialect()
-		{	
+			: this(null)
+		{
 		}
 
-		public override bool SupportsFeature(SqlFeature feature)
+		internal SqlServerSqlDialect(SqlServerSqlDatabaseContextInfo contextInfo)
 		{
-			switch (feature)
+			if (contextInfo != null)
 			{
-			case SqlFeature.InsertOutput:
-			case SqlFeature.PragmaIdentityInsert:
+				var connectionString = contextInfo.ConnectionString;
+
+				marsEnabled = contextInfo.MultipleActiveResultSets
+					|| connectionString != null && Regex.IsMatch(@"[^\s;]*MultipleActiveResultSets[ ]*=[ ]*true[$\s;]*", connectionString, RegexOptions.IgnoreCase);
+			}
+        }
+
+		public override bool SupportsCapability(SqlCapability capability)
+		{
+			switch (capability)
+			{
+			case SqlCapability.InsertOutput:
+			case SqlCapability.PragmaIdentityInsert:
 				return true;
-			case SqlFeature.Deferrability:
-			case SqlFeature.CascadeAction:
-			case SqlFeature.DeleteAction:
-			case SqlFeature.SetDefaultAction:
-			case SqlFeature.UpdateAutoIncrementColumns:
-			case SqlFeature.SetNullAction:
+			case SqlCapability.MultipleActiveResultSets:
+				return marsEnabled;
+			case SqlCapability.Deferrability:
+			case SqlCapability.CascadeAction:
+			case SqlCapability.DeleteAction:
+			case SqlCapability.SetDefaultAction:
+			case SqlCapability.UpdateAutoIncrementColumns:
+			case SqlCapability.SetNullAction:
 				return false;
 			default:
-				return base.SupportsFeature(feature);
+				return base.SupportsCapability(capability);
 			}
 		}
 

@@ -13,18 +13,18 @@ namespace Shaolinq.Postgres
 		{	
 		}
 
-		public override bool SupportsFeature(SqlFeature feature)
+		public override bool SupportsCapability(SqlCapability capability)
 		{
-			switch (feature)
+			switch (capability)
 			{
-			case SqlFeature.IndexToLower:
-			case SqlFeature.Deferrability:
-			case SqlFeature.SelectForUpdate:
+			case SqlCapability.IndexToLower:
+			case SqlCapability.Deferrability:
+			case SqlCapability.SelectForUpdate:
 				return true;
-			case SqlFeature.InlineForeignKeys:
+			case SqlCapability.InlineForeignKeys:
 				return false;
 			default:
-				return base.SupportsFeature(feature);
+				return base.SupportsCapability(capability);
 			}
 		}
 

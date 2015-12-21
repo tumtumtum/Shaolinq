@@ -94,7 +94,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			expression = base.PreProcess(expression);
 			
-			if (this.sqlDialect.SupportsFeature(SqlFeature.AlterTableAddConstraints))
+			if (this.sqlDialect.SupportsCapability(SqlCapability.AlterTableAddConstraints))
 			{
 				expression = SqlForeignKeyConstraintToAlterAmender.Amend(expression);
 			}
@@ -782,7 +782,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.AppendLimit(selectExpression);
 
-				if (selectExpression.ForUpdate && this.sqlDialect.SupportsFeature(SqlFeature.SelectForUpdate))
+				if (selectExpression.ForUpdate && this.sqlDialect.SupportsCapability(SqlCapability.SelectForUpdate))
 				{
 					this.Write(" FOR UPDATE");
 				}
@@ -1136,7 +1136,7 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(referencesColumnExpression.OnUpdateAction);
 			}
 
-			if (this.sqlDialect.SupportsFeature(SqlFeature.Deferrability))
+			if (this.sqlDialect.SupportsCapability(SqlCapability.Deferrability))
 			{
 				this.WriteDeferrability(referencesColumnExpression.Deferrability);
 			}
@@ -1270,7 +1270,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.Write(") ");
 
-				if (this.sqlDialect.SupportsFeature(SqlFeature.InsertOutput))
+				if (this.sqlDialect.SupportsCapability(SqlCapability.InsertOutput))
 				{
 					this.WriteInsertIntoReturning(expression);
 					this.Write(" ");
@@ -1281,7 +1281,7 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(")");
 			}
 
-			if (!this.sqlDialect.SupportsFeature(SqlFeature.InsertOutput))
+			if (!this.sqlDialect.SupportsCapability(SqlCapability.InsertOutput))
 			{
 				this.WriteInsertIntoReturning(expression);
 			}

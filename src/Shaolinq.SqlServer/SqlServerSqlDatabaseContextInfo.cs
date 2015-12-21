@@ -28,10 +28,13 @@ namespace Shaolinq.SqlServer
 		public bool Encrypt { get; set; }
 
 		[XmlAttribute]
-		public bool TrustedConnection { get; set; }
+		public bool TrustedConnection { get; set; } = false;
 
 		[XmlAttribute]
-		public bool DeleteDatabaseDropsTablesOnly { get; set; }
+		public bool DeleteDatabaseDropsTablesOnly { get; set; } = false;
+
+		[XmlAttribute]
+		public bool MultipleActiveResultSets { get; set; } = true;
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{

@@ -41,7 +41,7 @@ namespace Shaolinq.SqlServer
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDataTypeProvider = new SqlServerSqlDataTypeProvider(constraintDefaults);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(SqlServerSqlDialect.Default, sqlDataTypeProvider, typeof(SqlServerSqlQueryFormatter));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(new SqlServerSqlDialect(contextInfo), sqlDataTypeProvider, typeof(SqlServerSqlQueryFormatter));
 
 			return new SqlServerSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -96,6 +96,7 @@ namespace Shaolinq.SqlServer
 					connectionStringBuilder.Password = this.Password;
 				}
 
+				connectionStringBuilder.MultipleActiveResultSets = contextInfo.MultipleActiveResultSets;
 				connectionStringBuilder.Enlist = false;
 				connectionStringBuilder.DataSource = dataSource;
 				connectionStringBuilder.InitialCatalog = this.DatabaseName;

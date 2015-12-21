@@ -39,7 +39,7 @@ namespace Shaolinq.Persistence.Linq
 			this.candidates = nominator.Nominate(expression);
 		}
 
-		public static ProjectedColumns ProjectColumns(Nominator nominator, Expression expression, IEnumerable<SqlColumnDeclaration> existingColumns, string newAlias, IEnumerable<string> existingAliases)
+		internal static ProjectedColumns ProjectColumns(Nominator nominator, Expression expression, IEnumerable<SqlColumnDeclaration> existingColumns, string newAlias, IEnumerable<string> existingAliases)
 		{
 			var projector = new ColumnProjector(nominator, expression, existingColumns, newAlias, existingAliases);
 

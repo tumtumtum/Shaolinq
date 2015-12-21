@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Transactions;
 using Platform;
 using Shaolinq.Logging;
@@ -355,7 +354,7 @@ namespace Shaolinq.Persistence
 			var valueExpressions = updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToReadOnlyCollection();
 			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
 
-			if (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
+			if (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
 			{
 				var list = new List<Expression>
 				{
@@ -405,9 +404,7 @@ namespace Shaolinq.Persistence
 		{
 			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
 		}
-
-
-
+		
 		public static MethodInfo GetDeleteMethod(Type type)
 		{
 			return DeleteHelperMethod.MakeGenericMethod(type);

@@ -91,15 +91,15 @@ namespace Shaolinq.Persistence.Linq
 			switch (action)
 			{
 			case SqlColumnReferenceAction.Cascade:
-				return this.sqlDialect.SupportsFeature(SqlFeature.RestrictAction) ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.NoAction;
+				return this.sqlDialect.SupportsCapability(SqlCapability.RestrictAction) ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.NoAction;
 			case SqlColumnReferenceAction.NoAction:
 				return SqlColumnReferenceAction.NoAction;
 			case SqlColumnReferenceAction.Restrict:
-				return this.sqlDialect.SupportsFeature(SqlFeature.RestrictAction) ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.NoAction;
+				return this.sqlDialect.SupportsCapability(SqlCapability.RestrictAction) ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.NoAction;
 			case SqlColumnReferenceAction.SetDefault:
-				return this.sqlDialect.SupportsFeature(SqlFeature.SetDefaultAction) ? SqlColumnReferenceAction.SetDefault : SqlColumnReferenceAction.NoAction;
+				return this.sqlDialect.SupportsCapability(SqlCapability.SetDefaultAction) ? SqlColumnReferenceAction.SetDefault : SqlColumnReferenceAction.NoAction;
 			case SqlColumnReferenceAction.SetNull:
-				return this.sqlDialect.SupportsFeature(SqlFeature.SetNullAction) ? SqlColumnReferenceAction.SetNull : SqlColumnReferenceAction.NoAction;
+				return this.sqlDialect.SupportsCapability(SqlCapability.SetNullAction) ? SqlColumnReferenceAction.SetNull : SqlColumnReferenceAction.NoAction;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(action));
 			}
@@ -133,7 +133,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var valueRequired = (referencingProperty.ValueRequiredAttribute != null && referencingProperty.ValueRequiredAttribute.Required)
 				|| referencingProperty.IsPrimaryKey;
-			var supportsInlineForeignKeys = this.sqlDialect.SupportsFeature(SqlFeature.InlineForeignKeys);
+			var supportsInlineForeignKeys = this.sqlDialect.SupportsCapability(SqlCapability.InlineForeignKeys);
 
 			var foreignObjectConstraintAttribute = referencingProperty.ForeignObjectConstraintAttribute;
 

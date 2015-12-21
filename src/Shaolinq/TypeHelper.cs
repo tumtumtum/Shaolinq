@@ -39,6 +39,11 @@ namespace Shaolinq
 			return typeof(IEnumerable<>).MakeGenericType(elementType);
 		}
 
+		public static Type GetQueryableSequenceType(Type elementType)
+		{
+			return typeof(IQueryable<>).MakeGenericType(elementType);
+		}
+
 		public static Type GetElementType(Type sequenceType)
 		{
 			if (sequenceType.GetGenericTypeDefinitionOrNull() == typeof(Grouping<,>))
