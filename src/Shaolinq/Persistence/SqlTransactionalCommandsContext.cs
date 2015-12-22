@@ -6,15 +6,16 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
-using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 
-namespace Shaolinq
+namespace Shaolinq.Persistence
 {
 	public abstract class SqlTransactionalCommandsContext
 		: IDisposable
 	{
-		private int disposed;
+		internal MarsDataReader currentReader;
+
+		private bool disposed;
 		public bool SupportsAsync { get; }
 		public Transaction Transaction { get; }
 		public IDbConnection DbConnection { get; private set; }
@@ -22,12 +23,15 @@ namespace Shaolinq
 		
 		protected IDbTransaction dbTransaction;
 		public DataAccessModel DataAccessModel { get; }
+		private readonly bool emulateMultipleActiveResultSets;
 
 		public abstract void Delete(SqlDeleteExpression deleteExpression);
 		public abstract void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 		public abstract void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 		public abstract InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 		public abstract IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
+
+		public virtual bool IsClosed => this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
 
 		public virtual Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
 		{
@@ -74,18 +78,18 @@ namespace Shaolinq
 		{
 			switch (isolationLevel)
 			{
-				case System.Transactions.IsolationLevel.Serializable:
-					return System.Data.IsolationLevel.Serializable;
-				case System.Transactions.IsolationLevel.ReadCommitted:
-					return System.Data.IsolationLevel.ReadCommitted;
-				case System.Transactions.IsolationLevel.Chaos:
-					return System.Data.IsolationLevel.Chaos;
-				case System.Transactions.IsolationLevel.RepeatableRead:
-					return System.Data.IsolationLevel.RepeatableRead;
-				case System.Transactions.IsolationLevel.Snapshot:
-					return System.Data.IsolationLevel.Snapshot;
-				default:
-					return System.Data.IsolationLevel.Unspecified;
+			case System.Transactions.IsolationLevel.Serializable:
+				return System.Data.IsolationLevel.Serializable;
+			case System.Transactions.IsolationLevel.ReadCommitted:
+				return System.Data.IsolationLevel.ReadCommitted;
+			case System.Transactions.IsolationLevel.Chaos:
+				return System.Data.IsolationLevel.Chaos;
+			case System.Transactions.IsolationLevel.RepeatableRead:
+				return System.Data.IsolationLevel.RepeatableRead;
+			case System.Transactions.IsolationLevel.Snapshot:
+				return System.Data.IsolationLevel.Snapshot;
+			default:
+				return System.Data.IsolationLevel.Unspecified;
 			}
 		}
 
@@ -96,30 +100,20 @@ namespace Shaolinq
 			this.SqlDatabaseContext = sqlDatabaseContext;
 			this.DataAccessModel = sqlDatabaseContext.DataAccessModel;
 
+			this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
+
 			if (transaction != null)
 			{
 				this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction.IsolationLevel));
 			}
 		}
 
-		public virtual bool IsClosed => this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
-
 		~SqlTransactionalCommandsContext()
 		{
-			this.Dispose();
+			this.Dispose(false);
 		}
 
-		public virtual IDbCommand CreateCommand()
-		{
-			var retval = this.CreateCommand(SqlCreateCommandOptions.Default);
-
-			if (this.dbTransaction != null)
-			{
-				retval.Transaction = this.dbTransaction;
-			}
-
-			return retval;
-		}
+		public virtual IDbCommand CreateCommand() => this.CreateCommand(SqlCreateCommandOptions.Default);
 
 		public virtual IDbCommand CreateCommand(SqlCreateCommandOptions options)
 		{
@@ -130,6 +124,11 @@ namespace Shaolinq
 			if (this.SqlDatabaseContext.CommandTimeout != null)
 			{
 				retval.CommandTimeout = (int)this.SqlDatabaseContext.CommandTimeout.Value.TotalMilliseconds;
+			}
+
+			if (this.emulateMultipleActiveResultSets)
+			{
+				retval = new MarsDbCommand(this, retval);
 			}
 
 			return retval;
@@ -186,19 +185,27 @@ namespace Shaolinq
 			GC.SuppressFinalize(this);
 		}
 
-		public virtual void Dispose()
+		public void Dispose()
+		{
+			this.Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
 		{
 			if (this.dbTransaction != null)
 			{
 				return;
 			}
 
-			if (Interlocked.CompareExchange(ref this.disposed, 1, 0) != 0)
+			if (this.disposed)
 			{
 				return;
 			}
 
 			this.CloseConnection();
+
+			this.disposed = true;
 		}
 	}
 }

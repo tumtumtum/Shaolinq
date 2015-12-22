@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence
 		#region ExecuteReader
 		public override IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
 		{
-			return this.ExecuteReaderAsyncHelper(sql, parameters, false, CancellationToken.None).GetAwaiter().GetResult(); ;
+			return this.ExecuteReaderAsyncHelper(sql, parameters, false, CancellationToken.None).GetAwaiter().GetResult();
 		}
 
 		public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken)
@@ -30,38 +30,39 @@ namespace Shaolinq.Persistence
 
 		private async Task<IDataReader> ExecuteReaderAsyncHelper(string sql, IReadOnlyList<Tuple<Type, object>> parameters, bool async, CancellationToken cancellationToken)
 		{
-			var command = this.CreateCommand();
-
-			foreach (var value in parameters)
+			using (var command = this.CreateCommand())
 			{
-				this.AddParameter(command, value.Item1, value.Item2);
-			}
-
-			command.CommandText = sql;
-
-			Logger.Debug(() => this.FormatCommand(command));
-
-			try
-			{
-				if (async)
+				foreach (var value in parameters)
 				{
-					return await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-				}
-				else
-				{
-					return command.ExecuteReader();
-				}
-			}
-			catch (Exception e)
-			{
-				var decoratedException = LogAndDecorateException(e, command);
-
-				if (decoratedException != null)
-				{
-					throw decoratedException;
+					this.AddParameter(command, value.Item1, value.Item2);
 				}
 
-				throw;
+				command.CommandText = sql;
+
+				Logger.Debug(() => this.FormatCommand(command));
+
+				try
+				{
+					if (async)
+					{
+						return await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+					}
+					else
+					{
+						return command.ExecuteReader();
+					}
+				}
+				catch (Exception e)
+				{
+					var decoratedException = LogAndDecorateException(e, command);
+
+					if (decoratedException != null)
+					{
+						throw decoratedException;
+					}
+
+					throw;
+				}
 			}
 		}
 		#endregion
@@ -90,48 +91,50 @@ namespace Shaolinq.Persistence
 					continue;
 				}
 
-				var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject);
-
-				if (command == null)
+				using (var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject))
 				{
-					Logger.ErrorFormat("Object is reported as changed but GetChangedProperties returns an empty list ({0})", dataAccessObject);
 
-					continue;
-				}
-
-				Logger.Debug(() => this.FormatCommand(command));
-
-				int result;
-
-				try
-				{
-					if (async)
+					if (command == null)
 					{
-						result = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						result = command.ExecuteNonQuery();
-					}
-				}
-				catch (Exception e)
-				{
-					var decoratedException = LogAndDecorateException(e, command);
+						Logger.ErrorFormat("Object is reported as changed but GetChangedProperties returns an empty list ({0})", dataAccessObject);
 
-					if (decoratedException != null)
-					{
-						throw decoratedException;
+						continue;
 					}
 
-					throw;
-				}
+					Logger.Debug(() => this.FormatCommand(command));
 
-				if (result == 0)
-				{
-					throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
-				}
+					int result;
 
-				dataAccessObject.ToObjectInternal().ResetModified();
+					try
+					{
+						if (async)
+						{
+							result = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+						}
+						else
+						{
+							result = command.ExecuteNonQuery();
+						}
+					}
+					catch (Exception e)
+					{
+						var decoratedException = LogAndDecorateException(e, command);
+
+						if (decoratedException != null)
+						{
+							throw decoratedException;
+						}
+
+						throw;
+					}
+
+					if (result == 0)
+					{
+						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
+					}
+
+					dataAccessObject.ToObjectInternal().ResetModified();
+				}
 			}
 		}
 		#endregion
@@ -169,80 +172,82 @@ namespace Shaolinq.Persistence
 				}
 
 				var primaryKeyIsComplete = (objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
-				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.Deferrability) || ((objectState & ObjectState.ReferencesNewObject) == 0));
+				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability) || ((objectState & ObjectState.ReferencesNewObject) == 0));
 
 				var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
 
 				if (objectReadyToBeCommited)
 				{
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-					var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject);
 
-					Logger.Debug(() => this.FormatCommand(command));
-
-					try
+					using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
 					{
-						IDataReader reader;
+						Logger.Debug(() => this.FormatCommand(command));
 
-						if (async)
+						try
 						{
-							reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-						}
-						else
-						{
-							reader = command.ExecuteReader();
-						}
+							IDataReader reader;
 
-						using (reader)
-						{
-							if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+							if (async)
 							{
-								bool result;
-								var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
+								reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+							}
+							else
+							{
+								reader = command.ExecuteReader();
+							}
 
-								if (async)
+							using (reader)
+							{
+								if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 								{
-									result = await reader.ReadAsync(cancellationToken);
-								}
-								else
-								{
-									result = reader.Read();
-								}
+									bool result;
+									var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
 
-								if (result)
-								{
-									this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
-									dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
-								}
+									if (async)
+									{
+										result = await reader.ReadAsync(cancellationToken);
+									}
+									else
+									{
+										result = reader.Read();
+									}
 
-								reader.Close();
+									if (result)
+									{
+										this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
+										dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
+									}
 
-								if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
-								{
-									this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
+									reader.Close();
+
+									if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
+									{
+										this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
+									}
 								}
 							}
 						}
-					}
-					catch (Exception e)
-					{
-						var decoratedException = LogAndDecorateException(e, command);
-
-						if (decoratedException != null)
+						catch (Exception e)
 						{
-							throw decoratedException;
+							var decoratedException = LogAndDecorateException(e, command);
+
+							if (decoratedException != null)
+							{
+								throw decoratedException;
+							}
+
+							throw;
 						}
 
-						throw;
-					}
-
-					if ((objectState & ObjectState.ReferencesNewObjectWithServerSideProperties) == ObjectState.ReferencesNewObjectWithServerSideProperties)
-					{
-						listToFixup.Add(dataAccessObject);
-					}
-					else
-					{
-						dataAccessObject.ToObjectInternal().ResetModified();
+						if ((objectState & ObjectState.ReferencesNewObjectWithServerSideProperties) == ObjectState.ReferencesNewObjectWithServerSideProperties)
+						{
+							listToFixup.Add(dataAccessObject);
+						}
+						else
+						{
+							dataAccessObject.ToObjectInternal().ResetModified();
+						}
 					}
 				}
 				else

@@ -40,7 +40,7 @@ namespace Shaolinq.Persistence
 			return buffer;
 		}
 
-		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(Expression dataReader, int ordinal)
 		{
 			return Expression.Condition
 			(

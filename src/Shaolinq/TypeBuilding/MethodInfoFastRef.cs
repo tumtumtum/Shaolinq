@@ -6,14 +6,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
-using Platform.Reflection;
 
 namespace Shaolinq.TypeBuilding
 {
 	public static class MethodInfoFastRef
 	{
-		private static object result;
-
 		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => new List<string>().Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableContainsMethod = TypeUtils.GetMethod(() => Enumerable.Contains(new List<string>(), string.Empty)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => new List<string>().DefaultIfEmpty()).GetGenericMethodDefinition();
@@ -44,7 +41,6 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo StringConcatMethod4 = TypeUtils.GetMethod(() => string.Concat("", "", "", ""));
 		public static readonly MethodInfo TypeGetTypeFromHandle = TypeUtils.GetMethod(() => Type.GetTypeFromHandle(Type.GetTypeHandle(new object())));
 		public static readonly MethodInfo ConvertChangeTypeMethod = TypeUtils.GetMethod(() => Convert.ChangeType(null, typeof(string)));
-		public static readonly MethodInfo DictionaryTryGetValueMethod = TypeUtils.GetMethod<Dictionary<object, object>>(c => c.TryGetValue(default(object), out result)).GetGenericTypeDefinitionMethod();
 		public static readonly MethodInfo ObjectPropertyValueListAddMethod = TypeUtils.GetMethod<List<ObjectPropertyValue>>(c => c.Add(default(ObjectPropertyValue)));
 		public static readonly MethodInfo DataAccessModelGetReference = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string>((Expression<Func<object, string>>)null)).GetGenericMethodDefinition();

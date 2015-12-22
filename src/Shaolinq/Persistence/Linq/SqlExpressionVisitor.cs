@@ -369,13 +369,14 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitProjection(SqlProjectionExpression projection)
 		{
+			var selectFirstType = projection.SelectFirstType;
 			var source = (SqlSelectExpression)this.Visit(projection.Select);
 
 			var projector = this.Visit(projection.Projector);
 			var defaulValueExpression = this.Visit(projection.DefaultValueExpression);
 			var aggregator = (LambdaExpression)this.Visit(projection.Aggregator);
 
-			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValueExpression || aggregator != projection.Aggregator)
+			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValueExpression || aggregator != projection.Aggregator || selectFirstType != projection.SelectFirstType)
 			{
 				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.SelectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 			}

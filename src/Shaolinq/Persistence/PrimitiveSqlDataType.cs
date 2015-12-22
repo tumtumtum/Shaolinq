@@ -31,7 +31,7 @@ namespace Shaolinq.Persistence
 			return (T)Convert.ChangeType(record.GetValue(ordinal), typeof(T));
 		}
 
-		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(Expression dataReader, int ordinal)
 		{
 			var type = this.UnderlyingType ?? this.SupportedType;
 

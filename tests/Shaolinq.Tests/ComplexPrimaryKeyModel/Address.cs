@@ -16,6 +16,7 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public abstract int Number { get; set; }
 
+		[Index]
 		[PersistedMember]
 		public abstract string Street { get; set; }
 	}

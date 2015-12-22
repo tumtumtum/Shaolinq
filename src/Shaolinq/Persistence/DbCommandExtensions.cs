@@ -9,6 +9,12 @@ namespace Shaolinq.Persistence
 {
 	public static class DbCommandExtensions
 	{
+		public static T Cast<T>(this IDbCommand command)
+			where T : class, IDbCommand
+		{
+			return (command as T) ?? (T)((command as MarsDbCommand))?.Inner;
+		}
+
 		public static async Task<IDataReader> ExecuteReaderAsync(this IDbCommand command)
 		{
 			var dbCommand = command as DbCommand;

@@ -9,20 +9,20 @@ namespace Shaolinq.Sqlite
 	{
 		public new static readonly SqliteSqlDialect Default = new SqliteSqlDialect();
 
-		public override bool SupportsFeature(SqlFeature feature)
+		public override bool SupportsCapability(SqlCapability capability)
 		{
-			switch (feature)
+			switch (capability)
 			{
-			case SqlFeature.AlterTableAddConstraints:
+			case SqlCapability.AlterTableAddConstraints:
 				return false;
-			case SqlFeature.Constraints:
-			case SqlFeature.IndexToLower:
-			case SqlFeature.Deferrability:
-			case SqlFeature.SelectForUpdate:
-			case SqlFeature.InlineForeignKeys:
+			case SqlCapability.Constraints:
+			case SqlCapability.IndexToLower:
+			case SqlCapability.Deferrability:
+			case SqlCapability.SelectForUpdate:
+			case SqlCapability.InlineForeignKeys:
 				return true;
 			default:
-				return base.SupportsFeature(feature);
+				return base.SupportsCapability(capability);
 			}
 		}
 

@@ -4,28 +4,22 @@ namespace Shaolinq.Persistence
 {
 	public class SqlDialect
 	{
-		public static readonly SqlDialect Default = new SqlDialect();
-
-		protected SqlDialect()
+		public virtual bool SupportsCapability(SqlCapability capability)
 		{
-		}
-
-		public virtual bool SupportsFeature(SqlFeature feature)
-		{
-			switch (feature)
+			switch (capability)
 			{
-			case SqlFeature.AlterTableAddConstraints:
-			case SqlFeature.Constraints:
-			case SqlFeature.IndexNameCasing:
-			case SqlFeature.IndexToLower:
-			case SqlFeature.SelectForUpdate:
-			case SqlFeature.Deferrability:
-			case SqlFeature.InsertIntoReturning:
-			case SqlFeature.ForeignKeys:
-			case SqlFeature.CascadeAction:
-			case SqlFeature.DeleteAction:
-			case SqlFeature.SetNullAction:
-			case SqlFeature.SetDefaultAction:
+			case SqlCapability.AlterTableAddConstraints:
+			case SqlCapability.Constraints:
+			case SqlCapability.IndexNameCasing:
+			case SqlCapability.IndexToLower:
+			case SqlCapability.SelectForUpdate:
+			case SqlCapability.Deferrability:
+			case SqlCapability.InsertIntoReturning:
+			case SqlCapability.ForeignKeys:
+			case SqlCapability.CascadeAction:
+			case SqlCapability.DeleteAction:
+			case SqlCapability.SetNullAction:
+			case SqlCapability.SetDefaultAction:
 				return true;
 			default:
 				return false;
@@ -36,18 +30,18 @@ namespace Shaolinq.Persistence
 		{
 			switch (symbol)
 			{
-				case SqlSyntaxSymbol.Null:
-					return "NULL";
-				case SqlSyntaxSymbol.Like:
-					return "LIKE";
-				case SqlSyntaxSymbol.IdentifierQuote:
-					return "\"";
-				case SqlSyntaxSymbol.ParameterPrefix:
-					return "@";
-				case SqlSyntaxSymbol.StringQuote:
-					return "'";
-				default:
-					return "";
+			case SqlSyntaxSymbol.Null:
+				return "NULL";
+			case SqlSyntaxSymbol.Like:
+				return "LIKE";
+			case SqlSyntaxSymbol.IdentifierQuote:
+				return "\"";
+			case SqlSyntaxSymbol.ParameterPrefix:
+				return "@";
+			case SqlSyntaxSymbol.StringQuote:
+				return "'";
+			default:
+				return "";
 			}
 		}
 	}

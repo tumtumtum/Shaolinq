@@ -49,7 +49,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				if (!this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsFeature(SqlFeature.SetNullAction))
+				if (!this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(SqlCapability.SetNullAction))
 				{
 					this.model.Students.Single(c => c.Id == student1Id).BestFriend = null;
 				}

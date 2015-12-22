@@ -7,15 +7,18 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class Nominator
+	internal class Nominator
 		: SqlExpressionVisitor
 	{
 		public readonly HashSet<Expression> candidates;
 		protected readonly Func<Expression, bool> canBeColumn;
+		private readonly bool includeIntegralRootExpression;
+		private Expression rootExpression;
 
-		public Nominator(Func<Expression, bool> canBeColumn)
+		internal Nominator(Func<Expression, bool> canBeColumn, bool includeIntegralRootExpression = false)
 		{
 			this.canBeColumn = canBeColumn;
+			this.includeIntegralRootExpression = includeIntegralRootExpression;
 			this.candidates = new HashSet<Expression>();
 		}
 
@@ -35,24 +38,13 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		public static bool CanBeColumnIncludingIntegral(Expression expression)
-		{
-			switch (expression.NodeType)
-			{
-			case (ExpressionType)SqlExpressionType.Column:
-			case (ExpressionType)SqlExpressionType.Scalar:
-			case (ExpressionType)SqlExpressionType.FunctionCall:
-			case (ExpressionType)SqlExpressionType.AggregateSubquery:
-			case (ExpressionType)SqlExpressionType.Aggregate:
-			case (ExpressionType)SqlExpressionType.Subquery:
-				return true;
-			default:
-				return expression.Type.IsIntegralType();
-			}
-		}
-
 		public virtual HashSet<Expression> Nominate(Expression expression)
 		{
+			if (this.includeIntegralRootExpression)
+			{
+				this.rootExpression = expression;
+			}
+
 			this.Visit(expression);
 
 			return this.candidates;
@@ -69,12 +61,13 @@ namespace Shaolinq.Persistence.Linq
 			{
 				base.Visit(expression);
 			}
-
-			if (this.canBeColumn(expression))
+			
+			if (this.canBeColumn(expression)
+				|| (expression.Type.IsIntegralType() && expression == rootExpression))
 			{
 				this.candidates.Add(expression);
 			}
-
+			
 			return expression;
 		}
 		

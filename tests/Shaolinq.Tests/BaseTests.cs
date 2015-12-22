@@ -25,7 +25,7 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
 		{
-			return SqlServerConfiguration.Create(databaseName, "localhost", null, null);
+			return SqlServerConfiguration.Create(databaseName, "localhost", multipleActiveResultsets: true);
 		}
 
 	    protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)

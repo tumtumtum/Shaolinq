@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 namespace Shaolinq.Persistence
 {
-	public enum SqlFeature
+	public enum SqlCapability
 	{
 		None,
 		Constraints,
@@ -21,6 +22,7 @@ namespace Shaolinq.Persistence
 		SetNullAction,
 		SetDefaultAction,
 		UpdateAutoIncrementColumns,
-		PragmaIdentityInsert
+		PragmaIdentityInsert,
+		MultipleActiveResultSets
 	}
 }

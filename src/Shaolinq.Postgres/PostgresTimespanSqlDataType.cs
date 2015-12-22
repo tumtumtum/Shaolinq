@@ -20,7 +20,7 @@ namespace Shaolinq.Postgres
 			return "INTERVAL";
 		}
 
-		public override Expression GetReadExpression(ParameterExpression dataReader, int ordinal)
+		public override Expression GetReadExpression(Expression dataReader, int ordinal)
 		{
 			if (this.underlyingType == null)
 			{

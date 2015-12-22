@@ -7,24 +7,20 @@ namespace Shaolinq.Postgres
 	internal class PostgresSqlDialect
 		: SqlDialect
 	{
-		public new static readonly PostgresSqlDialect Default = new PostgresSqlDialect();
-
-		private PostgresSqlDialect()
-		{	
-		}
-
-		public override bool SupportsFeature(SqlFeature feature)
+		public override bool SupportsCapability(SqlCapability capability)
 		{
-			switch (feature)
+			switch (capability)
 			{
-			case SqlFeature.IndexToLower:
-			case SqlFeature.Deferrability:
-			case SqlFeature.SelectForUpdate:
+			case SqlCapability.IndexToLower:
+			case SqlCapability.Deferrability:
+			case SqlCapability.SelectForUpdate:
 				return true;
-			case SqlFeature.InlineForeignKeys:
+			case SqlCapability.InlineForeignKeys:
+				return false;
+			case SqlCapability.MultipleActiveResultSets:
 				return false;
 			default:
-				return base.SupportsFeature(feature);
+				return base.SupportsCapability(capability);
 			}
 		}
 

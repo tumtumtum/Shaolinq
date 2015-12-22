@@ -100,12 +100,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Platform, Version=1.2.0.257, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.2.0.257-rc1\lib\net452\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.2.0.262, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.2.0.262-rc1\lib\net452\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.257, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.257-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.262, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.262-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -140,6 +140,7 @@
     <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="Persistence\DbCommandExtensions.cs" />
     <Compile Include="Persistence\DataReaderExtensions.cs" />
+    <Compile Include="Persistence\DataReaderWRapper.cs" />
     <Compile Include="Persistence\DefaultSqlTransactionalCommandsContext+Commands.cs" />
     <Compile Include="Persistence\EnumerableUtils.cs" />
     <Compile Include="ForeignObjectAction.cs" />
@@ -162,6 +163,7 @@
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
+    <Compile Include="Persistence\DbCommandWrapper.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAliasedExpression.cs" />
@@ -177,6 +179,9 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpanderResults.cs" />
+    <Compile Include="Persistence\MarsDataReader.cs" />
+    <Compile Include="Persistence\MarsDbCommand.cs" />
+    <Compile Include="Persistence\SqlTransactionalCommandsContext.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="TaskExtensions.cs" />
@@ -240,7 +245,7 @@
     <Compile Include="Persistence\Linq\SqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="Persistence\Linq\SqlMultiColumnPrimaryKeyRemover.cs" />
     <Compile Include="Persistence\SqlCreateCommandOptions.cs" />
-    <Compile Include="Persistence\SqlFeature.cs" />
+    <Compile Include="Persistence\SqlCapability.cs" />
     <Compile Include="Persistence\SqlSyntaxSymbol.cs" />
     <Compile Include="Persistence\UniversalTimeNormalisingDateTimeSqlDateType.cs" />
     <Compile Include="PrimaryKeyInfoCache.cs" />
@@ -351,7 +356,6 @@
     <Compile Include="ObjectAlreadyInitializedException.cs" />
     <Compile Include="Persistence\IPersistenceQueryable.cs" />
     <Compile Include="Persistence\SqlDatabaseContext.cs" />
-    <Compile Include="SqlTransactionalCommandsContext.cs" />
     <Compile Include="DataAccessModelConfiguration.cs" />
     <Compile Include="DataAccessObject.cs" />
     <Compile Include="DataAccessModel.cs" />

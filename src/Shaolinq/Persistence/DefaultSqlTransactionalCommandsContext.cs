@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Transactions;
 using Platform;
 using Shaolinq.Logging;
@@ -276,7 +275,7 @@ namespace Shaolinq.Persistence
 
 		protected virtual IDbCommand BuildUpdateCommand(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject)
 		{
-			IDbCommand command;
+			IDbCommand command = null;
 			SqlCommandValue sqlCommandValue;
 			var updatedProperties = dataAccessObject.GetAdvanced().GetChangedPropertiesFlattened();
 			
@@ -285,16 +284,30 @@ namespace Shaolinq.Persistence
 				return null;
 			}
 
+			var success = false;
 			var primaryKeys = dataAccessObject.GetAdvanced().GetPrimaryKeysForUpdateFlattened();
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
 			{
-				command = this.CreateCommand();
-				command.CommandText = sqlCommandValue.commandText;
-				this.FillParameters(command, updatedProperties, primaryKeys);
+				try
+				{
+					command = this.CreateCommand();
 
-				return command;
+					command.CommandText = sqlCommandValue.commandText;
+					this.FillParameters(command, updatedProperties, primaryKeys);
+
+					success = true;
+
+					return command;
+				}
+				finally
+				{
+					if (!success)
+					{
+						command?.Dispose();
+					}
+				}
 			}
 
 			var assignments = updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.PropertyType, null, c.PersistedName), Expression.Constant(c.Value))).ToReadOnlyCollection();
@@ -316,18 +329,31 @@ namespace Shaolinq.Persistence
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
-			command = this.CreateCommand();
+			try
+			{
+				command = this.CreateCommand();
 
-			command.CommandText = result.CommandText;
-			this.CacheUpdateCommand(commandKey, new SqlCommandValue() { commandText = command.CommandText });
-			this.FillParameters(command, updatedProperties, primaryKeys);
-			
-			return command;
+				command.CommandText = result.CommandText;
+				this.CacheUpdateCommand(commandKey, new SqlCommandValue() { commandText = command.CommandText });
+				this.FillParameters(command, updatedProperties, primaryKeys);
+
+				success = true;
+
+				return command;
+			}
+			finally
+			{
+				if (!success)
+				{
+					command?.Dispose();
+				}
+			}
 		}
 
 		protected virtual IDbCommand BuildInsertCommand(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject)
 		{
-			IDbCommand command;
+			var success = false;
+			IDbCommand command = null;
 			SqlCommandValue sqlCommandValue;
 
 			var updatedProperties = dataAccessObject.GetAdvanced().GetChangedPropertiesFlattened();
@@ -335,11 +361,23 @@ namespace Shaolinq.Persistence
 
 			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))
 			{
-				command = this.CreateCommand();
-				command.CommandText = sqlCommandValue.commandText;
-				this.FillParameters(command, updatedProperties, null);
+				try
+				{
+					command = this.CreateCommand();
+					command.CommandText = sqlCommandValue.commandText;
+					this.FillParameters(command, updatedProperties, null);
 
-				return command;
+					success = true;
+
+					return command;
+				}
+				finally
+				{
+					if (!success)
+					{
+						command?.Dispose();
+					}
+				}
 			}
 
 			IReadOnlyList<string> returningAutoIncrementColumnNames = null;
@@ -355,7 +393,7 @@ namespace Shaolinq.Persistence
 			var valueExpressions = updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToReadOnlyCollection();
 			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
 
-			if (this.SqlDatabaseContext.SqlDialect.SupportsFeature(SqlFeature.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
+			if (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
 			{
 				var list = new List<Expression>
 				{
@@ -371,15 +409,27 @@ namespace Shaolinq.Persistence
 
 			Debug.Assert(result.ParameterValues.Count == updatedProperties.Count);
 
-			command = this.CreateCommand();
+			try
+			{
+				command = this.CreateCommand();
 
-			var commandText = result.CommandText;
+				var commandText = result.CommandText;
 
-			command.CommandText = commandText;
-			this.CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
-			this.FillParameters(command, updatedProperties, null);
+				command.CommandText = commandText;
+				this.CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
+				this.FillParameters(command, updatedProperties, null);
 
-			return command;
+				success = true;
+
+				return command;
+			}
+			finally
+			{
+				if (!success)
+				{
+					command?.Dispose();
+				}
+			}
 		}
 
 		protected void CacheInsertCommand(SqlCommandKey sqlCommandKey, SqlCommandValue sqlCommandValue)
@@ -405,9 +455,7 @@ namespace Shaolinq.Persistence
 		{
 			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
 		}
-
-
-
+		
 		public static MethodInfo GetDeleteMethod(Type type)
 		{
 			return DeleteHelperMethod.MakeGenericMethod(type);

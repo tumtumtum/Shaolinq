@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
+using Platform.Reflection;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
@@ -320,7 +321,29 @@ namespace Shaolinq.Persistence.Linq
 			var elementType = TypeHelper.GetElementType(subQuery.Body.Type);
 			var boundExecuteSubQueryMethod = ExecuteSubQueryMethod.MakeGenericMethod(elementType);
 
-			return Expression.Convert(Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), this.dataReader), projection.Type);
+			if (projection.Type.GetSequenceElementType() == null)
+			{
+				var constructor = TypeUtils.GetConstructor(() => new SqlQueryProvider.PrivateExecuteResult<int>(null, SelectFirstType.None, false, null));
+				constructor = constructor.GetConstructorOnTypeReplacingTypeGenericArgs(elementType);
+				var processResultMethod = TypeUtils.GetMethod(() => SqlQueryProvider.ProcessResult<int>(default(SqlQueryProvider.PrivateExecuteResult<int>))).GetGenericMethodDefinition().MakeGenericMethod(elementType);
+
+				return Expression.Call
+				(
+					processResultMethod,
+					Expression.New
+					(
+						constructor,
+						Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), this.dataReader),
+						Expression.Constant(projection.SelectFirstType),
+						Expression.Constant(projection.IsDefaultIfEmpty),
+						Expression.Constant(projection.DefaultValueExpression, typeof(Expression))
+					)
+				);
+			}
+			else
+			{
+				return Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), this.dataReader);
+			}
 		}
 	}
 }
