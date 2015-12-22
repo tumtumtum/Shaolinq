@@ -324,7 +324,7 @@ namespace Shaolinq.Persistence.Linq
 			if (projection.Type.GetSequenceElementType() == null)
 			{
 				var constructor = TypeUtils.GetConstructor(() => new SqlQueryProvider.PrivateExecuteResult<int>(null, SelectFirstType.None, false, null));
-				constructor = constructor.GetConstructorFromTypeWithNewGenericArg(elementType);
+				constructor = constructor.GetConstructorOnTypeReplacingTypeGenericArgs(elementType);
 				var processResultMethod = TypeUtils.GetMethod(() => SqlQueryProvider.ProcessResult<int>(default(SqlQueryProvider.PrivateExecuteResult<int>))).GetGenericMethodDefinition().MakeGenericMethod(elementType);
 
 				return Expression.Call

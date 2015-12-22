@@ -1983,7 +1983,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_GroupBy_Project_Group5()
 		{
 			using (var scope = new TransactionScope())

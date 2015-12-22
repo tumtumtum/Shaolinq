@@ -963,7 +963,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_GroupBy()
 		{
 			using (var scope = new TransactionScope())
@@ -977,7 +977,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Implicit_Join_On_GroupBy3()
 		{
 			using (var scope = new TransactionScope())
