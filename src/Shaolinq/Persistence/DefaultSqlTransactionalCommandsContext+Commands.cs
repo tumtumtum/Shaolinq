@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence
 		#region ExecuteReader
 		public override IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
 		{
-			return this.ExecuteReaderAsyncHelper(sql, parameters, false, CancellationToken.None).GetAwaiter().GetResult(); ;
+			return this.ExecuteReaderAsyncHelper(sql, parameters, false, CancellationToken.None).GetAwaiter().GetResult();
 		}
 
 		public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken)
@@ -182,7 +182,6 @@ namespace Shaolinq.Persistence
 
 					using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
 					{
-
 						Logger.Debug(() => this.FormatCommand(command));
 
 						try

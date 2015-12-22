@@ -7,6 +7,12 @@ namespace Shaolinq.Persistence
 {
 	public static class DataReaderExtensions
 	{
+		public static T Cast<T>(this IDataRecord reader)
+			where T : class, IDataRecord
+		{
+			return (reader as T) ?? (T)((reader as MarsDataReader))?.Inner;
+		}
+
 		public static async Task<bool> ReadAsync(this IDataReader reader)
 		{
             var dbDataReader = reader as DbDataReader;

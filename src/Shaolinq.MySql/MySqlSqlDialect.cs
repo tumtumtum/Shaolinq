@@ -7,12 +7,6 @@ namespace Shaolinq.MySql
 	public class MySqlSqlDialect
 		: SqlDialect
 	{
-		public new static readonly MySqlSqlDialect Default = new MySqlSqlDialect();
-
-		private MySqlSqlDialect()
-		{	
-		}
-
 		public override bool SupportsCapability(SqlCapability capability)
 		{
 			switch (capability)

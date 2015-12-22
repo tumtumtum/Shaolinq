@@ -78,7 +78,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)
 		{
-			this.sqlDialect = sqlDialect ?? SqlDialect.Default;
+			this.sqlDialect = sqlDialect ?? new SqlDialect();
 			this.writer = writer;
 			this.ParameterIndicatorPrefix = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 			this.IndentationWidth = 2;

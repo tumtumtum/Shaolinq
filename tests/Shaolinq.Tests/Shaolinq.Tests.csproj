@@ -88,12 +88,12 @@
       <HintPath>..\..\src\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform, Version=1.2.0.258, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\src\packages\Platform.NET.1.2.0.258-rc1\lib\net452\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.2.0.260, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\src\packages\Platform.NET.1.2.0.260-rc1\lib\net452\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.257, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\src\packages\Platform.Xml.Serialization.1.2.0.257-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.260, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\src\packages\Platform.Xml.Serialization.1.2.0.260-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

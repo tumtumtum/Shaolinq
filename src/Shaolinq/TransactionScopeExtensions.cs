@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Transactions;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {

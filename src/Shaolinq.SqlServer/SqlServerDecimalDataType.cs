@@ -31,7 +31,7 @@ namespace Shaolinq.SqlServer
 
 		public static decimal Read(IDataRecord record, int ordinal)
 		{
-			var reader = (SqlDataReader) record;
+			var reader = record.Cast<SqlDataReader>();
 
 			return ToDecimal(reader.GetSqlDecimal(ordinal));
 		}

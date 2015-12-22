@@ -9,21 +9,15 @@ namespace Shaolinq.SqlServer
 		: SqlDialect
 	{
 		private readonly bool marsEnabled;
-		public new static readonly SqlServerSqlDialect Default = new SqlServerSqlDialect();
-
-		private SqlServerSqlDialect()
-			: this(null)
-		{
-		}
-
+		
 		internal SqlServerSqlDialect(SqlServerSqlDatabaseContextInfo contextInfo)
 		{
 			if (contextInfo != null)
 			{
 				var connectionString = contextInfo.ConnectionString;
+				var marsEnabledInConnectionString = connectionString != null && Regex.IsMatch(@"[^\s;]*MultipleActiveResultSets[ ]*=[ ]*true[$\s;]*", connectionString, RegexOptions.IgnoreCase);
 
-				marsEnabled = contextInfo.MultipleActiveResultSets
-					|| connectionString != null && Regex.IsMatch(@"[^\s;]*MultipleActiveResultSets[ ]*=[ ]*true[$\s;]*", connectionString, RegexOptions.IgnoreCase);
+				marsEnabled = contextInfo.MultipleActiveResultSets || marsEnabledInConnectionString;
 			}
         }
 

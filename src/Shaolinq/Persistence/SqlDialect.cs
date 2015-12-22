@@ -4,12 +4,6 @@ namespace Shaolinq.Persistence
 {
 	public class SqlDialect
 	{
-		public static readonly SqlDialect Default = new SqlDialect();
-
-		protected SqlDialect()
-		{
-		}
-
 		public virtual bool SupportsCapability(SqlCapability capability)
 		{
 			switch (capability)

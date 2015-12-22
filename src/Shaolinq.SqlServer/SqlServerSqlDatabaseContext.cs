@@ -47,7 +47,7 @@ namespace Shaolinq.SqlServer
 		}
 
 		private SqlServerSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, SqlServerSqlDatabaseContextInfo contextInfo)
-			: base(model, SqlServerSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, GetDatabaseName(contextInfo).Trim(), contextInfo)
+			: base(model, new SqlServerSqlDialect(contextInfo), sqlDataTypeProvider, sqlQueryFormatterManager, GetDatabaseName(contextInfo).Trim(), contextInfo)
 		{
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;

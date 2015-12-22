@@ -20,19 +20,19 @@ namespace Shaolinq.MySql
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(MySqlSqlDialect.Default, sqlDataTypeProvider, typeof(MySqlSqlQueryFormatter));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(new MySqlSqlDialect(), sqlDataTypeProvider, typeof(MySqlSqlQueryFormatter));
 
 			return new MySqlSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
 
 		private MySqlSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, MySqlSqlDatabaseContextInfo contextInfo)
-			: base(model, MySqlSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
+			: base(model, new MySqlSqlDialect(), sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
 
-			this.ConnectionString = String.Format("Server={0}; Database={1}; Uid={2}; Pwd={3}; Pooling={4}; AutoEnlist=false; charset=utf8; Convert Zero Datetime={5}; Allow Zero Datetime={6};", this.ServerName, this.DatabaseName, this.Username, this.Password, contextInfo.PoolConnections, contextInfo.ConvertZeroDateTime ? "true" : "false", contextInfo.AllowConvertZeroDateTime ? "true" : "false");
+			this.ConnectionString = $"Server={this.ServerName}; Database={this.DatabaseName}; Uid={this.Username}; Pwd={this.Password}; Pooling={contextInfo.PoolConnections}; AutoEnlist=false; charset=utf8; Convert Zero Datetime={(contextInfo.ConvertZeroDateTime ? "true" : "false")}; Allow Zero Datetime={(contextInfo.AllowConvertZeroDateTime ? "true" : "false")};";
 			this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;$]+[;$]", "");
 
 			this.SchemaManager = new MySqlSqlDatabaseSchemaManager(this);

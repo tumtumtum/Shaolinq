@@ -1907,7 +1907,15 @@ namespace Shaolinq.Tests
 					into g
 					select new { sex = g.Key , date = g.Max(c => c.Birthdate), count = g.Count(), g };
 
-				foreach (var value in results.ToList())
+				var students = this.model.Students.ToList();
+				var s2 = from student in students
+						 group student by student.Sex
+					into g
+						 select new { sex = g.Key, date = g.Max(c => c.Birthdate), count = g.Count(), g };
+
+				var s3 = results.ToList();
+
+				foreach (var value in results)
 				{
 					var xx = value.g.ToList();
 
@@ -1975,7 +1983,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_GroupBy_Project_Group5()
 		{
 			using (var scope = new TransactionScope())
