@@ -6,6 +6,7 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence
@@ -203,7 +204,8 @@ namespace Shaolinq.Persistence
 				return;
 			}
 
-			this.CloseConnection();
+			ActionUtils.IgnoreExceptions(() => currentReader?.Dispose());
+			ActionUtils.IgnoreExceptions(this.CloseConnection);
 
 			this.disposed = true;
 		}

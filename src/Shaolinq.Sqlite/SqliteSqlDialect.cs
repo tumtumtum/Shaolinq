@@ -20,6 +20,7 @@ namespace Shaolinq.Sqlite
 			case SqlCapability.Deferrability:
 			case SqlCapability.SelectForUpdate:
 			case SqlCapability.InlineForeignKeys:
+			case SqlCapability.MultipleActiveResultSets:
 				return true;
 			default:
 				return base.SupportsCapability(capability);

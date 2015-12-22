@@ -312,7 +312,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var method = MethodInfoFastRef.DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(sqlObjectReferenceExpression.Type);
 
-			return Expression.Call(Expression.Property(this.objectProjector, "DataAccessModel"), method, arrayOfValues);
+			return Expression.Call(Expression.Property(this.objectProjector, nameof(ObjectProjector.DataAccessModel)), method, arrayOfValues);
 		}
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
@@ -325,7 +325,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var constructor = TypeUtils.GetConstructor(() => new SqlQueryProvider.PrivateExecuteResult<int>(null, SelectFirstType.None, false, null));
 				constructor = constructor.GetConstructorOnTypeReplacingTypeGenericArgs(elementType);
-				var processResultMethod = TypeUtils.GetMethod(() => SqlQueryProvider.ProcessResult<int>(default(SqlQueryProvider.PrivateExecuteResult<int>))).GetGenericMethodDefinition().MakeGenericMethod(elementType);
+				var processResultMethod = MethodInfoFastRef.SqlQueryProviderProcessResultMethod.MakeGenericMethod(elementType);
 
 				return Expression.Call
 				(

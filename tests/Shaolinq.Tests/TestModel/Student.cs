@@ -2,6 +2,7 @@
 
 using System;
 using Platform.Validation;
+using Shaolinq.Tests.OtherDataAccessObjects;
 
 namespace Shaolinq.Tests.TestModel
 {
@@ -29,6 +30,9 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember, ValueRequired(false)]
 		/*[ForeignObjectConstraint(OnDeleteAction = ForeignObjectAction.Restrict, OnUpdateAction = ForeignObjectAction.Restrict)]*/
 		public abstract Student BestFriend { get; set; }
+
+		[RelatedDataAccessObjects, ValueRequired(false)]
+		public abstract RelatedDataAccessObjects<Cat> Cats { get; }
 
 		[PersistedMember]
 		public abstract Address Address { get; set; }

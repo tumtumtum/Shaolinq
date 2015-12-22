@@ -7,31 +7,17 @@ namespace Shaolinq.Persistence
 	public class MarsDataReader
 		: DataReaderWrapper
 	{
-		private struct RowData
-		{
-			public static readonly RowData Empty = new RowData();
-
-			public readonly string[] names;
-			public readonly object[] values;
-
-			public RowData(int fieldCount)
-				: this()
-			{
-				this.names = new string[fieldCount];
-				this.values = new object[fieldCount];
-			}
-		}
-
-		private int recordsAffected;
-		private int fieldCount;
-		private RowData currentRow;
-		private Queue<RowData> rows;
-		private readonly MarsDbCommand command;
-		private Type[] fieldTypes;
-		private string[] dataTypeNames;
-		private Dictionary<string, int> ordinalByFieldName;
 		private bool closed;
-
+		public string[] names;
+		private int fieldCount;
+		private Type[] fieldTypes;
+		private object[] currentRow;
+		private int recordsAffected;
+		private Queue<object[]> rows;
+		private string[] dataTypeNames;
+		private readonly MarsDbCommand command;
+		private Dictionary<string, int> ordinalByFieldName;
+		
 		public MarsDataReader(MarsDbCommand command, IDataReader inner)
 			: base(inner)
 		{
@@ -47,51 +33,48 @@ namespace Shaolinq.Persistence
 				return;
 			}
 
-			rows = new Queue<RowData>();
+			this.rows = new Queue<object[]>();
 
 			try
 			{
-				var x = 0;
+				this.fieldCount = base.FieldCount;
+				this.recordsAffected = base.RecordsAffected;
+				this.ordinalByFieldName = new Dictionary<string, int>(this.fieldCount);
+				this.dataTypeNames = new string[this.fieldCount];
+				this.fieldTypes = new Type[this.fieldCount];
+				this.names = new string[this.fieldCount];
+
+				for (var i = 0; i < base.FieldCount; i++)
+				{
+					this.ordinalByFieldName[base.GetName(i)] = i;
+					this.dataTypeNames[i] = base.GetDataTypeName(i);
+					this.fieldTypes[i] = base.GetFieldType(i);
+					this.names[i] = base.GetName(i);
+				}
 
 				while (base.Read())
 				{
-					var rowData = new RowData(base.FieldCount);
+					var rowData = new object[base.FieldCount];
 
-					if (x == 0)
-					{
-						fieldCount = base.FieldCount;
-						recordsAffected = base.RecordsAffected;
-
-						this.ordinalByFieldName = new Dictionary<string, int>(fieldCount);
-						this.dataTypeNames = new string[fieldCount];
-						this.fieldTypes = new Type[fieldCount];
-					}
-
-					base.GetValues(rowData.values);
-
-					for (var i = 0; i < base.FieldCount; i++)
-					{
-						var name = base.GetName(i);
-
-						rowData.names[i] = name;
-
-						if (x == 0)
-						{
-							ordinalByFieldName[name] = i;
-							dataTypeNames[i] = base.GetDataTypeName(i);
-							fieldTypes[i] = base.GetFieldType(i);
-						}
-					}
-
-					rows.Enqueue(rowData);
-
-					x++;
+					base.GetValues(rowData);
+					this.rows.Enqueue(rowData);
 				}
 			}
 			finally
 			{
 				this.Dispose();
 			}
+		}
+
+		public override void Close()
+		{
+			if (this.rows == null)
+			{
+				base.Close();
+			}
+
+			this.closed = true;
+			this.rows = null;
 		}
 
 		public override bool NextResult()
@@ -106,19 +89,19 @@ namespace Shaolinq.Persistence
 
 		public override bool Read()
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.Read();
 			}
 
-			if (rows.Count == 0)
+			if (this.rows.Count == 0)
 			{
-				currentRow = RowData.Empty;
+				this.currentRow = null;
 
 				return false;
 			}
 
-			currentRow = rows.Dequeue();
+			this.currentRow = this.rows.Dequeue();
 
 			return true;
 		}
@@ -148,96 +131,96 @@ namespace Shaolinq.Persistence
 
 		public override string GetName(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetName(i);
 			}
 
-			return currentRow.names[i];
+			return this.names[i];
 		}
 
 		public override string GetDataTypeName(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetDataTypeName(i);
 			}
 
-			return dataTypeNames[i];
+			return this.dataTypeNames[i];
 		}
 
 		public override Type GetFieldType(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetFieldType(i);
 			}
 
-			return fieldTypes[i];
+			return this.fieldTypes[i];
 		}
 
 		public override object GetValue(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetValue(i);
 			}
 
-			return currentRow.values[i];
+			return this.currentRow[i];
 		}
 
 		public override int GetValues(object[] values)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetValues(values);
 			}
 
-			var x = Math.Min(currentRow.values.Length, values.Length);
+			var x = Math.Min(this.currentRow.Length, values.Length);
 
-			Array.Copy(currentRow.values, values, x);
+			Array.Copy(this.currentRow, values, x);
 
 			return x;
 		}
 
 		public override int GetOrdinal(string name)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetOrdinal(name);
 			}
 
-			return ordinalByFieldName[name];
+			return this.ordinalByFieldName[name];
 		}
 
 		public override bool GetBoolean(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetBoolean(i);
 			}
 
-			return Convert.ToBoolean(currentRow.values[i]);
+			return Convert.ToBoolean(this.currentRow[i]);
 		}
 
 		public override byte GetByte(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetByte(i);
 			}
 
-			return Convert.ToByte(currentRow.values[i]);
+			return Convert.ToByte(this.currentRow[i]);
 		}
 
 		public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetBytes(i, fieldOffset, buffer, bufferoffset, length);
 			}
 
-			var bytes = (byte[])currentRow.values[i];
+			var bytes = (byte[])this.currentRow[i];
 
 			var x = Math.Min(length, bytes.Length - fieldOffset);
 
@@ -253,22 +236,22 @@ namespace Shaolinq.Persistence
 
 		public override char GetChar(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetChar(i);
 			}
 
-			return Convert.ToChar(currentRow.values[i]);
+			return Convert.ToChar(this.currentRow[i]);
 		}
 
 		public override long GetChars(int i, long fieldOffset, char[] buffer, int bufferoffset, int length)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetChars(i, fieldOffset, buffer, bufferoffset, length);
 			}
 
-			var bytes = (byte[])currentRow.values[i];
+			var bytes = (byte[])this.currentRow[i];
 
 			var x = Math.Min(length, bytes.Length - fieldOffset);
 
@@ -284,82 +267,82 @@ namespace Shaolinq.Persistence
 
 		public override Guid GetGuid(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetGuid(i);
 			}
 
-			return (Guid)currentRow.values[i];
+			return (Guid)this.currentRow[i];
 		}
 
 		public override short GetInt16(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetInt16(i);
 			}
 
-			return Convert.ToInt16(currentRow.values[i]);
+			return Convert.ToInt16(this.currentRow[i]);
 		}
 
 		public override int GetInt32(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetInt32(i);
 			}
 
-			return Convert.ToInt32(currentRow.values[i]);
+			return Convert.ToInt32(this.currentRow[i]);
 		}
 
 		public override long GetInt64(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetInt64(i);
 			}
 
-			return Convert.ToInt64(currentRow.values[i]);
+			return Convert.ToInt64(this.currentRow[i]);
 		}
 
 		public override float GetFloat(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetFloat(i);
 			}
 
-			return Convert.ToSingle(currentRow.values[i]);
+			return Convert.ToSingle(this.currentRow[i]);
 		}
 
 		public override double GetDouble(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetDouble(i);
 			}
 
-			return Convert.ToDouble(currentRow.values[i]);
+			return Convert.ToDouble(this.currentRow[i]);
 		}
 
 		public override string GetString(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetString(i);
 			}
 
-			return Convert.ToString(currentRow.values[i]);
+			return Convert.ToString(this.currentRow[i]);
 		}
 
 		public override decimal GetDecimal(int i)
 		{
-			if (rows == null)
+			if (this.rows == null)
 			{
 				return base.GetDecimal(i);
 			}
 
-			return Convert.ToDecimal(currentRow.values[i]);
+			return Convert.ToDecimal(this.currentRow[i]);
 		}
 
 		public override DateTime GetDateTime(int i)
@@ -369,7 +352,7 @@ namespace Shaolinq.Persistence
 				return base.GetDateTime(i);
 			}
 
-			return Convert.ToDateTime(currentRow.values[i]);
+			return Convert.ToDateTime(this.currentRow[i]);
 		}
 
 		public override IDataReader GetData(int i)
@@ -379,7 +362,7 @@ namespace Shaolinq.Persistence
 				return base.GetData(i);
 			}
 
-			throw new NotImplementedException();
+			throw new NotSupportedException($"{nameof(MarsDataReader)}.{nameof(GetData)}");
 		}
 
 		public override bool IsDBNull(int i)
@@ -389,24 +372,13 @@ namespace Shaolinq.Persistence
 				return base.IsDBNull(i);
 			}
 
-			return this.currentRow.values[i] == DBNull.Value;
+			return this.currentRow[i] == DBNull.Value;
 		}
 
 		public override int FieldCount => this.rows == null ? base.FieldCount : this.fieldCount;
-		public override object this[int i] => this.rows == null ? base[i] : this.currentRow.values[i];
-		public override object this[string name] => this.rows == null ? base[name] : this.currentRow.values[this.ordinalByFieldName[name]];
+		public override object this[int i] => this.rows == null ? base[i] : this.currentRow[i];
+		public override object this[string name] => this.rows == null ? base[name] : this.currentRow[this.ordinalByFieldName[name]];
 		public override bool IsClosed => this.rows == null ? base.IsClosed : this.closed;
 		public override int RecordsAffected => this.rows == null ? base.RecordsAffected : this.recordsAffected;
-
-		public override void Close()
-		{
-			if (this.rows == null)
-			{
-				base.Close();
-			}
-
-			this.closed = true;
-			this.rows = null;
-		}
 	}
 }

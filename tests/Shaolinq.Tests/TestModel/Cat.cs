@@ -3,16 +3,6 @@
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
-	public abstract class Bird
-		: DataAccessObject
-	{	
-		[PrimaryKey]
-		[AutoIncrement]
-		[PersistedMember]
-		public abstract Cat Owner { get; set; }
-	}
-
-	[DataAccessObject]
 	public abstract class Cat
 		: DataAccessObject<long>
 	{
@@ -37,8 +27,11 @@ namespace Shaolinq.Tests.TestModel
 		[ForeignObjectConstraint(OnDeleteAction = ForeignObjectAction.Restrict, OnUpdateAction = ForeignObjectAction.Restrict)]
 		[Index("CompositeIndexOverObjectAndNonObject", CompositeOrder = 3)]
 		public abstract Cat Parent { get; set; }
-
+		
 		[RelatedDataAccessObjects]
 		public abstract RelatedDataAccessObjects<Cat> Kittens { get; }
+
+		[BackReference]
+		public abstract Student Student { get; set; }
 	}
 }
