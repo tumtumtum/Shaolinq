@@ -68,6 +68,26 @@ namespace Shaolinq.Persistence.Linq
 		}
 	}
 
+	internal class ProjectionContext<U>
+	{
+		public U CurrentValue { get; set; }
+	}
+
+	internal struct ObjectReaderResult<U>
+	{
+		public U Current { get; set; }
+		public bool Yield { get; set; }
+		
+		public ObjectReaderResult(U value, bool yield)
+		{
+			this.Yield = yield;
+			this.Current = value;
+		}
+	}
+
+	internal delegate ObjectReaderResult<U> ObjectReaderFunc<T, U>(ProjectionContext<U> context, ObjectProjector projector, IDataReader dataReader, object[] placeholderValues)
+		where U : T;
+	
 	/// <summary>
 	/// Base class for ObjectReaders that use Reflection.Emit
 	/// </summary>
@@ -86,12 +106,14 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 	{
 		protected readonly object[] placeholderValues;
+		internal ProjectionContext<U> projectionContext;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
-
+		
 		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty, object[] placeholderValues)
 			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, relatedDataAccessObjectContext, selectFirstType, sqlAggregateType, isDefaultIfEmpty)
 		{
 			this.placeholderValues = placeholderValues;
+			this.projectionContext = new ProjectionContext<U>();
 			this.objectReader = (Func<ObjectProjector, IDataReader, object[], U>)objectReader;
 		}
 

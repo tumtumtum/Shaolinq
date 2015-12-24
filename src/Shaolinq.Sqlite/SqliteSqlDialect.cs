@@ -7,8 +7,6 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDialect
 		: SqlDialect
 	{
-		public new static readonly SqliteSqlDialect Default = new SqliteSqlDialect();
-
 		public override bool SupportsCapability(SqlCapability capability)
 		{
 			switch (capability)

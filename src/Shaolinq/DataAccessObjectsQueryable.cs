@@ -10,37 +10,32 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
 {
-	/// <summary>
-	/// Base class that represents a queryable set of <c>DataAccessObjects</c>
-	/// </summary>
-	/// <typeparam name="T">The type data access object</typeparam>
 	public class DataAccessObjectsQueryable<T>
-		: ReusableQueryable<T>, IHasDataAccessModel, IHasExtraCondition, IDataAccessObjectActivator<T>
+		: ReusableQueryable<T>, IHasDataAccessModel, IDataAccessObjectActivator<T>
 		where T : DataAccessObject
 	{
 		private readonly Type idType;
 		private readonly PropertyInfo primaryKeyProperty;
 		private readonly TypeDescriptor typeDescriptor;
-		public DataAccessModel DataAccessModel { get; set; }
-		public LambdaExpression ExtraCondition { get; protected set; }
-		
+		public DataAccessModel DataAccessModel { get; }
+	
+		protected DataAccessObjectsQueryable(DataAccessModel dataAccessModel)
+			: this(dataAccessModel, null)
+		{	
+		}
+
 		protected DataAccessObjectsQueryable(DataAccessModel dataAccessModel, Expression expression)
+			: base(dataAccessModel.NewQueryProvider(), expression)
 		{
-			if (this.DataAccessModel != null)
-			{
-				throw new ObjectAlreadyInitializedException(this);
-			}
+			this.DataAccessModel = dataAccessModel;
 
 			this.typeDescriptor = dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
-			if (typeDescriptor.PrimaryKeyCount > 0)
+			if (this.typeDescriptor.PrimaryKeyCount > 0)
 			{
-				this.idType = typeDescriptor.PrimaryKeyProperties[0].PropertyType;
-				this.primaryKeyProperty = typeDescriptor.PrimaryKeyProperties[0].PropertyInfo;
+				this.idType = this.typeDescriptor.PrimaryKeyProperties[0].PropertyType;
+				this.primaryKeyProperty = this.typeDescriptor.PrimaryKeyProperties[0].PropertyInfo;
 			}
-
-			this.DataAccessModel = dataAccessModel; 
-			this.Initialize(this.DataAccessModel.NewQueryProvider(), expression);
 		}
 
 		public virtual T Create()
@@ -90,12 +85,12 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetQueryableByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			if (idType == null)
+			if (this.idType == null)
 			{
 				throw new NotSupportedException($"Type {this.typeDescriptor.PersistedName} does not define any primary keys");
 			}
 
-			if (typeof(K) == idType && !idType.IsDataAccessObjectType())
+			if (typeof(K) == this.idType && !this.idType.IsDataAccessObjectType())
 			{
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
 				{
@@ -103,8 +98,7 @@ namespace Shaolinq
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
-				var body = Expression.Equal(Expression.Property(parameterExpression, primaryKeyProperty), Expression.Constant(primaryKey));
-
+				var body = Expression.Equal(Expression.Property(parameterExpression, this.primaryKeyProperty), Expression.Constant(primaryKey));
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
 				return this.Where(condition);
@@ -117,8 +111,7 @@ namespace Shaolinq
 				}
 
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
-				var body = Expression.Equal(Expression.Property(parameterExpression, primaryKeyProperty), Expression.Constant(Convert.ChangeType(primaryKey, idType)));
-
+				var body = Expression.Equal(Expression.Property(parameterExpression, this.primaryKeyProperty), Expression.Constant(Convert.ChangeType(primaryKey, this.idType)));
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
 				return this.Where(condition);
@@ -128,7 +121,6 @@ namespace Shaolinq
 				var deflated = this.DataAccessModel.GetReference<T, K>(primaryKey, primaryKeyType);
 				var parameterExpression = Expression.Parameter(typeof(T), "value");
 				var body = Expression.Equal(parameterExpression, Expression.Constant(deflated));
-
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
 				return this.Where(condition);
@@ -152,7 +144,7 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys, PrimaryKeyType primaryKeyType)
 		{
-			if (idType == null)
+			if (this.idType == null)
 			{
 				throw new NotSupportedException($"Type {this.typeDescriptor.PersistedName} does not define any primary keys");
 			}
@@ -162,11 +154,11 @@ namespace Shaolinq
 				throw new ArgumentNullException(nameof(primaryKeys));
 			}
 
-			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == idType && primaryKeyType != PrimaryKeyType.Composite))
+			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == this.idType && primaryKeyType != PrimaryKeyType.Composite))
 			{
-				if (!TypeDescriptor.IsSimpleType(idType))
+				if (!TypeDescriptor.IsSimpleType(this.idType))
 				{
-					throw new ArgumentException($"Type {typeof(K)} needs to be convertable to {idType}", nameof(primaryKeys));
+					throw new ArgumentException($"Type {typeof(K)} needs to be convertable to {this.idType}", nameof(primaryKeys));
 				}
 
 				if (this.typeDescriptor.PrimaryKeyCount != 1)
@@ -175,11 +167,10 @@ namespace Shaolinq
 				}
 			}
 
-			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == idType && primaryKeyType != PrimaryKeyType.Composite))
+			if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeof(K)) || (typeof(K) == this.idType && primaryKeyType != PrimaryKeyType.Composite))
 			{
-				var propertyInfo = primaryKeyProperty;
-				var parameterExpression = Expression.Parameter(propertyInfo.PropertyType, "value");
-
+				var propertyInfo = this.primaryKeyProperty;
+				var parameterExpression = Expression.Parameter(propertyInfo.PropertyType);
 				var body = Expression.Call(null, MethodInfoFastRef.EnumerableContainsMethod.MakeGenericMethod(propertyInfo.PropertyType), Expression.Constant(primaryKeyType), Expression.Property(parameterExpression, propertyInfo));
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
@@ -187,7 +178,7 @@ namespace Shaolinq
 			}
 			else
 			{ 
-				var parameterExpression = Expression.Parameter(typeof(T), "value");
+				var parameterExpression = Expression.Parameter(typeof(T));
 				
 				var deflatedObjects = primaryKeys
 					.Select(c => this.DataAccessModel.GetReference<T, K>(c, primaryKeyType))

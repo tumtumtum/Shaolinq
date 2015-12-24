@@ -1551,6 +1551,15 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Include_Select_Anon()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Malls.Include(c => c.Address).Select(c => new { c.Address.Number }).ToList();
+			}
+		}
+
+		[Test]
 		public void Test_NP1_Query()
 		{
 			using (var scope = new TransactionScope())

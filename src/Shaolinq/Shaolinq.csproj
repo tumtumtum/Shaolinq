@@ -316,7 +316,6 @@
     <Compile Include="Persistence\PrimitiveSqlDataType.cs" />
     <Compile Include="Persistence\InsertResults.cs" />
     <Compile Include="Persistence\SqlDialect.cs" />
-    <Compile Include="PrimeNumbers.cs" />
     <Compile Include="ObjectPropertyValue.cs" />
     <Compile Include="QueryableExtensions.cs" />
     <Compile Include="BackReferenceAttribute.cs" />

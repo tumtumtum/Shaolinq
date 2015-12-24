@@ -32,7 +32,7 @@ namespace Shaolinq.Persistence
 		public DefaultSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
 			: base(constraintDefaultsConfiguration)
 		{
-			this.sqlDataTypesByType = new Dictionary<Type, SqlDataType>(PrimeNumbers.Prime43);
+			this.sqlDataTypesByType = new Dictionary<Type, SqlDataType>();
 
 			this.DefineSqlDataType(typeof(bool), "TINYINT", "GetBoolean");
 			this.DefineSqlDataType(typeof(byte), "BYTE UNSIGNED ", "GetByte");

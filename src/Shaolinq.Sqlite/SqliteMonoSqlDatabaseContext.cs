@@ -15,7 +15,7 @@ namespace Shaolinq.Sqlite
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDataTypeProvider = new SqliteSqlDataTypeProvider(constraintDefaults);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(SqliteSqlDialect.Default, sqlDataTypeProvider, typeof(SqliteSqlQueryFormatter));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(new SqliteSqlDialect(), sqlDataTypeProvider, typeof(SqliteSqlQueryFormatter));
 
 			return new SqliteMonoSqlDatabaseContext(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
 		}

@@ -30,7 +30,7 @@ namespace Shaolinq
 				var expression = (Expression)Expression.Call(null, MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof(DataAccessObjectsQueryable<T>)), condition);
 
 				expression = Evaluator.PartialEval(expression);
-				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, queryable.ExtraCondition);
+				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);
 				expression = SqlObjectOperandComparisonExpander.Expand(expression);
 				expression = SqlQueryProvider.Optimize(expression, transactionContext.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
@@ -41,11 +41,11 @@ namespace Shaolinq
 		public static IEnumerable<T> DeleteObjectByObjectWhere<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : DataAccessObject
 		{
-			if (queryable.ExtraCondition != null)
+			if ((queryable as IHasExtraCondition)?.ExtraCondition != null)
 			{
 				var parameter = Expression.Parameter(typeof(T), "value");
 
-				var body = Expression.AndAlso(condition.Body, queryable.ExtraCondition);
+				var body = Expression.AndAlso(condition.Body, ((IHasExtraCondition)queryable).ExtraCondition);
 
 				condition = Expression.Lambda<Func<T, bool>>(body, parameter);
 			}

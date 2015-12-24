@@ -494,7 +494,7 @@ namespace Shaolinq.TypeBuilding
 			var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName, methodAttributes, callingConventions, propertyType, Type.EmptyTypes);
 			var generator = methodBuilder.GetILGenerator();
 
-			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObjectAdvanced), typeof(DataAccessModel), typeof(EntityRelationshipType), typeof(string) });
+			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObjectAdvanced), typeof(DataAccessModel), typeof(EntityRelationshipType) });
     
 			var local = generator.DeclareLocal(currentFieldInDataObject.FieldType);
             
@@ -520,9 +520,6 @@ namespace Shaolinq.TypeBuilding
 
 			// Load relationship type
 			generator.Emit(OpCodes.Ldc_I4, (int)relationshipType);
-
-			// Load Property Name
-			generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 
 			generator.Emit(OpCodes.Newobj, constructor);
 			generator.Emit(OpCodes.Stloc, local);

@@ -60,7 +60,7 @@ namespace Shaolinq.Sqlite
 		private static readonly Regex IsMemoryConnectionRegex = new Regex(@"((file\:)?\:memory\:)|(.*[^a-zA-Z]mode\s*\=\s*memory(([^a-zA-Z])|$).*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		protected SqliteSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
-			: base(model, SqliteSqlDialect.Default, sqlDataTypeProvider, sqlQueryFormatterManager, Path.GetFileNameWithoutExtension(contextInfo.FileName), contextInfo)
+			: base(model, new SqliteSqlDialect(), sqlDataTypeProvider, sqlQueryFormatterManager, Path.GetFileNameWithoutExtension(contextInfo.FileName), contextInfo)
 		{
 			this.FileName = contextInfo.FileName;
 			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName);
