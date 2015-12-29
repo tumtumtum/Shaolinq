@@ -54,13 +54,7 @@ namespace Shaolinq
 		public abstract object Execute(Expression expression);
 
 		public abstract IEnumerable<T> GetEnumerable<T>(Expression expression);
-
 		public abstract string GetQueryText(Expression expression);
-
-		public IRelatedDataAccessObjectContext RelatedDataAccessObjectContext
-		{
-			get;
-			set;
-		}
+		public IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }
 	}
 }

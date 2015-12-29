@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -12,9 +13,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlSelectExpression Select { get; }
 		public Expression Projector { get; }
 		public LambdaExpression Aggregator { get; }
-		public SelectFirstType SelectFirstType { get; }
 		public Expression DefaultValueExpression { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Projection;
+
+		public SqlProjectionExpression(SqlSelectExpression select, Expression projector)
+			: this(select, projector, null)
+		{
+		}
 
 		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator)
 			: this(select, projector, aggregator, false)
@@ -22,17 +27,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection)
-			: this(select, projector, aggregator, isElementTableProjection, SelectFirstType.None, null, false)
+			: this(select, projector, aggregator, isElementTableProjection, null, false)
 		{
 		}
 
-		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, SelectFirstType selectFirstType, Expression defaultValueExpression, bool isDefaultIfEmpty)
-			: base(selectFirstType == SelectFirstType.None ? select.Type : select.Type.GetGenericArguments()[0])
+		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValueExpression, bool isDefaultIfEmpty)
+			: this(select.Type, select, projector, aggregator, isElementTableProjection, null, false)
+		{
+		}
+
+		public SqlProjectionExpression(Type type, SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValueExpression, bool isDefaultIfEmpty)
+			: base(type)
 		{
 			this.Select = select;
 			this.Projector = projector;
 			this.Aggregator = aggregator;
-			this.SelectFirstType = selectFirstType;
 			this.DefaultValueExpression = defaultValueExpression;
 			this.IsElementTableProjection = isElementTableProjection;
 			this.IsDefaultIfEmpty = isDefaultIfEmpty;
@@ -40,7 +49,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public SqlProjectionExpression ToDefaultIfEmpty(Expression defaultValueExpression)
 		{
-			return new SqlProjectionExpression(this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.SelectFirstType, defaultValueExpression, true);
+			return new SqlProjectionExpression(this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, defaultValueExpression, true);
+		}
+
+		public SqlProjectionExpression ChangeType(Type type)
+		{
+			return new SqlProjectionExpression(type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValueExpression, this.IsDefaultIfEmpty);
 		}
 	}
 }

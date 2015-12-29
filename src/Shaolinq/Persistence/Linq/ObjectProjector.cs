@@ -12,25 +12,17 @@ namespace Shaolinq.Persistence.Linq
 	public class ObjectProjector
 	{
 		public DataAccessModel DataAccessModel { get; }
-		public SqlQueryFormatResult FormatResult { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
-		protected int count = 0;
+		protected int count;
 		protected readonly IQueryProvider provider;
-		protected SelectFirstType selectFirstType;
-		protected readonly SqlAggregateType? sqlAggregateType;
-		protected readonly bool isDefaultIfEmpty;
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext)
 		{
-			this.sqlAggregateType = sqlAggregateType;
-			this.isDefaultIfEmpty = isDefaultIfEmpty;
 			this.provider = provider;
 			this.DataAccessModel = dataAccessModel;
-			this.FormatResult = formatResult;
 			this.SqlDatabaseContext = sqlDatabaseContext;
-			this.selectFirstType = selectFirstType;
 			this.relatedDataAccessObjectContext = relatedDataAccessObjectContext;
 		}
 
@@ -68,25 +60,11 @@ namespace Shaolinq.Persistence.Linq
 		}
 	}
 
-	internal class ProjectionContext<U>
+	public class ProjectorInfo
 	{
-		public U CurrentValue { get; set; }
+		public object[] PlaceholderValues { get; set; }
+		public SqlQueryFormatResult FormatResult { get; set; }
 	}
-
-	internal struct ObjectReaderResult<U>
-	{
-		public U Current { get; set; }
-		public bool Yield { get; set; }
-		
-		public ObjectReaderResult(U value, bool yield)
-		{
-			this.Yield = yield;
-			this.Current = value;
-		}
-	}
-
-	internal delegate ObjectReaderResult<U> ObjectReaderFunc<T, U>(ProjectionContext<U> context, ObjectProjector projector, IDataReader dataReader, object[] placeholderValues)
-		where U : T;
 	
 	/// <summary>
 	/// Base class for ObjectReaders that use Reflection.Emit
@@ -105,64 +83,31 @@ namespace Shaolinq.Persistence.Linq
 		: ObjectProjector, IEnumerable<T>, IAsyncEumerable<T>
 		where U : T
 	{
-		protected readonly object[] placeholderValues;
-		internal ProjectionContext<U> projectionContext;
+		protected readonly ProjectorInfo projectorInfo;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
-		
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, relatedDataAccessObjectContext, selectFirstType, sqlAggregateType, isDefaultIfEmpty)
+
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, ProjectorInfo projectorInfo, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext)
 		{
-			this.placeholderValues = placeholderValues;
-			this.projectionContext = new ProjectionContext<U>();
-			this.objectReader = (Func<ObjectProjector, IDataReader, object[], U>)objectReader;
+			this.projectorInfo = projectorInfo;
+			this.objectReader = objectReader;
 		}
 
 		public virtual IEnumerator<T> GetEnumerator()
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
+			var info = this.projectorInfo;
+			
+            using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
 				var transactionalCommandsContext = (DefaultSqlTransactionalCommandsContext)acquisition.SqlDatabaseCommandsContext;
 
-				using (var dataReader = transactionalCommandsContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
+				using (var dataReader = transactionalCommandsContext.ExecuteReader(info.FormatResult.CommandText, info.FormatResult.ParameterValues))
 				{
-					if (dataReader.Read())
-					{
-						if (this.isDefaultIfEmpty && this.sqlAggregateType != null)
-						{
-							if (dataReader.FieldCount > 0 && dataReader.IsDBNull(0))
-							{
-								yield break;
-							}
-						}
-						
-						if (this.sqlAggregateType != SqlAggregateType.Sum && this.sqlAggregateType != SqlAggregateType.Count && this.sqlAggregateType != SqlAggregateType.LongCount && !typeof(T).IsNullableType())
-						{
-							if (dataReader.FieldCount > 0 && dataReader.IsDBNull(0))
-							{
-								throw new InvalidOperationException("Sequence contains no elements");
-							}
-						}
-						
-						if (this.isDefaultIfEmpty && (this.sqlAggregateType == SqlAggregateType.Count || this.sqlAggregateType == SqlAggregateType.LongCount))
-						{
-							if (dataReader.FieldCount > 0 && Convert.ToInt64(dataReader.GetValue(0)) == 0)
-							{
-								yield return (T)Convert.ChangeType(1, typeof(T));
-							}
-						}
-
-						var value = this.objectReader(this, dataReader, this.placeholderValues);
-
-						yield return value;
-
-						this.count++;
-					}
-
 					while (dataReader.Read())
 					{
-						yield return this.objectReader(this, dataReader, this.placeholderValues);
+						yield return objectReader(this, dataReader, info.PlaceholderValues);
 
 						this.count++;
 					}

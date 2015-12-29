@@ -178,6 +178,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
+    <Compile Include="Persistence\Linq\ProjectionScope.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpanderResults.cs" />
     <Compile Include="Persistence\MarsDataReader.cs" />
     <Compile Include="Persistence\MarsDbCommand.cs" />

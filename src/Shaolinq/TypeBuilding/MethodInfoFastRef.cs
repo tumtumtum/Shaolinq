@@ -46,6 +46,5 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo DataAccessModelGetReference = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string>((Expression<Func<object, string>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string, int>((Expression<Func<object, string>>)null, (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
-		public static readonly MethodInfo SqlQueryProviderProcessResultMethod = TypeUtils.GetMethod(() => SqlQueryProvider.ProcessResult(default(SqlQueryProvider.PrivateExecuteResult<int>))).GetGenericMethodDefinition();
 	}
 }

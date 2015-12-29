@@ -16,22 +16,23 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public Expression Take { get; }
 		public Expression Skip { get; }
 		public bool ForUpdate { get; }
+		public bool Reverse { get; set; }
 		public IReadOnlyList<Expression> OrderBy { get; }
 		public IReadOnlyList<Expression> GroupBy { get; }
 		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Select;
 
-		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate)
-			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), null, false, null, null, forUpdate)
+		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate = false, bool reverse = false)
+			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), null, false, null, null, forUpdate, reverse)
 		{
 		}
 
-		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, IEnumerable<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate)
-			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), groupBy.ToReadOnlyCollection(), distinct, skip, take, forUpdate)
+		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, IEnumerable<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate = false, bool reverse = false)
+			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), groupBy.ToReadOnlyCollection(), distinct, skip, take, forUpdate, reverse)
 		{	
 		}
 
-		public SqlSelectExpression(Type type, string alias, IReadOnlyList<SqlColumnDeclaration> columns, Expression from, Expression where, IReadOnlyList<Expression> orderBy, IReadOnlyList<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate)
+		public SqlSelectExpression(Type type, string alias, IReadOnlyList<SqlColumnDeclaration> columns, Expression from, Expression where, IReadOnlyList<Expression> orderBy, IReadOnlyList<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate = false, bool reverse = false)
 			: base(type, alias)
 		{
 			this.Distinct = distinct;
@@ -45,6 +46,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Take = take;
 			this.Skip = skip;
 			this.ForUpdate = forUpdate;
+			this.Reverse = reverse;
 		}
         
 		public SqlSelectExpression ChangeColumns(IEnumerable<SqlColumnDeclaration> columns)
@@ -59,17 +61,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public SqlSelectExpression ChangeWhere(Expression where)
 		{
-			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, where, this.OrderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, this.ForUpdate);
+			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, where, this.OrderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, this.ForUpdate, this.Reverse);
 		}
 
 		public SqlSelectExpression ChangeWhereAndColumns(Expression where, IReadOnlyList<SqlColumnDeclaration> columns, bool? forUpdate = null)
 		{
-			return new SqlSelectExpression(this.Type, this.Alias, columns, this.From, where, this.OrderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, forUpdate ?? this.ForUpdate);
+			return new SqlSelectExpression(this.Type, this.Alias, columns, this.From, where, this.OrderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, forUpdate ?? this.ForUpdate, this.Reverse);
 		}
 
 		public SqlSelectExpression ChangeSkipTake(Expression skip, Expression take)
 		{
-			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, skip, take, this.ForUpdate);
+			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, skip, take, this.ForUpdate, this.Reverse);
 		}
 	}
 }

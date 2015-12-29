@@ -57,7 +57,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Count_With_DefaultIfEmpty()
 		{
 			using (var scope = new TransactionScope())
@@ -164,7 +164,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Nullable_Select_DefaultIfEmpty707_Then_Max_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -254,7 +254,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Nullable_Select_DefaultIfEmpty707_Then_Sum_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -282,7 +282,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Integer_Select_Then_Max_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -351,7 +351,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Integer_Select_DefaultIfEmpty707_Then_Max_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -431,7 +431,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Integer_Select_DefaultIfEmpty707_Then_Sum_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -474,7 +474,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Object_Select_DefaultIfEmpty_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -489,7 +489,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore("TODO")]
 		public virtual void Test_Object_Select_DefaultIfEmpty_First_Empty()
 		{
 			using (var scope = new TransactionScope())

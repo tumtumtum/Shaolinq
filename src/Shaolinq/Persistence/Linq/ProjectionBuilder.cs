@@ -17,20 +17,23 @@ namespace Shaolinq.Persistence.Linq
 	public class ProjectionBuilder
 		: SqlExpressionVisitor
 	{
+		private readonly ProjectionScope currentScope;
 		private readonly ParameterExpression dataReader;
 		private readonly ParameterExpression objectProjector;
 		private readonly ParameterExpression dynamicParameters;
 		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly Dictionary<string, int> columnIndexes;
+		
 		private static readonly MethodInfo ExecuteSubQueryMethod = typeof(ObjectProjector).GetMethod("ExecuteSubQuery");
 
-		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IEnumerable<string> columns)
+		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, ProjectionScope projectionScope, IEnumerable<string> columns)
 		{
 			var x = 0;
+
 			this.dataAccessModel = dataAccessModel;
 			this.sqlDatabaseContext = sqlDatabaseContext;
-
+			this.currentScope = projectionScope;
 			this.columnIndexes = columns.ToDictionary(c => c, c => x++);
 
 			this.dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
@@ -51,9 +54,9 @@ namespace Shaolinq.Persistence.Linq
 		/// and an <see cref="IDataReader"/>.  The lambda expression will construct a single
 		/// object for return from the current row in the given <see cref="IDataReader"/>.
 		/// </returns>
-		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression, IEnumerable<string> columns)
+		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, ProjectionScope projectionScope, Expression expression, IEnumerable<string> columns)
 		{
-			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, columns);
+			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, projectionScope, columns);
 
 			var body = projectionBuilder.Visit(expression);
             
@@ -61,7 +64,7 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		private Type currentNewExpressionType = null;
-
+		
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
 			var previousCurrentNewExpressionType = this.currentNewExpressionType;
@@ -172,10 +175,19 @@ namespace Shaolinq.Persistence.Linq
 			{
 				// Replace all new DataAccessObject() calls with new ConcreteDataAccessObject(DataAccessModel)
 
-				return Expression.New
+				var constructor = this.dataAccessModel.GetConcreteTypeFromDefinitionType(expression.Type)
+					.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) });
+
+				if (constructor == null)
+				{
+					throw new InvalidOperationException(@"Missing constructor for {expression.Type}");
+				}
+
+                return Expression.New
 				(
-					this.dataAccessModel.GetConcreteTypeFromDefinitionType(expression.Type).GetConstructor(new [] { typeof(DataAccessModel), typeof(bool) }),
-					new Expression[] { Expression.Property(this.objectProjector, "DataAccessModel"), Expression.Constant(false) }
+					constructor,
+					Expression.Property(this.objectProjector, "DataAccessModel"),
+					Expression.Constant(false)
 				);
 			}
 
@@ -315,35 +327,18 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.Call(Expression.Property(this.objectProjector, nameof(ObjectProjector.DataAccessModel)), method, arrayOfValues);
 		}
 
+		protected virtual Expression ProcessInnerProjection(SqlProjectionExpression projection)
+		{
+			return projection;
+		}
+
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
 			var subQuery = Expression.Lambda(projection, this.objectProjector);
 			var elementType = TypeHelper.GetElementType(subQuery.Body.Type);
 			var boundExecuteSubQueryMethod = ExecuteSubQueryMethod.MakeGenericMethod(elementType);
 
-			if (projection.Type.GetSequenceElementType() == null)
-			{
-				var constructor = TypeUtils.GetConstructor(() => new SqlQueryProvider.PrivateExecuteResult<int>(null, SelectFirstType.None, false, null));
-				constructor = constructor.GetConstructorOnTypeReplacingTypeGenericArgs(elementType);
-				var processResultMethod = MethodInfoFastRef.SqlQueryProviderProcessResultMethod.MakeGenericMethod(elementType);
-
-				return Expression.Call
-				(
-					processResultMethod,
-					Expression.New
-					(
-						constructor,
-						Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), this.dataReader),
-						Expression.Constant(projection.SelectFirstType),
-						Expression.Constant(projection.IsDefaultIfEmpty),
-						Expression.Constant(projection.DefaultValueExpression, typeof(Expression))
-					)
-				);
-			}
-			else
-			{
-				return Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), this.dataReader);
-			}
+			return Expression.Call(this.objectProjector, boundExecuteSubQueryMethod, Expression.Constant(subQuery), this.dataReader);
 		}
 	}
 }

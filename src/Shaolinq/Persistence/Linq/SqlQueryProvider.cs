@@ -1,12 +1,13 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
+using System.Reflection;
 using Platform;
+using Platform.Reflection;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
@@ -16,61 +17,26 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
+		private readonly ProjectionScope projectionScope;
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
-
-		protected internal struct PrivateExecuteResult<T>
-		{	
-			public IEnumerable<T> results;
-			private bool computedDefaultValue;
-			private T defaultValue;
-			public SelectFirstType selectFirstType;
-			public bool defaultIfEmpty;
-			public Expression defaultValueExpression;
-
-			public PrivateExecuteResult(IEnumerable<T> results, SelectFirstType selectFirstType, bool defaultIfEmpty, Expression defaultValueExpression)
-				: this()
-			{
-				this.results = results;
-				this.selectFirstType = selectFirstType;
-				this.defaultIfEmpty = defaultIfEmpty;
-				this.defaultValueExpression = defaultValueExpression;
-			}
-
-			public T GetDefaultValue()
-			{
-				if (!this.computedDefaultValue)
-				{
-					if (this.defaultValueExpression == null)
-					{
-						this.defaultValue = default(T);
-					}
-					else
-					{
-						this.defaultValue = (T)ExpressionInterpreter.Interpret(this.defaultValueExpression);
-					}
-
-					this.computedDefaultValue = true;
-				}
-
-				return this.defaultValue;
-			}
-		}
 
 		protected internal struct ProjectorCacheKey
 		{
 			internal readonly int hashCode;
 			internal readonly Expression projectionExpression;
+			internal readonly Expression aggregator;
 
-			public ProjectorCacheKey(Expression projectionExpression, SqlDatabaseContext sqlDatabaseContext)
+			public ProjectorCacheKey(Expression projectionExpression, Expression aggregator)
 			{
 				this.projectionExpression = projectionExpression;
-				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) & sqlDatabaseContext.GetHashCode();
+				this.aggregator = aggregator;
+				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) 
+					^ (aggregator == null ? 0 : SqlExpressionHasher.Hash(aggregator));
 			}
 		}
 
 		protected internal struct ProjectorCacheInfo
 		{
-			public SqlAggregateType sqlAggregateType;
 			public Type elementType;
 			public Delegate projector;
 		}
@@ -82,7 +48,8 @@ namespace Shaolinq.Persistence.Linq
 
 			public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
 			{
-				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
+				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders)
+					&& (SqlExpressionComparer.Equals(x.aggregator, y.aggregator, SqlExpressionComparerOptions.IgnoreConstantPlaceholders));
 			}
 
 			public int GetHashCode(ProjectorCacheKey obj)
@@ -94,9 +61,10 @@ namespace Shaolinq.Persistence.Linq
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
-		public SqlQueryProvider(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext)
+		public SqlQueryProvider(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, ProjectionScope projectionScope)
 			: base(typeof(SqlQueryable<>))
 		{
+			this.projectionScope = projectionScope;
 			this.DataAccessModel = dataAccessModel;
 			this.SqlDatabaseContext = sqlDatabaseContext;
 		}
@@ -106,78 +74,9 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlQueryable<T>(this, expression);
 		}
 
-		internal static IEnumerable<T> ProcessResults<T>(PrivateExecuteResult<T> privateExecuteResult)
-		{
-			if (privateExecuteResult.defaultIfEmpty)
-			{
-				var found = false;
-
-				foreach (var result in privateExecuteResult.results)
-				{
-					found = true;
-
-					yield return result;
-				}
-
-				if (!found)
-				{
-					yield return privateExecuteResult.GetDefaultValue();
-				}
-			}
-			else
-			{
-				foreach (var result in privateExecuteResult.results)
-				{
-					yield return result;
-				}
-			}
-		}
-
-		internal static T ProcessResult<T>(PrivateExecuteResult<T> privateExecuteResult)
-		{
-			IEnumerable<T> results;
-
-			if (privateExecuteResult.defaultIfEmpty)
-			{
-				T firstValue;
-
-				if (!privateExecuteResult.results.TryGetFirst(out firstValue))
-				{
-					results = new List<T>
-					{
-						privateExecuteResult.GetDefaultValue()
-					};
-				}
-				else
-				{
-					results = new[] { firstValue }.Concat(privateExecuteResult.results);
-				}
-			}
-			else
-			{
-				results = privateExecuteResult.results;
-			}
-
-			switch (privateExecuteResult.selectFirstType)
-			{
-			case SelectFirstType.First:
-				return results.First();
-			case SelectFirstType.FirstOrDefault:
-				return results.FirstOrDefault();
-			case SelectFirstType.Single:
-				return results.Single();
-			case SelectFirstType.SingleOrDefault:
-				return results.SingleOrDefault();
-			default:
-				return results.First();
-			}
-		}
-
 		public override T Execute<T>(Expression expression)
 		{
-			var privateExecuteResult = this.PrivateExecute<T>(expression);
-
-			return ProcessResult(privateExecuteResult);
+			return this.PrivateExecute<T>(expression);
 		}
 
 		public override object Execute(Expression expression)
@@ -187,9 +86,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
 		{
-			var privateExecuteResult = this.PrivateExecute<T>(expression);
-
-			return ProcessResults(privateExecuteResult);
+			return this.PrivateExecute<IEnumerable<T>>(expression);
 		}
 
 		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
@@ -235,11 +132,11 @@ namespace Shaolinq.Persistence.Linq
 
 			return expression;
 		}
-
-		private PrivateExecuteResult<T> PrivateExecute<T>(Expression expression)
+		
+		private T PrivateExecute<T>(Expression expression)
 		{
 			var projectionExpression = expression as SqlProjectionExpression;
-			
+
 			if (projectionExpression == null)
 			{
 				expression = Evaluator.PartialEval(expression);
@@ -253,34 +150,79 @@ namespace Shaolinq.Persistence.Linq
 					expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition);
 				}
 
-				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
+				expression = projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
 
 			ProjectorCacheInfo cacheInfo;
-			
-			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
-
-			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression, SqlQueryFormatterOptions.Default);
-			
-			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
-
-			var key = new ProjectorCacheKey(projectionExpression, this.SqlDatabaseContext);
-
+			var key = new ProjectorCacheKey(expression, projectionExpression.Aggregator);
 			var projectorCache = this.SqlDatabaseContext.projectorCache;
-
+			
 			if (!projectorCache.TryGetValue(key, out cacheInfo))
 			{
-				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression.Projector, columns);
+				var projectorInfoParam = Expression.Parameter(typeof(ProjectorInfo));
+				var columns = projectionExpression.Select.Columns.Select(c => c.Name);
+				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionScope, projectionExpression.Projector, columns);
+
+				var elementType = projectionLambda.ReturnType;
+                
+				if (elementType.IsDataAccessObjectType())
+				{
+					var concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
+
+					if (this.RelatedDataAccessObjectContext == null)
+					{
+						var constructor = typeof(DataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+
+						expression = Expression.New
+						(
+							constructor,
+							Expression.Constant(this),
+							Expression.Constant(this.DataAccessModel),
+							Expression.Constant(this.SqlDatabaseContext),
+							Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
+							projectorInfoParam,
+							projectionLambda
+						);
+					}
+					else
+					{
+						var constructor = typeof(RelatedDataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+
+						expression = Expression.New
+						(
+							constructor,
+							Expression.Constant(this),
+							Expression.Constant(this.DataAccessModel),
+							Expression.Constant(this.SqlDatabaseContext),
+							Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
+							projectorInfoParam,
+							projectionLambda
+						);
+					}
+				}
+				else
+				{
+					var constructor = typeof(ObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+
+					expression = Expression.New
+					(
+						constructor,
+						Expression.Constant(this),
+						Expression.Constant(this.DataAccessModel),
+						Expression.Constant(this.SqlDatabaseContext),
+						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
+						projectorInfoParam,
+						projectionLambda
+					);
+				}
+
+				if (projectionExpression.Aggregator != null)
+				{
+					expression = SqlExpressionReplacer.Replace(projectionExpression.Aggregator.Body, projectionExpression.Aggregator.Parameters[0], expression);
+				}
 
 				cacheInfo.elementType = projectionLambda.Body.Type;
-				cacheInfo.projector = projectionLambda.Compile();
-
-				var aggregates = AggregateFinder.Find(projectionExpression);
-
-				if (aggregates.Count == 1)
-				{
-					cacheInfo.sqlAggregateType = aggregates.First().AggregateType;
-				}
+				cacheInfo.projector = (Func<ProjectorInfo, T>)Expression.Lambda(expression, projectorInfoParam).Compile();
 
 				var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default);
 
@@ -292,69 +234,16 @@ namespace Shaolinq.Persistence.Linq
 				this.SqlDatabaseContext.projectorCache = newCache;
 			}
 
-			var elementType = TypeHelper.GetElementType(cacheInfo.elementType);
-			var concreteElementType = elementType;
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression, SqlQueryFormatterOptions.Default);
+			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
 
-			if (elementType.IsDataAccessObjectType())
+			var projectorInfo = new ProjectorInfo
 			{
-				Type type;
-				TypeHelper.GetElementType(cacheInfo.elementType);
-				elementType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(elementType);
-				concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
+				FormatResult = formatResult,
+				PlaceholderValues = placeholderValues
+			};
 
-				if (this.RelatedDataAccessObjectContext == null)
-				{
-					type = typeof(DataAccessObjectProjector<,>);
-				}
-				else
-				{
-					type = typeof(RelatedDataAccessObjectProjector<,>);
-				}
-
-				return new PrivateExecuteResult<T>
-				(
-					(IEnumerable<T>)Activator.CreateInstance
-					(
-						type.MakeGenericType(elementType, concreteElementType),
-						this,
-						this.DataAccessModel,
-						formatResult,
-						this.SqlDatabaseContext,
-						cacheInfo.projector,
-						this.RelatedDataAccessObjectContext,
-						projectionExpression.SelectFirstType,
-						cacheInfo.sqlAggregateType,
-						projectionExpression.IsDefaultIfEmpty,
-						placeholderValues
-					),
-					projectionExpression.SelectFirstType,
-					projectionExpression.IsDefaultIfEmpty,
-					projectionExpression.DefaultValueExpression
-				);
-			}
-			else
-			{
-				return new PrivateExecuteResult<T>
-				(
-					(IEnumerable<T>)Activator.CreateInstance
-					(
-						typeof(ObjectProjector<,>).MakeGenericType(elementType, concreteElementType),
-						this,
-						this.DataAccessModel,
-						formatResult,
-						this.SqlDatabaseContext,
-						cacheInfo.projector,
-						this.RelatedDataAccessObjectContext,
-						projectionExpression.SelectFirstType,
-						cacheInfo.sqlAggregateType,
-						projectionExpression.IsDefaultIfEmpty,
-						placeholderValues
-					),
-					projectionExpression.SelectFirstType,
-					projectionExpression.IsDefaultIfEmpty,
-					projectionExpression.DefaultValueExpression
-				);
-			}
+			return (T)((Func<ProjectorInfo, T>)cacheInfo.projector)(projectorInfo);
 		}
 
 		public override string GetQueryText(Expression expression)

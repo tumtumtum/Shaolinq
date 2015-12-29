@@ -86,7 +86,7 @@ namespace Shaolinq.Persistence
 
 		public virtual IPersistenceQueryProvider CreateQueryProvider()
 		{
-			return new SqlQueryProvider(this.DataAccessModel, this);
+			return new SqlQueryProvider(this.DataAccessModel, this, null);
 		}
 		
 		public virtual string GetRelatedSql(Exception e)

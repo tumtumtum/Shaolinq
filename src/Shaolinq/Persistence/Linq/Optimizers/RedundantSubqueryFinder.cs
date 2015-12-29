@@ -79,11 +79,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			return (IsSimpleProjection(select) || IsNameMapProjection(select))
 				&& !select.Distinct
-				&& select.Take == null
-				&& select.Skip == null
+				&& (select.Take == null)
+                && (select.Skip == null)
 				&& select.Where == null
-				&& (select.OrderBy == null || select.OrderBy.Count == 0)
-				&& (select.GroupBy == null || select.GroupBy.Count == 0);
+				&& (select.OrderBy?.Count == 0)
+				&& (select.GroupBy?.Count == 0);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression select)
@@ -103,8 +103,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitSubquery(SqlSubqueryExpression subquery)
 		{
-			// Don't gather inside scalar & exists
-
 			return subquery;
 		}
 	}

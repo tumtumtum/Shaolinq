@@ -26,6 +26,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public static bool Equals(Expression left, Expression right, SqlExpressionComparerOptions options)
 		{
+			if (left == null && right == null)
+			{
+				return true;
+			}
+
+			if (left == null)
+			{
+				return false;
+			}
+
+			if (right == null)
+			{
+				return false;
+			}
+
 			var visitor = new SqlExpressionComparer(right) { options = options };
 			
 			visitor.Visit(left);
@@ -976,8 +991,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 
 			this.result = this.result && (current.IsDefaultIfEmpty == projection.IsDefaultIfEmpty
-			                    && current.IsElementTableProjection == projection.IsElementTableProjection
-			                    && current.SelectFirstType == projection.SelectFirstType);
+			                    && current.IsElementTableProjection == projection.IsElementTableProjection);
 					  
 			if (!this.result)
 			{

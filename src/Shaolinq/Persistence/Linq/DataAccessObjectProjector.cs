@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -12,8 +13,8 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : DataAccessObject
 	{
-		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlQueryFormatResult formatResult, SqlDatabaseContext sqlDatabaseContext, Delegate objectReader, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SelectFirstType selectFirstType, SqlAggregateType? sqlAggregateType, bool isDefaultIfEmpty, object[] placeholderValues)
-			: base(provider, dataAccessModel, formatResult, sqlDatabaseContext, objectReader, relatedDataAccessObjectContext, selectFirstType, sqlAggregateType, isDefaultIfEmpty, placeholderValues)
+		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, ProjectorInfo projectorInfo, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, projectorInfo, objectReader)
 		{
 		}
 
@@ -21,15 +22,17 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
+			var info = this.projectorInfo;
+			
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
 				var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
 
-				using (var dataReader = persistenceTransactionContext.ExecuteReader(this.FormatResult.CommandText, this.FormatResult.ParameterValues))
+				using (var dataReader = persistenceTransactionContext.ExecuteReader(info.FormatResult.CommandText, info.FormatResult.ParameterValues))
 				{
 					while (dataReader.Read())
 					{
-						T retval = this.objectReader(this, dataReader, this.placeholderValues);
+						T retval = objectReader(this, dataReader, info.PlaceholderValues);
 
 						retval.ToObjectInternal().ResetModified();
 

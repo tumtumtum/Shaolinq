@@ -259,7 +259,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (select != projectionExpression.Select || projector != projectionExpression.Projector || aggregator != projectionExpression.Aggregator)
 			{
-				return new SqlProjectionExpression(select, projector, aggregator, projectionExpression.IsElementTableProjection, projectionExpression.SelectFirstType, projectionExpression.DefaultValueExpression, projectionExpression.IsDefaultIfEmpty);
+				return new SqlProjectionExpression(select, projector, aggregator, projectionExpression.IsElementTableProjection, projectionExpression.DefaultValueExpression, projectionExpression.IsDefaultIfEmpty);
 			}
 
 			return projectionExpression;
@@ -333,8 +333,18 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
+			Expression where;
 			var from = this.VisitSource(selectExpression.From);
-			var where = this.Visit(selectExpression.Where);
+			try
+			{
+				where = this.Visit(selectExpression.Where);
+			}
+			catch
+			{
+				where = this.Visit(selectExpression.Where);
+
+				throw;
+			}
 
 			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
 			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
@@ -369,16 +379,15 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var selectFirstType = projection.SelectFirstType;
 			var source = (SqlSelectExpression)this.Visit(projection.Select);
 
 			var projector = this.Visit(projection.Projector);
 			var defaulValueExpression = this.Visit(projection.DefaultValueExpression);
 			var aggregator = (LambdaExpression)this.Visit(projection.Aggregator);
 
-			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValueExpression || aggregator != projection.Aggregator || selectFirstType != projection.SelectFirstType)
+			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValueExpression || aggregator != projection.Aggregator)
 			{
-				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.SelectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
+				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 			}
 
 			return projection;

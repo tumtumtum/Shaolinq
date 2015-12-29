@@ -1,4 +1,5 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 namespace Shaolinq.Persistence.Linq
 {
 	public enum SelectFirstType
@@ -7,6 +8,8 @@ namespace Shaolinq.Persistence.Linq
 		First,
 		FirstOrDefault,
 		Single,
-		SingleOrDefault
+		SingleOrDefault,
+		Last,
+		LastOrDefault
 	}
 }

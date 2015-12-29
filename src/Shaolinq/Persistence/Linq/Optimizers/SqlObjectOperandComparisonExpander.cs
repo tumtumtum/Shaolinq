@@ -55,7 +55,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				|| projector != projection.Projector
 				|| aggregator != projection.Aggregator)
 			{
-				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.SelectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
+				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 			}
 
 			return projection;

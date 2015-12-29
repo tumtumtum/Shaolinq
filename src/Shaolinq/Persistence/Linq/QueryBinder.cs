@@ -153,7 +153,7 @@ namespace Shaolinq.Persistence.Linq
 			return ColumnProjector.ProjectColumns(new Nominator(Nominator.CanBeColumn, true), expression, existingColumns, newAlias, existingAliases);
 		}
 
-		private Expression BindCollectionContains(Expression list, Expression item)
+		private Expression BindCollectionContains(Expression list, Expression item, bool isRoot)
 		{
 			const string columnName = "CONTAINS";
 
@@ -190,33 +190,72 @@ namespace Shaolinq.Persistence.Linq
 				false
 			);
 
-			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
-		}
+			var retval = (Expression)new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
 
-		private Expression BindFirst(Expression source, SelectFirstType selectFirstType)
-		{
-			int limit;
-
-			var projection = source.NodeType == (ExpressionType)SqlExpressionType.Projection ? (SqlProjectionExpression)source : this.VisitSequence(source);
-			var select = projection.Select;
-			var alias = this.GetNextAlias();
-			var pc = this.ProjectColumns(projection.Projector, alias, null, projection.Select.Alias);
-
-			switch (selectFirstType)
+			if (isRoot)
 			{
-			case SelectFirstType.Single:
-			case SelectFirstType.SingleOrDefault:
-				limit = 2;
-				break;
-			default:
-				limit = 1;
-				break;
+				retval = GetSingletonSequence(retval, "SingleOrDefault");
 			}
 
-			return new SqlProjectionExpression(new SqlSelectExpression(select.Type, alias, pc.Columns, projection.Select, null, null, null, false, null, Expression.Constant(limit), select.ForUpdate), pc.Projector, null, false, selectFirstType, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
+			return retval;
 		}
 
-		private Expression BindAny(Expression source)
+		private Expression GetSingletonSequence(Expression expr, string aggregator)
+		{
+			var elementType = expr.Type.GetSequenceElementType() ?? expr.Type;
+
+			var p = Expression.Parameter(typeof(IEnumerable<>).MakeGenericType(elementType), "p");
+			LambdaExpression aggr = null;
+
+			if (aggregator != null)
+			{
+				aggr = Expression.Lambda(Expression.Call(typeof(Enumerable), aggregator, new[] { elementType }, p), p);
+			}
+
+			var alias = this.GetNextAlias();
+			var select = new SqlSelectExpression(expr.Type, alias, new[] { new SqlColumnDeclaration("value", expr) }, null, null, null);
+
+			return new SqlProjectionExpression(select, new SqlColumnExpression(elementType, alias, "value"), aggr);
+		}
+
+
+		private Expression BindFirst(Expression source, LambdaExpression predicate, SelectFirstType selectFirstType, bool isRoot = false)
+		{
+			Expression where = null;
+			var projection = this.VisitSequence(source);
+
+			if (predicate != null)
+			{
+				this.expressionsByParameter[predicate.Parameters[0]] = projection.Projector;
+				where = this.Visit(predicate.Body);
+			}
+
+			var isFirst = selectFirstType == SelectFirstType.First || selectFirstType == SelectFirstType.FirstOrDefault;
+			var isLast = selectFirstType == SelectFirstType.Last || selectFirstType == SelectFirstType.LastOrDefault;
+
+			var take = (isFirst || isLast) ? Expression.Constant(1) : null;
+
+			if (take != null || where != null)
+			{
+				var alias = this.GetNextAlias();
+				var pc = this.ProjectColumns(projection.Projector, alias, null, projection.Select.Alias);
+
+				projection = new SqlProjectionExpression(new SqlSelectExpression(isRoot ? projection.Select.Type : projection.Select.Type.GetSequenceElementType(), alias, pc.Columns, projection.Select, where, null, null, false, null, take, false, isLast), pc.Projector);
+			}
+
+			if (isRoot)
+			{
+				var elementType = projection.Projector.Type;
+				var p = Expression.Parameter(typeof(IEnumerable<>).MakeGenericType(elementType));
+				var aggr = Expression.Lambda(Expression.Call(typeof(Enumerable), selectFirstType.ToString(), new[] { elementType }, p), p);
+
+				return new SqlProjectionExpression(projection.Select, projection.Projector, aggr, false, null, false);
+			}
+
+			return projection;
+		}
+
+		private Expression BindAny(Expression source, bool isRoot)
 		{
 			const string columnName = "EXISTS_COL";
 
@@ -241,7 +280,14 @@ namespace Shaolinq.Persistence.Linq
 				false
 			);
 
-			return new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
+			var retval = (Expression)new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
+
+			if (isRoot)
+			{
+				retval = GetSingletonSequence(retval, "SingleOrDefault");
+			}
+
+			return retval;
 		}
 
 		private Expression BindTake(Expression source, Expression take)
@@ -465,7 +511,7 @@ namespace Shaolinq.Persistence.Linq
 			var alias = this.GetNextAlias();
 			var pc = this.ProjectColumns(expression, alias, null, projection.Select.Alias);
 
-			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
+			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, null, false, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
 
 		internal static Expression StripNullCheck(Expression expression)
@@ -835,7 +881,7 @@ namespace Shaolinq.Persistence.Linq
 		            this.selectorPredicateStack.Pop();
 					return result;
 				case "Any":
-		            return this.BindAny(methodCallExpression.Arguments[0]);
+		            return this.BindAny(methodCallExpression.Arguments[0], methodCallExpression == this.rootExpression);
 	            case "Count":
 	            case "Min":
 	            case "Max":
@@ -890,6 +936,7 @@ namespace Shaolinq.Persistence.Linq
 			            return this.BindTake(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
 		            }
 		            break;
+					/*
 	            case "First":
 		            if (methodCallExpression.Arguments.Count == 1)
 		            {
@@ -925,7 +972,23 @@ namespace Shaolinq.Persistence.Linq
 		            return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.Single);
 	            case "SingleOrDefault":
 					return this.BindFirst(methodCallExpression.Arguments[0], SelectFirstType.SingleOrDefault);
-	            case "DefaultIfEmpty":
+					*/
+
+				case "First":
+				case "FirstOrDefault":
+				case "Single":
+				case "SingleOrDefault":
+					if (methodCallExpression.Arguments.Count == 1)
+					{
+						return this.BindFirst(methodCallExpression.Arguments[0], null, (SelectFirstType)Enum.Parse(typeof(SelectFirstType), methodCallExpression.Method.Name), methodCallExpression == this.rootExpression);
+					}
+					else if (methodCallExpression.Arguments.Count == 2)
+					{
+						return this.BindFirst(methodCallExpression.Arguments[0], GetLambda(methodCallExpression.Arguments[1]), (SelectFirstType)Enum.Parse(typeof(SelectFirstType), methodCallExpression.Method.Name), methodCallExpression == this.rootExpression);
+					}
+					break;
+
+				case "DefaultIfEmpty":
 		            if (methodCallExpression.Arguments.Count == 1)
 		            {
 			            var projectionExpression = (SqlProjectionExpression)this.Visit(methodCallExpression.Arguments[0]);
@@ -945,7 +1008,7 @@ namespace Shaolinq.Persistence.Linq
 	            case "Contains":
 		            if (methodCallExpression.Arguments.Count == 2)
 		            {
-			            return this.BindCollectionContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
+			            return this.BindCollectionContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], methodCallExpression == this.rootExpression);
 		            }
 		            break;
 	            }
@@ -1002,7 +1065,7 @@ namespace Shaolinq.Persistence.Linq
 					case "Contains":
 						if (methodCallExpression.Arguments.Count == 1)
 						{
-							return this.BindCollectionContains(methodCallExpression.Object, methodCallExpression.Arguments[0]);
+							return this.BindCollectionContains(methodCallExpression.Object, methodCallExpression.Arguments[0], methodCallExpression == this.rootExpression);
 						}
 						break;
 				}
@@ -1395,7 +1458,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var aggregator = Expression.Lambda(Expression.Call(typeof(Enumerable), "Single", new[] { returnType }, parameterExpression), parameterExpression);
 
-				return new SqlProjectionExpression(select, new SqlColumnExpression(returnType, alias, ""), aggregator, false, SelectFirstType.None, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
+				return new SqlProjectionExpression(select, new SqlColumnExpression(returnType, alias, ""), aggregator, false, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
 			}
 
 			var subquery = new SqlSubqueryExpression(returnType, select);
