@@ -88,53 +88,9 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitOver((SqlOverExpression)expression);
 			case SqlExpressionType.Scalar:
 				return this.VisitScalar((SqlScalarExpression)expression);
-			case (SqlExpressionType)ExpressionType.Block:
-				return this.VisitBlock((BlockExpression)expression);
-			case (SqlExpressionType)ExpressionType.Assign:
-				return this.VisitBinary((BinaryExpression)expression);
-			case (SqlExpressionType)ExpressionType.Goto:
-				return this.VisitGoto((GotoExpression)expression);
-			case (SqlExpressionType)ExpressionType.Label:
-				return this.VisitLabel((LabelExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
-		}
-
-		protected virtual Expression VisitLabel(LabelExpression labelExpression)
-		{
-			var defaultValue = this.Visit(labelExpression.DefaultValue);
-
-			if (defaultValue != labelExpression.DefaultValue)
-			{
-				return Expression.Label(labelExpression.Target, defaultValue);
-			}
-
-			return labelExpression;
-		}
-
-		protected virtual Expression VisitGoto(GotoExpression gotoExpression)
-		{
-			var value = this.Visit(gotoExpression.Value);
-
-			if (value != gotoExpression.Value)
-			{
-				return Expression.Goto(gotoExpression.Target, value);
-			}
-
-			return gotoExpression;
-		}
-
-		protected virtual Expression VisitBlock(BlockExpression blockExpression)
-		{
-			var expressionList = this.VisitExpressionList(blockExpression.Expressions);
-
-			if (expressionList != blockExpression.Expressions)
-			{
-				return Expression.Block(blockExpression.Variables, expressionList);
-			}
-
-			return blockExpression;
 		}
 
 		protected virtual Expression VisitScalar(SqlScalarExpression expression)

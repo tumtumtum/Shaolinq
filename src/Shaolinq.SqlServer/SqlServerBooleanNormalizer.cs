@@ -150,7 +150,7 @@ namespace Shaolinq.SqlServer
 			var right = this.Visit(join.Right);
 			var condition = this.Visit(join.JoinCondition);
 
-			if (condition.Type.GetUnwrappedNullableType() == typeof(bool) && condition is BitBooleanExpression)
+			if (condition?.Type.GetUnwrappedNullableType() == typeof(bool) && condition is BitBooleanExpression)
 			{
 				condition = Expression.Equal(condition, Expression.Constant(true));
 			}

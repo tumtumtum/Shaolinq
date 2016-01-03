@@ -107,12 +107,12 @@
       <HintPath>..\..\lib\Mono.Data.Sqlite.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Platform, Version=1.2.0.265, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.2.0.265-rc1\lib\net452\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.2.0.266, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.2.0.266-rc1\lib\net452\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.265, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.265-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.2.0.266, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.2.0.266-rc1\lib\net452\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

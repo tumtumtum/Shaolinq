@@ -37,7 +37,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				foreach (var aggregateSubqueryExpression in this.aggregateSubqueriesBySelectAlias[select.Alias])
 				{
-					var name = "AGGR" + columnsIncludingAggregates.Count;
+					var name = "__AGGR" + columnsIncludingAggregates.Count;
 
 					var columnDeclaration = new SqlColumnDeclaration(name, aggregateSubqueryExpression.AggregateInGroupSelect);
 

@@ -20,6 +20,7 @@ namespace Shaolinq.Persistence.Linq
 		public DataAccessModel DataAccessModel { get; }
 
 		private int aliasCount;
+		private int aggregateCount;
 		private readonly Type conditionType;
 		private LambdaExpression extraCondition;
 		private Expression rootExpression;
@@ -506,7 +507,7 @@ namespace Shaolinq.Persistence.Linq
 					var objectOperandExpression = (SqlObjectReferenceExpression)right;
 					var tupleExpression = new SqlTupleExpression(objectOperandExpression.Bindings.OfType<MemberAssignment>().Select(c => c.Expression));
 					var selector = this.MakeSelectorForPrimaryKeys(right.Type, tupleExpression.Type);
-					var leftWithSelect = this.BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)right, selector, false);
+					var leftWithSelect = this.BindSelectForPrimaryKeyProjection(tupleExpression.Type, (SqlProjectionExpression)left, selector, false);
 
 					return Expression.MakeBinary(binaryExpression.NodeType, leftWithSelect, tupleExpression, binaryExpression.IsLiftedToNull, binaryExpression.Method);
 				}
@@ -1466,7 +1467,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (ValuesRequiredAggregateNames.Contains(method.Name))
 				{
-					if (returnType.IsNullableType())
+					if (!returnType.IsValueType || returnType.IsNullableType())
 					{
 						nullableReturnType = returnType;
 					}
@@ -1498,11 +1499,13 @@ namespace Shaolinq.Persistence.Linq
 			var aggregateExpression = new SqlAggregateExpression(nullableReturnType ?? returnType, aggregateType, argumentExpression, isDistinct);
 			var selectType = typeof(IEnumerable<>).MakeGenericType(nullableReturnType ?? returnType);
 
-			var select = new SqlSelectExpression
+			var aggregateName = isRoot ? string.Empty : this.GetNextAggr();
+
+            var select = new SqlSelectExpression
 			(
 				selectType,
 				alias,
-				new [] { new SqlColumnDeclaration("", aggregateExpression) },
+				new [] { new SqlColumnDeclaration(aggregateName, aggregateExpression) },
 				projection.Select,
 				null,
 				null,
@@ -1635,24 +1638,15 @@ namespace Shaolinq.Persistence.Linq
 					}
 				}
 
-				return new SqlProjectionExpression(select, new SqlColumnExpression(projectorReturnType, alias, ""), aggregator, false, projection.DefaultValue);
+				return new SqlProjectionExpression(select, new SqlColumnExpression(projectorReturnType, alias, aggregateName), aggregator, false, projection.DefaultValue);
 			}
 
 			var subquery = new SqlSubqueryExpression(returnType, select);
-
-			// If we can find the corresponding group info then we can build a n
-			// AggregateSubquery node that will enable us to optimize the aggregate
-			// expression later using SqlAggregateSubqueryRewriter
 
 			GroupByInfo info;
 
 			if (this.groupByMap.TryGetValue(projection, out info))
 			{
-				// Use the element expression from the group by info to rebind the
-				// argument so the resulting expression is one that would be legal 
-				// to add to the columns in the select expression that has the corresponding 
-				// group-by clause.
-
 				if (argument != null)
 				{
 					this.AddExpressionByParameter(argument.Parameters[0], info.Element);
@@ -1666,12 +1660,6 @@ namespace Shaolinq.Persistence.Linq
 
 				aggregateExpression = new SqlAggregateExpression(returnType, aggregateType, argumentExpression, isDistinct);
 
-				// Check for easy to optimize case.
-				// If the projection that our aggregate is based on is really the 'group' argument from
-				// the Query.GroupBy(xxx, (key, group) => yyy) method then whatever expression we return
-				// here will automatically become part of the select expression that has the group-by
-				// clause, so just return the simple aggregate expression.
-
 				if (projection == this.currentGroupElement)
 				{
 					return aggregateExpression;
@@ -1681,6 +1669,11 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return subquery;
+		}
+
+		private string GetNextAggr()
+		{
+			return "__TAGGR" + aggregateCount++;
 		}
 
 		private Expression BindSelect(Type resultType, Expression source, LambdaExpression selector, bool forUpdate)

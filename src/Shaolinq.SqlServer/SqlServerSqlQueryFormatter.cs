@@ -103,25 +103,25 @@ namespace Shaolinq.SqlServer
 
 			switch (Type.GetTypeCode(type))
 			{
-				case TypeCode.Boolean:
-					if (Convert.ToBoolean(constantExpression.Value))
-					{
-						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 1));
+			case TypeCode.Boolean:
+				if (Convert.ToBoolean(constantExpression.Value))
+				{
+					this.Write(this.ParameterIndicatorPrefix);
+					this.Write(ParamNamePrefix);
+					this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 1));
 
-						return constantExpression;
-					}
-					else
-					{
-						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 0));
+					return constantExpression;
+				}
+				else
+				{
+					this.Write(this.ParameterIndicatorPrefix);
+					this.Write(ParamNamePrefix);
+					this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 0));
 
-						return constantExpression;
-					}
+					return constantExpression;
+				}
 			}
 
 			return base.VisitConstant(constantExpression);
