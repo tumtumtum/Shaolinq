@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -154,6 +155,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var fromSelect = GetLeftMostSelect(select.From);
 
 				if (fromSelect == null)
+				{
+					return false;
+				}
+
+				if (fromSelect.Columns.Any(c => c.NoOptimise))
 				{
 					return false;
 				}

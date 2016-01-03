@@ -144,6 +144,25 @@ namespace Shaolinq.SqlServer
 			}
 		}
 
+		protected override Expression VisitJoin(SqlJoinExpression join)
+		{
+			var left = this.Visit(join.Left);
+			var right = this.Visit(join.Right);
+			var condition = this.Visit(join.JoinCondition);
+
+			if (condition.Type.GetUnwrappedNullableType() == typeof(bool) && condition is BitBooleanExpression)
+			{
+				condition = Expression.Equal(condition, Expression.Constant(true));
+			}
+
+			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
+			{
+				return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
+			}
+
+			return join;
+		}
+
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
 			var count = selectExpression.Columns.Count;

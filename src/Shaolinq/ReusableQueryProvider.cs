@@ -13,30 +13,16 @@ namespace Shaolinq
 	public abstract class ReusableQueryProvider
 		: IPersistenceQueryProvider
 	{
-		protected Type QueryableType { get; }
-
-		protected ReusableQueryProvider(Type queryableType)
-		{
-			this.QueryableType = queryableType;
-		}
-
 		public virtual IQueryable<T> CreateQuery<T>(Expression expression)
 		{
-			return (IQueryable<T>) this.CreateQuery(expression);
+			return (IQueryable<T>)this.CreateQuery(expression);
 		}
-
+		
 		public virtual IQueryable CreateQuery(Expression expression)
 		{
 			var elementType = TypeHelper.GetElementType(expression.Type);
 
-			try
-			{
-				return(IQueryable)Activator.CreateInstance(this.QueryableType.MakeGenericType(elementType), new object[] {this, expression});
-			}
-			catch (TargetInvocationException e)
-			{
-				throw e.InnerException;
-			}
+			return this.CreateQuery(elementType, expression);
 		}
 
 		public virtual T Execute<T>(Expression expression)
@@ -52,9 +38,9 @@ namespace Shaolinq
 		}
 
 		public abstract object Execute(Expression expression);
-
 		public abstract IEnumerable<T> GetEnumerable<T>(Expression expression);
 		public abstract string GetQueryText(Expression expression);
+		protected abstract IQueryable CreateQuery(Type elementType, Expression expression);
 		public IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }
 	}
 }

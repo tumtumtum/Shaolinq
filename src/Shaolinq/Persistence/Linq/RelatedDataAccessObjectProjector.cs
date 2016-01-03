@@ -13,8 +13,8 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : DataAccessObject
 	{
-		public RelatedDataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, ProjectorInfo projectorInfo, Func<ObjectProjector, IDataReader, object[], U> objectReader)
-			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, projectorInfo, objectReader)
+		public RelatedDataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, formatResult, placeholderValues, objectReader)
 		{
 		}
 
@@ -22,17 +22,15 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			var info = this.projectorInfo;
-			
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
 				var transactionalCommandsContext = acquisition.SqlDatabaseCommandsContext;
 
-				using (var dataReader = transactionalCommandsContext.ExecuteReader(info.FormatResult.CommandText, info.FormatResult.ParameterValues))
+				using (var dataReader = transactionalCommandsContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
 				{
 					while (dataReader.Read())
 					{
-						T retval = objectReader(this, dataReader, info.PlaceholderValues);
+						T retval = objectReader(this, dataReader, placeholderValues);
 
 						this.relatedDataAccessObjectContext.InitializeDataAccessObject?.Invoke(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObjectAdvanced)retval);
 

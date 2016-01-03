@@ -31,12 +31,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return true;
 			}
 
-			if (left == null)
-			{
-				return false;
-			}
-
-			if (right == null)
+			if (left == null || right == null)
 			{
 				return false;
 			}
@@ -990,24 +985,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return projection;
 			}
 
-			this.result = this.result && (current.IsDefaultIfEmpty == projection.IsDefaultIfEmpty
-			                    && current.IsElementTableProjection == projection.IsElementTableProjection);
+			this.result = this.result && current.IsElementTableProjection == projection.IsElementTableProjection;
 					  
 			if (!this.result)
 			{
 				return projection;
 			}
-
+			
 			this.currentObject = current.Aggregator;
 			this.Visit(projection.Aggregator);
-
-			if (!this.result)
-			{
-				return projection;
-			}
-
-			this.currentObject = current.DefaultValueExpression;
-			this.Visit(projection.DefaultValueExpression);
 
 			if (!this.result)
 			{

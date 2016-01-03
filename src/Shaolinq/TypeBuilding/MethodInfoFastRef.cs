@@ -6,7 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
-using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
@@ -14,7 +14,8 @@ namespace Shaolinq.TypeBuilding
 	{
 		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => new List<string>().Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableContainsMethod = TypeUtils.GetMethod(() => Enumerable.Contains(new List<string>(), string.Empty)).GetGenericMethodDefinition();
-		public static readonly MethodInfo EnumerableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => new List<string>().DefaultIfEmpty()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => ((IEnumerable<string>)null).DefaultIfEmpty()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableDefaultIfEmptyWithValueMethod = TypeUtils.GetMethod(() => new List<string>().DefaultIfEmpty("")).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableCountMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableWhereMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Where(c => c.Length == 0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableSelectMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Select(c => c.ToUpper())).GetGenericMethodDefinition();
@@ -22,6 +23,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableJoinMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).Join(((IQueryable<int>)null), c => c.Length, c => c, (x, y) => x)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupJoinMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).GroupJoin(((IQueryable<int>)null), c => c.Length, c => c, (x, y) => x)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).DefaultIfEmpty()).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryableDefaultIfEmptyWithValueMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).DefaultIfEmpty(string.Empty)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableExtensionsIncludeMethod = TypeUtils.GetMethod(() => QueryableExtensions.Include(((IQueryable<DataAccessObject>)null), c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => ((DataAccessObject)null).Include(c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumParseMethod = TypeUtils.GetMethod(() => Enum.Parse(typeof(Enum), ""));
@@ -32,7 +34,12 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo StringExtensionsIsLikeMethodInfo = TypeUtils.GetMethod(() => string.Empty.IsLike(string.Empty));
 		public static readonly MethodInfo ObjectToStringMethod = TypeUtils.GetMethod<object>(c => c.ToString());
 		public static readonly MethodInfo EnumToObjectMethod = TypeUtils.GetMethod(() => Enum.ToObject(typeof(Enum), 0));
-		public static readonly MethodInfo EnumerableFirstMethod = TypeUtils.GetMethod(() => ((IEnumerable<string>)null).First());
+		public static readonly MethodInfo EnumerableFirstMethod = TypeUtils.GetMethod(() => ((IEnumerable<string>)null).First()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableSingleMethod = TypeUtils.GetMethod(() => ((IEnumerable<string>)null).Single()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableEmptyIfFirstIsNullMethod = TypeUtils.GetMethod(() => ((IEnumerable<string>)null).EmptyIfFirstIsNull()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableSingleOrSpecifiedValueIfFirstIsDefaultValueMethod = TypeUtils.GetMethod(() => ((IEnumerable<int>)null).SingleOrSpecifiedValueIfFirstIsDefaultValue(0)).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableUtilsSingleOrExceptionIfFirstIsNullMethod = TypeUtils.GetMethod(() => ((IEnumerable<int?>)null).SingleOrExceptionIfFirstIsNull()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableDefaultIfEmptyCoalesceSpecifiedValueMethod = TypeUtils.GetMethod(() => ((IEnumerable<int?>)null).DefaultIfEmptyCoalesceSpecifiedValue(0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo StringStaticEqualsMethod = TypeUtils.GetMethod(() => string.Equals(string.Empty, string.Empty));
 		public static readonly MethodInfo ObjectEqualsMethod = TypeUtils.GetMethod<object>(c => c.Equals((object)null));
 		public static readonly MethodInfo ObjectStaticEqualsMethod = TypeUtils.GetMethod(() => object.Equals((object)1, (object)2));

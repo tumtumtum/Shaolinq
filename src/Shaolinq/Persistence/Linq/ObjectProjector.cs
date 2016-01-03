@@ -59,12 +59,6 @@ namespace Shaolinq.Persistence.Linq
 			return this.provider.CreateQuery<T>(projection);
 		}
 	}
-
-	public class ProjectorInfo
-	{
-		public object[] PlaceholderValues { get; set; }
-		public SqlQueryFormatResult FormatResult { get; set; }
-	}
 	
 	/// <summary>
 	/// Base class for ObjectReaders that use Reflection.Emit
@@ -83,13 +77,15 @@ namespace Shaolinq.Persistence.Linq
 		: ObjectProjector, IEnumerable<T>, IAsyncEumerable<T>
 		where U : T
 	{
-		protected readonly ProjectorInfo projectorInfo;
+		protected readonly object[] placeholderValues;
+		protected readonly SqlQueryFormatResult formatResult;
 		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
 
-		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, ProjectorInfo projectorInfo, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+		public ObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, object[], U> objectReader)
 			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext)
 		{
-			this.projectorInfo = projectorInfo;
+			this.formatResult = formatResult;
+			this.placeholderValues = placeholderValues;
 			this.objectReader = objectReader;
 		}
 
@@ -97,17 +93,15 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			var info = this.projectorInfo;
-			
-            using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
+			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
 				var transactionalCommandsContext = (DefaultSqlTransactionalCommandsContext)acquisition.SqlDatabaseCommandsContext;
 
-				using (var dataReader = transactionalCommandsContext.ExecuteReader(info.FormatResult.CommandText, info.FormatResult.ParameterValues))
+				using (var dataReader = transactionalCommandsContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
 				{
 					while (dataReader.Read())
 					{
-						yield return objectReader(this, dataReader, info.PlaceholderValues);
+						yield return objectReader(this, dataReader, placeholderValues);
 
 						this.count++;
 					}

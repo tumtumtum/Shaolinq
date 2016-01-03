@@ -57,7 +57,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public virtual void Test_Count_With_DefaultIfEmpty()
 		{
 			using (var scope = new TransactionScope())
@@ -164,7 +164,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public virtual void Test_Nullable_Select_DefaultIfEmpty707_Then_Max_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -199,6 +199,19 @@ namespace Shaolinq.Tests
 			{
 				var value = this.queryable.Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Sum();
 				var expectedValue = this.queryable.ToList().Where(c => c.NullableInteger < 0).Select(c => c.NullableInteger).Sum();
+
+				Assert.AreEqual(expectedValue, value);
+				Assert.AreEqual(0, value);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Then_Sum_Empty()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(0, value);
@@ -254,7 +267,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public virtual void Test_Nullable_Select_DefaultIfEmpty707_Then_Sum_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -279,6 +292,55 @@ namespace Shaolinq.Tests
 
 				Assert.AreEqual(expectedValue, value);
 				Assert.AreEqual(40, value);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Integer_Select_Empty_Then_Max()
+		{
+			using (var scope = new TransactionScope())
+			{
+				Assert.Catch<InvalidOperationException>(() => this.queryable.Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).Max());
+				Assert.Catch<InvalidOperationException>(() => this.queryable.ToList().Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).Max());
+			}
+		}
+
+		[Test]
+		public virtual void Test_Integer_Select_Empty_Then_Max_With_DefaultIfEmpty()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value = this.queryable.Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).DefaultIfEmpty().Max();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).DefaultIfEmpty().Max();
+
+				Assert.AreEqual(expectedValue, value);
+				Assert.AreEqual(0, value);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Integer_Select_Empty_Then_Count()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value = this.queryable.Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).Count();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).Count();
+
+				Assert.AreEqual(expectedValue, value);
+				Assert.AreEqual(0, value);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Integer_Select_Empty_Then_Count_With_DefaultIfEmpty()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var value = this.queryable.Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).DefaultIfEmpty().Count();
+				var expectedValue = this.queryable.ToList().Where(c => c.Integer == Int32.MinValue + 1).Select(c => c.Integer).DefaultIfEmpty().Count();
+
+				Assert.AreEqual(expectedValue, value);
+				Assert.AreEqual(1, value);
 			}
 		}
 
@@ -474,7 +536,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public virtual void Test_Object_Select_DefaultIfEmpty_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -489,7 +551,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public virtual void Test_Object_Select_DefaultIfEmpty_First_Empty()
 		{
 			using (var scope = new TransactionScope())

@@ -88,9 +88,53 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitOver((SqlOverExpression)expression);
 			case SqlExpressionType.Scalar:
 				return this.VisitScalar((SqlScalarExpression)expression);
+			case (SqlExpressionType)ExpressionType.Block:
+				return this.VisitBlock((BlockExpression)expression);
+			case (SqlExpressionType)ExpressionType.Assign:
+				return this.VisitBinary((BinaryExpression)expression);
+			case (SqlExpressionType)ExpressionType.Goto:
+				return this.VisitGoto((GotoExpression)expression);
+			case (SqlExpressionType)ExpressionType.Label:
+				return this.VisitLabel((LabelExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitLabel(LabelExpression labelExpression)
+		{
+			var defaultValue = this.Visit(labelExpression.DefaultValue);
+
+			if (defaultValue != labelExpression.DefaultValue)
+			{
+				return Expression.Label(labelExpression.Target, defaultValue);
+			}
+
+			return labelExpression;
+		}
+
+		protected virtual Expression VisitGoto(GotoExpression gotoExpression)
+		{
+			var value = this.Visit(gotoExpression.Value);
+
+			if (value != gotoExpression.Value)
+			{
+				return Expression.Goto(gotoExpression.Target, value);
+			}
+
+			return gotoExpression;
+		}
+
+		protected virtual Expression VisitBlock(BlockExpression blockExpression)
+		{
+			var expressionList = this.VisitExpressionList(blockExpression.Expressions);
+
+			if (expressionList != blockExpression.Expressions)
+			{
+				return Expression.Block(blockExpression.Variables, expressionList);
+			}
+
+			return blockExpression;
 		}
 
 		protected virtual Expression VisitScalar(SqlScalarExpression expression)
@@ -259,7 +303,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (select != projectionExpression.Select || projector != projectionExpression.Projector || aggregator != projectionExpression.Aggregator)
 			{
-				return new SqlProjectionExpression(select, projector, aggregator, projectionExpression.IsElementTableProjection, projectionExpression.DefaultValueExpression, projectionExpression.IsDefaultIfEmpty);
+				return new SqlProjectionExpression(select, projector, aggregator, projectionExpression.IsElementTableProjection, projectionExpression.DefaultValue);
 			}
 
 			return projectionExpression;
@@ -382,12 +426,12 @@ namespace Shaolinq.Persistence.Linq
 			var source = (SqlSelectExpression)this.Visit(projection.Select);
 
 			var projector = this.Visit(projection.Projector);
-			var defaulValueExpression = this.Visit(projection.DefaultValueExpression);
+			var defaulValueExpression = this.Visit(projection.DefaultValue);
 			var aggregator = (LambdaExpression)this.Visit(projection.Aggregator);
 
-			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValueExpression || aggregator != projection.Aggregator)
+			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValue || aggregator != projection.Aggregator)
 			{
-				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.DefaultValueExpression, projection.IsDefaultIfEmpty);
+				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.DefaultValue);
 			}
 
 			return projection;

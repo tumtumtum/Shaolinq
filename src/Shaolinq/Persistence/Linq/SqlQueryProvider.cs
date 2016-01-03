@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -37,7 +36,6 @@ namespace Shaolinq.Persistence.Linq
 
 		protected internal struct ProjectorCacheInfo
 		{
-			public Type elementType;
 			public Delegate projector;
 		}
 
@@ -61,8 +59,38 @@ namespace Shaolinq.Persistence.Linq
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
+		public static Dictionary<Type, Func<SqlQueryProvider, Expression, IQueryable>> createQueryCache = new Dictionary<Type, Func<SqlQueryProvider, Expression, IQueryable>>();
+
+		public static IQueryable CreateQuery(Type elementType, SqlQueryProvider provider, Expression expression)
+		{
+			Func<SqlQueryProvider, Expression, IQueryable> func;
+
+			if (!createQueryCache.TryGetValue(elementType, out func))
+			{
+				var providerParam = Expression.Parameter(typeof(SqlQueryProvider));
+				var expressionParam = Expression.Parameter(typeof(Expression));
+
+				func = Expression.Lambda<Func<SqlQueryProvider, Expression, IQueryable>>(Expression.New
+				(
+					TypeUtils.GetConstructor(() => new SqlQueryable<object>(null, null)).GetConstructorOnTypeReplacingTypeGenericArgs(elementType),
+					providerParam,
+					expressionParam
+				), providerParam, expressionParam).Compile();
+
+				var newCreateQueryCache = new Dictionary<Type, Func<SqlQueryProvider, Expression, IQueryable>>(createQueryCache) { [elementType] = func };
+
+				createQueryCache = newCreateQueryCache;
+			}
+
+			return func(provider, expression);
+		}
+
+		protected override IQueryable CreateQuery(Type elementType, Expression expression)
+		{
+			return CreateQuery(elementType, this, expression);
+		}
+
 		public SqlQueryProvider(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, ProjectionScope projectionScope)
-			: base(typeof(SqlQueryable<>))
 		{
 			this.projectionScope = projectionScope;
 			this.DataAccessModel = dataAccessModel;
@@ -115,7 +143,6 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlRedundantFunctionCallRemover.Remove(expression);
 			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
-			expression = SqlSumAggregatesDefaultValueCoalescer.Coalesce(expression);
 			expression = SqlOrderByRewriter.Rewrite(expression);
 
 			var rewritten = SqlCrossApplyRewriter.Rewrite(expression);
@@ -159,7 +186,9 @@ namespace Shaolinq.Persistence.Linq
 			
 			if (!projectorCache.TryGetValue(key, out cacheInfo))
 			{
-				var projectorInfoParam = Expression.Parameter(typeof(ProjectorInfo));
+				var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
+				var placeholderValuesParam = Expression.Parameter(typeof(object[]));
+
 				var columns = projectionExpression.Select.Columns.Select(c => c.Name);
 				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionScope, projectionExpression.Projector, columns);
 
@@ -180,7 +209,8 @@ namespace Shaolinq.Persistence.Linq
 							Expression.Constant(this.DataAccessModel),
 							Expression.Constant(this.SqlDatabaseContext),
 							Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-							projectorInfoParam,
+							formatResultsParam,
+							placeholderValuesParam,
 							projectionLambda
 						);
 					}
@@ -195,7 +225,8 @@ namespace Shaolinq.Persistence.Linq
 							Expression.Constant(this.DataAccessModel),
 							Expression.Constant(this.SqlDatabaseContext),
 							Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-							projectorInfoParam,
+							formatResultsParam,
+							placeholderValuesParam,
 							projectionLambda
 						);
 					}
@@ -211,7 +242,8 @@ namespace Shaolinq.Persistence.Linq
 						Expression.Constant(this.DataAccessModel),
 						Expression.Constant(this.SqlDatabaseContext),
 						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-						projectorInfoParam,
+						formatResultsParam,
+						placeholderValuesParam,
 						projectionLambda
 					);
 				}
@@ -221,8 +253,7 @@ namespace Shaolinq.Persistence.Linq
 					expression = SqlExpressionReplacer.Replace(projectionExpression.Aggregator.Body, projectionExpression.Aggregator.Parameters[0], expression);
 				}
 
-				cacheInfo.elementType = projectionLambda.Body.Type;
-				cacheInfo.projector = (Func<ProjectorInfo, T>)Expression.Lambda(expression, projectorInfoParam).Compile();
+				cacheInfo.projector = Expression.Lambda(expression, formatResultsParam, placeholderValuesParam).Compile();
 
 				var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default);
 
@@ -237,13 +268,7 @@ namespace Shaolinq.Persistence.Linq
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression, SqlQueryFormatterOptions.Default);
 			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
 
-			var projectorInfo = new ProjectorInfo
-			{
-				FormatResult = formatResult,
-				PlaceholderValues = placeholderValues
-			};
-
-			return (T)((Func<ProjectorInfo, T>)cacheInfo.projector)(projectorInfo);
+			return ((Func<SqlQueryFormatResult, object[], T>)cacheInfo.projector)(formatResult, placeholderValues);
 		}
 
 		public override string GetQueryText(Expression expression)

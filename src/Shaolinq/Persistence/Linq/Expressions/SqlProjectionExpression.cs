@@ -8,12 +8,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlProjectionExpression
 		: SqlBaseExpression
 	{
-		public bool IsDefaultIfEmpty { get; }
+		public Expression DefaultValue { get; }
 		public bool IsElementTableProjection { get; }
 		public SqlSelectExpression Select { get; }
 		public Expression Projector { get; }
 		public LambdaExpression Aggregator { get; }
-		public Expression DefaultValueExpression { get; }
+		
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Projection;
 
 		public SqlProjectionExpression(SqlSelectExpression select, Expression projector)
@@ -21,40 +21,43 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 		}
 
-		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator)
-			: this(select, projector, aggregator, false)
+		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, Expression defaultValue = null)
+			: this(select.Type, select, projector, aggregator, false, defaultValue)
 		{
 		}
-
-		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection)
-			: this(select, projector, aggregator, isElementTableProjection, null, false)
+		
+		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValue = null)
+			: this(select.Type, select, projector, aggregator, isElementTableProjection, defaultValue)
 		{
+			this.Select = select;
+			this.Projector = projector;
+			this.Aggregator = aggregator;
+			this.IsElementTableProjection = isElementTableProjection;
 		}
 
-		public SqlProjectionExpression(SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValueExpression, bool isDefaultIfEmpty)
-			: this(select.Type, select, projector, aggregator, isElementTableProjection, null, false)
-		{
-		}
-
-		public SqlProjectionExpression(Type type, SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValueExpression, bool isDefaultIfEmpty)
+		public SqlProjectionExpression(Type type, SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValue = null)
 			: base(type)
 		{
 			this.Select = select;
 			this.Projector = projector;
 			this.Aggregator = aggregator;
-			this.DefaultValueExpression = defaultValueExpression;
 			this.IsElementTableProjection = isElementTableProjection;
-			this.IsDefaultIfEmpty = isDefaultIfEmpty;
+			this.DefaultValue = defaultValue;
 		}
 
 		public SqlProjectionExpression ToDefaultIfEmpty(Expression defaultValueExpression)
 		{
-			return new SqlProjectionExpression(this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, defaultValueExpression, true);
+			return new SqlProjectionExpression(this.Select.Type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection);
 		}
 
 		public SqlProjectionExpression ChangeType(Type type)
 		{
-			return new SqlProjectionExpression(type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValueExpression, this.IsDefaultIfEmpty);
+			return new SqlProjectionExpression(type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection);
+		}
+
+		public SqlProjectionExpression ChangeAggregator(LambdaExpression aggregator)
+		{
+			return new SqlProjectionExpression(this.Type, this.Select, this.Projector, aggregator, this.IsElementTableProjection);
 		}
 	}
 }

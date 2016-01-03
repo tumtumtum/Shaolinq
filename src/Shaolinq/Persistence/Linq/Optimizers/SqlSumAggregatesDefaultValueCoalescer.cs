@@ -38,9 +38,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitAggregate(SqlAggregateExpression sqlAggregate)
 		{
-			if (this.currentProjection != null && sqlAggregate.AggregateType == SqlAggregateType.Sum && sqlAggregate.Type.IsNullableType())
+			if (this.currentProjection != null 
+				&& (sqlAggregate.AggregateType == SqlAggregateType.Sum || sqlAggregate.AggregateType == SqlAggregateType.Average || sqlAggregate.AggregateType == SqlAggregateType.Min || sqlAggregate.AggregateType == SqlAggregateType.Max)
+				&& sqlAggregate.Type.IsNullableType())
 			{
-				var defaultValue = this.currentProjection.DefaultValueExpression ?? Expression.Constant(Nullable.GetUnderlyingType(sqlAggregate.Type).GetDefaultValue());
+				var defaultValue = this.currentProjection.DefaultValue ?? Expression.Constant(Nullable.GetUnderlyingType(sqlAggregate.Type).GetDefaultValue());
 
 				return new SqlFunctionCallExpression(sqlAggregate.Type, SqlFunction.Coalesce, sqlAggregate, defaultValue);
 			}

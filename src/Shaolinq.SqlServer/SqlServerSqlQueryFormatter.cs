@@ -109,7 +109,7 @@ namespace Shaolinq.SqlServer
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Tuple<Type, object>(typeof(string), "true"));
+						this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 1));
 
 						return constantExpression;
 					}
@@ -118,7 +118,7 @@ namespace Shaolinq.SqlServer
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Tuple<Type, object>(typeof(string), "false"));
+						this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 0));
 
 						return constantExpression;
 					}

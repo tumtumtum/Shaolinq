@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				var columnDeclaration = select.Columns[i];
 
-				if (select.Distinct || this.IsColumnUsed(select.Alias, columnDeclaration.Name))
+				if (select.Distinct || this.IsColumnUsed(select.Alias, columnDeclaration.Name) || columnDeclaration.NoOptimise)
 				{
 					var expr = this.Visit(columnDeclaration.Expression);
 

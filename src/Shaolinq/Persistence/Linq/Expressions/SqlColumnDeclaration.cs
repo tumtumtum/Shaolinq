@@ -9,30 +9,20 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	/// </summary>
 	public class SqlColumnDeclaration
 	{
-		/// <summary>
-		/// The alias/name of the column declaration
-		/// </summary>
 		public string Name { get; }
-
-		/// <summary>
-		/// A SqlColumnExpression, SqlAggregateExpression or SqlOrderExpression.
-		/// </summary>
+		public bool NoOptimise { get; }
 		public Expression Expression { get; }
 
-		/// <summary>
-		/// Constructs a new <see cref="SqlColumnDeclaration"/>
-		/// </summary>
-		/// <param name="name">The name of the declaraction as it appears after the SELECT</param>
-		/// <param name="expression">The expression (the source of the value for the declaration)</param>
-		public SqlColumnDeclaration(string name, Expression expression)
+		public SqlColumnDeclaration(string name, Expression expression, bool noOptimise = false)
 		{
 			this.Name = name;
 			this.Expression = expression;
+			this.NoOptimise = noOptimise;
 		}
 
 		public SqlColumnDeclaration ReplaceExpression(Expression expression)
 		{
-			return new SqlColumnDeclaration(this.Name, expression);
+			return new SqlColumnDeclaration(this.Name, expression, this.NoOptimise);
 		}
 	}
 }

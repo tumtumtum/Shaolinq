@@ -118,17 +118,9 @@ namespace Shaolinq.Persistence.Linq
 			append(this.identifierQuoteString);
 		}
 
-		private bool currentProjectShouldBeDefaultIfEmpty;
-
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var previousCurrentProjectShouldBeDefaultIfEmpty = this.currentProjectShouldBeDefaultIfEmpty;
-
-			this.currentProjectShouldBeDefaultIfEmpty = projection.IsDefaultIfEmpty;
-
 			var retval = this.Visit(projection.Select);
-
-			this.currentProjectShouldBeDefaultIfEmpty = previousCurrentProjectShouldBeDefaultIfEmpty;
 
 			return retval;
 		}

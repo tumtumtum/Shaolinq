@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -13,8 +12,8 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : DataAccessObject
 	{
-		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, ProjectorInfo projectorInfo, Func<ObjectProjector, IDataReader, object[], U> objectReader)
-			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, projectorInfo, objectReader)
+		public DataAccessObjectProjector(IQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, formatResult, placeholderValues, objectReader)
 		{
 		}
 
@@ -22,17 +21,15 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			var info = this.projectorInfo;
-			
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 			{
 				var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
 
-				using (var dataReader = persistenceTransactionContext.ExecuteReader(info.FormatResult.CommandText, info.FormatResult.ParameterValues))
+				using (var dataReader = persistenceTransactionContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
 				{
 					while (dataReader.Read())
 					{
-						T retval = objectReader(this, dataReader, info.PlaceholderValues);
+						T retval = objectReader(this, dataReader, placeholderValues);
 
 						retval.ToObjectInternal().ResetModified();
 
