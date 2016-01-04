@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				if (functionCallExpression.Arguments[0].NodeType == ExpressionType.Constant)
 				{
-					return Expression.Constant(((ConstantExpression) functionCallExpression.Arguments[0]).Value == null);
+					return Expression.Constant(((ConstantExpression)functionCallExpression.Arguments[0]).Value == null);
 				}
 
 				return functionCallExpression;

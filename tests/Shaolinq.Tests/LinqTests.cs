@@ -2204,7 +2204,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public void Test_Contains_On_DAOs()
 		{
 			using (var scope = new TransactionScope())
@@ -2212,6 +2212,18 @@ namespace Shaolinq.Tests
 				var student = this.model.Students.First();
 
 				var result = this.model.Students.Contains(student);
+			}
+		}
+
+		[Test]
+		public void Test_List_Contains_Inside_Query()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+
+				var student = this.model.Students.Select(c => c.Id).Where(c => ids.Contains(c)).ToList();
+				
 			}
 		}
 

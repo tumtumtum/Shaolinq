@@ -740,8 +740,6 @@ namespace Shaolinq.Persistence.Linq
 			);
 
 			var alias = this.GetNextAlias();
-
-			// Make it possible to tie aggregates back to this group by
 			var info = new GroupByInfo(alias, elementExpression);
 
 			this.groupByMap.Add(elementSubquery, info);
@@ -754,9 +752,9 @@ namespace Shaolinq.Persistence.Linq
 
 				this.currentGroupElement = elementSubquery;
 
-				// Compute result expression based on key & element-subquery
 				this.AddExpressionByParameter(resultSelector.Parameters[0], keyProjection.Projector);
 				this.AddExpressionByParameter(resultSelector.Parameters[1], elementSubquery);
+
 				resultExpression = this.Visit(resultSelector.Body);
 
 				this.currentGroupElement = saveGroupElement;
@@ -765,27 +763,16 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var groupingType = typeof(Grouping<,>).MakeGenericType(keyExpression.Type, subqueryElemExpr.Type);
 
-				var x = SqlExpressionReplacer.Replace(elementSubquery, c =>
-				{
-					var column = c as SqlColumnExpression;
-
-					if (column != null && column.SelectAlias == projection.Select.Alias)
-					{
-						return new SqlColumnExpression(column.Type, elementAlias, column.Name + "$GRP-COL", true);
-					}
-
-					return null;
-				});
-
-				// Result must be IGrouping<K,E>
-
-				resultExpression = Expression.New(groupingType.GetConstructors()[0], new [] { keyExpression, x}, groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public), groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public));
+				resultExpression = Expression.New
+				(
+					groupingType.GetConstructors()[0],
+					new [] { keyExpression, elementSubquery},
+					groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public),
+					groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public)
+				);
 			}
 
 			var pc = ProjectColumns(resultExpression, alias, null, projection.Select.Alias);
-			
-			// Make it possible to tie aggregates back to this GroupBy
-
 			var projectedElementSubquery = ((NewExpression)pc.Projector).Arguments[1];
 
 			if (projectedElementSubquery != elementSubquery)

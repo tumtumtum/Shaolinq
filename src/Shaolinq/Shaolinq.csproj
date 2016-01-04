@@ -168,11 +168,13 @@
     <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAliasedExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionComparerOptions.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlQueryArgumentExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlScalarExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SubstituteConstantsResult.cs" />
     <Compile Include="Persistence\Linq\Expressions\SubstituteConstantsResultWithValues.cs" />
     <Compile Include="Persistence\Linq\JoinHelperExtensions.cs" />
     <Compile Include="Persistence\Linq\Nominator.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\ExpressionCounter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossApplyRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossJoinRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />

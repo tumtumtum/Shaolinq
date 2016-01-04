@@ -1097,7 +1097,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (!(this.result = (expression.ConfigurationParameter != current.ConfigurationParameter)))
+			this.result = this.result && (expression.ConfigurationParameter == current.ConfigurationParameter);
+
+            if (!result)
 			{
 				return expression;
 			}
@@ -1120,6 +1122,20 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 
 			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitQueryArgument(SqlQueryArgumentExpression expression)
+		{
+			SqlQueryArgumentExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			this.result = current.Type == expression.Type && current.Index == expression.Index;
 
 			return expression;
 		}

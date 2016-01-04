@@ -555,5 +555,10 @@ namespace Shaolinq.Persistence.Linq
 
 			return indexedColumnExpression;
 		}
+
+		protected virtual Expression VisitQueryArgument(SqlQueryArgumentExpression expression)
+		{
+			return expression;
+		}
 	}
 }

@@ -42,6 +42,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		Over,
 		Scalar,
 		Exists,
-		In
+		In,
+		QueryArgument
 	}
 }

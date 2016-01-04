@@ -16,6 +16,7 @@ namespace Shaolinq.Persistence.Linq
 	public class ProjectionBuilder
 		: SqlExpressionVisitor
 	{
+		private Type currentNewExpressionType = null;
 		private readonly ProjectionScope currentScope;
 		private readonly ParameterExpression dataReader;
 		private readonly ParameterExpression objectProjector;
@@ -40,19 +41,6 @@ namespace Shaolinq.Persistence.Linq
 			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
 		}
 
-		/// <summary>
-		/// Builds the lambda expression that will perform the projection
-		/// </summary>
-		/// <param name="dataAccessModel">The related data access model</param>
-		/// <param name="sqlDatabaseContext">The related <see cref="SqlDatabaseContext"/></param>
-		/// <param name="expression">
-		/// The expression that performs the projection (can be any expression but usually is a MemberInit expression)
-		/// </param>
-		/// <returns>
-		/// A <see cref="LambdaExpression"/> that takes two parameters: an <see cref="ObjectProjector"/>
-		/// and an <see cref="IDataReader"/>.  The lambda expression will construct a single
-		/// object for return from the current row in the given <see cref="IDataReader"/>.
-		/// </returns>
 		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, ProjectionScope projectionScope, Expression expression, IEnumerable<string> columns)
 		{
 			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, projectionScope, columns);
@@ -62,8 +50,6 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.dynamicParameters);
 		}
 
-		private Type currentNewExpressionType = null;
-		
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
 			var previousCurrentNewExpressionType = this.currentNewExpressionType;
@@ -278,7 +264,6 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression ConvertColumnToIsNull(SqlColumnExpression column)
 		{
-
 			var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
 
 			if (!this.columnIndexes.ContainsKey(column.Name))
@@ -293,8 +278,6 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression ConvertColumnToDataReaderRead(SqlColumnExpression column, Type type)
 		{
-			// Replace all column accesses with the appropriate IDataReader call
-
 			if (column.Type.IsDataAccessObjectType())
 			{
 				return Expression.Convert(Expression.Constant(null), column.Type);
@@ -305,7 +288,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (!this.columnIndexes.ContainsKey(column.Name))
 				{
-					throw new InvalidOperationException();
+					throw new InvalidOperationException($"Unable to find matching column reference named {column.Name}");
 				}
 				else
 				{

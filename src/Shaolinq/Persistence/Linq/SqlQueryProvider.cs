@@ -22,15 +22,12 @@ namespace Shaolinq.Persistence.Linq
 		protected internal struct ProjectorCacheKey
 		{
 			internal readonly int hashCode;
-			internal readonly Expression projectionExpression;
-			internal readonly Expression aggregator;
-
-			public ProjectorCacheKey(Expression projectionExpression, Expression aggregator)
+			internal readonly SqlProjectionExpression projectionExpression;
+			
+			public ProjectorCacheKey(SqlProjectionExpression projectionExpression)
 			{
 				this.projectionExpression = projectionExpression;
-				this.aggregator = aggregator;
-				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression) 
-					^ (aggregator == null ? 0 : SqlExpressionHasher.Hash(aggregator));
+				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression);
 			}
 		}
 
@@ -46,8 +43,7 @@ namespace Shaolinq.Persistence.Linq
 
 			public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
 			{
-				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders)
-					&& (SqlExpressionComparer.Equals(x.aggregator, y.aggregator, SqlExpressionComparerOptions.IgnoreConstantPlaceholders));
+				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
 			}
 
 			public int GetHashCode(ProjectorCacheKey obj)
@@ -84,6 +80,24 @@ namespace Shaolinq.Persistence.Linq
 
 			return func(provider, expression);
 		}
+		
+		public override string GetQueryText(Expression expression)
+		{
+			SqlProjectionExpression projectionExpression;
+
+			if (this.RelatedDataAccessObjectContext == null)
+			{
+				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, null, null));
+			}
+			else
+			{
+				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition));
+			}
+
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
+
+			return result.CommandText;
+		}
 
 		protected override IQueryable CreateQuery(Type elementType, Expression expression)
 		{
@@ -102,14 +116,14 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlQueryable<T>(this, expression);
 		}
 
-		public override T Execute<T>(Expression expression)
-		{
-			return this.PrivateExecute<T>(expression);
-		}
-
 		public override object Execute(Expression expression)
 		{
 			return this.Execute<object>(expression);
+		}
+
+		public override T Execute<T>(Expression expression)
+		{
+			return this.PrivateExecute<T>(expression);
 		}
 
 		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
@@ -160,7 +174,7 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 		
-		private T PrivateExecute<T>(Expression expression)
+		private T PrivateExecute<T>(Expression expression, object[] dynamicValues = null)
 		{
 			var projectionExpression = expression as SqlProjectionExpression;
 
@@ -181,7 +195,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			ProjectorCacheInfo cacheInfo;
-			var key = new ProjectorCacheKey(expression, projectionExpression.Aggregator);
+			var key = new ProjectorCacheKey(projectionExpression);
 			var projectorCache = this.SqlDatabaseContext.projectorCache;
 			
 			if (!projectorCache.TryGetValue(key, out cacheInfo))
@@ -265,28 +279,10 @@ namespace Shaolinq.Persistence.Linq
 				this.SqlDatabaseContext.projectorCache = newCache;
 			}
 
-			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression, SqlQueryFormatterOptions.Default);
-			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression);
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
+			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression).ToArray();
 
-			return ((Func<SqlQueryFormatResult, object[], T>)cacheInfo.projector)(formatResult, placeholderValues);
-		}
-
-		public override string GetQueryText(Expression expression)
-		{
-			SqlProjectionExpression projectionExpression;
-
-			if (this.RelatedDataAccessObjectContext == null)
-			{
-				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, null, null));
-			}
-			else
-			{
-				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition));
-			}
-
-			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
-
-			return result.CommandText;
+			return ((Func<SqlQueryFormatResult, object[], T>)cacheInfo.projector)(formatResult, placeholderValues.ToArray());
 		}
 	}
 }

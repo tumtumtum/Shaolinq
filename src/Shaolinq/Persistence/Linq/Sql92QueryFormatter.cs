@@ -544,8 +544,7 @@ namespace Shaolinq.Persistence.Linq
 					this.Write(this.parameterValues.Count);
 					this.parameterValues.Add(new Tuple<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
 					break;
-				case TypeCode.Object:
-
+				default:
 					if (typeof(SqlValuesEnumerable).IsAssignableFrom(type))
 					{
 						this.Write("(");
@@ -559,12 +558,6 @@ namespace Shaolinq.Persistence.Linq
 						this.Write(this.parameterValues.Count);
 						this.parameterValues.Add(new Tuple<Type, object>(constantExpression.Type, constantExpression.Value));
 					}
-					break;
-				default:
-					this.Write(this.ParameterIndicatorPrefix);
-					this.Write(ParamNamePrefix);
-					this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new Tuple<Type, object>(constantExpression.Type, constantExpression.Value));
 					break;
 				}
 			}
