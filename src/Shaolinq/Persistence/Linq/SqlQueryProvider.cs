@@ -16,7 +16,6 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
-		private readonly ProjectionScope projectionScope;
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 
 		protected internal struct ProjectorCacheKey
@@ -104,9 +103,8 @@ namespace Shaolinq.Persistence.Linq
 			return CreateQuery(elementType, this, expression);
 		}
 
-		public SqlQueryProvider(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, ProjectionScope projectionScope)
+		public SqlQueryProvider(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext)
 		{
-			this.projectionScope = projectionScope;
 			this.DataAccessModel = dataAccessModel;
 			this.SqlDatabaseContext = sqlDatabaseContext;
 		}
@@ -174,25 +172,19 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 		
-		private T PrivateExecute<T>(Expression expression, object[] dynamicValues = null)
+		internal T PrivateExecute<T>(Expression expression, object[] dynamicValues = null)
 		{
 			var projectionExpression = expression as SqlProjectionExpression;
-
+			
 			if (projectionExpression == null)
 			{
 				expression = Evaluator.PartialEval(expression);
+				expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext?.ElementType, this.RelatedDataAccessObjectContext?.ExtraCondition);
 
-				if (this.RelatedDataAccessObjectContext == null)
-				{
-					expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
-				}
-				else
-				{
-					expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition);
-				}
-
-				expression = projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
+				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
+
+			var placeholderValues = dynamicValues == null ? PlaceholderValuesCollector.CollectValues(expression).ToArray() : PlaceholderValuesCollector.CollectValues(expression).Concat(dynamicValues).ToArray();
 
 			ProjectorCacheInfo cacheInfo;
 			var key = new ProjectorCacheKey(projectionExpression);
@@ -204,7 +196,7 @@ namespace Shaolinq.Persistence.Linq
 				var placeholderValuesParam = Expression.Parameter(typeof(object[]));
 
 				var columns = projectionExpression.Select.Columns.Select(c => c.Name);
-				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, projectionScope, projectionExpression.Projector, columns);
+				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, columns);
 
 				var elementType = projectionLambda.ReturnType;
                 
@@ -280,8 +272,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
-			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression).ToArray();
-
+			
 			return ((Func<SqlQueryFormatResult, object[], T>)cacheInfo.projector)(formatResult, placeholderValues.ToArray());
 		}
 	}

@@ -11,7 +11,7 @@ using Shaolinq.Persistence;
 namespace Shaolinq
 {
 	public abstract class ReusableQueryProvider
-		: IPersistenceQueryProvider
+		: ISqlQueryProvider
 	{
 		public virtual IQueryable<T> CreateQuery<T>(Expression expression)
 		{

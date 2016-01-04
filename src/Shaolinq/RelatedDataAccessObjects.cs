@@ -26,7 +26,7 @@ namespace Shaolinq
 			this.RelatedDataAccessObject = relatedDataAccessObject;
 			this.RelationshipType = relationshipType;
 			this.ExtraCondition = this.CreateJoinCondition();
-			this.PersistenceQueryProvider.RelatedDataAccessObjectContext = this;
+			this.SqlQueryProvider.RelatedDataAccessObjectContext = this;
 			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod();
 		}
 

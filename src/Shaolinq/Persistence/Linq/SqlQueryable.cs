@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override IEnumerator<T> GetEnumerator()
 		{
-			return this.PersistenceQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
+			return this.SqlQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
 		}
 	}
 }

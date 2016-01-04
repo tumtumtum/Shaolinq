@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence
 {
-	public interface IPersistenceQueryProvider
+	public interface ISqlQueryProvider
 		: IQueryProvider
 	{
 		IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }

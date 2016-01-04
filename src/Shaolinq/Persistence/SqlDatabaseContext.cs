@@ -84,9 +84,9 @@ namespace Shaolinq.Persistence
 			this.TableNamePrefix = EnvironmentSubstitutor.Substitute(contextInfo.TableNamePrefix);
 		}
 
-		public virtual IPersistenceQueryProvider CreateQueryProvider()
+		public virtual ISqlQueryProvider CreateQueryProvider()
 		{
-			return new SqlQueryProvider(this.DataAccessModel, this, null);
+			return new SqlQueryProvider(this.DataAccessModel, this);
 		}
 		
 		public virtual string GetRelatedSql(Exception e)
