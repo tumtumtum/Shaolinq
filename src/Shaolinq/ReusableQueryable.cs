@@ -12,23 +12,23 @@ namespace Shaolinq
 	public class ReusableQueryable<T>
 		: IOrderedQueryable<T>
 	{
-		public ReusableQueryable(IPersistenceQueryProvider provider)
+		public ReusableQueryable(ISqlQueryProvider provider)
 			: this(provider, null)
 		{
 		}
 
-		public ReusableQueryable(IPersistenceQueryProvider provider, Expression expression)
+		public ReusableQueryable(ISqlQueryProvider provider, Expression expression)
 		{
 			this.Expression = expression ?? Expression.Constant(this);
-			this.PersistenceQueryProvider = provider;
+			this.SqlQueryProvider = provider;
         }
 
 		public Type ElementType => typeof(T);
 		public Expression Expression { get; }
-		public IQueryProvider Provider => this.PersistenceQueryProvider;
-		public IPersistenceQueryProvider PersistenceQueryProvider { get; }
+		public IQueryProvider Provider => this.SqlQueryProvider;
+		public ISqlQueryProvider SqlQueryProvider { get; }
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
 		public override string ToString() => ((SqlQueryProvider)this.Provider).GetQueryText(this.Expression);
-		public virtual IEnumerator<T> GetEnumerator() => this.PersistenceQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
+		public virtual IEnumerator<T> GetEnumerator() => this.SqlQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
 	}
 }

@@ -695,7 +695,7 @@ namespace Shaolinq
 			throw new NotImplementedException();
 		}
 
-		protected internal IPersistenceQueryProvider NewQueryProvider()
+		protected internal ISqlQueryProvider NewQueryProvider()
 		{
 			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider();
 		}

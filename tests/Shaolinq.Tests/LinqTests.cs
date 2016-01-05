@@ -1897,6 +1897,33 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_GroupBy_Project_Group0()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = from student in this.model.Students
+							  group student by student.Sex
+					into g
+							  select new { sex = g.Key, g };
+
+				var students = this.model.Students.ToList();
+				var s2 = from student in students
+						 group student by student.Sex
+					into g
+						 select new { sex = g.Key, c = g };
+
+				var s3 = results.ToList();
+
+				foreach (var value in results)
+				{
+					var xx = value.g.ToList();
+
+					Console.WriteLine(value);
+				}
+			}
+		}
+
+		[Test]
 		public void Test_GroupBy_Project_Group1()
 		{
 			using (var scope = new TransactionScope())
@@ -2204,7 +2231,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+		[Test]
 		public void Test_Contains_On_DAOs()
 		{
 			using (var scope = new TransactionScope())
@@ -2212,6 +2239,18 @@ namespace Shaolinq.Tests
 				var student = this.model.Students.First();
 
 				var result = this.model.Students.Contains(student);
+			}
+		}
+
+		[Test]
+		public void Test_List_Contains_Inside_Query()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+
+				var student = this.model.Students.Select(c => c.Id).Where(c => ids.Contains(c)).ToList();
+				
 			}
 		}
 

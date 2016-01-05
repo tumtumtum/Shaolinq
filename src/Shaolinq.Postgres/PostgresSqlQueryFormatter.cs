@@ -134,7 +134,7 @@ namespace Shaolinq.Postgres
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
 		{
-			if (selectNesting == 1 && this.ConvertEnumsToText && columnExpression.Type.GetUnwrappedNullableType().IsEnum)
+			if (selectNesting == 1 && (this.ConvertEnumsToText && columnExpression.Type.GetUnwrappedNullableType().IsEnum))
 			{
 				base.VisitColumn(columnExpression);
 				this.Write("::TEXT");
@@ -143,6 +143,19 @@ namespace Shaolinq.Postgres
 			}
 
 			return base.VisitColumn(columnExpression);
+		}
+
+		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		{
+			if (this.ConvertEnumsToText && constantExpression.Type.GetUnwrappedNullableType().IsEnum)
+			{
+				base.VisitConstant(constantExpression);
+				this.Write("::TEXT");
+
+				return constantExpression;
+			}
+
+			return base.VisitConstant(constantExpression);
 		}
 
 		protected override void AppendLimit(SqlSelectExpression selectExpression)

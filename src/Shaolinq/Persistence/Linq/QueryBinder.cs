@@ -585,7 +585,9 @@ namespace Shaolinq.Persistence.Linq
 				var join = new SqlJoinExpression(resultType, SqlJoinType.Left, leftSelect, projection.Select, Expression.Constant(true));
 				var alias = this.GetNextAlias();
 
-				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projection.Select.Columns, join, null, null, null, false, null, null), projection.Projector, null, false);
+				var columns = ProjectColumns(join, alias, null, SqlDeclaredAliasGatherer.Gather(projection).ToArray());
+
+				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, columns.Columns, join, null, null, null, false, null, null), projection.Projector, null, false);
 			}
 			else
 			{
@@ -740,8 +742,6 @@ namespace Shaolinq.Persistence.Linq
 			);
 
 			var alias = this.GetNextAlias();
-
-			// Make it possible to tie aggregates back to this group by
 			var info = new GroupByInfo(alias, elementExpression);
 
 			this.groupByMap.Add(elementSubquery, info);
@@ -754,9 +754,9 @@ namespace Shaolinq.Persistence.Linq
 
 				this.currentGroupElement = elementSubquery;
 
-				// Compute result expression based on key & element-subquery
 				this.AddExpressionByParameter(resultSelector.Parameters[0], keyProjection.Projector);
 				this.AddExpressionByParameter(resultSelector.Parameters[1], elementSubquery);
+
 				resultExpression = this.Visit(resultSelector.Body);
 
 				this.currentGroupElement = saveGroupElement;
@@ -765,27 +765,16 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var groupingType = typeof(Grouping<,>).MakeGenericType(keyExpression.Type, subqueryElemExpr.Type);
 
-				var x = SqlExpressionReplacer.Replace(elementSubquery, c =>
-				{
-					var column = c as SqlColumnExpression;
-
-					if (column != null && column.SelectAlias == projection.Select.Alias)
-					{
-						return new SqlColumnExpression(column.Type, elementAlias, column.Name + "$GRP-COL", true);
-					}
-
-					return null;
-				});
-
-				// Result must be IGrouping<K,E>
-
-				resultExpression = Expression.New(groupingType.GetConstructors()[0], new [] { keyExpression, x}, groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public), groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public));
+				resultExpression = Expression.New
+				(
+					groupingType.GetConstructors()[0],
+					new [] { keyExpression, elementSubquery},
+					groupingType.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public),
+					groupingType.GetProperty("Group", BindingFlags.Instance | BindingFlags.Public)
+				);
 			}
 
 			var pc = ProjectColumns(resultExpression, alias, null, projection.Select.Alias);
-			
-			// Make it possible to tie aggregates back to this GroupBy
-
 			var projectedElementSubquery = ((NewExpression)pc.Projector).Arguments[1];
 
 			if (projectedElementSubquery != elementSubquery)
@@ -1719,7 +1708,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private static string GetExistingAlias(Expression source)
 		{
-			switch ((SqlExpressionType)source.NodeType)
+            switch ((SqlExpressionType)source.NodeType)
 			{
 				case SqlExpressionType.Select:
 					return ((SqlSelectExpression)source).Alias;

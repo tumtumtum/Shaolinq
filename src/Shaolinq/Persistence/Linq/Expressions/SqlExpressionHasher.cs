@@ -350,10 +350,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			return base.VisitColumnDeclarations(columns);
 		}
-
-		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
+		
+		protected override Expression VisitQueryArgument(SqlQueryArgumentExpression expression)
 		{
-			return base.VisitDelete(deleteExpression);
+			this.hashCode ^= expression.Type.GetHashCode();
+			this.hashCode ^= expression.Index;
+
+			return expression;
 		}
 	}
 }

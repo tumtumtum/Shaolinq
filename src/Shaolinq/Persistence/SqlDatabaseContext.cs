@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence
 		public TimeSpan? CommandTimeout { get; protected set; }
 
 		protected DbProviderFactory dbProviderFactory;
-		internal volatile Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo> projectorCache = new Dictionary<SqlQueryProvider.ProjectorCacheKey, SqlQueryProvider.ProjectorCacheInfo>(SqlQueryProvider.ProjectorCacheEqualityComparer.Default);
+		internal volatile Dictionary<ProjectorCacheKey, ProjectorCacheInfo> projectorCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default);
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 
@@ -84,9 +84,9 @@ namespace Shaolinq.Persistence
 			this.TableNamePrefix = EnvironmentSubstitutor.Substitute(contextInfo.TableNamePrefix);
 		}
 
-		public virtual IPersistenceQueryProvider CreateQueryProvider()
+		public virtual ISqlQueryProvider CreateQueryProvider()
 		{
-			return new SqlQueryProvider(this.DataAccessModel, this, null);
+			return new SqlQueryProvider(this.DataAccessModel, this);
 		}
 		
 		public virtual string GetRelatedSql(Exception e)

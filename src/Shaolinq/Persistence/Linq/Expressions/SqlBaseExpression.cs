@@ -23,10 +23,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public override string ToString()
 		{
-			var optimized = SqlQueryProvider.Optimize(this, typeof(string));
-
 			return new Sql92QueryFormatter()
-				.Format(optimized)
+				.Format(this)
 				.CommandText;
 		}
 	}
