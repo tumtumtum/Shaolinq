@@ -585,7 +585,9 @@ namespace Shaolinq.Persistence.Linq
 				var join = new SqlJoinExpression(resultType, SqlJoinType.Left, leftSelect, projection.Select, Expression.Constant(true));
 				var alias = this.GetNextAlias();
 
-				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projection.Select.Columns, join, null, null, null, false, null, null), projection.Projector, null, false);
+				var columns = ProjectColumns(join, alias, null, SqlDeclaredAliasGatherer.Gather(projection).ToArray());
+
+				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, columns.Columns, join, null, null, null, false, null, null), projection.Projector, null, false);
 			}
 			else
 			{
@@ -1706,7 +1708,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private static string GetExistingAlias(Expression source)
 		{
-			switch ((SqlExpressionType)source.NodeType)
+            switch ((SqlExpressionType)source.NodeType)
 			{
 				case SqlExpressionType.Select:
 					return ((SqlSelectExpression)source).Alias;
