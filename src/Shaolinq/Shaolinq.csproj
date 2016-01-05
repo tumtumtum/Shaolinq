@@ -164,6 +164,7 @@
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
+    <Compile Include="Persistence\Linq\ExecutionBuildResult.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlAliasedExpression.cs" />
@@ -181,7 +182,9 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
-    <Compile Include="Persistence\Linq\ProjectionScope.cs" />
+    <Compile Include="Persistence\Linq\ProjectorCacheEqualityComparer.cs" />
+    <Compile Include="Persistence\Linq\ProjectorCacheInfo.cs" />
+    <Compile Include="Persistence\Linq\ProjectorCacheKey.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpanderResults.cs" />
     <Compile Include="Persistence\MarsDataReader.cs" />
     <Compile Include="Persistence\MarsDbCommand.cs" />

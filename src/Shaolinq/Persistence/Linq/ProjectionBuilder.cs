@@ -13,40 +13,51 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class ProjectionBuilder
-		: SqlExpressionVisitor
+	public class ProjectionBuilderScope
 	{
-		private string currentAlias;
-		private Type currentNewExpressionType = null;
+		public string OuterAlias { get; }
+		public Dictionary<string, int> ColumnIndexes { get; }
+
+		public ProjectionBuilderScope(string outerAlias, string[] columnNames)
+			: this(outerAlias, columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
+		{	
+		}
+
+        public ProjectionBuilderScope(string outerAlias, Dictionary<string, int> columnIndexes)
+		{
+			this.OuterAlias = outerAlias;
+			this.ColumnIndexes = columnIndexes;
+		}
+	}
+
+    public class ProjectionBuilder
+		: SqlExpressionVisitor
+    {
+	    private ProjectionBuilderScope scope;
+        private Type currentNewExpressionType = null;
 		private readonly ParameterExpression dataReader;
 		private readonly ParameterExpression objectProjector;
 		private readonly ParameterExpression dynamicParameters;
 		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly SqlQueryProvider queryProvider;
-		private Dictionary<string, int> columnIndexes;
 		
-		private static readonly MethodInfo ExecuteSubQueryMethod = typeof(ObjectProjector).GetMethod("ExecuteSubQuery");
-
-		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, IEnumerable<string> columns, string alias = null)
+		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, ProjectionBuilderScope scope)
 		{
-			var x = 0;
-
 			this.dataAccessModel = dataAccessModel;
 			this.sqlDatabaseContext = sqlDatabaseContext;
 			this.queryProvider = queryProvider;
-			this.columnIndexes = columns.ToDictionary(c => c, c => x++);
-
-			this.currentAlias = alias;
+			
+			this.scope = scope;
 
 			this.dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
 			this.objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
 			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
 		}
 
-		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, IEnumerable<string> columns, string alias)
+		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, ProjectionBuilderScope scope)
 		{
-			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, queryProvider, columns, alias);
+			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, queryProvider, scope);
 
 			var body = projectionBuilder.Visit(expression);
             
@@ -233,13 +244,13 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(column.Type);
 
-			if (!this.columnIndexes.ContainsKey(column.Name))
+			if (!this.scope.ColumnIndexes.ContainsKey(column.Name))
 			{
 				return sqlDataType.IsNullExpression(this.dataReader, 0);
 			}
 			else
 			{
-				return sqlDataType.IsNullExpression(this.dataReader, this.columnIndexes[column.Name]);
+				return sqlDataType.IsNullExpression(this.dataReader, this.scope.ColumnIndexes[column.Name]);
 			}
 		}
 
@@ -253,13 +264,13 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(type);
 
-				if (!this.columnIndexes.ContainsKey(column.Name))
+				if (!this.scope.ColumnIndexes.ContainsKey(column.Name))
 				{
 					throw new InvalidOperationException($"Unable to find matching column reference named {column.Name}");
 				}
 				else
 				{
-					return sqlDataType.GetReadExpression(this.dataReader, this.columnIndexes[column.Name]);
+					return sqlDataType.GetReadExpression(this.dataReader, this.scope.ColumnIndexes[column.Name]);
 				}
 			}
 		}
@@ -276,33 +287,27 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.Call(Expression.Property(this.objectProjector, nameof(ObjectProjector.DataAccessModel)), method, arrayOfValues);
 		}
 
-		protected override Expression VisitProjection(SqlProjectionExpression projection)
-		{	
-			var currentPlaceholderCount = ExpressionCounter.Count(projection, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
-			
-			var savedAlias = this.currentAlias;
-			this.currentAlias = projection.Select.Alias;
-			
+		protected override Expression VisitProjection(SqlProjectionExpression projectionExpression)
+		{
+			var currentPlaceholderCount = ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
+
 			var replacedColumns = new List<SqlColumnExpression>();
-			var substitutedExpression =(SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projection, savedAlias, ref currentPlaceholderCount, replacedColumns);
-			
-			var savedColumnIndexes = columnIndexes;
+			projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, this.scope.OuterAlias, ref currentPlaceholderCount, replacedColumns);
 
-			columnIndexes = projection.Select.Columns.Select((c, i) => new { c.Name, i }).ToDictionary(d => d.Name, d => d.i);
-			
-			var projectionProjector = Expression.Lambda(this.Visit(substitutedExpression.Projector), objectProjector, dataReader, dynamicParameters);
+			var newColumnIndexes = projectionExpression.Select.Columns.Select((c, i) => new { c.Name, i }).ToDictionary(d => d.Name, d => d.i);
 
-			columnIndexes = savedColumnIndexes;
+			var savedScope = this.scope;
+			this.scope = new ProjectionBuilderScope(projectionExpression.Select.Alias, newColumnIndexes);
 
-			var newProjection = substitutedExpression.ChangeProjector(projectionProjector);
-
+			var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, dynamicParameters);
 			var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object)));
 
-			this.currentAlias = savedAlias;
+			this.scope = savedScope;
 
-			var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.PrivateExecute<int>(null, null)).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projection.Type.GetSequenceElementType()));
+			var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[])));
+			var evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
 
-			return Expression.Call(Expression.Property(objectProjector, "QueryProvider"), method, Expression.Constant(newProjection, typeof(Expression)), Expression.NewArrayInit(typeof(object), values));
+			return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression, typeof(SqlProjectionExpression)), Expression.Constant(projectionProjector), Expression.NewArrayInit(typeof(object), values)), evaluate);
 		}
 	}
 }

@@ -3,9 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -27,19 +24,6 @@ namespace Shaolinq.Persistence.Linq
 		}
 	}
 	
-	/// <summary>
-	/// Base class for ObjectReaders that use Reflection.Emit
-	/// </summary>
-	/// <typeparam name="T">
-	/// The type of objects this projector returns
-	/// </typeparam>
-	/// <typeparam name="U">
-	/// The concrete type for types this projector returns.  This type
-	/// parameter is usually the same as <see cref="U"/> unless <see cref="T"/>
-	/// is a <see cref="DataAccessObject{OBJECT_TYPE}"/> type in which case <see cref="U"/>
-	/// must inherit from <see cref="T"/> and is usually automatically generated
-	/// by the TypeBuilding system using Reflection.Emit.
-	/// </typeparam>
 	public class ObjectProjector<T, U>
 		: ObjectProjector, IEnumerable<T>, IAsyncEumerable<T>
 		where U : T
@@ -76,14 +60,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-		{
-			return this.GetEnumerator();
-		}
-
-		public IAsyncEnumerator<T> GetAsyncEnumerator()
-		{
-			return new AsyncEnumeratorAdapter<T>(this.GetEnumerator());
-		}
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
+		public IAsyncEnumerator<T> GetAsyncEnumerator() => new AsyncEnumeratorAdapter<T>(this.GetEnumerator());
 	}
 }

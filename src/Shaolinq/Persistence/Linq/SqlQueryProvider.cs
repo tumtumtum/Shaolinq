@@ -17,40 +17,6 @@ namespace Shaolinq.Persistence.Linq
 		: ReusableQueryProvider
 	{
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
-
-		protected internal struct ProjectorCacheKey
-		{
-			internal readonly int hashCode;
-			internal readonly SqlProjectionExpression projectionExpression;
-			
-			public ProjectorCacheKey(SqlProjectionExpression projectionExpression)
-			{
-				this.projectionExpression = projectionExpression;
-				this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression);
-			}
-		}
-
-		protected internal struct ProjectorCacheInfo
-		{
-			public Delegate projector;
-		}
-
-		protected internal class ProjectorCacheEqualityComparer
-			: IEqualityComparer<ProjectorCacheKey>
-		{
-			public static ProjectorCacheEqualityComparer Default = new ProjectorCacheEqualityComparer();
-
-			public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
-			{
-				return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
-			}
-
-			public int GetHashCode(ProjectorCacheKey obj)
-			{
-				return obj.hashCode;
-			}
-		}
-
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
@@ -121,12 +87,12 @@ namespace Shaolinq.Persistence.Linq
 
 		public override T Execute<T>(Expression expression)
 		{
-			return this.PrivateExecute<T>(expression);
+			return this.BuildExecution(expression).Evaluate<T>();
 		}
 
 		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
 		{
-			return this.PrivateExecute<IEnumerable<T>>(expression);
+			return this.BuildExecution(expression).Evaluate<IEnumerable<T>>();
 		}
 
 		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
@@ -142,16 +108,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlExistsSubqueryOptimizer.Optimize(expression);
 			expression = SqlRedundantBinaryExpressionsRemover.Remove(expression);
 			expression = SqlCrossJoinRewriter.Rewrite(expression);
-			
-			if (simplerPartialVal)
-			{
-				expression = Evaluator.PartialEval(expression, c => c.NodeType != (ExpressionType)SqlExpressionType.ConstantPlaceholder && Evaluator.CanBeEvaluatedLocally(c));
-			}
-			else
-			{
-				expression = Evaluator.PartialEval(expression);
-			}
-
+			expression = Evaluator.PartialEval(expression);
 			expression = SqlRedundantFunctionCallRemover.Remove(expression);
 			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
@@ -162,7 +119,6 @@ namespace Shaolinq.Persistence.Linq
 			if (rewritten != expression)
 			{
 				expression = rewritten;
-
 				expression = SqlUnusedColumnRemover.Remove(expression);
 				expression = SqlRedundantColumnRemover.Remove(expression);
 				expression = SqlRedundantSubqueryRemover.Remove(expression);
@@ -171,11 +127,11 @@ namespace Shaolinq.Persistence.Linq
 
 			return expression;
 		}
-		
-		internal T PrivateExecute<T>(Expression expression, object[] dynamicValues = null)
+
+		public ExecutionBuildResult BuildExecution(Expression expression)
 		{
 			var projectionExpression = expression as SqlProjectionExpression;
-			
+
 			if (projectionExpression == null)
 			{
 				expression = Evaluator.PartialEval(expression);
@@ -184,64 +140,43 @@ namespace Shaolinq.Persistence.Linq
 				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
 
-			var placeholderValues = dynamicValues == null ? PlaceholderValuesCollector.CollectValues(expression).ToArray() : PlaceholderValuesCollector.CollectValues(expression).Concat(dynamicValues).ToArray();
+			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
+			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression).ToArray();
+			var projector = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(projectionExpression.Select.Alias, columns.ToArray()));
+
+			return this.BuildExecution(projectionExpression, projector, placeholderValues);
+		}
+
+        public ExecutionBuildResult BuildExecution(SqlProjectionExpression projectionExpression, LambdaExpression projector, object[] placeholderValues)
+		{
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
 			ProjectorCacheInfo cacheInfo;
-			var key = new ProjectorCacheKey(projectionExpression);
+			var key = new ProjectorCacheKey(formatResult.CommandText, projector);
 			var projectorCache = this.SqlDatabaseContext.projectorCache;
-			
-			if (!projectorCache.TryGetValue(key, out cacheInfo))
+
+	        if (projectorCache.TryGetValue(key, out cacheInfo))
+	        {
+				return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
+			}
+
+			var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
+			var placeholderValuesParam = Expression.Parameter(typeof(object[]));
+			var projectionLambda = projector;
+
+			var elementType = projectionLambda.ReturnType;
+
+			Expression executor;
+
+			if (elementType.IsDataAccessObjectType())
 			{
-				var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
-				var placeholderValuesParam = Expression.Parameter(typeof(object[]));
+				var concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
 
-				var columns = projectionExpression.Select.Columns.Select(c => c.Name);
-				var projectionLambda = dynamicValues == null ? ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, columns, projectionExpression.Select.Alias) : (LambdaExpression)projectionExpression.Projector;
-
-				var elementType = projectionLambda.ReturnType;
-                
-				if (elementType.IsDataAccessObjectType())
+				if (this.RelatedDataAccessObjectContext == null)
 				{
-					var concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
+					var constructor = typeof(DataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
-					if (this.RelatedDataAccessObjectContext == null)
-					{
-						var constructor = typeof(DataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-
-						expression = Expression.New
-						(
-							constructor,
-							Expression.Constant(this),
-							Expression.Constant(this.DataAccessModel),
-							Expression.Constant(this.SqlDatabaseContext),
-							Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-							formatResultsParam,
-							placeholderValuesParam,
-							projectionLambda
-						);
-					}
-					else
-					{
-						var constructor = typeof(RelatedDataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-
-						expression = Expression.New
-						(
-							constructor,
-							Expression.Constant(this),
-							Expression.Constant(this.DataAccessModel),
-							Expression.Constant(this.SqlDatabaseContext),
-							Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-							formatResultsParam,
-							placeholderValuesParam,
-							projectionLambda
-						);
-					}
-				}
-				else
-				{
-					var constructor = typeof(ObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-
-					expression = Expression.New
+					executor = Expression.New
 					(
 						constructor,
 						Expression.Constant(this),
@@ -253,27 +188,55 @@ namespace Shaolinq.Persistence.Linq
 						projectionLambda
 					);
 				}
-
-				if (projectionExpression.Aggregator != null)
+				else
 				{
-					expression = SqlExpressionReplacer.Replace(projectionExpression.Aggregator.Body, projectionExpression.Aggregator.Parameters[0], expression);
+					var constructor = typeof(RelatedDataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+
+					executor = Expression.New
+					(
+						constructor,
+						Expression.Constant(this),
+						Expression.Constant(this.DataAccessModel),
+						Expression.Constant(this.SqlDatabaseContext),
+						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
+						formatResultsParam,
+						placeholderValuesParam,
+						projectionLambda
+					);
 				}
+			}
+			else
+			{
+				var constructor = typeof(ObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
-				cacheInfo.projector = Expression.Lambda(expression, formatResultsParam, placeholderValuesParam).Compile();
-
-				var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default);
-
-				if (!projectorCache.ContainsKey(key))
-				{
-					newCache[key] = cacheInfo;
-				}
-
-				this.SqlDatabaseContext.projectorCache = newCache;
+				executor = Expression.New
+				(
+					constructor,
+					Expression.Constant(this),
+					Expression.Constant(this.DataAccessModel),
+					Expression.Constant(this.SqlDatabaseContext),
+					Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
+					formatResultsParam,
+					placeholderValuesParam,
+					projectionLambda
+				);
 			}
 
-			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
-			
-			return ((Func<SqlQueryFormatResult, object[], T>)cacheInfo.projector)(formatResult, placeholderValues.ToArray());
+			if (projectionExpression.Aggregator != null)
+			{
+				executor = SqlExpressionReplacer.Replace(projectionExpression.Aggregator.Body, projectionExpression.Aggregator.Parameters[0], executor);
+			}
+
+			cacheInfo.projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam).Compile();
+
+			var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default)
+			{
+				[key] = cacheInfo
+			};
+
+			this.SqlDatabaseContext.projectorCache = newCache;
+
+			return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
 		}
 	}
 }
