@@ -24,11 +24,11 @@ namespace Shaolinq.Persistence.Linq
 		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly SqlQueryProvider queryProvider;
-		private readonly Dictionary<string, int> columnIndexes;
+		private Dictionary<string, int> columnIndexes;
 		
 		private static readonly MethodInfo ExecuteSubQueryMethod = typeof(ObjectProjector).GetMethod("ExecuteSubQuery");
 
-		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, IEnumerable<string> columns)
+		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, IEnumerable<string> columns, string alias = null)
 		{
 			var x = 0;
 
@@ -37,14 +37,16 @@ namespace Shaolinq.Persistence.Linq
 			this.queryProvider = queryProvider;
 			this.columnIndexes = columns.ToDictionary(c => c, c => x++);
 
+			this.currentAlias = alias;
+
 			this.dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
 			this.objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
 			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
 		}
 
-		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, IEnumerable<string> columns)
+		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, IEnumerable<string> columns, string alias)
 		{
-			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, queryProvider, columns);
+			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, queryProvider, columns, alias);
 
 			var body = projectionBuilder.Visit(expression);
             
@@ -78,7 +80,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 					else
 					{
-						current = Expression.Equal(Expression.Convert(visited, visited.Type.MakeNullable()), Expression.Constant(null, visited.Type));
+						current = Expression.Equal(Expression.Convert(visited, visited.Type.MakeNullable()), Expression.Constant(null, visited.Type.MakeNullable()));
 					}
 				}
 
@@ -131,7 +133,7 @@ namespace Shaolinq.Persistence.Linq
 					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(this.currentNewExpressionType);
 					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
 
-					if (propertyDescriptor.IsComputedTextMember || propertyDescriptor.IsComputedMember)
+					if (propertyDescriptor != null && (propertyDescriptor.IsComputedTextMember || propertyDescriptor.IsComputedMember))
 					{
 						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(this.currentNewExpressionType);
 						var propertyInfo = concreteType.GetProperty(DataAccessObjectTypeBuilder.ForceSetPrefix + assignment.Member.Name);
@@ -161,7 +163,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				// Replace all new DataAccessObject() calls with new ConcreteDataAccessObject(DataAccessModel)
 
-				var constructor = this.dataAccessModel.GetConcreteTypeFromDefinitionType(expression.Type)
+				var constructor = this.dataAccessModel
+					.GetConcreteTypeFromDefinitionType(expression.Type)
 					.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) });
 
 				if (constructor == null)
@@ -177,44 +180,7 @@ namespace Shaolinq.Persistence.Linq
 				);
 			}
 
-			var visitedArgs = this.VisitExpressionList(expression.Arguments);
-
-			if (visitedArgs != expression.Arguments)
-			{
-				var i = 0;
-				Expression[] newArgs = null;
-                
-				foreach (var newArg in visitedArgs)
-				{
-					if (newArg.Type != expression.Arguments[i].Type)
-					{
-						if (newArgs == null)
-						{
-							newArgs = new Expression[visitedArgs.Count];
-
-							for (var j = 0; j < i; j++)
-							{
-								newArgs[j] = visitedArgs[j];
-							}
-						}
-
-						newArgs[i] = Expression.Convert(visitedArgs[i], expression.Arguments[i].Type);
-					}
-					else
-					{
-						if (newArgs != null)
-						{
-							newArgs[i] = visitedArgs[i];
-						}
-					}
-
-					i++;
-				}
-
-				return expression.Update(newArgs ?? (IEnumerable<Expression>)visitedArgs);
-			}
-
-			return expression;
+			return base.VisitNew(expression);
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
@@ -227,20 +193,20 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (ifTrue.Type.IsDataAccessObjectType() && !ifTrue.Type.IsAbstract)
 				{
-					return (Expression)Expression.Condition(test, ifTrue, Expression.Convert(ifFalse, ifTrue.Type));
+					return Expression.Condition(test, ifTrue, Expression.Convert(ifFalse, ifTrue.Type));
 				}
 				else
 				{
-					return (Expression)Expression.Condition(test, Expression.Convert(ifTrue, ifFalse.Type), ifFalse);
+					return Expression.Condition(test, Expression.Convert(ifTrue, ifFalse.Type), ifFalse);
 				}
 			}
 			else if (test != expression.Test || ifTrue != expression.IfTrue || ifFalse != expression.IfFalse)
 			{
-				return (Expression)Expression.Condition(test, ifTrue, ifFalse);
+				return Expression.Condition(test, ifTrue, ifFalse);
 			}
 			else
 			{
-				return (Expression)expression;
+				return expression;
 			}
 		}
 
@@ -310,34 +276,33 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.Call(Expression.Property(this.objectProjector, nameof(ObjectProjector.DataAccessModel)), method, arrayOfValues);
 		}
 
-		protected virtual Expression ProcessInnerProjection(SqlProjectionExpression projection)
-		{
-			return projection;
-		}
-
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
-		{
+		{	
 			var currentPlaceholderCount = ExpressionCounter.Count(projection, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
-
-			var queryProviderExpression = new SqlConstantPlaceholderExpression(currentPlaceholderCount++, Expression.Constant(this.queryProvider));
-
-			var placeholders = new List<SqlConstantPlaceholderExpression>
-			{
-				queryProviderExpression
-			};
-
+			
 			var savedAlias = this.currentAlias;
 			this.currentAlias = projection.Select.Alias;
+			
+			var replacedColumns = new List<SqlColumnExpression>();
+			var substitutedExpression =(SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projection, savedAlias, ref currentPlaceholderCount, replacedColumns);
+			
+			var savedColumnIndexes = columnIndexes;
 
-			var newProjection = this.Visit(projection);
+			columnIndexes = projection.Select.Columns.Select((c, i) => new { c.Name, i }).ToDictionary(d => d.Name, d => d.i);
+			
+			var projectionProjector = Expression.Lambda(this.Visit(substitutedExpression.Projector), objectProjector, dataReader, dynamicParameters);
 
-			var substitutedExpression = SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(newProjection, savedAlias, placeholders.Count);
+			columnIndexes = savedColumnIndexes;
+
+			var newProjection = substitutedExpression.ChangeProjector(projectionProjector);
+
+			var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object)));
 
 			this.currentAlias = savedAlias;
-			
-			var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.PrivateExecute<int>(null, null)).GetGenericMethodDefinition().MakeGenericMethod(projection.Type);
 
-			return Expression.Call(queryProviderExpression, method, Expression.Quote(substitutedExpression), Expression.Constant(null));
+			var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.PrivateExecute<int>(null, null)).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projection.Type.GetSequenceElementType()));
+
+			return Expression.Call(Expression.Property(objectProjector, "QueryProvider"), method, Expression.Constant(newProjection, typeof(Expression)), Expression.NewArrayInit(typeof(object), values));
 		}
 	}
 }

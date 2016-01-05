@@ -196,7 +196,7 @@ namespace Shaolinq.Persistence.Linq
 				var placeholderValuesParam = Expression.Parameter(typeof(object[]));
 
 				var columns = projectionExpression.Select.Columns.Select(c => c.Name);
-				var projectionLambda = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, columns);
+				var projectionLambda = dynamicValues == null ? ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, columns, projectionExpression.Select.Alias) : (LambdaExpression)projectionExpression.Projector;
 
 				var elementType = projectionLambda.ReturnType;
                 

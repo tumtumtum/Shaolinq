@@ -27,6 +27,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression Visit(Expression expression)
 		{
+			if (expression == null)
+			{
+				return null;
+			}
+
 			if (isMatch(expression))
 			{
 				count++;

@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.Generic;
+using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -6,25 +8,34 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class SqlOuterQueryReferencePlaceholderSubstitutor
 		: SqlExpressionVisitor
 	{
-		private int startIndex;
+		private int placeholderCount;
 		private readonly string outerAlias;
+		private readonly List<SqlColumnExpression> replacedColumns;
 
-		private SqlOuterQueryReferencePlaceholderSubstitutor(int startIndex, string outerAlias)
+		private SqlOuterQueryReferencePlaceholderSubstitutor(int placeholderCount, string outerAlias, List<SqlColumnExpression> replacedColumns)
 		{
-			this.startIndex = startIndex;
+			this.placeholderCount = placeholderCount;
 			this.outerAlias = outerAlias;
+			this.replacedColumns = replacedColumns;
 		}
 
-		public static Expression Substitute(Expression expression, string outerAlias, int startIndex)
+		public static Expression Substitute(Expression expression, string outerAlias, ref int placeholderCount, List<SqlColumnExpression> replacedColumns)
 		{
-			return new SqlOuterQueryReferencePlaceholderSubstitutor(startIndex, outerAlias).Visit(expression);
+			var visitor = new SqlOuterQueryReferencePlaceholderSubstitutor(placeholderCount, outerAlias, replacedColumns);
+			var retval = visitor.Visit(expression);
+
+			placeholderCount = visitor.placeholderCount;
+			
+			return retval;
 		}
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
 		{
 			if (columnExpression.SelectAlias == outerAlias)
 			{
-				return new SqlConstantPlaceholderExpression(startIndex++, null);
+				replacedColumns.Add(columnExpression);
+
+                return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(columnExpression.Type.GetDefaultValue(), columnExpression.Type));
 			}
 
 			return base.VisitColumn(columnExpression);
