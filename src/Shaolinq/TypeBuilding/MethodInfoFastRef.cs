@@ -13,6 +13,7 @@ namespace Shaolinq.TypeBuilding
 	public static class MethodInfoFastRef
 	{
 		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => new List<string>().Count()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableWhereMethod = TypeUtils.GetMethod(() => ((IEnumerable<int>)null).Where(c => true)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableContainsMethod = TypeUtils.GetMethod(() => Enumerable.Contains(new List<string>(), string.Empty)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => ((IEnumerable<string>)null).DefaultIfEmpty()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableDefaultIfEmptyWithValueMethod = TypeUtils.GetMethod(() => new List<string>().DefaultIfEmpty("")).GetGenericMethodDefinition();

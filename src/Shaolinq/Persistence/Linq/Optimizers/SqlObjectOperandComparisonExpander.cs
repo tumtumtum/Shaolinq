@@ -9,16 +9,9 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	/// <summary>
-	/// Converts binary expressions between two <see cref="SqlObjectReferenceExpression"/> expressions
-	/// into multiple binary expressions performing the operation over the the primary
-	/// keys of the object operands.
-	/// </summary>
 	public class SqlObjectOperandComparisonExpander
 		: SqlExpressionVisitor
 	{
-		private bool inProjector;
-		
 		private SqlObjectOperandComparisonExpander()
 		{
 		}
@@ -33,27 +26,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
 			var source = (SqlSelectExpression) this.Visit(projection.Select);
-
-			var oldInProjector = this.inProjector;
-
-			this.inProjector = true;
-
-			Expression projector;
-
-			try
-			{
-				projector = this.Visit(projection.Projector);
-			}
-			finally
-			{
-				this.inProjector = oldInProjector;
-			}
-
+			var projector = this.Visit(projection.Projector);
 			var aggregator = (LambdaExpression) this.Visit(projection.Aggregator);
 
-			if (source != projection.Select
-				|| projector != projection.Projector
-				|| aggregator != projection.Aggregator)
+			if (source != projection.Select || projector != projection.Projector || aggregator != projection.Aggregator)
 			{
 				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection);
 			}
@@ -122,11 +98,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
-			if (this.inProjector)
-			{
-				return functionCallExpression;
-			}
-
 			if (functionCallExpression.Arguments.Count == 1
 				&& (functionCallExpression.Function == SqlFunction.IsNotNull || functionCallExpression.Function == SqlFunction.IsNull)
 				&& (functionCallExpression.Arguments[0].NodeType == ExpressionType.MemberInit || functionCallExpression.Arguments[0].NodeType == (ExpressionType)SqlExpressionType.ObjectReference))
@@ -155,11 +126,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			if (this.inProjector)
-			{
-				return binaryExpression;
-			}
-
 			if ((binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference || binaryExpression.Left.NodeType == ExpressionType.MemberInit)
 				&& (binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference || binaryExpression.Right.NodeType == ExpressionType.MemberInit)
 				&& (binaryExpression.Left.Type == binaryExpression.Right.Type))

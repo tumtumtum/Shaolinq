@@ -584,10 +584,10 @@ namespace Shaolinq.Persistence.Linq
 
 				var join = new SqlJoinExpression(resultType, SqlJoinType.Left, leftSelect, projection.Select, Expression.Constant(true));
 				var alias = this.GetNextAlias();
-
-				var columns = ProjectColumns(join, alias, null, SqlDeclaredAliasGatherer.Gather(projection).ToArray());
-
-				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, columns.Columns, join, null, null, null, false, null, null), projection.Projector, null, false);
+				
+                var projected = ProjectColumns(projection.Projector, alias, null, leftSelect.Alias, projection.Select.Alias);
+				
+				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projected.Columns, join, null, null, null, false, null, null), projected.Projector, null, false);
 			}
 			else
 			{
@@ -833,7 +833,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
 			var predicateLambda = Expression.Lambda(Expression.Equal(innerKey.Body, outerKey.Body), innerKey.Parameters[0]);
-			var callToWhere = Expression.Call(typeof(Enumerable), "Where", new[] { args[1] }, innerSource, predicateLambda);
+			var callToWhere = Expression.Call(MethodInfoFastRef.EnumerableWhereMethod.MakeGenericMethod(args[1]), innerSource, predicateLambda);
 			var group = this.Visit(callToWhere);
 
 			this.AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);

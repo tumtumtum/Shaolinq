@@ -584,7 +584,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public virtual void Test_Group_Join()
 		{
 			using (var scope = new TransactionScope())
