@@ -31,7 +31,7 @@ namespace Shaolinq.SqlServer
 
 			return retval;
 		}
-
+		
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
 			if (constantExpression.Type.GetUnwrappedNullableType() == typeof(bool))
@@ -200,32 +200,24 @@ namespace Shaolinq.SqlServer
 				}
 			}
 
+			var from = this.VisitSource(selectExpression.From);
 			var where = this.Visit(selectExpression.Where);
-
-			if ((where is BitBooleanExpression))
+			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
+			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
+			var skip = this.Visit(selectExpression.Skip);
+			var take = this.Visit(selectExpression.Take);
+			
+			if (where is BitBooleanExpression)
 			{
 				where = Expression.Equal(where, Expression.Constant(true));
 			}
 
-			if (where != selectExpression.Where)
+			if (from != selectExpression.From || where != selectExpression.Where || newColumns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
 			{
-				if (newColumns != null)
-				{
-					return selectExpression.ChangeWhereAndColumns(where, newColumns.ToReadOnlyCollection());
-				}
-				else
-				{
-					return selectExpression.ChangeWhere(where);
-				}
+				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, newColumns ?? selectExpression.Columns, from, where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate);
 			}
-			else if (newColumns != null)
-			{
-				return selectExpression.ChangeColumns(newColumns, true);
-			}
-			else
-			{
-				return base.VisitSelect(selectExpression);
-			}
+
+			return base.VisitSelect(selectExpression);
 		}
 	}
 }

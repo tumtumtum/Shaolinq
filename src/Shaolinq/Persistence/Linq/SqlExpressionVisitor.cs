@@ -333,19 +333,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			Expression where;
 			var from = this.VisitSource(selectExpression.From);
-			try
-			{
-				where = this.Visit(selectExpression.Where);
-			}
-			catch
-			{
-				where = this.Visit(selectExpression.Where);
-
-				throw;
-			}
-
+			var where = this.Visit(selectExpression.Where);
 			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
 			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
 			var skip = this.Visit(selectExpression.Skip);
