@@ -81,6 +81,7 @@ namespace Shaolinq.Persistence.Linq
 			case "FirstOrDefault":
 			case "Single":
 			case "SingleOrDefault":
+			case "SelectMany":
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "Select":
 			case "SelectForUpdate":
@@ -94,15 +95,15 @@ namespace Shaolinq.Persistence.Linq
 				var resultSelector = methodCallExpression.Arguments[4].StripQuotes();
 
 				var outerResult = this.RewriteBasicProjection
-					(
-						outer,
-						new[]
-						{
-							new Tuple<LambdaExpression, ParameterExpression>(outerKeySelector, outerKeySelector.Parameters[0]),
-							new Tuple<LambdaExpression, ParameterExpression>(resultSelector, resultSelector.Parameters[0])
-						},
-						false
-					);
+				(
+					outer,
+					new[]
+					{
+						new Tuple<LambdaExpression, ParameterExpression>(outerKeySelector, outerKeySelector.Parameters[0]),
+						new Tuple<LambdaExpression, ParameterExpression>(resultSelector, resultSelector.Parameters[0])
+					},
+					false
+				);
 
 				if (outerResult.Changed)
 				{
@@ -277,6 +278,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 			case "Select":
 			case "SelectForUpdate":
+			{
 				var projectionResultType = result.NewSelectors[0].ReturnType;
 				newParameterType = result.NewSelectors[0].Parameters[0].Type;
 				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
@@ -288,6 +290,23 @@ namespace Shaolinq.Persistence.Linq
 				});
 
 				break;
+			}
+			case "SelectMany":
+			{
+				var projectionResultType = result.NewSelectors[1].ReturnType;
+				newParameterType = result.NewSelectors[0].Parameters[0].Type;
+				var collectionType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
+				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
+
+				newCall = Expression.Call(null, methodWithElementSelector, new[]
+				{
+					result.NewSource,
+					result.NewSelectors[0],
+					result.NewSelectors[1]
+				});
+
+				break;
+			}
 			case "Where":
 			case "WhereForUpdate":
 				newParameterType = result.NewSelectors[0].Parameters[0].Type;

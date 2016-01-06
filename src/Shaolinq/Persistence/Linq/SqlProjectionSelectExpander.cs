@@ -30,6 +30,10 @@ namespace Shaolinq.Persistence.Linq
 			case "Join":
 				return this.RewriteExplicitJoinProjection(methodCallExpression);
 			case "SelectMany":
+				if (methodCallExpression.Arguments.Count < 3)
+				{
+					goto default;
+				}
 				return this.RewriteSelectManyProjection(methodCallExpression);
 			default:
 				return base.VisitMethodCall(methodCallExpression);
@@ -76,7 +80,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var outer = this.Visit(methodCallExpression.Arguments[0]);
 			var collection = this.Visit(methodCallExpression.Arguments[1]);
-			var resultSelector = methodCallExpression.Arguments[2].StripQuotes();
+			var resultSelector = methodCallExpression.Arguments.Count == 3 ? methodCallExpression.Arguments[2].StripQuotes() : null;
 
 			var originalSelectorA = resultSelector.StripQuotes().Parameters[0];
 			var originalSelectorB = resultSelector.StripQuotes().Parameters[1];
@@ -91,7 +95,7 @@ namespace Shaolinq.Persistence.Linq
 			var newSelectMany = Expression.Call(null, MethodInfoFastRef.QueryableSelectManyMethod.MakeGenericMethod(methodCallExpression.Method.GetGenericArguments()[0], methodCallExpression.Method.GetGenericArguments()[1], newResultSelector.ReturnType), outer, collection, newResultSelector);
 
 			var selectorParameter = Expression.Parameter(resultValue.Type);
-			var selectProjectorBody = SqlExpressionReplacer.Replace(resultSelector.Body, originalSelectorA, Expression.Property(selectorParameter, "Outer"));
+			var selectProjectorBody = SqlExpressionReplacer.Replace(resultSelector?.Body ?? selectorParameter, originalSelectorA, Expression.Property(selectorParameter, "Outer"));
 
 			selectProjectorBody = SqlExpressionReplacer.Replace(selectProjectorBody, originalSelectorB, Expression.Property(selectorParameter, "Inner"));
 

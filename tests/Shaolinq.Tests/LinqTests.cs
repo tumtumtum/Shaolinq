@@ -918,14 +918,53 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
-		public virtual void Test_Select_Many_Students_From_Schools()
+		[Test]
+		public virtual void Test_Select_Many_Students_From_Schools1()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
 					.SelectMany(c => c.Students);
+
+				var results = query.ToList();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_Students_From_Schools2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.SelectMany(c => c.Students).Select(c => c.School.Name);
+
+				var results = query.ToList();
+			}
+		}
+		
+		[Test, Ignore]
+		public virtual void Test_Select_With_Implicit_GroupJoin1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.Select(c => c.Students.Select(d => d.Lastname));
+
+				var results = query.ToList();
+			}
+		}
+
+		[Test, Ignore]
+		public virtual void Test_Select_With_Implicit_GroupJoin2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.SelectMany(c => c.Students.Select(d => d.Firstname));
 
 				var results = query.ToList();
 			}
