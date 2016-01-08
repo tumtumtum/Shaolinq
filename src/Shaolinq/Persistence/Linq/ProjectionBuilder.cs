@@ -15,17 +15,15 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class ProjectionBuilderScope
 	{
-		public string OuterAlias { get; }
 		public Dictionary<string, int> ColumnIndexes { get; }
 
-		public ProjectionBuilderScope(string outerAlias, string[] columnNames)
-			: this(outerAlias, columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
+		public ProjectionBuilderScope(string[] columnNames)
+			: this(columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
 		{	
 		}
 
-        public ProjectionBuilderScope(string outerAlias, Dictionary<string, int> columnIndexes)
+        public ProjectionBuilderScope(Dictionary<string, int> columnIndexes)
 		{
-			this.OuterAlias = outerAlias;
 			this.ColumnIndexes = columnIndexes;
 		}
 	}
@@ -294,25 +292,49 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitProjection(SqlProjectionExpression projectionExpression)
 		{
-			var currentPlaceholderCount = ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
+			if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(projectionExpression.Type))
+			{
+				var elementType = projectionExpression.Type.GetGenericArguments()[0];
+                var originalPlaceholderCount = ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
+				var currentPlaceholderCount = originalPlaceholderCount;
 
-			var replacedColumns = new List<SqlColumnExpression>();
-			projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, this.scope.OuterAlias, ref currentPlaceholderCount, replacedColumns);
+				var replacedColumns = new List<SqlColumnExpression>();
+				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedColumns);
+				var values = replacedColumns.Select(c => Expression.Convert(this.Visit(c), typeof(object))).ToList();
+				var where = projectionExpression.Select.Where;
 
-			var newColumnIndexes = projectionExpression.Select.Columns.Select((c, i) => new { c.Name, i }).ToDictionary(d => d.Name, d => d.i);
+				var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(elementType);
+				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedAndRelatedObjectProperties);
+				
+				var columnExpression = (SqlColumnExpression)ExpressionsFinder.First(where, c => c.NodeType == (ExpressionType)SqlExpressionType.Column);
+				var match = columns.Single(d => d.ColumnName == columnExpression.Name);
 
-			var savedScope = this.scope;
-			this.scope = new ProjectionBuilderScope(projectionExpression.Select.Alias, newColumnIndexes);
+				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByValuesMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
+				var property = match.ForeignType.RelatedProperties.Single(c => c.PropertyType.GetSequenceElementType() == elementType).PropertyInfo;
 
-			var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, dynamicParameters);
-			var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object)));
+                return Expression.Convert(Expression.Property(reference, property), this.dataAccessModel.GetConcreteTypeFromDefinitionType(property.PropertyType));
+			}
+			else
+			{
+				var currentPlaceholderCount = ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
 
-			this.scope = savedScope;
+				var replacedColumns = new List<SqlColumnExpression>();
+				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedColumns);
 
-			var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[])));
-			var evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
+				var newColumnIndexes = projectionExpression.Select.Columns.Select((c, i) => new { c.Name, i }).ToDictionary(d => d.Name, d => d.i);
 
-			return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression, typeof(SqlProjectionExpression)), Expression.Constant(projectionProjector), Expression.NewArrayInit(typeof(object), values)), evaluate);
+				var savedScope = this.scope;
+				this.scope = new ProjectionBuilderScope(newColumnIndexes);
+				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, dynamicParameters);
+				this.scope = savedScope;
+
+				var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
+
+				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[])));
+				var evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
+
+				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression, typeof(SqlProjectionExpression)), Expression.Constant(projectionProjector), Expression.NewArrayInit(typeof(object), values)), evaluate);
+			}
 		}
 	}
 }

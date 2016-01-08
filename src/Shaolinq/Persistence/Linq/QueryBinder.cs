@@ -879,6 +879,8 @@ namespace Shaolinq.Persistence.Linq
 
 	            switch (methodCallExpression.Method.Name)
 	            {
+				case "AsEnumerable":
+		            return this.Visit(methodCallExpression.Arguments[0]);
 	            case "Where":
 					this.selectorPredicateStack.Push(methodCallExpression);
 		            result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
@@ -1327,7 +1329,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var pc = ProjectColumns(projection.Projector, alias, null, GetExistingAlias(projection.Select));
 
-			var retval = new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, forUpdate), pc.Projector, null);
+			var retval = new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, null, false, null, null, false, false), pc.Projector, null);
 
 			return retval;
 		}
@@ -1967,45 +1969,61 @@ namespace Shaolinq.Persistence.Linq
 
 			switch (source.NodeType)
 			{
-				case ExpressionType.MemberInit:
-					var min = (MemberInitExpression)source;
+			case ExpressionType.MemberInit:
+			{
+				var min = (MemberInitExpression)source;
 
-					if (min.Bindings != null)
+				var type = memberExpression.Type.GetGenericTypeDefinitionOrNull();
+
+				if (type == typeof(RelatedDataAccessObjects<>))
+				{
+					var inner = this.GetTableProjection(memberExpression.Type.GetGenericArguments()[0]);
+					var relationship = this.typeDescriptorProvider
+						.GetTypeDescriptor(memberExpression.Type.GetGenericArguments()[0])
+						.GetRelationshipInfo(this.typeDescriptorProvider.GetTypeDescriptor(source.Type));
+
+					var param = Expression.Parameter(memberExpression.Type.GetGenericArguments()[0]);
+					var where = Expression.Lambda(Expression.Equal(Expression.Property(param, relationship.ReferencingProperty.PropertyInfo), source), param);
+
+					return this.BindWhere(memberExpression.Type, inner, where, false, true);
+				}
+
+				for (int i = 0, n = min.Bindings.Count; i < n; i++)
+				{
+					var assign = min.Bindings[i] as MemberAssignment;
+
+					if (assign != null && MembersMatch(assign.Member, memberExpression.Member))
 					{
-						for (int i = 0, n = min.Bindings.Count; i < n; i++)
-						{
-							var assign = min.Bindings[i] as MemberAssignment;
-
-							if (assign != null && MembersMatch(assign.Member, memberExpression.Member))
-							{
-								return assign.Expression;
-							}
-						}
+						return assign.Expression;
 					}
+				}
 
-					break;
-				case ExpressionType.New:
-					// Source is a anonymous type from a join
-					var newExpression = (NewExpression)source;
-
-					if (newExpression.Members != null)
-					{
-						for (int i = 0, n = newExpression.Members.Count; i < n; i++)
-						{
-							if (MembersMatch(newExpression.Members[i], memberExpression.Member))
-							{
-								return newExpression.Arguments[i];
-							}
-						}
-					}
-					else if (newExpression.Type.IsGenericType && newExpression.Type.Namespace == "System" && newExpression.Type.Assembly == typeof(Tuple<>).Assembly && newExpression.Type.Name.StartsWith("Tuple`"))
-					{
-						var i = Convert.ToInt32(memberExpression.Member.Name.Substring(4)) - 1;
-
-						return newExpression.Arguments[i];
-					}
 				break;
-				case ExpressionType.Constant:
+			}
+			case ExpressionType.New:
+			{
+				// Source is a anonymous type from a join
+				var newExpression = (NewExpression)source;
+
+				if (newExpression.Members != null)
+				{
+					for (int i = 0, n = newExpression.Members.Count; i < n; i++)
+					{
+						if (MembersMatch(newExpression.Members[i], memberExpression.Member))
+						{
+							return newExpression.Arguments[i];
+						}
+					}
+				}
+				else if (newExpression.Type.IsGenericType && newExpression.Type.Namespace == "System" && newExpression.Type.Assembly == typeof(Tuple<>).Assembly && newExpression.Type.Name.StartsWith("Tuple`"))
+				{
+					var i = Convert.ToInt32(memberExpression.Member.Name.Substring(4)) - 1;
+
+					return newExpression.Arguments[i];
+				}
+				break;
+			}
+			case ExpressionType.Constant:
 
 					if (memberExpression.Type.IsDataAccessObjectType())
 					{

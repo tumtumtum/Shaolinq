@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -9,19 +12,21 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		: SqlExpressionVisitor
 	{
 		private int placeholderCount;
-		private readonly string outerAlias;
+		private readonly HashSet<string> aliases;
 		private readonly List<SqlColumnExpression> replacedColumns;
 
-		private SqlOuterQueryReferencePlaceholderSubstitutor(int placeholderCount, string outerAlias, List<SqlColumnExpression> replacedColumns)
+		private SqlOuterQueryReferencePlaceholderSubstitutor(int placeholderCount, HashSet<string> aliases, List<SqlColumnExpression> replacedColumns)
 		{
 			this.placeholderCount = placeholderCount;
-			this.outerAlias = outerAlias;
+			this.aliases = aliases;
 			this.replacedColumns = replacedColumns;
 		}
 
-		public static Expression Substitute(Expression expression, string outerAlias, ref int placeholderCount, List<SqlColumnExpression> replacedColumns)
+		public static Expression Substitute(Expression expression, ref int placeholderCount, List<SqlColumnExpression> replacedColumns)
 		{
-			var visitor = new SqlOuterQueryReferencePlaceholderSubstitutor(placeholderCount, outerAlias, replacedColumns);
+			var aliases = SqlDeclaredAliasesGatherer.Gather(expression);
+
+			var visitor = new SqlOuterQueryReferencePlaceholderSubstitutor(placeholderCount, aliases, replacedColumns);
 			var retval = visitor.Visit(expression);
 
 			placeholderCount = visitor.placeholderCount;
@@ -31,7 +36,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
 		{
-			if (columnExpression.SelectAlias == outerAlias)
+			if (!aliases.Contains(columnExpression.SelectAlias))
 			{
 				replacedColumns.Add(columnExpression);
 

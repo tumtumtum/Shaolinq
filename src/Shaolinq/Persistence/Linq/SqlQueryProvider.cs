@@ -142,7 +142,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
 			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression).ToArray();
-			var projector = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(projectionExpression.Select.Alias, columns.ToArray()));
+			var projector = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns.ToArray()));
 
 			return this.BuildExecution(projectionExpression, projector, placeholderValues);
 		}
