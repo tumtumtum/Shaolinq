@@ -178,6 +178,7 @@
     <Compile Include="Persistence\Linq\Optimizers\ExpressionCounter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossApplyRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossJoinRewriter.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasesGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />

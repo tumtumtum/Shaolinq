@@ -51,7 +51,9 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo TypeGetTypeFromHandle = TypeUtils.GetMethod(() => Type.GetTypeFromHandle(Type.GetTypeHandle(new object())));
 		public static readonly MethodInfo ConvertChangeTypeMethod = TypeUtils.GetMethod(() => Convert.ChangeType(null, typeof(string)));
 		public static readonly MethodInfo ObjectPropertyValueListAddMethod = TypeUtils.GetMethod<List<ObjectPropertyValue>>(c => c.Add(default(ObjectPropertyValue)));
-		public static readonly MethodInfo DataAccessModelGetReference = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessModelGetReferenceMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessModelGetDataAccessObjectsMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetDataAccessObjects<DataAccessObject>()).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessModelGetReferenceByValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(default(object[]))).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string>((Expression<Func<object, string>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string, int>((Expression<Func<object, string>>)null, (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
 	}

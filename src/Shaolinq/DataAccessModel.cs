@@ -450,7 +450,7 @@ namespace Shaolinq
 
 					if (isObjectType)
 					{
-						var method = MethodInfoFastRef.DataAccessModelGetReference.MakeGenericMethod(propertyInfo.PropertyType, valueExpression.Type);
+						var method = MethodInfoFastRef.DataAccessModelGetReferenceMethod.MakeGenericMethod(propertyInfo.PropertyType, valueExpression.Type);
 
 						if (isSimpleKey || valueExpression.Type.IsDataAccessObjectType())
 						{
