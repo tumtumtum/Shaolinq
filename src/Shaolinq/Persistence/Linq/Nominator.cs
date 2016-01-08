@@ -76,31 +76,25 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var saveInProjection = this.inProjection;
 			this.inProjection = true;
-			var retval = base.VisitProjection(projection);
+			base.VisitProjection(projection);
 			this.inProjection = saveInProjection;
-			return retval;
+			return projection;
 		}
 
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			var left = this.Visit(join.Left);
-			var right = this.Visit(join.Right);
-			var condition = join.JoinCondition;
-
+			this.Visit(join.Left);
+			this.Visit(join.Right);
+			
 			if (this.inProjection)
 			{
 				var saveCanBeColumn = this.canBeColumn;
 
 				this.canBeColumn = c => c is SqlColumnExpression;
 
-				condition = this.Visit(join.JoinCondition);
+				this.Visit(join.JoinCondition);
 
 				this.canBeColumn = saveCanBeColumn;
-			}
-
-			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
-			{
-				return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
 			}
 
 			return join;
@@ -108,14 +102,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			var from = this.VisitSource(selectExpression.From);
-
-			var orderBy = selectExpression.OrderBy;
-			var groupBy = selectExpression.GroupBy;
-			var skip = selectExpression.Skip;
-			var take = selectExpression.Take;
-			var columns = this.VisitColumnDeclarations(selectExpression.Columns);
-			var where = selectExpression.Where;
+			this.VisitSource(selectExpression.From);
+			this.VisitColumnDeclarations(selectExpression.Columns);
 
 			if (inProjection)
 			{
@@ -123,14 +111,13 @@ namespace Shaolinq.Persistence.Linq
 
 				this.canBeColumn = c => c is SqlColumnExpression;
 
-				where = this.Visit(selectExpression.Where);
+				this.VisitExpressionList(selectExpression.OrderBy);
+				this.VisitExpressionList(selectExpression.GroupBy);
+				this.Visit(selectExpression.Skip);
+				this.Visit(selectExpression.Take);
+				this.Visit(selectExpression.Where);
 
 				this.canBeColumn = saveCanBeColumn;
-			}
-
-			if (from != selectExpression.From || columns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip || where != selectExpression.Where)
-			{
-				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, columns, from, where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate);
 			}
 
 			return selectExpression;
