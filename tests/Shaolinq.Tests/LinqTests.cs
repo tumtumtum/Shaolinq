@@ -972,7 +972,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public virtual void Test_Select_Many_With_Implicit_GroupJoin2()
 		{
 			using (var scope = new TransactionScope())
