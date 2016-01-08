@@ -652,8 +652,15 @@ namespace Shaolinq.Persistence.Linq
 			}
 			
 			var collectionProjection = this.VisitSequence(collection);
+
+			if (collectionProjection.Select.From is SqlTableExpression && defaultIfEmpty)
+			{
+				collection = collectionSelector.Body;
+				collectionProjection = this.VisitSequence(collection);
+			}
+
 			var isTable = collectionProjection.Select.From is SqlTableExpression;
-			var joinType = isTable ? SqlJoinType.Cross : defaultIfEmpty ? SqlJoinType.OuterApply : SqlJoinType.CrossApply;
+			var joinType = defaultIfEmpty ? SqlJoinType.OuterApply : (isTable ? SqlJoinType.Cross : SqlJoinType.CrossApply);
 			var join = new SqlJoinExpression(resultType, joinType, projection.Select, collectionProjection.Select, null);
 
 			var alias = this.GetNextAlias();

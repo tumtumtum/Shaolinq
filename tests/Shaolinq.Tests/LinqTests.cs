@@ -515,7 +515,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Ignore("GroupJoins not supported yet")]
 		public virtual void Test_Left_Outer_Join1()
 		{
 			using (var scope = new TransactionScope())
@@ -531,7 +530,59 @@ namespace Shaolinq.Tests
 
 				Assert.That(result.Count, Is.EqualTo(1));
 				Assert.That(result[0].school.Name, Is.EqualTo("Empty school"));
-				//Assert.That(result[0].student, Is.Null);
+				Assert.That(result[0].student, Is.Null);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Left_Outer_Join2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from school in this.model.Schools
+					from student in this.model.Students.Where(c => c.School == school && school.Name == "Empty school").DefaultIfEmpty()
+					select new { school, student };
+
+				var result = query.ToList();
+
+				Assert.That(result.Count, Is.EqualTo(3));
+			}
+		}
+
+		[Test]
+		public virtual void Test_Left_Outer_Join3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from school in this.model.Schools
+					from student in this.model.Students.Where(c => c.School == school).DefaultIfEmpty()
+					where school.Name == "Empty school"
+					select new { school, student };
+
+				var result = query.ToList();
+
+				Assert.That(result.Count, Is.EqualTo(1));
+				Assert.That(result[0].school.Name, Is.EqualTo("Empty school"));
+				Assert.That(result[0].student, Is.Null);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Left_Outer_Join4()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from school in this.model.Schools
+					from student in this.model.Students.DefaultIfEmpty()
+					where student.School == school && school.Name == "Empty school"
+					select new { school, student };
+
+				var result = query.ToList();
+				
+				Assert.That(result.Count, Is.EqualTo(0));
 			}
 		}
 

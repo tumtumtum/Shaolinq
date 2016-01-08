@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence
 			
 			using (var connection =  (DbConnection)sqlDatabaseContext.OpenConnection())
 			{
-				var schema = connection.GetSchema("Tables");
+				var schema = connection.GetSchema("Columns");
 
 				Console.WriteLine(schema);
 			}

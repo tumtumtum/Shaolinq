@@ -50,7 +50,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 							where = pc.Projector;
 
 							var joinType = (where == null) ? SqlJoinType.Cross : (join.JoinType == SqlJoinType.CrossApply ? SqlJoinType.Inner : SqlJoinType.Left);
-
+							
 							return new SqlJoinExpression(typeof(void), joinType, join.Left, select, where);
 						}
 					}
