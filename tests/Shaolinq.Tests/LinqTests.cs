@@ -943,7 +943,20 @@ namespace Shaolinq.Tests
 				var results = query.ToList();
 			}
 		}
-		
+
+		[Test]
+		public virtual void Test_Select_Many_Students_Implicit_Join_Inside_Select_Inside_SelectMany()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.SelectMany(c => c.Students.Select(d => d.Address.Number));
+
+				var results = query.ToList();
+			}
+		}
+
 		[Test]
 		public virtual void Test_Select_With_Implicit_GroupJoin1()
 		{
