@@ -15,17 +15,15 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class ProjectionBuilderScope
 	{
-		public string OuterAlias { get; }
 		public Dictionary<string, int> ColumnIndexes { get; }
 
-		public ProjectionBuilderScope(string outerAlias, string[] columnNames)
-			: this(outerAlias, columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
+		public ProjectionBuilderScope(string[] columnNames)
+			: this(columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
 		{	
 		}
 
-        public ProjectionBuilderScope(string outerAlias, Dictionary<string, int> columnIndexes)
+        public ProjectionBuilderScope(Dictionary<string, int> columnIndexes)
 		{
-			this.OuterAlias = outerAlias;
 			this.ColumnIndexes = columnIndexes;
 		}
 	}
@@ -326,7 +324,7 @@ namespace Shaolinq.Persistence.Linq
 				var newColumnIndexes = projectionExpression.Select.Columns.Select((c, i) => new { c.Name, i }).ToDictionary(d => d.Name, d => d.i);
 
 				var savedScope = this.scope;
-				this.scope = new ProjectionBuilderScope(projectionExpression.Select.Alias, newColumnIndexes);
+				this.scope = new ProjectionBuilderScope(newColumnIndexes);
 				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, dynamicParameters);
 				this.scope = savedScope;
 
