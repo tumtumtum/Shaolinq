@@ -229,6 +229,27 @@ namespace Shaolinq.Persistence.Linq
 			return this.ConvertColumnToDataReaderRead(column, column.Type);
 		}
 
+		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+		{
+			var retval = base.VisitMethodCall(methodCallExpression);
+
+			var type = retval.Type;
+
+			if (!type.IsDataAccessObjectType())
+			{
+				return retval;
+			}
+
+			var concrete = this.dataAccessModel.GetConcreteTypeFromDefinitionType(type);
+
+			if (concrete == type)
+			{
+				return retval;
+			}
+
+			return Expression.Convert(retval, concrete);
+		}
+
 		protected override Expression VisitUnary(UnaryExpression unaryExpression)
 		{
 			if (unaryExpression.NodeType == ExpressionType.Convert)
@@ -237,6 +258,15 @@ namespace Shaolinq.Persistence.Linq
 					&& unaryExpression.Type == unaryExpression.Operand.Type.MakeNullable())
 				{
 					return this.ConvertColumnToDataReaderRead((SqlColumnExpression)unaryExpression.Operand, unaryExpression.Operand.Type.MakeNullable());
+				}
+				else if (unaryExpression.Type.IsDataAccessObjectType())
+				{
+					var concrete = this.dataAccessModel.GetConcreteTypeFromDefinitionType(unaryExpression.Type);
+
+					if (concrete != unaryExpression.Type)
+					{
+						return Expression.Convert(this.Visit(unaryExpression.Operand), concrete);
+					}
 				}
 			}
 

@@ -373,10 +373,12 @@ namespace Shaolinq.Persistence.Linq
 			var projector = this.Visit(projection.Projector);
 			var defaulValueExpression = this.Visit(projection.DefaultValue);
 			var aggregator = (LambdaExpression)this.Visit(projection.Aggregator);
+			var includeSelectors = this.VisitExpressionList(projection.IncludeSelectors);
+			var defaultValue = this.Visit(projection.DefaultValue);
 
-			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValue || aggregator != projection.Aggregator)
+			if (source != projection.Select || projector != projection.Projector || defaulValueExpression != projection.DefaultValue || aggregator != projection.Aggregator || defaultValue != projection.DefaultValue || includeSelectors != projection.IncludeSelectors)
 			{
-				return new SqlProjectionExpression(source, projector, aggregator, projection.IsElementTableProjection, projection.DefaultValue);
+				return new SqlProjectionExpression(projection.Type, source, projector, aggregator, projection.IsElementTableProjection, projection.DefaultValue, includeSelectors);
 			}
 
 			return projection;

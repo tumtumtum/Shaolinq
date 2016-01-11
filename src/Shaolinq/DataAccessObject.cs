@@ -70,6 +70,14 @@ namespace Shaolinq
 			this.dataAccessModel = value;
 		}
 
+		public T Integrate<T, U>(U value)
+			where T : DataAccessObject
+		{
+			var target = (T)this;
+
+			return target;
+		}
+
 		#region IDataAccessObjectAdvanced
 		DataAccessModel IDataAccessObjectAdvanced.DataAccessModel => this.dataAccessModel;
 		ObjectState IDataAccessObjectAdvanced.ObjectState { get { throw new NotImplementedException(); } }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Transactions;
 using NUnit.Framework;
+using Platform;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
@@ -439,7 +440,7 @@ namespace Shaolinq.Tests
 				new
 				{
 					shop,
-					address1 = address1.Include(c => c.Region),
+					address1 = address1.Include(c => c.Region.Center),
 					address2,
 					address3 = address3.Include(c => c.Region),
 					address4,
@@ -453,6 +454,7 @@ namespace Shaolinq.Tests
 				Assert.AreSame(first.address4, first.address5);
 
 				Assert.IsFalse(first.address1.Region.IsDeflatedReference());
+				Assert.IsFalse(first.address1.Region.Center.IsDeflatedReference());
 				Assert.IsFalse(first.address2.Region.IsDeflatedReference());
 				Assert.IsFalse(first.address4.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.address1.Street);
@@ -2143,6 +2145,17 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(regionId, shop.Address.Region.Id);
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Include_Collection()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(c => c.SisterMall.Shops).ToList();
 			}
 		}
 	}

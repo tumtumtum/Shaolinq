@@ -8,9 +8,10 @@ namespace Shaolinq
 	public static class DataAccessObjectExtensions
 	{
 		internal static T Include<T, U>(this T obj, Func<T, U> include)
-			where U : DataAccessObject
 		{
-			throw new InvalidOperationException();
+			// ReSharper disable SuspiciousTypeConversion.Global
+			return obj;
+			// ReSharper restore SuspiciousTypeConversion.Global
 		}
 
 		internal static IDataAccessObjectInternal ToObjectInternal(this DataAccessObject value)

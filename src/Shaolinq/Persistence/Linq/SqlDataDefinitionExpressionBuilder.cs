@@ -192,7 +192,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			foreach (var typeRelationshipInfo in typeDescriptor.GetRelationshipInfos())
 			{
-				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
+				if (typeRelationshipInfo.RelationshipType == RelationshipType.ChildOfOneToMany)
 				{
 					var foreignKeyColumns = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeRelationshipInfo.ReferencingProperty);
 

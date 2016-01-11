@@ -12,6 +12,6 @@ namespace Shaolinq
 		IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		LambdaExpression ExtraCondition { get; }
 		Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
-		EntityRelationshipType RelationshipType { get; }
+		RelationshipType RelationshipType { get; }
 	}
 }

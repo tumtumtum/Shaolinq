@@ -128,7 +128,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if ((binaryExpression.Left.NodeType == (ExpressionType)SqlExpressionType.ObjectReference || binaryExpression.Left.NodeType == ExpressionType.MemberInit)
 				&& (binaryExpression.Right.NodeType == (ExpressionType)SqlExpressionType.ObjectReference || binaryExpression.Right.NodeType == ExpressionType.MemberInit)
-				&& (binaryExpression.Left.Type == binaryExpression.Right.Type))
+				&& (binaryExpression.Left.Type.IsAssignableFrom(binaryExpression.Right.Type) || binaryExpression.Right.Type.IsAssignableFrom(binaryExpression.Left.Type)))
 			{
 				Expression retval = null;
 				var leftOperand = binaryExpression.Left;

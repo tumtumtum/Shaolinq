@@ -125,14 +125,15 @@ namespace Shaolinq.Persistence
 								throw new InvalidDataAccessObjectModelDefinition("The type {0} defines multiple relationships with the type {1}", typeDescriptor.Type.Name, relatedTypeDescriptor.Type.Name);
 							}
 
-							typeRelationshipInfo.EntityRelationshipType = EntityRelationshipType.ManyToMany;
+							typeRelationshipInfo.RelationshipType = RelationshipType.ManyToMany;
 							typeRelationshipInfo.RelatedTypeTypeDescriptor = relatedTypeDescriptor;
-							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, EntityRelationshipType.ManyToMany, null);
+							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, RelationshipType.ManyToMany, null);
 						}
 						else
 						{
 							var relatedProperty = relatedTypeDescriptor.GetRelatedProperty(typeDescriptor.Type);
-							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, EntityRelationshipType.ChildOfOneToMany, relatedProperty);
+							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, RelationshipType.ChildOfOneToMany, relatedProperty);
+							typeDescriptor.SetOrCreateRelationshipInfo(relatedTypeDescriptor, RelationshipType.ParentOfOneToMany, relatedProperty);
 						}
 					}
 				}
@@ -144,7 +145,7 @@ namespace Shaolinq.Persistence
 				{
 					var closedCelationshipInfo = relationshipInfo;
 
-					if (relationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
+					if (relationshipInfo.RelationshipType == RelationshipType.ChildOfOneToMany)
 					{
 						if (!typeDescriptor.RelatedProperties.Any(c => c.BackReferenceAttribute != null && c.PropertyType == closedCelationshipInfo.ReferencingProperty.PropertyType))
 						{
@@ -181,6 +182,14 @@ namespace Shaolinq.Persistence
 			if (this.typeDescriptorsByType.TryGetValue(type, out retval))
 			{
 				return retval;
+			}
+
+			if (type.BaseType != null)
+			{
+				if (this.typeDescriptorsByType.TryGetValue(type.BaseType, out retval))
+				{
+					return retval;
+				}
 			}
 
 			return null;

@@ -13,14 +13,15 @@ namespace Shaolinq
 		where T : DataAccessObject
 	{
 		private List<T> values;
-		public EntityRelationshipType RelationshipType { get; }
+		private int valuesVersion;
+		public RelationshipType RelationshipType { get; }
 		public LambdaExpression ExtraCondition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
 		public override IEnumerator<T> GetEnumerator() => this.values?.GetEnumerator() ?? base.GetEnumerator();
 
-		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, EntityRelationshipType relationshipType)
+		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, RelationshipType relationshipType)
 			: base(dataAccessModel)
 		{
 			this.RelatedDataAccessObject = relatedDataAccessObject;
@@ -29,7 +30,7 @@ namespace Shaolinq
 			this.SqlQueryProvider.RelatedDataAccessObjectContext = this;
 			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod();
 		}
-
+		
 		public virtual RelatedDataAccessObjects<T> Invalidate()
 		{
 			this.values = null;
@@ -37,16 +38,40 @@ namespace Shaolinq
 			return this;
 		}
 
-		internal void SetValues(List<T> values)
+		public virtual List<T> ToList(ToListCachePolicy cachePolicy = ToListCachePolicy.Default)
 		{
-			this.values = values;
+			return new List<T>(this.AsEnumerable(cachePolicy));
+		}
+
+		public virtual IEnumerable<T> AsEnumerable(ToListCachePolicy cachePolicy = ToListCachePolicy.Default)
+		{
+			switch (cachePolicy)
+			{
+			case ToListCachePolicy.CacheOnly:
+				return new List<T>(this.values);
+			case ToListCachePolicy.IgnoreCache:
+				return Enumerable.ToList(this);
+			default:
+				return this.values ?? (IEnumerable<T>)this;
+			}
+		}
+
+		internal void AddValue(T value, int version)
+		{
+			if (this.values == null || version != this.valuesVersion)
+			{
+				this.values = new List<T>();
+				this.valuesVersion = version;
+			}
+
+			this.values.Add(value);
 		}
 		
 		private LambdaExpression CreateJoinCondition()
 		{
 			switch (this.RelationshipType)
 			{
-				case EntityRelationshipType.ParentOfOneToMany:
+				case RelationshipType.ParentOfOneToMany:
 				{
 					var param = Expression.Parameter(typeof(T));
 
@@ -56,8 +81,8 @@ namespace Shaolinq
 
 					return Expression.Lambda(body, param);
 				}
-				case EntityRelationshipType.OneToOne:
-				case EntityRelationshipType.ChildOfOneToMany:
+				case RelationshipType.OneToOne:
+				case RelationshipType.ChildOfOneToMany:
 				{
 					var param = Expression.Parameter(typeof(T));
 					var body = Expression.Equal(param, Expression.Constant(this.RelatedDataAccessObject));
@@ -85,7 +110,7 @@ namespace Shaolinq
 
 			switch (this.RelationshipType)
 			{
-				case EntityRelationshipType.ParentOfOneToMany:
+				case RelationshipType.ParentOfOneToMany:
 				{
 					var relatedDataAccessObjectType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType());
 					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
@@ -106,7 +131,7 @@ namespace Shaolinq
 
 					return retval;
 				}
-				case EntityRelationshipType.ChildOfOneToMany:
+				case RelationshipType.ChildOfOneToMany:
 				{
 					break;
 				}

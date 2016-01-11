@@ -241,8 +241,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					return Expression.MakeMemberAccess(this.Visit(memberExpression.Expression), memberExpression.Member);
 				}
-				
-				typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.Type);
 
 				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 

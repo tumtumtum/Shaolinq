@@ -274,7 +274,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 					else
 					{
-						var defaultIfEmptyCall = Expression.Call(MethodInfoFastRef.EnumerableDefaultIfEmptyWithValueMethod.MakeGenericMethod(elementType), parameter, defaultIfEmptyValue);
+						var defaultIfEmptyCall = Expression.Call(MethodInfoFastRef.EnumerableDefaultIfEmptyWithValueMethod.MakeGenericMethod(elementType), parameter, Expression.Convert(defaultIfEmptyValue, elementType));
 						var firstCall = Expression.Call(typeof(Enumerable), selectFirstType.ToString(), new[] { elementType }, defaultIfEmptyCall);
 						
 						aggr = Expression.Lambda(firstCall, parameter);
@@ -523,8 +523,7 @@ namespace Shaolinq.Persistence.Linq
 		private LambdaExpression MakeSelectorForPrimaryKeys(Type objectType,  Type returnType)
 		{
 			var parameter = Expression.Parameter(objectType);
-			var constructor = returnType.GetConstructor(Type.EmptyTypes);
-			var newExpression = Expression.New(constructor);
+			var newExpression = Expression.New(returnType);
 
 			var bindings = new List<MemberBinding>();
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(objectType);
@@ -608,7 +607,33 @@ namespace Shaolinq.Persistence.Linq
 				return new SqlProjectionExpression(projection.Select, projection.Projector, aggregator);
 			}
 		}
+		
+		protected virtual Expression BindInclude(Expression source, LambdaExpression selector)
+		{
+			var left = (SqlProjectionExpression)this.Visit(source);
+			var right = this.GetTableProjection(selector.ReturnType);
 
+			var relationship = this.typeDescriptorProvider
+				.GetTypeDescriptor(left.Type.GetGenericArguments()[0])
+				.GetRelationshipInfo(this.typeDescriptorProvider.GetTypeDescriptor(right.Type.GetSequenceElementType()));
+
+			var leftParam = Expression.Parameter(left.Type.GetSequenceElementType());
+			var rightParam = Expression.Parameter(right.Type.GetSequenceElementType());
+
+			var method = TypeUtils.GetMethod<DataAccessObject>(c => c.Integrate<DataAccessObject, int>(0)).GetGenericMethodDefinition();
+			method = method.MakeGenericMethod(leftParam.Type, rightParam.Type);
+			
+			var retval = (SqlProjectionExpression)this.BindJoin(this.DataAccessModel.GetConcreteTypeFromDefinitionType(left.Type.GetGenericArguments()[0]), left, right, 
+				Expression.Lambda(leftParam, leftParam),
+				Expression.Lambda(Expression.Property(rightParam, relationship.ReferencingProperty.PropertyInfo), rightParam), 
+				Expression.Lambda(Expression.Call(leftParam, method, rightParam), leftParam, rightParam),
+				SqlJoinType.Left);
+
+			retval = retval.ChangeIncludeSelectors((retval.IncludeSelectors ?? Enumerable.Empty<LambdaExpression>()).Concat(selector).ToReadOnlyCollection());
+
+			return retval;
+		}
+		
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector, SqlJoinType joinType = SqlJoinType.Inner)
 		{
 			var outerProjection = this.VisitSequence(outerSource);
@@ -864,6 +889,11 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
+			if (methodCallExpression.Method.Name == "Integrate")
+			{
+				return base.VisitMethodCall(methodCallExpression);
+			}
+
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
@@ -1039,6 +1069,8 @@ namespace Shaolinq.Persistence.Linq
 			            return this.BindCollectionContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], methodCallExpression == this.rootExpression);
 		            }
 		            break;
+				case "Include":
+		            return BindInclude(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 	            }
 
 	            throw new NotSupportedException($"Linq function \"{methodCallExpression.Method.Name}\" is not supported");
@@ -1268,7 +1300,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return base.VisitMethodCall(methodCallExpression);
 		}
-        
+
 		protected virtual Expression BindOrderBy(Type resultType, Expression source, LambdaExpression orderSelector, OrderType orderType)
 		{
 			var myThenBys = this.thenBys;

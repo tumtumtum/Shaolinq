@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence
 		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
 		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
 		
-		private readonly IDictionary<TypeDescriptor, TypeRelationshipInfo> relationshipInfos;
+		private readonly IDictionary<Tuple<TypeDescriptor, RelationshipType>, TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
@@ -79,20 +79,20 @@ namespace Shaolinq.Persistence
 			return null;
 		}
 
-		public TypeRelationshipInfo SetOrCreateRelationshipInfo(TypeDescriptor relatedTypeDescriptor, EntityRelationshipType entityRelationshipType, PropertyDescriptor relatedProperty)
+		public TypeRelationshipInfo SetOrCreateRelationshipInfo(TypeDescriptor relatedTypeDescriptor, RelationshipType relationshipType, PropertyDescriptor relatedProperty)
 		{
 			TypeRelationshipInfo retval;
 
-			if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
+			/*if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
 			{
-				retval.EntityRelationshipType = entityRelationshipType;
+				retval.RelationshipType = RelationshipType;
 				retval.ReferencingProperty = relatedProperty;
 				retval.RelatedTypeTypeDescriptor = relatedTypeDescriptor;
 
 				return retval;
-			}
+			}*/
 
-			retval = new TypeRelationshipInfo(relatedTypeDescriptor, entityRelationshipType, relatedProperty);
+			retval = new TypeRelationshipInfo(relatedTypeDescriptor, relationshipType, relatedProperty);
 
 			this.relationshipInfos[relatedTypeDescriptor] = retval;
 

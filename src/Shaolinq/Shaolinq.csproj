@@ -390,7 +390,7 @@
     <Compile Include="TypeBuilding\DataAccessAssemblyProvider.cs" />
     <Compile Include="TypeBuilding\DataAccessModelAssemblyBuilder.cs" />
     <Compile Include="TypeBuilding\DataAccessModelTypeBuilder.cs" />
-    <Compile Include="Persistence\EntityRelationshipType.cs" />
+    <Compile Include="Persistence\RelationshipType.cs" />
     <Compile Include="Persistence\PropertyDescriptor.cs" />
     <Compile Include="TypeBuilding\DataAccessObjectTypeBuilder.cs" />
     <Compile Include="Persistence\TypeDescriptor.cs" />

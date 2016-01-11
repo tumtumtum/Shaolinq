@@ -20,7 +20,8 @@ namespace Shaolinq.TypeBuilding
 	public sealed class DataAccessObjectTypeBuilder
 	{
 		internal const string ForceSetPrefix = "$$force_set";
-		internal const string IsSetSuffix = "$$is_set";
+		internal const string FakeSetValuePrefix = "$$fakeSetValue_";
+        internal const string IsSetSuffix = "$$is_set";
 		internal const string HasChangedSuffix = "$$changed";
 		internal const string DataObjectFieldName = "$$data";
 
@@ -113,6 +114,14 @@ namespace Shaolinq.TypeBuilding
 				var staticConstructor = this.typeBuilder.DefineConstructor(MethodAttributes.Static, CallingConventions.Standard, Type.EmptyTypes);
 
 				this.cctorGenerator = staticConstructor.GetILGenerator();
+
+				// Define default constructor
+
+				var defaultConstructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
+				var defaultConstructorGenerator = defaultConstructorBuilder.GetILGenerator();
+				defaultConstructorGenerator.Emit(OpCodes.Ldarg_0);
+				defaultConstructorGenerator.Emit(OpCodes.Call, typeBuilder.BaseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance, null, Type.EmptyTypes, null));
+				defaultConstructorGenerator.Emit(OpCodes.Ret);
 
 				// Define constructor for data object type
 
@@ -470,31 +479,52 @@ namespace Shaolinq.TypeBuilding
 			if (typeBuildContext.IsFirstPass())
 			{
 				propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, null, null, null, null, null);
-				this.propertyBuilders[propertyInfo.Name] = propertyBuilder;
+				this.propertyBuilders[propertyBuilder.Name] = propertyBuilder;
 
-				var attributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
+				var attributeBuilder = new CustomAttributeBuilder(TypeUtils.GetConstructor(() => new NonSerializedAttribute()), new object[0]);
 
 				currentFieldInDataObject = this.dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Public);
 				currentFieldInDataObject.SetCustomAttribute(attributeBuilder);
 
 				this.valueFields[propertyInfo.Name] = currentFieldInDataObject;
+
+				propertyBuilder = this.typeBuilder.DefineProperty(FakeSetValuePrefix + propertyInfo.Name, propertyInfo.Attributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, null, null, null, null, null);
+				this.propertyBuilders[propertyBuilder.Name] = propertyBuilder;
 			}
 			else
 			{
 				propertyBuilder = this.propertyBuilders[propertyInfo.Name];
-				currentFieldInDataObject = this.valueFields[propertyInfo.Name];
+				currentFieldInDataObject = this.valueFields[propertyBuilder.Name];
 
-				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, EntityRelationshipType.ParentOfOneToMany, propertyInfo));
+				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, RelationshipType.ParentOfOneToMany, propertyInfo));
+
+				// AddValue method
+				propertyBuilder = this.propertyBuilders[FakeSetValuePrefix + propertyInfo.Name];
+				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsFakeSetMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType));
 			}
 		}
 
-		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, EntityRelationshipType relationshipType, PropertyInfo propertyInfo)
+		private MethodBuilder BuildRelatedDataAccessObjectsFakeSetMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType)
+		{
+			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
+			var methodBuilder = typeBuilder.DefineMethod("set_" + propertyName, methodAttributes, callingConventions, propertyType, Type.EmptyTypes);
+			var generator = methodBuilder.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldstr, propertyName);
+			generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new InvalidOperationException(default(string))));
+			generator.Emit(OpCodes.Throw);
+			generator.Emit(OpCodes.Ret);
+
+			return methodBuilder;
+		}
+
+		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, RelationshipType relationshipType, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 			var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName, methodAttributes, callingConventions, propertyType, Type.EmptyTypes);
 			var generator = methodBuilder.GetILGenerator();
 
-			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObjectAdvanced), typeof(DataAccessModel), typeof(EntityRelationshipType) });
+			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObjectAdvanced), typeof(DataAccessModel), typeof(RelationshipType) });
     
 			var local = generator.DeclareLocal(currentFieldInDataObject.FieldType);
             
@@ -515,6 +545,7 @@ namespace Shaolinq.TypeBuilding
 
 			// Load "this.DataAccessModel"
 			generator.Emit(OpCodes.Ldarg_0);
+
 			//generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
 			generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetMethod("GetDataAccessModel", BindingFlags.Instance | BindingFlags.Public));
 

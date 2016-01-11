@@ -82,6 +82,7 @@ namespace Shaolinq.Persistence.Linq
 			case "Single":
 			case "SingleOrDefault":
 			case "SelectMany":
+			case "Include":
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "Select":
 			case "SelectForUpdate":
