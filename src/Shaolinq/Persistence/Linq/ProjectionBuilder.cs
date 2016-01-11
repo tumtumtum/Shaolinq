@@ -304,13 +304,13 @@ namespace Shaolinq.Persistence.Linq
 				var where = projectionExpression.Select.Where;
 
 				var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(elementType);
-				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedAndRelatedObjectProperties);
+				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedAndBackReferenceProperties);
 				
 				var columnExpression = (SqlColumnExpression)ExpressionsFinder.First(where, c => c.NodeType == (ExpressionType)SqlExpressionType.Column);
 				var match = columns.Single(d => d.ColumnName == columnExpression.Name);
 
 				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByValuesMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
-				var property = match.ForeignType.RelatedProperties.Single(c => c.PropertyType.GetSequenceElementType() == elementType).PropertyInfo;
+				var property = match.ForeignType.RelationshipRelatedProperties.Single(c => c.PropertyType.GetSequenceElementType() == elementType).PropertyInfo;
 
                 return Expression.Convert(Expression.Property(reference, property), this.dataAccessModel.GetConcreteTypeFromDefinitionType(property.PropertyType));
 			}

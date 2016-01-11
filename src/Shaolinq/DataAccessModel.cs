@@ -720,9 +720,10 @@ namespace Shaolinq
 
 				func = lambda.Compile();
 
-				var newDictionary = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>(this.inflateFuncsByType);
-
-				newDictionary[definitionType] = func;
+				var newDictionary = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>(this.inflateFuncsByType)
+				{
+					[definitionType] = func
+				};
 
 				this.inflateFuncsByType = newDictionary;
 			}

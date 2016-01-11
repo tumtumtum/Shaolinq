@@ -91,7 +91,7 @@ namespace Shaolinq
 					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
 					var newParam = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "newobj");
 					var relatedParam = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "related");
-					var propertyDescriptor = newObjectTypeDescriptor.RelatedProperties.First(c => relatedDataAccessObjectType.IsAssignableFrom(c.PropertyType));
+					var propertyDescriptor = newObjectTypeDescriptor.RelationshipRelatedProperties.First(c => relatedDataAccessObjectType.IsAssignableFrom(c.PropertyType));
 					var method = propertyDescriptor.PropertyInfo.GetSetMethod();
 					var body = Expression.Call(Expression.Convert(newParam, typeof(T)), method, Expression.Convert(relatedParam, relatedDataAccessObjectType));
 					var lambda = Expression.Lambda(body, relatedParam, newParam);
