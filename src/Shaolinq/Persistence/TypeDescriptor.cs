@@ -16,10 +16,10 @@ namespace Shaolinq.Persistence
 		public string PersistedName { get; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
-		public IReadOnlyList<PropertyDescriptor> RelatedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedAndRelatedObjectProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PersistedAndBackReferenceProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; }
 
@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence
 		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
 		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
 		
-		private readonly IDictionary<Tuple<TypeDescriptor, RelationshipType>, TypeRelationshipInfo> relationshipInfos;
+		private readonly List<TypeRelationshipInfo> relationshipInfos;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
@@ -64,41 +64,9 @@ namespace Shaolinq.Persistence
 
 		public IEnumerable<TypeRelationshipInfo> GetRelationshipInfos()
 		{
-			return this.relationshipInfos.Values;
+			return this.relationshipInfos;
 		}
-
-		public TypeRelationshipInfo GetRelationshipInfo(TypeDescriptor relatedTypeDescriptor)
-		{
-			TypeRelationshipInfo retval;
-
-			if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
-			{
-				return retval;
-			}
-
-			return null;
-		}
-
-		public TypeRelationshipInfo SetOrCreateRelationshipInfo(TypeDescriptor relatedTypeDescriptor, RelationshipType relationshipType, PropertyDescriptor relatedProperty)
-		{
-			TypeRelationshipInfo retval;
-
-			/*if (this.relationshipInfos.TryGetValue(relatedTypeDescriptor, out retval))
-			{
-				retval.RelationshipType = RelationshipType;
-				retval.ReferencingProperty = relatedProperty;
-				retval.RelatedTypeTypeDescriptor = relatedTypeDescriptor;
-
-				return retval;
-			}*/
-
-			retval = new TypeRelationshipInfo(relatedTypeDescriptor, relationshipType, relatedProperty);
-
-			this.relationshipInfos[relatedTypeDescriptor] = retval;
-
-			return retval;
-		}
-
+		
 		public PropertyDescriptor GetPropertyDescriptorByColumnName(string columnName)
 		{
 			PropertyDescriptor retval;
@@ -147,7 +115,7 @@ namespace Shaolinq.Persistence
 					return false;
 				};
 
-				retval = this.RelatedProperties.FirstOrDefault(isForType);
+				retval = this.RelationshipRelatedProperties.FirstOrDefault(isForType);
 
 				if (retval == null)
 				{
@@ -203,6 +171,11 @@ namespace Shaolinq.Persistence
 			}
 		}
 
+		internal void AddRelationshipInfo(TypeDescriptor relatedType, EntityRelationshipType relationshipType, PropertyDescriptor relatingProperty)
+		{
+			this.relationshipInfos.Add(new TypeRelationshipInfo(relatedType, relationshipType, relatingProperty));
+		}
+
 		public TypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
 			var propertyDescriptorsInOrder = new List<PropertyDescriptor>();
@@ -211,8 +184,8 @@ namespace Shaolinq.Persistence
 			this.TypeDescriptorProvider = typeDescriptorProvider;
 
 			this.DataAccessObjectAttribute = type.GetFirstCustomAttribute<DataAccessObjectAttribute>(true);
-			
-			this.relationshipInfos = new Dictionary<TypeDescriptor, TypeRelationshipInfo>();
+
+			this.relationshipInfos = new List<TypeRelationshipInfo>();
 			this.propertyDescriptorByColumnName = new Dictionary<string, PropertyDescriptor>();
 			this.propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
 			
@@ -328,12 +301,12 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-			this.RelatedProperties = relatedProperties.ToReadOnlyCollection();
+			this.RelationshipRelatedProperties = relatedProperties.ToReadOnlyCollection();
 			this.PersistedProperties = propertyDescriptorsInOrder.ToReadOnlyCollection();
 			this.PrimaryKeyProperties = this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToReadOnlyCollection();
 			this.ComputedTextProperties = this.PersistedProperties.Where(c => c.IsComputedTextMember && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToReadOnlyCollection();
 			this.ComputedProperties = this.PersistedProperties.Where(c => c.IsComputedMember && !String.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToReadOnlyCollection();
-			this.PersistedAndRelatedObjectProperties = this.PersistedProperties.Concat(this.RelatedProperties.Where(c => c.IsBackReferenceProperty)).ToReadOnlyCollection();
+			this.PersistedAndBackReferenceProperties = this.PersistedProperties.Concat(this.RelationshipRelatedProperties.Where(c => c.IsBackReferenceProperty)).ToReadOnlyCollection();
 
 			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)
 			{

@@ -102,55 +102,36 @@ namespace Shaolinq.Persistence
 
 			foreach (var typeDescriptor in this.typeDescriptorsByType.Values)
 			{
-				foreach (var propertyDescriptor in typeDescriptor.RelatedProperties)
+				foreach (var propertyDescriptor in typeDescriptor.RelationshipRelatedProperties)
 				{
 					if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(propertyDescriptor.PropertyType))
 					{
 						var currentType = propertyDescriptor.PropertyType;
-
-						while (!currentType.IsGenericType || (currentType.GetGenericTypeDefinitionOrNull() != typeof(RelatedDataAccessObjects<>)))
+						
+						while (currentType != null && currentType.GetGenericTypeDefinitionOrNull() != typeof(RelatedDataAccessObjects<>))
 						{
-							currentType = currentType.BaseType;
+							currentType = currentType?.BaseType;
 						}
 
-						var relatedType = currentType.GetGenericArguments()[0];
-
-						var relatedTypeDescriptor = this.typeDescriptorsByType[relatedType];
-						var typeRelationshipInfo = typeDescriptor.GetRelationshipInfo(relatedTypeDescriptor);
-
-						if (typeRelationshipInfo != null)
+						if (currentType == null)
 						{
-							if (typeRelationshipInfo.RelatedTypeTypeDescriptor != relatedTypeDescriptor)
-							{
-								throw new InvalidDataAccessObjectModelDefinition("The type {0} defines multiple relationships with the type {1}", typeDescriptor.Type.Name, relatedTypeDescriptor.Type.Name);
-							}
-
-							typeRelationshipInfo.RelationshipType = RelationshipType.ManyToMany;
-							typeRelationshipInfo.RelatedTypeTypeDescriptor = relatedTypeDescriptor;
-							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, RelationshipType.ManyToMany, null);
+							throw new InvalidOperationException("Code should be unreachable");
 						}
-						else
-						{
-							var relatedProperty = relatedTypeDescriptor.GetRelatedProperty(typeDescriptor.Type);
-							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, RelationshipType.ChildOfOneToMany, relatedProperty);
-							typeDescriptor.SetOrCreateRelationshipInfo(relatedTypeDescriptor, RelationshipType.ParentOfOneToMany, relatedProperty);
-						}
-					}
-				}
-			}
+						
+						var relatedTypeDescriptor = this.typeDescriptorsByType[currentType.GetSequenceElementType()];
 
-			foreach (var typeDescriptor in this.typeDescriptorsByType.Values)
-			{
-				foreach (var relationshipInfo in typeDescriptor.GetRelationshipInfos())
-				{
-					var closedCelationshipInfo = relationshipInfo;
+						var relatedProperty = relatedTypeDescriptor
+							.RelationshipRelatedProperties
+							.Where(c => c.IsBackReferenceProperty)
+							.SingleOrDefault(c => c.BackReferenceAttribute.Name == propertyDescriptor.RelatedDataAccessObjectsAttribute.BackReferenceName || c.PropertyType == propertyDescriptor.PropertyType);
 
-					if (relationshipInfo.RelationshipType == RelationshipType.ChildOfOneToMany)
-					{
-						if (!typeDescriptor.RelatedProperties.Any(c => c.BackReferenceAttribute != null && c.PropertyType == closedCelationshipInfo.ReferencingProperty.PropertyType))
-						{
-							throw new InvalidDataAccessObjectModelDefinition("The child type {0} participates in a one-many relationship with the parent type {1} but does not explicitly define a BackReference property", typeDescriptor, relationshipInfo.ReferencingProperty.DeclaringTypeDescriptor);
-						}
+						relatedProperty = relatedProperty ?? relatedTypeDescriptor
+							.RelationshipRelatedProperties
+							.Where(c => c.IsBackReferenceProperty)
+							.Single(c => propertyDescriptor.PropertyType.IsAssignableFrom(c.PropertyType));
+
+						typeDescriptor.AddRelationshipInfo(relatedTypeDescriptor, EntityRelationshipType.ParentOfOneToMany, propertyDescriptor);
+						relatedTypeDescriptor.AddRelationshipInfo(typeDescriptor, EntityRelationshipType.ChildOfOneToMany, relatedProperty);
 					}
 				}
 			}
@@ -182,14 +163,6 @@ namespace Shaolinq.Persistence
 			if (this.typeDescriptorsByType.TryGetValue(type, out retval))
 			{
 				return retval;
-			}
-
-			if (type.BaseType != null)
-			{
-				if (this.typeDescriptorsByType.TryGetValue(type.BaseType, out retval))
-				{
-					return retval;
-				}
 			}
 
 			return null;

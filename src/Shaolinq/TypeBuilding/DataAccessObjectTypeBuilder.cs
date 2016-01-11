@@ -1815,7 +1815,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsDeleted").GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnLabel);
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
 			{
 				var changedFieldInfo = this.valueChangedFields[propertyDescriptor.PropertyName];
 
@@ -2125,7 +2125,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetRelatedObjectProperties");
 
 			var propertyDescriptors = this.typeDescriptor
-				.PersistedAndRelatedObjectProperties
+				.PersistedAndBackReferenceProperties
 				.Where(c => c.PropertyType.IsDataAccessObjectType())
 				.ToList();
 
@@ -2355,7 +2355,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetAllProperties");
 			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
-			var count = this.typeDescriptor.PersistedAndRelatedObjectProperties.Count;
+			var count = this.typeDescriptor.PersistedAndBackReferenceProperties.Count;
 
 			generator.Emit(OpCodes.Ldc_I4, count);
 			generator.Emit(OpCodes.Newarr, typeof(ObjectPropertyValue));
@@ -2363,7 +2363,7 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
 			{
 				var valueField = this.valueFields[propertyDescriptor.PropertyName];
 
@@ -2384,7 +2384,7 @@ namespace Shaolinq.TypeBuilding
 		private void BuildGetChangedPropertiesMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedProperties");
-			var count = this.typeDescriptor.PersistedProperties.Count + this.typeDescriptor.RelatedProperties.Count(c => c.BackReferenceAttribute != null);
+			var count = this.typeDescriptor.PersistedProperties.Count + this.typeDescriptor.RelationshipRelatedProperties.Count(c => c.BackReferenceAttribute != null);
 
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
 
@@ -2394,7 +2394,7 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
 			{
 				var label = generator.DefineLabel();
 				var label2 = generator.DefineLabel();
@@ -2460,7 +2460,7 @@ namespace Shaolinq.TypeBuilding
 		private void BuildGetChangedPropertiesFlattenedMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
-			var properties = this.typeDescriptor.PersistedAndRelatedObjectProperties.ToList();
+			var properties = this.typeDescriptor.PersistedAndBackReferenceProperties.ToList();
 
 			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, properties);
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
@@ -2678,7 +2678,7 @@ namespace Shaolinq.TypeBuilding
 			// key flag if necessary
 
 			foreach (var propertyDescriptor in this.typeDescriptor
-				.RelatedProperties
+				.RelationshipRelatedProperties
 				.Where(c => c.IsBackReferenceProperty))
 			{
 				var innerLabel1 = generator.DefineLabel();

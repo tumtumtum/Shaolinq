@@ -100,6 +100,10 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var property in properties)
 			{
+				if (property == null)
+				{
+					;
+				}
 				if (property.PropertyType.IsDataAccessObjectType())
 				{
 					if (!follow(property, depth))
@@ -1798,7 +1802,7 @@ namespace Shaolinq.Persistence.Linq
 			var columnInfos = GetColumnInfos
 			(
 				this.typeDescriptorProvider,
-				typeDescriptor.PersistedAndRelatedObjectProperties,
+				typeDescriptor.PersistedAndBackReferenceProperties,
 				(c, d) => d == 0 || c.IsPrimaryKey,
 				(c, d) => d == 0 || c.IsPrimaryKey
 			);
@@ -1935,7 +1939,7 @@ namespace Shaolinq.Persistence.Linq
 			var columnInfos = GetColumnInfos
 			(
 				this.typeDescriptorProvider,
-				typeDescriptor.PersistedAndRelatedObjectProperties,
+				typeDescriptor.PersistedAndBackReferenceProperties,
 				(c, d) => c.IsPrimaryKey,
 				(c, d) => c.IsPrimaryKey
 			);
@@ -2004,8 +2008,9 @@ namespace Shaolinq.Persistence.Linq
 				{
 					var inner = this.GetTableProjection(memberExpression.Type.GetGenericArguments()[0]);
 					var relationship = this.typeDescriptorProvider
-						.GetTypeDescriptor(memberExpression.Type.GetGenericArguments()[0])
-						.GetRelationshipInfo(this.typeDescriptorProvider.GetTypeDescriptor(source.Type));
+						.GetTypeDescriptor(source.Type)
+						.GetRelationshipInfos()
+						.Single(c => c.ReferencingProperty.PropertyName == memberExpression.Member.Name);
 
 					var param = Expression.Parameter(memberExpression.Type.GetGenericArguments()[0]);
 					var where = Expression.Lambda(Expression.Equal(Expression.Property(param, relationship.ReferencingProperty.PropertyInfo), source), param);
