@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var source = (SqlSelectExpression) this.Visit(projection.Select);
+			var source = (SqlSelectExpression)this.Visit(projection.Select);
 			var projector = this.Visit(projection.Projector);
 			var aggregator = (LambdaExpression) this.Visit(projection.Aggregator);
 

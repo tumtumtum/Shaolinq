@@ -147,7 +147,6 @@
     <Compile Include="TestModel\Dog.cs" />
     <Compile Include="TestModel\Fraternity.cs" />
     <Compile Include="TestModel\IIdentified.cs" />
-    <Compile Include="TestModel\Lecture.cs" />
     <Compile Include="TestModel\ObjectWithCompositePrimaryKey.cs" />
     <Compile Include="TestModel\ObjectWithDaoPrimaryKey.cs" />
     <Compile Include="TestModel\ObjectWithManyTypes.cs" />

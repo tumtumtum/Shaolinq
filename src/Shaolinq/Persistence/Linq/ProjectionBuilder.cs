@@ -13,22 +13,7 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class ProjectionBuilderScope
-	{
-		public Dictionary<string, int> ColumnIndexes { get; }
-
-		public ProjectionBuilderScope(string[] columnNames)
-			: this(columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
-		{	
-		}
-
-        public ProjectionBuilderScope(Dictionary<string, int> columnIndexes)
-		{
-			this.ColumnIndexes = columnIndexes;
-		}
-	}
-
-    public class ProjectionBuilder
+	public class ProjectionBuilder
 		: SqlExpressionVisitor
     {
 	    private ProjectionBuilderScope scope;

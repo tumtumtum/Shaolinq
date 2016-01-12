@@ -8,26 +8,12 @@ namespace Shaolinq.Tests.TestModel
 	public abstract class Paper
 		: DataAccessObject<string>
 	{
-		[SizeConstraint(MaximumLength=32)]
-		public abstract override string Id
-		{
-			get;
-			set;
-		}
+		[SizeConstraint(MaximumLength = 32)]
+		public abstract override string Id { get; set; }
 
-		public string PaperCode
-		{
-			get
-			{
-				return this.Id;
-			}
-			set
-			{
-				this.Id = value;
-			}
-		}
+		[BackReference]
+		public abstract Lecturer Lecturer { get; set; }
 
-		[RelatedDataAccessObjects]
-		public abstract RelatedDataAccessObjects<Lecturer> Lecturers { get; }
+		public string PaperCode { get { return this.Id; } set { this.Id = value; } }
 	}
 }

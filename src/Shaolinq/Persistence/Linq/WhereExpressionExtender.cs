@@ -37,7 +37,7 @@ namespace Shaolinq.Persistence.Linq
 						{
 							var selectSource = methodCallExpression.Arguments[0];
 							var selectCondition = methodCallExpression.Arguments[1].StripQuotes();
-
+							
 							if (selectSource.NodeType == ExpressionType.Constant)
 							{
 								if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(((ConstantExpression)selectSource).Value.GetType()))

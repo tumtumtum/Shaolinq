@@ -102,7 +102,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var typeDescriptor in this.typeDescriptorsByType.Values)
 			{
-				foreach (var propertyDescriptor in typeDescriptor.RelationshipRelatedProperties)
+				foreach (var propertyDescriptor in typeDescriptor.RelationshipRelatedProperties.Where(c => c.IsRelatedDataAccessObjectsProperty))
 				{
 					if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(propertyDescriptor.PropertyType))
 					{
@@ -117,21 +117,26 @@ namespace Shaolinq.Persistence
 						{
 							throw new InvalidOperationException("Code should be unreachable");
 						}
-						
+
 						var relatedTypeDescriptor = this.typeDescriptorsByType[currentType.GetSequenceElementType()];
 
 						var relatedProperty = relatedTypeDescriptor
 							.RelationshipRelatedProperties
 							.Where(c => c.IsBackReferenceProperty)
-							.SingleOrDefault(c => c.BackReferenceAttribute.Name == propertyDescriptor.RelatedDataAccessObjectsAttribute.BackReferenceName || c.PropertyType == propertyDescriptor.PropertyType);
+							.SingleOrDefault(c => c.PropertyName == propertyDescriptor.RelatedDataAccessObjectsAttribute.BackReferenceName);
 
 						relatedProperty = relatedProperty ?? relatedTypeDescriptor
 							.RelationshipRelatedProperties
 							.Where(c => c.IsBackReferenceProperty)
-							.Single(c => propertyDescriptor.PropertyType.IsAssignableFrom(c.PropertyType));
+							.SingleOrDefault(c => typeDescriptor.Type == c.PropertyType);
 
-						typeDescriptor.AddRelationshipInfo(relatedTypeDescriptor, EntityRelationshipType.ParentOfOneToMany, propertyDescriptor);
-						relatedTypeDescriptor.AddRelationshipInfo(typeDescriptor, EntityRelationshipType.ChildOfOneToMany, relatedProperty);
+						relatedProperty = relatedProperty ?? relatedTypeDescriptor
+							.RelationshipRelatedProperties
+							.Where(c => c.IsBackReferenceProperty)
+							.SingleOrDefault(c => typeDescriptor.Type.IsAssignableFrom(c.PropertyType));
+
+						typeDescriptor.AddRelationshipInfo(RelationshipType.ParentOfOneToMany, propertyDescriptor, relatedProperty);
+						relatedTypeDescriptor.AddRelationshipInfo(RelationshipType.ChildOfOneToMany, relatedProperty, propertyDescriptor);
 					}
 				}
 			}

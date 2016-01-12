@@ -208,7 +208,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return constantExpression;
 			}
 
-			if ((this.options & SqlExpressionComparerOptions.IgnoreConstantPlaceholders) != 0)
+			if ((this.options & SqlExpressionComparerOptions.IgnoreConstants) != 0)
 			{
 				this.result = this.result && constantExpression.Type == current.Type;
 

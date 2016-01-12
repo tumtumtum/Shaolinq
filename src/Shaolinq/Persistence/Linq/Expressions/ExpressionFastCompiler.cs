@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public static class ExpressionFastCompiler
 	{
-		private static Dictionary<Expression, SubstituteConstantsResult> cachedSubstitutedExpressions = new Dictionary<Expression, SubstituteConstantsResult>(new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstantsAndConstantPlaceholders));
+		private static Dictionary<Expression, SubstituteConstantsResult> cachedSubstitutedExpressions = new Dictionary<Expression, SubstituteConstantsResult>(new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstants));
 		private static Dictionary<SubstituteConstantsResult, Delegate> delegatesByCachedCompileResult = new Dictionary<SubstituteConstantsResult, Delegate>(ObjectReferenceIdentityEqualityComparer<SubstituteConstantsResult>.Default);
 
 		public static object CompileAndRun(LambdaExpression expression, params object[] args)

@@ -164,6 +164,7 @@
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlConstantPlaceholderReplacer.cs" />
     <Compile Include="Persistence\Linq\ExecutionBuildResult.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionInterpreter.cs" />
@@ -176,6 +177,7 @@
     <Compile Include="Persistence\Linq\JoinHelperExtensions.cs" />
     <Compile Include="Persistence\Linq\Nominator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ExpressionCounter.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlConstantPlaceholderValuesCollector.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossApplyRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossJoinRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasesGatherer.cs" />
@@ -183,10 +185,12 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
+    <Compile Include="Persistence\Linq\ProjectionBuilderScope.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheInfo.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheKey.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpanderResults.cs" />
+    <Compile Include="Persistence\Linq\SqlConstantPlaceholderMaxIndexFinder.cs" />
     <Compile Include="Persistence\MarsDataReader.cs" />
     <Compile Include="Persistence\MarsDbCommand.cs" />
     <Compile Include="Persistence\SqlTransactionalCommandsContext.cs" />
@@ -291,7 +295,6 @@
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionHasher.cs" />
     <Compile Include="Persistence\Linq\GroupByInfo.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlExpressionCollectionOperationsExpander.cs" />
-    <Compile Include="Persistence\Linq\PlaceholderValuesCollector.cs" />
     <Compile Include="Persistence\Linq\ProjectorFormatter.cs" />
     <Compile Include="Persistence\Linq\SqlQueryFormatterOptions.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlDeleteExpression.cs" />

@@ -268,6 +268,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitObjectReference(SqlObjectReferenceExpression objectReferenceExpression)
 		{
+			this.hashCode ^= objectReferenceExpression.Type.GetHashCode();
+
 			return base.VisitObjectReference(objectReferenceExpression);
 		}
 
@@ -280,11 +282,16 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitTable(SqlTableExpression table)
 		{
+			this.hashCode ^= table.Type.GetHashCode();
+
 			return base.VisitTable(table);
 		}
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
 		{
+			this.hashCode ^= columnExpression.Type.GetHashCode();
+			this.hashCode ^= columnExpression.AliasedName?.GetHashCode() ?? 0;
+
 			return base.VisitColumn(columnExpression);
 		}
 
@@ -302,6 +309,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitAggregate(SqlAggregateExpression sqlAggregate)
 		{
+			this.hashCode ^= sqlAggregate.Type.GetHashCode();
+			this.hashCode ^= (int)sqlAggregate.AggregateType;
+			this.hashCode ^= sqlAggregate.IsDistinct ? 1 : 0;
+
 			return base.VisitAggregate(sqlAggregate);
 		}
 

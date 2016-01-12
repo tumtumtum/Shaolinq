@@ -190,16 +190,13 @@ namespace Shaolinq.Persistence.Linq
 
 		private IEnumerable<SqlColumnDefinitionExpression> BuildRelatedColumnDefinitions(TypeDescriptor typeDescriptor)
 		{
-			foreach (var typeRelationshipInfo in typeDescriptor.GetRelationshipInfos())
+			foreach (var typeRelationshipInfo in typeDescriptor.GetRelationshipInfos().Where(c => c.RelationshipType == RelationshipType.ChildOfOneToMany))
 			{
-				if (typeRelationshipInfo.RelationshipType == RelationshipType.ChildOfOneToMany)
-				{
-					var foreignKeyColumns = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeRelationshipInfo.ReferencingProperty);
+				var foreignKeyColumns = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeRelationshipInfo.ReferencingProperty);
 
-					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
-					{
-						yield return result;
-					}
+				foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
+				{
+					yield return result;
 				}
 			}
 		}

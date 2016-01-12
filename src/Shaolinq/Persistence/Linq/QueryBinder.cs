@@ -100,10 +100,6 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var property in properties)
 			{
-				if (property == null)
-				{
-					;
-				}
 				if (property.PropertyType.IsDataAccessObjectType())
 				{
 					if (!follow(property, depth))
@@ -447,8 +443,8 @@ namespace Shaolinq.Persistence.Linq
 				left = this.Visit(binaryExpression.Left);
 				right = this.Visit(binaryExpression.Right);
 
-				var leftConstantExpression = left as ConstantExpression;
-				var rightConstantExpression = right as ConstantExpression;
+				var leftConstantExpression = left as ConstantExpression ?? (left as SqlConstantPlaceholderExpression)?.ConstantExpression;
+				var rightConstantExpression = right as ConstantExpression ?? (right as SqlConstantPlaceholderExpression)?.ConstantExpression;
 
 				if (rightConstantExpression != null)
 				{
@@ -618,18 +614,23 @@ namespace Shaolinq.Persistence.Linq
 			var right = this.GetTableProjection(selector.ReturnType);
 
 			var relationship = this.typeDescriptorProvider
-				.GetTypeDescriptor(left.Type.GetGenericArguments()[0])
-				.GetRelationshipInfo(this.typeDescriptorProvider.GetTypeDescriptor(right.Type.GetSequenceElementType()));
+				.GetTypeDescriptor(left.Type.GetSequenceElementType())
+				.GetRelationshipInfos()
+				.Where(c => this.DataAccessModel.GetConcreteTypeFromDefinitionType(c.ReferencingProperty.PropertyType) == this.DataAccessModel.GetConcreteTypeFromDefinitionType(right.Type))
+				.Single(c => c.RelationshipType == RelationshipType.ParentOfOneToMany);
 
 			var leftParam = Expression.Parameter(left.Type.GetSequenceElementType());
 			var rightParam = Expression.Parameter(right.Type.GetSequenceElementType());
 
-			var method = TypeUtils.GetMethod<DataAccessObject>(c => c.Integrate<DataAccessObject, int>(0)).GetGenericMethodDefinition();
-			method = method.MakeGenericMethod(leftParam.Type, rightParam.Type);
+			var method = TypeUtils.GetMethod<DataAccessObject>(c => c.Integrate<DataAccessObject, int>(0))
+				.GetGenericMethodDefinition();
+
+			method = method
+				.MakeGenericMethod(leftParam.Type, rightParam.Type);
 			
 			var retval = (SqlProjectionExpression)this.BindJoin(this.DataAccessModel.GetConcreteTypeFromDefinitionType(left.Type.GetGenericArguments()[0]), left, right, 
 				Expression.Lambda(leftParam, leftParam),
-				Expression.Lambda(Expression.Property(rightParam, relationship.ReferencingProperty.PropertyInfo), rightParam), 
+				Expression.Lambda(Expression.Property(rightParam, relationship.ReferencingProperty), rightParam), 
 				Expression.Lambda(Expression.Call(leftParam, method, rightParam), leftParam, rightParam),
 				SqlJoinType.Left);
 
@@ -1438,7 +1439,7 @@ namespace Shaolinq.Persistence.Linq
 
 						var body = Expression.Equal
 						(
-							Expression.Property(parameter, relatedProperty.PropertyInfo),
+							Expression.Property(parameter, relatedProperty),
 							memberAccessExpression.Expression
 						);
 
@@ -1722,7 +1723,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.extraCondition = null;
 
-			var projection = this.GetTableProjection(((ConstantExpression)source).Type);
+			var projection = this.GetTableProjection(source.Type);
 
 			this.AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 			
@@ -1832,12 +1833,11 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var currentBindings = bindingsForKey[value.VisitedProperties];
 
-				var propertyInfo = value.DefinitionProperty.PropertyInfo;
-				var columnExpression = new SqlColumnExpression(propertyInfo.PropertyType, selectAlias, value.ColumnName);
+				var columnExpression = new SqlColumnExpression(value.DefinitionProperty.PropertyType, selectAlias, value.ColumnName);
 
-				currentBindings.Add(Expression.Bind(propertyInfo, columnExpression));
+				currentBindings.Add(Expression.Bind(value.DefinitionProperty, columnExpression));
 
-				tableColumns.Add(new SqlColumnDeclaration(value.ColumnName, new SqlColumnExpression(propertyInfo.PropertyType, tableAlias, value.ColumnName)));
+				tableColumns.Add(new SqlColumnDeclaration(value.ColumnName, new SqlColumnExpression(value.DefinitionProperty.PropertyType, tableAlias, value.ColumnName)));
 
 				if (value.VisitedProperties.Length > 0)
 				{
@@ -1849,9 +1849,9 @@ namespace Shaolinq.Persistence.Linq
 						var objectReferenceType = property.PropertyType;
 						var objectReference = new SqlObjectReferenceExpression(objectReferenceType, readonlyBindingsForKey[value.VisitedProperties]);
 
-						parentBindings.Add(Expression.Bind(property.PropertyInfo, objectReference));
+						parentBindings.Add(Expression.Bind(property, objectReference));
 
-						propertyAdded.Add(new Tuple<List<MemberBinding>, PropertyInfo>(parentBindings, property.PropertyInfo));
+						propertyAdded.Add(new Tuple<List<MemberBinding>, PropertyInfo>(parentBindings, property));
 					}
 				}
 			}
@@ -1972,10 +1972,9 @@ namespace Shaolinq.Persistence.Linq
 
 				foreach (var value in groupedColumnInfo)
 				{
-					var propertyInfo = value.DefinitionProperty.PropertyInfo;
 					var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
 
-					bindings.Add(Expression.Bind(propertyInfo, propertyAccess));
+					bindings.Add(Expression.Bind(value.DefinitionProperty, propertyAccess));
 				}
 			}
 
@@ -2006,14 +2005,15 @@ namespace Shaolinq.Persistence.Linq
 
 				if (type == typeof(RelatedDataAccessObjects<>))
 				{
-					var inner = this.GetTableProjection(memberExpression.Type.GetGenericArguments()[0]);
+					var inner = this.GetTableProjection(memberExpression.Type.GetSequenceElementType());
 					var relationship = this.typeDescriptorProvider
 						.GetTypeDescriptor(source.Type)
 						.GetRelationshipInfos()
-						.Single(c => c.ReferencingProperty.PropertyName == memberExpression.Member.Name);
+						.Where(c => c.RelationshipType == RelationshipType.ParentOfOneToMany)
+						.Single(c => c.ReferencingProperty == memberExpression.Member);
 
-					var param = Expression.Parameter(memberExpression.Type.GetGenericArguments()[0]);
-					var where = Expression.Lambda(Expression.Equal(Expression.Property(param, relationship.ReferencingProperty.PropertyInfo), source), param);
+					var param = Expression.Parameter(memberExpression.Type.GetSequenceElementType());
+					var where = Expression.Lambda(Expression.Equal(Expression.Property(param, relationship.TargetProperty), source), param);
 
 					return this.BindWhere(memberExpression.Type, inner, where, false, true);
 				}

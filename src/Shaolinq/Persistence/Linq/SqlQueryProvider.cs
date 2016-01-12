@@ -131,7 +131,7 @@ namespace Shaolinq.Persistence.Linq
 		public ExecutionBuildResult BuildExecution(Expression expression)
 		{
 			var projectionExpression = expression as SqlProjectionExpression;
-
+			
 			if (projectionExpression == null)
 			{
 				expression = Evaluator.PartialEval(expression);
@@ -140,8 +140,8 @@ namespace Shaolinq.Persistence.Linq
 				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
 
+			var placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
 			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
-			var placeholderValues = PlaceholderValuesCollector.CollectValues(expression).ToArray();
 			var projector = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns.ToArray()));
 
 			return this.BuildExecution(projectionExpression, projector, placeholderValues);
@@ -224,7 +224,9 @@ namespace Shaolinq.Persistence.Linq
 
 			if (projectionExpression.Aggregator != null)
 			{
-				executor = SqlExpressionReplacer.Replace(projectionExpression.Aggregator.Body, projectionExpression.Aggregator.Parameters[0], executor);
+				var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
+
+				executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], executor);
 			}
 
 			cacheInfo.projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam).Compile();

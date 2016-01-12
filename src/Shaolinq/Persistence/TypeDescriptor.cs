@@ -171,9 +171,9 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		internal void AddRelationshipInfo(TypeDescriptor relatedType, EntityRelationshipType relationshipType, PropertyDescriptor relatingProperty)
+		internal void AddRelationshipInfo(RelationshipType relationshipType, PropertyDescriptor relatingProperty, PropertyDescriptor targetProperty)
 		{
-			this.relationshipInfos.Add(new TypeRelationshipInfo(relatedType, relationshipType, relatingProperty));
+			this.relationshipInfos.Add(new TypeRelationshipInfo(relationshipType, relatingProperty, targetProperty));
 		}
 
 		public TypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
