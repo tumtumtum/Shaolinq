@@ -14,7 +14,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlSelectExpression Select { get; }
 		public Expression Projector { get; }
 		public LambdaExpression Aggregator { get; }
-		public IReadOnlyList<LambdaExpression> IncludeSelectors { get; }
 		
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Projection;
 
@@ -33,7 +32,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 		}
 
-		public SqlProjectionExpression(Type type, SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValue = null, IReadOnlyList<LambdaExpression> includeSelectors = null)
+		public SqlProjectionExpression(Type type, SqlSelectExpression select, Expression projector, LambdaExpression aggregator, bool isElementTableProjection, Expression defaultValue = null)
 			: base(type)
 		{
 			this.Select = select;
@@ -41,32 +40,26 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Aggregator = aggregator;
 			this.IsElementTableProjection = isElementTableProjection;
 			this.DefaultValue = defaultValue;
-			this.IncludeSelectors = includeSelectors;
 		}
 
 		public SqlProjectionExpression ToDefaultIfEmpty(Expression defaultValueExpression)
 		{
-			return new SqlProjectionExpression(this.Select.Type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue, this.IncludeSelectors);
+			return new SqlProjectionExpression(this.Select.Type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue);
 		}
 
 		public SqlProjectionExpression ChangeType(Type type)
 		{
-			return new SqlProjectionExpression(type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue, this.IncludeSelectors);
+			return new SqlProjectionExpression(type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue);
 		}
 
 		public SqlProjectionExpression ChangeAggregator(LambdaExpression aggregator)
 		{
-			return new SqlProjectionExpression(this.Type, this.Select, this.Projector, aggregator, this.IsElementTableProjection, this.DefaultValue, this.IncludeSelectors);
+			return new SqlProjectionExpression(this.Type, this.Select, this.Projector, aggregator, this.IsElementTableProjection, this.DefaultValue);
 		}
 
 		public SqlProjectionExpression ChangeProjector(Expression projector)
 		{
-			return new SqlProjectionExpression(this.Type, this.Select, projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue, this.IncludeSelectors);
-		}
-
-		public SqlProjectionExpression ChangeIncludeSelectors(IReadOnlyList<LambdaExpression> includeSelectors)
-		{
-			return new SqlProjectionExpression(this.Type, this.Select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue, includeSelectors);
+			return new SqlProjectionExpression(this.Type, this.Select, projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue);
 		}
 	}
 }

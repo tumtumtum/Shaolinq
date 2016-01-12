@@ -608,37 +608,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 		
-		protected virtual Expression BindInclude(Expression source, LambdaExpression selector)
-		{
-			var left = (SqlProjectionExpression)this.Visit(source);
-			var right = this.GetTableProjection(selector.ReturnType);
-
-			var relationship = this.typeDescriptorProvider
-				.GetTypeDescriptor(left.Type.GetSequenceElementType())
-				.GetRelationshipInfos()
-				.Where(c => this.DataAccessModel.GetConcreteTypeFromDefinitionType(c.ReferencingProperty.PropertyType) == this.DataAccessModel.GetConcreteTypeFromDefinitionType(right.Type))
-				.Single(c => c.RelationshipType == RelationshipType.ParentOfOneToMany);
-
-			var leftParam = Expression.Parameter(left.Type.GetSequenceElementType());
-			var rightParam = Expression.Parameter(right.Type.GetSequenceElementType());
-
-			var method = TypeUtils.GetMethod<DataAccessObject>(c => c.Integrate<DataAccessObject, int>(0))
-				.GetGenericMethodDefinition();
-
-			method = method
-				.MakeGenericMethod(leftParam.Type, rightParam.Type);
-			
-			var retval = (SqlProjectionExpression)this.BindJoin(this.DataAccessModel.GetConcreteTypeFromDefinitionType(left.Type.GetGenericArguments()[0]), left, right, 
-				Expression.Lambda(leftParam, leftParam),
-				Expression.Lambda(Expression.Property(rightParam, relationship.ReferencingProperty), rightParam), 
-				Expression.Lambda(Expression.Call(leftParam, method, rightParam), leftParam, rightParam),
-				SqlJoinType.Left);
-
-			retval = retval.ChangeIncludeSelectors((retval.IncludeSelectors ?? Enumerable.Empty<LambdaExpression>()).Concat(selector).ToReadOnlyCollection());
-
-			return retval;
-		}
-		
 		protected virtual Expression BindJoin(Type resultType, Expression outerSource, Expression innerSource, LambdaExpression outerKey, LambdaExpression innerKey, LambdaExpression resultSelector, SqlJoinType joinType = SqlJoinType.Inner)
 		{
 			var outerProjection = this.VisitSequence(outerSource);
@@ -899,14 +868,6 @@ namespace Shaolinq.Persistence.Linq
 				return base.VisitMethodCall(methodCallExpression);
 			}
 
-			if (methodCallExpression.Method.DeclaringType == typeof(DataAccessObjectExtensions))
-			{
-				if (methodCallExpression.Method.Name == "Include")
-				{
-					;
-				}
-			}
-
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
@@ -1082,8 +1043,6 @@ namespace Shaolinq.Persistence.Linq
 			            return this.BindCollectionContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], methodCallExpression == this.rootExpression);
 		            }
 		            break;
-				case "Include":
-		            return BindInclude(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 	            }
 
 	            throw new NotSupportedException($"Linq function \"{methodCallExpression.Method.Name}\" is not supported");
@@ -2023,7 +1982,7 @@ namespace Shaolinq.Persistence.Linq
 					var param = Expression.Parameter(memberExpression.Type.GetSequenceElementType());
 					var where = Expression.Lambda(Expression.Equal(Expression.Property(param, relationship.TargetProperty), source), param);
 
-					return this.BindWhere(memberExpression.Type, inner, where, false, true);
+					return this.BindWhere(memberExpression.Type.GetSequenceElementType(), inner, where, false, true);
 				}
 
 				for (int i = 0, n = min.Bindings.Count; i < n; i++)
@@ -2267,7 +2226,6 @@ namespace Shaolinq.Persistence.Linq
 			if (this.joinExpanderResults.IncludedPropertyInfos.TryGetValue(expression, out includedPropertyInfos))
 			{
 				var newExpression = this.PrivateVisit(expression);
-
 				var useFullPath = !newExpression.Type.IsDataAccessObjectType();
 				
 				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length))
@@ -2288,11 +2246,11 @@ namespace Shaolinq.Persistence.Linq
 							unwrapped = current;
 						}
 
-						if (unwrapped is MemberInitExpression)
-						{
-							var currentMemberInit = (MemberInitExpression)unwrapped;
+						var memberInitExpression = unwrapped as MemberInitExpression;
 
-							current = ((MemberAssignment)(currentMemberInit).Bindings.First(c => String.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0)).Expression;
+						if (memberInitExpression != null)
+						{
+							current = ((MemberAssignment)(memberInitExpression).Bindings.FirstOrDefault(c => string.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0))?.Expression;
 						}
 						else if (unwrapped is NewExpression)
 						{
@@ -2307,10 +2265,13 @@ namespace Shaolinq.Persistence.Linq
 						}
 					}
 
-					var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
-					var replacement = this.Visit(originalReplacementExpression);
+					if (current != null)
+					{
+						var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
+						var replacement = this.Visit(originalReplacementExpression);
 
-					newExpression = SqlExpressionReplacer.Replace(newExpression, current, replacement);
+						newExpression = SqlExpressionReplacer.Replace(newExpression, current, replacement);
+					}
 				}
 
 				return newExpression;
@@ -2340,6 +2301,11 @@ namespace Shaolinq.Persistence.Linq
 			case (ExpressionType)SqlExpressionType.Column:
 				return expression;
 			case (ExpressionType)SqlExpressionType.Projection:
+				return expression;
+			}
+
+			if ((int)expression.NodeType > (int)SqlExpressionType.First)
+			{
 				return expression;
 			}
 

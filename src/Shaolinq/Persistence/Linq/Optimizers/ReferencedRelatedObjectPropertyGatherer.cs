@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Platform;
 using Shaolinq.TypeBuilding;
 using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
@@ -14,7 +13,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public  class ReferencedRelatedObjectPropertyGatherer
 		: SqlExpressionVisitor
 	{
-		private int nesting = 0;
+		private int nesting;
 		private bool disableCompare;
 		private Expression currentParent;
 		private readonly bool forProjection; 
@@ -131,7 +130,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					while (current != null)
 					{
-						if (!current.Member.ReflectedType.IsDataAccessObjectType()
+						if (!current.Member.ReflectedType.IsTypeRequiringJoin()
 							|| current == this.currentParent)
 						{
 							break;
@@ -211,7 +210,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var root = memberExpression.Expression;
 			var memberIsDataAccessObjectGatheringForProjection = false;
 			
-			if (memberExpression.Type.IsDataAccessObjectType())
+			if (memberExpression.Type.IsTypeRequiringJoin())
 			{
 				if (this.forProjection)
 				{
@@ -223,7 +222,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					expression = memberExpression.Expression as MemberExpression;
 
-					if (expression == null || !expression.Expression.Type.IsDataAccessObjectType())
+					if (expression == null || !expression.Expression.Type.IsTypeRequiringJoin())
 					{
 						return memberExpression;
 					}
@@ -271,7 +270,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			foreach (var current in visited)
 			{
-				if (!current.Member.ReflectedType.IsDataAccessObjectType()
+				if (!current.Member.ReflectedType.IsTypeRequiringJoin()
 					|| current == this.currentParent /* @see: Test_Select_Project_Related_Object_And_Include1 */)
 				{
 					root = current;
@@ -299,7 +298,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					break;
 				}
 
-				if (!path.Last.ReflectedType.IsDataAccessObjectType())
+				if (!path.Last.ReflectedType.IsTypeRequiringJoin())
 				{
 					this.rootExpressionsByPath[path] = currentExpression;
 					

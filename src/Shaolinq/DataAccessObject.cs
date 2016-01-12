@@ -70,10 +70,12 @@ namespace Shaolinq
 			this.dataAccessModel = value;
 		}
 
-		public T Integrate<T, U>(U value)
+		public T Integrate<T, U, V>(Func<T, V> action, U value)
 			where T : DataAccessObject
 		{
 			var target = (T)this;
+
+			action(target);
 
 			return target;
 		}

@@ -2149,7 +2149,19 @@ namespace Shaolinq.Tests
 		}
 
 		[Test, Ignore]
-		public void Test_Include_Collection()
+		public void Test_Include_Collection1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(c => c.SisterMall.Address).ToList();
+			}
+		}
+
+
+		[Test, Ignore]
+		public void Test_Include_Collection2()
 		{
 			using (var scope = new TransactionScope())
 			{

@@ -171,7 +171,7 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.Lambda(body, leftParameter, rightParameter);
 		}
 
-		private static MethodCallExpression MakeJoinCallExpression(int index, Expression left, Expression right, PropertyPath targetPath, Dictionary<PropertyPath, int> indexByPath, Dictionary<PropertyPath, Expression> rootExpressionsByPath, Expression sourceParameterExpression)
+		private MethodCallExpression MakeJoinCallExpression(int index, Expression left, Expression right, PropertyPath targetPath, Dictionary<PropertyPath, int> indexByPath, Dictionary<PropertyPath, Expression> rootExpressionsByPath, Expression sourceParameterExpression)
 		{
 			Expression leftObject;
 
@@ -200,14 +200,31 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			var leftSelector = Expression.Lambda(Expression.Property(leftObject, targetPath.Last().Name), leftSelectorParameter);
+			LambdaExpression leftSelector, rightSelector;
 
-			var rightSelectorParameter = Expression.Parameter(rightElementType);
-			var rightSelector = Expression.Lambda(rightSelectorParameter, rightSelectorParameter);
+			if (targetPath.Last.GetMemberReturnType().GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+			{
+				leftSelector = Expression.Lambda(leftObject, leftSelectorParameter);
 
+				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(leftObject.Type);
+				var relationship = typeDescriptor
+					.GetRelationshipInfos()
+					.Where(c => c.RelationshipType == RelationshipType.ParentOfOneToMany)
+					.Single(c => c.ReferencingProperty.PropertyName == targetPath.Last.Name);
+
+				var rightSelectorParameter = Expression.Parameter(rightElementType);
+				rightSelector = Expression.Lambda(Expression.Property(rightSelectorParameter, relationship.TargetProperty), rightSelectorParameter);
+			}
+			else
+			{
+				leftSelector = Expression.Lambda(Expression.Property(leftObject, targetPath.Last().Name), leftSelectorParameter);
+
+				var rightSelectorParameter = Expression.Parameter(rightElementType);
+				rightSelector = Expression.Lambda(rightSelectorParameter, rightSelectorParameter);
+			}
+			
 			var projector = MakeJoinProjector(leftElementType, rightElementType);
-
-			var method = JoinHelperExtensions.LeftJoinMethod.MakeGenericMethod(leftElementType, rightElementType, targetPath.Last().GetMemberReturnType(), projector.ReturnType);
+			var method = JoinHelperExtensions.LeftJoinMethod.MakeGenericMethod(leftElementType, rightElementType, leftSelector.ReturnType, projector.ReturnType);
 			
 			return Expression.Call(null, method, left, right, Expression.Quote(leftSelector), Expression.Quote(rightSelector), Expression.Quote(projector));
 		}
@@ -447,7 +464,7 @@ namespace Shaolinq.Persistence.Linq
 				.ToList();
 
 			var types = referencedObjectPaths
-				.Select(c => c.FullAccessPropertyPath.Last.PropertyType)
+				.Select(c => c.FullAccessPropertyPath.Last.PropertyType.JoinedObjectType())
 				.ToList();
 
 			var finalTupleType = CreateFinalTupleType(sourceType, types);
@@ -501,7 +518,7 @@ namespace Shaolinq.Persistence.Linq
 			foreach (var referencedObjectPath in referencedObjectPaths)
 			{
 				var property = referencedObjectPath.FullAccessPropertyPath[referencedObjectPath.FullAccessPropertyPath.Length - 1];
-				var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType));
+				var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType.JoinedObjectType()), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType.JoinedObjectType()));
 
 				var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
 

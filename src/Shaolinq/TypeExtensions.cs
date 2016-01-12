@@ -10,6 +10,25 @@ namespace Shaolinq
 {
 	internal static class TypeExtensions
 	{
+		internal static Type JoinedObjectType(this Type type)
+		{
+			if (type.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+			{
+				return type.GetSequenceElementType();
+			}
+			else if (type.IsDataAccessObjectType())
+			{
+				return type;
+			}
+
+			throw new InvalidOperationException();
+		}
+
+		internal static bool IsTypeRequiringJoin(this Type type)
+		{
+			return type.IsDataAccessObjectType() || (type.GetSequenceElementType()?.IsDataAccessObjectType() ?? false);
+		}
+
 		public static bool IsExpressionTree(this Type type)
 		{
 			return typeof(Expression<>).IsAssignableFromIgnoreGenericParameters(type);
