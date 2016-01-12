@@ -2148,7 +2148,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_Include_Collection()
 		{
 			using (var scope = new TransactionScope())

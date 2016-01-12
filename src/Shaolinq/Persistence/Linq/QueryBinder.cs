@@ -899,6 +899,14 @@ namespace Shaolinq.Persistence.Linq
 				return base.VisitMethodCall(methodCallExpression);
 			}
 
+			if (methodCallExpression.Method.DeclaringType == typeof(DataAccessObjectExtensions))
+			{
+				if (methodCallExpression.Method.Name == "Include")
+				{
+					;
+				}
+			}
+
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
@@ -2259,7 +2267,6 @@ namespace Shaolinq.Persistence.Linq
 			if (this.joinExpanderResults.IncludedPropertyInfos.TryGetValue(expression, out includedPropertyInfos))
 			{
 				var newExpression = this.PrivateVisit(expression);
-				var replacements = new Dictionary<Expression, Expression>();
 
 				var useFullPath = !newExpression.Type.IsDataAccessObjectType();
 				
@@ -2269,14 +2276,7 @@ namespace Shaolinq.Persistence.Linq
 
 					foreach (var propertyInfo in useFullPath ? includedProperty.FullAccessPropertyPath : includedProperty.IncludedPropertyPath)
 					{
-						Expression replacementCurrent;
 						var currentPropertyName = propertyInfo.Name;
-
-						if (replacements.TryGetValue(current, out replacementCurrent))
-						{
-							current = replacementCurrent;
-						}
-
 						Expression unwrapped;
 
 						if (current.NodeType == ExpressionType.Conditional)
