@@ -282,12 +282,14 @@ namespace Shaolinq.Persistence.Linq
 		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression, bool forSelector)
 		{
 			MethodCallExpression newCall = null;
+
+			var isIncludeCall = IsIncludeCall(methodCallExpression);
 			
 			var selectors = methodCallExpression
 				.Arguments
 				.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>))
-				.Select(c => c.StripQuotes())
-				.Select(c => IsIncludeCall(methodCallExpression) ? c.StripQuotes() : this.Visit(c).StripQuotes()).ToArray();
+				.Select(c => isIncludeCall ? c.StripQuotes() : this.Visit(c).StripQuotes())
+				.ToArray();
 
 			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);
 
