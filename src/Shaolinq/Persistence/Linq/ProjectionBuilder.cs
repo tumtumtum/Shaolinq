@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -24,6 +25,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly SqlQueryProvider queryProvider;
+		private readonly ParameterExpression versionParameter;
 		
 		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, ProjectionBuilderScope scope)
 		{
@@ -36,6 +38,7 @@ namespace Shaolinq.Persistence.Linq
 			this.dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
 			this.objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
 			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
+			this.versionParameter = Expression.Parameter(typeof(int), "version");
 		}
 
 		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, ProjectionBuilderScope scope)
@@ -44,7 +47,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var body = projectionBuilder.Visit(expression);
             
-			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.dynamicParameters);
+			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.versionParameter, projectionBuilder.dynamicParameters);
 		}
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
@@ -216,6 +219,11 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
+			if (methodCallExpression.Method == MethodInfoFastRef.DataAccessModelGetCurrentContextVersion)
+			{
+				return this.versionParameter;
+			}
+
 			var retval = base.VisitMethodCall(methodCallExpression);
 
 			var type = retval.Type;
@@ -340,7 +348,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedScope = this.scope;
 				this.scope = new ProjectionBuilderScope(newColumnIndexes);
-				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, dynamicParameters);
+				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, versionParameter, dynamicParameters);
 				this.scope = savedScope;
 
 				var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();

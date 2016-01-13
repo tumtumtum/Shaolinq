@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : DataAccessObject
 	{
-		public DataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+		public DataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
 			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, formatResult, placeholderValues, objectReader)
 		{
 		}
@@ -21,21 +21,24 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
+			using (var versionContext = transactionContext.AcquireVersionContext())
 			{
-				var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
-
-				using (var dataReader = persistenceTransactionContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
+				using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 				{
-					while (dataReader.Read())
+					var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
+
+					using (var dataReader = persistenceTransactionContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
 					{
-						T retval = objectReader(this, dataReader, placeholderValues);
+						while (dataReader.Read())
+						{
+							T retval = objectReader(this, dataReader, versionContext.Version, placeholderValues);
 
-						retval.ToObjectInternal().ResetModified();
+							retval.ToObjectInternal().ResetModified();
 
-						yield return retval;
+							yield return retval;
 
-						this.count++;
+							this.count++;
+						}
 					}
 				}
 			}

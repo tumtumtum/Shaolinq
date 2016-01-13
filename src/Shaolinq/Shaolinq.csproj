@@ -164,6 +164,7 @@
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlConstantPlaceholderReplacer.cs" />
     <Compile Include="Persistence\Linq\ExecutionBuildResult.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />

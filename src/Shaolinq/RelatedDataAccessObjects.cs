@@ -66,7 +66,7 @@ namespace Shaolinq
 
 			this.values.Add(value);
 		}
-		
+
 		private LambdaExpression CreateJoinCondition()
 		{
 			switch (this.RelationshipType)

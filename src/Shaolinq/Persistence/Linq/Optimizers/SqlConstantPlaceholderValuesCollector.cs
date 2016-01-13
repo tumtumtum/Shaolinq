@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return base.VisitConstantPlaceholder(constantPlaceholder);
 		}
 
-		public static object[] CollectValues(Expression expression)
+		public static object[] CollectValues(Expression expression, Func<SqlConstantPlaceholderExpression, object> transform = null)
 		{
 			var collector = new SqlConstantPlaceholderValuesCollector();
 
@@ -40,9 +40,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			var retval = new object[collector.maxIndex + 1];
 
-			foreach (var item in collector.values)
+			if (transform == null)
 			{
-				retval[item.Index] = item.ConstantExpression.Value;
+				foreach (var item in collector.values)
+				{
+					retval[item.Index] = item.ConstantExpression.Value;
+				}
+			}
+			else
+			{
+				foreach (var item in collector.values)
+				{
+					retval[item.Index] = transform(item);
+				}
 			}
 
 			return retval;

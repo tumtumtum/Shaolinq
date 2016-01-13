@@ -2226,9 +2226,11 @@ namespace Shaolinq.Persistence.Linq
 				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length))
 				{
 					var current = newExpression;
+					var path = useFullPath ? includedProperty.FullAccessPropertyPath : includedProperty.IncludedPropertyPath;
 
-					foreach (var propertyInfo in useFullPath ? includedProperty.FullAccessPropertyPath : includedProperty.IncludedPropertyPath)
+					for (var i = 0; i < path.Length; i++)
 					{
+						var propertyInfo = path[i];
 						var currentPropertyName = propertyInfo.Name;
 						Expression unwrapped;
 
@@ -2241,11 +2243,28 @@ namespace Shaolinq.Persistence.Linq
 							unwrapped = current;
 						}
 
+						if (propertyInfo.PropertyType.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+						{
+							var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
+							var replacement = this.Visit(originalReplacementExpression);
+
+							if (i < path.Length - 1)
+							{
+								current = Expression.Call(Expression.Property(unwrapped, currentPropertyName), MethodInfoFastRef.RelatedDataAccessObjectsAddThenReturnValue, replacement, Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion));
+
+								continue;
+							}
+							else
+							{
+								return Expression.Call(Expression.Property(unwrapped, currentPropertyName), MethodInfoFastRef.RelatedDataAccessObjectsAddThenReturnThis, replacement, Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion));
+							}
+						}
+
 						var memberInitExpression = unwrapped as MemberInitExpression;
 
 						if (memberInitExpression != null)
 						{
-							current = ((MemberAssignment)(memberInitExpression).Bindings.FirstOrDefault(c => string.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0))?.Expression;
+							current = ((MemberAssignment)memberInitExpression.Bindings.FirstOrDefault(c => string.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0))?.Expression;
 						}
 						else if (unwrapped is NewExpression)
 						{
