@@ -276,7 +276,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private static bool IsIncludeCall(MethodCallExpression methodCallExpression)
 		{
-			return methodCallExpression.Method.GetGenericMethodOrRegular() != MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod;
+			return methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod;
 		}
 
 		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression, bool forSelector)
