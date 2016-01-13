@@ -2148,26 +2148,49 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
+		public void Test_Query_Any_On_RelatedObjects()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.Any(d => d.Name != ""))
+					.ToList();
+			}
+		}
+
+		[Test]
 		public void Test_Include_Collection1()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.SisterMall.Address).ToList();
+					.Include(c => c.Address).ToList();
 			}
 		}
 
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Include_Collection2()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.SisterMall.Shops).ToList();
+					.Include(c => c.Shops.Include(d => d.Address)).ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Include_Collection3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(c => c.SisterMall.Include(d => d.Address)).ToList();
 			}
 		}
 	}

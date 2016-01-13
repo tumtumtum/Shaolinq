@@ -863,11 +863,6 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			if (methodCallExpression.Method.Name == "Integrate")
-			{
-				return base.VisitMethodCall(methodCallExpression);
-			}
-
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
@@ -1982,7 +1977,7 @@ namespace Shaolinq.Persistence.Linq
 					var param = Expression.Parameter(memberExpression.Type.GetSequenceElementType());
 					var where = Expression.Lambda(Expression.Equal(Expression.Property(param, relationship.TargetProperty), source), param);
 
-					return this.BindWhere(memberExpression.Type.GetSequenceElementType(), inner, where, false, true);
+					return this.BindWhere(memberExpression.Type, inner, where, false, true);
 				}
 
 				for (int i = 0, n = min.Bindings.Count; i < n; i++)

@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
+using Platform.Reflection;
+using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
@@ -85,10 +88,31 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 		}
 
+		private readonly Dictionary<ParameterExpression, Expression> expressionByParameter = new Dictionary<ParameterExpression, Expression>();
+		
+		private Expression GetExpression(Expression expression)
+		{
+			Expression retval;
+			var parameterExpression = expression as ParameterExpression;
+
+			if (parameterExpression != null && expressionByParameter.TryGetValue(parameterExpression, out retval))
+			{
+				return retval;
+			}
+
+			return expression;
+		}
+
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			if (methodCallExpression.Method.IsGenericMethod
-				&& methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod)
+			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableSelectMethod)
+			{
+				expressionByParameter[methodCallExpression.Arguments[1].StripQuotes().Parameters[0]] = methodCallExpression.Arguments[0];
+
+				return base.VisitMethodCall(methodCallExpression);
+			}
+
+			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod)
 			{
 				if (!this.forProjection)
 				{
@@ -209,6 +233,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var visited = new List<MemberExpression>();
 			var root = memberExpression.Expression;
 			var memberIsDataAccessObjectGatheringForProjection = false;
+
+			// Don't perform implicit joins for RelatedDataAccessObject collections as those currently turn into N+1 queries
+			if (this.nesting < 1 && (memberExpression.Type.GetSequenceElementType()?.IsDataAccessObjectType() ?? false))
+			{
+				return base.VisitMemberAccess(memberExpression);
+			}
 			
 			if (memberExpression.Type.IsTypeRequiringJoin())
 			{
@@ -256,12 +286,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			var currentExpression = expression;
 
-			while (currentExpression != null && currentExpression.Member is PropertyInfo)
+			while (currentExpression?.Member is PropertyInfo)
 			{
 				visited.Add(currentExpression);
 
 				root = currentExpression.Expression;
+
 				currentExpression = root as MemberExpression;
+
+				if (currentExpression == null)
+				{
+					root = this.GetExpression(root);
+					currentExpression = root as MemberExpression;
+				}
 			}
 
 			var includedPathSkip = 0;
