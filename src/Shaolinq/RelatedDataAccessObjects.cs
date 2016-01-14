@@ -21,6 +21,8 @@ namespace Shaolinq
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
 		public override IEnumerator<T> GetEnumerator() => this.values?.GetEnumerator() ?? base.GetEnumerator();
 
+		internal T PlaceholderItem { get; set; } = default(T);
+
 		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, RelationshipType relationshipType)
 			: base(dataAccessModel)
 		{
@@ -56,15 +58,28 @@ namespace Shaolinq
 			}
 		}
 
-		internal void AddValue(T value, int version)
+		internal void Add(T value, int version)
 		{
-			if (this.values == null || version != this.valuesVersion)
+			if (this.values == null)
 			{
-				this.values = new List<T>();
-				this.valuesVersion = version;
+				this.values = new List<T> { value };
 			}
-
-			this.values.Add(value);
+			else if (version != valuesVersion)
+			{
+				this.values.Clear();
+				this.values.Add(value);
+			}
+            else if (values.Count > 0)
+			{
+				if (this.values.Last() != value)
+				{
+					this.values.Add(value);
+				}
+			}
+			else
+			{
+				this.values.Add(value);
+			}
 		}
 
 		private LambdaExpression CreateJoinCondition()

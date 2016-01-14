@@ -273,22 +273,15 @@ namespace Shaolinq.Persistence.Linq
 
 			return methodCall;
 		}
-
-		private static bool IsIncludeCall(MethodCallExpression methodCallExpression)
-		{
-			return methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod;
-		}
-
+		
 		protected Expression RewriteBasicProjection(MethodCallExpression methodCallExpression, bool forSelector)
 		{
 			MethodCallExpression newCall = null;
 
-			var isIncludeCall = IsIncludeCall(methodCallExpression);
-			
 			var selectors = methodCallExpression
 				.Arguments
 				.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>))
-				.Select(c => isIncludeCall ? c.StripQuotes() : this.Visit(c).StripQuotes())
+				.Select(c => this.Visit(c).StripQuotes())
 				.ToArray();
 
 			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);

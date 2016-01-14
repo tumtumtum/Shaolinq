@@ -18,6 +18,12 @@ namespace Shaolinq
 
 	public static class QueryableExtensions
 	{
+		internal static T Item<T>(this IQueryable<T> source)
+			where T : DataAccessObject
+		{
+			return source.Provider.Execute<T>(Expression.Call(null,((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
+		}
+
 		public static IQueryable<T> WhereForUpdate<T>(this IQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : DataAccessObject
 		{

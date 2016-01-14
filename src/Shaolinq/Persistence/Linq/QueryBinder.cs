@@ -2209,6 +2209,104 @@ namespace Shaolinq.Persistence.Linq
 			throw new InvalidOperationException();
 		}
 
+		private Expression ProcessJoins(Expression expression, List<IncludedPropertyInfo> includedPropertyInfos, int index, bool useFullPath)
+		{
+			expression = this.PrivateVisit(expression);
+			var visited  = new HashSet<string>();
+
+			foreach (var includedPropertyInfo in includedPropertyInfos
+				.GroupBy(c => useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length)
+				.OrderBy(c => c.Key)
+				.First())
+			{
+				var expressionToReplace = expression;
+				var propertyPath = useFullPath ? includedPropertyInfo.FullAccessPropertyPath : includedPropertyInfo.IncludedPropertyPath;
+				var propertyInfo = propertyPath[index];
+				var lastIndex = propertyPath.Length - 1;
+				var currentPropertyName = propertyInfo.Name;
+
+				if (visited.Contains(currentPropertyName))
+				{
+					continue;
+				}
+
+				visited.Add(currentPropertyName);
+
+				List<IncludedPropertyInfo> nextProperties;
+				var unwrapped = expressionToReplace.NodeType == ExpressionType.Conditional ? ((ConditionalExpression)expressionToReplace).IfFalse : expressionToReplace;
+
+				if (propertyInfo.PropertyType.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+				{
+					var value = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedPropertyInfo.FullAccessPropertyPath);
+
+					value = this.Visit(value);
+
+					var param = Expression.Parameter(expression.Type);
+
+					nextProperties = includedPropertyInfos
+						.Where(c => (useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length) > index + 1)
+						.Where(c => (useFullPath ? c.FullAccessPropertyPath : c.IncludedPropertyPath).Take(index).SequenceEqual(propertyPath.Take(index)))
+						.ToList();
+
+					expression = Expression.Call
+					(
+						MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod.MakeGenericMethod(expression.Type, value.Type),
+						expression,
+						Expression.Lambda(Expression.Property(param, propertyInfo.Name), param),
+						nextProperties.Count > 0 ? ProcessJoins(value, nextProperties, index + 1, useFullPath) : value,
+						Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion)
+					);
+				}
+				else
+				{
+					if (unwrapped is MemberInitExpression)
+					{
+						var memberInitExpression = (MemberInitExpression)unwrapped;
+
+						expressionToReplace = ((MemberAssignment)memberInitExpression.Bindings.First(c => string.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0))?.Expression;
+					}
+					else if (unwrapped is NewExpression)
+					{
+						var currentNewExpression = (NewExpression)unwrapped;
+						var x = currentNewExpression.Constructor.GetParameters().IndexOfAny(c => String.Compare(c.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0);
+
+						expressionToReplace = currentNewExpression.Arguments[x];
+					}
+					else
+					{
+						throw new InvalidOperationException();
+					}
+
+					Expression replacement = null;
+					if (index == lastIndex)
+					{
+						var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedPropertyInfo.FullAccessPropertyPath);
+
+						replacement = this.Visit(originalReplacementExpression);
+					}
+					else
+					{
+						replacement = expressionToReplace;
+					}
+					
+					nextProperties = includedPropertyInfos
+						.Where(c => (useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length) > index + 1)
+						.Where(c => (useFullPath ? c.FullAccessPropertyPath : c.IncludedPropertyPath).Take(index).SequenceEqual(propertyPath.Take(index)))
+						.ToList();
+
+					if (nextProperties.Count > 0)
+					{
+						replacement = ProcessJoins(replacement, nextProperties, index + 1, useFullPath);
+					}
+
+					expression = SqlExpressionReplacer.Replace(expression, expressionToReplace, replacement);
+				}
+			}
+
+
+			return expression;
+		}
+		
 		protected override Expression Visit(Expression expression)
 		{
 			if (expression == null)
@@ -2220,75 +2318,9 @@ namespace Shaolinq.Persistence.Linq
 
 			if (this.joinExpanderResults.IncludedPropertyInfos.TryGetValue(expression, out includedPropertyInfos))
 			{
-				var newExpression = this.PrivateVisit(expression);
-				var useFullPath = !newExpression.Type.IsDataAccessObjectType();
-				
-				foreach (var includedProperty in includedPropertyInfos.OrderBy(c => useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length))
-				{
-					var current = newExpression;
-					var path = useFullPath ? includedProperty.FullAccessPropertyPath : includedProperty.IncludedPropertyPath;
+				var useFullPath = !expression.Type.IsDataAccessObjectType();
 
-					for (var i = 0; i < path.Length; i++)
-					{
-						var propertyInfo = path[i];
-						var currentPropertyName = propertyInfo.Name;
-						Expression unwrapped;
-
-						if (current.NodeType == ExpressionType.Conditional)
-						{
-							unwrapped = ((ConditionalExpression)current).IfFalse;
-						}
-						else
-						{
-							unwrapped = current;
-						}
-
-						if (propertyInfo.PropertyType.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
-						{
-							var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
-							var replacement = this.Visit(originalReplacementExpression);
-
-							if (i < path.Length - 1)
-							{
-								current = Expression.Call(Expression.Property(unwrapped, currentPropertyName), MethodInfoFastRef.RelatedDataAccessObjectsAddThenReturnValue, replacement, Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion));
-
-								continue;
-							}
-							else
-							{
-								return Expression.Call(Expression.Property(unwrapped, currentPropertyName), MethodInfoFastRef.RelatedDataAccessObjectsAddThenReturnThis, replacement, Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion));
-							}
-						}
-
-						var memberInitExpression = unwrapped as MemberInitExpression;
-
-						if (memberInitExpression != null)
-						{
-							current = ((MemberAssignment)memberInitExpression.Bindings.FirstOrDefault(c => string.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0))?.Expression;
-						}
-						else if (unwrapped is NewExpression)
-						{
-							var currentNewExpression = (NewExpression)unwrapped;
-							var index = currentNewExpression.Constructor.GetParameters().IndexOfAny(c => String.Compare(c.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0);
-
-							current = currentNewExpression.Arguments[index];
-						}
-						else
-						{
-							throw new InvalidOperationException();
-						}
-					}
-
-					if (current != null)
-					{
-						var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedProperty.FullAccessPropertyPath);
-						var replacement = this.Visit(originalReplacementExpression);
-
-						newExpression = SqlExpressionReplacer.Replace(newExpression, current, replacement);
-					}
-				}
-
-				return newExpression;
+				return this.ProcessJoins(expression, includedPropertyInfos, 0, useFullPath);
 			}
 
 			return this.PrivateVisit(expression);

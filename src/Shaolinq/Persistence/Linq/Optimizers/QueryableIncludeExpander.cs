@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform.Reflection;
@@ -31,18 +32,25 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			return new QueryableIncludeExpander().Visit(expression);
 		}
-
-		private Expression TranslateIncludeCall(MethodCallExpression methodCallExpression)
+		
+		protected override Expression VisitLambda(LambdaExpression expression)
 		{
-			var parameter = Expression.Parameter(methodCallExpression.Method.GetGenericArguments()[0]);
-			var currentIncludeSelector = this.Visit(methodCallExpression.Arguments[1]).StripQuotes();
+			var body = this.Visit(expression.Body);
 
-			var body = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
-			var selector = Expression.Lambda(body, parameter);
-			var source = this.Visit(methodCallExpression.Arguments[0]);
-			var selectCall = Expression.Call(null, MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(parameter.Type, parameter.Type), source, selector);
+			if (body == expression.Body)
+			{
+				return expression;
+			}
 
-			return selectCall;
+			if (body.Type != expression.ReturnType)
+			{
+				if (!expression.ReturnType.IsAssignableFrom(body.Type))
+				{
+					return Expression.Lambda(body, expression.Parameters);
+				}
+			}
+
+			return Expression.Lambda(expression.Type, body, expression.Parameters);
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
@@ -55,12 +63,22 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var parameter = Expression.Parameter(methodCallExpression.Method.GetGenericArguments()[0]);
 			var currentIncludeSelector = this.Visit(methodCallExpression.Arguments[1]).StripQuotes();
 
-			var body = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
-			var selector = Expression.Lambda(body, parameter);
-			var source = this.Visit(methodCallExpression.Arguments[0]);
-			var selectCall = Expression.Call(null, MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(parameter.Type, parameter.Type), source, selector);
+			if (methodCallExpression.Arguments[0].Type.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+			{
+				var source = this.Visit(methodCallExpression.Arguments[0]);
+				var result = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), Expression.Property(source, "PlaceholderItem"), currentIncludeSelector);
 
-			return selectCall;
+				return result;
+			}
+			else
+			{
+				var body = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
+				var selector = Expression.Lambda(body, parameter);
+				var source = this.Visit(methodCallExpression.Arguments[0]);
+				var selectCall = Expression.Call(null, MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(parameter.Type, parameter.Type), source, selector);
+
+				return selectCall;
+			}
 		}
 	}
 }

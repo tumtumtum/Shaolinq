@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -34,6 +35,11 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			if (expression.NodeType == ExpressionType.Parameter)
+			{
+				return false;
+			}
+
+			if ((expression as MethodCallExpression)?.Method == MethodInfoFastRef.TransactionContextGetCurrentContextVersion)
 			{
 				return false;
 			}

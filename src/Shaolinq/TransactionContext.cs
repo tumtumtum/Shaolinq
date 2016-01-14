@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Transactions;
 using Platform;
@@ -16,7 +17,7 @@ namespace Shaolinq
 	{
 		internal static int GetCurrentContextVersion()
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
 		}
 
 		private int version;

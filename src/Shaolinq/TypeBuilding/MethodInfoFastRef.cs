@@ -56,8 +56,8 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo DataAccessModelGetReferenceByValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(default(object[]))).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string>((Expression<Func<object, string>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string, int>((Expression<Func<object, string>>)null, (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
-		public static readonly MethodInfo DataAccessObjectExtensionsAddThenReturnMethod = TypeUtils.GetMethod(() => DataAccessObjectExtensions.AddThenReturn<DataAccessObject, DataAccessObject>(null,null, null, default(int)));
-		public static readonly MethodInfo DataAccessModelGetCurrentContextVersion = TypeUtils.GetMethod(() => TransactionContext.GetCurrentContextVersion());
 		public static readonly MethodInfo TransactionContextGetCurrentContextVersion = TypeUtils.GetMethod(() => TransactionContext.GetCurrentContextVersion());
-    }
+		public static readonly MethodInfo DataAccessObjectExtensionsAddToCollectionMethod = TypeUtils.GetMethod(() => DataAccessObjectExtensions.AddToCollection<DataAccessObject, DataAccessObject>(null, null, null, 0)).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryablePrivateItem = TypeUtils.GetMethod(() => QueryableExtensions.Item<DataAccessObject>(null)).GetGenericMethodDefinition();
+	}
 }

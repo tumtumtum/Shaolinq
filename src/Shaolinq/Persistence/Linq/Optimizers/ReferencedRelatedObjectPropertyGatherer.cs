@@ -65,7 +65,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
             var reducedExpressions = expressions.Select(c =>
             {
 				gatherer.sourceParameterExpression = c.Item1;
-				return gatherer.Visit(c.Item2);
+				return SqlExpressionReplacer.Replace(gatherer.Visit(c.Item2), d => d.RemovePlaceholderItem());
             }).ToArray();
 
 			return new ReferencedRelatedObjectPropertyGathererResults
@@ -125,7 +125,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var originalReferencedRelatedObjects = this.referencedRelatedObjects;
 				var originalParent = this.currentParent;
 
-				this.currentParent = methodCallExpression.Arguments[0];
+				this.currentParent = methodCallExpression.Arguments[0].RemovePlaceholderItem();
 
 				this.referencedRelatedObjects = new List<ReferencedRelatedObject>();
 
@@ -150,7 +150,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					// For supporting: Select(c => c.Include(d => d.Address.Include(e => e.Region)))
 
 					var prefixProperties = new List<PropertyInfo>();
-					var current = (MemberExpression)retval;
+					var current = (MemberExpression)retval.RemovePlaceholderItem();
 
 					while (current != null)
 					{
@@ -159,15 +159,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						{
 							break;
 						}
-
+						
 						prefixProperties.Add((PropertyInfo)current.Member);
 						
-						if (current.Expression == this.sourceParameterExpression)
+						if (current.Expression.RemovePlaceholderItem() == this.sourceParameterExpression)
 						{
 							break;
 						}
 						
-						current = current.Expression as MemberExpression;
+						current = current.Expression.RemovePlaceholderItem() as MemberExpression;
 					}
 
 					prefixProperties.Reverse();
@@ -231,7 +231,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			MemberExpression expression; 
 			var visited = new List<MemberExpression>();
-			var root = memberExpression.Expression;
+			var root = memberExpression.Expression.RemovePlaceholderItem();
 			var memberIsDataAccessObjectGatheringForProjection = false;
 
 			// Don't perform implicit joins for RelatedDataAccessObject collections as those currently turn into N+1 queries
@@ -250,9 +250,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 				else
 				{
-					expression = memberExpression.Expression as MemberExpression;
+					expression = memberExpression.Expression.RemovePlaceholderItem() as MemberExpression;
 
-					if (expression == null || !expression.Expression.Type.IsTypeRequiringJoin())
+					if (expression == null || !expression.Expression.RemovePlaceholderItem().Type.IsTypeRequiringJoin())
 					{
 						return memberExpression;
 					}
@@ -260,43 +260,43 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 			else
 			{
-				if (memberExpression.Expression == null)
+				if (memberExpression.Expression?.RemovePlaceholderItem() == null)
 				{
 					return memberExpression;
 				}
 
-				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.Type);
+				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.RemovePlaceholderItem().Type);
 
 				if (typeDescriptor == null)
 				{
-					return Expression.MakeMemberAccess(this.Visit(memberExpression.Expression), memberExpression.Member);
+					return Expression.MakeMemberAccess(this.Visit(memberExpression.Expression.RemovePlaceholderItem()), memberExpression.Member);
 				}
 
 				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 
-				if (property.IsPrimaryKey && memberExpression.Expression is MemberExpression)
+				if (property.IsPrimaryKey && memberExpression.Expression.RemovePlaceholderItem() is MemberExpression)
 				{
-					expression = ((MemberExpression)memberExpression.Expression).Expression as MemberExpression;
+					expression = ((MemberExpression)memberExpression.Expression.RemovePlaceholderItem()).Expression.RemovePlaceholderItem() as MemberExpression;
 				}
 				else
 				{
-					expression = memberExpression.Expression as MemberExpression;
+					expression = memberExpression.Expression.RemovePlaceholderItem() as MemberExpression;
 				}
 			}
 
-			var currentExpression = expression;
+			var currentExpression = expression.RemovePlaceholderItem() as MemberExpression;
 
 			while (currentExpression?.Member is PropertyInfo)
 			{
 				visited.Add(currentExpression);
 
-				root = currentExpression.Expression;
+				root = currentExpression.Expression.RemovePlaceholderItem();
 
 				currentExpression = root as MemberExpression;
 
 				if (currentExpression == null)
 				{
-					root = this.GetExpression(root);
+					root = this.GetExpression(root).RemovePlaceholderItem();
 					currentExpression = root as MemberExpression;
 				}
 			}
@@ -324,7 +324,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			i = 0;
 			currentExpression = expression;
 
-			while (currentExpression != null && currentExpression.Member is PropertyInfo)
+			while (currentExpression?.Member is PropertyInfo)
 			{
 				var path = new PropertyPath(c => c.Name, visited.Select(c=> (PropertyInfo)c.Member).Take(visited.Count - i).ToArray());
 				
@@ -365,7 +365,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 
 				i++;
-				currentExpression = currentExpression.Expression as MemberExpression;
+				currentExpression = currentExpression.Expression.RemovePlaceholderItem() as MemberExpression;
 			}
 
 			return memberExpression;

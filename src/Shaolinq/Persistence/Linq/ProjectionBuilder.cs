@@ -219,7 +219,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			if (methodCallExpression.Method == MethodInfoFastRef.DataAccessModelGetCurrentContextVersion)
+			if (methodCallExpression.Method == MethodInfoFastRef.TransactionContextGetCurrentContextVersion)
 			{
 				return this.versionParameter;
 			}

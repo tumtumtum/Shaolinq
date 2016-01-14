@@ -1,22 +1,23 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
 {
 	public static class DataAccessObjectExtensions
 	{
-		internal static Tuple<P, C> AddToCollection<P, C>(P parent, RelatedDataAccessObjects<C> children, C child, int version)
+		internal static P AddToCollection<P, C>(P parent, Func<P, RelatedDataAccessObjects<C>> getChildren, C child, int version)
 			where P : DataAccessObject
 			where C : DataAccessObject
 		{
-			children.AddValue(child, version);
+			getChildren(parent).AddOrGetValue(child, version);
 
-			return new Tuple<P, C>(parent, child);
+			return parent;
 		}
 		
-		internal static T Include<T, U>(this T obj, Func<T, U> include)
+		internal static T Include<T, U>(this T obj, Expression<Func<T, U>> include)
 		{
 			// ReSharper disable SuspiciousTypeConversion.Global
 			return obj;

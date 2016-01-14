@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Platform;
 using Platform.Reflection;
 using Shaolinq.TypeBuilding;
 
@@ -11,6 +12,26 @@ namespace Shaolinq.Persistence.Linq
 {
 	public static class ExpressionExtensions
 	{
+		public static Expression RemovePlaceholderItem(this Expression expression)
+		{
+			var memberExpression = expression as MemberExpression;
+
+			if (memberExpression == null)
+			{
+				return expression;
+			}
+
+			if (memberExpression.Member.DeclaringType.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+			{
+				if (memberExpression.Member == memberExpression.Member.DeclaringType?.GetProperty("PlaceholderItem", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+				{
+					return memberExpression.Expression;
+				}
+			}
+
+			return expression;
+		}
+
 		public static Expression[] Split(this Expression expression, params ExpressionType[] binarySeparators)
 		{
 			var list = new List<Expression>();
