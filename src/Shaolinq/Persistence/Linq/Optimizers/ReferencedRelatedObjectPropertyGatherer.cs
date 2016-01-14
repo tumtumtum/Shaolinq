@@ -246,7 +246,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					memberIsDataAccessObjectGatheringForProjection = true;
 
-					expression = memberExpression;
+					expression = memberExpression.RemovePlaceholderItem() as MemberExpression;
 				}
 				else
 				{
@@ -321,7 +321,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			visited.Reverse();
 
 			i = 0;
-			currentExpression = expression.RemovePlaceholderItem() as MemberExpression;
+			currentExpression = expression;
 
 			while (currentExpression?.Member is PropertyInfo)
 			{
