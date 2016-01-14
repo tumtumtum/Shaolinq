@@ -2226,11 +2226,11 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var malls = this.model
+				var mall = this.model
 					.Malls
-					.Include(c => c.SisterMall.Shops.Include(d => d.Address.Region)).ToList();
+					.Include(c => c.SisterMall.Shops.Include(d => d.Address.Region))
+					.First(c => c.Name.Contains("Seattle City"));
 
-				var mall = malls.First(c => c.Name.Contains("Seattle City"));
 				var shops = mall.SisterMall.Shops.ToList();
 				Assert.IsFalse(shops[0].Address.IsDeflatedReference());
 				Assert.IsFalse(shops[0].Address.Region.IsDeflatedReference());
@@ -2253,7 +2253,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Include_Collection4b()
+		public void Test_Include1()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -2268,7 +2268,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Include_Collection5()
+		public void Test_Include2()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -2283,13 +2283,16 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Include_Collection6()
+		public void Test_Include3()
 		{
 			using (var scope = new TransactionScope())
 			{
-				var malls = this.model
+				var mall = this.model
 					.Malls
-					.Include(d => d.Address.Region).ToList();
+					.Include(d => d.Address.Region)
+					.First(c => c.Address.Region != null);
+
+				Assert.IsFalse(mall.Address.Region.IsDeflatedReference());
 			}
 		}
 	}
