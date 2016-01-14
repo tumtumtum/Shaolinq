@@ -58,6 +58,6 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => ((IQueryable<object>)null).GroupBy<object, string, int>((Expression<Func<object, string>>)null, (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo TransactionContextGetCurrentContextVersion = TypeUtils.GetMethod(() => TransactionContext.GetCurrentContextVersion());
 		public static readonly MethodInfo DataAccessObjectExtensionsAddToCollectionMethod = TypeUtils.GetMethod(() => DataAccessObjectExtensions.AddToCollection<DataAccessObject, DataAccessObject>(null, null, null, 0)).GetGenericMethodDefinition();
-		public static readonly MethodInfo QueryablePrivateItem = TypeUtils.GetMethod(() => QueryableExtensions.Item<DataAccessObject>(null)).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryablePrivateItem = TypeUtils.GetMethod(() => QueryableExtensions.Items<DataAccessObject>(null)).GetGenericMethodDefinition();
 	}
 }

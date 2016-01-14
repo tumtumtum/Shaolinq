@@ -23,7 +23,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (memberExpression.Member.DeclaringType == typeof(QueryableExtensions))
 			{
-				if (memberExpression.Member.Name == "Item")
+				if (memberExpression.Member.Name == "Items")
 				{
 					return memberExpression.Expression;
 				}
