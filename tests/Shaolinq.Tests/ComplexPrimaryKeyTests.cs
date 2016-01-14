@@ -2179,7 +2179,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.Shops.Include(d => d.Address)).ToList();
+					.Include(c => c.Shops.Item().Address).ToList();
 			}
 		}
 

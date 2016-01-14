@@ -21,9 +21,9 @@ namespace Shaolinq.Persistence.Linq
 				return expression;
 			}
 
-			if (memberExpression.Member.DeclaringType.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+			if (memberExpression.Member.DeclaringType == typeof(QueryableExtensions))
 			{
-				if (memberExpression.Member == memberExpression.Member.DeclaringType?.GetProperty("PlaceholderItem", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance))
+				if (memberExpression.Member.Name == "Item")
 				{
 					return memberExpression.Expression;
 				}

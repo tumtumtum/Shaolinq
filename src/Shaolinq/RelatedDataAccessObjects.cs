@@ -21,8 +21,6 @@ namespace Shaolinq
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
 		public override IEnumerator<T> GetEnumerator() => this.values?.GetEnumerator() ?? base.GetEnumerator();
 
-		internal T PlaceholderItem { get; set; } = default(T);
-
 		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, RelationshipType relationshipType)
 			: base(dataAccessModel)
 		{
