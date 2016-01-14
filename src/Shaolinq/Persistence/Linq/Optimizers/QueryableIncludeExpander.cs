@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			if (methodCallExpression.Arguments[0].Type.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
 			{
 				var source = this.Visit(methodCallExpression.Arguments[0]);
-				var result = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Item<DataAccessObject>(null)).MakeGenericMethod(source.Type.GetSequenceElementType()), source), currentIncludeSelector);
+				var result = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Item<DataAccessObject>(null)).GetGenericMethodDefinition().MakeGenericMethod(source.Type.GetSequenceElementType()), source), currentIncludeSelector);
 
 				return result;
 			}

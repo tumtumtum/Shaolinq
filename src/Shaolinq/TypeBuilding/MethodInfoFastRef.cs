@@ -26,6 +26,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).DefaultIfEmpty()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableDefaultIfEmptyWithValueMethod = TypeUtils.GetMethod(() => ((IQueryable<string>)null).DefaultIfEmpty(string.Empty)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableExtensionsIncludeMethod = TypeUtils.GetMethod(() => QueryableExtensions.Include(((IQueryable<DataAccessObject>)null), c => c)).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryableExtensionsItemMethod = TypeUtils.GetMethod(() => QueryableExtensions.Item(((IQueryable<DataAccessObject>)null))).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => ((DataAccessObject)null).Include(c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumParseMethod = TypeUtils.GetMethod(() => Enum.Parse(typeof(Enum), ""));
 		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(new object[0])).GetGenericMethodDefinition();

@@ -2180,6 +2180,10 @@ namespace Shaolinq.Tests
 				var malls = this.model
 					.Malls
 					.Include(c => c.Shops.Item().Address).ToList();
+
+				var mall = malls.First();
+				var shops = mall.Shops.ToList();
+				Assert.IsFalse(shops[0].Address.IsDeflatedReference());
 			}
 		}
 
