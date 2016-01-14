@@ -143,7 +143,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				this.referencedRelatedObjects = originalReferencedRelatedObjects;
 				this.currentParent = originalParent;
 
-				var retval = this.Visit(methodCallExpression.Arguments[0]);
+				var retval = this.Visit(methodCallExpression.Arguments[0].RemovePlaceholderItem());
 
 				if (this.nesting > 1 && (retval != this.sourceParameterExpression) && retval is MemberExpression)
 				{

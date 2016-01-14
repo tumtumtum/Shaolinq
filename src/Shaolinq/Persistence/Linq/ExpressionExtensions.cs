@@ -14,19 +14,16 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public static Expression RemovePlaceholderItem(this Expression expression)
 		{
-			var memberExpression = expression as MemberExpression;
+			var methodCallExpression = expression as MethodCallExpression;
 
-			if (memberExpression == null)
+			if (methodCallExpression == null)
 			{
 				return expression;
 			}
 
-			if (memberExpression.Member.DeclaringType == typeof(QueryableExtensions))
+			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsItemMethod)
 			{
-				if (memberExpression.Member.Name == "Items")
-				{
-					return memberExpression.Expression;
-				}
+				return methodCallExpression.Arguments[0];
 			}
 
 			return expression;
