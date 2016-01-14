@@ -2211,7 +2211,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.SisterMall.Shops.Item().Address).ToList();
+					.Include(c => c.SisterMall.Shops.Items().Address).ToList();
 
 				var mall = malls.First(c => c.Name.Contains("Seattle City"));
 				Assert.IsNull(mall.Address);

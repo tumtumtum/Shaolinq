@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq
 				return expression;
 			}
 
-			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsItemMethod)
+			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsItemsMethod)
 			{
 				return methodCallExpression.Arguments[0];
 			}
