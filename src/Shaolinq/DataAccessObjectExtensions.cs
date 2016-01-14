@@ -12,7 +12,7 @@ namespace Shaolinq
 			where P : DataAccessObject
 			where C : DataAccessObject
 		{
-			getChildren(parent).AddOrGetValue(child, version);
+			getChildren(parent).Add(child, version);
 
 			return parent;
 		}

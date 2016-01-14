@@ -310,7 +310,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				if (!current.Member.ReflectedType.IsTypeRequiringJoin()
 					|| current == this.currentParent /* @see: Test_Select_Project_Related_Object_And_Include1 */)
 				{
-					root = current;
 					includedPathSkip = visited.Count - i;
 					
 					break;
@@ -322,7 +321,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			visited.Reverse();
 
 			i = 0;
-			currentExpression = expression;
+			currentExpression = expression.RemovePlaceholderItem() as MemberExpression;
 
 			while (currentExpression?.Member is PropertyInfo)
 			{
@@ -344,11 +343,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (!this.results.TryGetValue(path, out objectInfo))
 				{
-					var x = i + includedPathSkip - 1;
 					var includedPropertyPath = new PropertyPath(c => c.Name, path.Skip(includedPathSkip));
-					var objectExpression = x >= 0 ? visited[x] : root;
 
-					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, objectExpression, sourceParameterExpression);
+					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, sourceParameterExpression);
 
 					this.results[path] = objectInfo;
 				}

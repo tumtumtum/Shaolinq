@@ -2193,5 +2193,16 @@ namespace Shaolinq.Tests
 					.Include(d => d.Address.Include(c => c.Region)).ToList();
 			}
 		}
+
+		[Test]
+		public void Test_Include_Collection4()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(d => d.Address.Region).ToList();
+			}
+		}
 	}
 }
