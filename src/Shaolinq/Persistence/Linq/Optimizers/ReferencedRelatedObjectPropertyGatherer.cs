@@ -189,11 +189,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		private void AddIncludedProperty(Expression root, ReferencedRelatedObject referencedRelatedObject, PropertyPath prefixPath)
 		{
-			for (var i = 0; i < referencedRelatedObject.IncludedPropertyPath.Length + prefixPath.Length; i++)
+			var fullAccessPropertyPath = new PropertyPath(c => c.Name, referencedRelatedObject.FullAccessPropertyPath);
+			var currentPropertyPath = new PropertyPath(c => c.Name, prefixPath.Concat(referencedRelatedObject.IncludedPropertyPath));
+			
+            while (currentPropertyPath.Length > 0)
 			{
-				var fullAccessPropertyPath = new PropertyPath(c => c.Name, referencedRelatedObject.FullAccessPropertyPath.Take(referencedRelatedObject.FullAccessPropertyPath.Length - i));
-				var currentPropertyPath = new PropertyPath(c => c.Name, prefixPath.Concat(referencedRelatedObject.IncludedPropertyPath.Take(referencedRelatedObject.IncludedPropertyPath.Length - i)));
-
 				var includedPropertyInfo = new IncludedPropertyInfo
 				{
 					RootExpression = root,
@@ -202,6 +202,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				};
 
 				this.includedPropertyInfos.Add(includedPropertyInfo);
+
+				fullAccessPropertyPath = fullAccessPropertyPath.RemoveLast();
+				currentPropertyPath = currentPropertyPath.RemoveLast();
 			}
 		}
 

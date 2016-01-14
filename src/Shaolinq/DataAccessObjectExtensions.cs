@@ -12,6 +12,11 @@ namespace Shaolinq
 			where P : DataAccessObject
 			where C : DataAccessObject
 		{
+			if (parent == null || child == null)
+			{
+				return parent;
+			}
+
 			getChildren(parent).Add(child, version);
 
 			return parent;

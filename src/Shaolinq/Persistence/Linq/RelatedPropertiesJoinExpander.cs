@@ -178,7 +178,7 @@ namespace Shaolinq.Persistence.Linq
 			var leftElementType = left.Type.GetGenericArguments()[0];
 			var rightElementType = right.Type.GetGenericArguments()[0];
 
-			var rootPath = targetPath.PathWithoutLast();
+			var rootPath = targetPath.RemoveLast();
 			var leftSelectorParameter = Expression.Parameter(leftElementType);
 
 			if (index == 1 && rootExpressionsByPath.ContainsKey(rootPath))
