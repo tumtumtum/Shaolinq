@@ -60,10 +60,14 @@ namespace Shaolinq
 		{
 			if (this.values == null)
 			{
+				valuesVersion = version;
+
 				this.values = new List<T> { value };
 			}
 			else if (version != valuesVersion)
 			{
+				valuesVersion = version;
+
 				this.values.Clear();
 				this.values.Add(value);
 			}

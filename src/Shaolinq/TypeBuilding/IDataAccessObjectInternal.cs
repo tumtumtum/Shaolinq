@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
 namespace Shaolinq.TypeBuilding
 {
-	public interface IDataAccessObjectInternal
+	internal interface IDataAccessObjectInternal
 	{
 		object CompositePrimaryKey { get; }
 

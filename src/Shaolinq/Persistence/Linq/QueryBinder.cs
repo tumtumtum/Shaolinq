@@ -250,7 +250,7 @@ namespace Shaolinq.Persistence.Linq
             var isFirst = selectFirstType == SelectFirstType.First || selectFirstType == SelectFirstType.FirstOrDefault;
 			var isLast = selectFirstType == SelectFirstType.Last || selectFirstType == SelectFirstType.LastOrDefault;
 			var isSingle = selectFirstType == SelectFirstType.Single || selectFirstType == SelectFirstType.SingleOrDefault;
-			var isDaoWithIncludedProperties = (source.Type.IsDataAccessObjectType() && this.joinExpanderResults.IncludedPropertyInfos.Count > 0);
+			var isDaoWithIncludedProperties = ((source.Type.GetSequenceElementType()?.IsDataAccessObjectType() ?? false) && this.joinExpanderResults.IncludedPropertyInfos.Count > 0);
 
             if (!isDaoWithIncludedProperties)
 			{

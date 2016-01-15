@@ -27,7 +27,8 @@ namespace Shaolinq.TypeBuilding
 
 			var configSha256 = configuration.GetSha256();
 			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + "." + typeDescriptorProvider.DataAccessModelType.Name);
-			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave);
+			var sharedAssemblyName = new AssemblyName("Shaolinq.GeneratedDataAccessModel");
+			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(sharedAssemblyName, AssemblyBuilderAccess.RunAndSave);
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + configSha256 + ".dll");
 
 			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder);

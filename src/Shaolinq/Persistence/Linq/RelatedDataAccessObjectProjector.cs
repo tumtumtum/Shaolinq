@@ -35,8 +35,6 @@ namespace Shaolinq.Persistence.Linq
 							this.relatedDataAccessObjectContext.InitializeDataAccessObject?.Invoke(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObjectAdvanced)retval);
 
 							yield return retval;
-
-							this.count++;
 						}
 					}
 				}

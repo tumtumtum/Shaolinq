@@ -20,8 +20,7 @@ namespace Shaolinq.TypeBuilding
 	public sealed class DataAccessObjectTypeBuilder
 	{
 		internal const string ForceSetPrefix = "$$force_set";
-		internal const string FakeSetValuePrefix = "$$fakeSetValue_";
-        internal const string IsSetSuffix = "$$is_set";
+		internal const string IsSetSuffix = "$$is_set";
 		internal const string HasChangedSuffix = "$$changed";
 		internal const string DataObjectFieldName = "$$data";
 
@@ -487,9 +486,6 @@ namespace Shaolinq.TypeBuilding
 				currentFieldInDataObject.SetCustomAttribute(attributeBuilder);
 
 				this.valueFields[propertyInfo.Name] = currentFieldInDataObject;
-
-				propertyBuilder = this.typeBuilder.DefineProperty(FakeSetValuePrefix + propertyInfo.Name, propertyInfo.Attributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, null, null, null, null, null);
-				this.propertyBuilders[propertyBuilder.Name] = propertyBuilder;
 			}
 			else
 			{
@@ -497,27 +493,9 @@ namespace Shaolinq.TypeBuilding
 				currentFieldInDataObject = this.valueFields[propertyBuilder.Name];
 
 				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, RelationshipType.ParentOfOneToMany, propertyInfo));
-
-				// AddValue method
-				propertyBuilder = this.propertyBuilders[FakeSetValuePrefix + propertyInfo.Name];
-				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsFakeSetMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType));
 			}
 		}
-
-		private MethodBuilder BuildRelatedDataAccessObjectsFakeSetMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType)
-		{
-			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
-			var methodBuilder = typeBuilder.DefineMethod("set_" + propertyName, methodAttributes, callingConventions, propertyType, Type.EmptyTypes);
-			var generator = methodBuilder.GetILGenerator();
-
-			generator.Emit(OpCodes.Ldstr, propertyName);
-			generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new InvalidOperationException(default(string))));
-			generator.Emit(OpCodes.Throw);
-			generator.Emit(OpCodes.Ret);
-
-			return methodBuilder;
-		}
-
+		
 		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, RelationshipType relationshipType, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
@@ -1650,41 +1628,7 @@ namespace Shaolinq.TypeBuilding
 
 				EmitCompareEquals(generator, valueField.FieldType);
 
-				//if (propertyDescriptor.PropertyType.IsValueType)
-				{
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-				}
-				/*else
-				{
-					generator.Emit(OpCodes.Brtrue, label);
-
-					// False if one of the values is null
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-
-					// Use Object.Equals(object) method
-
-					// Load our value
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-
-					// Load operand value
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-
-					generator.Emit(OpCodes.Callvirt, MethodInfoFastRef.ObjectEqualsMethod);
-
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-				}*/
-
+				generator.Emit(OpCodes.Brfalse, returnLabel);
 				generator.MarkLabel(label);
 			}
 
@@ -1735,8 +1679,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Changed);
 			generator.Emit(OpCodes.Ceq);
 			generator.Emit(OpCodes.Brfalse, label);
-
-
+			
 			foreach (var property in this.typeDescriptor.PersistedProperties)
 			{
 				var innerLabel = generator.DefineLabel();
@@ -1763,11 +1706,26 @@ namespace Shaolinq.TypeBuilding
 
 			generator.MarkLabel(label);
 
+
+
+			foreach (var relatedProperty in this.typeDescriptor.GetRelationshipInfos().Where(c => c.RelationshipType == RelationshipType.ParentOfOneToMany))
+			{
+				var field = this.valueFields[relatedProperty.ReferencingProperty.PropertyName];
+
+				generator.Emit(OpCodes.Ldloc, local);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, field);
+				generator.Emit(OpCodes.Stfld, field);
+			}
+
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 
-			// this.data = local
+			// this.data = local.data
 			generator.Emit(OpCodes.Stfld, this.dataObjectField);
 
 			generator.Emit(OpCodes.Ldloc, local);

@@ -10,8 +10,7 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-
-		protected int count;
+		
 		public SqlQueryProvider QueryProvider { get; }
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
@@ -55,8 +54,6 @@ namespace Shaolinq.Persistence.Linq
 						while (dataReader.Read())
 						{
 							yield return objectReader(this, dataReader, versionContext.Version, placeholderValues);
-
-							this.count++;
 						}
 					}
 				}

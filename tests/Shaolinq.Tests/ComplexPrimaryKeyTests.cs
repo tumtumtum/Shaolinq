@@ -85,16 +85,17 @@ namespace Shaolinq.Tests
 				
 
 				shop = sisterMall.Shops.Create();
-				shop.Name = "Apple Store";
-
+				shop.Name = "Sister Mall Store 1";
 				address = this.model.Addresses.Create();
 				shop.Address = address;
-				shop.Address.Street = "Regent Street";
 				shop.Address.Region = region;
-				
-				center = this.model.Coordinates.Create();
-				center.Label = "Hipster Central";
-				
+
+				shop = sisterMall.Shops.Create();
+				shop.Name = "Sister Mall Store 2";
+				address = this.model.Addresses.Create();
+				shop.Address = address;
+				shop.Address.Region = region;
+
 				scope.Flush(this.model);
 
 				
@@ -2226,14 +2227,33 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var mall = this.model
+				var mall1 = this.model
 					.Malls
 					.Include(c => c.SisterMall.Shops.Include(d => d.Address.Region))
 					.First(c => c.Name.Contains("Seattle City"));
 
-				var shops = mall.SisterMall.Shops.ToList();
-				Assert.IsFalse(shops[0].Address.IsDeflatedReference());
-				Assert.IsFalse(shops[0].Address.Region.IsDeflatedReference());
+				var mall2 = this.model
+					.Malls
+					.Include(c => c.SisterMall.Shops.Include(d => d.Address.Region))
+					.First(c => c.Name.Contains("Seattle City"));
+
+				var shops1 = mall1.SisterMall.Shops.ToList();
+				var shops2 = mall2.SisterMall.Shops.ToList();
+
+				Assert.AreEqual(2, shops1.Count);
+				Assert.AreEqual(2, shops2.Count);
+
+				foreach (var shop in shops1)
+				{
+					Assert.IsFalse(shop.Address.IsDeflatedReference());
+					Assert.IsFalse(shop.Address.Region.IsDeflatedReference());
+				}
+
+				foreach (var shop in shops2)
+				{
+					Assert.IsFalse(shop.Address.IsDeflatedReference());
+					Assert.IsFalse(shop.Address.Region.IsDeflatedReference());
+				}
 			}
 		}
 

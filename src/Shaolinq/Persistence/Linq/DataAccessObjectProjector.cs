@@ -29,15 +29,29 @@ namespace Shaolinq.Persistence.Linq
 
 					using (var dataReader = persistenceTransactionContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
 					{
+						T previous = null;
+
 						while (dataReader.Read())
 						{
-							T retval = objectReader(this, dataReader, versionContext.Version, placeholderValues);
+							var current = this.objectReader(this, dataReader, versionContext.Version, this.placeholderValues);
 
-							retval.ToObjectInternal().ResetModified();
+							if (previous == null || current == previous)
+							{
+								previous = current;
 
-							yield return retval;
+								continue;
+							}
 
-							this.count++;
+							previous.ToObjectInternal().ResetModified();
+
+							yield return previous;
+
+							previous = current;
+						}
+
+						if (previous != null)
+						{
+							yield return previous;
 						}
 					}
 				}

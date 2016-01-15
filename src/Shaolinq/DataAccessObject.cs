@@ -23,21 +23,17 @@ namespace Shaolinq
 		: IDataAccessObjectAdvanced
 	{
 		private DataAccessModel dataAccessModel;
-
-		public DataAccessModel GetDataAccessModel()
-		{
-			return this.dataAccessModel;
-		}
+		public DataAccessModel GetDataAccessModel() => this.dataAccessModel;
 
 		public abstract ObjectPropertyValue[] GetAllProperties();
 		public abstract bool HasPropertyChanged(string propertyName);
 		public abstract List<ObjectPropertyValue> GetChangedProperties();
 
-		public SqlDatabaseContext DatabaseConnection => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
 		public IDataAccessObjectAdvanced GetAdvanced() => this;
 		public bool IsNew() => (((IDataAccessObjectAdvanced)this).IsNew);
 		public bool IsDeleted() => (((IDataAccessObjectAdvanced)this).IsDeleted);
 		public bool IsDeflatedReference() => ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
+		public SqlDatabaseContext GetDatabaseConnection() => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
 
 		public virtual DataAccessObject Inflate()
 		{
@@ -68,16 +64,6 @@ namespace Shaolinq
 			}
 
 			this.dataAccessModel = value;
-		}
-
-		public T Integrate<T, U, V>(Func<T, V> action, U value)
-			where T : DataAccessObject
-		{
-			var target = (T)this;
-
-			action(target);
-
-			return target;
 		}
 
 		#region IDataAccessObjectAdvanced
