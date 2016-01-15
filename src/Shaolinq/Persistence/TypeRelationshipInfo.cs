@@ -3,15 +3,17 @@ namespace Shaolinq.Persistence
 {
 	public class TypeRelationshipInfo
 	{
-		public TypeDescriptor RelatedTypeTypeDescriptor { get; set; }
-		public PropertyDescriptor ReferencingProperty { get; internal set; }
-		public EntityRelationshipType EntityRelationshipType { get; internal set; }
-		
-		public TypeRelationshipInfo(TypeDescriptor relatedTypeDescriptor, EntityRelationshipType entityRelationshipType, PropertyDescriptor relatedProperty)
+		public RelationshipType RelationshipType { get; set; }
+		public PropertyDescriptor ReferencingProperty { get; set; }
+		public PropertyDescriptor TargetProperty { get; set; }
+		public TypeDescriptor TargetType => TargetProperty.DeclaringTypeDescriptor;
+		public TypeDescriptor ReferencingType => ReferencingProperty.DeclaringTypeDescriptor;
+
+		public TypeRelationshipInfo(RelationshipType relationshipType, PropertyDescriptor referencingProperty, PropertyDescriptor targetProperty)
 		{
-			this.RelatedTypeTypeDescriptor = relatedTypeDescriptor;
-			this.EntityRelationshipType = entityRelationshipType;
-			this.ReferencingProperty = relatedProperty;
+			this.RelationshipType = relationshipType;
+			this.ReferencingProperty = referencingProperty;
+			this.TargetProperty = targetProperty;
 		}
 	}
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Transactions;
 using Platform;
@@ -14,6 +15,38 @@ namespace Shaolinq
 	public class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
+		internal static int GetCurrentContextVersion()
+		{
+			throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
+		}
+
+		private int version;
+		private int versionNesting;
+
+		internal class TransactionContextVersionContext
+			: IDisposable
+		{
+			private readonly TransactionContext context;
+
+			public int Version { get; }
+
+			public TransactionContextVersionContext(TransactionContext context)
+			{
+				this.context = context;
+
+				if (context.versionNesting == 0)
+				{
+					context.version++;
+				}
+
+				this.Version = context.version;
+
+				context.versionNesting++;
+			}
+
+			public void Dispose() => this.context.versionNesting--;
+		}
+
 		private volatile bool disposed;
 		public Transaction Transaction { get; }
 		private readonly DataAccessModel dataAccessModel;
@@ -21,6 +54,11 @@ namespace Shaolinq
 
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
 		private readonly Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
+
+		internal TransactionContextVersionContext AcquireVersionContext()
+		{
+			return new TransactionContextVersionContext(this);
+		}
 		
 		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite)
 		{

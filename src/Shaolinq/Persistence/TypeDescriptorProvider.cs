@@ -102,54 +102,41 @@ namespace Shaolinq.Persistence
 
 			foreach (var typeDescriptor in this.typeDescriptorsByType.Values)
 			{
-				foreach (var propertyDescriptor in typeDescriptor.RelatedProperties)
+				foreach (var propertyDescriptor in typeDescriptor.RelationshipRelatedProperties.Where(c => c.IsRelatedDataAccessObjectsProperty))
 				{
 					if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(propertyDescriptor.PropertyType))
 					{
 						var currentType = propertyDescriptor.PropertyType;
-
-						while (!currentType.IsGenericType || (currentType.GetGenericTypeDefinitionOrNull() != typeof(RelatedDataAccessObjects<>)))
+						
+						while (currentType != null && currentType.GetGenericTypeDefinitionOrNull() != typeof(RelatedDataAccessObjects<>))
 						{
-							currentType = currentType.BaseType;
+							currentType = currentType?.BaseType;
 						}
 
-						var relatedType = currentType.GetGenericArguments()[0];
-
-						var relatedTypeDescriptor = this.typeDescriptorsByType[relatedType];
-						var typeRelationshipInfo = typeDescriptor.GetRelationshipInfo(relatedTypeDescriptor);
-
-						if (typeRelationshipInfo != null)
+						if (currentType == null)
 						{
-							if (typeRelationshipInfo.RelatedTypeTypeDescriptor != relatedTypeDescriptor)
-							{
-								throw new InvalidDataAccessObjectModelDefinition("The type {0} defines multiple relationships with the type {1}", typeDescriptor.Type.Name, relatedTypeDescriptor.Type.Name);
-							}
-
-							typeRelationshipInfo.EntityRelationshipType = EntityRelationshipType.ManyToMany;
-							typeRelationshipInfo.RelatedTypeTypeDescriptor = relatedTypeDescriptor;
-							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, EntityRelationshipType.ManyToMany, null);
+							throw new InvalidOperationException("Code should be unreachable");
 						}
-						else
-						{
-							var relatedProperty = relatedTypeDescriptor.GetRelatedProperty(typeDescriptor.Type);
-							relatedTypeDescriptor.SetOrCreateRelationshipInfo(typeDescriptor, EntityRelationshipType.ChildOfOneToMany, relatedProperty);
-						}
-					}
-				}
-			}
 
-			foreach (var typeDescriptor in this.typeDescriptorsByType.Values)
-			{
-				foreach (var relationshipInfo in typeDescriptor.GetRelationshipInfos())
-				{
-					var closedCelationshipInfo = relationshipInfo;
+						var relatedTypeDescriptor = this.typeDescriptorsByType[currentType.GetSequenceElementType()];
 
-					if (relationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
-					{
-						if (!typeDescriptor.RelatedProperties.Any(c => c.BackReferenceAttribute != null && c.PropertyType == closedCelationshipInfo.ReferencingProperty.PropertyType))
-						{
-							throw new InvalidDataAccessObjectModelDefinition("The child type {0} participates in a one-many relationship with the parent type {1} but does not explicitly define a BackReference property", typeDescriptor, relationshipInfo.ReferencingProperty.DeclaringTypeDescriptor);
-						}
+						var relatedProperty = relatedTypeDescriptor
+							.RelationshipRelatedProperties
+							.Where(c => c.IsBackReferenceProperty)
+							.SingleOrDefault(c => c.PropertyName == propertyDescriptor.RelatedDataAccessObjectsAttribute.BackReferenceName);
+
+						relatedProperty = relatedProperty ?? relatedTypeDescriptor
+							.RelationshipRelatedProperties
+							.Where(c => c.IsBackReferenceProperty)
+							.SingleOrDefault(c => typeDescriptor.Type == c.PropertyType);
+
+						relatedProperty = relatedProperty ?? relatedTypeDescriptor
+							.RelationshipRelatedProperties
+							.Where(c => c.IsBackReferenceProperty)
+							.SingleOrDefault(c => typeDescriptor.Type.IsAssignableFrom(c.PropertyType));
+
+						typeDescriptor.AddRelationshipInfo(RelationshipType.ParentOfOneToMany, propertyDescriptor, relatedProperty);
+						relatedTypeDescriptor.AddRelationshipInfo(RelationshipType.ChildOfOneToMany, relatedProperty, propertyDescriptor);
 					}
 				}
 			}

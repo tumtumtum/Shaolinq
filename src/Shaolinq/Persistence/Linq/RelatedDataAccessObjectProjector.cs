@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : DataAccessObject
 	{
-		public RelatedDataAccessObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+		public RelatedDataAccessObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
 			: base(queryProvider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, formatResult, placeholderValues, objectReader)
 		{
 		}
@@ -20,21 +20,22 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
+			using (var versionContext = transactionContext.AcquireVersionContext())
 			{
-				var transactionalCommandsContext = acquisition.SqlDatabaseCommandsContext;
-
-				using (var dataReader = transactionalCommandsContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
+				using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 				{
-					while (dataReader.Read())
+					var transactionalCommandsContext = acquisition.SqlDatabaseCommandsContext;
+
+					using (var dataReader = transactionalCommandsContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
 					{
-						T retval = objectReader(this, dataReader, placeholderValues);
+						while (dataReader.Read())
+						{
+							T retval = objectReader(this, dataReader, versionContext.Version, placeholderValues);
 
-						this.relatedDataAccessObjectContext.InitializeDataAccessObject?.Invoke(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObjectAdvanced)retval);
+							this.relatedDataAccessObjectContext.InitializeDataAccessObject?.Invoke(this.relatedDataAccessObjectContext.RelatedDataAccessObject, (IDataAccessObjectAdvanced)retval);
 
-						yield return retval;
-
-						this.count++;
+							yield return retval;
+						}
 					}
 				}
 			}

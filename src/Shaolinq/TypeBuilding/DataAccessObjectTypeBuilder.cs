@@ -114,6 +114,14 @@ namespace Shaolinq.TypeBuilding
 
 				this.cctorGenerator = staticConstructor.GetILGenerator();
 
+				// Define default constructor
+
+				var defaultConstructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
+				var defaultConstructorGenerator = defaultConstructorBuilder.GetILGenerator();
+				defaultConstructorGenerator.Emit(OpCodes.Ldarg_0);
+				defaultConstructorGenerator.Emit(OpCodes.Call, typeBuilder.BaseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance, null, Type.EmptyTypes, null));
+				defaultConstructorGenerator.Emit(OpCodes.Ret);
+
 				// Define constructor for data object type
 
 				this.dataConstructorBuilder = this.dataObjectTypeTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
@@ -470,9 +478,9 @@ namespace Shaolinq.TypeBuilding
 			if (typeBuildContext.IsFirstPass())
 			{
 				propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, null, null, null, null, null);
-				this.propertyBuilders[propertyInfo.Name] = propertyBuilder;
+				this.propertyBuilders[propertyBuilder.Name] = propertyBuilder;
 
-				var attributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
+				var attributeBuilder = new CustomAttributeBuilder(TypeUtils.GetConstructor(() => new NonSerializedAttribute()), new object[0]);
 
 				currentFieldInDataObject = this.dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Public);
 				currentFieldInDataObject.SetCustomAttribute(attributeBuilder);
@@ -482,19 +490,19 @@ namespace Shaolinq.TypeBuilding
 			else
 			{
 				propertyBuilder = this.propertyBuilders[propertyInfo.Name];
-				currentFieldInDataObject = this.valueFields[propertyInfo.Name];
+				currentFieldInDataObject = this.valueFields[propertyBuilder.Name];
 
-				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, EntityRelationshipType.ParentOfOneToMany, propertyInfo));
+				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, RelationshipType.ParentOfOneToMany, propertyInfo));
 			}
 		}
-
-		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, EntityRelationshipType relationshipType, PropertyInfo propertyInfo)
+		
+		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, RelationshipType relationshipType, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 			var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName, methodAttributes, callingConventions, propertyType, Type.EmptyTypes);
 			var generator = methodBuilder.GetILGenerator();
 
-			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObjectAdvanced), typeof(DataAccessModel), typeof(EntityRelationshipType) });
+			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObjectAdvanced), typeof(DataAccessModel), typeof(RelationshipType) });
     
 			var local = generator.DeclareLocal(currentFieldInDataObject.FieldType);
             
@@ -515,6 +523,7 @@ namespace Shaolinq.TypeBuilding
 
 			// Load "this.DataAccessModel"
 			generator.Emit(OpCodes.Ldarg_0);
+
 			//generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
 			generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetMethod("GetDataAccessModel", BindingFlags.Instance | BindingFlags.Public));
 
@@ -1619,41 +1628,7 @@ namespace Shaolinq.TypeBuilding
 
 				EmitCompareEquals(generator, valueField.FieldType);
 
-				//if (propertyDescriptor.PropertyType.IsValueType)
-				{
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-				}
-				/*else
-				{
-					generator.Emit(OpCodes.Brtrue, label);
-
-					// False if one of the values is null
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-
-					// Use Object.Equals(object) method
-
-					// Load our value
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-
-					// Load operand value
-					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Ldfld, dataObjectField);
-					generator.Emit(OpCodes.Ldfld, valueField);
-
-					generator.Emit(OpCodes.Callvirt, MethodInfoFastRef.ObjectEqualsMethod);
-
-					generator.Emit(OpCodes.Brfalse, returnLabel);
-				}*/
-
+				generator.Emit(OpCodes.Brfalse, returnLabel);
 				generator.MarkLabel(label);
 			}
 
@@ -1704,8 +1679,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Changed);
 			generator.Emit(OpCodes.Ceq);
 			generator.Emit(OpCodes.Brfalse, label);
-
-
+			
 			foreach (var property in this.typeDescriptor.PersistedProperties)
 			{
 				var innerLabel = generator.DefineLabel();
@@ -1732,11 +1706,26 @@ namespace Shaolinq.TypeBuilding
 
 			generator.MarkLabel(label);
 
+
+
+			foreach (var relatedProperty in this.typeDescriptor.GetRelationshipInfos().Where(c => c.RelationshipType == RelationshipType.ParentOfOneToMany))
+			{
+				var field = this.valueFields[relatedProperty.ReferencingProperty.PropertyName];
+
+				generator.Emit(OpCodes.Ldloc, local);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, field);
+				generator.Emit(OpCodes.Stfld, field);
+			}
+
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 
-			// this.data = local
+			// this.data = local.data
 			generator.Emit(OpCodes.Stfld, this.dataObjectField);
 
 			generator.Emit(OpCodes.Ldloc, local);
@@ -1784,7 +1773,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsDeleted").GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnLabel);
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
 			{
 				var changedFieldInfo = this.valueChangedFields[propertyDescriptor.PropertyName];
 
@@ -2094,7 +2083,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetRelatedObjectProperties");
 
 			var propertyDescriptors = this.typeDescriptor
-				.PersistedAndRelatedObjectProperties
+				.PersistedAndBackReferenceProperties
 				.Where(c => c.PropertyType.IsDataAccessObjectType())
 				.ToList();
 
@@ -2324,7 +2313,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetAllProperties");
 			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
-			var count = this.typeDescriptor.PersistedAndRelatedObjectProperties.Count;
+			var count = this.typeDescriptor.PersistedAndBackReferenceProperties.Count;
 
 			generator.Emit(OpCodes.Ldc_I4, count);
 			generator.Emit(OpCodes.Newarr, typeof(ObjectPropertyValue));
@@ -2332,7 +2321,7 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
 			{
 				var valueField = this.valueFields[propertyDescriptor.PropertyName];
 
@@ -2353,7 +2342,7 @@ namespace Shaolinq.TypeBuilding
 		private void BuildGetChangedPropertiesMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedProperties");
-			var count = this.typeDescriptor.PersistedProperties.Count + this.typeDescriptor.RelatedProperties.Count(c => c.BackReferenceAttribute != null);
+			var count = this.typeDescriptor.PersistedProperties.Count + this.typeDescriptor.RelationshipRelatedProperties.Count(c => c.BackReferenceAttribute != null);
 
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
 
@@ -2363,7 +2352,7 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndRelatedObjectProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
 			{
 				var label = generator.DefineLabel();
 				var label2 = generator.DefineLabel();
@@ -2429,7 +2418,7 @@ namespace Shaolinq.TypeBuilding
 		private void BuildGetChangedPropertiesFlattenedMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
-			var properties = this.typeDescriptor.PersistedAndRelatedObjectProperties.ToList();
+			var properties = this.typeDescriptor.PersistedAndBackReferenceProperties.ToList();
 
 			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, properties);
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
@@ -2647,7 +2636,7 @@ namespace Shaolinq.TypeBuilding
 			// key flag if necessary
 
 			foreach (var propertyDescriptor in this.typeDescriptor
-				.RelatedProperties
+				.RelationshipRelatedProperties
 				.Where(c => c.IsBackReferenceProperty))
 			{
 				var innerLabel1 = generator.DefineLabel();

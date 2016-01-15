@@ -1,34 +1,22 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Optimizers;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
 	public static class Evaluator
 	{
-		/// <summary>
-		/// Performs evaluation & replacement of independent sub-trees
-		/// </summary>
-		/// <param name="expression">The root of the expression tree.</param>
-		/// <param name="fnCanBeEvaluated">A function that decides whether a given expression node can be part of the local function.</param>
-		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
 		public static Expression PartialEval(Expression expression, Func<Expression, bool> fnCanBeEvaluated)
 		{
 			return SubtreeEvaluator.Eval(new EvaluatorNominator(fnCanBeEvaluated).Nominate(expression), expression);
 		}
-
-		/// <summary>
-		/// Performs evaluation & replacement of independent sub-trees
-		/// </summary>
-		/// <param name="expression">The root of the expression tree.</param>
-		/// <returns>A new tree with sub-trees evaluated and replaced.</returns>
+		
 		public static Expression PartialEval(Expression expression)
 		{
 			return PartialEval(expression, CanBeEvaluatedLocally);
@@ -47,6 +35,11 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			if (expression.NodeType == ExpressionType.Parameter)
+			{
+				return false;
+			}
+
+			if ((expression as MethodCallExpression)?.Method == MethodInfoFastRef.TransactionContextGetCurrentContextVersion)
 			{
 				return false;
 			}
@@ -97,7 +90,12 @@ namespace Shaolinq.Persistence.Linq
 
 			internal static Expression Eval(HashSet<Expression> candidates, Expression expression)
 			{
-				var evalutator = new SubtreeEvaluator(candidates);
+				if (candidates.Count == 0)
+				{
+					return expression;
+				}
+
+				var evalutator = new SubtreeEvaluator(candidates) { index = SqlConstantPlaceholderMaxIndexFinder.Find(expression) };
 
 				return evalutator.Visit(expression);
 			}
@@ -123,50 +121,68 @@ namespace Shaolinq.Persistence.Linq
 
 				if (e.NodeType == ExpressionType.Constant)
 				{
-					return e;
+					return e.Type.IsValueType || ((ConstantExpression)e).Value == null ? e : new SqlConstantPlaceholderExpression(this.index++, (ConstantExpression) e);
 				}
-				else if (e.NodeType == ExpressionType.Convert && ((UnaryExpression)e).Operand.NodeType == ExpressionType.Constant)
+
+				var unaryExpression = e as UnaryExpression;
+
+				if (unaryExpression != null && unaryExpression.NodeType == ExpressionType.Convert)
 				{
-					var unaryExpression = (UnaryExpression)e;
-					var constantValue = ((ConstantExpression)(((UnaryExpression)e).Operand)).Value;
-
-					if (constantValue == null)
+					if (unaryExpression.Operand.Type == e.Type || (unaryExpression.Type.IsAssignableFrom(unaryExpression.Operand.Type) && !(unaryExpression.Type.IsNullableType() || unaryExpression.Operand.Type.IsNullableType())))
 					{
-						return Expression.Constant(null, e.Type);
+						return unaryExpression.Operand;
 					}
 
-					if (unaryExpression.Type.IsNullableType())
+					if ((unaryExpression.Operand.NodeType == ExpressionType.Constant || (unaryExpression.Operand.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)))
 					{
-						return Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), e.Type);
-					}
-					else
-					{
-						return Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type), e.Type);
+						var constantValue = (unaryExpression.Operand as ConstantExpression)?.Value ?? (unaryExpression.Operand as SqlConstantPlaceholderExpression)?.ConstantExpression.Value;
+
+						if (constantValue == null)
+						{
+							return Expression.Constant(null, unaryExpression.Type);
+						}
+
+						if (unaryExpression.Type.IsNullableType())
+						{
+							return Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), unaryExpression.Type);
+						}
+
+						if (unaryExpression.Type.IsInstanceOfType(constantValue))
+						{
+							var constantExpression = Expression.Constant(constantValue, unaryExpression.Type);
+
+							return unaryExpression.Type.IsValueType ? constantExpression : (Expression)new SqlConstantPlaceholderExpression(this.index++, constantExpression);
+						}
+
+						if (typeof(IConvertible).IsAssignableFrom(unaryExpression.Type))
+						{
+							var constantExpression = Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type));
+
+							return unaryExpression.Type.IsValueType ? constantExpression : (Expression)new SqlConstantPlaceholderExpression(this.index++, constantExpression);
+						}
+
+						return unaryExpression;
 					}
 				}
-				else if (e.NodeType == ExpressionType.Convert 
-                    && ((UnaryExpression)e).Operand.Type.GetUnwrappedNullableType().IsEnum)
+
+				if (e.NodeType == ExpressionType.Convert && ((UnaryExpression)e).Operand.Type.GetUnwrappedNullableType().IsEnum)
 				{
 					value = ExpressionInterpreter.Interpret(e);
 
 					return Expression.Constant(value, e.Type);
 				}
-				else if (e.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
+
+				if (e.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 				{
 					return e;
 				}
-				else
-				{
-					value = ExpressionInterpreter.Interpret(e);
+				
+				value = ExpressionInterpreter.Interpret(e);
 
-					return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
-				}
+				return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
 			}
 		}
 
-		/// <summary>
-		/// Performs bottom-up analysis to determine which nodes can possibly be part of an evaluated sub-tree.
-		/// </summary>
 		internal class EvaluatorNominator
 			: SqlExpressionVisitor
 		{

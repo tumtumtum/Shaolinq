@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Transactions;
 using NUnit.Framework;
+using Platform;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
@@ -59,17 +60,45 @@ namespace Shaolinq.Tests
 
 				this.model.Flush();
 
+				this.shopId = shop.Id;
+				
 				region = this.model.Regions.Create();
 				shop.SecondAddress = this.model.Addresses.Create();
 				shop.SecondAddress.Street = "Jefferson Avenue";
 				shop.SecondAddress.Region = region;
 				shop.SecondAddress.Region.Name = "Washington";
 				shop.SecondAddress.Region.Diameter = 100;
+
+				var sisterMall = this.model.Malls.Create();
+				sisterMall.Name = "Mall of Oregan";
+
+				sisterMall.Address = this.model.Addresses.Create();
+				sisterMall.Address.Region = this.model.Regions.Create();
+				sisterMall.Address.Number = 1600;
+				sisterMall.Address.Street = "Oregan Street";
+				sisterMall.Address.Region.Name = "Wickfield";
+				sisterMall.Address.Region.Center = this.model.Coordinates.Create();
+				sisterMall.Address.Region.Center.Longitude = 600.5;
+				sisterMall.Address.Region.Center.Magnitude = 10;
+
+				mall.SisterMall = sisterMall;
 				
+
+				shop = sisterMall.Shops.Create();
+				shop.Name = "Sister Mall Store 1";
+				address = this.model.Addresses.Create();
+				shop.Address = address;
+				shop.Address.Region = region;
+
+				shop = sisterMall.Shops.Create();
+				shop.Name = "Sister Mall Store 2";
+				address = this.model.Addresses.Create();
+				shop.Address = address;
+				shop.Address.Region = region;
+
 				scope.Flush(this.model);
 
-				this.shopId = shop.Id;
-
+				
 				scope.Complete();
 			}
 		}
@@ -439,7 +468,7 @@ namespace Shaolinq.Tests
 				new
 				{
 					shop,
-					address1 = address1.Include(c => c.Region),
+					address1 = address1.Include(c => c.Region.Center),
 					address2,
 					address3 = address3.Include(c => c.Region),
 					address4,
@@ -453,6 +482,7 @@ namespace Shaolinq.Tests
 				Assert.AreSame(first.address4, first.address5);
 
 				Assert.IsFalse(first.address1.Region.IsDeflatedReference());
+				Assert.IsFalse(first.address1.Region.Center.IsDeflatedReference());
 				Assert.IsFalse(first.address2.Region.IsDeflatedReference());
 				Assert.IsFalse(first.address4.Region.IsDeflatedReference());
 				Assert.AreEqual("Madison Street", first.address1.Street);
@@ -1249,7 +1279,7 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Include(c => c.SecondAddress)
-					.Where(c => c != null);
+					.Where(c => c != null && c.Id == shopId);
 
 				var first = query.First();
 
@@ -1264,7 +1294,7 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var query = this.model.Shops
-					.Where(c => c.Address != null)
+					.Where(c => c.Address != null && c.Id == shopId)
 					.Include(c => c.SecondAddress);
 
 				var first = query.First();
@@ -1309,6 +1339,7 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var query = this.model.Shops
+					.Where(c => c.Id == shopId)
 					.Include(c => c.SecondAddress)
 					.Where(c => c.Address != null);
 
@@ -1324,7 +1355,9 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
+				var query = this.model.Shops
+					.Where(c => c.Id == shopId)
+					.Where(c => c.Address.Region.Name == "Washington")
 					.Select(c => c.Include(d => d.Address))
 					.Select(c => c.Include(d => d.SecondAddress));
 
@@ -1340,7 +1373,9 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
+				var query = this.model.Shops
+					.Where(c => c.Address.Region.Name == "Washington")
+					.Where(c => c.Id == shopId)
 					.Include(c => c.Address)
 					.Include(c => c.SecondAddress);
 
@@ -2143,6 +2178,144 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(regionId, shop.Address.Region.Id);
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Query_Any_On_RelatedObjects()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.Any(d => d.Name != ""))
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Include_Collection1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(c => c.Address).ToList();
+			}
+		}
+
+
+		[Test]
+		public void Test_Include_Collection2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(c => c.SisterMall.Shops.Items().Address).ToList();
+
+				var mall = malls.First(c => c.Name.Contains("Seattle City"));
+				Assert.IsNull(mall.Address);
+				Assert.IsTrue(mall.SisterMall.Address.IsDeflatedReference());
+				var shops = mall.SisterMall.Shops.ToList();
+				Assert.IsFalse(shops[0].Address.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_Include_Collection3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var mall1 = this.model
+					.Malls
+					.Include(c => c.SisterMall.Shops.Include(d => d.Address.Region))
+					.First(c => c.Name.Contains("Seattle City"));
+
+				var mall2 = this.model
+					.Malls
+					.Include(c => c.SisterMall.Shops.Include(d => d.Address.Region))
+					.First(c => c.Name.Contains("Seattle City"));
+
+				var shops1 = mall1.SisterMall.Shops.ToList();
+				var shops2 = mall2.SisterMall.Shops.ToList();
+
+				Assert.AreEqual(2, shops1.Count);
+				Assert.AreEqual(2, shops2.Count);
+
+				foreach (var shop in shops1)
+				{
+					Assert.IsFalse(shop.Address.IsDeflatedReference());
+					Assert.IsFalse(shop.Address.Region.IsDeflatedReference());
+				}
+
+				foreach (var shop in shops2)
+				{
+					Assert.IsFalse(shop.Address.IsDeflatedReference());
+					Assert.IsFalse(shop.Address.Region.IsDeflatedReference());
+				}
+			}
+		}
+
+		[Test]
+		public void Test_Include_Collection4a()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(d => d.SisterMall.Address.Region).ToList();
+
+				var mall = malls.First(c => c.Name.Contains("Seattle City"));
+				Assert.IsFalse(mall.SisterMall.Address.IsDeflatedReference());
+				Assert.IsFalse(mall.SisterMall.Address.Region.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_Include1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(d => d.SisterMall.Address.Include(c => c.Region)).ToList();
+
+				var mall = malls.First(c => c.Name.Contains("Seattle City"));
+				Assert.IsFalse(mall.SisterMall.Address.IsDeflatedReference());
+				Assert.IsFalse(mall.SisterMall.Address.Region.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_Include2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var mall = this.model
+					.Malls
+					.Where(c => c.Name == "Seattle City")
+					.Include(d => d.SisterMall.Address.Region)
+					.First(c => c.Address == null);
+
+				Assert.IsNull(mall.Address);
+				Assert.AreEqual("Seattle City", mall.Name);
+				Assert.IsNotNull(mall.SisterMall);
+				Assert.IsFalse(mall.SisterMall.Address.Region.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_Include3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var mall = this.model
+					.Malls
+					.Include(d => d.Address.Region)
+					.First(c => c.Address.Region != null);
+
+				Assert.IsFalse(mall.Address.Region.IsDeflatedReference());
 			}
 		}
 	}

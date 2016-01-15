@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -13,22 +14,7 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class ProjectionBuilderScope
-	{
-		public Dictionary<string, int> ColumnIndexes { get; }
-
-		public ProjectionBuilderScope(string[] columnNames)
-			: this(columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
-		{	
-		}
-
-        public ProjectionBuilderScope(Dictionary<string, int> columnIndexes)
-		{
-			this.ColumnIndexes = columnIndexes;
-		}
-	}
-
-    public class ProjectionBuilder
+	public class ProjectionBuilder
 		: SqlExpressionVisitor
     {
 	    private ProjectionBuilderScope scope;
@@ -39,6 +25,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly SqlQueryProvider queryProvider;
+		private readonly ParameterExpression versionParameter;
 		
 		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, ProjectionBuilderScope scope)
 		{
@@ -51,6 +38,7 @@ namespace Shaolinq.Persistence.Linq
 			this.dataReader = Expression.Parameter(typeof(IDataReader), "dataReader");
 			this.objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
 			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
+			this.versionParameter = Expression.Parameter(typeof(int), "version");
 		}
 
 		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, ProjectionBuilderScope scope)
@@ -59,7 +47,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var body = projectionBuilder.Visit(expression);
             
-			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.dynamicParameters);
+			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.versionParameter, projectionBuilder.dynamicParameters);
 		}
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
@@ -229,6 +217,32 @@ namespace Shaolinq.Persistence.Linq
 			return this.ConvertColumnToDataReaderRead(column, column.Type);
 		}
 
+		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+		{
+			if (methodCallExpression.Method == MethodInfoFastRef.TransactionContextGetCurrentContextVersion)
+			{
+				return this.versionParameter;
+			}
+
+			var retval = base.VisitMethodCall(methodCallExpression);
+
+			var type = retval.Type;
+
+			if (!type.IsDataAccessObjectType())
+			{
+				return retval;
+			}
+
+			var concrete = this.dataAccessModel.GetConcreteTypeFromDefinitionType(type);
+
+			if (concrete == type)
+			{
+				return retval;
+			}
+
+			return Expression.Convert(retval, concrete);
+		}
+
 		protected override Expression VisitUnary(UnaryExpression unaryExpression)
 		{
 			if (unaryExpression.NodeType == ExpressionType.Convert)
@@ -237,6 +251,15 @@ namespace Shaolinq.Persistence.Linq
 					&& unaryExpression.Type == unaryExpression.Operand.Type.MakeNullable())
 				{
 					return this.ConvertColumnToDataReaderRead((SqlColumnExpression)unaryExpression.Operand, unaryExpression.Operand.Type.MakeNullable());
+				}
+				else if (unaryExpression.Type.IsDataAccessObjectType())
+				{
+					var concrete = this.dataAccessModel.GetConcreteTypeFromDefinitionType(unaryExpression.Type);
+
+					if (concrete != unaryExpression.Type)
+					{
+						return Expression.Convert(this.Visit(unaryExpression.Operand), concrete);
+					}
 				}
 			}
 
@@ -304,13 +327,13 @@ namespace Shaolinq.Persistence.Linq
 				var where = projectionExpression.Select.Where;
 
 				var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(elementType);
-				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedAndRelatedObjectProperties);
+				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedAndBackReferenceProperties);
 				
 				var columnExpression = (SqlColumnExpression)ExpressionsFinder.First(where, c => c.NodeType == (ExpressionType)SqlExpressionType.Column);
 				var match = columns.Single(d => d.ColumnName == columnExpression.Name);
 
 				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByValuesMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
-				var property = match.ForeignType.RelatedProperties.Single(c => c.PropertyType.GetSequenceElementType() == elementType).PropertyInfo;
+				var property = match.ForeignType.RelationshipRelatedProperties.Single(c => c.PropertyType.GetSequenceElementType() == elementType).PropertyInfo;
 
                 return Expression.Convert(Expression.Property(reference, property), this.dataAccessModel.GetConcreteTypeFromDefinitionType(property.PropertyType));
 			}
@@ -325,13 +348,23 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedScope = this.scope;
 				this.scope = new ProjectionBuilderScope(newColumnIndexes);
-				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, dynamicParameters);
+				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, versionParameter, dynamicParameters);
 				this.scope = savedScope;
 
 				var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
 
 				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[])));
-				var evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
+
+				MethodInfo evaluate;
+
+				if (projectionExpression.Type.GetSequenceElementType() == null)
+				{
+					evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(projectionExpression.Type);
+				}
+				else
+				{
+					evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
+				}
 
 				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression, typeof(SqlProjectionExpression)), Expression.Constant(projectionProjector), Expression.NewArrayInit(typeof(object), values)), evaluate);
 			}

@@ -10,8 +10,7 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-
-		protected int count;
+		
 		public SqlQueryProvider QueryProvider { get; }
 		protected readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
 
@@ -30,9 +29,9 @@ namespace Shaolinq.Persistence.Linq
 	{
 		protected readonly object[] placeholderValues;
 		protected readonly SqlQueryFormatResult formatResult;
-		protected readonly Func<ObjectProjector, IDataReader, object[], U> objectReader;
+		protected readonly Func<ObjectProjector, IDataReader, int, object[], U> objectReader;
 		
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
 			: base(queryProvider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext)
 		{
 			this.formatResult = formatResult;
@@ -44,17 +43,18 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
+			using (var versionContext = transactionContext.AcquireVersionContext())
 			{
-				var transactionalCommandsContext = (DefaultSqlTransactionalCommandsContext)acquisition.SqlDatabaseCommandsContext;
-
-				using (var dataReader = transactionalCommandsContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
+				using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 				{
-					while (dataReader.Read())
-					{
-						yield return objectReader(this, dataReader, placeholderValues);
+					var transactionalCommandsContext = (DefaultSqlTransactionalCommandsContext)acquisition.SqlDatabaseCommandsContext;
 
-						this.count++;
+					using (var dataReader = transactionalCommandsContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
+					{
+						while (dataReader.Read())
+						{
+							yield return objectReader(this, dataReader, versionContext.Version, placeholderValues);
+						}
 					}
 				}
 			}

@@ -21,8 +21,9 @@ namespace Shaolinq.Persistence.Linq
 
 		internal readonly T[] path;
 		private readonly Func<T, string> toString;
+		private readonly string stringValue;
 
-		public ObjectPath<T> PathWithoutLast()
+		public ObjectPath<T> RemoveLast()
 		{
 			return new ObjectPath<T>(this.toString, this.path.Take(this.Length - 1));
 		}
@@ -32,6 +33,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.path = path;
 			this.toString = c => c.ToString();
+			this.stringValue = string.Join(".", this.path.Select(toString));
 		}
 
 		public ObjectPath(IEnumerable<T> path)
@@ -39,6 +41,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.path = path.ToArray();
 			this.toString = c => c.ToString();
+			this.stringValue = string.Join(".", this.path.Select(toString));
 		}
 
 		public ObjectPath(Func<T, string> toString, params T[] path)
@@ -46,6 +49,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.path = path;
 			this.toString = toString;
+			this.stringValue = string.Join(".", this.path.Select(toString));
 		}
 
 		public ObjectPath(Func<T, string> toString, IEnumerable<T> path)
@@ -53,6 +57,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.toString = toString;
 			this.path = path.ToArray();
+			this.stringValue = string.Join(".", this.path.Select(toString));
 		}
 
 		public IEnumerator<T> GetEnumerator()
@@ -77,9 +82,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override string ToString()
 		{
-			var toStringLocal = this.toString;
-
-			return string.Join(".", this.path.Select(toStringLocal));
+			return this.stringValue;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

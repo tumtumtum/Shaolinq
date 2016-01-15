@@ -1,6 +1,5 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -17,26 +16,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			this.Index = index;
 			this.ConstantExpression = constantExpression;
-		}
-	}
-
-	public class SqlConstantPlaceholderComparer
-		: IEqualityComparer<SqlConstantPlaceholderExpression>
-	{
-		public static readonly SqlConstantPlaceholderComparer Default = new SqlConstantPlaceholderComparer();
-
-		private SqlConstantPlaceholderComparer()
-		{
-		}
-
-		public bool Equals(SqlConstantPlaceholderExpression x, SqlConstantPlaceholderExpression y)
-		{
-			return x.Index == y.Index && x.Type == y.Type;
-		}
-
-		public int GetHashCode(SqlConstantPlaceholderExpression obj)
-		{
-			return obj.Index;
 		}
 	}
 }

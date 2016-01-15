@@ -32,5 +32,8 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		[PersistedMember]
 		public abstract Address ThirdAddress { get; set; }
+
+		[RelatedDataAccessObjects]
+		public abstract RelatedDataAccessObjects<Toy> Toys { get; }
 	}
 }

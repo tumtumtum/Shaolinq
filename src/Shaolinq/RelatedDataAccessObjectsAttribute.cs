@@ -8,14 +8,17 @@ namespace Shaolinq
 	public class RelatedDataAccessObjectsAttribute
 		: NamedMemberAttribute
 	{
+		public string BackReferenceName { get; set; }
+
 		public RelatedDataAccessObjectsAttribute()
 		{
 		}
 
-        public RelatedDataAccessObjectsAttribute(string name)
+        public RelatedDataAccessObjectsAttribute(string name, string backReferenceName)
 			: base(name)
-		{
-		}
+        {
+	        this.BackReferenceName = backReferenceName;
+        }
 	}
 }
 

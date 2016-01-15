@@ -84,9 +84,9 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override int GetHashCode()
+		public static implicit operator PropertyInfo(PropertyDescriptor value)
 		{
-			return this.PropertyInfo.GetHashCode();
+			return value.PropertyInfo;
 		}
 
 		public override bool Equals(object obj)
@@ -96,9 +96,8 @@ namespace Shaolinq.Persistence
 			return value != null && value.PropertyInfo == this.PropertyInfo;
 		}
 
-		public override string ToString()
-		{
-			return $"{this.DeclaringTypeDescriptor.TypeName}.{this.PropertyName} PropertyDescriptor";
-		}
+		public override int GetHashCode() => this.PropertyInfo.GetHashCode();
+		public override string ToString() => $"{this.DeclaringTypeDescriptor.TypeName}.{this.PropertyName} [PropertyDescriptor]";
+		public TypeRelationshipInfo RelationshipInfo => this.DeclaringTypeDescriptor.GetRelationshipInfos().SingleOrDefault(c => c.ReferencingProperty == this);
 	}
 }

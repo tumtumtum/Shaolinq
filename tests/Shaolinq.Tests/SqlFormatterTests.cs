@@ -27,7 +27,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_SqlServerDataDefinitionBuilder()
+		public void Test_ServerSqlDataDefinitionBuilder()
 		{
 			using (var scope = new TransactionScope())
 			{

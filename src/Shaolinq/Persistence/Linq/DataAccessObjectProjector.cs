@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : DataAccessObject
 	{
-		public DataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, object[], U> objectReader)
+		public DataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
 			: base(provider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, formatResult, placeholderValues, objectReader)
 		{
 		}
@@ -21,21 +21,38 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
 
-			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
+			using (var versionContext = transactionContext.AcquireVersionContext())
 			{
-				var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
-
-				using (var dataReader = persistenceTransactionContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
+				using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
 				{
-					while (dataReader.Read())
+					var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
+
+					using (var dataReader = persistenceTransactionContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
 					{
-						T retval = objectReader(this, dataReader, placeholderValues);
+						T previous = null;
 
-						retval.ToObjectInternal().ResetModified();
+						while (dataReader.Read())
+						{
+							var current = this.objectReader(this, dataReader, versionContext.Version, this.placeholderValues);
 
-						yield return retval;
+							if (previous == null || current == previous)
+							{
+								previous = current;
 
-						this.count++;
+								continue;
+							}
+
+							previous.ToObjectInternal().ResetModified();
+
+							yield return previous;
+
+							previous = current;
+						}
+
+						if (previous != null)
+						{
+							yield return previous;
+						}
 					}
 				}
 			}

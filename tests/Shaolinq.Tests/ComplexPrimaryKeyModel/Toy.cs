@@ -13,6 +13,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[ValueRequired]
 		public abstract Child Owner { get; set; }
 
+		[BackReference]
+		public abstract Shop Shop { get; set; }
+
 		[PersistedMember]
 		public abstract string Name { get; set; }
 

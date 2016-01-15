@@ -190,16 +190,13 @@ namespace Shaolinq.Persistence.Linq
 
 		private IEnumerable<SqlColumnDefinitionExpression> BuildRelatedColumnDefinitions(TypeDescriptor typeDescriptor)
 		{
-			foreach (var typeRelationshipInfo in typeDescriptor.GetRelationshipInfos())
+			foreach (var typeRelationshipInfo in typeDescriptor.GetRelationshipInfos().Where(c => c.RelationshipType == RelationshipType.ChildOfOneToMany))
 			{
-				if (typeRelationshipInfo.EntityRelationshipType == EntityRelationshipType.ChildOfOneToMany)
-				{
-					var foreignKeyColumns = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeRelationshipInfo.ReferencingProperty);
+				var foreignKeyColumns = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeRelationshipInfo.ReferencingProperty);
 
-					foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
-					{
-						yield return result;
-					}
+				foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
+				{
+					yield return result;
 				}
 			}
 		}
@@ -213,7 +210,7 @@ namespace Shaolinq.Persistence.Linq
 			var columnInfos = QueryBinder.GetColumnInfos
 			(
 				this.model.TypeDescriptorProvider,
-				typeDescriptor.PersistedAndRelatedObjectProperties,
+				typeDescriptor.PersistedAndBackReferenceProperties,
 				(c, d) => c.IsPrimaryKey && !c.PropertyType.IsDataAccessObjectType(),
 				(c, d) => c.IsPrimaryKey
 			);
@@ -291,7 +288,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
 		{
-			var allIndexAttributes = typeDescriptor.PersistedProperties.Concat(typeDescriptor.RelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
+			var allIndexAttributes = typeDescriptor.PersistedProperties.Concat(typeDescriptor.RelationshipRelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
 
 			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName ?? typeDescriptor.PersistedName + "_" + c.Item2.PersistedName + "_idx").Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
 

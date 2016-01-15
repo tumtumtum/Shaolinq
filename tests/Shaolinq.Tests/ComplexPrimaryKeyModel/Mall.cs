@@ -14,6 +14,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public abstract Address Address { get; set; }
 
+		[PersistedMember]
+		public abstract Mall SisterMall { get; set; }
+
 		[RelatedDataAccessObjects]
 		public abstract RelatedDataAccessObjects<Shop> Shops { get; }
 	}

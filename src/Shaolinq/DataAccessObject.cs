@@ -19,25 +19,21 @@ namespace Shaolinq
 
 	[Serializable]
 	[DataAccessObject(NotPersisted = true)]
-    public abstract class DataAccessObject
-        : IDataAccessObjectAdvanced
+	public abstract class DataAccessObject
+		: IDataAccessObjectAdvanced
 	{
 		private DataAccessModel dataAccessModel;
-
-		public DataAccessModel GetDataAccessModel()
-		{
-			return this.dataAccessModel;
-		}
+		public DataAccessModel GetDataAccessModel() => this.dataAccessModel;
 
 		public abstract ObjectPropertyValue[] GetAllProperties();
 		public abstract bool HasPropertyChanged(string propertyName);
 		public abstract List<ObjectPropertyValue> GetChangedProperties();
-		
-		public SqlDatabaseContext DatabaseConnection => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
+
 		public IDataAccessObjectAdvanced GetAdvanced() => this;
 		public bool IsNew() => (((IDataAccessObjectAdvanced)this).IsNew);
 		public bool IsDeleted() => (((IDataAccessObjectAdvanced)this).IsDeleted);
 		public bool IsDeflatedReference() => ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
+		public SqlDatabaseContext GetDatabaseConnection() => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
 
 		public virtual DataAccessObject Inflate()
 		{
@@ -49,7 +45,7 @@ namespace Shaolinq
 			var inflated = this.dataAccessModel.Inflate(this);
 
 			this.ToObjectInternal().SwapData(inflated, true);
-			
+
 			return this;
 		}
 

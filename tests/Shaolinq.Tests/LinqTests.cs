@@ -1147,6 +1147,14 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Query_Single1()
+		{
+			var student = this.model.Students.Single(c => c.Firstname == "Tum");
+
+			Assert.AreEqual("Tum", student.Firstname);
+		}
+
+		[Test]
 		public void Test_Query_Check_Has_Changed1()
 		{
 			var student = this.model.Students.First();
@@ -2127,7 +2135,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("Need to fix")]
+		[Test]
 		public void Test_GroupBy_Project_Group5()
 		{
 			using (var scope = new TransactionScope())
@@ -2135,7 +2143,7 @@ namespace Shaolinq.Tests
 				var results = from student in this.model.Students
 					group student by new {student.Firstname, student.Lastname}
 					into g
-					select new {g, first = g.First(c => c.Firstname != "")};
+					select new {g, first = g.FirstOrDefault(c => c.Firstname != "")};
 
 				var list = results.ToList();
 

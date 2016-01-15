@@ -37,10 +37,7 @@ namespace Shaolinq.Tests.TestModel
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Student> Students { get; }
-
-		[DataAccessObjects]
-		public abstract DataAccessObjects<Lecture> Lectures { get; }
-
+		
 		[DataAccessObjects]
 		public abstract DataAccessObjects<Lecturer> Lecturers { get; }
 
