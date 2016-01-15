@@ -244,10 +244,18 @@ namespace Shaolinq.Persistence.Linq
 				where = this.Visit(predicate.Body);
 			}
 
-			var isFirst = selectFirstType == SelectFirstType.First || selectFirstType == SelectFirstType.FirstOrDefault;
-			var isLast = selectFirstType == SelectFirstType.Last || selectFirstType == SelectFirstType.LastOrDefault;
+			Expression take = null;
 
-			var take = (isFirst || isLast) ? Expression.Constant(1) : null;
+			var localSideAggregateEval = isRoot || selectorPredicateStack.Count > 0;
+            var isFirst = selectFirstType == SelectFirstType.First || selectFirstType == SelectFirstType.FirstOrDefault;
+			var isLast = selectFirstType == SelectFirstType.Last || selectFirstType == SelectFirstType.LastOrDefault;
+			var isSingle = selectFirstType == SelectFirstType.Single || selectFirstType == SelectFirstType.SingleOrDefault;
+			var isDaoWithIncludedProperties = (source.Type.IsDataAccessObjectType() && this.joinExpanderResults.IncludedPropertyInfos.Count > 0);
+
+            if (!isDaoWithIncludedProperties)
+			{
+				take = (isFirst || isLast) ? Expression.Constant(1) : (isSingle ? (localSideAggregateEval ? Expression.Constant(2) : Expression.Constant(1)) : null);
+			}
 
 			if (take != null || where != null)
 			{
@@ -257,7 +265,7 @@ namespace Shaolinq.Persistence.Linq
 				projection = new SqlProjectionExpression(new SqlSelectExpression(isRoot ? projection.Select.Type : projection.Select.Type.GetSequenceElementType(), alias, pc.Columns, projection.Select, where, null, null, false, null, take, false, isLast), pc.Projector, null, false, projection.DefaultValue);
 			}
 
-			if (isRoot || selectorPredicateStack.Count > 0)
+			if (localSideAggregateEval)
 			{
 				LambdaExpression aggr;
 				var elementType = projection.Projector.Type;

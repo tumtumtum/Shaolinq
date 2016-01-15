@@ -1096,6 +1096,14 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Query_Single1()
+		{
+			var student = this.model.Students.Single(c => c.Firstname == "Tum");
+
+			Assert.AreEqual("Tum", student.Firstname);
+		}
+
+		[Test]
 		public void Test_Query_Check_Has_Changed1()
 		{
 			var student = this.model.Students.First();
