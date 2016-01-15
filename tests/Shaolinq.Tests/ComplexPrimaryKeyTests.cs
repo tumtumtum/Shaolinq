@@ -2274,10 +2274,13 @@ namespace Shaolinq.Tests
 			{
 				var mall = this.model
 					.Malls
+					.Where(c => c.Name == "Seattle City")
 					.Include(d => d.SisterMall.Address.Region)
 					.First(c => c.Address == null);
 
 				Assert.IsNull(mall.Address);
+				Assert.AreEqual("Seattle City", mall.Name);
+				Assert.IsNotNull(mall.SisterMall);
 				Assert.IsFalse(mall.SisterMall.Address.Region.IsDeflatedReference());
 			}
 		}

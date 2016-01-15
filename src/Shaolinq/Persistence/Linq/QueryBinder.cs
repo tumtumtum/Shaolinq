@@ -257,7 +257,7 @@ namespace Shaolinq.Persistence.Linq
 				projection = new SqlProjectionExpression(new SqlSelectExpression(isRoot ? projection.Select.Type : projection.Select.Type.GetSequenceElementType(), alias, pc.Columns, projection.Select, where, null, null, false, null, take, false, isLast), pc.Projector, null, false, projection.DefaultValue);
 			}
 
-			if (isRoot)
+			if (isRoot || selectorPredicateStack.Count > 0)
 			{
 				LambdaExpression aggr;
 				var elementType = projection.Projector.Type;
