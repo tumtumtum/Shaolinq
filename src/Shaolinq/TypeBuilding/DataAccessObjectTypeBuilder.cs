@@ -285,12 +285,12 @@ namespace Shaolinq.TypeBuilding
 						if (propertyDescriptor.PropertyType.IsNullableType())
 						{
 							constructorGenerator.Emit(OpCodes.Ldloca, guidLocal);
-							constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
+							constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
 							constructorGenerator.Emit(OpCodes.Call, propertyDescriptor.PropertyType.GetConstructor(new [] { typeof(Guid) }));
 						}
 						else
 						{
-							constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuid);
+							constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
 							constructorGenerator.Emit(OpCodes.Stloc, guidLocal);
 						}
 
@@ -590,7 +590,7 @@ namespace Shaolinq.TypeBuilding
 				var propertyInfoLocal = generator.DeclareLocal(typeof(PropertyInfo));
 
 				generator.Emit(OpCodes.Ldtoken, propertyInfo.DeclaringType);
-				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 				generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 				generator.Emit(OpCodes.Ldc_I4, (int)(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
 				generator.Emit(OpCodes.Callvirt, typeof(Type).GetMethod("GetProperty", BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(string), typeof(BindingFlags) }, null));
@@ -1350,7 +1350,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldsfld, keyTypeField);
 					generator.Emit(OpCodes.Ldc_I4, i);
 					generator.Emit(OpCodes.Ldtoken, primaryKeyDescriptor.PropertyType);
-					generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+					generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 					generator.Emit(OpCodes.Stelem, typeof(Type));
 					i++;
 				}
@@ -1373,7 +1373,7 @@ namespace Shaolinq.TypeBuilding
 			else if (this.typeDescriptor.PrimaryKeyCount == 1)
 			{
 				generator.Emit(OpCodes.Ldtoken, this.typeDescriptor.PrimaryKeyProperties.First().PropertyType);
-				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 			}
 			else
 			{
@@ -2046,7 +2046,7 @@ namespace Shaolinq.TypeBuilding
 
 			// Load type
 			generator.Emit(OpCodes.Ldtoken, valueType);
-			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 
 			// Load property name
 			generator.Emit(OpCodes.Ldstr, String.Intern(propertyName));

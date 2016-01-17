@@ -49,12 +49,12 @@ namespace Shaolinq.Persistence.Linq
 									newSelectArguments[0] = selectSource;
 									newSelectArguments[1] = this.condition;
 
-									newSelectSource = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(this.type), newSelectArguments);
+									newSelectSource = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(this.type), newSelectArguments);
 
 									arguments[0] = newSelectSource;
 									arguments[1] = selectCondition;
                                     
-									return Expression.Call(null, methodCallExpression.Method, arguments);
+									return Expression.Call(methodCallExpression.Method, arguments);
 								}
 							}
 
@@ -62,10 +62,7 @@ namespace Shaolinq.Persistence.Linq
 						}
 						case "Select":
 						{
-							var selectSource = methodCallExpression.Arguments[0];
-							var selectSelector = methodCallExpression.Arguments[1].StripQuotes();
-
-							return Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(this.type), methodCallExpression, this.condition);
+							return Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(this.type), methodCallExpression, this.condition);
 						}
 					}
 				}

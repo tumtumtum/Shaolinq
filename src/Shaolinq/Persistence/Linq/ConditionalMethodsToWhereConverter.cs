@@ -51,13 +51,15 @@ namespace Shaolinq.Persistence.Linq
 					}
 					
 					var type = methodCallExpression.Method.GetGenericArguments()[0];
-					var call = (Expression)Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(type), methodCallExpression.Arguments[0], arg1);
+					var call = (Expression)Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(type), methodCallExpression.Arguments[0], arg1);
 
-					var method = methodCallExpression.Method.ReflectedType
+					var method = methodCallExpression
+						.Method
+						.ReflectedType
 						.GetMethods()
 						.Single(c => c.Name == methodName && c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(IQueryable<>).MakeGenericType(c.GetGenericArguments()[0]));
 						
-					call = Expression.Call(null, method.MakeGenericMethod(type), call);
+					call = Expression.Call(method.MakeGenericMethod(type), call);
 
 					return call;
 				}

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Platform;
 using Platform.Reflection;
 using Shaolinq.TypeBuilding;
 
@@ -12,6 +11,36 @@ namespace Shaolinq.Persistence.Linq
 {
 	public static class ExpressionExtensions
 	{
+		public static Expression StripObjectBindingCalls(this Expression expression)
+		{
+			if (expression == null)
+			{
+				return null;
+			}
+
+			if (!expression.Type.IsDataAccessObjectType())
+			{
+				return expression;
+			}
+
+			return expression.Strip(c =>
+			{
+				if (c.NodeType != ExpressionType.Call)
+				{
+					return null;
+				}
+
+				var methodCallExpression = (MethodCallExpression)c;
+
+				if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
+				{
+					return methodCallExpression.Arguments[0];
+				}
+
+				return null;
+			});
+		}
+
 		public static Expression RemovePlaceholderItem(this Expression expression)
 		{
 			var methodCallExpression = expression as MethodCallExpression;

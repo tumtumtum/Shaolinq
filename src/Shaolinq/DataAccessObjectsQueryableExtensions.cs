@@ -27,7 +27,7 @@ namespace Shaolinq
 
 			using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DataAccessModel.GetCurrentSqlDatabaseContext()))
 			{
-				var expression = (Expression)Expression.Call(null, MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof(DataAccessObjectsQueryable<T>)), condition);
+				var expression = (Expression)Expression.Call(MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof(DataAccessObjectsQueryable<T>)), condition);
 
 				expression = Evaluator.PartialEval(expression);
 				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);

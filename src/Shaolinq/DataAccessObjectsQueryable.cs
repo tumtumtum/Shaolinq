@@ -171,7 +171,7 @@ namespace Shaolinq
 			{
 				var propertyInfo = this.primaryKeyProperty;
 				var parameterExpression = Expression.Parameter(propertyInfo.PropertyType);
-				var body = Expression.Call(null, MethodInfoFastRef.EnumerableContainsMethod.MakeGenericMethod(propertyInfo.PropertyType), Expression.Constant(primaryKeyType), Expression.Property(parameterExpression, propertyInfo));
+				var body = Expression.Call(MethodInfoFastRef.EnumerableContainsMethod.MakeGenericMethod(propertyInfo.PropertyType), Expression.Constant(primaryKeyType), Expression.Property(parameterExpression, propertyInfo));
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
 				return this.Where(condition);
@@ -184,7 +184,7 @@ namespace Shaolinq
 					.Select(c => this.DataAccessModel.GetReference<T, K>(c, primaryKeyType))
 					.ToArray();
 
-				var body = Expression.Call(null, PrimaryKeyInfoCache<T>.EnumerableContainsMethod, Expression.Constant(deflatedObjects), parameterExpression);
+				var body = Expression.Call(PrimaryKeyInfoCache<T>.EnumerableContainsMethod, Expression.Constant(deflatedObjects), parameterExpression);
 				var condition = Expression.Lambda<Func<T, bool>>(body, parameterExpression);
 
 				return this.Where(condition);

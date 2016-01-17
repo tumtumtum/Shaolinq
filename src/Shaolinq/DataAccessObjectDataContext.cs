@@ -494,7 +494,7 @@ namespace Shaolinq
 					keyComparer = Expression.Constant(null, typeof(IEqualityComparer<>).MakeGenericType(dao.KeyType ?? dao.CompositeKeyTypes[0]));
 
 					var param = Expression.Parameter(typeof(DataAccessObject));
-					var lambda = Expression.Lambda(dao.TypeDescriptor.GetPrimaryKeyExpression(Expression.Convert(param, type)), param);
+					var lambda = Expression.Lambda(dao.TypeDescriptor.GetSinglePrimaryKeyExpression(Expression.Convert(param, type)), param);
 
 					getIdFunc = lambda.Compile();
 				}

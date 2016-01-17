@@ -46,7 +46,7 @@ namespace Shaolinq.Persistence
 			(
 				Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
 				Expression.Convert(Expression.Constant(null, typeof(byte[])), this.SupportedType),
-				Expression.Call(null, GetBytesMethod, dataReader, Expression.Constant(ordinal))
+				Expression.Call(GetBytesMethod, dataReader, Expression.Constant(ordinal))
 			);
 		}
 	}

@@ -148,12 +148,7 @@ namespace Shaolinq.Persistence
 		{
 			EnumTypeDescriptor retval;
 
-			if (this.enumTypeDescriptorsByType.TryGetValue(type, out retval))
-			{
-				return retval;
-			}
-
-			return null;
+			return this.enumTypeDescriptorsByType.TryGetValue(type, out retval) ? retval : null;
 		}
 
 		public ICollection<TypeDescriptor> GetTypeDescriptors()
@@ -165,19 +160,14 @@ namespace Shaolinq.Persistence
 		{
 			TypeDescriptor retval;
 
-			if (this.typeDescriptorsByType.TryGetValue(type, out retval))
-			{
-				return retval;
-			}
-
-			return null;
+			return this.typeDescriptorsByType.TryGetValue(type, out retval) ? retval : null;
 		}
 
 		public IEnumerable<EnumTypeDescriptor> GetPersistedEnumTypeDescriptors()
 		{
 			return this.enumTypeDescriptorsByType
 				.Values
-				.Sorted((x, y) => String.Compare(x.Name, y.Name, StringComparison.Ordinal));
+				.Sorted((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
 		}
 
 		public IEnumerable<TypeDescriptor> GetPersistedObjectTypeDescriptors()
@@ -185,7 +175,7 @@ namespace Shaolinq.Persistence
 			return this.typeDescriptorsByType
 				.Values
 				.Where(c => !c.DataAccessObjectAttribute.NotPersisted)
-				.Sorted((x, y) => String.Compare(x.PersistedName, y.PersistedName, StringComparison.Ordinal));
+				.Sorted((x, y) => string.Compare(x.PersistedName, y.PersistedName, StringComparison.Ordinal));
 		}
 	}
 }

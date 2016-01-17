@@ -66,16 +66,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			if (methodCallExpression.Arguments[0].Type.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
 			{
 				var source = this.Visit(methodCallExpression.Arguments[0]);
-				var result = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Items<DataAccessObject>(null)).GetGenericMethodDefinition().MakeGenericMethod(source.Type.GetSequenceElementType()), source), currentIncludeSelector);
+				var result = Expression.Call(MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Items<DataAccessObject>(null)).GetGenericMethodDefinition().MakeGenericMethod(source.Type.GetSequenceElementType()), source), currentIncludeSelector);
 
 				return result;
 			}
 			else
 			{
-				var body = Expression.Call(null, MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
+				var body = Expression.Call(MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
 				var selector = Expression.Lambda(body, parameter);
 				var source = this.Visit(methodCallExpression.Arguments[0]);
-				var selectCall = Expression.Call(null, MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(parameter.Type, parameter.Type), source, selector);
+				var selectCall = Expression.Call(MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(parameter.Type, parameter.Type), source, selector);
 
 				return selectCall;
 			}

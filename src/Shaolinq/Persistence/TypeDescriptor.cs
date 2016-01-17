@@ -52,7 +52,7 @@ namespace Shaolinq.Persistence
 			return false;
 		}
 		
-		public Expression GetPrimaryKeyExpression(Expression obj)
+		public Expression GetSinglePrimaryKeyExpression(Expression obj)
 		{
 			if (this.PrimaryKeyProperties.Count != 1)
 			{
@@ -71,24 +71,14 @@ namespace Shaolinq.Persistence
 		{
 			PropertyDescriptor retval;
 
-			if (!this.propertyDescriptorByColumnName.TryGetValue(columnName, out retval))
-			{
-				return null;
-			}
-
-			return retval;
+			return !this.propertyDescriptorByColumnName.TryGetValue(columnName, out retval) ? null : retval;
 		}
 
 		public PropertyDescriptor GetPropertyDescriptorByPropertyName(string propertyName)
 		{
 			PropertyDescriptor retval;
 
-			if (!this.propertyDescriptorByPropertyName.TryGetValue(propertyName, out retval))
-			{
-				return null;
-			}
-
-			return retval;
+			return !this.propertyDescriptorByPropertyName.TryGetValue(propertyName, out retval) ? null : retval;
 		}
 
 		public PropertyDescriptor GetRelatedProperty(Type type)

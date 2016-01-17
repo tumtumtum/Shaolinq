@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public IReadOnlyList<Expression> SubExpressions { get; }
 
-		internal protected static Type GetTupleExpressionType(IEnumerable<Expression> subExpressions)
+		protected internal static Type GetTupleExpressionType(IEnumerable<Expression> subExpressions)
 		{
 			var types = subExpressions.Select(c => c.Type).ToArray();
 			var mutableTupleTypeName = typeof(MutableTuple<>).FullName;

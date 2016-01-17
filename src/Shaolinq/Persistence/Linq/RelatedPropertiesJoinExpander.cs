@@ -200,7 +200,10 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
+			LambdaExpression orderBySelector = null;
 			LambdaExpression leftSelector, rightSelector;
+
+			var projector = MakeJoinProjector(leftElementType, rightElementType);
 
 			if (targetPath.Last.GetMemberReturnType().GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
 			{
@@ -214,6 +217,10 @@ namespace Shaolinq.Persistence.Linq
 
 				var rightSelectorParameter = Expression.Parameter(rightElementType);
 				rightSelector = Expression.Lambda(Expression.Property(rightSelectorParameter, relationship.TargetProperty), rightSelectorParameter);
+
+				var orderBySelectorParameter = Expression.Parameter(projector.ReturnType);
+
+				orderBySelector = Expression.Lambda(Expression.Property(orderBySelectorParameter, "Right"), orderBySelectorParameter);
 			}
 			else
 			{
@@ -222,11 +229,19 @@ namespace Shaolinq.Persistence.Linq
 				var rightSelectorParameter = Expression.Parameter(rightElementType);
 				rightSelector = Expression.Lambda(rightSelectorParameter, rightSelectorParameter);
 			}
+
+			var method = MethodInfoFastRef
+				.QueryableExtensionsLeftJoinMethod
+				.MakeGenericMethod(leftElementType, rightElementType, leftSelector.ReturnType, projector.ReturnType);
 			
-			var projector = MakeJoinProjector(leftElementType, rightElementType);
-			var method = JoinHelperExtensions.LeftJoinMethod.MakeGenericMethod(leftElementType, rightElementType, leftSelector.ReturnType, projector.ReturnType);
-			
-			return Expression.Call(null, method, left, right, Expression.Quote(leftSelector), Expression.Quote(rightSelector), Expression.Quote(projector));
+			var retval = Expression.Call(method, left, right, Expression.Quote(leftSelector), Expression.Quote(rightSelector), Expression.Quote(projector));
+
+			if (orderBySelector != null)
+			{
+				retval = Expression.Call(MethodInfoFastRef.QueryableOrderByMethod.MakeGenericMethod(projector.ReturnType, orderBySelector.ReturnType), retval, orderBySelector);
+			}
+
+			return retval;
 		}
 
 		private static Type CreateFinalTupleType(Type previousType, IEnumerable<Type> types)
@@ -268,7 +283,7 @@ namespace Shaolinq.Persistence.Linq
 					selectCall.ReturnType
 				);
 
-				return Expression.Call(null, selectMethod, new Expression[] { methodCall, selectCall });
+				return Expression.Call(selectMethod, new Expression[] { methodCall, selectCall });
 			}
 
 			return methodCall;
@@ -306,7 +321,7 @@ namespace Shaolinq.Persistence.Linq
 				newParameterType = result.NewSelectors[0].Parameters[0].Type;
 				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
 
-				newCall = Expression.Call(null, methodWithElementSelector, new[]
+				newCall = Expression.Call(methodWithElementSelector, new[]
 				{
 					result.NewSource,
 					result.NewSelectors[0]
@@ -321,7 +336,7 @@ namespace Shaolinq.Persistence.Linq
 				var collectionType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
 				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
 
-				newCall = Expression.Call(null, methodWithElementSelector, new[]
+				newCall = Expression.Call(methodWithElementSelector, new[]
 				{
 					result.NewSource,
 					result.NewSelectors[0],
@@ -335,7 +350,7 @@ namespace Shaolinq.Persistence.Linq
 				newParameterType = result.NewSelectors[0].Parameters[0].Type;
 				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType);
 
-				newCall = Expression.Call(null, methodWithElementSelector, new[]
+				newCall = Expression.Call(methodWithElementSelector, new[]
 				{
 					result.NewSource,
 					result.NewSelectors[0]
@@ -384,11 +399,11 @@ namespace Shaolinq.Persistence.Linq
 						var elementSelectorBody = CreateExpressionForPath(result.ReferencedObjectPaths.Count, PropertyPath.Empty, elementSelectorParameter, result.IndexByPath);
 						var elementSelector = Expression.Lambda(elementSelectorBody, elementSelectorParameter);
 
-						newCall = Expression.Call(null, methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
+						newCall = Expression.Call(methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
 					}
 					else
 					{
-						newCall = Expression.Call(null, methodCallExpression.Method, result.NewSource, result.NewSelectors[0]);
+						newCall = Expression.Call(methodCallExpression.Method, result.NewSource, result.NewSelectors[0]);
 					}
 				}
 				else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByWithElementSelectorMethod)
@@ -402,11 +417,11 @@ namespace Shaolinq.Persistence.Linq
 
 						var elementSelector = Expression.Lambda(newBody, elementSelectorParameter);
 
-						newCall = Expression.Call(null, methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
+						newCall = Expression.Call(methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
 					}
 					else
 					{
-						newCall = Expression.Call(null, methodCallExpression.Method, result.NewSource, result.NewSelectors[0], result.NewSelectors[1]);
+						newCall = Expression.Call(methodCallExpression.Method, result.NewSource, result.NewSelectors[0], result.NewSelectors[1]);
 					}
 				}
 				else

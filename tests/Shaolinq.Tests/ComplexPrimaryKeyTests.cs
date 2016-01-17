@@ -2200,10 +2200,11 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.Address).ToList();
+					.Include(c => c.Shops.Items().Address)
+					.OrderBy(c => c.Name)
+					.ToList();
 			}
 		}
-
 
 		[Test]
 		public void Test_Include_Collection2()
@@ -2279,6 +2280,17 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
+					.Include(c => c.Address).ToList();
+			}
+		}
+		
+		[Test]
+		public void Test_Include2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model
+					.Malls
 					.Include(d => d.SisterMall.Address.Include(c => c.Region)).ToList();
 
 				var mall = malls.First(c => c.Name.Contains("Seattle City"));
@@ -2288,7 +2300,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Include2()
+		public void Test_Include3()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -2306,7 +2318,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Include3()
+		public void Test_Include4()
 		{
 			using (var scope = new TransactionScope())
 			{
@@ -2316,6 +2328,15 @@ namespace Shaolinq.Tests
 					.First(c => c.Address.Region != null);
 
 				Assert.IsFalse(mall.Address.Region.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_Complex_Object()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model.Shops.OrderBy(c => c).ToList();
 			}
 		}
 	}

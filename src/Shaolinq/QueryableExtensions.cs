@@ -21,24 +21,24 @@ namespace Shaolinq
 		internal static T Items<T>(this IQueryable<T> source)
 			where T : DataAccessObject
 		{
-			return source.Provider.Execute<T>(Expression.Call(null,((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
+			return source.Provider.Execute<T>(Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
 		}
 
 		public static IQueryable<T> WhereForUpdate<T>(this IQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : DataAccessObject
 		{
-			return queryable.Provider.CreateQuery<T>(Expression.Call(null,  ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
+			return queryable.Provider.CreateQuery<T>(Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
 		}
 
 		public static IQueryable<R> SelectForUpdate<T, R>(this IQueryable<T> queryable, Expression<Func<T, R>> condition)
 			where T : DataAccessObject
 		{
-			return queryable.Provider.CreateQuery<R>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
+			return queryable.Provider.CreateQuery<R>(Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition));
 		}
 
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)
 		{
-			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T), typeof(U)), new [] { source.Expression, Expression.Quote(include) }));
+			return source.Provider.CreateQuery<T>(Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T), typeof(U)), new [] { source.Expression, Expression.Quote(include) }));
 		}
 
         public static List<T> ToList<T>(this IQueryable<T> queryable, ToListCachePolicy cachePolicy)

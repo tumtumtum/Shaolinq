@@ -36,7 +36,7 @@ namespace Shaolinq.SqlServer
 			return ToDecimal(reader.GetSqlDecimal(ordinal));
 		}
 
-		private static Decimal ToDecimal(SqlDecimal value)
+		private static decimal ToDecimal(SqlDecimal value)
 		{
 			var data = value.Data;
 			var scale = value.Scale;
@@ -48,7 +48,7 @@ namespace Shaolinq.SqlServer
 				return result;
 			}
 
-			return new Decimal(data[0], data[1], data[2], !value.IsPositive, scale);
+			return new decimal(data[0], data[1], data[2], !value.IsPositive, scale);
 		}
 
 		public override Expression GetReadExpression(Expression dataReader, int ordinal)
@@ -57,7 +57,7 @@ namespace Shaolinq.SqlServer
 			(
 				Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
 				Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
-				Expression.Convert(Expression.Call(null, this.method, dataReader, Expression.Constant(ordinal)), this.SupportedType)
+				Expression.Convert(Expression.Call(this.method, dataReader, Expression.Constant(ordinal)), this.SupportedType)
 			);
 		}
 	}

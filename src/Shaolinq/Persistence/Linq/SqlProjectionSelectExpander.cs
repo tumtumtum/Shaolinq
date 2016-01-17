@@ -62,7 +62,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var newResultSelector = Expression.Lambda(Expression.MemberInit(resultValue.Type.CreateNewExpression(), Expression.Bind(resultValue.Type.GetProperty("Outer"), outerKey), Expression.Bind(resultValue.Type.GetProperty("Inner"), innerKey)), outerKey, innerKey);
 
-			var newJoin = Expression.Call(null, MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod(outer.Type.GetSequenceElementType() ?? outer.Type, inner.Type.GetSequenceElementType() ?? inner.Type, outerKeySelector.ReturnType, newResultSelector.ReturnType), outer, inner, outerKeySelector, innerKeySelector, newResultSelector);
+			var newJoin = Expression.Call(MethodInfoFastRef.QueryableJoinMethod.MakeGenericMethod(outer.Type.GetSequenceElementType() ?? outer.Type, inner.Type.GetSequenceElementType() ?? inner.Type, outerKeySelector.ReturnType, newResultSelector.ReturnType), outer, inner, outerKeySelector, innerKeySelector, newResultSelector);
 
 			var selectorParameter = Expression.Parameter(resultValue.Type);
 			var selectProjectorBody = SqlExpressionReplacer.Replace(resultSelector.Body, originalOuterKeyParam, Expression.Property(selectorParameter, "Outer"));
@@ -71,7 +71,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var selectProjector = Expression.Lambda(selectProjectorBody, selectorParameter);
 
-			var select = Expression.Call(null, MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(selectorParameter.Type, selectProjector.ReturnType), newJoin, selectProjector);
+			var select = Expression.Call(MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(selectorParameter.Type, selectProjector.ReturnType), newJoin, selectProjector);
 
 			return select;
 		}
@@ -92,7 +92,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var newResultSelector = Expression.Lambda(Expression.MemberInit(resultValue.Type.CreateNewExpression(), Expression.Bind(resultValue.Type.GetProperty("Outer"), newA), Expression.Bind(resultValue.Type.GetProperty("Inner"), newB)), newA, newB);
 
-			var newSelectMany = Expression.Call(null, MethodInfoFastRef.QueryableSelectManyMethod.MakeGenericMethod(methodCallExpression.Method.GetGenericArguments()[0], methodCallExpression.Method.GetGenericArguments()[1], newResultSelector.ReturnType), outer, collection, newResultSelector);
+			var newSelectMany = Expression.Call(MethodInfoFastRef.QueryableSelectManyMethod.MakeGenericMethod(methodCallExpression.Method.GetGenericArguments()[0], methodCallExpression.Method.GetGenericArguments()[1], newResultSelector.ReturnType), outer, collection, newResultSelector);
 
 			var selectorParameter = Expression.Parameter(resultValue.Type);
 			var selectProjectorBody = SqlExpressionReplacer.Replace(resultSelector?.Body ?? selectorParameter, originalSelectorA, Expression.Property(selectorParameter, "Outer"));
@@ -101,7 +101,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var selectProjector = Expression.Lambda(selectProjectorBody, selectorParameter);
 
-			var select = Expression.Call(null, MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(selectorParameter.Type, selectProjector.ReturnType), newSelectMany, selectProjector);
+			var select = Expression.Call(MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(selectorParameter.Type, selectProjector.ReturnType), newSelectMany, selectProjector);
 
 			return select;
 		}

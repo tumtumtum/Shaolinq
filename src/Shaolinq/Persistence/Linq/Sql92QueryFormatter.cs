@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Text;
 using Platform;
+using Platform.Reflection;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
@@ -145,6 +146,10 @@ namespace Shaolinq.Persistence.Linq
 				this.Visit(methodCallExpression.Object);
 
 				return methodCallExpression;
+			}
+			else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
+			{
+				return this.Visit(methodCallExpression.Arguments[0]);
 			}
 
 			throw new NotSupportedException($"The method '{methodCallExpression.Method.Name}' is not supported");

@@ -52,14 +52,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				if (!right.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					right = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type.GetUnwrappedNullableType()), Expression.Convert(right, typeof(int))), left.Type);
+					right = Expression.Convert(Expression.Call(MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type.GetUnwrappedNullableType()), Expression.Convert(right, typeof(int))), left.Type);
 				}
 			}
 			else if (right.Type.GetUnwrappedNullableType().IsEnum)
 			{
 				if (!left.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					left = Expression.Convert(Expression.Call(null, MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type.GetUnwrappedNullableType()), Expression.Convert(left, typeof(int))), right.Type);
+					left = Expression.Convert(Expression.Call(MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type.GetUnwrappedNullableType()), Expression.Convert(left, typeof(int))), right.Type);
 				}
 			}
 

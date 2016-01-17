@@ -39,7 +39,7 @@ namespace Shaolinq.Persistence
 			(
 				Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
 				Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
-				Expression.Convert(Expression.Call(null, typeof(PrimitiveSqlDataType).GetMethod("Read", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod(type), dataReader, Expression.Constant(ordinal)), this.SupportedType)
+				Expression.Convert(Expression.Call(typeof(PrimitiveSqlDataType).GetMethod("Read", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod(type), dataReader, Expression.Constant(ordinal)), this.SupportedType)
 			);
 		}
 	}

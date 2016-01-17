@@ -77,7 +77,7 @@ namespace Shaolinq.TypeBuilding
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
 					initialiseGenerator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType.GetGenericArguments()[0]);
-					initialiseGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandle);
+					initialiseGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
 					initialiseGenerator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
