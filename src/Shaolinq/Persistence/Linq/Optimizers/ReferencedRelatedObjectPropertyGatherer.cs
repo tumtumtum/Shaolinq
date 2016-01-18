@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.PropertyInfo>;
 
@@ -71,7 +70,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return new ReferencedRelatedObjectPropertyGathererResults
 			{
 				ReducedExpressions = reducedExpressions,
-				ReferencedRelatedObjectByPath = gatherer.results,
+				ReferencedRelatedObjects = gatherer.results.Values.ToList(),
 				RootExpressionsByPath = gatherer.rootExpressionsByPath,
 				IncludedPropertyInfoByExpression = gatherer
 					.includedPropertyInfos

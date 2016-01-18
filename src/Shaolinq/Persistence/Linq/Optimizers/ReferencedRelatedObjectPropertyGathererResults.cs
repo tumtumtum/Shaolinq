@@ -34,6 +34,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		public Expression[] ReducedExpressions { get; set; }
 		public Dictionary<PropertyPath, Expression> RootExpressionsByPath { get; set; }
 		public Dictionary<Expression, List<IncludedPropertyInfo>> IncludedPropertyInfoByExpression { get; set; }
-		public Dictionary<PropertyPath, ReferencedRelatedObject> ReferencedRelatedObjectByPath { get; set; }
+		public List<ReferencedRelatedObject> ReferencedRelatedObjects { get; set; }
 	}
 }

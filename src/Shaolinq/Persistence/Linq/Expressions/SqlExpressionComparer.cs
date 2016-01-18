@@ -232,25 +232,31 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (this.result)
+			this.currentObject = current.Test;
+			this.Visit(expression.Test);
+
+			if (!this.result)
 			{
-				this.currentObject = current.Test;
-				this.Visit(expression.Test);
+				return expression;
 			}
 
-			if (this.result)
+			this.currentObject = current.IfTrue;
+			this.Visit(expression.IfTrue);
+
+			if (!this.result)
 			{
-				this.currentObject = current.IfTrue;
-				this.Visit(expression.IfTrue);
+				return expression;
 			}
 
-			if (this.result)
-			{
-				this.currentObject = current.IfFalse;
-				this.Visit(expression.IfFalse);
-			}
+			this.currentObject = current.IfFalse;
+			this.Visit(expression.IfFalse);
 
-			this.currentObject = expression;
+			if (!this.result)
+			{
+				return expression;
+			}
+			
+			this.currentObject = current;
 
 			return expression;
 		}

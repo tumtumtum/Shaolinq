@@ -19,5 +19,8 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		[RelatedDataAccessObjects]
 		public abstract RelatedDataAccessObjects<Shop> Shops { get; }
+
+		[RelatedDataAccessObjects(BackReferenceName = "Mall2")]
+		public abstract RelatedDataAccessObjects<Shop> Shops2 { get; }
 	}
 }

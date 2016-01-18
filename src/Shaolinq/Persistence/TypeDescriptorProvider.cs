@@ -128,6 +128,7 @@ namespace Shaolinq.Persistence
 						relatedProperty = relatedProperty ?? relatedTypeDescriptor
 							.RelationshipRelatedProperties
 							.Where(c => c.IsBackReferenceProperty)
+							.Where(c => !c.PropertyTypeTypeDescriptor.RelationshipRelatedProperties.Any(d => string.Equals(d.RelatedDataAccessObjectsAttribute?.BackReferenceName, c.PropertyName, StringComparison.InvariantCultureIgnoreCase)))
 							.SingleOrDefault(c => typeDescriptor.Type == c.PropertyType);
 
 						relatedProperty = relatedProperty ?? relatedTypeDescriptor

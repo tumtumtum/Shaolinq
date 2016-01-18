@@ -622,9 +622,9 @@ namespace Shaolinq.Persistence.Linq
 			var innerProjection = this.VisitSequence(innerSource);
 
 			this.AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
-			var outerKeyExpr = StripNullCheck(this.Visit(outerKey.Body));
+			var outerKeyExpr = StripNullCheck(this.Visit(outerKey.Body)).StripObjectBindingCalls();
 			this.AddExpressionByParameter(innerKey.Parameters[0], innerProjection.Projector);
-			var innerKeyExpression = StripNullCheck(this.Visit(innerKey.Body));
+			var innerKeyExpression = StripNullCheck(this.Visit(innerKey.Body)).StripObjectBindingCalls();
 
 			this.AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);
 			this.AddExpressionByParameter(resultSelector.Parameters[1], innerProjection.Projector);

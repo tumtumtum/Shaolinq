@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -219,7 +220,6 @@ namespace Shaolinq.Persistence.Linq
 				rightSelector = Expression.Lambda(Expression.Property(rightSelectorParameter, relationship.TargetProperty), rightSelectorParameter);
 
 				var orderBySelectorParameter = Expression.Parameter(projector.ReturnType);
-
 				orderBySelector = Expression.Lambda(Expression.Property(orderBySelectorParameter, "Right"), orderBySelectorParameter);
 			}
 			else
@@ -238,7 +238,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (orderBySelector != null)
 			{
-				retval = Expression.Call(MethodInfoFastRef.QueryableOrderByMethod.MakeGenericMethod(projector.ReturnType, orderBySelector.ReturnType), retval, orderBySelector);
+				//retval = Expression.Call(MethodInfoFastRef.QueryableOrderByMethod.MakeGenericMethod(projector.ReturnType, orderBySelector.ReturnType), retval, orderBySelector);
 			}
 
 			return retval;
@@ -460,7 +460,7 @@ namespace Shaolinq.Persistence.Linq
 			var sourceType = source.Type.GetGenericArguments()[0];
 
 			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.Item2, c.Item1)).ToList(), forProjection);
-			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjectByPath;
+			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjects;
 			var currentRootExpressionsByPath = result.RootExpressionsByPath;
 
 			var predicateOrSelectors = result.ReducedExpressions.Select(c => c.StripQuotes()).ToArray();
@@ -479,10 +479,19 @@ namespace Shaolinq.Persistence.Linq
 			var replacementExpressionForPropertyPath = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
 
 			var referencedObjectPaths = memberAccessExpressionsNeedingJoins
-				.OrderBy(c => c.Key.Length)
-				.Select(c => c.Value)
+				.Where(c => !c.IncludedPropertyPath.Any(d => d.PropertyType.IsDataAccessObjectType()))
+				.OrderBy(c => c.FullAccessPropertyPath.Length)
+				.Concat(memberAccessExpressionsNeedingJoins
+				.Where(c => c.IncludedPropertyPath.Any(d => d.PropertyType.IsDataAccessObjectType()))
+				.OrderBy(c => c.FullAccessPropertyPath.Length))
 				.ToList();
 
+			var referencedPathsWithCollectionIncludes = memberAccessExpressionsNeedingJoins
+				.Where(c => c.FullAccessPropertyPath.Last.PropertyType.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+				.Select((c, x) => new { index = x, path = c })
+				.OrderBy(c => c.index)
+				.ToList();
+			
 			var types = referencedObjectPaths
 				.Select(c => c.FullAccessPropertyPath.Last.PropertyType.JoinedObjectType())
 				.ToList();
@@ -545,6 +554,13 @@ namespace Shaolinq.Persistence.Linq
 				currentLeft = join;
 				index++;
 			}
+
+			var orderBySelectors = new List<LambdaExpression>();
+
+			
+
+
+
 
 			Func<Expression, bool, Expression> replace = null;
 

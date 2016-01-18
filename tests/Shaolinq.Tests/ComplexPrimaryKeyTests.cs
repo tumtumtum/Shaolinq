@@ -2339,5 +2339,17 @@ namespace Shaolinq.Tests
 				var malls = this.model.Shops.OrderBy(c => c).ToList();
 			}
 		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model.Malls
+					.Include(c => c.Shops)
+					.Include(c => c.Shops2)
+					.ToList();
+			}
+		}
 	}
 }
