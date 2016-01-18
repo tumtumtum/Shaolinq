@@ -200,8 +200,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 				}
 			}
-
-			LambdaExpression orderBySelector = null;
+			
 			LambdaExpression leftSelector, rightSelector;
 
 			var projector = MakeJoinProjector(leftElementType, rightElementType);
@@ -218,9 +217,6 @@ namespace Shaolinq.Persistence.Linq
 
 				var rightSelectorParameter = Expression.Parameter(rightElementType);
 				rightSelector = Expression.Lambda(Expression.Property(rightSelectorParameter, relationship.TargetProperty), rightSelectorParameter);
-
-				var orderBySelectorParameter = Expression.Parameter(projector.ReturnType);
-				orderBySelector = Expression.Lambda(Expression.Property(orderBySelectorParameter, "Right"), orderBySelectorParameter);
 			}
 			else
 			{
@@ -235,12 +231,7 @@ namespace Shaolinq.Persistence.Linq
 				.MakeGenericMethod(leftElementType, rightElementType, leftSelector.ReturnType, projector.ReturnType);
 			
 			var retval = Expression.Call(method, left, right, Expression.Quote(leftSelector), Expression.Quote(rightSelector), Expression.Quote(projector));
-
-			if (orderBySelector != null)
-			{
-				//retval = Expression.Call(MethodInfoFastRef.QueryableOrderByMethod.MakeGenericMethod(projector.ReturnType, orderBySelector.ReturnType), retval, orderBySelector);
-			}
-
+			
 			return retval;
 		}
 
