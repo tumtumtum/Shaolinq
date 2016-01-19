@@ -16,7 +16,8 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
-		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+		private readonly int ProjectorCacheMaxLimit = 512;
+        protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
@@ -232,14 +233,28 @@ namespace Shaolinq.Persistence.Linq
 
 			cacheInfo.projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam).Compile();
 
-			var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default)
-			{
-				[key] = cacheInfo
-			};
+	        if (this.SqlDatabaseContext.projectorCache.Count >= ProjectorCacheMaxLimit)
+	        {
+		        Logger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}");
 
-			this.SqlDatabaseContext.projectorCache = newCache;
+		        var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default)
+		        {
+			        [key] = cacheInfo
+		        };
 
-			return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
+		        this.SqlDatabaseContext.projectorCache = newCache;
+	        }
+	        else
+	        {
+				var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default)
+				{
+					[key] = cacheInfo
+				};
+
+				this.SqlDatabaseContext.projectorCache = newCache;
+			}
+
+	        return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
 		}
 	}
 }
