@@ -122,7 +122,7 @@
   <ItemGroup>
     <Compile Include="PostgresConfiguration.cs" />
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
-    <Compile Include="PostgresDataDefinitionExpressionAmmender.cs" />
+    <Compile Include="PostgresDataDefinitionExpressionAmender.cs" />
     <Compile Include="PostgresEnumSqlDataType.cs" />
     <Compile Include="PostgresSqlDataDefinitionExpressionBuilder.cs" />
     <Compile Include="PostgresSqlDatabaseSchemaManager.cs" />

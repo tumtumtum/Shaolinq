@@ -7,14 +7,14 @@ using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class ExpressionsFinder
+	public class SqlExpressionFinder
 		: SqlExpressionVisitor
 	{
 		private readonly bool findFirst;
 		private readonly List<Expression> results;
 		private readonly Predicate<Expression> isMatch;
 		
-		private ExpressionsFinder(Predicate<Expression> isMatch, bool findFirst)
+		private SqlExpressionFinder(Predicate<Expression> isMatch, bool findFirst)
 		{
 			this.isMatch = isMatch;
 			this.findFirst = findFirst;
@@ -24,16 +24,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static bool FindExists(Expression expression, Predicate<Expression> isMatch)
 		{
-			var finder = new ExpressionsFinder(isMatch, true);
+			var finder = new SqlExpressionFinder(isMatch, true);
 
 			finder.Visit(expression);
 
 			return finder.results.Count > 0;
 		}
 
-		public static Expression First(Expression expression, Predicate<Expression> isMatch)
+		public static Expression FindFirst(Expression expression, Predicate<Expression> isMatch)
 		{
-			var finder = new ExpressionsFinder(isMatch, true);
+			var finder = new SqlExpressionFinder(isMatch, true);
 
 			finder.Visit(expression);
 
@@ -42,7 +42,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static List<Expression> FindAll(Expression expression, Predicate<Expression> isMatch)
 		{
-			var finder = new ExpressionsFinder(isMatch, false);
+			var finder = new SqlExpressionFinder(isMatch, false);
 
 			finder.Visit(expression);
 

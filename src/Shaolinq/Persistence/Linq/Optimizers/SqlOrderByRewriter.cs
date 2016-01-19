@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					this.PrependOrderings(select.OrderBy.Select(c => (SqlOrderByExpression)c));
 				}
 
-				var canHaveOrderBy = saveIsOuterMostSelect && !ExpressionsFinder.FindExists(select, c => c.NodeType == (ExpressionType)SqlExpressionType.Aggregate || c.NodeType == (ExpressionType)SqlExpressionType.AggregateSubquery);
+				var canHaveOrderBy = saveIsOuterMostSelect && !SqlExpressionFinder.FindExists(select, c => c.NodeType == (ExpressionType)SqlExpressionType.Aggregate || c.NodeType == (ExpressionType)SqlExpressionType.AggregateSubquery);
 				var canPassOnOrderings = !saveIsOuterMostSelect;
 
 				var columns = select.Columns;

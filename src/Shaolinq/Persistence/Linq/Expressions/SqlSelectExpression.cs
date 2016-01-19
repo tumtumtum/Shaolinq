@@ -73,5 +73,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, skip, take, this.ForUpdate, this.Reverse);
 		}
+
+		public SqlSelectExpression ChangeOrderBy(IEnumerable<Expression> orderBy)
+		{
+			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, this.Where, orderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, this.ForUpdate, this.Reverse);
+		}
 	}
 }

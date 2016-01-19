@@ -126,8 +126,8 @@
     <Compile Include="..\Shaolinq.Postgres\DisabledForeignKeyCheckContext.cs">
       <Link>DisabledForeignKeyCheckContext.cs</Link>
     </Compile>
-    <Compile Include="..\Shaolinq.Postgres\PostgresDataDefinitionExpressionAmmender.cs">
-      <Link>PostgresDataDefinitionExpressionAmmender.cs</Link>
+    <Compile Include="..\Shaolinq.Postgres\PostgresDataDefinitionExpressionAmender.cs">
+      <Link>PostgresDataDefinitionExpressionAmender.cs</Link>
     </Compile>
     <Compile Include="..\Shaolinq.Postgres\PostgresEnumSqlDataType.cs">
       <Link>PostgresEnumSqlDataType.cs</Link>

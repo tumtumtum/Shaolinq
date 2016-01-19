@@ -10,7 +10,8 @@ namespace Shaolinq.Persistence
 		public TypeDescriptor ForeignType { get; set; }
 		public PropertyDescriptor[] VisitedProperties { get; set; }
 		public PropertyDescriptor DefinitionProperty { get; set; }
-		
+		public PropertyDescriptor RootProperty { get; set; }
+
 		private string columnName;
 		private string tailColumnName;
 		private string fullParentName;

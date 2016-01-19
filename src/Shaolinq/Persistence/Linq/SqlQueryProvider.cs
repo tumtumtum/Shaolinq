@@ -95,7 +95,7 @@ namespace Shaolinq.Persistence.Linq
 			return this.BuildExecution(expression).Evaluate<IEnumerable<T>>();
 		}
 
-		public static Expression Optimize(Expression expression, Type typeForEnums, bool simplerPartialVal = true)
+		public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
 			expression = SqlObjectOperandComparisonExpander.Expand(expression); 
 			expression = SqlEnumTypeNormalizer.Normalize(expression, typeForEnums);
@@ -112,6 +112,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlRedundantFunctionCallRemover.Remove(expression);
 			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
+			expression = SqlSubCollectionOrderByAmender.Amend(dataAccessModel, expression);
 			expression = SqlOrderByRewriter.Rewrite(expression);
 
 			var rewritten = SqlCrossApplyRewriter.Rewrite(expression);
@@ -137,7 +138,7 @@ namespace Shaolinq.Persistence.Linq
 				expression = Evaluator.PartialEval(expression);
 				expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext?.ElementType, this.RelatedDataAccessObjectContext?.ExtraCondition);
 
-				projectionExpression = (SqlProjectionExpression)Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
+				projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
 			}
 
 			var placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);

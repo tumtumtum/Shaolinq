@@ -118,6 +118,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						retval.Add(new ColumnInfo
 						{
+							RootProperty = property,
 							ForeignType = foreignTypeDescriptor,
 							DefinitionProperty = relatedColumnInfo.DefinitionProperty,
 							VisitedProperties = relatedColumnInfo.VisitedProperties
@@ -134,6 +135,7 @@ namespace Shaolinq.Persistence.Linq
 
 					retval.Add(new ColumnInfo
 					{
+						RootProperty = property,
 						ForeignType = null,
 						DefinitionProperty = property,
 						VisitedProperties = visitedProperties.ToArray()
@@ -562,21 +564,6 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, null, false, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
 
-		internal static Expression StripNullCheck(Expression expression)
-		{
-			if (expression.NodeType == ExpressionType.Conditional)
-			{
-				var conditional = (ConditionalExpression)expression;
-
-				if (conditional.IfTrue.NodeType == ExpressionType.Constant && ((ConstantExpression)conditional.IfTrue).Value == null)
-				{
-					return conditional.IfFalse;
-				}
-			}
-
-			return expression;
-		}
-
 		protected virtual Expression BindDefaultIfEmpty(Type resultType, Expression source, Expression value, bool isRoot)
 		{
 			if (value != null && !isRoot)
@@ -622,9 +609,9 @@ namespace Shaolinq.Persistence.Linq
 			var innerProjection = this.VisitSequence(innerSource);
 
 			this.AddExpressionByParameter(outerKey.Parameters[0], outerProjection.Projector);
-			var outerKeyExpr = StripNullCheck(this.Visit(outerKey.Body)).StripObjectBindingCalls();
+			var outerKeyExpr = this.Visit(outerKey.Body).StripObjectBindingCalls();
 			this.AddExpressionByParameter(innerKey.Parameters[0], innerProjection.Projector);
-			var innerKeyExpression = StripNullCheck(this.Visit(innerKey.Body)).StripObjectBindingCalls();
+			var innerKeyExpression = this.Visit(innerKey.Body).StripObjectBindingCalls();
 
 			this.AddExpressionByParameter(resultSelector.Parameters[0], outerProjection.Projector);
 			this.AddExpressionByParameter(resultSelector.Parameters[1], innerProjection.Projector);
@@ -2290,7 +2277,7 @@ namespace Shaolinq.Persistence.Linq
 				visited.Add(currentPropertyName);
 
 				List<IncludedPropertyInfo> nextProperties;
-				var unwrapped = expressionToReplace.NodeType == ExpressionType.Conditional ? ((ConditionalExpression)expressionToReplace).IfFalse : expressionToReplace;
+				var unwrapped = expressionToReplace.StripObjectBindingCalls();
 
 				if (propertyInfo.PropertyType.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
 				{

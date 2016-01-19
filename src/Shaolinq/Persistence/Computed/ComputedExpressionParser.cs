@@ -54,7 +54,22 @@ namespace Shaolinq.Persistence.Computed
 
 		protected virtual Expression ParseExpression()
 		{
-			return this.ParseComparison();
+			return this.ParseAssignment();
+		}
+
+		protected Expression ParseAssignment()
+		{
+			var leftOperand = this.ParseNullCoalescing();
+			var retval = leftOperand;
+
+			while (this.token == ComputedExpressionToken.Assign)
+			{
+				var rightOperand = this.ParseNullCoalescing();
+
+				retval = Expression.Assign(retval, rightOperand);
+			}
+
+			return retval;
 		}
 
 		protected Expression ParseUnary()

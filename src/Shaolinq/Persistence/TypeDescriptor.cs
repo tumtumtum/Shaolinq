@@ -28,7 +28,7 @@ namespace Shaolinq.Persistence
 		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
 		
 		private readonly List<TypeRelationshipInfo> relationshipInfos;
-		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
+		internal readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
 
@@ -220,7 +220,6 @@ namespace Shaolinq.Persistence
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
 					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
-					this.propertyDescriptorByColumnName[attribute.GetName(propertyDescriptor)] = propertyDescriptor;
 				}
 			}
 

@@ -165,6 +165,7 @@
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlAliasTypeCollector.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlConstantPlaceholderReplacer.cs" />
     <Compile Include="Persistence\Linq\ExecutionBuildResult.cs" />
     <Compile Include="Persistence\Linq\Expressions\ExpressionFastCompiler.cs" />
@@ -186,6 +187,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlSubCollectionOrderByAmender.cs" />
     <Compile Include="Persistence\Linq\ProjectionBuilderScope.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheInfo.cs" />
@@ -212,7 +214,7 @@
     <Compile Include="Persistence\Linq\LeftRightJoinInfo.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlEnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlExistsSubqueryOptimizer.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\ExpressionsFinder.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlExpressionFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\IncludedPropertyInfo.cs" />
     <Compile Include="Persistence\Linq\Optimizers\QueryableIncludeExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObject.cs" />
@@ -252,7 +254,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlSumAggregatesDefaultValueCoalescer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObjectPropertyGatherer.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpander.cs" />
-    <Compile Include="Persistence\Linq\SqlForeignKeyConstraintToAlterAmmender.cs" />
+    <Compile Include="Persistence\Linq\SqlForeignKeyConstraintToAlterAmender.cs" />
     <Compile Include="Persistence\SqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\Linq\SqlReferencesColumnDeferrabilityRemover.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionExpressionBuilder.cs" />

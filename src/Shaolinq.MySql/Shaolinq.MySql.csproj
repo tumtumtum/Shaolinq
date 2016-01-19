@@ -120,7 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
-    <Compile Include="MySqlAutoIncrementAmmender.cs" />
+    <Compile Include="MySqlAutoIncrementAmender.cs" />
     <Compile Include="MySqlConfiguration.cs" />
     <Compile Include="MySqlSqlDatabaseContextInfo.cs" />
     <Compile Include="MySqlSqlDatabaseContext.cs" />
@@ -129,7 +129,7 @@
     <Compile Include="MySqlSqlQueryFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MySqlSqlDatabaseSchemaManager.cs" />
-    <Compile Include="MySqlInsertIntoAutoIncrementAmmender.cs" />
+    <Compile Include="MySqlInsertIntoAutoIncrementAmender.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

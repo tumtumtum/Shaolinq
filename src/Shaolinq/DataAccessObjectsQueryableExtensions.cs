@@ -32,7 +32,7 @@ namespace Shaolinq
 				expression = Evaluator.PartialEval(expression);
 				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);
 				expression = SqlObjectOperandComparisonExpander.Expand(expression);
-				expression = SqlQueryProvider.Optimize(expression, transactionContext.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+				expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression, transactionContext.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
 				acquisition.SqlDatabaseCommandsContext.Delete((SqlDeleteExpression)expression);
 			}

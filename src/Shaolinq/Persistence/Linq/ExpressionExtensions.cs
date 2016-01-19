@@ -5,17 +5,103 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform.Reflection;
+using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
 	public static class ExpressionExtensions
 	{
-		public static Expression StripObjectBindingCalls(this Expression expression)
+		private static readonly ExpressionType[] expressionTypes = new[] { ExpressionType.Equal, ExpressionType.Constant, ExpressionType.AndAlso, ExpressionType.And, (ExpressionType)SqlExpressionType.ConstantPlaceholder, (ExpressionType)SqlExpressionType.Column };
+		
+		internal static IEnumerable<Expression> GetIncludeJoins(this Expression expression)
+		{
+			var select = expression as SqlSelectExpression;
+
+			if (select != null)
+			{
+				yield return null;
+			}
+
+			var join = expression as SqlJoinExpression;
+
+			if (join?.JoinType != SqlJoinType.Left)
+			{
+				yield break;
+			}
+
+			foreach (var value in join.Left.GetIncludeJoins())
+			{
+				if (value == null)
+				{
+					if (!SqlExpressionFinder.FindExists(join.JoinCondition, c => !expressionTypes.Contains(c.NodeType)))
+					{
+						if (SqlExpressionFinder.FindExists(join.JoinCondition, c => c.NodeType == ExpressionType.Equal))
+						{
+							yield return join.JoinCondition;
+						}
+					}
+				}
+				else
+				{
+					yield return value;
+				}
+			}
+
+			foreach (var value in join.Right.GetIncludeJoins())
+			{
+				if (value == null)
+				{
+					if (!SqlExpressionFinder.FindExists(join.JoinCondition, c => !expressionTypes.Contains(c.NodeType)))
+					{
+						if (SqlExpressionFinder.FindExists(join.JoinCondition, c => c.NodeType == ExpressionType.Equal))
+						{
+							yield return join.JoinCondition;
+						}
+					}
+				}
+				else
+				{
+					yield return value;
+				}
+			}
+		}
+
+		internal static SqlSelectExpression GetLeftMostSelect(this Expression expression)
+		{
+			var select = expression as SqlSelectExpression;
+
+			if (select != null)
+			{
+				return select;
+			}
+
+			var join = expression as SqlJoinExpression;
+
+			if (join != null)
+			{
+				return GetLeftMostSelect(join.Left);
+			}
+
+			return null;
+		}
+
+		internal static Expression StripObjectBindingCalls(this Expression expression)
 		{
 			if (expression == null)
 			{
 				return null;
+			}
+
+			if (expression.NodeType == ExpressionType.Conditional)
+			{
+				var conditional = (ConditionalExpression)expression;
+
+				if (conditional.IfTrue.NodeType == ExpressionType.Constant && ((ConstantExpression)conditional.IfTrue).Value == null)
+				{
+					return StripObjectBindingCalls(conditional.IfFalse);
+				}
 			}
 
 			if (!expression.Type.IsDataAccessObjectType())
@@ -34,7 +120,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
 				{
-					return methodCallExpression.Arguments[0];
+					return StripObjectBindingCalls(methodCallExpression.Arguments[0]);
 				}
 
 				return null;

@@ -79,7 +79,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				while (CanMergeWithFrom(select))
 				{
-					var fromSelect = GetLeftMostSelect(select.From);
+					var fromSelect = select.From.GetLeftMostSelect();
 
 					// remove the redundant subquery
 					select = SubqueryRemover.Remove(select, fromSelect);
@@ -114,25 +114,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return select;
 			}
 
-			private static SqlSelectExpression GetLeftMostSelect(Expression source)
-			{
-				var select = source as SqlSelectExpression;
-
-				if (select != null)
-				{
-					return select;
-				}
-
-				var join = source as SqlJoinExpression;
-
-				if (join != null)
-				{
-					return GetLeftMostSelect(join.Left);
-				}
-
-				return null;
-			}
-
 			private static bool IsColumnProjection(SqlSelectExpression select)
 			{
 				var count = select.Columns.Count;
@@ -152,7 +133,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			private static bool CanMergeWithFrom(SqlSelectExpression select)
 			{
-				var fromSelect = GetLeftMostSelect(select.From);
+				var fromSelect = select.From.GetLeftMostSelect();
 
 				if (fromSelect == null)
 				{

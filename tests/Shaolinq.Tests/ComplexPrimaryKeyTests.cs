@@ -2341,13 +2341,29 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_OrderBy_DaoProperty_With_Collection_Include()
+		public void Test_OrderBy_DaoProperty_With_Collection_Include1()
 		{
 			using (var scope = new TransactionScope())
 			{
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2)
+					.Include(c => c.Shops2.Items().Address.Region)
+					.Include(c => c.Address)
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model.Malls
+					.Include(c => c.Shops)
+					.Include(c => c.SisterMall.Shops)
+					.Include(c => c.Shops2.Items().Address.Region)
+					.Include(c => c.Address)
+					.OrderBy(c => c.Name)
 					.ToList();
 			}
 		}

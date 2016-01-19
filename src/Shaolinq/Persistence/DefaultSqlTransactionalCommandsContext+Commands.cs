@@ -358,7 +358,7 @@ namespace Shaolinq.Persistence
 			expression = Evaluator.PartialEval(expression);
 			expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
-			expression = SqlQueryProvider.Optimize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+			expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
 	        if (async)
 	        {

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
@@ -141,6 +142,17 @@ namespace Shaolinq.Persistence
 					}
 				}
 			}
+
+			// Fill in column names
+
+			foreach (var typeDescriptor in typeDescriptorsByType.Values)
+			{
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this, typeDescriptor.PersistedAndBackReferenceProperties.ToArray()))
+				{
+					typeDescriptor.propertyDescriptorByColumnName[columnInfo.ColumnName] = columnInfo.RootProperty;
+				}
+			}
+
 
 			this.ModelTypeDescriptor = new ModelTypeDescriptor(this, dataAccessModelType);
 		}

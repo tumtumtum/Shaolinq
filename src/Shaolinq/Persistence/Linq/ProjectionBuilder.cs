@@ -329,7 +329,7 @@ namespace Shaolinq.Persistence.Linq
 				var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(elementType);
 				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedAndBackReferenceProperties);
 				
-				var columnExpression = (SqlColumnExpression)ExpressionsFinder.First(where, c => c.NodeType == (ExpressionType)SqlExpressionType.Column);
+				var columnExpression = (SqlColumnExpression)SqlExpressionFinder.FindFirst(where, c => c.NodeType == (ExpressionType)SqlExpressionType.Column);
 				var match = columns.Single(d => d.ColumnName == columnExpression.Name);
 
 				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByValuesMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
