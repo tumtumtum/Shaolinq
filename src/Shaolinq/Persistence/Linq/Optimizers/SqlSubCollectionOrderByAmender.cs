@@ -88,7 +88,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 			}
 
-			return selectExpression.ChangeOrderBy(orderBys?.Distinct(SqlExpressionEqualityComparer.Default));
+			return selectExpression.ChangeOrderBy(orderBys?.Distinct(SqlExpressionEqualityComparer.Default) ?? selectExpression.OrderBy);
 		}
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
