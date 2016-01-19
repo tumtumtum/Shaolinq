@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
@@ -13,9 +14,9 @@ namespace Shaolinq
 		where T : DataAccessObject
 	{
 		private List<T> values;
+		private IReadOnlyList<T> readOnlyValues;
 		private int valuesVersion;
-		public RelationshipType RelationshipType { get; }
-		public bool IsInflatedCollection => AssertValues() != null;
+		public bool HasItems => AssertValues() != null;
 		public LambdaExpression ExtraCondition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
@@ -23,25 +24,31 @@ namespace Shaolinq
 		public override IEnumerator<T> GetEnumerator() => this.AssertValues()?.GetEnumerator() ?? base.GetEnumerator();
 		public virtual int Count() => this.AssertValues()?.Count ?? Queryable.Count(this);
 		
-		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, string propertyName)
+		public RelatedDataAccessObjects(DataAccessModel dataAccessModel, IDataAccessObjectAdvanced parentDataAccessObject, string parentPropertyName)
 			: base(dataAccessModel)
 		{
-			this.RelatedDataAccessObject = relatedDataAccessObject;
-			this.RelationshipType = RelationshipType.ChildOfOneToMany;
-			this.ExtraCondition = this.CreateJoinCondition();
+			this.RelatedDataAccessObject = parentDataAccessObject;
 			this.SqlQueryProvider.RelatedDataAccessObjectContext = this;
-			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod();
+			
+			var parentType = this.DataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentDataAccessObject.GetType()));
+			var relationshipInfo = parentType.GetRelationshipInfos().Single(c => c.ReferencingProperty.PropertyName == parentPropertyName);
+
+			this.ExtraCondition = this.CreateJoinCondition(relationshipInfo.TargetProperty);
+			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod(parentType, relationshipInfo.TargetProperty);
 		}
 
-		private List<T> AssertValues()
+		private IReadOnlyList<T> AssertValues()
 		{
-			if (values == null)
+			if (readOnlyValues == null)
 			{
 				return null;
 			}
 
 			if (valuesVersion != this.DataAccessModel.GetCurrentContext(false).GetCurrentVersion())
 			{
+				this.values = null;
+				this.readOnlyValues = null;
+
 				return null;
 			}
 
@@ -52,32 +59,21 @@ namespace Shaolinq
 		{
 			this.values = null;
 			this.valuesVersion = 0;
+			this.readOnlyValues = null;
 
 			return this;
 		}
 
-		public virtual List<T> ToList(ToListCachePolicy cachePolicy = ToListCachePolicy.Default)
+		public virtual IReadOnlyList<T> Items()
 		{
-			return new List<T>(this.AsEnumerable(cachePolicy));
-		}
+			var retval = this.AssertValues();
 
-		public virtual IEnumerable<T> AsEnumerable(ToListCachePolicy cachePolicy = ToListCachePolicy.Default)
-		{
-			switch (cachePolicy)
+			if (retval == null)
 			{
-			case ToListCachePolicy.CacheOnly:
-				var retval = this.AssertValues();
-
-				if (retval == null)
-				{
-					throw new InvalidOperationException("No cached values available");
-				}
-				return retval;
-            case ToListCachePolicy.IgnoreCache:
-				return this.SqlQueryProvider.GetEnumerable<T>(this.Expression);
-            default:
-				return this;
+				throw new InvalidOperationException("No cached values available");
 			}
+
+			return retval;
 		}
 
 		internal void Add(T value, int version)
@@ -89,6 +85,7 @@ namespace Shaolinq
 					valuesVersion = version;
 
 					this.values = new List<T>();
+					this.readOnlyValues = new ReadOnlyCollection<T>(this.values);
 				}
 
 				return;
@@ -99,6 +96,7 @@ namespace Shaolinq
 				valuesVersion = version;
 
 				this.values = new List<T> { value };
+				this.readOnlyValues = new ReadOnlyCollection<T>(this.values);
 			}
 			else if (version != valuesVersion)
 			{
@@ -120,36 +118,15 @@ namespace Shaolinq
 			}
 		}
 
-		private LambdaExpression CreateJoinCondition()
+		private LambdaExpression CreateJoinCondition(PropertyDescriptor childBackReferenceProperty)
 		{
-			switch (this.RelationshipType)
-			{
-				case RelationshipType.ParentOfOneToMany:
-				{
-					var param = Expression.Parameter(typeof(T));
+			var param = Expression.Parameter(typeof(T));
+			var body = Expression.Equal(Expression.MakeMemberAccess(param, childBackReferenceProperty), Expression.Constant(this.RelatedDataAccessObject));
 
-					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
-					var prop = newObjectTypeDescriptor.GetRelatedProperty(this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType()));
-					var body = Expression.Equal(Expression.MakeMemberAccess(param, prop.PropertyInfo), Expression.Constant(this.RelatedDataAccessObject));
-
-					return Expression.Lambda(body, param);
-				}
-				case RelationshipType.OneToOne:
-				case RelationshipType.ChildOfOneToMany:
-				{
-					var param = Expression.Parameter(typeof(T));
-					var body = Expression.Equal(param, Expression.Constant(this.RelatedDataAccessObject));
-
-					return Expression.Lambda(body, param);
-				}
-				default:
-				{
-					throw new NotSupportedException(this.RelationshipType.ToString());
-				}
-			}
+			return Expression.Lambda(body, param);
 		}
 		
-		private Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> GetInitializeRelatedMethod()
+		private Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> GetInitializeRelatedMethod(TypeDescriptor parentType, PropertyDescriptor childBackReferenceProperty)
 		{
 			var key = new Tuple<Type, Type>(this.RelatedDataAccessObject.GetType(), typeof(T));
 			var cache = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
@@ -161,36 +138,20 @@ namespace Shaolinq
 				return initializeDataAccessObject;
 			}
 
-			switch (this.RelationshipType)
+			var childObject = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "childObject");
+			var parentObject = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "parentObject");
+			var body = Expression.Call(Expression.Convert(childObject, typeof(T)), childBackReferenceProperty.PropertyInfo.GetSetMethod(), Expression.Convert(parentObject, parentType.Type));
+			var lambda = Expression.Lambda(body, parentObject, childObject);
+			var retval = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
+			
+			var newCache = new Dictionary<Tuple<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache)
 			{
-				case RelationshipType.ParentOfOneToMany:
-				{
-					var relatedDataAccessObjectType = this.DataAccessModel.GetDefinitionTypeFromConcreteType(this.RelatedDataAccessObject.GetType());
-					var newObjectTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(typeof(T));
-					var newParam = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "newobj");
-					var relatedParam = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "related");
-					var propertyDescriptor = newObjectTypeDescriptor.RelationshipRelatedProperties.First(c => relatedDataAccessObjectType.IsAssignableFrom(c.PropertyType));
-					var method = propertyDescriptor.PropertyInfo.GetSetMethod();
-					var body = Expression.Call(Expression.Convert(newParam, typeof(T)), method, Expression.Convert(relatedParam, relatedDataAccessObjectType));
-					var lambda = Expression.Lambda(body, relatedParam, newParam);
-					var retval = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
+				[key] = retval
+			};
 
-					var newCache = new Dictionary<Tuple<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache)
-					{
-						[key] = retval
-					};
+			this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache = newCache;
 
-					this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache = newCache;
-
-					return retval;
-				}
-				case RelationshipType.ChildOfOneToMany:
-				{
-					break;
-				}
-			}
-
-			return null;
+			return retval;
 		}
 
 		public override T Create()

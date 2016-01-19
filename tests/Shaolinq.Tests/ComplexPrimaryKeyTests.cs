@@ -2200,7 +2200,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.Shops.Items().Address)
+					.Include(c => c.Shops.EachItem().Address)
 					.OrderBy(c => c.Name)
 					.ToList();
 			}
@@ -2213,7 +2213,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.SisterMall.Shops.Items().Address).ToList();
+					.Include(c => c.SisterMall.Shops.EachItem().Address).ToList();
 
 				var mall = malls.First(c => c.Name.Contains("Seattle City"));
 				Assert.IsNull(mall.Address);
@@ -2347,22 +2347,22 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2.Items().Address.Region)
+					.Include(c => c.Shops2.EachItem().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
 
 				var mall = malls.First();
 
-				Assert.That(mall.Shops.IsInflatedCollection);
-				Assert.That(mall.Shops2.IsInflatedCollection);
+				Assert.That(mall.Shops.HasItems);
+				Assert.That(mall.Shops2.HasItems);
 
 				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
 				Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
 
 				scope.Flush(this.model);
 
-				Assert.That(!mall.Shops.IsInflatedCollection);
-				Assert.That(!mall.Shops2.IsInflatedCollection);
+				Assert.That(!mall.Shops.HasItems);
+				Assert.That(!mall.Shops2.HasItems);
 
 				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
 				Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
@@ -2377,7 +2377,7 @@ namespace Shaolinq.Tests
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.Shops2.Items().Address.Region)
+					.Include(c => c.Shops2.EachItem().Address.Region)
 					.Include(c => c.Address)
 					.OrderBy(c => c.Name)
 					.ToList();
@@ -2393,7 +2393,7 @@ namespace Shaolinq.Tests
 					.OrderBy(c => c.Name)
 					.Include(c => c.Shops)
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).Items().Address.Region)
+					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).EachItem().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
 			}

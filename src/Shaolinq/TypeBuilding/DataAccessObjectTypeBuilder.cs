@@ -492,17 +492,17 @@ namespace Shaolinq.TypeBuilding
 				propertyBuilder = this.propertyBuilders[propertyInfo.Name];
 				currentFieldInDataObject = this.valueFields[propertyBuilder.Name];
 
-				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, RelationshipType.ParentOfOneToMany, propertyInfo));
+				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, propertyInfo));
 			}
 		}
 		
-		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, RelationshipType relationshipType, PropertyInfo propertyInfo)
+		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 			var methodBuilder = typeBuilder.DefineMethod("get_" + propertyName, methodAttributes, callingConventions, propertyType, Type.EmptyTypes);
 			var generator = methodBuilder.GetILGenerator();
 
-			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(IDataAccessObjectAdvanced), typeof(DataAccessModel), typeof(RelationshipType) });
+			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(DataAccessModel), typeof(IDataAccessObjectAdvanced), typeof(string) });
     
 			var local = generator.DeclareLocal(currentFieldInDataObject.FieldType);
             
@@ -518,17 +518,17 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Brtrue, returnLabel);
 
-			// Load "this"
-			generator.Emit(OpCodes.Ldarg_0);
-
 			// Load "this.DataAccessModel"
 			generator.Emit(OpCodes.Ldarg_0);
 
 			//generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
-			generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetMethod("GetDataAccessModel", BindingFlags.Instance | BindingFlags.Public));
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
+			
+			// Load "this"
+			generator.Emit(OpCodes.Ldarg_0);
 
-			// Load relationship type
-			generator.Emit(OpCodes.Ldc_I4, (int)relationshipType);
+			// Load property name
+			generator.Emit(OpCodes.Ldstr, propertyName);
 
 			generator.Emit(OpCodes.Newobj, constructor);
 			generator.Emit(OpCodes.Stloc, local);

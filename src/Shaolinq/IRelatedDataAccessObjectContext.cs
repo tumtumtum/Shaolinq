@@ -2,16 +2,14 @@
 
 using System;
 using System.Linq.Expressions;
-using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
 	public interface IRelatedDataAccessObjectContext
 	{
 		Type ElementType { get; }
-		IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		LambdaExpression ExtraCondition { get; }
+		IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
-		RelationshipType RelationshipType { get; }
 	}
 }
