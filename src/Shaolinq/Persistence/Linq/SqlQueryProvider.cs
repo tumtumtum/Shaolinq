@@ -154,13 +154,7 @@ namespace Shaolinq.Persistence.Linq
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
 			ProjectorCacheInfo cacheInfo;
-			var key = new ProjectorCacheKey(formatResult.CommandText, projector);
-			var projectorCache = this.SqlDatabaseContext.projectorCache;
-
-	        if (projectorCache.TryGetValue(key, out cacheInfo))
-	        {
-				return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
-			}
+			
 
 			var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
 			var placeholderValuesParam = Expression.Parameter(typeof(object[]));
@@ -224,14 +218,24 @@ namespace Shaolinq.Persistence.Linq
 				);
 			}
 
-			if (projectionExpression.Aggregator != null)
-			{
-				var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
+	        if (projectionExpression.Aggregator != null)
+	        {
+		        var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
 
-				executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], executor);
+		        executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], executor);
+	        }
+
+	        projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
+            
+			var key = new ProjectorCacheKey(formatResult.CommandText, projector);
+			var projectorCache = this.SqlDatabaseContext.projectorCache;
+
+			if (projectorCache.TryGetValue(key, out cacheInfo))
+			{
+				return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
 			}
 
-			cacheInfo.projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam).Compile();
+			cacheInfo.projector = projector.Compile();
 
 	        if (this.SqlDatabaseContext.projectorCache.Count >= ProjectorCacheMaxLimit)
 	        {
