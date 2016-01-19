@@ -78,8 +78,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 						if (selectExpression.OrderBy?.Count > 0)
 						{
-						//	orderBys.AddRange(selectExpression.OrderBy);
-						//	orderBys.AddRange(leftMostColumns.Select(c => new SqlOrderByExpression(OrderType.Ascending, c)));
+							orderBys.AddRange(selectExpression.OrderBy);
+							orderBys.AddRange(leftMostColumns.Select(c => new SqlOrderByExpression(OrderType.Ascending, c)));
 						}
 					}
 
@@ -88,7 +88,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 			}
 
-			return selectExpression.ChangeOrderBy(orderBys);
+			return selectExpression.ChangeOrderBy(orderBys?.Distinct(SqlExpressionEqualityComparer.Default));
 		}
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
