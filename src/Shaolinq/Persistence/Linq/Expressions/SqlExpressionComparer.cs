@@ -329,6 +329,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return methodCallExpression;
 		}
 
+		protected override IReadOnlyList<Expression> VisitExpressionList(IReadOnlyList<Expression> original)
+		{
+			return this.VisitExpressionList<Expression>(original);
+		}
+
 		protected override IReadOnlyList<T> VisitExpressionList<T>(IReadOnlyList<T> original)
 		{
 			IReadOnlyList<T> current;
