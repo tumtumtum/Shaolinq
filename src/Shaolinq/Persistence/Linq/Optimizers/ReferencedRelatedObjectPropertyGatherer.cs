@@ -64,7 +64,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
             var reducedExpressions = expressions.Select(c =>
             {
 				gatherer.sourceParameterExpression = c.Item1;
-				return SqlExpressionReplacer.Replace(gatherer.Visit(c.Item2), d => d.RemovePlaceholderItem());
+				return SqlExpressionReplacer.Replace(gatherer.Visit(c.Item2), d => d.StripForIncludeScanning());
             }).ToArray();
 
 			return new ReferencedRelatedObjectPropertyGathererResults
@@ -124,7 +124,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var originalReferencedRelatedObjects = this.referencedRelatedObjects;
 				var originalParent = this.currentParent;
 
-				this.currentParent = methodCallExpression.Arguments[0].RemovePlaceholderItem();
+				this.currentParent = methodCallExpression.Arguments[0].StripForIncludeScanning();
 
 				this.referencedRelatedObjects = new List<ReferencedRelatedObject>();
 
@@ -142,14 +142,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				this.referencedRelatedObjects = originalReferencedRelatedObjects;
 				this.currentParent = originalParent;
 
-				var retval = this.Visit(methodCallExpression.Arguments[0].RemovePlaceholderItem());
+				var retval = this.Visit(methodCallExpression.Arguments[0].StripForIncludeScanning());
 
 				if (this.nesting > 1 && (retval != this.sourceParameterExpression) && retval is MemberExpression)
 				{
 					// For supporting: Select(c => c.Include(d => d.Address.Include(e => e.Region)))
 
 					var prefixProperties = new List<PropertyInfo>();
-					var current = (MemberExpression)retval.RemovePlaceholderItem();
+					var current = (MemberExpression)retval.StripForIncludeScanning();
 
 					while (current != null)
 					{
@@ -161,12 +161,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						
 						prefixProperties.Add((PropertyInfo)current.Member);
 						
-						if (current.Expression.RemovePlaceholderItem() == this.sourceParameterExpression)
+						if (current.Expression.StripForIncludeScanning() == this.sourceParameterExpression)
 						{
 							break;
 						}
 						
-						current = current.Expression.RemovePlaceholderItem() as MemberExpression;
+						current = current.Expression.StripForIncludeScanning() as MemberExpression;
 					}
 
 					prefixProperties.Reverse();
@@ -233,7 +233,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			MemberExpression expression; 
 			var visited = new List<MemberExpression>();
-			var root = memberExpression.Expression.RemovePlaceholderItem();
+			var root = memberExpression.Expression.StripForIncludeScanning();
 			var memberIsDataAccessObjectGatheringForProjection = false;
 
 			// Don't perform implicit joins for RelatedDataAccessObject collections as those currently turn into N+1 queries
@@ -248,13 +248,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					memberIsDataAccessObjectGatheringForProjection = true;
 
-					expression = memberExpression.RemovePlaceholderItem() as MemberExpression;
+					expression = memberExpression.StripForIncludeScanning() as MemberExpression;
 				}
 				else
 				{
-					expression = memberExpression.Expression.RemovePlaceholderItem() as MemberExpression;
+					expression = memberExpression.Expression.StripForIncludeScanning() as MemberExpression;
 
-					if (expression == null || !expression.Expression.RemovePlaceholderItem().Type.IsTypeRequiringJoin())
+					if (expression == null || !expression.Expression.StripForIncludeScanning().Type.IsTypeRequiringJoin())
 					{
 						return memberExpression;
 					}
@@ -262,43 +262,43 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 			else
 			{
-				if (memberExpression.Expression?.RemovePlaceholderItem() == null)
+				if (memberExpression.Expression?.StripForIncludeScanning() == null)
 				{
 					return memberExpression;
 				}
 
-				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.RemovePlaceholderItem().Type);
+				var typeDescriptor = this.model.TypeDescriptorProvider.GetTypeDescriptor(memberExpression.Expression.StripForIncludeScanning().Type);
 
 				if (typeDescriptor == null)
 				{
-					return Expression.MakeMemberAccess(this.Visit(memberExpression.Expression.RemovePlaceholderItem()), memberExpression.Member);
+					return Expression.MakeMemberAccess(this.Visit(memberExpression.Expression.StripForIncludeScanning()), memberExpression.Member);
 				}
 
 				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
 
-				if (property.IsPrimaryKey && memberExpression.Expression.RemovePlaceholderItem() is MemberExpression)
+				if (property.IsPrimaryKey && memberExpression.Expression.StripForIncludeScanning() is MemberExpression)
 				{
-					expression = ((MemberExpression)memberExpression.Expression.RemovePlaceholderItem()).Expression.RemovePlaceholderItem() as MemberExpression;
+					expression = ((MemberExpression)memberExpression.Expression.StripForIncludeScanning()).Expression.StripForIncludeScanning() as MemberExpression;
 				}
 				else
 				{
-					expression = memberExpression.Expression.RemovePlaceholderItem() as MemberExpression;
+					expression = memberExpression.Expression.StripForIncludeScanning() as MemberExpression;
 				}
 			}
 
-			var currentExpression = expression.RemovePlaceholderItem() as MemberExpression;
+			var currentExpression = expression.StripForIncludeScanning() as MemberExpression;
 
 			while (currentExpression?.Member is PropertyInfo)
 			{
 				visited.Add(currentExpression);
 
-				root = currentExpression.Expression.RemovePlaceholderItem();
+				root = currentExpression.Expression.StripForIncludeScanning();
 
 				currentExpression = root as MemberExpression;
 
 				if (currentExpression == null)
 				{
-					root = this.GetExpression(root).RemovePlaceholderItem();
+					root = this.GetExpression(root).StripForIncludeScanning();
 					currentExpression = root as MemberExpression;
 				}
 			}
@@ -364,7 +364,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 
 				i++;
-				currentExpression = currentExpression.Expression.RemovePlaceholderItem() as MemberExpression;
+				currentExpression = currentExpression.Expression.StripForIncludeScanning() as MemberExpression;
 			}
 
 			return memberExpression;

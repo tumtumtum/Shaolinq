@@ -127,21 +127,33 @@ namespace Shaolinq.Persistence.Linq
 			});
 		}
 
-		public static Expression RemovePlaceholderItem(this Expression expression)
+		public static Expression StripForIncludeScanning(this Expression expression)
 		{
-			var methodCallExpression = expression as MethodCallExpression;
-
-			if (methodCallExpression == null)
+			if (expression == null)
 			{
-				return expression;
+				return null;
 			}
 
-			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsItemsMethod)
+			return expression.Strip(c =>
 			{
-				return methodCallExpression.Arguments[0];
-			}
+				if (c.NodeType != ExpressionType.Call)
+				{
+					return null;
+				}
 
-			return expression;
+				var methodCallExpression = (MethodCallExpression)c;
+
+				if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsItemsMethod)
+				{
+					return methodCallExpression.Arguments[0].StripForIncludeScanning();
+				}
+				else if (methodCallExpression.Method.DeclaringType == typeof(Queryable))
+				{
+					return methodCallExpression.Arguments[0].StripForIncludeScanning();
+				}
+
+				return null;
+			});
 		}
 
 		public static Expression[] Split(this Expression expression, params ExpressionType[] binarySeparators)

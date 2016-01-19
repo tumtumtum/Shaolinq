@@ -2367,5 +2367,20 @@ namespace Shaolinq.Tests
 					.ToList();
 			}
 		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include3()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var malls = this.model.Malls
+					.OrderBy(c => c.Name)
+					.Include(c => c.Shops)
+					.Include(c => c.SisterMall.Shops)
+					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).Items().Address.Region)
+					.Include(c => c.Address)
+					.ToList();
+			}
+		}
 	}
 }
