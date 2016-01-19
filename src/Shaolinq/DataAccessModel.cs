@@ -687,7 +687,10 @@ namespace Shaolinq
 		{
 			var transactionContext = this.GetCurrentContext(true);
 
-			this.GetCurrentDataContext(true).Commit(transactionContext, true);
+			using (var context = transactionContext.AcquireVersionContext())
+			{
+				this.GetCurrentDataContext(true).Commit(transactionContext, true);
+			}
 		}
 
 		public virtual void FlushAsync()

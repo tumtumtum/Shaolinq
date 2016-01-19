@@ -23,6 +23,11 @@ namespace Shaolinq
 		private int version;
 		private int versionNesting;
 
+		internal int GetCurrentVersion()
+		{
+			return version;
+		}
+
 		internal class TransactionContextVersionContext
 			: IDisposable
 		{

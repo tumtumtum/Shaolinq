@@ -2350,6 +2350,22 @@ namespace Shaolinq.Tests
 					.Include(c => c.Shops2.Items().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
+
+				var mall = malls.First();
+
+				Assert.That(mall.Shops.IsInflatedCollection);
+				Assert.That(mall.Shops2.IsInflatedCollection);
+
+				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
+				Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
+
+				scope.Flush(this.model);
+
+				Assert.That(!mall.Shops.IsInflatedCollection);
+				Assert.That(!mall.Shops2.IsInflatedCollection);
+
+				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
+				Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
 			}
 		}
 

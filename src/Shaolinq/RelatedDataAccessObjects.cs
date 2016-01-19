@@ -15,25 +15,43 @@ namespace Shaolinq
 		private List<T> values;
 		private int valuesVersion;
 		public RelationshipType RelationshipType { get; }
+		public bool IsInflatedCollection => AssertValues() != null;
 		public LambdaExpression ExtraCondition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
-		public override IEnumerator<T> GetEnumerator() => this.values?.GetEnumerator() ?? base.GetEnumerator();
-
-		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, RelationshipType relationshipType)
+		public override IEnumerator<T> GetEnumerator() => this.AssertValues()?.GetEnumerator() ?? base.GetEnumerator();
+		public virtual int Count() => this.AssertValues()?.Count ?? Queryable.Count(this);
+		
+		public RelatedDataAccessObjects(IDataAccessObjectAdvanced relatedDataAccessObject, DataAccessModel dataAccessModel, string propertyName)
 			: base(dataAccessModel)
 		{
 			this.RelatedDataAccessObject = relatedDataAccessObject;
-			this.RelationshipType = relationshipType;
+			this.RelationshipType = RelationshipType.ChildOfOneToMany;
 			this.ExtraCondition = this.CreateJoinCondition();
 			this.SqlQueryProvider.RelatedDataAccessObjectContext = this;
 			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod();
 		}
-		
+
+		private List<T> AssertValues()
+		{
+			if (values == null)
+			{
+				return null;
+			}
+
+			if (valuesVersion != this.DataAccessModel.GetCurrentContext(false).GetCurrentVersion())
+			{
+				return null;
+			}
+
+			return this.values;
+		}
+
 		public virtual RelatedDataAccessObjects<T> Invalidate()
 		{
 			this.values = null;
+			this.valuesVersion = 0;
 
 			return this;
 		}
@@ -48,16 +66,34 @@ namespace Shaolinq
 			switch (cachePolicy)
 			{
 			case ToListCachePolicy.CacheOnly:
-				return new List<T>(this.values);
-			case ToListCachePolicy.IgnoreCache:
-				return Enumerable.ToList(this);
-			default:
-				return this.values ?? (IEnumerable<T>)this;
+				var retval = this.AssertValues();
+
+				if (retval == null)
+				{
+					throw new InvalidOperationException("No cached values available");
+				}
+				return retval;
+            case ToListCachePolicy.IgnoreCache:
+				return this.SqlQueryProvider.GetEnumerable<T>(this.Expression);
+            default:
+				return this;
 			}
 		}
 
 		internal void Add(T value, int version)
 		{
+			if (value == null)
+			{
+				if (this.values == null)
+				{
+					valuesVersion = version;
+
+					this.values = new List<T>();
+				}
+
+				return;
+			}
+
 			if (this.values == null)
 			{
 				valuesVersion = version;
