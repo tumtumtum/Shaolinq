@@ -328,6 +328,24 @@ namespace Shaolinq.Tests
 				};
 
 			var results = query.ToList();
+
+			var query2 =
+				from
+				shop in this.model.Shops
+				join
+				address1 in this.model.Addresses on shop.Address equals address1
+				join
+				address2 in this.model.Addresses on shop.SecondAddress equals address2
+				select
+				new
+				{
+					shop,
+					region1 = address1.Region,
+					region2 = address2.Region,
+				};
+
+
+			var result2 = query2.ToList();
 		}
 
 		[Test]
