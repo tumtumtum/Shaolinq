@@ -59,7 +59,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string, int>(default(Expression<Func<object, string>>), (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo TransactionContextGetCurrentContextVersion = TypeUtils.GetMethod(() => TransactionContext.GetCurrentContextVersion());
 		public static readonly MethodInfo DataAccessObjectExtensionsAddToCollectionMethod = TypeUtils.GetMethod(() => DataAccessObjectExtensions.AddToCollection<DataAccessObject, DataAccessObject>(null, null, null, 0)).GetGenericMethodDefinition();
-		public static readonly MethodInfo QueryableExtensionsItemsMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).EachItem()).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryableExtensionsItemsMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).IncludeInside()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableExtensionsLeftJoinMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).LeftJoin(default(IEnumerable<string>), x => "", y => "", (x, y) => "")).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableOrderByMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).OrderBy(c => c.ToString())).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableThenByMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).OrderBy(c => c.ToString()).ThenBy(c => c.ToString())).GetGenericMethodDefinition();
