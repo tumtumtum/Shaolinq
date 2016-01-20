@@ -2200,7 +2200,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.Shops.EachItem().Address)
+					.Include(c => c.Shops.IncludedItems().Address)
 					.OrderBy(c => c.Name)
 					.ToList();
 			}
@@ -2213,7 +2213,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.SisterMall.Shops.EachItem().Address).ToList();
+					.Include(c => c.SisterMall.Shops.IncludedItems().Address).ToList();
 
 				var mall = malls.First(c => c.Name.Contains("Seattle City"));
 				Assert.IsNull(mall.Address);
@@ -2347,7 +2347,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
 
@@ -2377,7 +2377,7 @@ namespace Shaolinq.Tests
 				var results = this.model.Malls
 					.Where(c => c.Name == "Seattle City")
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.Select(c => new { mall = c, shops = c.Shops })
 					.ToList();
@@ -2394,7 +2394,7 @@ namespace Shaolinq.Tests
 				var results = this.model.Malls
 					.Where(c => c.Name == "Seattle City")
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.Select(c => new { mall = c, shops = c.Shops2 })
 					.ToList();
@@ -2411,7 +2411,7 @@ namespace Shaolinq.Tests
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.OrderBy(c => c.Name)
 					.ToList();
@@ -2427,7 +2427,7 @@ namespace Shaolinq.Tests
 					.OrderBy(c => c.Name)
 					.Include(c => c.Shops)
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).EachItem().Address.Region)
+					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
 			}
