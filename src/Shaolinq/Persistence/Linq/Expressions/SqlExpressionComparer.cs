@@ -1060,15 +1060,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			foreach (var value in expression.OrderBy)
+			if (!(this.result = this.result && expression.OrderBy.Count == current.OrderBy.Count))
 			{
-				this.currentObject = current.OrderBy;
-				this.Visit(value);
-				
-				if (!result)
-				{
-					return expression;
-				}
+				return expression;
+			}
+
+			for (var i = 0; i < expression.OrderBy.Count && this.result; i++)
+			{
+				this.currentObject = current.OrderBy[i];
+				this.Visit(expression.OrderBy[i]);
 			}
 
 			if (!result)
@@ -1146,7 +1146,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = current.Type == expression.Type && current.Index == expression.Index;
+			this.result = this.result && current.Type == expression.Type && current.Index == expression.Index;
 
 			return expression;
 		}
