@@ -21,8 +21,6 @@ namespace Shaolinq
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
-		public override IEnumerator<T> GetEnumerator() => this.AssertValues()?.GetEnumerator() ?? base.GetEnumerator();
-		public virtual int Count() => this.AssertValues()?.Count ?? Queryable.Count(this);
 		
 		public RelatedDataAccessObjects(DataAccessModel dataAccessModel, IDataAccessObjectAdvanced parentDataAccessObject, string parentPropertyName)
 			: base(dataAccessModel)

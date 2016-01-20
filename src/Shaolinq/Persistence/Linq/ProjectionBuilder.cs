@@ -333,7 +333,7 @@ namespace Shaolinq.Persistence.Linq
 				var match = columns.Single(d => d.ColumnName == columnExpression.Name);
 
 				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByValuesMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
-				var property = match.ForeignType.RelationshipRelatedProperties.Single(c => c.PropertyType.GetSequenceElementType() == elementType).PropertyInfo;
+				var property = typeDescriptor.GetRelationshipInfos().Single(c => c.ReferencingProperty == match.RootProperty).TargetProperty;
 
                 return Expression.Convert(Expression.Property(reference, property), this.dataAccessModel.GetConcreteTypeFromDefinitionType(property.PropertyType));
 			}

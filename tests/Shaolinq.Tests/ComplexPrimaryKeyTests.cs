@@ -2370,6 +2370,40 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_CustomProject1()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = this.model.Malls
+					.Where(c => c.Name == "Seattle City")
+					.Include(c => c.Shops)
+					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Address)
+					.Select(c => new { mall = c, shops = c.Shops })
+					.ToList();
+
+				Assert.That(results[0].shops.Items().Count, Is.GreaterThan(0));
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_CustomProject2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = this.model.Malls
+					.Where(c => c.Name == "Seattle City")
+					.Include(c => c.Shops)
+					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Address)
+					.Select(c => new { mall = c, shops = c.Shops2 })
+					.ToList();
+
+				Assert.That(results[0].shops.Items().Count, Is.EqualTo(0));
+			}
+		}
+
+		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include2()
 		{
 			using (var scope = new TransactionScope())
