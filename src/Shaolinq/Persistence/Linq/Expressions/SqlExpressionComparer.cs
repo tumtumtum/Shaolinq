@@ -215,10 +215,19 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return constantExpression;
 			}
 
-			if (!Object.Equals(current.Value, constantExpression.Value))
+			if (!(this.result = this.result && (current.Type == constantExpression.Type)))
 			{
-				this.result = false;
+				return constantExpression;
 			}
+
+			if (typeof(Expression).IsAssignableFrom(current.Type))
+			{
+				this.result = SqlExpressionComparer.Equals((Expression)current.Value, (Expression)constantExpression.Value, options);
+
+				return constantExpression;
+			}
+
+			this.result = Object.Equals(current.Value, constantExpression.Value);
 
 			return constantExpression;
 		}

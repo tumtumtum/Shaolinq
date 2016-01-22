@@ -155,7 +155,6 @@ namespace Shaolinq.Persistence.Linq
 
 			ProjectorCacheInfo cacheInfo;
 			
-
 			var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
 			var placeholderValuesParam = Expression.Parameter(typeof(object[]));
 			var projectionLambda = projector;

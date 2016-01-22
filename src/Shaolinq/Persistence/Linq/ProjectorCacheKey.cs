@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.commandText = commandText;
 			this.projectionExpression = projectionExpression;
-			this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression);
+			this.hashCode = SqlExpressionHasher.Hash(this.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
 		}
 	}
 }

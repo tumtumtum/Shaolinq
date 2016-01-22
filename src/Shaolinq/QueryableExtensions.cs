@@ -9,7 +9,7 @@ namespace Shaolinq
 {
 	public static class QueryableExtensions
 	{
-		public static T EachItem<T>(this IQueryable<T> source)
+		public static T IncludedItems<T>(this IQueryable<T> source)
 			where T : DataAccessObject
 		{
 			return source.Provider.Execute<T>(Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));

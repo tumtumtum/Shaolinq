@@ -99,6 +99,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					this.hashCode ^= constantExpression.Value.GetHashCode();
 				}
 			}
+			else if (typeof(Expression).IsAssignableFrom(constantExpression.Type))
+			{
+				this.Visit((Expression)constantExpression.Value);
+			}
 
 			return constantExpression;
 		}
