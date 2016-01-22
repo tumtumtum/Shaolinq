@@ -222,14 +222,16 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (typeof(Expression).IsAssignableFrom(current.Type))
 			{
-				this.result = SqlExpressionComparer.Equals((Expression)current.Value, (Expression)constantExpression.Value, options);
+				this.result = this.result && SqlExpressionComparer.Equals((Expression)current.Value, (Expression)constantExpression.Value, options);
 
 				return constantExpression;
 			}
+			else
+			{
+				this.result = this.result && Object.Equals(current.Value, constantExpression.Value);
 
-			this.result = Object.Equals(current.Value, constantExpression.Value);
-
-			return constantExpression;
+				return constantExpression;
+			}
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
