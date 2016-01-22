@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -10,7 +9,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlExpressionVisitor
 	{
 		private int hashCode;
-		private SqlExpressionComparerOptions options;
+		private readonly SqlExpressionComparerOptions options;
+
+		private SqlExpressionHasher(SqlExpressionComparerOptions options)
+		{
+			this.options = options;
+		}
 
 		public static int Hash(Expression expression)
 		{
@@ -19,10 +23,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public static int Hash(Expression expression, SqlExpressionComparerOptions options)
 		{
-			var hasher = new SqlExpressionHasher
-			{
-				options = options
-			};
+			var hasher = new SqlExpressionHasher(options);
 
 			hasher.Visit(expression);
 
@@ -33,7 +34,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			if (expression != null)
 			{
-				this.hashCode ^= (int)expression.NodeType << 24;
+				this.hashCode ^= (int)expression.NodeType << 25;
 				this.hashCode ^= expression.Type.GetHashCode();
 			}
 
