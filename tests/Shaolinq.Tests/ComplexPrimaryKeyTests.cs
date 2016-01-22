@@ -328,6 +328,24 @@ namespace Shaolinq.Tests
 				};
 
 			var results = query.ToList();
+
+			var query2 =
+				from
+				shop in this.model.Shops
+				join
+				address1 in this.model.Addresses on shop.Address equals address1
+				join
+				address2 in this.model.Addresses on shop.SecondAddress equals address2
+				select
+				new
+				{
+					shop,
+					region1 = address1.Region,
+					region2 = address2.Region,
+				};
+
+
+			var result2 = query2.ToList();
 		}
 
 		[Test]
@@ -2200,7 +2218,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.Shops.EachItem().Address)
+					.Include(c => c.Shops.IncludedItems().Address)
 					.OrderBy(c => c.Name)
 					.ToList();
 			}
@@ -2213,7 +2231,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Include(c => c.SisterMall.Shops.EachItem().Address).ToList();
+					.Include(c => c.SisterMall.Shops.IncludedItems().Address).ToList();
 
 				var mall = malls.First(c => c.Name.Contains("Seattle City"));
 				Assert.IsNull(mall.Address);
@@ -2347,7 +2365,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
 
@@ -2377,7 +2395,7 @@ namespace Shaolinq.Tests
 				var results = this.model.Malls
 					.Where(c => c.Name == "Seattle City")
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.Select(c => new { mall = c, shops = c.Shops })
 					.ToList();
@@ -2394,7 +2412,7 @@ namespace Shaolinq.Tests
 				var results = this.model.Malls
 					.Where(c => c.Name == "Seattle City")
 					.Include(c => c.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.Select(c => new { mall = c, shops = c.Shops2 })
 					.ToList();
@@ -2411,7 +2429,7 @@ namespace Shaolinq.Tests
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.Shops2.EachItem().Address.Region)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.OrderBy(c => c.Name)
 					.ToList();
@@ -2427,7 +2445,7 @@ namespace Shaolinq.Tests
 					.OrderBy(c => c.Name)
 					.Include(c => c.Shops)
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).EachItem().Address.Region)
+					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
 			}

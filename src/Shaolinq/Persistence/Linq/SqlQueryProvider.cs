@@ -236,28 +236,28 @@ namespace Shaolinq.Persistence.Linq
 
 			cacheInfo.projector = projector.Compile();
 
+	        Dictionary<ProjectorCacheKey, ProjectorCacheInfo> newCache;
+
 	        if (this.SqlDatabaseContext.projectorCache.Count >= ProjectorCacheMaxLimit)
 	        {
-		        Logger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}");
+		        Logger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}\n\n{formatResult.CommandText}\n\n{projector}");
 
-		        var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default)
-		        {
-			        [key] = cacheInfo
-		        };
-
-		        this.SqlDatabaseContext.projectorCache = newCache;
-	        }
+				newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default);
+			}
 	        else
 	        {
-				var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(projectorCache, ProjectorCacheEqualityComparer.Default)
-				{
-					[key] = cacheInfo
-				};
-
-				this.SqlDatabaseContext.projectorCache = newCache;
+				newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(this.SqlDatabaseContext.projectorCache, ProjectorCacheEqualityComparer.Default);
 			}
 
-	        return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
+			Logger.Debug(() => $"Caching projection for query:\n{formatResult.CommandText}\n\nprojector:\n{projector}");
+	        
+			newCache[key] = cacheInfo;
+
+			this.SqlDatabaseContext.projectorCache = newCache;
+
+			Logger.Debug(() => $"Projector Cache Size: {newCache.Count}");
+
+			return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
 		}
 	}
 }
