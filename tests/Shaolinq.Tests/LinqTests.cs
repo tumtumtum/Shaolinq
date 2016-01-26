@@ -2397,5 +2397,17 @@ namespace Shaolinq.Tests
 				var result = this.model.Students.Any(c => c.Email != null);
 			}
 		}
+
+		[Test]
+		public void Test_StringIsNullOrEmpty()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.model
+					.Students
+					.Where(c => string.IsNullOrEmpty(c.Firstname))
+					.ToList();
+			}
+		}
 	}
 }

@@ -435,7 +435,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetPropertiesGeneratedOnTheServerSideMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPropertiesGeneratedOnTheServerSide");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var columnInfos = this.GetColumnsGeneratedOnTheServerSide();
 
@@ -1178,7 +1178,7 @@ namespace Shaolinq.TypeBuilding
 		/// </summary>
 		private void BuildHasPropertyChangedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("HasPropertyChanged");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var jumpTableList = new List<Label>();
 			var retLabel = generator.DefineLabel();
@@ -1269,7 +1269,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildSetPrimaryKeysMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetPrimaryKeys");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var i = 0;
 
@@ -1385,7 +1385,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetHashCodeAccountForServerGeneratedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetHashCodeAccountForServerGenerated");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var retval = generator.DeclareLocal(typeof(int));
 
@@ -1501,7 +1501,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildMarkServerSidePropertiesAsAppliedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("MarkServerSidePropertiesAsApplied");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 			
 			var columnInfos = this.GetColumnsGeneratedOnTheServerSide();
 
@@ -1529,7 +1529,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildEqualsAccountForServerGeneratedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("EqualsAccountForServerGenerated");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var local = generator.DeclareLocal(this.typeBuilder);
 			var returnFalseLabel = generator.DefineLabel();
@@ -1642,7 +1642,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildSwapDataMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SwapData");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var returnLabel = generator.DefineLabel();
 			var local = generator.DeclareLocal(this.typeBuilder);
@@ -1752,7 +1752,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildFinishedInitializingMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("FinishedInitializing");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
@@ -1765,7 +1765,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildResetModifiedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("ResetModified");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var returnLabel = generator.DefineLabel();
 
@@ -1795,7 +1795,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildSubmitToCacheMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SubmitToCache");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Callvirt, this.baseType.GetMethod("GetDataAccessModel", BindingFlags.Public | BindingFlags.Instance));
@@ -1810,7 +1810,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildSetIsNewMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsNew");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var label = generator.DefineLabel();
 
@@ -1834,7 +1834,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildSetIsDeflatedReferenceMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsDeflatedReference");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
@@ -1863,7 +1863,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildSetIsDeletedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("SetIsDeleted");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var label = generator.DefineLabel();
 
@@ -1928,14 +1928,10 @@ namespace Shaolinq.TypeBuilding
 
 			foreach (var propertyDescriptor in this.typeDescriptor.ComputedTextProperties)
 			{
-				foreach (var referencedPropertyName in this.GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences()))
+				if (this.GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences())
+					.Any(referencedPropertyName => referencedPropertyName == changedPropertyName))
 				{
-					if (referencedPropertyName == changedPropertyName)
-					{
-						propertyNames.Add(propertyDescriptor.PropertyName);
-
-						break;
-					}
+					propertyNames.Add(propertyDescriptor.PropertyName);
 				}
 			}
 
@@ -1946,14 +1942,10 @@ namespace Shaolinq.TypeBuilding
 
 				var referencedProperties = ReferencedPropertiesGatherer.Gather(expression, target).Select(c => c.Name).ToArray();
 				
-				foreach (var referencedPropertyName in this.GetPropertyNamesAndDependentPropertyNames(referencedProperties.Concat(propertyDescriptor.PropertyName)))
+				if (this.GetPropertyNamesAndDependentPropertyNames(referencedProperties.Concat(propertyDescriptor.PropertyName))
+					.Any(referencedPropertyName => referencedPropertyName == changedPropertyName))
 				{
-					if (referencedPropertyName == changedPropertyName)
-					{
-						propertyNames.Add(propertyDescriptor.PropertyName);
-
-						break;
-					}
+					propertyNames.Add(propertyDescriptor.PropertyName);
 				}
 			}
 
@@ -1972,10 +1964,8 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Brtrue, label);
 			}
 
-			foreach (var name in propertyNames)
+			foreach (var methodInfo in propertyNames.Select(name => this.setComputedValueMethods[name]))
 			{
-				var methodInfo = this.setComputedValueMethods[name];
-
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Call, methodInfo);
 			}
@@ -1986,24 +1976,15 @@ namespace Shaolinq.TypeBuilding
 		private void BuildComputeServerGeneratedIdDependentComputedTextPropertiesMethod()
 		{
 			var count = 0;
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("ComputeServerGeneratedIdDependentComputedTextProperties");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 			
 			foreach (var propertyDescriptor in this.typeDescriptor.ComputedTextProperties)
 			{
-				var computedTextDependsOnAutoIncrementId = false;
+				var computedTextDependsOnAutoIncrementId = this
+					.GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences())
+					.Select(propertyName => this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName))
+					.Any(referencedPropertyDescriptor => referencedPropertyDescriptor != null && referencedPropertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide);
 
-				foreach (var propertyName in this.GetPropertyNamesAndDependentPropertyNames(propertyDescriptor.ComputedTextMemberAttribute.GetPropertyReferences()))
-				{
-					var referencedPropertyDescriptor = this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName);
-
-					if (referencedPropertyDescriptor != null && referencedPropertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide)
-					{
-						computedTextDependsOnAutoIncrementId = true;
-
-						break;
-					}
-				}
-			
 				if (computedTextDependsOnAutoIncrementId)
 				{
 					generator.Emit(OpCodes.Ldarg_0);
@@ -2080,7 +2061,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetRelatedObjectPropertiesMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetRelatedObjectProperties");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var propertyDescriptors = this.typeDescriptor
 				.PersistedAndBackReferenceProperties
@@ -2115,7 +2096,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetPrimaryKeysMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPrimaryKeys");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var count = this.typeDescriptor.PrimaryKeyProperties.Count();
 			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
@@ -2139,8 +2120,7 @@ namespace Shaolinq.TypeBuilding
 					return valueField.FieldType;
 				});
 			}
-
-			// Return array
+			
 			generator.Emit(OpCodes.Ldloc, retval);
 			generator.Emit(OpCodes.Ret);
 		}
@@ -2179,7 +2159,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetPrimaryKeysForUpdateFlattenedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPrimaryKeysForUpdateFlattened");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var label = generator.DefineLabel();
 
@@ -2310,7 +2290,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetAllPropertiesMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetAllProperties");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
 			var count = this.typeDescriptor.PersistedAndBackReferenceProperties.Count;
@@ -2341,7 +2321,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetChangedPropertiesMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetChangedProperties");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 			var count = this.typeDescriptor.PersistedProperties.Count + this.typeDescriptor.RelationshipRelatedProperties.Count(c => c.BackReferenceAttribute != null);
 
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
@@ -2417,7 +2397,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetChangedPropertiesFlattenedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 			var properties = this.typeDescriptor.PersistedAndBackReferenceProperties.ToList();
 
 			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, properties);
@@ -2771,6 +2751,20 @@ namespace Shaolinq.TypeBuilding
 				this.typeBuilder.DefineMethodOverride(methodBuilder, propertyInfo.GetGetMethod());
 
 				return methodBuilder.GetILGenerator();
+			}
+		}
+
+		private ILGenerator CreateGeneratorForReflectionEmittedMethod(MethodBase methodInfo)
+		{
+			var match = Regex.Match(methodInfo.Name, "Build(.*)Method");
+
+			if (match.Success)
+			{
+				return CreateGeneratorForReflectionEmittedMethod(match.Groups[1].Value);
+			}
+			else
+			{
+				throw new InvalidOperationException($"Method {methodInfo.Name} is named incorrectly");
 			}
 		}
 

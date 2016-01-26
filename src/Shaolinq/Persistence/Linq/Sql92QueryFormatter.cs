@@ -345,7 +345,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					this.Write(result.functionPrefix);
 				}
-				
+
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
 				{
 					var requiresGrouping = result.arguments[i] is SqlSelectExpression;
@@ -399,7 +399,7 @@ namespace Shaolinq.Persistence.Linq
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
 						this.parameterValues.Add(new Tuple<Type, object>(result.argsBefore[i].Item1, result.argsBefore[i].Item2));
-						
+
 						if (i != n || (functionCallExpression.Arguments.Count > 0))
 						{
 							this.Write(", ");
@@ -455,49 +455,49 @@ namespace Shaolinq.Persistence.Linq
 
 			switch (binaryExpression.NodeType)
 			{
-				case ExpressionType.And:
-				case ExpressionType.AndAlso:
+			case ExpressionType.And:
+			case ExpressionType.AndAlso:
 				this.Write(" AND ");
-					break;
-				case ExpressionType.Or:
-				case ExpressionType.OrElse:
+				break;
+			case ExpressionType.Or:
+			case ExpressionType.OrElse:
 				this.Write(" OR ");
-					break;
-				case ExpressionType.Equal:
+				break;
+			case ExpressionType.Equal:
 				this.Write(" = ");
-					break;
-				case ExpressionType.NotEqual:
+				break;
+			case ExpressionType.NotEqual:
 				this.Write(" <> ");
-					break;
-				case ExpressionType.LessThan:
+				break;
+			case ExpressionType.LessThan:
 				this.Write(" < ");
-					break;
-				case ExpressionType.LessThanOrEqual:
+				break;
+			case ExpressionType.LessThanOrEqual:
 				this.Write(" <= ");
-					break;
-				case ExpressionType.GreaterThan:
+				break;
+			case ExpressionType.GreaterThan:
 				this.Write(" > ");
-					break;
-				case ExpressionType.GreaterThanOrEqual:
+				break;
+			case ExpressionType.GreaterThanOrEqual:
 				this.Write(" >= ");
-					break;
-				case ExpressionType.Add:
+				break;
+			case ExpressionType.Add:
 				this.Write(" + ");
-					break;
-				case ExpressionType.Subtract:
+				break;
+			case ExpressionType.Subtract:
 				this.Write(" - ");
-					break;
-				case ExpressionType.Multiply:
+				break;
+			case ExpressionType.Multiply:
 				this.Write(" * ");
-					break;
-				case ExpressionType.Divide:
+				break;
+			case ExpressionType.Divide:
 				this.Write(" / ");
-					break;
-				case ExpressionType.Assign:
+				break;
+			case ExpressionType.Assign:
 				this.Write(" = ");
-					break;
-				default:
-					throw new NotSupportedException($"The binary operator '{binaryExpression.NodeType}' is not supported");
+				break;
+			default:
+				throw new NotSupportedException($"The binary operator '{binaryExpression.NodeType}' is not supported");
 			}
 
 			this.Visit(binaryExpression.Right);

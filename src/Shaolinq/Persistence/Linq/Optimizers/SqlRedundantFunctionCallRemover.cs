@@ -19,25 +19,29 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if (functionCallExpression.Function == SqlFunction.IsNull)
 			{
-				if (functionCallExpression.Arguments[0].NodeType == ExpressionType.Constant)
+				ConstantExpression constantExpression;
+
+				if ((constantExpression = this.Visit(functionCallExpression.Arguments[0]).StripAndGetConstant()) != null)
 				{
-					return Expression.Constant(((ConstantExpression)functionCallExpression.Arguments[0]).Value == null);
+					return Expression.Constant(constantExpression.Value == null);
 				}
 
 				return functionCallExpression;
 			}
 			else if (functionCallExpression.Function == SqlFunction.IsNotNull)
 			{
-				if (functionCallExpression.Arguments[0].NodeType == ExpressionType.Constant)
+				ConstantExpression constantExpression;
+
+				if ((constantExpression = this.Visit(functionCallExpression.Arguments[0]).StripAndGetConstant()) != null)
 				{
-					return Expression.Constant(((ConstantExpression)functionCallExpression.Arguments[0]).Value != null);
+					return Expression.Constant(constantExpression.Value != null);
 				}
 
 				return functionCallExpression;
 			}
 			else if (functionCallExpression.Function == SqlFunction.In)
 			{
-				var value = this.Visit(functionCallExpression.Arguments[1]) as ConstantExpression;
+				var value = this.Visit(functionCallExpression.Arguments[1]).StripAndGetConstant();
 				
 				var sqlValuesEnumerable = value?.Value as SqlValuesEnumerable;
 
@@ -52,25 +56,24 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				var visitedArguments = this.VisitExpressionList(functionCallExpression.Arguments);
 				
-				if (visitedArguments.All(c => c is ConstantExpression))
+				if (visitedArguments.All(c => c.StripAndGetConstant() != null))
 				{
 					string result;
 					
 					switch (functionCallExpression.Arguments.Count)
 					{
 					case 2:
-						result = string.Concat((string)((ConstantExpression)visitedArguments[0]).Value, (string)((ConstantExpression)visitedArguments[1]).Value);
+						result = string.Concat((string)visitedArguments[0].StripAndGetConstant().Value, (string)visitedArguments[1].StripAndGetConstant().Value);
 						break;
 					case 3:
-						result = string.Concat((string)((ConstantExpression)visitedArguments[0]).Value, (string)((ConstantExpression)visitedArguments[1]).Value, (string)((ConstantExpression)visitedArguments[2]).Value);
+						result = string.Concat((string)visitedArguments[0].StripAndGetConstant().Value, (string)visitedArguments[1].StripAndGetConstant().Value, (string)visitedArguments[2].StripAndGetConstant().Value);
 						break;
 					case 4:
-						result = string.Concat((string)((ConstantExpression)visitedArguments[0]).Value, (string)((ConstantExpression)visitedArguments[1]).Value, (string)((ConstantExpression)visitedArguments[2]).Value, (string)((ConstantExpression)visitedArguments[3]).Value);
+						result = string.Concat((string)visitedArguments[0].StripAndGetConstant().Value, (string)visitedArguments[1].StripAndGetConstant().Value, (string)((ConstantExpression)visitedArguments[2]).Value, (string)visitedArguments[3].StripAndGetConstant().Value);
 						break;
 					default:
 						result = visitedArguments
-								.Cast<ConstantExpression>()
-								.Select(c => c.Value)
+								.Select(c => c.StripAndGetConstant().Value)
 								.Aggregate(new StringBuilder(), (s, c) => s.Append(c))
 								.ToString();
 						break;
