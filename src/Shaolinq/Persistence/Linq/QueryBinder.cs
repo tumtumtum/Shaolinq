@@ -446,43 +446,7 @@ namespace Shaolinq.Persistence.Linq
 					return new SqlFunctionCallExpression(typeof(bool), SqlFunction.CompareObject, Expression.Constant(operation), this.Visit(left), this.Visit(right));
 				}
 			}
-
-			if (binaryExpression.NodeType == ExpressionType.NotEqual
-				|| binaryExpression.NodeType == ExpressionType.Equal)
-			{
-				left = this.Visit(binaryExpression.Left);
-				right = this.Visit(binaryExpression.Right);
-
-				var leftConstantExpression = left as ConstantExpression ?? (left as SqlConstantPlaceholderExpression)?.ConstantExpression;
-				var rightConstantExpression = right as ConstantExpression ?? (right as SqlConstantPlaceholderExpression)?.ConstantExpression;
-
-				if (rightConstantExpression != null)
-				{
-					if (rightConstantExpression.Value == null)
-					{
-						if (leftConstantExpression == null || leftConstantExpression.Value != null)
-						{
-							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
-
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Left));
-						}
-					}
-				}
-
-				if (leftConstantExpression != null)
-				{
-					if (leftConstantExpression.Value == null)
-					{
-						if (rightConstantExpression == null || rightConstantExpression.Value != null)
-						{
-							var function = binaryExpression.NodeType == ExpressionType.NotEqual ? SqlFunction.IsNotNull : SqlFunction.IsNull;
-
-							return new SqlFunctionCallExpression(binaryExpression.Type, function, this.Visit(binaryExpression.Right));
-						}
-					}
-				}
-			}
-
+			
 			if (binaryExpression.NodeType == ExpressionType.Coalesce)
             {
                 left = this.Visit(binaryExpression.Left);
@@ -1249,6 +1213,12 @@ namespace Shaolinq.Persistence.Linq
 						}
 
 						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Lower, operand0);
+					}
+					case "IsNullOrEmpty":
+					{
+						var operand0 = this.Visit(methodCallExpression.Arguments[0]);
+
+						return Expression.Or(Expression.Equal(operand0, Expression.Constant(null)), Expression.Equal(operand0, Expression.Constant(string.Empty)));
 					}
 				}
 			}

@@ -14,9 +14,9 @@ namespace Shaolinq
 		where T : DataAccessObject
 	{
 		private List<T> values;
-		private IReadOnlyList<T> readOnlyValues;
 		private int valuesVersion;
-		public bool HasItems => AssertValues() != null;
+		private IReadOnlyList<T> readOnlyValues;
+		public bool HasItems => this.AssertValues() != null;
 		public LambdaExpression ExtraCondition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
@@ -37,12 +37,12 @@ namespace Shaolinq
 
 		private IReadOnlyList<T> AssertValues()
 		{
-			if (readOnlyValues == null)
+			if (this.readOnlyValues == null)
 			{
 				return null;
 			}
 
-			if (valuesVersion != this.DataAccessModel.GetCurrentContext(false).GetCurrentVersion())
+			if (this.valuesVersion != this.DataAccessModel.GetCurrentContext(false).GetCurrentVersion())
 			{
 				this.values = null;
 				this.readOnlyValues = null;
@@ -80,7 +80,7 @@ namespace Shaolinq
 			{
 				if (this.values == null)
 				{
-					valuesVersion = version;
+					this.valuesVersion = version;
 
 					this.values = new List<T>();
 					this.readOnlyValues = new ReadOnlyCollection<T>(this.values);
@@ -91,19 +91,19 @@ namespace Shaolinq
 
 			if (this.values == null)
 			{
-				valuesVersion = version;
+				this.valuesVersion = version;
 
 				this.values = new List<T> { value };
 				this.readOnlyValues = new ReadOnlyCollection<T>(this.values);
 			}
-			else if (version != valuesVersion)
+			else if (version != this.valuesVersion)
 			{
-				valuesVersion = version;
+				this.valuesVersion = version;
 
 				this.values.Clear();
 				this.values.Add(value);
 			}
-            else if (values.Count > 0)
+            else if (this.values.Count > 0)
 			{
 				if (this.values.Last() != value)
 				{

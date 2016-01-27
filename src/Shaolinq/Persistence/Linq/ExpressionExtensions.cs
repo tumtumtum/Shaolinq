@@ -127,14 +127,9 @@ namespace Shaolinq.Persistence.Linq
 			});
 		}
 
-		public static Expression StripForIncludeScanning(this Expression expression)
+		internal static Expression StripForIncludeScanning(this Expression expression)
 		{
-			if (expression == null)
-			{
-				return null;
-			}
-
-			return expression.Strip(c =>
+			return expression?.Strip(c =>
 			{
 				if (c.NodeType != ExpressionType.Call)
 				{
@@ -156,7 +151,7 @@ namespace Shaolinq.Persistence.Linq
 			});
 		}
 
-		public static Expression[] Split(this Expression expression, params ExpressionType[] binarySeparators)
+		internal static Expression[] Split(this Expression expression, params ExpressionType[] binarySeparators)
 		{
 			var list = new List<Expression>();
 
@@ -165,7 +160,7 @@ namespace Shaolinq.Persistence.Linq
 			return list.ToArray();
 		}
 
-		public static Expression Join(this IEnumerable<Expression> list, ExpressionType binarySeparator)
+		internal static Expression Join(this IEnumerable<Expression> list, ExpressionType binarySeparator)
 		{
 			var array = list?.ToArray();
 			
@@ -193,7 +188,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		public static LambdaExpression StripQuotes(this Expression expression)
+		internal static LambdaExpression StripQuotes(this Expression expression)
 		{
 			while (expression.NodeType == ExpressionType.Quote)
 			{
@@ -203,7 +198,7 @@ namespace Shaolinq.Persistence.Linq
 			return (LambdaExpression)expression;
 		}
 
-		public static Expression Strip(this Expression expression, Func<Expression, Expression> inner)
+		internal static Expression Strip(this Expression expression, Func<Expression, Expression> inner)
 		{
 			Expression result;
 
@@ -212,7 +207,65 @@ namespace Shaolinq.Persistence.Linq
 			return result;
 		}
 
-		public static bool TryStripDistinctCall(this Expression expression, out Expression result)
+		internal static Expression StripConstantWrappers(this Expression expression)
+		{
+			return expression.Strip(c =>
+			{
+				if (c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
+				{
+					return ((SqlConstantPlaceholderExpression)expression).ConstantExpression;
+				}
+
+				if (c.CanReduce)
+				{
+					var reduced = c.Reduce();
+
+					if (reduced.NodeType == ExpressionType.Constant)
+					{
+						return reduced;
+					}
+					else
+					{
+						return reduced.StripConstantWrappers();
+					}
+				}
+
+				return null;
+			});
+		}
+
+		internal static ConstantExpression StripAndGetConstant(this Expression expression)
+		{
+			return expression.Strip(c =>
+			{
+				if (c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
+				{
+					return ((SqlConstantPlaceholderExpression)expression).ConstantExpression;
+				}
+
+				if (c.CanReduce)
+				{
+					var reduced = c.Reduce();
+
+					if (reduced.NodeType == ExpressionType.Constant)
+					{
+						return reduced;
+					}
+					else if (reduced.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
+					{
+						return ((SqlConstantPlaceholderExpression)expression).ConstantExpression;
+					}
+					else
+					{
+						return reduced.StripAndGetConstant();
+					}
+				}
+
+				return null;
+			}) as ConstantExpression;
+		}
+
+		internal static bool TryStripDistinctCall(this Expression expression, out Expression result)
 		{
 			if (expression.NodeType == ExpressionType.Call)
 			{
@@ -236,7 +289,7 @@ namespace Shaolinq.Persistence.Linq
 			return false;
 		}
 
-		public static bool TryStripDefaultIfEmptyCall(this Expression expression, out Expression result, out Expression defaultIfEmptyValue, bool methodWithSelectorOnly = false)
+		internal static bool TryStripDefaultIfEmptyCall(this Expression expression, out Expression result, out Expression defaultIfEmptyValue, bool methodWithSelectorOnly = false)
 		{
 			if (expression.NodeType == ExpressionType.Call)
 			{
@@ -278,7 +331,7 @@ namespace Shaolinq.Persistence.Linq
 			return false;
 		}
 
-		public static bool TryStripDefaultIfEmptyCalls(this Expression expression, out Expression retval)
+		internal static bool TryStripDefaultIfEmptyCalls(this Expression expression, out Expression retval)
 		{
 			return expression.TryStrip(c => c.NodeType == ExpressionType.Call
 										&& (((c as MethodCallExpression)?.Method.IsGenericMethod ?? false)
@@ -288,7 +341,7 @@ namespace Shaolinq.Persistence.Linq
 										out retval);
 		}
 
-        public static bool TryStrip(this Expression expression, Func<Expression, Expression> inner, out Expression retval)
+		internal static bool TryStrip(this Expression expression, Func<Expression, Expression> inner, out Expression retval)
 		{
 			var didStrip = false;
 

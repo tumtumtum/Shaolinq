@@ -15,6 +15,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		IsNotNull,
 
 		/// <summary>
+		/// Returns null if both arguments are equal
+		/// </summary>
+		NullIf,
+
+		/// <summary>
 		/// Gets the Date's date part only
 		/// </summary>
 		Date,
