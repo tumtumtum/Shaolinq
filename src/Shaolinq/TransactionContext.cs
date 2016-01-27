@@ -22,10 +22,18 @@ namespace Shaolinq
 
 		private int version;
 		private int versionNesting;
+		private static readonly ConcurrentDictionary<Transaction, HashSet<DataAccessModel>> dataAccessModelsByTransaction = new ConcurrentDictionary<Transaction, HashSet<DataAccessModel>>(ObjectReferenceIdentityEqualityComparer<Transaction>.Default);
 
 		internal int GetCurrentVersion()
 		{
 			return version;
+		}
+
+		internal static IEnumerable<DataAccessModel> GetCurrentlyEnlistedDataAccessModels()
+		{
+			var transaction = Transaction.Current;
+
+			return transaction == null ? Enumerable.Empty<DataAccessModel>() : dataAccessModelsByTransaction[transaction];
 		}
 
 		internal class TransactionContextVersionContext
@@ -112,13 +120,16 @@ namespace Shaolinq
 			if (skipTest || !contexts.TryGetValue(transaction, out context))
 			{
 				context = new TransactionContext(transaction, dataAccessModel);
-
 				contexts[transaction] = context;
 
-				transaction.TransactionCompleted += (o, e) =>
+				HashSet<DataAccessModel> dataAccessModels;
+
+				if (!dataAccessModelsByTransaction.TryGetValue(transaction, out dataAccessModels))
 				{
-					((IDictionary<Transaction, TransactionContext>)contexts).Remove(transaction);
-				};
+					dataAccessModels = dataAccessModelsByTransaction.GetOrAdd(transaction, new HashSet<DataAccessModel>());
+				}
+
+				dataAccessModels.Add(dataAccessModel);
 
 				transaction.EnlistVolatile(context, EnlistmentOptions.None);
 			}
@@ -240,6 +251,9 @@ namespace Shaolinq
 			{
 				return;
 			}
+
+			((IDictionary<Transaction, HashSet<DataAccessModel>>)dataAccessModelsByTransaction).Remove(this.Transaction);
+			((IDictionary<Transaction, TransactionContext>)dataAccessModel.transactionContextsByTransaction).Remove(this.Transaction);
 			
 			Exception rethrowException = null;
 
@@ -294,11 +308,20 @@ namespace Shaolinq
 
 		public virtual void InDoubt(Enlistment enlistment)
 		{
-			enlistment.Done();
+			try
+			{
+				enlistment.Done();
+			}
+			finally
+			{
+				this.Dispose();
+			}
 		}
 
 		public void SinglePhaseCommit(SinglePhaseEnlistment singlePhaseEnlistment)
 		{
+			var dispose = true;
+
 			try
 			{
 				this.dataAccessObjectDataContext?.Commit(this, false);
@@ -309,6 +332,8 @@ namespace Shaolinq
 				}
 
 				singlePhaseEnlistment.Committed();
+
+				dispose = false;
 			}
 			catch (Exception e)
 			{
@@ -318,15 +343,22 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				if (dispose)
+				{
+					this.Dispose();
+				}
 			}
 		}
 
 		public virtual void Prepare(PreparingEnlistment preparingEnlistment)
 		{
+			var dispose = true;
+
 			try
 			{
 				preparingEnlistment.Prepared();
+
+				dispose = false;
 			}
 			catch (TransactionAbortedException)
 			{
@@ -337,12 +369,13 @@ namespace Shaolinq
 				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
 
 				preparingEnlistment.ForceRollback(e);
-
-				this.Dispose();
 			}
 			finally
 			{
-				this.Dispose();
+				if (dispose)
+				{
+					this.Dispose();
+				}
 			}
 		}
 

@@ -209,7 +209,7 @@ namespace Shaolinq.Tests
 				subject.NullableDateTime = nullableDateTime;
 				subject.ByteArray = byteArray;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				dbId = subject.Id;
 

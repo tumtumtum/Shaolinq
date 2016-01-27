@@ -80,7 +80,7 @@ namespace Shaolinq.Tests
 
 				student.Firstname = "StudentThatShouldNotExist";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.IsNotNull(this.model.Students.FirstOrDefault(c => c.Firstname == "StudentThatShouldNotExist"));
 			}
@@ -106,7 +106,7 @@ namespace Shaolinq.Tests
 				var address2 = this.model.Address.Create();
 				address2.Country = address2Name;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Console.WriteLine("Address1 Id: {0}", address1.Id);
 				Console.WriteLine("Address2 Id: {0}", address2.Id);

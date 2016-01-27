@@ -34,7 +34,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 				
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var student1 = school.Students.Create(); 
 				var student2 = school.Students.Create();
@@ -80,7 +80,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.IsEmpty(((IDataAccessObjectAdvanced)school).GetChangedPropertiesFlattened());
 				Assert.IsFalse(((IDataAccessObjectAdvanced)school).HasObjectChanged);
@@ -98,7 +98,7 @@ namespace Shaolinq.Tests
 
 				Assert.IsTrue(((IDataAccessObjectAdvanced)school).IsDeleted);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.IsNull(this.model.Schools.FirstOrDefault(c => c.Id == schoolId));
 
@@ -134,7 +134,7 @@ namespace Shaolinq.Tests
 				Assert.IsFalse(school.IsDeleted());
 				school.Delete();
 				Assert.IsTrue(school.IsDeleted());
-				scope.Flush(this.model);
+				scope.Flush();
 				Assert.IsTrue(school.IsDeleted());
 
 				scope.Complete();
@@ -170,7 +170,7 @@ namespace Shaolinq.Tests
 
 				school.Name = "Yoga Decorum";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 
@@ -228,7 +228,7 @@ namespace Shaolinq.Tests
 
 				school.Name = "Yoga Decorum";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 

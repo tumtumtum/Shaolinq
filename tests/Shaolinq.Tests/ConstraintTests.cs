@@ -33,7 +33,7 @@ namespace Shaolinq.Tests
 				var obj2 = this.model.ObjectWithUniqueConstraints.Create();
 				obj2.Name = "a";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				scope.Complete();
 			}

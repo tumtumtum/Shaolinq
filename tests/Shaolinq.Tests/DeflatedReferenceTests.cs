@@ -49,7 +49,7 @@ namespace Shaolinq.Tests
 				school.Name = schoolName;
 				var student = school.Students.Create();
 				student.Firstname = "Laurie";
-				scope.Flush(this.model);
+				scope.Flush();
 				schoolId = school.Id;
 
 				scope.Complete();
@@ -84,7 +84,7 @@ namespace Shaolinq.Tests
 				school.Name = schoolName;
 				var student = school.Students.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -111,7 +111,7 @@ namespace Shaolinq.Tests
 
 				school.Name = schoolName;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 
@@ -124,7 +124,7 @@ namespace Shaolinq.Tests
 
 				student.School = this.model.Schools.GetReference(schoolId);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -170,7 +170,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 
@@ -210,7 +210,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 
@@ -241,7 +241,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 
@@ -348,7 +348,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -386,7 +386,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -424,7 +424,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -462,7 +462,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 				
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -500,7 +500,7 @@ namespace Shaolinq.Tests
 
 				student.Birthdate = new DateTime(1940, 11, 27);
 				
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -541,7 +541,7 @@ namespace Shaolinq.Tests
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 				schoolId = school.Id;
@@ -685,7 +685,7 @@ namespace Shaolinq.Tests
 				dbObj.String = "foo";
 				dbObj.NullableDateTime = DateTime.UtcNow;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				id = dbObj.Id;
 
@@ -717,7 +717,7 @@ namespace Shaolinq.Tests
 				dbObj.String = "foo";
 				dbObj.NullableDateTime = DateTime.UtcNow;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				id = dbObj.Id;
 
@@ -749,7 +749,7 @@ namespace Shaolinq.Tests
 				dbObj.String = "foo";
 				dbObj.NullableDateTime = DateTime.UtcNow;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				id = dbObj.Id;
 

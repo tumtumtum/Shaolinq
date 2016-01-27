@@ -33,18 +33,18 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var obj1 = this.model.Schools.Create();
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var obj2 = this.model.Schools.Create();
-				scope.Flush(this.model);
+				scope.Flush();
 				Assert.Greater(obj2.Id, obj1.Id);
 
 				var obj3 = this.model.Schools.Create();
-				scope.Flush(this.model);
+				scope.Flush();
 				Assert.Greater(obj3.Id, obj2.Id);
 
 				var obj4 = this.model.Schools.Create();
-				scope.Flush(this.model); 
+				scope.Flush(); 
 				Assert.Greater(obj4.Id, obj3.Id);
 				
 				scope.Complete();
@@ -75,7 +75,7 @@ namespace Shaolinq.Tests
 
 				Assert.IsTrue(obj.Id != Guid.Empty);
 				
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.IsTrue(obj.Id != Guid.Empty);
 
@@ -188,7 +188,7 @@ namespace Shaolinq.Tests
 				var obj1 = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 				var obj2 = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.AreEqual(1, obj1.Id);
 				Assert.AreEqual(2, obj2.Id);
@@ -279,7 +279,7 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.Create();
 				var student = school.Students.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Create();
 				
@@ -297,7 +297,7 @@ namespace Shaolinq.Tests
 				obj2.Name = "Obj2";
 				obj2.Student = student;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -368,7 +368,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var school2 = this.model.Schools.GetByPrimaryKey(school.Id);
 			}
@@ -381,7 +381,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var school2 = this.model.Schools.GetByPrimaryKey(school);
 			}
@@ -399,7 +399,7 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.Create();
 				var student = school.Students.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				studentId = student.Id;
 
@@ -435,7 +435,7 @@ namespace Shaolinq.Tests
 				var parentObject = this.model.ObjectWithManyTypes.Create();
 				var childObject = this.model.ObjectWithDaoPrimaryKeys.Create(parentObject);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.AreEqual(parentObject, this.model.ObjectWithManyTypes.Single(c => c.Id == parentObject.Id));
 				Assert.AreEqual(childObject, this.model.ObjectWithDaoPrimaryKeys.Single(c => c.Id == parentObject));
@@ -453,7 +453,7 @@ namespace Shaolinq.Tests
 			{
 				var parentObject = this.model.ObjectWithManyTypes.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var childObject = this.model.ObjectWithDaoPrimaryKeys.Create(parentObject);
 

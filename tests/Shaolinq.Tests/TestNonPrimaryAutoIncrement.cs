@@ -30,11 +30,11 @@ namespace Shaolinq.Tests
 			{
 				var object1 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 				object1Id = object1.Id;
 
 				var object2 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
-				scope.Flush(this.model);
+				scope.Flush();
 				object2Id = object2.Id;
 
 				scope.Complete();
@@ -60,18 +60,18 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var object1 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
-				scope.Flush(this.model);
+				scope.Flush();
 				object1Id = object1.Id;
 
 				var object2 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
 				object2.SerialNumber = 1001;
-				scope.Flush(this.model);
+				scope.Flush();
 				object2Id = object2.Id;
 				Assert.AreNotEqual(0, object2.SerialNumber);
 				
 				var object3 = this.model.NonPrimaryAutoIncrementObjectWithManyTypes.Create();
 				object3.SerialNumber = 1002;
-				scope.Flush(this.model);
+				scope.Flush();
 				object3Id = object3.Id;
 				Assert.AreNotEqual(0, object3.SerialNumber);
 

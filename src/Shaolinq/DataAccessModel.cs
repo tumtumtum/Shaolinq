@@ -94,6 +94,8 @@ namespace Shaolinq
 			this.Disposed?.Invoke(this, eventArgs);
 		}
 
+		internal bool IsDisposed => this.disposed;
+
 		~DataAccessModel()
 		{
 			this.Dispose(false);
