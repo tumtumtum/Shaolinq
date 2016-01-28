@@ -13,6 +13,17 @@ namespace Shaolinq
 			dataAccessModel.Flush();
 		}
 
+		public static void Flush(this TransactionScope scope)
+		{
+			foreach (var dataAccessModel in TransactionContext.GetCurrentlyEnlistedDataAccessModels())
+			{
+				if (!dataAccessModel.IsDisposed)
+				{
+					dataAccessModel.Flush();
+				}
+			}
+		}
+
 		public static void SetReadOnly(this TransactionScope scope, DataAccessModel dataAccessModel)
 		{
 			dataAccessModel.SetCurentTransactionReadOnly();

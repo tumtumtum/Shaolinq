@@ -44,11 +44,11 @@ namespace Shaolinq.Tests
 
 				school.Name = "Bruce's Kung Fu School";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var tum = school.Students.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var count = school.Students.Count();
 
@@ -85,7 +85,7 @@ namespace Shaolinq.Tests
 				var chuck1 = school.Students.Create();
 
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var address2 = this.model.Address.Create();
 				address2.Number = 1799;
@@ -863,7 +863,7 @@ namespace Shaolinq.Tests
 
 				male.SexOptional = Sex.Male;
 
-			    scope.Flush(this.model);
+			    scope.Flush();
 
                 count = this.model.Students.Count(c => c.SexOptional == Sex.Male);
 
@@ -882,7 +882,7 @@ namespace Shaolinq.Tests
 
 				student.Sex = Sex.Female;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				student = this.model.Students.First(c => c.Id == student.Id);
 
@@ -1400,7 +1400,7 @@ namespace Shaolinq.Tests
 				product3.Name = "Belt";
 				product3.Price = 56;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var results =
 					from product in this.model.Products
@@ -1681,7 +1681,7 @@ namespace Shaolinq.Tests
 				tum2.FavouriteNumber = 36;
 				tum2.Birthdate = new DateTime(1979, 12, 24, 05, 00, 00);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var group = (from student in this.model.Students
 							 group student by student.Birthdate
@@ -1724,7 +1724,7 @@ namespace Shaolinq.Tests
 				tum2.FavouriteNumber = 36;
 				tum2.Birthdate = new DateTime(1979, 12, 24, 05, 00, 00);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var group = (from student in this.model.Students
 				             group student by student.Birthdate.GetValueOrDefault().Date

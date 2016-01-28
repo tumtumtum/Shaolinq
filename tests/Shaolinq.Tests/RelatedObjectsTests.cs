@@ -41,7 +41,7 @@ namespace Shaolinq.Tests
 				var neighbourhoodCat = parentCat.Kittens.Create();
 				neighbourhoodCat.Name = "Fluffy";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				marsId = cat.Id;
 				parentCatId = parentCat.Id;
@@ -131,7 +131,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var names = this.model.Students.Select(c => c.Firstname + "jo").ToList();
 
@@ -152,7 +152,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var students = this.model.Students.Where(c => c.Firstname == "Chuck").Select(c => c.School).ToList();
 
@@ -173,7 +173,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var schoolsAndAddresses = this.model.Students
 					.Select(c => new { c.School, c.Address}).ToList();
@@ -195,7 +195,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				//var addresses = this.model.Students
 				//.Select(c => c.School.Name == "Bruce's Kung Fu School" ? c.Address : c.Address).ToList();
@@ -221,7 +221,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 				
 				var schools = this.model.Students.Where(c => c.School == null).ToList();
 
@@ -242,7 +242,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var students = this.model.Students.Where(c => c.School == brucesSchool).ToList();
 
@@ -266,7 +266,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var values = this.model.Students.Select(c => c.School == brucesSchool  ? true : false).ToList();
 
@@ -289,7 +289,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var values = this.model.Students.Select(c => new { Nickname = c.Nickname.Substring(1) + "A", c.Sex }).ToList();
 			
@@ -312,7 +312,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var values = this.model.Students.Select(c => c.School == null ? true : false).ToList();
 
@@ -338,7 +338,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var id = brucesStudent.Address.Number;
 				var students = this.model.Students.Where(c => c.Address.Number == id).ToList();
@@ -371,7 +371,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var students = this.model.Students.Where(c => c.Address.Number == brucesStudent.Address.Number).ToList();
 
@@ -400,7 +400,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var schoolName = this.model.Students.Where(c => c == brucesStudent).Select(c => c.School.Name).First();
 
@@ -423,7 +423,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var students = this.model.Students.Where(c => c.School.Name.StartsWith("Bruce") && c.Address.Number == 0).ToList();
 
@@ -444,7 +444,7 @@ namespace Shaolinq.Tests
 
 				brucesStudent.Firstname = "Chuck";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				var students = this.model.Students.Where(c => c == brucesStudent).ToList();
 
@@ -495,7 +495,7 @@ namespace Shaolinq.Tests
 
 				Assert.AreSame(school, student.School);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 				studentId = student.Id;
@@ -536,7 +536,7 @@ namespace Shaolinq.Tests
 
 				Assert.AreSame(school, student.School);
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				schoolId = school.Id;
 				studentId = student.Id;
@@ -570,7 +570,7 @@ namespace Shaolinq.Tests
 				var anotherSchool = this.model.Schools.Create();
 				var anotherStudent = anotherSchool.Students.Create();
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.AreEqual(1, school.Students.Count());
 
@@ -598,7 +598,7 @@ namespace Shaolinq.Tests
 
 				Assert.Catch<InvalidPrimaryKeyPropertyAccessException>(() => Console.WriteLine(school.Id));
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.AreEqual(1, school.Id);
 				Assert.AreEqual(1, student.School.Id);

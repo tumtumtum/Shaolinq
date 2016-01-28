@@ -96,7 +96,7 @@ namespace Shaolinq.Tests
 				shop.Address = address;
 				shop.Address.Region = region;
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				
 				scope.Complete();
@@ -2163,7 +2163,7 @@ namespace Shaolinq.Tests
 
 				shop.Name = "Apple Store";
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				shopId = shop.Id;
 				addressId = shop.Address.Id;
@@ -2377,7 +2377,7 @@ namespace Shaolinq.Tests
 				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
 				Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
 
-				scope.Flush(this.model);
+				scope.Flush();
 
 				Assert.That(!mall.Shops.HasItems);
 				Assert.That(!mall.Shops2.HasItems);
