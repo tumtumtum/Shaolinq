@@ -76,24 +76,11 @@ namespace Shaolinq
 
 		internal void Add(T value, int version)
 		{
-			if (value == null)
-			{
-				if (this.values == null)
-				{
-					this.valuesVersion = version;
-
-					this.values = new List<T>();
-					this.readOnlyValues = new ReadOnlyCollection<T>(this.values);
-				}
-
-				return;
-			}
-
 			if (this.values == null)
 			{
 				this.valuesVersion = version;
 
-				this.values = new List<T> { value };
+				this.values = value == null ? new List<T>() : new List<T> { value };
 				this.readOnlyValues = new ReadOnlyCollection<T>(this.values);
 			}
 			else if (version != this.valuesVersion)
@@ -101,16 +88,23 @@ namespace Shaolinq
 				this.valuesVersion = version;
 
 				this.values.Clear();
-				this.values.Add(value);
-			}
-            else if (this.values.Count > 0)
-			{
-				if (this.values.Last() != value)
+
+				if (value != null)
 				{
 					this.values.Add(value);
 				}
 			}
-			else
+            else if (this.values.Count > 0)
+			{
+				if (value != null)
+				{
+					if (!this.values.Last().Equals(value))
+					{
+						this.values.Add(value);
+					}
+				}
+			}
+			else if (value != null)
 			{
 				this.values.Add(value);
 			}
