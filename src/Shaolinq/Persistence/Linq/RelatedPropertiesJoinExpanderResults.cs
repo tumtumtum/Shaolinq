@@ -74,7 +74,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			throw new InvalidOperationException();
+			return null;
 		}
 	}
 }

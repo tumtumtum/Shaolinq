@@ -252,9 +252,12 @@ namespace Shaolinq
 				return;
 			}
 
-			((IDictionary<Transaction, HashSet<DataAccessModel>>)dataAccessModelsByTransaction).Remove(this.Transaction);
-			((IDictionary<Transaction, TransactionContext>)dataAccessModel.transactionContextsByTransaction).Remove(this.Transaction);
-			
+			if (this.Transaction != null)
+			{
+				((IDictionary<Transaction, HashSet<DataAccessModel>>)dataAccessModelsByTransaction).Remove(this.Transaction);
+				((IDictionary<Transaction, TransactionContext>)dataAccessModel.transactionContextsByTransaction).Remove(this.Transaction);
+			}
+
 			Exception rethrowException = null;
 
 			foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)

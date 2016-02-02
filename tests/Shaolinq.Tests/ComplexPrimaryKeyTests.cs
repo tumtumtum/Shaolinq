@@ -2400,7 +2400,19 @@ namespace Shaolinq.Tests
 					.Select(c => new { mall = c, shops = c.Shops })
 					.ToList();
 
+				var x = results[0].shops.Items().Count;
+
 				Assert.That(results[0].shops.Items().Count, Is.GreaterThan(0));
+
+				results = this.model.Malls
+					.Where(c => c.Name == "Seattle City")
+					.Include(c => c.Shops)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
+					.Include(c => c.Address)
+					.Select(c => new { mall = c, shops = c.Shops })
+					.ToList();
+				
+				Assert.That(results[0].shops.Items().Count, Is.EqualTo(x));
 			}
 		}
 
@@ -2410,6 +2422,16 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var results = this.model.Malls
+					.Where(c => c.Name == "Seattle City")
+					.Include(c => c.Shops)
+					.Include(c => c.Shops2.IncludedItems().Address.Region)
+					.Include(c => c.Address)
+					.Select(c => new { mall = c, shops = c.Shops2 })
+					.ToList();
+
+				Assert.That(results[0].shops.Items().Count, Is.EqualTo(0));
+
+				results = this.model.Malls
 					.Where(c => c.Name == "Seattle City")
 					.Include(c => c.Shops)
 					.Include(c => c.Shops2.IncludedItems().Address.Region)
@@ -2448,6 +2470,30 @@ namespace Shaolinq.Tests
 					.Include(c => c.Shops2.OrderBy(d => d.CloseDate).IncludedItems().Address.Region)
 					.Include(c => c.Address)
 					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include4()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Malls
+					.Include(c => c.SisterMall.Shops)
+					.Include(c => c.SisterMall.Shops2);
+
+				var malls = query.ToList();
+
+				foreach (var mall in malls.Where(c => c.SisterMall != null))
+				{
+					var s1 = mall.SisterMall.Shops.Items();
+
+					Assert.AreEqual(2, s1.Count);
+
+					var s2 = mall.SisterMall.Shops2.Items();
+
+					Assert.AreEqual(0, s2.Count);
+				}
 			}
 		}
 	}
