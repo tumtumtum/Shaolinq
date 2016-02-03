@@ -524,9 +524,11 @@ namespace Shaolinq.Persistence.Linq
 				.SelectMany(d => d.TargetExpressions.Select(e => new { PropertyPath = d.FullAccessPropertyPath, Expression = e }))
 				.ToDictionary(c => c.Expression, c => c.PropertyPath);
 
-			foreach (var lambda in predicateOrSelectorLambdas)
+			foreach (var lambda in predicateOrSelectorLambdas.Select((c, idx) => new { index = idx, value = c }))
 			{
-				propertyPathsByOriginalExpression[lambda.Parameters[0]] = PropertyPath.Empty;
+				var parameterLocation = originalSelectors[lambda.index].Item1.Parameters.IndexOf(originalSelectors[lambda.index].Item2);
+
+				propertyPathsByOriginalExpression[lambda.value.Parameters[parameterLocation]] = PropertyPath.Empty;
 			}
 
 			var replacementExpressions = propertyPathsByOriginalExpression
@@ -545,13 +547,6 @@ namespace Shaolinq.Persistence.Linq
 				currentLeft = join;
 				index++;
 			}
-
-			var orderBySelectors = new List<LambdaExpression>();
-
-			
-
-
-
 
 			Func<Expression, bool, Expression> replace = null;
 

@@ -2409,5 +2409,19 @@ namespace Shaolinq.Tests
 					.ToList();
 			}
 		}
+
+		[Test, Ignore]
+		public void Test_JoinWithAnonymousTypeCondition()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query =
+					from school in this.model.Schools
+					join student in this.model.Students on new { SchoolId = school.Id, SchoolName = school.Name } equals new { SchoolId = student.School.Id, SchoolName = student.School.Name }
+					select new Tuple<School, Student>(school, student);
+
+				var results = query.ToList();
+			}
+		}
 	}
 }
