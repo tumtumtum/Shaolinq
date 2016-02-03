@@ -2228,6 +2228,8 @@ namespace Shaolinq.Persistence.Linq
 			throw new InvalidOperationException();
 		}
 
+		private readonly Dictionary<IncludedPropertyInfo, Expression> includedPropertyInfos = new Dictionary<IncludedPropertyInfo, Expression>(IncludedPropertyInfoEqualityComparer.Default);
+
 		private Expression ProcessJoins(Expression expression, List<IncludedPropertyInfo> includedPropertyInfos, int index, bool useFullPath)
 		{
 			expression = this.PrivateVisit(expression);
@@ -2278,18 +2280,18 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					if (unwrapped is MemberInitExpression)
-					{
-						var memberInitExpression = (MemberInitExpression)unwrapped;
+					var memberInitExpression = unwrapped as MemberInitExpression;
+					var newExpression = memberInitExpression == null ? unwrapped as NewExpression : null;
 
+					if (memberInitExpression != null)
+					{
 						expressionToReplace = ((MemberAssignment)memberInitExpression.Bindings.First(c => string.Compare(c.Member.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0))?.Expression;
 					}
-					else if (unwrapped is NewExpression)
+					else if (newExpression != null)
 					{
-						var currentNewExpression = (NewExpression)unwrapped;
-						var x = currentNewExpression.Constructor.GetParameters().IndexOfAny(c => String.Compare(c.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0);
+						var x = newExpression.Constructor.GetParameters().IndexOfAny(c => string.Compare(c.Name, currentPropertyName, StringComparison.InvariantCultureIgnoreCase) == 0);
 
-						expressionToReplace = currentNewExpression.Arguments[x];
+						expressionToReplace = newExpression.Arguments[x];
 					}
 					else
 					{
@@ -2298,7 +2300,7 @@ namespace Shaolinq.Persistence.Linq
 
 					var replacement = expressionToReplace;
 
-					if (index == lastIndex)
+					if (index == lastIndex && replacement.NodeType == (ExpressionType)SqlExpressionType.ObjectReference)
 					{
 						var originalReplacementExpression = this.joinExpanderResults.GetReplacementExpression(this.selectorPredicateStack.Peek(), includedPropertyInfo.FullAccessPropertyPath);
 

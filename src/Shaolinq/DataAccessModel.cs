@@ -53,7 +53,8 @@ namespace Shaolinq
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<Type, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
-		internal Dictionary<Tuple<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<Tuple<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>();
+
+		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
 		
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
 			where T : DataAccessObject

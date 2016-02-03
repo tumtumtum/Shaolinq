@@ -18,6 +18,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[BackReference]
 		public abstract Mall Mall2 { get; set; }
 
+		[BackReference]
+		public abstract Mall Mall3 { get; set; }
+
 		[PersistedMember]
 		public abstract DateTime OpeningDate { get; set; }
 

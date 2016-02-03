@@ -17,10 +17,16 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public abstract Mall SisterMall { get; set; }
 
+		[PersistedMember]
+		public abstract Mall SisterMall2 { get; set; }
+
 		[RelatedDataAccessObjects]
 		public abstract RelatedDataAccessObjects<Shop> Shops { get; }
 
 		[RelatedDataAccessObjects(BackReferenceName = "Mall2")]
 		public abstract RelatedDataAccessObjects<Shop> Shops2 { get; }
+
+		[RelatedDataAccessObjects(BackReferenceName = "Mall3")]
+		public abstract RelatedDataAccessObjects<Shop> Shops3 { get; }
 	}
 }

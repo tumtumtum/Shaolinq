@@ -82,6 +82,7 @@ namespace Shaolinq.Tests
 				sisterMall.Address.Region.Center.Magnitude = 10;
 
 				mall.SisterMall = sisterMall;
+				mall.SisterMall2 = sisterMall;
 				
 
 				shop = sisterMall.Shops.Create();
@@ -96,8 +97,13 @@ namespace Shaolinq.Tests
 				shop.Address = address;
 				shop.Address.Region = region;
 
-				scope.Flush();
+				shop = sisterMall.Shops3.Create();
+				shop.Name = "Sister Mall Store B";
+				address = this.model.Addresses.Create();
+				shop.Address = address;
+				shop.Address.Region = region;
 
+				scope.Flush();
 				
 				scope.Complete();
 			}
@@ -2480,7 +2486,7 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Malls
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.SisterMall.Shops2);
+					.Include(c => c.SisterMall2.Shops);
 
 				var malls = query.ToList();
 
@@ -2489,6 +2495,65 @@ namespace Shaolinq.Tests
 					var s1 = mall.SisterMall.Shops.Items();
 
 					Assert.AreEqual(2, s1.Count);
+
+					var s3 = mall.SisterMall2.Shops.Items();
+
+					Assert.AreEqual(2, s3.Count);
+				}
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include5()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Malls
+					.Include(c => c.SisterMall.Shops)
+					.Include(c => c.SisterMall.Shops2)
+					.Include(c => c.SisterMall.Shops3);
+
+				var malls = query.ToList();
+
+				foreach (var mall in malls.Where(c => c.SisterMall != null))
+				{
+					var s1 = mall.SisterMall.Shops.Items();
+
+					Assert.AreEqual(2, s1.Count);
+					Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+
+					var s2 = mall.SisterMall.Shops2.Items();
+					Assert.AreEqual(0, s2.Count);
+
+					var s3 = mall.SisterMall.Shops3.Items();
+					Assert.AreEqual(1, s3.Count);
+					Assert.IsTrue(s3.All(c => !c.IsDeflatedReference()));
+					Assert.AreEqual("Sister Mall Store B", s3.Single().Name);
+				}
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var query = this.model.Malls
+					.Include(c => c.Shops)
+					.Include(c => c.SisterMall.Include(d => d.Shops).Include(d => d.Shops2));
+
+				var malls = query.ToList();
+
+				foreach (var mall in malls.Where(c => c.SisterMall != null))
+				{
+					Assert.AreEqual(1, mall.Shops.Items().Count);
+					Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
+
+					var s1 = mall.SisterMall.Shops.Items();
+
+					Assert.AreEqual(2, s1.Count);
+					Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+					Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
 
 					var s2 = mall.SisterMall.Shops2.Items();
 

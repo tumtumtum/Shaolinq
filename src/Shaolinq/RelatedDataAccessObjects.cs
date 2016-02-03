@@ -14,8 +14,10 @@ namespace Shaolinq
 		where T : DataAccessObject
 	{
 		private List<T> values;
+		private HashSet<T> valuesSet;
 		private int valuesVersion;
 		private IReadOnlyList<T> readOnlyValues;
+		private readonly TypeRelationshipInfo relationshipInfo;
 		public bool HasItems => this.AssertValues() != null;
 		public LambdaExpression ExtraCondition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
@@ -29,7 +31,7 @@ namespace Shaolinq
 			this.SqlQueryProvider.RelatedDataAccessObjectContext = this;
 			
 			var parentType = this.DataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentDataAccessObject.GetType()));
-			var relationshipInfo = parentType.GetRelationshipInfos().Single(c => c.ReferencingProperty.PropertyName == parentPropertyName);
+			this.relationshipInfo = parentType.GetRelationshipInfos().Single(c => c.ReferencingProperty.PropertyName == parentPropertyName);
 
 			this.ExtraCondition = this.CreateJoinCondition(relationshipInfo.TargetProperty);
 			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod(parentType, relationshipInfo.TargetProperty);
@@ -45,6 +47,7 @@ namespace Shaolinq
 			if (this.valuesVersion != this.DataAccessModel.GetCurrentContext(false).GetCurrentVersion())
 			{
 				this.values = null;
+				this.valuesSet = null;
 				this.readOnlyValues = null;
 
 				return null;
@@ -56,6 +59,7 @@ namespace Shaolinq
 		public virtual RelatedDataAccessObjects<T> Invalidate()
 		{
 			this.values = null;
+			this.valuesSet = null;
 			this.valuesVersion = 0;
 			this.readOnlyValues = null;
 
@@ -74,6 +78,15 @@ namespace Shaolinq
 			return retval;
 		}
 
+		internal void AddIfNotExist(T value)
+		{
+			if (!valuesSet.Contains(value))
+			{
+				this.values.Add(value);
+				this.valuesSet.Add(value);
+			}
+		}
+
 		internal void Add(T value, int version)
 		{
 			if (this.values == null)
@@ -81,6 +94,7 @@ namespace Shaolinq
 				this.valuesVersion = version;
 
 				this.values = value == null ? new List<T>() : new List<T> { value };
+				this.valuesSet = new HashSet<T>(this.values);
 				this.readOnlyValues = new ReadOnlyCollection<T>(this.values);
 			}
 			else if (version != this.valuesVersion)
@@ -88,25 +102,23 @@ namespace Shaolinq
 				this.valuesVersion = version;
 
 				this.values.Clear();
+				this.valuesSet.Clear();
 
 				if (value != null)
 				{
-					this.values.Add(value);
+					AddIfNotExist(value);
 				}
 			}
             else if (this.values.Count > 0)
 			{
 				if (value != null)
 				{
-					if (!this.values.Last().Equals(value))
-					{
-						this.values.Add(value);
-					}
+					AddIfNotExist(value);
 				}
 			}
 			else if (value != null)
 			{
-				this.values.Add(value);
+				AddIfNotExist(value);
 			}
 		}
 
@@ -120,7 +132,7 @@ namespace Shaolinq
 		
 		private Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> GetInitializeRelatedMethod(TypeDescriptor parentType, PropertyDescriptor childBackReferenceProperty)
 		{
-			var key = new Tuple<Type, Type>(this.RelatedDataAccessObject.GetType(), typeof(T));
+			var key = relationshipInfo;
 			var cache = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
 
 			Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> initializeDataAccessObject;
@@ -136,7 +148,7 @@ namespace Shaolinq
 			var lambda = Expression.Lambda(body, parentObject, childObject);
 			var retval = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
 			
-			var newCache = new Dictionary<Tuple<Type, Type>, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache)
+			var newCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache)
 			{
 				[key] = retval
 			};
