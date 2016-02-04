@@ -47,6 +47,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return binaryExpression;
 			}
 
+			if (binaryExpression.Left.Type.IsDataAccessObjectType())
+			{
+				return binaryExpression;
+			}
+
 			List<Expression> left;
 			List<Expression> right;
 
