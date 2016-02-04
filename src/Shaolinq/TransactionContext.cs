@@ -13,7 +13,7 @@ using Shaolinq.Persistence;
 namespace Shaolinq
 {
 	public class TransactionContext
-		: IEnlistmentNotification, IDisposable
+		: ISinglePhaseNotification, IDisposable
 	{
 		internal static int GetCurrentContextVersion()
 		{
