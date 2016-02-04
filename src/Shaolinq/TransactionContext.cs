@@ -359,6 +359,8 @@ namespace Shaolinq
 
 			try
 			{
+				this.dataAccessObjectDataContext?.Commit(this, false);
+				
 				preparingEnlistment.Prepared();
 
 				dispose = false;
