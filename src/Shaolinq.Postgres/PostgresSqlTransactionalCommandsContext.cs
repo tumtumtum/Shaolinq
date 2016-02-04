@@ -13,11 +13,58 @@ namespace Shaolinq.Postgres
 	public class PostgresSqlTransactionalCommandsContext
 		: DefaultSqlTransactionalCommandsContext
 	{
+		private string preparedTransactionName;
+
 		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
 			: base(sqlDatabaseContext, transaction)
 		{
 		}
 
+		public override void Prepare()
+		{
+			if (this.preparedTransactionName != null)
+			{
+				throw new InvalidOperationException("Transaction already prepared");
+			}
+
+			this.preparedTransactionName = Guid.NewGuid().ToString("N");
+
+			using (var command = this.DbConnection.CreateCommand())
+			{
+				command.CommandText = $"PREPARE TRANSACTION '{this.preparedTransactionName}';";
+				command.ExecuteNonQuery();
+			}
+
+			this.dbTransaction = null;
+		}
+
+		public override void Commit()
+		{
+			if (this.preparedTransactionName != null)
+			{
+				using (var command = this.DbConnection.CreateCommand())
+				{
+					command.CommandText = $"COMMIT PREPARED '{this.preparedTransactionName}';";
+					command.ExecuteNonQuery();
+				}
+			}
+
+			base.Commit();
+		}
+
+		public override void Rollback()
+		{
+			if (this.preparedTransactionName != null)
+			{
+				using (var command = this.DbConnection.CreateCommand())
+				{
+					command.CommandText = $"ROLLBACK PREPARED '{this.preparedTransactionName}';";
+					command.ExecuteNonQuery();
+				}
+			}
+
+			base.Rollback();
+		}
 		protected override IDbDataParameter CreateParameter(IDbCommand command, string parameterName, Type type, object value)
 		{
 			var unwrapped = type.GetUnwrappedNullableType();

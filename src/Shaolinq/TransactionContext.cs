@@ -13,7 +13,7 @@ using Shaolinq.Persistence;
 namespace Shaolinq
 {
 	public class TransactionContext
-		: ISinglePhaseNotification, IDisposable
+		: IEnlistmentNotification, IDisposable
 	{
 		internal static int GetCurrentContextVersion()
 		{
@@ -284,9 +284,6 @@ namespace Shaolinq
 		{
 			try
 			{
-				// Don't properly support two-phase-commits yet
-				// This could possibly still throw and fail
-
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
 				{
 					commandsContext.Commit();
@@ -360,7 +357,15 @@ namespace Shaolinq
 			try
 			{
 				this.dataAccessObjectDataContext?.Commit(this, false);
-				
+
+				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+				{
+					if (commandsContext.SqlDatabaseContext.SupportsPreparedTransactions)
+					{
+						commandsContext.Prepare();
+					}
+				}
+
 				preparingEnlistment.Prepared();
 
 				dispose = false;

@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence
 		internal MarsDataReader currentReader;
 
 		private bool disposed;
-		public bool SupportsAsync { get; }
+		public bool SupportsAsync { get; protected set; }
 		public Transaction Transaction { get; }
 		public IDbConnection DbConnection { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence
 		public abstract IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
 
 		public virtual bool IsClosed => this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
-
+		
 		public virtual Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
 		{
 			this.Delete(deleteExpression);
@@ -133,6 +133,11 @@ namespace Shaolinq.Persistence
 			}
 
 			return retval;
+		}
+
+		public virtual void Prepare()
+		{
+			throw new NotSupportedException();
 		}
 
 		public virtual void Commit()

@@ -31,7 +31,8 @@ namespace Shaolinq.Persistence
 		public SqlQueryFormatterManager SqlQueryFormatterManager { get; protected set; }
 		public string ConnectionString { get; protected set; }
 		public string ServerConnectionString { get; protected set; }
-		
+		public bool SupportsPreparedTransactions { get; protected set; }
+
 		public abstract DbProviderFactory CreateDbProviderFactory();
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
 
