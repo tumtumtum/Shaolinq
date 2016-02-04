@@ -144,12 +144,9 @@ namespace Shaolinq.Persistence
 		{
 			try
 			{
-				if (this.dbTransaction != null)
-				{
-					this.dbTransaction.Commit();
+				this.dbTransaction?.Commit();
 
-					this.dbTransaction = null;
-				}
+				this.dbTransaction = null;
 			}
 			catch (Exception e)
 			{
@@ -163,20 +160,27 @@ namespace Shaolinq.Persistence
 
 				throw;
 			}
+			finally
+			{
+				this.CloseConnection();
+			}
 
-			this.CloseConnection();
 		}
 
 		public virtual void Rollback()
 		{
-			if (this.dbTransaction != null)
+			try
 			{
-				this.dbTransaction.Rollback();
-
-				this.dbTransaction = null;
+				if (this.dbTransaction != null)
+				{
+					this.dbTransaction.Rollback();
+					this.dbTransaction = null;
+				}
 			}
-
-			this.CloseConnection();
+			finally
+			{
+				this.CloseConnection();
+			}
 		}
 
 		protected virtual void CloseConnection()
