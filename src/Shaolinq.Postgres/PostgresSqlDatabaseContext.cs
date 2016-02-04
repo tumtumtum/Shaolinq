@@ -31,6 +31,8 @@ namespace Shaolinq.Postgres
 		protected PostgresSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresSqlDatabaseContextInfo contextInfo)
 			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
+			this.SupportsPreparedTransactions = contextInfo.EnablePreparedTransactions;
+
 			this.Host = contextInfo.ServerName;
 			this.UserId = contextInfo.UserId;
 			this.Password = contextInfo.Password;

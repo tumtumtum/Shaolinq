@@ -42,6 +42,9 @@ namespace Shaolinq.Postgres
 		[XmlAttribute]
 		public bool BackendTimeouts { get; set; } = true;
 
+		[XmlAttribute]
+		public bool EnablePreparedTransactions { get; set; }
+
 		public const int DefaultPostgresPort = 5432;
 		public const bool DefaultPooling = true;
 		public const int DefaultMaxPoolSize = 50;

@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence
 		internal MarsDataReader currentReader;
 
 		private bool disposed;
-		public bool SupportsAsync { get; }
+		public bool SupportsAsync { get; protected set; }
 		public Transaction Transaction { get; }
 		public IDbConnection DbConnection { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence
 		public abstract IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
 
 		public virtual bool IsClosed => this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
-
+		
 		public virtual Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
 		{
 			this.Delete(deleteExpression);
@@ -135,16 +135,18 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
+		public virtual void Prepare()
+		{
+			throw new NotSupportedException();
+		}
+
 		public virtual void Commit()
 		{
 			try
 			{
-				if (this.dbTransaction != null)
-				{
-					this.dbTransaction.Commit();
+				this.dbTransaction?.Commit();
 
-					this.dbTransaction = null;
-				}
+				this.dbTransaction = null;
 			}
 			catch (Exception e)
 			{
@@ -158,31 +160,37 @@ namespace Shaolinq.Persistence
 
 				throw;
 			}
+			finally
+			{
+				this.CloseConnection();
+			}
 
-			this.CloseConnection();
 		}
 
 		public virtual void Rollback()
 		{
-			if (this.dbTransaction != null)
+			try
 			{
-				this.dbTransaction.Rollback();
-
-				this.dbTransaction = null;
+				if (this.dbTransaction != null)
+				{
+					this.dbTransaction.Rollback();
+					this.dbTransaction = null;
+				}
 			}
-
-			this.CloseConnection();
+			finally
+			{
+				this.CloseConnection();
+			}
 		}
 
 		protected virtual void CloseConnection()
 		{
-			if (this.DbConnection != null)
-			{
-				this.DbConnection.Close();
+			this.currentReader?.Dispose();
+			this.currentReader = null;
 
-				this.DbConnection = null;
-			}
-
+			this.DbConnection?.Close();
+			this.DbConnection = null;
+			
 			GC.SuppressFinalize(this);
 		}
 
@@ -194,17 +202,11 @@ namespace Shaolinq.Persistence
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (this.dbTransaction != null)
-			{
-				return;
-			}
-
 			if (this.disposed)
 			{
 				return;
 			}
 
-			ActionUtils.IgnoreExceptions(() => currentReader?.Dispose());
 			ActionUtils.IgnoreExceptions(this.CloseConnection);
 
 			this.disposed = true;
