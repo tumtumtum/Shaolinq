@@ -2410,7 +2410,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_JoinWithAnonymousTypeCondition()
 		{
 			using (var scope = new TransactionScope())

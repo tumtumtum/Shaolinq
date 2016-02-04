@@ -2228,8 +2228,6 @@ namespace Shaolinq.Persistence.Linq
 			throw new InvalidOperationException();
 		}
 
-		private readonly Dictionary<IncludedPropertyInfo, Expression> includedPropertyInfos = new Dictionary<IncludedPropertyInfo, Expression>(IncludedPropertyInfoEqualityComparer.Default);
-
 		private Expression ProcessJoins(Expression expression, List<IncludedPropertyInfo> includedPropertyInfos, int index, bool useFullPath)
 		{
 			expression = this.PrivateVisit(expression);
