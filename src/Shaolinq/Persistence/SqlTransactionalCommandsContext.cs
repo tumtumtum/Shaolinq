@@ -181,13 +181,12 @@ namespace Shaolinq.Persistence
 
 		protected virtual void CloseConnection()
 		{
-			if (this.DbConnection != null)
-			{
-				this.DbConnection.Close();
+			this.currentReader?.Dispose();
+			this.currentReader = null;
 
-				this.DbConnection = null;
-			}
-
+			this.DbConnection?.Close();
+			this.DbConnection = null;
+			
 			GC.SuppressFinalize(this);
 		}
 
@@ -199,17 +198,11 @@ namespace Shaolinq.Persistence
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (this.dbTransaction != null)
-			{
-				return;
-			}
-
 			if (this.disposed)
 			{
 				return;
 			}
 
-			ActionUtils.IgnoreExceptions(() => currentReader?.Dispose());
 			ActionUtils.IgnoreExceptions(this.CloseConnection);
 
 			this.disposed = true;
