@@ -72,7 +72,7 @@ namespace Shaolinq
 		{
 			return new TransactionContextVersionContext(this);
 		}
-		
+
 		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite)
 		{
 			TransactionContext context;
@@ -85,18 +85,13 @@ namespace Shaolinq
 					throw new InvalidOperationException("Write operation must be performed inside a transaction scope");
 				}
 
-				var rootContexts = dataAccessModel.rootTransactionContexts;
+				context = dataAccessModel.asyncLocalTransactionContext.Value;
 
-                if (rootContexts == null)
-				{
-					rootContexts = dataAccessModel.rootTransactionContexts = new ConcurrentDictionary<Thread, TransactionContext>();
-				}
-
-				if (!rootContexts.TryGetValue(Thread.CurrentThread, out context))
+				if (context == null)
 				{
 					context = new TransactionContext(null, dataAccessModel);
 
-					rootContexts[Thread.CurrentThread] = context;
+					dataAccessModel.asyncLocalTransactionContext.Value = context;
 				}
 
 				return context;
@@ -209,28 +204,6 @@ namespace Shaolinq
 			}
 
 			return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, retval);
-		}
-
-		public static void FlushConnections(DataAccessModel dataAccessModel)
-		{
-			if (dataAccessModel.rootTransactionContexts == null)
-			{
-				return;
-			}
-
-			foreach (var commandsContext in dataAccessModel
-				.rootTransactionContexts
-				.Values
-				.SelectMany(context => context.commandsContextsBySqlDatabaseContexts.Values))
-			{
-				try
-				{
-					commandsContext.Dispose();
-				}
-				catch
-				{
-				}
-			}
 		}
 
 		~TransactionContext()

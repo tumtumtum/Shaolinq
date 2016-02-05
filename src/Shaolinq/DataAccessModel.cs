@@ -18,7 +18,8 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : IDisposable
 	{
-		internal ConcurrentDictionary<Thread, TransactionContext> rootTransactionContexts;
+		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = AsyncLocal<TransactionContext>.Create();
+
 		internal ConcurrentDictionary<Transaction, TransactionContext> transactionContextsByTransaction;
 
 		#region Nested Types
@@ -104,8 +105,6 @@ namespace Shaolinq
 
 		private void DisposeAllSqlDatabaseContexts()
 		{
-			TransactionContext.FlushConnections(this);
-
 			foreach (var context in this.sqlDatabaseContextsByCategory.Values.SelectMany(c => c.DatabaseContexts))
 			{
 				context.Dispose();
@@ -126,12 +125,11 @@ namespace Shaolinq
 				return;
 			}
 
-			this.rootTransactionContexts?.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
+			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionContext.Value?.Dispose());
+
+			this.asyncLocalTransactionContext.Value = null;
 			this.transactionContextsByTransaction?.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
-
-			this.rootTransactionContexts = null;
 			this.transactionContextsByTransaction = null;
-
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
 			this.OnDisposed(EventArgs.Empty);

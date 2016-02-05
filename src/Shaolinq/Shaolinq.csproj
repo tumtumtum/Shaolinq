@@ -124,6 +124,7 @@
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="AsyncEnumeratorAdapter.cs" />
+    <Compile Include="AsyncLocal.cs" />
     <Compile Include="AutoIncrementAttribute.cs" />
     <Compile Include="ComputedMemberAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
