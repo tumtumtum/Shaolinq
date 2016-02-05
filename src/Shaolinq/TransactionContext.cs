@@ -225,6 +225,8 @@ namespace Shaolinq
 				return;
 			}
 
+			this.dataAccessModel.asyncLocalTransactionContext.Dispose();
+
 			if (this.Transaction != null)
 			{
 				((IDictionary<Transaction, HashSet<DataAccessModel>>)dataAccessModelsByTransaction).Remove(this.Transaction);

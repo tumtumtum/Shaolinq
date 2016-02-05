@@ -53,7 +53,7 @@ namespace Shaolinq
 		private Dictionary<Type, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<Type, Func<IQueryable>>();
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<Type, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>();
-		private Dictionary<Type, Func<Object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
+		private Dictionary<Type, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 
 		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
 		
@@ -126,6 +126,7 @@ namespace Shaolinq
 			}
 
 			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionContext.Value?.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionContext.Dispose());
 
 			this.asyncLocalTransactionContext.Value = null;
 			this.transactionContextsByTransaction?.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));

@@ -1,9 +1,11 @@
-﻿using System;
-using System.Reflection;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 
 namespace Shaolinq
 {
 	internal class AsyncLocal<T>
+		: IDisposable
 	{
 		protected AsyncLocal()
 		{
@@ -20,32 +22,9 @@ namespace Shaolinq
 		}
 
 		public virtual T Value { get; set; }
-	}
 
-	internal class NativeAsyncLocal<T>
-		: AsyncLocal<T>
-	{
-		public static bool Supported => asyncLocalType != null;
-		private static readonly Type asyncLocalType = Type.GetType("System.Threading.AsyncLocal`1")?.MakeGenericType(typeof(T));
-
-		private readonly dynamic nativeAsyncLocal;
-
-		public NativeAsyncLocal()
+		public virtual void Dispose()
 		{
-			nativeAsyncLocal = Activator.CreateInstance(asyncLocalType);
 		}
-
-		public override T Value { get { return nativeAsyncLocal.Value; } set { nativeAsyncLocal.Value = value; } }
-	}
-
-	internal class CallContextNativeAsyncLocal<T>
-		: AsyncLocal<T>
-	{
-		private readonly string key = Guid.NewGuid().ToString("N");
-
-		public static bool Supported => callContextType != null;
-		private static readonly Type callContextType = Type.GetType("System.Runtime.Remoting.Messaging.CallContext");
-
-		public override T Value { get { return (T)callContextType.InvokeMember("LogicalGetData", BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public, null, null, new object[] { key }); } set { callContextType.InvokeMember("LogicalSetData", BindingFlags.InvokeMethod | BindingFlags.Static | BindingFlags.Public, null, null, new object[] { key, value }); } }
 	}
 }
