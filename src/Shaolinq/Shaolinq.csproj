@@ -316,7 +316,6 @@
     <Compile Include="Persistence\Linq\Expressions\SqlJoinExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlSubqueryExpression.cs" />
     <Compile Include="Persistence\Linq\Grouping.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\AggregateSubqueryMerger.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlConditionalEliminator.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlObjectOperandComparisonExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAggregateChecker.cs" />

@@ -20,7 +20,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			expression = new SqlRedundantSubqueryRemover().Visit(expression);
 			expression = SubqueryMerger.Merge(expression);
-			//expression = AggregateSubqueryMerger.Merge(expression);
 
 			return expression;
 		}

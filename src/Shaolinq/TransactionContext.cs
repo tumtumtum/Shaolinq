@@ -26,7 +26,7 @@ namespace Shaolinq
 
 		internal int GetCurrentVersion()
 		{
-			return version;
+			return this.version;
 		}
 
 		internal static IEnumerable<DataAccessModel> GetCurrentlyEnlistedDataAccessModels()
