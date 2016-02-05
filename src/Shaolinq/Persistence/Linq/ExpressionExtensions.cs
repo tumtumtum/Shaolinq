@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (select != null)
 			{
-				yield return null;
+				yield break;
 			}
 
 			var join = expression as SqlJoinExpression;

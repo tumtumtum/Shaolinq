@@ -2509,9 +2509,12 @@ namespace Shaolinq.Tests
 			using (var scope = new TransactionScope())
 			{
 				var query = this.model.Malls
+					.OrderByDescending(c => c.Name)
+					.Where(c => c.Name != "")
 					.Include(c => c.SisterMall.Shops)
 					.Include(c => c.SisterMall.Shops2)
-					.Include(c => c.SisterMall.Shops3);
+					.Include(c => c.SisterMall.Shops3)
+					.Distinct();
 
 				var malls = query.ToList();
 
