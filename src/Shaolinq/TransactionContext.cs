@@ -57,7 +57,15 @@ namespace Shaolinq
 				context.versionNesting++;
 			}
 
-			public void Dispose() => this.context.versionNesting--;
+			public void Dispose()
+			{
+				this.context.versionNesting--;
+
+				if (this.context.versionNesting == 0)
+				{
+					this.context.VersionContextFinished(this);
+				}
+			} 
 		}
 
 		private volatile bool disposed;
@@ -136,7 +144,7 @@ namespace Shaolinq
 		{
 			if (dataAccessObjectDataContext == null)
 			{
-				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext(), this.Transaction == null);
+				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext(), false);
 			}
 			
 			return this.dataAccessObjectDataContext;
@@ -165,7 +173,15 @@ namespace Shaolinq
 		private string[] databaseContextCategories;
 
 		public string DatabaseContextCategoriesKey { get; private set; }
-		
+
+		internal void VersionContextFinished(TransactionContextVersionContext versionContext)
+		{
+			if (this.Transaction == null)
+			{
+				this.dataAccessObjectDataContext = null;
+			}
+		}
+
 		public TransactionContext(Transaction transaction, DataAccessModel dataAccessModel)
 		{
 			this.dataAccessModel = dataAccessModel;

@@ -2539,29 +2539,26 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include6()
 		{
-			using (var scope = new TransactionScope())
+			var query = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.SisterMall.Include(d => d.Shops).Include(d => d.Shops2));
+
+			var malls = query.ToList();
+
+			foreach (var mall in malls.Where(c => c.SisterMall != null))
 			{
-				var query = this.model.Malls
-					.Include(c => c.Shops)
-					.Include(c => c.SisterMall.Include(d => d.Shops).Include(d => d.Shops2));
+				Assert.AreEqual(1, mall.Shops.Items().Count);
+				Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
 
-				var malls = query.ToList();
+				var s1 = mall.SisterMall.Shops.Items();
 
-				foreach (var mall in malls.Where(c => c.SisterMall != null))
-				{
-					Assert.AreEqual(1, mall.Shops.Items().Count);
-					Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
+				Assert.AreEqual(2, s1.Count);
+				Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+				Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
 
-					var s1 = mall.SisterMall.Shops.Items();
+				var s2 = mall.SisterMall.Shops2.Items();
 
-					Assert.AreEqual(2, s1.Count);
-					Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
-					Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
-
-					var s2 = mall.SisterMall.Shops2.Items();
-
-					Assert.AreEqual(0, s2.Count);
-				}
+				Assert.AreEqual(0, s2.Count);
 			}
 		}
 	}
