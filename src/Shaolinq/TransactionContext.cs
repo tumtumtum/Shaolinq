@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
