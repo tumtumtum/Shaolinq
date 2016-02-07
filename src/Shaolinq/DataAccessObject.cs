@@ -22,7 +22,8 @@ namespace Shaolinq
 	public abstract class DataAccessObject
 		: IDataAccessObjectAdvanced
 	{
-		private DataAccessModel dataAccessModel;
+		// ReSharper disable once UnassignedReadonlyField
+		protected internal DataAccessModel dataAccessModel;
 		public DataAccessModel GetDataAccessModel() => this.dataAccessModel;
 
 		public abstract ObjectPropertyValue[] GetAllProperties();
@@ -30,8 +31,8 @@ namespace Shaolinq
 		public abstract List<ObjectPropertyValue> GetChangedProperties();
 
 		public IDataAccessObjectAdvanced GetAdvanced() => this;
-		public bool IsNew() => (((IDataAccessObjectAdvanced)this).IsNew);
-		public bool IsDeleted() => (((IDataAccessObjectAdvanced)this).IsDeleted);
+		public bool IsNew() => ((IDataAccessObjectAdvanced)this).IsNew;
+		public bool IsDeleted() => ((IDataAccessObjectAdvanced)this).IsDeleted;
 		public bool IsDeflatedReference() => ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
 		public SqlDatabaseContext GetDatabaseConnection() => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
 
@@ -43,7 +44,6 @@ namespace Shaolinq
 			}
 
 			var inflated = this.dataAccessModel.Inflate(this);
-
 			this.ToObjectInternal().SwapData(inflated, true);
 
 			return this;
@@ -52,18 +52,7 @@ namespace Shaolinq
 		public virtual void Delete()
 		{
 			this.dataAccessModel.GetCurrentDataContext(true).Deleted(this);
-
 			this.ToObjectInternal().SetIsDeleted(true);
-		}
-
-		protected void SetDataAccessModel(DataAccessModel value)
-		{
-			if (this.dataAccessModel != null)
-			{
-				throw new InvalidOperationException("DataAccessModel already set");
-			}
-
-			this.dataAccessModel = value;
 		}
 
 		#region IDataAccessObjectAdvanced

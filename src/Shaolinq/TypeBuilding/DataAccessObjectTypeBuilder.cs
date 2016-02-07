@@ -13,10 +13,10 @@ using Shaolinq.Persistence.Computed;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
+// ReSharper disable UnusedMember.Local
+
 namespace Shaolinq.TypeBuilding
 {
-	// ReSharper disable UnusedMember.Local
-
 	public sealed class DataAccessObjectTypeBuilder
 	{
 		internal const string ForceSetPrefix = "$$force_set";
@@ -31,16 +31,14 @@ namespace Shaolinq.TypeBuilding
 
 		private readonly Type baseType;
 		private TypeBuilder typeBuilder;
+		private FieldInfo swappingField;
 		private FieldInfo dataObjectField;
 		private ILGenerator cctorGenerator;
-		private FieldInfo isDeflatedReferenceField;
 		private FieldInfo originalPrimaryKeyField;
+		private FieldInfo isDeflatedReferenceField;
 		private FieldInfo finishedInitializingField;
-		private FieldInfo swappingField;
-		private FieldBuilder isTransientField;
 		private FieldBuilder partialObjectStateField;
 		private TypeBuilder dataObjectTypeTypeBuilder;
-		private TypeBuilder compositePrimaryKeyTypeBuilder;
 		private readonly TypeDescriptor typeDescriptor;
 		private ConstructorBuilder dataConstructorBuilder;
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
@@ -48,9 +46,9 @@ namespace Shaolinq.TypeBuilding
 		private readonly Dictionary<string, FieldBuilder> valueFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, FieldBuilder> valueIsSetFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, FieldBuilder> valueChangedFields = new Dictionary<string, FieldBuilder>();
+		private readonly Dictionary<string, FieldBuilder> computedFuncFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, PropertyBuilder> propertyBuilders = new Dictionary<string, PropertyBuilder>();
 		private readonly Dictionary<string, MethodBuilder> setComputedValueMethods = new Dictionary<string, MethodBuilder>();
-		private readonly Dictionary<string, FieldBuilder> computedFuncFields = new Dictionary<string, FieldBuilder>();
 
 		public struct TypeBuildContext
 		{
@@ -89,12 +87,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			return this.typeDescriptorProvider.GetTypeDescriptor(type);
 		}
-
-		private void BuildCompositePrimaryKeyType()
-		{
-			this.compositePrimaryKeyTypeBuilder = this.ModuleBuilder.DefineType(this.baseType.FullName + "PrimaryKey");
-		}
-
+		
 		public void Build(TypeBuildContext typeBuildContext)
 		{
 			if (typeBuildContext.IsFirstPass())
@@ -134,8 +127,7 @@ namespace Shaolinq.TypeBuilding
 
 				this.dataObjectTypeTypeBuilder.SetCustomAttribute(attributeBuilder);
 				this.partialObjectStateField = this.dataObjectTypeTypeBuilder.DefineField("PartialObjectState", typeof(ObjectState), FieldAttributes.Public);
-				this.isTransientField = this.dataObjectTypeTypeBuilder.DefineField("IsTransient", typeof(bool), FieldAttributes.Public);
-
+				
 				this.isDeflatedReferenceField = this.dataObjectTypeTypeBuilder.DefineField("IsDeflatedReference", typeof(bool), FieldAttributes.Public);
 
 				this.dataObjectField = this.typeBuilder.DefineField(DataObjectFieldName, this.dataObjectTypeTypeBuilder, FieldAttributes.Public);
@@ -265,11 +257,11 @@ namespace Shaolinq.TypeBuilding
 
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
 				constructorGenerator.Emit(OpCodes.Ldarg_1);
-				constructorGenerator.Emit(OpCodes.Callvirt, this.baseType.GetMethod("SetDataAccessModel", BindingFlags.Instance | BindingFlags.NonPublic));
+				constructorGenerator.Emit(OpCodes.Stfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
 				constructorGenerator.Emit(OpCodes.Ldarg_2);
-				constructorGenerator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectInternal).GetMethod("SetIsNew"));
+				constructorGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.SetIsNew(default(bool))));
 
 				var skipSetDefault = constructorGenerator.DefineLabel();
 				constructorGenerator.Emit(OpCodes.Ldarg_2);
@@ -286,7 +278,7 @@ namespace Shaolinq.TypeBuilding
 						{
 							constructorGenerator.Emit(OpCodes.Ldloca, guidLocal);
 							constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
-							constructorGenerator.Emit(OpCodes.Call, propertyDescriptor.PropertyType.GetConstructor(new [] { typeof(Guid) }));
+							constructorGenerator.Emit(OpCodes.Call, TypeUtils.GetConstructor<Guid?>(() => new Guid?(Guid.Empty)));
 						}
 						else
 						{
@@ -351,7 +343,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildPrimaryKeyIsCommitReadyProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("PrimaryKeyIsCommitReady");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			var returnTrueLabel = generator.DefineLabel();
 			var returnFalseLabel = generator.DefineLabel();
@@ -407,7 +399,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 						generator.Emit(OpCodes.Ldfld, this.valueFields[propertyDescriptor.PropertyName]);
-						generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("PrimaryKeyIsCommitReady").GetGetMethod());
+						generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.PrimaryKeyIsCommitReady).GetGetMethod());
 						generator.Emit(OpCodes.Brfalse, returnFalseLabel);
 					}
 				}
@@ -752,7 +744,7 @@ namespace Shaolinq.TypeBuilding
 				valueChangedFieldInDataObject = this.dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name + HasChangedSuffix, typeof(bool), FieldAttributes.Public);
 				this.valueChangedFields[propertyInfo.Name] = valueChangedFieldInDataObject;
 
-				var valueChangedAttributeBuilder = new CustomAttributeBuilder(typeof(NonSerializedAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
+				var valueChangedAttributeBuilder = new CustomAttributeBuilder(TypeUtils.GetConstructor(() => new NonSerializedAttribute()), new object[0]);
 				valueChangedFieldInDataObject.SetCustomAttribute(valueChangedAttributeBuilder);
 
 				var valueIsSetFieldInDataObject = this.dataObjectTypeTypeBuilder.DefineField(propertyInfo.Name + IsSetSuffix, typeof(bool), FieldAttributes.Public);
@@ -903,7 +895,7 @@ namespace Shaolinq.TypeBuilding
 			switch (propertyMethodType)
 			{
 				case PropertyMethodType.Get:
-					if (currentPropertyDescriptor == null || !currentPropertyDescriptor.IsPrimaryKey)
+					if (!currentPropertyDescriptor.IsPrimaryKey)
 					{
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, this.dataObjectField);
@@ -944,7 +936,7 @@ namespace Shaolinq.TypeBuilding
 
 					// If (PrimaryKey && AutoIncrement)
 
-					if (currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey && currentPropertyDescriptor.IsAutoIncrement)
+					if (currentPropertyDescriptor.IsPrimaryKey && currentPropertyDescriptor.IsAutoIncrement)
 					{
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, this.dataObjectField);
@@ -954,7 +946,7 @@ namespace Shaolinq.TypeBuilding
 						// LogicalNot allowed to access primary key property if it's not set (not yet set by DB)
 
 						generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
-						generator.Emit(OpCodes.Newobj, typeof(InvalidPrimaryKeyPropertyAccessException).GetConstructor(new[] { typeof(string) }));
+						generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new InvalidPrimaryKeyPropertyAccessException(default(string))));
 						generator.Emit(OpCodes.Throw);
 					}
 
@@ -980,7 +972,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ceq);
 					generator.Emit(OpCodes.Brfalse, notDeletedLabel);
 					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Newobj, typeof(DeletedDataAccessObjectException).GetConstructor(new [] { typeof(IDataAccessObjectAdvanced) }));
+					generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new DeletedDataAccessObjectException(default(IDataAccessObjectAdvanced))));
 					generator.Emit(OpCodes.Throw);
 
 					generator.MarkLabel(notDeletedLabel);
@@ -1003,7 +995,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldfld, this.valueIsSetFields[propertyName]);
 						generator.Emit(OpCodes.Brfalse, skipLabel);
 
-						this.EmitUpdateComputedProperties(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
+						this.EmitUpdateComputedProperties(generator, propertyBuilder.Name, currentPropertyDescriptor.IsPrimaryKey);
 
 						generator.Emit(OpCodes.Ret);
 
@@ -1015,7 +1007,7 @@ namespace Shaolinq.TypeBuilding
 						privateGenerator = forcePropertySetMethod.GetILGenerator();
 						
 						generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
-						generator.Emit(OpCodes.Newobj, typeof(InvalidPropertyAccessException).GetConstructor(new[] { typeof(string) }));
+						generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new InvalidPropertyAccessException(default(string))));
 						generator.Emit(OpCodes.Throw);
 						generator.Emit(OpCodes.Ret);
 						
@@ -1058,7 +1050,7 @@ namespace Shaolinq.TypeBuilding
 						privateGenerator.Emit(OpCodes.Ldfld, this.valueIsSetFields[propertyName]);
 						privateGenerator.Emit(OpCodes.Brfalse, continueLabel);
 
-						this.EmitUpdateComputedProperties(generator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
+						this.EmitUpdateComputedProperties(generator, propertyBuilder.Name, currentPropertyDescriptor.IsPrimaryKey);
 
 						privateGenerator.Emit(OpCodes.Ret);
 					}
@@ -1070,7 +1062,7 @@ namespace Shaolinq.TypeBuilding
 						var skipSaving = privateGenerator.DefineLabel();
 
 						privateGenerator.Emit(OpCodes.Ldarg_0);
-						privateGenerator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsNew").GetGetMethod());
+						privateGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsNew).GetGetMethod());
 						privateGenerator.Emit(OpCodes.Brtrue, skipSaving);
 
 						privateGenerator.Emit(OpCodes.Ldarg_0);
@@ -1089,7 +1081,7 @@ namespace Shaolinq.TypeBuilding
 
 						privateGenerator.Emit(OpCodes.Ldarg_0);
 						privateGenerator.Emit(OpCodes.Ldarg_0);
-						privateGenerator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetMethod("GetPrimaryKeysFlattened"));
+						privateGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectAdvanced>(c => c.GetPrimaryKeysFlattened()));
 						privateGenerator.Emit(OpCodes.Stfld, this.originalPrimaryKeyField);
 
 						privateGenerator.MarkLabel(skipSaving);
@@ -1130,7 +1122,7 @@ namespace Shaolinq.TypeBuilding
 					if (currentPropertyDescriptor.IsPrimaryKey)
 					{
 						privateGenerator.Emit(OpCodes.Ldarg_0);
-						privateGenerator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("PrimaryKeyIsCommitReady").GetGetMethod());
+						privateGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.PrimaryKeyIsCommitReady).GetGetMethod());
 						privateGenerator.Emit(OpCodes.Brfalse, skipCachingObjectLabel);
 
 						privateGenerator.Emit(OpCodes.Ldarg_0);
@@ -1139,12 +1131,12 @@ namespace Shaolinq.TypeBuilding
 						privateGenerator.Emit(OpCodes.Brfalse, skipCachingObjectLabel);
 
 						privateGenerator.Emit(OpCodes.Ldarg_0);
-						privateGenerator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectInternal).GetMethod("SubmitToCache"));
+						privateGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.SubmitToCache()));
 						privateGenerator.Emit(OpCodes.Pop);
 					}
 
 					privateGenerator.MarkLabel(skipCachingObjectLabel);
-					this.EmitUpdateComputedProperties(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor != null && currentPropertyDescriptor.IsPrimaryKey);
+					this.EmitUpdateComputedProperties(privateGenerator, propertyBuilder.Name, currentPropertyDescriptor.IsPrimaryKey);
 
 					privateGenerator.Emit(OpCodes.Ret);
 
@@ -1305,7 +1297,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildNumberOfPrimaryKeysGeneratedOnServerSideProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfPrimaryKeysGeneratedOnServerSide");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			generator.Emit(OpCodes.Ldc_I4, this.typeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide));
 			generator.Emit(OpCodes.Ret);
@@ -1313,7 +1305,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildNumberOfPrimaryKeysProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("NumberOfPrimaryKeys");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			generator.Emit(OpCodes.Ldc_I4, this.typeDescriptor.PrimaryKeyCount);
 			generator.Emit(OpCodes.Ret);
@@ -1321,7 +1313,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildCompositeKeyTypesProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("CompositeKeyTypes");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			if (this.typeDescriptor.PrimaryKeyCount == 0)
 			{
@@ -1364,7 +1356,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildKeyTypeProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("KeyType");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			if (this.typeDescriptor.PrimaryKeyCount == 0)
 			{
@@ -1421,7 +1413,7 @@ namespace Shaolinq.TypeBuilding
 					if (valueField.FieldType.IsDataAccessObjectType())
 					{
 						generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
-						generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectInternal).GetMethod("GetHashCodeAccountForServerGenerated"));
+						generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.GetHashCodeAccountForServerGenerated()));
 					}
 					else
 					{
@@ -1548,12 +1540,12 @@ namespace Shaolinq.TypeBuilding
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
-			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys").GetGetMethod());
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
 
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
-			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys").GetGetMethod());
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
 
 			foreach (var propertyDescriptor in this.typeDescriptor.PrimaryKeyProperties)
@@ -1770,7 +1762,7 @@ namespace Shaolinq.TypeBuilding
 			var returnLabel = generator.DefineLabel();
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsDeleted").GetGetMethod());
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsDeleted).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnLabel);
 
 			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
@@ -1800,10 +1792,10 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Callvirt, this.baseType.GetMethod("GetDataAccessModel", BindingFlags.Public | BindingFlags.Instance));
 			generator.Emit(OpCodes.Ldc_I4_0);
-			generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("GetCurrentDataContext", BindingFlags.Instance | BindingFlags.Public, null, new [] { typeof(bool) }, null));
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.GetCurrentDataContext(default(bool))));
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldc_I4_0);
-			generator.Emit(OpCodes.Callvirt, typeof(DataAccessObjectDataContext).GetMethod("CacheObject", BindingFlags.Instance | BindingFlags.Public, null, new[] { typeof(DataAccessObject), typeof(bool) }, null));
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObjectDataContext>(c => c.CacheObject(default(DataAccessObject), default(bool))));
 
 			generator.Emit(OpCodes.Ret);
 		}
@@ -1843,9 +1835,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildCompoistePrimaryKeyProperty()
+		private void BuildCompositePrimaryKeyProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("CompositePrimaryKey");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			generator.Emit(OpCodes.Ldnull);
 			generator.Emit(OpCodes.Ret);
@@ -1853,7 +1845,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildIsDeflatedReferenceProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("IsDeflatedReference");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
@@ -2127,7 +2119,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildGetPrimaryKeysFlattenedMethod()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod("GetPrimaryKeysFlattened");
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 			var columnInfos = QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, this.typeDescriptor);
 
 			var count = columnInfos.Length;
@@ -2173,7 +2165,7 @@ namespace Shaolinq.TypeBuilding
 			generator.MarkLabel(label);
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetMethod("GetPrimaryKeysFlattened"));
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectAdvanced>(c => c.GetPrimaryKeysFlattened()));
 
 			generator.Emit(OpCodes.Ret);
 		}
@@ -2372,7 +2364,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildHasAnyChangedPrimaryKeyServerSidePropertiesProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, this.typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide));
 		
@@ -2425,14 +2417,14 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 		
-		private static string TrimCurrentMethodName(string methodName)
+		private static string GetNameOfPropertyBeingImplemented(MethodBase methodInfo)
 		{
-			return BuildMethodRegex.Replace(methodName, c => c.Groups[1].Value);
+			return BuildMethodRegex.Replace(methodInfo.Name, c => c.Groups[1].Value);
 		}
 
-		private void BuildIsMissingAnyPrimaryKeysMethod()
+		private void BuildIsMissingAnyPrimaryKeysProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			foreach (var primaryKeyProperty in this.typeDescriptor.PrimaryKeyProperties)
 			{
@@ -2460,7 +2452,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, this.valueFields[primaryKeyProperty.PropertyName]);
-					generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name)).GetGetMethod());
+					generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty(GetNameOfPropertyBeingImplemented(MethodBase.GetCurrentMethod())).GetGetMethod());
 					generator.Emit(OpCodes.Brfalse, skip);
 					generator.Emit(OpCodes.Ldc_I4_1);
 					generator.Emit(OpCodes.Ret);
@@ -2486,9 +2478,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildReferencesNewUncommitedRelatedObjectMethod()
+		private void BuildReferencesNewUncommitedRelatedObjectProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			foreach (var property in this.typeDescriptor.PersistedProperties.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
@@ -2508,7 +2500,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, this.valueFields[property.PropertyName]);
-				generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("ObjectState").GetGetMethod());
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.ObjectState).GetGetMethod());
 				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.New));
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, skip);
@@ -2521,9 +2513,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysMethod()
+		private void BuildIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeysProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			foreach (var primaryKeyProperty in this.typeDescriptor.PrimaryKeyProperties)
 			{
@@ -2564,7 +2556,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, this.valueFields[primaryKeyProperty.PropertyName]);
-					generator.Emit(OpCodes.Callvirt, typeof(IDataAccessObjectAdvanced).GetProperty("IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys").GetGetMethod());
+					generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys).GetGetMethod());
 					generator.Emit(OpCodes.Brfalse, skip);
 					generator.Emit(OpCodes.Ldc_I4_1);
 					generator.Emit(OpCodes.Ret);
@@ -2579,7 +2571,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildNumberOfPropertiesGeneratedOnTheServerSideProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(TrimCurrentMethodName(MethodBase.GetCurrentMethod().Name));
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			var count = this.typeDescriptor.PersistedProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 
@@ -2589,7 +2581,7 @@ namespace Shaolinq.TypeBuilding
 
 		private void BuildObjectStateProperty()
 		{
-			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter("ObjectState");
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			var notDeletedLabel = generator.DefineLabel();
 			var local = generator.DeclareLocal(typeof(ObjectState));
@@ -2624,7 +2616,6 @@ namespace Shaolinq.TypeBuilding
 				var fieldInfo = this.valueFields[propertyDescriptor.PropertyName];
 
 				// if (this.PropertyValue == null) { break }
-
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
@@ -2720,6 +2711,20 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		private ILGenerator CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase methodInfo)
+		{
+			var match = Regex.Match(methodInfo.Name, "Build(.*)Property");
+
+			if (match.Success)
+			{
+				return CreateGeneratorForReflectionEmittedPropertyGetter(match.Groups[1].Value);
+			}
+			else
+			{
+				throw new InvalidOperationException($"Method {methodInfo.Name} is named incorrectly");
+			}
+		}
+
 		private ILGenerator CreateGeneratorForReflectionEmittedPropertyGetter(string propertyName)
 		{
 			var propertyInfo = this.typeBuilder.BaseType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
@@ -2779,12 +2784,7 @@ namespace Shaolinq.TypeBuilding
 			
 			if (methodInfo == null)
 			{
-				methodInfo = typeof(IDataAccessObjectAdvanced).GetMethod(methodName);
-
-				if (methodInfo == null)
-				{
-					methodInfo = typeof(IDataAccessObjectInternal).GetMethod(methodName);
-				}
+				methodInfo = typeof(IDataAccessObjectAdvanced).GetMethod(methodName) ?? typeof(IDataAccessObjectInternal).GetMethod(methodName);
 
 				interfaceMethodBeingOveridden = methodInfo;
 				callingConventions = methodInfo.CallingConvention;
@@ -2812,6 +2812,4 @@ namespace Shaolinq.TypeBuilding
 			return methodBuilder.GetILGenerator();
 		}
 	}
-
-	// ReSharper restore UnusedMember.Local
 }
