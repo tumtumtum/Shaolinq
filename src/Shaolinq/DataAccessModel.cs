@@ -17,9 +17,9 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : IDisposable
 	{
-		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = new AsyncLocal<TransactionContext>();
+		internal readonly AsyncLocal<DataAccessModelTransactionContext> asyncLocalTransactionContext = new AsyncLocal<DataAccessModelTransactionContext>();
 
-		internal ConcurrentDictionary<DataAccessTransaction, TransactionContext> transactionContextsByTransaction;
+		internal ConcurrentDictionary<DataAccessTransaction, DataAccessModelTransactionContext> transactionContextsByTransaction;
 
 		#region Nested Types
 		private class RawPrimaryKeysPlaceholderType<T>
@@ -85,9 +85,9 @@ namespace Shaolinq
 			return func();
 		}
 
-		public TransactionContext GetCurrentContext(bool forWrite)
+		public DataAccessModelTransactionContext GetCurrentContext(bool forWrite)
 		{
-			return TransactionContext.GetCurrentContext(this, forWrite);
+			return DataAccessModelTransactionContext.GetCurrentContext(this, forWrite);
 		}
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
@@ -152,12 +152,12 @@ namespace Shaolinq
 
 		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
-			return TransactionContext.GetCurrentContext(this, forWrite).GetCurrentDataContext();
+			return DataAccessModelTransactionContext.GetCurrentContext(this, forWrite).GetCurrentDataContext();
 		}
 
 		public SqlTransactionalCommandsContext GetCurrentSqlDatabaseTransactionContext()
 		{
-			return TransactionContext.GetCurrentContext(this, true).GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
+			return DataAccessModelTransactionContext.GetCurrentContext(this, true).GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
 		}
 
 		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
@@ -612,7 +612,7 @@ namespace Shaolinq
 
 		public virtual SqlDatabaseContext GetCurrentSqlDatabaseContext()
 		{
-			var forWrite = Transaction.Current != null;
+			var forWrite = DataAccessTransaction.Current != null;
 
 			var transactionContext = this.GetCurrentContext(forWrite);
 

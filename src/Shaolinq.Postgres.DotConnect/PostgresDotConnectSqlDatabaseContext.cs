@@ -75,7 +75,7 @@ namespace Shaolinq.Postgres.DotConnect
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
         }
 
-        public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
+        public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
         {
             return new PostgresDotConnectSqlTransactionalCommandsContext(this, transaction);
         }

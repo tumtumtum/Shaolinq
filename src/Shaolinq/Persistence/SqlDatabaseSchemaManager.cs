@@ -65,6 +65,8 @@ namespace Shaolinq.Persistence
 							command.ExecuteNonQuery();
 						}
 					}
+
+					dataTransactionContext.Commit();
 				}
 
 				scope.Complete();

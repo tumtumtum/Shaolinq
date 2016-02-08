@@ -15,7 +15,7 @@ namespace Shaolinq.Postgres
 	{
 		private string preparedTransactionName;
 
-		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
+		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, DataAccessTransaction transaction)
 			: base(sqlDatabaseContext, transaction)
 		{
 		}
@@ -29,7 +29,7 @@ namespace Shaolinq.Postgres
 
 			this.preparedTransactionName = Guid.NewGuid().ToString("N");
 
-			using (var command = this.DbConnection.CreateCommand())
+			using (var command = this.CreateCommand())
 			{
 				command.CommandText = $"PREPARE TRANSACTION '{this.preparedTransactionName}';";
 				command.ExecuteNonQuery();
@@ -42,7 +42,7 @@ namespace Shaolinq.Postgres
 		{
 			if (this.preparedTransactionName != null)
 			{
-				using (var command = this.DbConnection.CreateCommand())
+				using (var command = this.CreateCommand())
 				{
 					command.CommandText = $"COMMIT PREPARED '{this.preparedTransactionName}';";
 					command.ExecuteNonQuery();
@@ -56,7 +56,7 @@ namespace Shaolinq.Postgres
 		{
 			if (this.preparedTransactionName != null)
 			{
-				using (var command = this.DbConnection.CreateCommand())
+				using (var command = this.CreateCommand())
 				{
 					command.CommandText = $"ROLLBACK PREPARED '{this.preparedTransactionName}';";
 					command.ExecuteNonQuery();

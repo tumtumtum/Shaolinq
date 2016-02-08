@@ -30,6 +30,11 @@ namespace Shaolinq
 			set { CallContext.LogicalSetData(this.key, new Container(value)); }
 		}
 
+		public CallContextNativeAsyncLocal()
+			: base(true)
+		{	
+		}
+
 		public override void Dispose()
 		{
 			CallContext.FreeNamedDataSlot(this.key);

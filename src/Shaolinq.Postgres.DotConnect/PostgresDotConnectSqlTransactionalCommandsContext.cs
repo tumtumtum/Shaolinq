@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Data;
-using System.Transactions;
+using System.Data;w
 using Devart.Data.PostgreSql;
 using Shaolinq.Persistence;
 
@@ -10,7 +9,7 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectSqlTransactionalCommandsContext
 		: DefaultSqlTransactionalCommandsContext
 	{
-		public PostgresDotConnectSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, Transaction transaction)
+		public PostgresDotConnectSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, DataAccessTransaction transaction)
 			: base(sqlDatabaseContext, transaction)
 		{
 		}

@@ -38,7 +38,7 @@ namespace Shaolinq.MySql
 			this.SchemaManager = new MySqlSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
+		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
 		{
 			return new DefaultSqlTransactionalCommandsContext(this, transaction);
 		}

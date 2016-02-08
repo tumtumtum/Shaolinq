@@ -72,7 +72,7 @@ namespace Shaolinq.Postgres
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
+		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
 		{
 			return new PostgresSqlTransactionalCommandsContext(this, transaction);
 		}

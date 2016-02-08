@@ -34,6 +34,7 @@ namespace Shaolinq
 		private readonly object nativeAsyncLocal;
 
 		public NativeAsyncLocal()
+			: base(true)
 		{
 			this.nativeAsyncLocal = createAsyncLocalFunc();
 		}

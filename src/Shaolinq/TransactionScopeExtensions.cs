@@ -15,7 +15,7 @@ namespace Shaolinq
 
 		public static void Flush(this TransactionScope scope)
 		{
-			foreach (var dataAccessModel in TransactionContext.GetCurrentlyEnlistedDataAccessModels())
+			foreach (var dataAccessModel in DataAccessModelTransactionContext.GetCurrentlyEnlistedDataAccessModels())
 			{
 				if (!dataAccessModel.IsDisposed)
 				{

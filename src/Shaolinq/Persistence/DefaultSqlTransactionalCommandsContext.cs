@@ -89,8 +89,8 @@ namespace Shaolinq.Persistence
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		protected readonly string parameterIndicatorPrefix;
 		
-		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, DataAccessIsolationLevel isolationLevel)
-			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection(), isolationLevel)
+		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, DataAccessTransaction transaction)
+			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection(), transaction)
 		{
 			this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
 			this.tableNamePrefix = sqlDatabaseContext.TableNamePrefix;

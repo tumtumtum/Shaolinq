@@ -8,11 +8,11 @@ namespace Shaolinq
 	public class DatabaseTransactionContextAcquisition
 		: IDisposable
 	{
-		public TransactionContext TransactionContext { get; }
+		public DataAccessModelTransactionContext TransactionContext { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 		public SqlTransactionalCommandsContext SqlDatabaseCommandsContext { get; }
 
-		public DatabaseTransactionContextAcquisition(TransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
+		public DatabaseTransactionContextAcquisition(DataAccessModelTransactionContext transactionContext, SqlDatabaseContext sqlDatabaseContext, SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
 		{
 			this.TransactionContext = transactionContext;
 			this.SqlDatabaseContext = sqlDatabaseContext;
@@ -21,7 +21,7 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
-			if (this.TransactionContext.Transaction == null)
+			if (this.TransactionContext.DataAccessTransaction == null)
 			{
 				this.SqlDatabaseCommandsContext.Dispose();
 			}

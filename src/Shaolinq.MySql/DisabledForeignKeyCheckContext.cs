@@ -13,7 +13,7 @@ namespace Shaolinq.MySql
 		{
 			this.context = context;
 
-			var command = ((DefaultSqlTransactionalCommandsContext)context).DbConnection.CreateCommand();
+			var command = ((DefaultSqlTransactionalCommandsContext)context).CreateCommand();
 
 			command.CommandText = "SET FOREIGN_KEY_CHECKS = 0;";
 
@@ -22,7 +22,7 @@ namespace Shaolinq.MySql
 
 		public virtual void Dispose()
 		{
-			var command = ((DefaultSqlTransactionalCommandsContext) this.context).DbConnection.CreateCommand();
+			var command = ((DefaultSqlTransactionalCommandsContext) this.context).CreateCommand();
 
 			command.CommandText = "SET FOREIGN_KEY_CHECKS = 1;";
 

@@ -115,7 +115,7 @@ namespace Shaolinq.SqlServer
 			this.SchemaManager = new SqlServerSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
+		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
 		{
 			return new SqlServerSqlTransactionsCommandContext(this, transaction);
 		}

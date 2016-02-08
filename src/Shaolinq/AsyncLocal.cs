@@ -21,7 +21,14 @@ namespace Shaolinq
 
 		public AsyncLocal()
 		{
-			this.internalAsyncLocal = Create();
+			if (this.GetType() == typeof(AsyncLocal<T>))
+			{
+				this.internalAsyncLocal = Create();
+			}
+		}
+
+		protected AsyncLocal(bool fromSubClass)
+		{
 		}
 
 		public virtual T Value { get { return this.internalAsyncLocal.Value; } set { this.internalAsyncLocal.Value = value; } }

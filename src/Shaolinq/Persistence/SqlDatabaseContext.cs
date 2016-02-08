@@ -36,7 +36,7 @@ namespace Shaolinq.Persistence
 		public abstract DbProviderFactory CreateDbProviderFactory();
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
 
-		public virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(Transaction transaction)
+		public virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
 		{
 			return new DefaultSqlTransactionalCommandsContext(this, transaction);
 		}
