@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Data;w
+using System.Data;
 using Devart.Data.PostgreSql;
 using Shaolinq.Persistence;
 
