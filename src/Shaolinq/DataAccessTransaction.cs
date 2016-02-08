@@ -1,62 +1,10 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections.Generic;
 using System.Transactions;
 
 namespace Shaolinq
 {
-	public class DataAccessTransactionAbortedException
-		: Exception
-	{
-	}
-
-	public class DataAccessScope
-		: IDisposable
-	{
-		DataAccessIsolationLevel IsolationLevel { get; set; }
-
-		private bool complete;
-		private readonly DataAccessTransaction transaction;
-
-		public DataAccessScope()
-		{	
-		}
-
-		public DataAccessScope(DataAccessIsolationLevel isolationLevel)
-		{
-			this.IsolationLevel = isolationLevel;
-
-			if (DataAccessTransaction.Current == null)
-			{
-				this.transaction = new DataAccessTransaction();
-
-				DataAccessTransaction.Current = transaction;
-			}
-		}
-
-		public void Complete()
-		{
-			this.complete = true;
-		}
-
-		public void Dispose()
-		{
-			if (!complete)
-			{
-				throw new DataAccessTransactionAbortedException();
-			}
-
-			if (this.transaction != null && this.transaction.SystemTransaction == null)
-			{
-				foreach (var dataAccessModel in this.transaction.dataAccessModels)
-				{
-					dataAccessModel.asyncLocalTransactionContext.Value.Commit();
-				}
-			}
-		}
-	}
-
 	public class DataAccessTransaction
 	{
 		private static readonly AsyncLocal<DataAccessTransaction> current = new AsyncLocal<DataAccessTransaction>();
@@ -86,15 +34,26 @@ namespace Shaolinq
 			}
 		}
 
-		internal HashSet<DataAccessModel> dataAccessModels = new HashSet<DataAccessModel>();
-
+		internal bool aborted;
 		internal Transaction SystemTransaction { get; set; }
+		internal bool HasSystemTransaction => this.SystemTransaction != null;
+		internal Dictionary<TransactionContext, DataAccessModel> dataAccessModelsByTransactionContext = new Dictionary<TransactionContext, DataAccessModel>();
+		
 		public DataAccessIsolationLevel IsolationLevel { get; set; } = DataAccessIsolationLevel.Unspecified;
-		public bool HasAborted => this.SystemTransaction.TransactionInformation.Status == TransactionStatus.Aborted;
+		public bool HasAborted => this.aborted|| this.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted;
+
+		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext.Values;
 
 		public DataAccessTransaction()
 		{
 			this.SystemTransaction = Transaction.Current;
+		}
+
+		public void AddTransactionContext(TransactionContext context)
+		{
+			this.dataAccessModelsByTransactionContext[context] = context.dataAccessModel;
+
+			this.SystemTransaction?.EnlistVolatile(context, EnlistmentOptions.None);
 		}
 	}
 }

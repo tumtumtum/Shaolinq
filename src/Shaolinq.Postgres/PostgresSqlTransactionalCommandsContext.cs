@@ -7,6 +7,7 @@ using Shaolinq.Persistence;
 using Npgsql;
 using NpgsqlTypes;
 using Platform;
+using System.Threading.Tasks;
 
 namespace Shaolinq.Postgres
 {
@@ -36,6 +37,13 @@ namespace Shaolinq.Postgres
 			}
 
 			this.dbTransaction = null;
+		}
+
+		protected override async Task CommitTransactionAsync()
+		{
+			var transaction = this.dbTransaction as NpgsqlTransaction;
+
+			await transaction.CommitAsync();
 		}
 
 		public override void Commit()

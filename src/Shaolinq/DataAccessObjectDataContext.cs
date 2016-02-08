@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -538,7 +539,12 @@ namespace Shaolinq
 
 		private bool isCommiting;
 
-		public virtual void Commit(DataAccessModelTransactionContext dataAccessModelTransactionContext, bool forFlush)
+		public virtual async Task CommitAsync(TransactionContext transactionContext, bool forFlush)
+		{
+			this.Commit(transactionContext, forFlush);
+		}
+
+		public virtual void Commit(TransactionContext transactionContext, bool forFlush)
 		{
 			var acquisitions = new HashSet<DatabaseTransactionContextAcquisition>();
 
@@ -553,9 +559,9 @@ namespace Shaolinq
 				{
 					this.isCommiting = true;
 
-					this.CommitNew(acquisitions, dataAccessModelTransactionContext);
-					this.CommitUpdated(acquisitions, dataAccessModelTransactionContext);
-					this.CommitDeleted(acquisitions, dataAccessModelTransactionContext);
+					this.CommitNew(acquisitions, transactionContext);
+					this.CommitUpdated(acquisitions, transactionContext);
+					this.CommitDeleted(acquisitions, transactionContext);
 				}
 				finally
 				{
@@ -590,42 +596,42 @@ namespace Shaolinq
 			}
 		}
 
-		private static void CommitDeleted(SqlDatabaseContext sqlDatabaseContext, IObjectsByIdCache cache, HashSet<DatabaseTransactionContextAcquisition> acquisitions, DataAccessModelTransactionContext dataAccessModelTransactionContext)
+		private static void CommitDeleted(SqlDatabaseContext sqlDatabaseContext, IObjectsByIdCache cache, HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			var acquisition = dataAccessModelTransactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
 
 			acquisitions.Add(acquisition);
 
 			acquisition.SqlDatabaseCommandsContext.Delete(cache.Type, cache.GetDeletedObjects());
 		}
 
-		private void CommitDeleted(HashSet<DatabaseTransactionContextAcquisition> acquisitions, DataAccessModelTransactionContext dataAccessModelTransactionContext)
+		private void CommitDeleted(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
 			foreach (var cache in this.cachesByType)
 			{
-				CommitDeleted(this.SqlDatabaseContext, cache.Value, acquisitions, dataAccessModelTransactionContext);
+				CommitDeleted(this.SqlDatabaseContext, cache.Value, acquisitions, transactionContext);
 			}
 		}
 
-		private static void CommitUpdated(SqlDatabaseContext  sqlDatabaseContext, IObjectsByIdCache cache, HashSet<DatabaseTransactionContextAcquisition> acquisitions, DataAccessModelTransactionContext dataAccessModelTransactionContext)
+		private static void CommitUpdated(SqlDatabaseContext  sqlDatabaseContext, IObjectsByIdCache cache, HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
-			var acquisition = dataAccessModelTransactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
 
 			acquisitions.Add(acquisition);
 			acquisition.SqlDatabaseCommandsContext.Update(cache.Type, cache.GetObjectsById());
 		}
 
-		private void CommitUpdated(HashSet<DatabaseTransactionContextAcquisition> acquisitions, DataAccessModelTransactionContext dataAccessModelTransactionContext)
+		private void CommitUpdated(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
 			foreach (var cache in this.cachesByType)
 			{
-				CommitUpdated(this.SqlDatabaseContext, cache.Value, acquisitions, dataAccessModelTransactionContext);
+				CommitUpdated(this.SqlDatabaseContext, cache.Value, acquisitions, transactionContext);
 			}
 		}
 
-		private static void CommitNewPhase1(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, IObjectsByIdCache cache, DataAccessModelTransactionContext dataAccessModelTransactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>> fixups)
+		private static void CommitNewPhase1(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, IObjectsByIdCache cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>> fixups)
 		{
-			var acquisition = dataAccessModelTransactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
 
 			acquisitions.Add(acquisition);
 
@@ -645,14 +651,14 @@ namespace Shaolinq
 			}
 		}
 
-		private void CommitNew(HashSet<DatabaseTransactionContextAcquisition> acquisitions, DataAccessModelTransactionContext dataAccessModelTransactionContext)
+		private void CommitNew(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
 		{
 			var fixups = new Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>>();
 			var insertResultsByType = new Dictionary<TypeAndTransactionalCommandsContext, InsertResults>();
 
 			foreach (var value in this.cachesByType.Values)
 			{
-				CommitNewPhase1(this.SqlDatabaseContext, acquisitions, value, dataAccessModelTransactionContext, insertResultsByType, fixups);
+				CommitNewPhase1(this.SqlDatabaseContext, acquisitions, value, transactionContext, insertResultsByType, fixups);
 			}
 
 			var currentInsertResultsByType = insertResultsByType;

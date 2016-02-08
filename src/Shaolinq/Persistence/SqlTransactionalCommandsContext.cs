@@ -135,11 +135,23 @@ namespace Shaolinq.Persistence
 			throw new NotSupportedException();
 		}
 
+		protected virtual void CommitTransaction()
+		{
+			this.dbTransaction?.Commit();
+		}
+
+#pragma warning disable 1998
+		protected virtual async Task CommitTransactionAsync()
+		{
+			CommitTransaction();
+		}
+#pragma warning restore 1998
+
 		public virtual void Commit()
 		{
 			try
 			{
-				this.dbTransaction?.Commit();
+				this.CommitTransaction();
 
 				this.dbTransaction = null;
 			}
@@ -159,8 +171,35 @@ namespace Shaolinq.Persistence
 			{
 				this.CloseConnection();
 			}
-
 		}
+
+#pragma warning disable 1998
+		public virtual async Task CommitAsync()
+		{
+			try
+			{
+				await this.CommitTransactionAsync();
+
+				this.dbTransaction = null;
+			}
+			catch (Exception e)
+			{
+				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
+
+				if (decoratedException != e)
+				{
+					throw decoratedException;
+				}
+
+				throw;
+			}
+			finally
+			{
+				this.CloseConnection();
+			}
+		}
+#pragma warning restore 1998
 
 		public virtual void Rollback()
 		{

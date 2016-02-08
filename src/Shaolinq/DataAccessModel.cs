@@ -4,9 +4,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
@@ -17,9 +20,8 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : IDisposable
 	{
-		internal readonly AsyncLocal<DataAccessModelTransactionContext> asyncLocalTransactionContext = new AsyncLocal<DataAccessModelTransactionContext>();
-
-		internal ConcurrentDictionary<DataAccessTransaction, DataAccessModelTransactionContext> transactionContextsByTransaction;
+		internal ConcurrentDictionary<DataAccessTransaction, TransactionContext> transactionContextsByTransaction;
+		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = new AsyncLocal<TransactionContext>();
 
 		#region Nested Types
 		private class RawPrimaryKeysPlaceholderType<T>
@@ -68,8 +70,9 @@ namespace Shaolinq
 
 			if (!this.createDataAccessObjectsFuncs.TryGetValue(type, out func))
 			{
-				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type)
-					.GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression) });
+				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type).GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression) });
+
+				Debug.Assert(constructor != null);
 
 				var body = Expression.Convert(Expression.New(constructor, Expression.Constant(this), Expression.Constant(null, typeof(Expression))), typeof(IQueryable));
 
@@ -85,9 +88,9 @@ namespace Shaolinq
 			return func();
 		}
 
-		public DataAccessModelTransactionContext GetCurrentContext(bool forWrite)
+		public TransactionContext GetCurrentContext(bool forWrite)
 		{
-			return DataAccessModelTransactionContext.GetCurrentContext(this, forWrite);
+			return TransactionContext.GetCurrentContext(this, forWrite);
 		}
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
@@ -152,12 +155,12 @@ namespace Shaolinq
 
 		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
-			return DataAccessModelTransactionContext.GetCurrentContext(this, forWrite).GetCurrentDataContext();
+			return TransactionContext.GetCurrentContext(this, forWrite).GetCurrentDataContext();
 		}
 
 		public SqlTransactionalCommandsContext GetCurrentSqlDatabaseTransactionContext()
 		{
-			return DataAccessModelTransactionContext.GetCurrentContext(this, true).GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
+			return TransactionContext.GetCurrentContext(this, true).GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
 		}
 
 		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
@@ -174,11 +177,11 @@ namespace Shaolinq
 
 				if (newSqlDatabaseContext.ContextCategories.Length == 0)
 				{
-					if (!this.sqlDatabaseContextsByCategory.TryGetValue(".", out info))
+					if (!this.sqlDatabaseContextsByCategory.TryGetValue("*", out info))
 					{
 						info = SqlDatabaseContextsInfo.Create();
 
-						this.sqlDatabaseContextsByCategory["."] = info;
+						this.sqlDatabaseContextsByCategory["*"] = info;
 					}
 
 					info.DatabaseContexts.Add(newSqlDatabaseContext);
@@ -199,7 +202,7 @@ namespace Shaolinq
 				}
 			}
 
-			if (!this.sqlDatabaseContextsByCategory.ContainsKey("."))
+			if (!this.sqlDatabaseContextsByCategory.ContainsKey("*"))
 			{
 				throw new InvalidDataAccessObjectModelDefinition("Configuration must define at least one root DatabaseContext category");
 			}
@@ -694,9 +697,14 @@ namespace Shaolinq
 			}
 		}
 
-		public virtual void FlushAsync()
+		public virtual async Task FlushAsync()
 		{
-			throw new NotImplementedException();
+			var transactionContext = this.GetCurrentContext(true);
+
+			using (var context = transactionContext.AcquireVersionContext())
+			{
+				await this.GetCurrentDataContext(true).CommitAsync(transactionContext, true);
+			}
 		}
 
 		protected internal ISqlQueryProvider NewQueryProvider()

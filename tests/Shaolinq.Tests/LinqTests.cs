@@ -890,6 +890,23 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public virtual void Test_Update_Enum_Using_DataAccessScope()
+		{
+			using (var scope = new DataAccessScope())
+			{
+				var student = this.model.Students.First(c => c.Sex == Sex.Male);
+
+				student.Sex = Sex.Female;
+
+				scope.Flush();
+
+				student = this.model.Students.First(c => c.Id == student.Id);
+
+				Assert.AreEqual(Sex.Female, student.Sex);
+			}
+		}
+
 		protected readonly Sex TestSex = Sex.Male;
 
 		[Test]

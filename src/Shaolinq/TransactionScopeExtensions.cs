@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Transactions;
 using Shaolinq.Persistence;
 
@@ -15,12 +17,17 @@ namespace Shaolinq
 
 		public static void Flush(this TransactionScope scope)
 		{
-			foreach (var dataAccessModel in DataAccessModelTransactionContext.GetCurrentlyEnlistedDataAccessModels())
+			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
 			{
-				if (!dataAccessModel.IsDisposed)
-				{
-					dataAccessModel.Flush();
-				}
+				dataAccessModel.Flush();
+			}
+		}
+
+		public static async Task FlushAsync(this TransactionScope scope)
+		{
+			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(c => !c.IsDisposed))
+			{
+				await dataAccessModel.FlushAsync();
 			}
 		}
 

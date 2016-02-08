@@ -1,5 +1,7 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Linq;
+using System.Reflection;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
@@ -117,6 +119,56 @@ namespace Shaolinq.Tests
 				shop.Delete();
 				region.Delete();
 				
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Nested_Scope_Update()
+		{
+			var methodName = MethodBase.GetCurrentMethod().Name;
+
+			using (var scope = new DataAccessScope())
+			{
+				var child = this.model.Children.Create();
+
+				scope.Flush();
+
+				using (var inner = new DataAccessScope())
+				{
+					child.Nickname = methodName;
+
+					inner.Complete();
+				}
+
+				scope.Flush();
+
+				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+				
+				scope.Complete();
+			}
+		}
+
+		[Test, ExpectedException(typeof(DataAccessTransactionAbortedException))]
+		public void Test_Nested_Scope_Abort()
+		{
+			var methodName = MethodBase.GetCurrentMethod().Name;
+
+			using (var scope = new DataAccessScope())
+			{
+				var child = this.model.Children.Create();
+
+				scope.Flush();
+
+				using (var inner = new DataAccessScope())
+				{
+					child.Nickname = methodName;
+				}
+
+				scope.Flush();
+
+				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+
 				scope.Complete();
 			}
 		}

@@ -133,7 +133,9 @@
     <Compile Include="ConstraintDefaultsConfiguration.cs" />
     <Compile Include="DataAccessIsolationLevel.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
+    <Compile Include="DataAccessScope.cs" />
     <Compile Include="DataAccessTransaction.cs" />
+    <Compile Include="DataAccessTransactionAbortedException.cs" />
     <Compile Include="DataAccessTypeAttribute.cs" />
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
@@ -393,7 +395,7 @@
     <Compile Include="Persistence\SqlDataTypeProvider.cs" />
     <Compile Include="ReusableQueryProvider.cs" />
     <Compile Include="ShaolinqStringExtensions.cs" />
-    <Compile Include="DataAccessModelTransactionContext.cs" />
+    <Compile Include="TransactionContext.cs" />
     <Compile Include="TransactionScopeExtensions.cs" />
     <Compile Include="TypeBuilding\AssemblyBuildContext.cs" />
     <Compile Include="TypeBuilding\ILGeneratorExtensions.cs" />
