@@ -32,7 +32,6 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(new object[0])).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessModelGenericInflateMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.Inflate<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition();
 		public static readonly MethodInfo GuidEqualsMethod = TypeUtils.GetMethod<Guid>(c => c.Equals(Guid.Empty));
-		public static readonly MethodInfo GuidNewGuidMethod = TypeUtils.GetMethod(() => Guid.NewGuid());
 		public static readonly MethodInfo StringExtensionsIsLikeMethod = TypeUtils.GetMethod(() => string.Empty.IsLike(default(string)));
 		public static readonly MethodInfo ObjectToStringMethod = TypeUtils.GetMethod<object>(c => c.ToString());
 		public static readonly MethodInfo EnumToObjectMethod = TypeUtils.GetMethod(() => Enum.ToObject(typeof(Enum), 0));

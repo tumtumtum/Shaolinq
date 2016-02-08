@@ -54,6 +54,8 @@ namespace Shaolinq
 		private Dictionary<Type, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<Type, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
 
+		internal Func<Guid> GuidGeneratorFunc = () => Guid.NewGuid();
+
 		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
 		
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
@@ -83,6 +85,11 @@ namespace Shaolinq
 			}
 
 			return func();
+		}
+
+		public void SetGuidGenerator(Func<Guid> guidGeneratorFunc)
+		{
+			this.GuidGeneratorFunc = guidGeneratorFunc;
 		}
 
 		public TransactionContext GetCurrentContext(bool forWrite)
