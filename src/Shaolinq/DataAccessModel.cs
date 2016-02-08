@@ -19,7 +19,7 @@ namespace Shaolinq
 	{
 		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = new AsyncLocal<TransactionContext>();
 
-		internal ConcurrentDictionary<Transaction, TransactionContext> transactionContextsByTransaction;
+		internal ConcurrentDictionary<DataAccessTransaction, TransactionContext> transactionContextsByTransaction;
 
 		#region Nested Types
 		private class RawPrimaryKeysPlaceholderType<T>

@@ -18,7 +18,6 @@ namespace Shaolinq.Persistence
 
 		private bool disposed;
 		public bool SupportsAsync { get; protected set; }
-		public Transaction Transaction { get; }
 		public IDbConnection DbConnection { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 		
@@ -75,38 +74,34 @@ namespace Shaolinq.Persistence
 			this.SupportsAsync = supportsAsync;
 		}
 
-		public static System.Data.IsolationLevel ConvertIsolationLevel(System.Transactions.IsolationLevel isolationLevel)
+		public static System.Data.IsolationLevel ConvertIsolationLevel(DataAccessIsolationLevel isolationLevel)
 		{
 			switch (isolationLevel)
 			{
-			case System.Transactions.IsolationLevel.Serializable:
+			case DataAccessIsolationLevel.Serializable:
 				return System.Data.IsolationLevel.Serializable;
-			case System.Transactions.IsolationLevel.ReadCommitted:
+			case DataAccessIsolationLevel.ReadCommitted:
 				return System.Data.IsolationLevel.ReadCommitted;
-			case System.Transactions.IsolationLevel.Chaos:
+			case DataAccessIsolationLevel.Chaos:
 				return System.Data.IsolationLevel.Chaos;
-			case System.Transactions.IsolationLevel.RepeatableRead:
+			case DataAccessIsolationLevel.RepeatableRead:
 				return System.Data.IsolationLevel.RepeatableRead;
-			case System.Transactions.IsolationLevel.Snapshot:
+			case DataAccessIsolationLevel.Snapshot:
 				return System.Data.IsolationLevel.Snapshot;
 			default:
 				return System.Data.IsolationLevel.Unspecified;
 			}
 		}
 
-		protected SqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection dbConnection, Transaction transaction)
+		protected SqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection dbConnection, DataAccessIsolationLevel isolationLevel)
 		{	
 			this.DbConnection = dbConnection;
-			this.Transaction = transaction;
 			this.SqlDatabaseContext = sqlDatabaseContext;
 			this.DataAccessModel = sqlDatabaseContext.DataAccessModel;
 
 			this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
 
-			if (transaction != null)
-			{
-				this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction.IsolationLevel));
-			}
+			this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(isolationLevel));
 		}
 
 		~SqlTransactionalCommandsContext()

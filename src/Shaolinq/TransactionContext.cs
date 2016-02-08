@@ -11,6 +11,21 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
+	internal class DataAccessTransaction
+	{
+		internal static AsyncLocal<DataAccessTransaction> Current { get; } = new AsyncLocal<DataAccessTransaction>();
+
+		internal Transaction Transaction { get; set; }
+		internal HashSet<DataAccessModel> dataAccessModels = new HashSet<DataAccessModel>();
+
+		public bool HasAborted => this.Transaction.TransactionInformation.Status == TransactionStatus.Aborted;
+
+		public DataAccessTransaction(TransactionContext transactionContext)
+		{
+			this.Transaction = Transaction.Current;
+		}
+	}
+
 	public class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
@@ -21,10 +36,7 @@ namespace Shaolinq
 
 		private int version;
 		private int versionNesting;
-		private static readonly ConcurrentDictionary<Transaction, HashSet<DataAccessModel>> dataAccessModelsByTransaction = new ConcurrentDictionary<Transaction, HashSet<DataAccessModel>>(ObjectReferenceIdentityEqualityComparer<Transaction>.Default);
-
-		internal static AsyncLocal<TransactionContext> Current { get; set; }
-
+		
 		internal int GetCurrentVersion()
 		{
 			return this.version;
@@ -32,9 +44,9 @@ namespace Shaolinq
 
 		internal static IEnumerable<DataAccessModel> GetCurrentlyEnlistedDataAccessModels()
 		{
-			var transaction = Transaction.Current;
+			var dataAccessTransaction = DataAccessTransaction.Current;
 
-			return transaction == null ? Enumerable.Empty<DataAccessModel>() : dataAccessModelsByTransaction[transaction];
+			return dataAccessTransaction.Value == null ? Enumerable.Empty<DataAccessModel>() : dataAccessTransaction.Value.dataAccessModels;
 		}
 
 		internal class TransactionContextVersionContext
@@ -62,9 +74,9 @@ namespace Shaolinq
 		}
 
 		private volatile bool disposed;
-		public Transaction Transaction { get; }
 		private readonly DataAccessModel dataAccessModel;
 		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
+		internal DataAccessTransaction DataAccessTransaction { get; }
 
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
 		private readonly Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
@@ -77,13 +89,13 @@ namespace Shaolinq
 		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite)
 		{
 			TransactionContext context;
-			var transaction = Transaction.Current;
+			var dataAccessTransaction = DataAccessTransaction.Current.Value;
 
-			if (transaction == null)
+			if (dataAccessTransaction == null)
 			{
 				if (forWrite)
 				{
-					throw new InvalidOperationException("Write operation must be performed inside a transaction scope");
+					throw new InvalidOperationException("Write operation must be performed inside a scope");
 				}
 
 				context = dataAccessModel.asyncLocalTransactionContext.Value;
@@ -98,7 +110,7 @@ namespace Shaolinq
 				return context;
 			}
 
-			if (transaction.TransactionInformation.Status == TransactionStatus.Aborted)
+			if (dataAccessTransaction.HasAborted)
 			{
 				throw new TransactionAbortedException();
 			}
@@ -110,24 +122,13 @@ namespace Shaolinq
 			if (contexts == null)
 			{
 				skipTest = true;
-				contexts = dataAccessModel.transactionContextsByTransaction = new ConcurrentDictionary<Transaction, TransactionContext>();
+				contexts = dataAccessModel.transactionContextsByTransaction = new ConcurrentDictionary<DataAccessTransaction, TransactionContext>();
             }
 
-			if (skipTest || !contexts.TryGetValue(transaction, out context))
+			if (skipTest || !contexts.TryGetValue(dataAccessTransaction, out context))
 			{
-				context = new TransactionContext(transaction, dataAccessModel);
-				contexts[transaction] = context;
-
-				HashSet<DataAccessModel> dataAccessModels;
-
-				if (!dataAccessModelsByTransaction.TryGetValue(transaction, out dataAccessModels))
-				{
-					dataAccessModels = dataAccessModelsByTransaction.GetOrAdd(transaction, new HashSet<DataAccessModel>());
-				}
-
-				dataAccessModels.Add(dataAccessModel);
-
-				transaction.EnlistVolatile(context, EnlistmentOptions.None);
+				context = new TransactionContext(dataAccessTransaction, dataAccessModel);
+				contexts[dataAccessTransaction] = context;
 			}
 
 			return context;
@@ -137,7 +138,7 @@ namespace Shaolinq
 		{
 			if (dataAccessObjectDataContext == null)
 			{
-				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext(), this.Transaction == null);
+				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext(), false);
 			}
 			
 			return this.dataAccessObjectDataContext;
@@ -167,10 +168,10 @@ namespace Shaolinq
 
 		public string DatabaseContextCategoriesKey { get; private set; }
 		
-		public TransactionContext(Transaction transaction, DataAccessModel dataAccessModel)
+		public TransactionContext(DataAccessTransaction dataAccessTransaction, DataAccessModel dataAccessModel)
 		{
 			this.dataAccessModel = dataAccessModel;
-			this.Transaction = transaction;
+			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = ".";
 
 			this.commandsContextsBySqlDatabaseContexts = new Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
@@ -178,7 +179,7 @@ namespace Shaolinq
 
 		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext)
 		{
-			if (this.Transaction == null)
+			if (this.DataAccessTransaction == null)
 			{
 				throw new InvalidOperationException("Transaction required");
 			}
@@ -190,7 +191,7 @@ namespace Shaolinq
 		{
 			SqlTransactionalCommandsContext retval;
 
-			if (this.Transaction == null)
+			if (this.DataAccessTransaction == null)
 			{
 				retval = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(null);
 
@@ -228,10 +229,9 @@ namespace Shaolinq
 
 			this.dataAccessModel.asyncLocalTransactionContext.Dispose();
 
-			if (this.Transaction != null)
+			if (this.DataAccessTransaction != null)
 			{
-				((IDictionary<Transaction, HashSet<DataAccessModel>>)dataAccessModelsByTransaction).Remove(this.Transaction);
-				((IDictionary<Transaction, TransactionContext>)dataAccessModel.transactionContextsByTransaction).Remove(this.Transaction);
+				((IDictionary<DataAccessTransaction, TransactionContext>)dataAccessModel.transactionContextsByTransaction).Remove(this.DataAccessTransaction);
 			}
 
 			Exception rethrowException = null;
