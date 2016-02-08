@@ -17,7 +17,7 @@ namespace Shaolinq
 	public abstract class DataAccessModel
 		 : IDisposable
 	{
-		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = AsyncLocal<TransactionContext>.Create();
+		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = new AsyncLocal<TransactionContext>();
 
 		internal ConcurrentDictionary<Transaction, TransactionContext> transactionContextsByTransaction;
 

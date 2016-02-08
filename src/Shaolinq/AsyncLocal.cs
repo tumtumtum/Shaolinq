@@ -7,11 +7,7 @@ namespace Shaolinq
 	internal class AsyncLocal<T>
 		: IDisposable
 	{
-		protected AsyncLocal()
-		{
-		}
-
-		public static AsyncLocal<T> Create()
+		private static AsyncLocal<T> Create()
 		{
 			if (NativeAsyncLocal<T>.Supported)
 			{
@@ -21,10 +17,18 @@ namespace Shaolinq
 			return new CallContextNativeAsyncLocal<T>();
 		}
 
-		public virtual T Value { get; set; }
+		private readonly AsyncLocal<T> internalAsyncLocal;
+
+		public AsyncLocal()
+		{
+			this.internalAsyncLocal = Create();
+		}
+
+		public virtual T Value { get { return this.internalAsyncLocal.Value; } set { this.internalAsyncLocal.Value = value; } }
 
 		public virtual void Dispose()
 		{
+			this.internalAsyncLocal.Dispose();
 		}
 	}
 }

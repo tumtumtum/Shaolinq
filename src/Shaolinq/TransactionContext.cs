@@ -23,6 +23,8 @@ namespace Shaolinq
 		private int versionNesting;
 		private static readonly ConcurrentDictionary<Transaction, HashSet<DataAccessModel>> dataAccessModelsByTransaction = new ConcurrentDictionary<Transaction, HashSet<DataAccessModel>>(ObjectReferenceIdentityEqualityComparer<Transaction>.Default);
 
+		internal static AsyncLocal<TransactionContext> Current { get; set; }
+
 		internal int GetCurrentVersion()
 		{
 			return this.version;
