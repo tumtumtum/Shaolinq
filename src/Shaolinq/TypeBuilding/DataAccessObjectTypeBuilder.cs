@@ -280,17 +280,26 @@ namespace Shaolinq.TypeBuilding
 					if (propertyDescriptor.IsAutoIncrement
 						&& propertyDescriptor.PropertyType.GetUnwrappedNullableType() == typeof(Guid))
 					{
+						var guidGeneratorField = TypeUtils.GetField<DataAccessModel>(c => c.GuidGeneratorFunc);
+
 						var guidLocal = constructorGenerator.DeclareLocal(propertyDescriptor.PropertyType);
 						
 						if (propertyDescriptor.PropertyType.IsNullableType())
 						{
 							constructorGenerator.Emit(OpCodes.Ldloca, guidLocal);
-							constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
+							
+							constructorGenerator.Emit(OpCodes.Ldarg_1);
+							constructorGenerator.Emit(OpCodes.Ldfld, guidGeneratorField);
+							constructorGenerator.Emit(OpCodes.Callvirt, guidGeneratorField.FieldType.GetMethod("Invoke"));
+
 							constructorGenerator.Emit(OpCodes.Call, propertyDescriptor.PropertyType.GetConstructor(new [] { typeof(Guid) }));
 						}
 						else
 						{
-							constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
+							constructorGenerator.Emit(OpCodes.Ldarg_1);
+							constructorGenerator.Emit(OpCodes.Ldfld, guidGeneratorField);
+							constructorGenerator.Emit(OpCodes.Callvirt, guidGeneratorField.FieldType.GetMethod("Invoke"));
+
 							constructorGenerator.Emit(OpCodes.Stloc, guidLocal);
 						}
 
