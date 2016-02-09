@@ -2561,5 +2561,22 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(0, s2.Count);
 			}
 		}
+
+	    [Test]
+	    public void Test()
+	    {
+            var x = from mall in model.Malls
+                join shop in model.Shops
+            on new { mall.TopShop.Id, mall.Address  }
+            equals new { shop.Id, shop.Address } into shops
+            from shop in shops.DefaultIfEmpty()
+            select new 
+            {
+                mall.TopShop.Id,
+                mall.Address
+            };
+
+	        x.ToList();
+	    }
 	}
 }

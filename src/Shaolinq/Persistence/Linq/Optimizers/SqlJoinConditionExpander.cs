@@ -80,7 +80,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			for (var i = 0; i < count; i++)
 			{
-				var current = Expression.Equal(left[i], right[i]);
+				var current = Expression.Equal(this.Visit(left[i]), this.Visit(right[i]));
 
 				retval = retval == null ? current : Expression.And(retval, current);
 			}
