@@ -126,6 +126,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		[Category("IgnoreOnMono")]
 		public async Task Test_Nested_Scope_Update()
 		{
 			var methodName = MethodBase.GetCurrentMethod().Name;
