@@ -127,7 +127,12 @@ namespace Shaolinq.Tests
 
 		[Test]
 		[Category("IgnoreOnMono")]
-		public async Task Test_Nested_Scope_Update()
+		public void Test_Nested_Scope_Update()
+		{
+			Test_Nested_Scope_Update_Async().GetAwaiter().GetResult();
+		}
+
+		private async Task Test_Nested_Scope_Update_Async()
 		{
 			var methodName = MethodBase.GetCurrentMethod().Name;
 
@@ -147,11 +152,11 @@ namespace Shaolinq.Tests
 				await scope.FlushAsync();
 
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
-				
+
 				scope.Complete();
 			}
 		}
-
+		
 		[Test, ExpectedException(typeof(DataAccessTransactionAbortedException))]
 		public void Test_Nested_Scope_Abort()
 		{
