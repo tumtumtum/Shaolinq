@@ -2113,6 +2113,29 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_GroupBy_Project_Group2a()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var results = this.model.Students.GroupBy(c => c.Nickname, c => c.Id).ToList();
+
+				var list = results.ToList();
+
+				var i = 0;
+				foreach (var item in list)
+				{
+					foreach (var v in item)
+					{
+						i++;
+						Console.WriteLine(v);
+					}
+				}
+
+				Assert.That(i != 0);
+			}
+		}
+
+		[Test]
 		public void Test_GroupBy_Project_Group3()
 		{
 			using (var scope = new TransactionScope())
