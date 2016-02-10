@@ -191,7 +191,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlCrossJoinRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasesGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\SqlJoinConditionExpander.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlTupleOrAnonymousTypeComparisonExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlNullComparisonCoalescer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />

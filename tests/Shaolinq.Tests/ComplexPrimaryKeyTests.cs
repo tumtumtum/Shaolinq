@@ -2563,20 +2563,19 @@ namespace Shaolinq.Tests
 		}
 
 	    [Test]
-	    public void Test()
+	    public void Test_Join_With_Multiple_Conditions()
 	    {
             var x = from mall in model.Malls
-                join shop in model.Shops
-            on new { mall.TopShop.Id, mall.Address  }
-            equals new { shop.Id, shop.Address } into shops
-            from shop in shops.DefaultIfEmpty()
-            select new 
-            {
-                mall.TopShop.Id,
-                mall.Address
-            };
+				join shop in model.Shops
+				on new { mall.TopShop.Id, mall.Address  } equals new { shop.Id, shop.Address } into shops
+				from shop in shops.DefaultIfEmpty()
+				select new 
+				{
+					mall.TopShop.Id,
+					mall.Address
+				};
 
-	        x.ToList();
+	        var y = x.ToList();
 	    }
 	}
 }

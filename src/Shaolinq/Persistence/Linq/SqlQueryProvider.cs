@@ -99,7 +99,7 @@ namespace Shaolinq.Persistence.Linq
 		public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);
-			expression = SqlJoinConditionExpander.Expand(expression);
+			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 			expression = SqlEnumTypeNormalizer.Normalize(expression, typeForEnums);
 			expression = SqlGroupByCollator.Collate(expression);
