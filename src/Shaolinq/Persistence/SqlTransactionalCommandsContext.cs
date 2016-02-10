@@ -115,7 +115,7 @@ namespace Shaolinq.Persistence
 		{
 			var retval = this.DbConnection.CreateCommand();
 
-			retval.Transaction = this.dbTransaction;
+			 retval.Transaction = this.dbTransaction;
 
 			if (this.SqlDatabaseContext.CommandTimeout != null)
 			{

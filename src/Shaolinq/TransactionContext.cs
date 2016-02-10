@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,12 +62,12 @@ namespace Shaolinq
 		}
 
 		private volatile bool disposed;
+		internal SqlDatabaseContext sqlDatabaseContext;
 		internal readonly DataAccessModel dataAccessModel;
-		public SqlDatabaseContext SqlDatabaseContext { get; internal set; }
 		internal DataAccessTransaction DataAccessTransaction { get; }
 
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
-		private readonly Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
+		internal readonly Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
 
 		internal TransactionContextVersionContext AcquireVersionContext()
 		{
@@ -163,6 +164,13 @@ namespace Shaolinq
 			if (this.DataAccessTransaction == null)
 			{
 				this.dataAccessObjectDataContext = null;
+
+				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+				{
+					commandsContext.Dispose();
+				}
+
+				this.commandsContextsBySqlDatabaseContexts.Clear();
 			}
 		}
 
@@ -187,23 +195,16 @@ namespace Shaolinq
 
 		public virtual DatabaseTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext sqlDatabaseContext)
 		{
-			SqlTransactionalCommandsContext retval;
+			SqlTransactionalCommandsContext commandsContext;
 
-			if (this.DataAccessTransaction == null)
+			if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out commandsContext))
 			{
-				retval = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(null);
+				commandsContext = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(this.DataAccessTransaction);
 
-				return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, retval);
+				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = commandsContext;
 			}
 
-			if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out retval))
-			{
-				retval = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(this.DataAccessTransaction);
-
-				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = retval;
-			}
-
-			return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, retval);
+			return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, commandsContext);
 		}
 
 		~TransactionContext()

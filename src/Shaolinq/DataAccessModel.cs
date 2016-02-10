@@ -612,16 +612,16 @@ namespace Shaolinq
 				return retval;
 			}
 		}
-
+		
 		public virtual SqlDatabaseContext GetCurrentSqlDatabaseContext()
 		{
 			var forWrite = DataAccessTransaction.Current != null;
 
 			var transactionContext = this.GetCurrentContext(forWrite);
 
-			if (transactionContext.SqlDatabaseContext != null)
+			if (transactionContext.sqlDatabaseContext != null)
 			{
-				return transactionContext.SqlDatabaseContext;
+				return transactionContext.sqlDatabaseContext;
 			}
 
 			SqlDatabaseContextsInfo info;
@@ -642,9 +642,9 @@ namespace Shaolinq
 
 			var index = (int)(info.Count++ % info.DatabaseContexts.Count);
 
-			transactionContext.SqlDatabaseContext = info.DatabaseContexts[index];
+			transactionContext.sqlDatabaseContext = info.DatabaseContexts[index];
 
-			return transactionContext.SqlDatabaseContext;
+			return transactionContext.sqlDatabaseContext;
 		}
 
 		public virtual void SetCurrentTransactionDatabaseCategories(params string[] categories)

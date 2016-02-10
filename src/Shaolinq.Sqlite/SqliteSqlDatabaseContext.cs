@@ -84,10 +84,7 @@ namespace Shaolinq.Sqlite
 
 		public override void Dispose()
 		{
-			if (this.connection != null)
-			{
-				this.connection.Close();
-			}
+			this.connection?.Close();
 
 			base.Dispose();
 		}
