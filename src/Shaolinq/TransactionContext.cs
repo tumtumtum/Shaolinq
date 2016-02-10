@@ -165,9 +165,9 @@ namespace Shaolinq
 			{
 				this.dataAccessObjectDataContext = null;
 
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+				foreach (var cc in this.commandsContextsBySqlDatabaseContexts.Values)
 				{
-					commandsContext.Dispose();
+					cc.Dispose();
 				}
 
 				this.commandsContextsBySqlDatabaseContexts.Clear();
@@ -204,7 +204,27 @@ namespace Shaolinq
 				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = commandsContext;
 			}
 
-			return new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, commandsContext);
+			var retval = new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, commandsContext);
+
+			if (this.DataAccessTransaction == null)
+			{
+				retval.Disposed += (s, e) =>
+				{
+					if (this.GetCurrentVersion() <= 1)
+					{
+						this.dataAccessObjectDataContext = null;
+
+						foreach (var cc in this.commandsContextsBySqlDatabaseContexts.Values)
+						{
+							cc.Dispose();
+						}
+
+						this.commandsContextsBySqlDatabaseContexts.Clear();
+					}
+				};
+			}
+
+			return retval;
 		}
 
 		~TransactionContext()
