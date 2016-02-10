@@ -2117,7 +2117,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = this.model.Students.GroupBy(c => c.Nickname, c => c.Id).ToList();
+				var results = this.model.Students.GroupBy(c => c.Address.Id, c => c.Id).ToList();
 
 				var list = results.ToList();
 
