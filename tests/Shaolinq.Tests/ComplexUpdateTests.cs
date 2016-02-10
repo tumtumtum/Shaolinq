@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
@@ -9,6 +10,7 @@ using Shaolinq.Tests.ComplexPrimaryKeyModel;
 namespace Shaolinq.Tests
 {
 	[TestFixture("Sqlite")]
+	[TestFixture("Postgres")]
 	public class ComplexUpdateTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
 	{
@@ -124,7 +126,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Nested_Scope_Update()
+		public async Task Test_Nested_Scope_Update()
 		{
 			var methodName = MethodBase.GetCurrentMethod().Name;
 
@@ -132,7 +134,7 @@ namespace Shaolinq.Tests
 			{
 				var child = this.model.Children.Create();
 
-				scope.Flush();
+				await scope.FlushAsync();
 
 				using (var inner = new DataAccessScope())
 				{
@@ -141,7 +143,7 @@ namespace Shaolinq.Tests
 					inner.Complete();
 				}
 
-				scope.Flush();
+				await scope.FlushAsync();
 
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 				

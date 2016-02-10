@@ -35,7 +35,7 @@ namespace Shaolinq
 
 		public virtual void Dispose()
 		{
-			this.internalAsyncLocal.Dispose();
+			this.internalAsyncLocal?.Dispose();
 		}
 	}
 }

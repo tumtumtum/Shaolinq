@@ -2,7 +2,9 @@
 
 using System;
 using System.Data;
-using System.Transactions;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Threading;
 using Shaolinq.Persistence;
 using Npgsql;
 using NpgsqlTypes;
@@ -15,10 +17,26 @@ namespace Shaolinq.Postgres
 		: DefaultSqlTransactionalCommandsContext
 	{
 		private string preparedTransactionName;
+		private static readonly Func<NpgsqlTransaction, CancellationToken, Task> commitAsyncFunc;
+
+		static PostgresSqlTransactionalCommandsContext()
+		{
+			var commitAsyncMethod = typeof(NpgsqlTransaction).GetMethod("CommitAsync", BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(CancellationToken) }, null);
+
+			if (commitAsyncMethod != null)
+			{
+				var param1 = Expression.Parameter(typeof(NpgsqlTransaction));
+				var param2 = Expression.Parameter(typeof(CancellationToken));
+
+				var body = Expression.Call(param1, commitAsyncMethod, param2);
+
+				commitAsyncFunc = Expression.Lambda<Func<NpgsqlTransaction, CancellationToken, Task>>(body, param1, param2).Compile();
+			}
+		}
 
 		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, DataAccessTransaction transaction)
 			: base(sqlDatabaseContext, transaction)
-		{
+		{	
 		}
 
 		public override void Prepare()
@@ -39,11 +57,20 @@ namespace Shaolinq.Postgres
 			this.dbTransaction = null;
 		}
 
-		protected override async Task CommitTransactionAsync()
+		protected override Task CommitTransactionAsync(CancellationToken cancellationToken)
 		{
-			var transaction = this.dbTransaction as NpgsqlTransaction;
+			var transaction = (NpgsqlTransaction)this.dbTransaction;
 
-			await transaction.CommitAsync();
+			if (commitAsyncFunc == null)
+			{
+				this.dbTransaction.Commit();
+
+				return Task.FromResult<object>(null);
+			}
+			else
+			{
+				return commitAsyncFunc(transaction, cancellationToken);
+			}
 		}
 
 		public override void Commit()

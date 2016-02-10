@@ -140,66 +140,58 @@ namespace Shaolinq.Persistence
 			this.dbTransaction?.Commit();
 		}
 
-#pragma warning disable 1998
-		protected virtual async Task CommitTransactionAsync()
+		protected virtual Task CommitTransactionAsync(CancellationToken cancellationToken)
 		{
-			CommitTransaction();
+			throw new NotSupportedException();
 		}
-#pragma warning restore 1998
+
+		private async Task PrivateCommit(CancellationToken cancellationToken, bool async)
+		{
+			try
+			{
+				if (async)
+				{
+					await this.CommitTransactionAsync(cancellationToken);
+				}
+				else
+				{
+					this.CommitTransaction();
+				}
+
+				this.dbTransaction = null;
+			}
+			catch (Exception e)
+			{
+				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
+				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
+
+				if (decoratedException != e)
+				{
+					throw decoratedException;
+				}
+
+				throw;
+			}
+			finally
+			{
+				this.CloseConnection();
+			}
+		}
 
 		public virtual void Commit()
 		{
-			try
-			{
-				this.CommitTransaction();
-
-				this.dbTransaction = null;
-			}
-			catch (Exception e)
-			{
-				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
-				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
-
-				if (decoratedException != e)
-				{
-					throw decoratedException;
-				}
-
-				throw;
-			}
-			finally
-			{
-				this.CloseConnection();
-			}
+			PrivateCommit(CancellationToken.None, false).GetAwaiter().GetResult();
 		}
 
-#pragma warning disable 1998
 		public virtual async Task CommitAsync()
 		{
-			try
-			{
-				await this.CommitTransactionAsync();
-
-				this.dbTransaction = null;
-			}
-			catch (Exception e)
-			{
-				var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
-				var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
-
-				if (decoratedException != e)
-				{
-					throw decoratedException;
-				}
-
-				throw;
-			}
-			finally
-			{
-				this.CloseConnection();
-			}
+			await CommitAsync(CancellationToken.None);
 		}
-#pragma warning restore 1998
+
+		public virtual async Task CommitAsync(CancellationToken cancellationToken)
+		{
+			await PrivateCommit(cancellationToken, true);
+		}
 
 		public virtual void Rollback()
 		{

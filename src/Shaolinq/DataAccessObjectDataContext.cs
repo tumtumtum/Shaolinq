@@ -539,9 +539,11 @@ namespace Shaolinq
 
 		private bool isCommiting;
 
-		public virtual async Task CommitAsync(TransactionContext transactionContext, bool forFlush)
+		public virtual Task CommitAsync(TransactionContext transactionContext, bool forFlush)
 		{
 			this.Commit(transactionContext, forFlush);
+
+			return Task.FromResult<object>(null);
 		}
 
 		public virtual void Commit(TransactionContext transactionContext, bool forFlush)
