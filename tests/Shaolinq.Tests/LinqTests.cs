@@ -2133,8 +2133,8 @@ namespace Shaolinq.Tests
 
 				Assert.That(i != 0);
 
-				var left = list.SelectMany(c => c).ToList();
-				var right = list2.SelectMany(c => c).ToList();
+				var left = list.SelectMany(c => c).OrderBy(c => c).ToList();
+				var right = list2.SelectMany(c => c).OrderBy(c => c).ToList();
 
 				Assert.That(left.SequenceEqual(right));
 			}
