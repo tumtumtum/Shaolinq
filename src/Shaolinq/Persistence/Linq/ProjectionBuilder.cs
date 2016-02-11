@@ -352,7 +352,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
 
-				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[])));
+				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[]), default(bool)));
 
 				MethodInfo evaluate;
 
@@ -365,7 +365,7 @@ namespace Shaolinq.Persistence.Linq
 					evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
 				}
 				
-				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression), projectionProjector, Expression.NewArrayInit(typeof(object), values)), evaluate);
+				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression), projectionProjector, Expression.NewArrayInit(typeof(object), values), Expression.Constant(true)), evaluate);
 			}
 		}
 	}

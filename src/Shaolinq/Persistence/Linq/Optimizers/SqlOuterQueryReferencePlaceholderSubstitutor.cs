@@ -25,8 +25,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		public static Expression Substitute(Expression expression, ref int placeholderCount, List<SqlColumnExpression> replacedColumns)
 		{
 			var aliases = SqlDeclaredAliasesGatherer.Gather(expression);
-
 			var visitor = new SqlOuterQueryReferencePlaceholderSubstitutor(placeholderCount, aliases, replacedColumns);
+
 			var retval = visitor.Visit(expression);
 
 			placeholderCount = visitor.placeholderCount;
@@ -38,9 +38,20 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if (!aliases.Contains(columnExpression.SelectAlias))
 			{
-				replacedColumns.Add(columnExpression);
+				var nullableType = columnExpression.Type.MakeNullable();
 
-                return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(columnExpression.Type.GetDefaultValue(), columnExpression.Type));
+				if (nullableType == columnExpression.Type)
+				{
+					replacedColumns.Add(columnExpression);
+
+					return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, columnExpression.Type.MakeNullable()));
+				}
+				else
+				{
+					replacedColumns.Add(columnExpression.ChangeToNullable());
+
+					return Expression.Convert(new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, columnExpression.Type.MakeNullable())), columnExpression.Type);
+				}
 			}
 
 			return base.VisitColumn(columnExpression);

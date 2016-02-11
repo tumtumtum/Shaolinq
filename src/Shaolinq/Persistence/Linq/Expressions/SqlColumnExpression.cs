@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq.Expressions;
+using Platform;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -45,6 +46,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			var other = obj as SqlColumnExpression;
 
 			return other != null && (object.ReferenceEquals(this, other) || (this.SelectAlias == other.SelectAlias && this.Name == other.Name));
+		}
+
+		public SqlColumnExpression ChangeToNullable()
+		{
+			var nullableType = this.Type.MakeNullable();
+
+			return nullableType == this.Type ? this : new SqlColumnExpression(nullableType, this.SelectAlias, this.Name, this.Special);
 		}
 	}
 }

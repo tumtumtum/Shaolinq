@@ -151,12 +151,13 @@ namespace Shaolinq.Persistence.Linq
 			return this.BuildExecution(projectionExpression, projector, placeholderValues);
 		}
 
-        public ExecutionBuildResult BuildExecution(SqlProjectionExpression projectionExpression, LambdaExpression projector, object[] placeholderValues)
-		{
-			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
-
+        public ExecutionBuildResult BuildExecution(SqlProjectionExpression projectionExpression, LambdaExpression projector, object[] placeholderValues, bool replaceValuesForFormat = false)
+        {
 			ProjectorCacheInfo cacheInfo;
-			
+
+			var projectionForFormat = replaceValuesForFormat ? (SqlProjectionExpression)SqlConstantPlaceholderReplacer.Replace(projectionExpression, placeholderValues) : projectionExpression;
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionForFormat);
+
 			var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
 			var placeholderValuesParam = Expression.Parameter(typeof(object[]));
 			var projectionLambda = projector;

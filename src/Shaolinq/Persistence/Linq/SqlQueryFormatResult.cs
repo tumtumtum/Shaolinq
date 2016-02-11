@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -19,6 +20,11 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.CommandText = commandText;
 			this.ParameterValues = parameterValues;
+		}
+
+		public SqlQueryFormatResult ChangeParameterValues(object[] values)
+		{
+			return new SqlQueryFormatResult(this.CommandText, this.ParameterValues.Select((c, i) => new Tuple<Type, object>(c.Item1, values[i])));
 		}
 	}
 }

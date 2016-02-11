@@ -2117,9 +2117,10 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var results = this.model.Students.GroupBy(c => c.Address.Id, c => c.Id).ToList();
+				var results = this.model.Students.GroupBy(c => (long?)c.Address.Id, c => c.Id).OrderBy(c => c.Key);
 
 				var list = results.ToList();
+				var list2 = this.model.Students.ToList().GroupBy(c => c.Address?.Id, c => c.Id).OrderBy(c => c.Key).ToList();
 
 				var i = 0;
 				foreach (var item in list)
@@ -2127,11 +2128,15 @@ namespace Shaolinq.Tests
 					foreach (var v in item)
 					{
 						i++;
-						Console.WriteLine(v);
 					}
 				}
 
 				Assert.That(i != 0);
+
+				var left = list.SelectMany(c => c).ToList();
+				var right = list2.SelectMany(c => c).ToList();
+
+				Assert.That(left.SequenceEqual(right));
 			}
 		}
 
@@ -2183,14 +2188,20 @@ namespace Shaolinq.Tests
 				var results = from student in this.model.Students
 					group student by new {student.Firstname, student.Lastname}
 					into g
+					orderby g.Key
 					select new {g, first = g.FirstOrDefault(c => c.Firstname != "")};
 
-				var list = results.ToList();
+				var list = results.ToList().SelectMany(c => c.g).OrderBy(c => c.Id).ToList();
+				
+				var results2 = from student in this.model.Students.ToList().OrderBy(c => c.Nickname)
+							   group student by new { student.Firstname, student.Lastname }
+					into g
+					orderby g.Key.Firstname
+							   select new { g, first = g.FirstOrDefault(c => c.Firstname != "") };
 
-				foreach (var item in list)
-				{
-					Console.WriteLine(item.first);
-				}
+				var list2 = results2.SelectMany(c => c.g).OrderBy(c => c.Id).ToList();
+
+				Assert.That(list.SequenceEqual(list2));
 			}
 		}
 
