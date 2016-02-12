@@ -1,14 +1,14 @@
 #pragma warning disable
 using System;
 using System.Linq;
-using System.Linq.Expressions;
+using Shaolinq.Persistence;
 using System.Threading;
 using System.Threading.Tasks;
-using Shaolinq.Persistence;
 #pragma warning disable
 using System.Data;
 using System.Data.Common;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Shaolinq.Logging;
@@ -25,6 +25,33 @@ namespace Shaolinq
 {
     public partial class DataAccessScope
     {
+        public Task CompleteAsync()
+        {
+            return CompleteAsync(CancellationToken.None);
+        }
+
+        public async Task CompleteAsync(CancellationToken cancellationToken)
+        {
+            this.complete = true;
+            if (this.transaction == null)
+            {
+                return;
+            }
+
+            if (!this.transaction.HasSystemTransaction)
+            {
+                if (this.transaction != DataAccessTransaction.Current)
+                {
+                    throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
+                }
+
+                foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
+                {
+                    await transactionContext.CommitAsync(cancellationToken);
+                }
+            }
+        }
+
         public Task FlushAsync()
         {
             return FlushAsync(CancellationToken.None);
