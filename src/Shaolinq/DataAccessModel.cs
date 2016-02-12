@@ -51,10 +51,10 @@ namespace Shaolinq
 		public DataAccessModelConfiguration Configuration { get; private set; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; private set; }
 		public RuntimeDataAccessModelInfo RuntimeDataAccessModelInfo { get; private set; }
-		private Dictionary<Type, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<Type, Func<IQueryable>>();
+		private Dictionary<RuntimeTypeHandle, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<RuntimeTypeHandle, Func<IQueryable>>();
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
-		private Dictionary<Type, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>();
-		private Dictionary<Type, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>();
+		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>>();
+		private Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>();
 
 		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
 		
@@ -64,12 +64,14 @@ namespace Shaolinq
 			return (DataAccessObjects<T>) this.GetDataAccessObjects(typeof(T));
 		}
 
-		protected virtual IQueryable CreateDataAccessObjects(Type type)
+		internal virtual IQueryable CreateDataAccessObjects(RuntimeTypeHandle typeHandle)
 		{
 			Func<IQueryable> func;
 
-			if (!this.createDataAccessObjectsFuncs.TryGetValue(type, out func))
+			if (!this.createDataAccessObjectsFuncs.TryGetValue(typeHandle, out func))
 			{
+				var type = Type.GetTypeFromHandle(typeHandle);
+
 				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type).GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression) });
 
 				Debug.Assert(constructor != null);
@@ -78,14 +80,18 @@ namespace Shaolinq
 
 				func = Expression.Lambda<Func<IQueryable>>(body).Compile();
 
-				var newDictionary = new Dictionary<Type, Func<IQueryable>>(this.createDataAccessObjectsFuncs);
+				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<IQueryable>>(this.createDataAccessObjectsFuncs) { [typeHandle] = func };
 
-				newDictionary[type] = func;
 
 				this.createDataAccessObjectsFuncs = newDictionary;
 			}
 
 			return func();
+		}
+
+		internal virtual IQueryable CreateDataAccessObjects(Type type)
+		{
+			return this.CreateDataAccessObjects(type.TypeHandle);
 		}
 
 		public TransactionContext GetCurrentContext(bool forWrite)
@@ -350,9 +356,9 @@ namespace Shaolinq
 			}
 
 			Func<object, ObjectPropertyValue[]> func;
-			var objectType = typeof(RawPrimaryKeysPlaceholderType<T>);
+			var objectTypeHandle = typeof(RawPrimaryKeysPlaceholderType<T>).TypeHandle;
 
-			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
+			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectTypeHandle, out func))
 			{
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
@@ -390,9 +396,9 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType)
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType)
 				{
-					[objectType] = func
+					[objectTypeHandle] = func
 				};
 
 				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
@@ -409,10 +415,10 @@ namespace Shaolinq
 			}
 
 			var idType = primaryKey.GetType();
-			var objectType = primaryKey.GetType();
+			var objectTypeHandle = Type.GetTypeHandle(primaryKey);
 			Func<object, ObjectPropertyValue[]> func;
 
-			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectType, out func))
+			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectTypeHandle, out func))
 			{
 				var isSimpleKey = false;
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(type);
@@ -445,7 +451,7 @@ namespace Shaolinq
 					}
 					else
 					{
-						valueExpression = Expression.PropertyOrField(Expression.Convert(parameter, objectType), property.PropertyName);
+						valueExpression = Expression.PropertyOrField(Expression.Convert(parameter, Type.GetTypeFromHandle(objectTypeHandle)), property.PropertyName);
 					}
 
 					Expression primaryKeyValue;
@@ -489,7 +495,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<Type, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType) { [objectType] = func };
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType) { [objectTypeHandle] = func };
 
 				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}
@@ -711,10 +717,11 @@ namespace Shaolinq
 			}
 
 			Func<DataAccessObject, DataAccessObject> func;
-			var definitionType = dataAccessObject.GetAdvanced().DefinitionType;
+			var definitionTypeHandle = dataAccessObject.GetAdvanced().DefinitionType.TypeHandle;
 			
-			if (!this.inflateFuncsByType.TryGetValue(definitionType, out func))
+			if (!this.inflateFuncsByType.TryGetValue(definitionTypeHandle, out func))
 			{
+				var definitionType = Type.GetTypeFromHandle(definitionTypeHandle);
 				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");
 				var methodInfo = MethodInfoFastRef.DataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
 				var body = Expression.Call(Expression.Constant(this), methodInfo, Expression.Convert(parameter, definitionType));
@@ -723,9 +730,9 @@ namespace Shaolinq
 
 				func = lambda.Compile();
 
-				var newDictionary = new Dictionary<Type, Func<DataAccessObject, DataAccessObject>>(this.inflateFuncsByType)
+				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>>(this.inflateFuncsByType)
 				{
-					[definitionType] = func
+					[definitionTypeHandle] = func
 				};
 
 				this.inflateFuncsByType = newDictionary;

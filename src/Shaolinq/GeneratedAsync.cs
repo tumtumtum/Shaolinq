@@ -297,41 +297,6 @@ namespace Shaolinq
 
 namespace Shaolinq.Persistence
 {
-    public static partial class DbTransactionExtensions
-    {
-        public static Task RollbackExAsync(this IDbTransaction transaction)
-        {
-            return RollbackExAsync(transaction, CancellationToken.None);
-        }
-
-        public static async Task RollbackExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
-        {
-            var dbTransaction = transaction as DbTransaction;
-            if (dbTransaction != null)
-            {
-                dbTransaction.Rollback();
-            }
-
-            transaction.Rollback();
-        }
-
-        public static Task CommitExAsync(this IDbTransaction transaction)
-        {
-            return CommitExAsync(transaction, CancellationToken.None);
-        }
-
-        public static async Task CommitExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
-        {
-            var dbTransaction = transaction as DbTransaction;
-            if (dbTransaction != null)
-            {
-                dbTransaction.Commit();
-            }
-
-            transaction.Commit();
-        }
-    }
-
     public static partial class DbCommandExtensions
     {
         public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command)
@@ -341,7 +306,13 @@ namespace Shaolinq.Persistence
 
         public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, CancellationToken cancellationToken)
         {
-            var dbCommand = command.Cast<DbCommand>();
+            var marsDbCommand = command as MarsDbCommand;
+            if (marsDbCommand != null)
+            {
+                return marsDbCommand.ExecuteReader();
+            }
+
+            var dbCommand = command as DbCommand;
             if (dbCommand != null)
             {
                 return await dbCommand.ExecuteReaderAsync(cancellationToken);
@@ -357,7 +328,13 @@ namespace Shaolinq.Persistence
 
         public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, CancellationToken cancellationToken)
         {
-            var dbCommand = command.Cast<DbCommand>();
+            var marsDbCommand = command as MarsDbCommand;
+            if (marsDbCommand != null)
+            {
+                return marsDbCommand.ExecuteNonQuery();
+            }
+
+            var dbCommand = command as DbCommand;
             if (dbCommand != null)
             {
                 return await dbCommand.ExecuteNonQueryAsync(cancellationToken);
@@ -629,6 +606,81 @@ namespace Shaolinq.Persistence
         }
     }
 
+    public partial class DbCommandWrapper
+    {
+        public virtual Task<int> ExecuteNonQueryAsync()
+        {
+            return ExecuteNonQueryAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+        {
+            var dbInner = this.Inner as DbCommand;
+            if (dbInner != null)
+            {
+                return await dbInner.ExecuteNonQueryAsync(cancellationToken);
+            }
+            else
+            {
+                return this.Inner.ExecuteNonQuery();
+            }
+        }
+
+        public virtual Task<IDataReader> ExecuteReaderAsync()
+        {
+            return ExecuteReaderAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<IDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
+        {
+            var dbInner = this.Inner as DbCommand;
+            if (dbInner != null)
+            {
+                return await dbInner.ExecuteReaderAsync(cancellationToken);
+            }
+            else
+            {
+                return this.Inner.ExecuteReader();
+            }
+        }
+
+        public virtual Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior)
+        {
+            return ExecuteReaderAsync(behavior, CancellationToken.None);
+        }
+
+        public virtual async Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+        {
+            var dbInner = this.Inner as DbCommand;
+            if (dbInner != null)
+            {
+                return await dbInner.ExecuteReaderAsync(behavior, cancellationToken);
+            }
+            else
+            {
+                return this.Inner.ExecuteReader(behavior);
+            }
+        }
+
+        public virtual Task<object> ExecuteScalarAsync()
+        {
+            return ExecuteScalarAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
+        {
+            var dbInner = this.Inner as DbCommand;
+            if (dbInner != null)
+            {
+                return await dbInner.ExecuteScalarAsync(cancellationToken);
+            }
+            else
+            {
+                return this.Inner.ExecuteScalar();
+            }
+        }
+    }
+
     public abstract partial class SqlTransactionalCommandsContext
     {
         public virtual Task CommitAsync()
@@ -640,7 +692,7 @@ namespace Shaolinq.Persistence
         {
             try
             {
-                await this.dbTransaction.CommitExAsync(cancellationToken);
+                this.dbTransaction.CommitEx();
                 this.dbTransaction = null;
             }
             catch (Exception e)
@@ -671,7 +723,7 @@ namespace Shaolinq.Persistence
             {
                 if (this.dbTransaction != null)
                 {
-                    await this.dbTransaction.RollbackExAsync(cancellationToken);
+                    this.dbTransaction.RollbackEx();
                     this.dbTransaction = null;
                 }
             }

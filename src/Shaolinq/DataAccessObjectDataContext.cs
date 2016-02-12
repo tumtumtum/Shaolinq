@@ -388,7 +388,7 @@ namespace Shaolinq
 
 		#endregion
 		
-		private readonly Dictionary<Type, IObjectsByIdCache> cachesByType = new Dictionary<Type, IObjectsByIdCache>();
+		private readonly Dictionary<RuntimeTypeHandle, IObjectsByIdCache> cachesByType = new Dictionary<RuntimeTypeHandle, IObjectsByIdCache>();
 
 		protected bool DisableCache { get; }
 		public DataAccessModel DataAccessModel { get; }
@@ -408,15 +408,15 @@ namespace Shaolinq
 				return;
 			}
 
-			var type = value.GetType();
+			var typeHandle = Type.GetTypeHandle(value);
 
 			IObjectsByIdCache cache;
 
-			if (!this.cachesByType.TryGetValue(type, out cache))
+			if (!this.cachesByType.TryGetValue(typeHandle, out cache))
 			{
 				cache = CreateCacheForDao(value, this);
 
-				this.cachesByType[type] = cache;
+				this.cachesByType[typeHandle] = cache;
 			}
 
 			cache.Deleted((DataAccessObject)value);
@@ -470,18 +470,20 @@ namespace Shaolinq
 				return null;
 			}
 
-			return this.cachesByType.TryGetValue(type, out cache) ? cache.Get(primaryKeys) : null;
+			return this.cachesByType.TryGetValue(type.TypeHandle, out cache) ? cache.Get(primaryKeys) : null;
 		}
 
-		private static Dictionary<Type, Func<DataAccessObjectDataContext, IObjectsByIdCache>> cacheConstructor = new Dictionary<Type, Func<DataAccessObjectDataContext, IObjectsByIdCache>>();
+		private static Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>> cacheConstructor = new Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>>();
 
 		private static IObjectsByIdCache CreateCacheForDao(IDataAccessObjectAdvanced dao, DataAccessObjectDataContext context)
 		{
-			var type = dao.GetType();
 			Func<DataAccessObjectDataContext, IObjectsByIdCache> func;
+			var typeHandle = Type.GetTypeHandle(dao);
 
-			if (!cacheConstructor.TryGetValue(type, out func))
+			if (!cacheConstructor.TryGetValue(typeHandle, out func))
 			{
+				var type = dao.GetType();
+
 				var keyType = dao.NumberOfPrimaryKeys > 1 ? typeof(CompositePrimaryKey) : dao.KeyType;
 				var cacheType = typeof(ObjectsByIdCache<>).MakeGenericType(keyType);
 				var constructor = cacheType.GetConstructors().Single();
@@ -509,9 +511,7 @@ namespace Shaolinq
 
 				func = Expression.Lambda<Func<DataAccessObjectDataContext, IObjectsByIdCache>>(Expression.New(constructor, Expression.Constant(dao.GetType()), contextParam, Expression.Constant(getIdFunc, getIdFunc.GetType()), keyComparer), contextParam).Compile();
 					
-				var newCacheConstructor = new Dictionary<Type, Func<DataAccessObjectDataContext, IObjectsByIdCache>>(cacheConstructor) { [type] = func };
-
-				cacheConstructor = newCacheConstructor;
+				cacheConstructor = new Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>>(cacheConstructor) { [typeHandle] = func };
 			}
 
 			return func(context);
@@ -525,13 +525,13 @@ namespace Shaolinq
 			}
 
 			IObjectsByIdCache cache;
-			var type = value.GetType();
+			var typeHandle = Type.GetTypeHandle(value);
 
-			if (!this.cachesByType.TryGetValue(type, out cache))
+			if (!this.cachesByType.TryGetValue(typeHandle, out cache))
 			{
 				cache = CreateCacheForDao(value, this);
 
-				this.cachesByType[type] = cache;
+				this.cachesByType[typeHandle] = cache;
 			}
 
 			return cache.Cache(value, forImport);

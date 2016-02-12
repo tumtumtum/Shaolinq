@@ -126,12 +126,14 @@ namespace Shaolinq.TypeBuilding
 			
 			generator.BeginExceptionBlock();
 
+			var b = false;
+
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
 			generator.Emit(OpCodes.Dup);
 			generator.Emit(OpCodes.Stloc, lockObj);
 			generator.Emit(OpCodes.Ldloca, acquiredLock);
-			generator.Emit(OpCodes.Call, typeof(Monitor).GetMethods().Single(c => c.Name == "Enter" && c.GetParameters().Length == 2));
+			generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => Monitor.Enter(default(object), ref b)));
 			
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
@@ -146,7 +148,7 @@ namespace Shaolinq.TypeBuilding
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Callvirt, typeof(DataAccessModel).GetMethod("CreateDataAccessObjects", BindingFlags.NonPublic | BindingFlags.Instance));
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateDataAccessObjects(default(Type))));
 			generator.Emit(OpCodes.Stloc, local);
 			
 			generator.Emit(OpCodes.Ldarg_0);
@@ -167,7 +169,7 @@ namespace Shaolinq.TypeBuilding
 			var endOfFinally = generator.DefineLabel();
 			generator.Emit(OpCodes.Brtrue, endOfFinally);
 			generator.Emit(OpCodes.Ldloc, lockObj);
-			generator.Emit(OpCodes.Call, typeof(Monitor).GetMethod("Exit", new [] { typeof(object) }));
+			generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => Monitor.Exit(default(object))));
 			generator.Emit(OpCodes.Nop);
 			generator.MarkLabel(endOfFinally);
 			generator.EndExceptionBlock();

@@ -18,34 +18,6 @@ namespace Shaolinq.Postgres
 		: DefaultSqlTransactionalCommandsContext
 	{
 		private string preparedTransactionName;
-		private static readonly Func<NpgsqlTransaction, Task> rollbackAsyncFunc;
-		private static readonly Func<NpgsqlTransaction, CancellationToken, Task> commitAsyncFunc;
-		
-		static PostgresSqlTransactionalCommandsContext()
-		{
-			var commitAsyncMethod = typeof(NpgsqlTransaction).GetMethod("CommitAsync", BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(CancellationToken) }, null);
-
-			if (commitAsyncMethod != null)
-			{
-				var param1 = Expression.Parameter(typeof(NpgsqlTransaction));
-				var param2 = Expression.Parameter(typeof(CancellationToken));
-
-				var body = Expression.Call(param1, commitAsyncMethod, param2);
-
-				commitAsyncFunc = Expression.Lambda<Func<NpgsqlTransaction, CancellationToken, Task>>(body, param1, param2).Compile();
-			}
-
-			var rollbackAsyncMethod = typeof(NpgsqlTransaction).GetMethod("RollbackAsync", BindingFlags.Public | BindingFlags.Instance, null, null, null);
-
-			if (rollbackAsyncMethod != null)
-			{
-				var param1 = Expression.Parameter(typeof(NpgsqlTransaction));
-				
-				var body = Expression.Call(param1, rollbackAsyncMethod);
-
-				rollbackAsyncFunc = Expression.Lambda<Func<NpgsqlTransaction, Task>>(body, param1).Compile();
-			}
-		}
 
 		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, DataAccessTransaction transaction)
 			: base(sqlDatabaseContext, transaction)
@@ -97,7 +69,7 @@ namespace Shaolinq.Postgres
 				}
 			}
 
-			base.Commit();
+			base.Rollback();
 		}
 		
 		protected override IDbDataParameter CreateParameter(IDbCommand command, string parameterName, Type type, object value)

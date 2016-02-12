@@ -149,6 +149,7 @@
     <Compile Include="Persistence\DbCommandExtensions.cs" />
     <Compile Include="Persistence\DataReaderExtensions.cs" />
     <Compile Include="Persistence\DataReaderWRapper.cs" />
+    <Compile Include="Persistence\DbTransactionExtensions.cs" />
     <Compile Include="Persistence\DefaultSqlTransactionalCommandsContext+Commands.cs" />
     <Compile Include="Persistence\EnumerableUtils.cs" />
     <Compile Include="ForeignObjectAction.cs" />

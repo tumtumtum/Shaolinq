@@ -21,13 +21,13 @@ namespace Shaolinq.Persistence.Linq
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
-		public static Dictionary<Type, Func<SqlQueryProvider, Expression, IQueryable>> createQueryCache = new Dictionary<Type, Func<SqlQueryProvider, Expression, IQueryable>>();
+		public static Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>> createQueryCache = new Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>>();
 
 		public static IQueryable CreateQuery(Type elementType, SqlQueryProvider provider, Expression expression)
 		{
 			Func<SqlQueryProvider, Expression, IQueryable> func;
 
-			if (!createQueryCache.TryGetValue(elementType, out func))
+			if (!createQueryCache.TryGetValue(elementType.TypeHandle, out func))
 			{
 				var providerParam = Expression.Parameter(typeof(SqlQueryProvider));
 				var expressionParam = Expression.Parameter(typeof(Expression));
@@ -39,7 +39,7 @@ namespace Shaolinq.Persistence.Linq
 					expressionParam
 				), providerParam, expressionParam).Compile();
 
-				var newCreateQueryCache = new Dictionary<Type, Func<SqlQueryProvider, Expression, IQueryable>>(createQueryCache) { [elementType] = func };
+				var newCreateQueryCache = new Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>>(createQueryCache) { [elementType.TypeHandle] = func };
 
 				createQueryCache = newCreateQueryCache;
 			}

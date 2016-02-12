@@ -1,8 +1,11 @@
-﻿using System.Data;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Data;
+using System.Data.Common;
 
 namespace Shaolinq.Persistence
 {
-	public class DbCommandWrapper
+	public partial class DbCommandWrapper
 		: IDbCommand
 	{
 		public IDbCommand Inner { get; }
@@ -32,24 +35,64 @@ namespace Shaolinq.Persistence
 			return this.Inner.CreateParameter();
 		}
 
+		[RewriteAsync]
 		public virtual int ExecuteNonQuery()
 		{
-			return this.Inner.ExecuteNonQuery();
+			var dbInner = this.Inner as DbCommand;
+
+			if (dbInner != null)
+			{
+				return dbInner.ExecuteNonQuery();
+			}
+			else
+			{
+				return this.Inner.ExecuteNonQuery();
+			}
 		}
 
+		[RewriteAsync]
 		public virtual IDataReader ExecuteReader()
 		{
-			return this.Inner.ExecuteReader();
+			var dbInner = this.Inner as DbCommand;
+
+			if (dbInner != null)
+			{
+				return dbInner.ExecuteReader();
+			}
+			else
+			{
+				return this.Inner.ExecuteReader();
+			}
 		}
 
+		[RewriteAsync]
 		public virtual IDataReader ExecuteReader(CommandBehavior behavior)
 		{
-			return this.Inner.ExecuteReader(behavior);
+			var dbInner = this.Inner as DbCommand;
+
+			if (dbInner != null)
+			{
+				return dbInner.ExecuteReader(behavior);
+			}
+			else
+			{
+				return this.Inner.ExecuteReader(behavior);
+			}
 		}
 
+		[RewriteAsync]
 		public virtual object ExecuteScalar()
 		{
-			return this.Inner.ExecuteScalar();
+			var dbInner = this.Inner as DbCommand;
+
+			if (dbInner != null)
+			{
+				return dbInner.ExecuteScalar();
+			}
+			else
+			{
+				return this.Inner.ExecuteScalar();
+			}
 		}
 
 		public virtual IDataParameterCollection Parameters => this.Inner.Parameters;

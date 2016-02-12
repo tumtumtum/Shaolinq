@@ -50,7 +50,7 @@ namespace Shaolinq.Postgres
                 }
             }
 
-            await base.CommitAsync(cancellationToken);
+            await base.RollbackAsync(cancellationToken);
         }
     }
 }

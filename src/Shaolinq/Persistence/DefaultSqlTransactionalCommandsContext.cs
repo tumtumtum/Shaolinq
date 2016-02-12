@@ -176,7 +176,7 @@ namespace Shaolinq.Persistence
 			return null;
 		}
 
-		private Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>> serverSideGeneratedPropertySettersByType = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>();
+		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>> serverSideGeneratedPropertySettersByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>>();
 
 		private DataAccessObject ApplyPropertiesGeneratedOnServerSide(DataAccessObject dataAccessObject, IDataReader reader)
 		{
@@ -187,7 +187,7 @@ namespace Shaolinq.Persistence
 
 			Func<DataAccessObject, IDataReader, DataAccessObject> applicator;
 
-			if (!this.serverSideGeneratedPropertySettersByType.TryGetValue(dataAccessObject.GetType(), out applicator))
+			if (!this.serverSideGeneratedPropertySettersByType.TryGetValue(Type.GetTypeHandle(dataAccessObject), out applicator))
 			{
 				var objectParameter = Expression.Parameter(typeof(DataAccessObject));
 				var readerParameter = Expression.Parameter(typeof(IDataReader));
@@ -218,9 +218,9 @@ namespace Shaolinq.Persistence
 				
 				applicator = lambda.Compile();
 
-				var newDictionary = new Dictionary<Type, Func<DataAccessObject, IDataReader, DataAccessObject>>(this.serverSideGeneratedPropertySettersByType)
+				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>>(this.serverSideGeneratedPropertySettersByType)
 				{
-					[dataAccessObject.GetType()] = applicator
+					[Type.GetTypeHandle(dataAccessObject)] = applicator
 				};
 
 				this.serverSideGeneratedPropertySettersByType = newDictionary;

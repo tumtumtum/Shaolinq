@@ -27,10 +27,7 @@ namespace Shaolinq
 				}
 				else
 				{
-					if (newList != null)
-					{
-						newList.Add(list[i]);
-					}
+					newList?.Add(list[i]);
 				}
 			}
 

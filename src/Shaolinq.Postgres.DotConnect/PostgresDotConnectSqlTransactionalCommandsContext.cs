@@ -16,7 +16,7 @@ namespace Shaolinq.Postgres.DotConnect
 
 		public override IDbCommand CreateCommand(SqlCreateCommandOptions options)
 		{
-			var retval = base.CreateCommand(options).Cast<PgSqlCommand>();
+			var retval = base.CreateCommand(options).Unwrap<PgSqlCommand>();
 
 			if ((options & SqlCreateCommandOptions.UnpreparedExecute) != 0)
 			{
