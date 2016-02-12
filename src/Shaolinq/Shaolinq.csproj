@@ -443,8 +443,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <UsingTask TaskName="RewriteAsync" AssemblyFile="../../lib/AsyncRewriter.dll" />
   <Target Name="BeforeBuild">
     <NugetContentRestoreTask SolutionDir="$(SolutionDir)" ProjectDir="$(ProjectDir)" />
+    <RewriteAsync Assemblies="System.Data.dll" InputFiles="@(Compile)" OutputFile="GeneratedAsync.cs" />
   </Target>
   <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -452,11 +454,5 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets'))" />
-  </Target>
-  <UsingTask TaskName="RewriteAsync" AssemblyFile="../../lib/AsyncRewriter.dll" />
-  <Target Name="BeforeBuild">
-    <RewriteAsync Assemblies="System.Data.dll" InputFiles="@(Compile)" OutputFile="GeneratedAsync.cs" />
-  </Target>
-  <Target Name="AfterBuild">
   </Target>
 </Project>
