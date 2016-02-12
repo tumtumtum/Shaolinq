@@ -129,7 +129,7 @@ namespace Shaolinq.Tests
 		[Category("IgnoreOnMono")]
 		public void Test_Nested_Scope_Update()
 		{
-			Test_Nested_Scope_Update_Async().GetAwaiter().GetResult();
+			Test_Nested_Scope_Update_Async().ConfigureAwait(false).GetAwaiter().GetResult();
 		}
 
 		private async Task Test_Nested_Scope_Update_Async()
@@ -140,7 +140,7 @@ namespace Shaolinq.Tests
 			{
 				var child = this.model.Children.Create();
 
-				await scope.FlushAsync();
+				await scope.FlushAsync().ConfigureAwait(false);
 
 				using (var inner = new DataAccessScope())
 				{
@@ -149,7 +149,7 @@ namespace Shaolinq.Tests
 					inner.Complete();
 				}
 
-				await scope.FlushAsync();
+				await scope.FlushAsync().ConfigureAwait(false);
 
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 

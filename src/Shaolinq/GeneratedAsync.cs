@@ -38,17 +38,19 @@ namespace Shaolinq
                 return;
             }
 
-            if (!this.transaction.HasSystemTransaction)
+            if (this.transaction.HasSystemTransaction)
             {
-                if (this.transaction != DataAccessTransaction.Current)
-                {
-                    throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
-                }
+                return;
+            }
 
-                foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
-                {
-                    await transactionContext.CommitAsync(cancellationToken);
-                }
+            if (this.transaction != DataAccessTransaction.Current)
+            {
+                throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
+            }
+
+            foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
+            {
+                await transactionContext.CommitAsync(cancellationToken);
             }
         }
 

@@ -74,18 +74,13 @@ namespace Shaolinq
 				{
 					throw new DataAccessTransactionAbortedException();
 				}
-			}
-
-			if (this.transaction != null && !this.transaction.HasSystemTransaction)
-			{
-				if (this.transaction != DataAccessTransaction.Current)
+				else
 				{
-					throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
-				}
-
-				foreach (var transactionContexts in this.transaction.dataAccessModelsByTransactionContext.Keys)
-				{
-					transactionContexts.Commit();
+					foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
+					{
+						transactionContext.Rollback();
+						transactionContext.Dispose();
+					}
 				}
 			}
 		}

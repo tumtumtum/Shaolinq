@@ -417,6 +417,21 @@ namespace Shaolinq
 			}
 		}
 
+		internal void Rollback()
+		{
+			try
+			{
+				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+				{
+					commandsContext.Rollback();
+				}
+			}
+			finally
+			{
+				this.Dispose();
+			}
+		}
+
 		public virtual void Rollback(Enlistment enlistment)
 		{
 			try
