@@ -18,17 +18,9 @@ namespace Shaolinq.Persistence
 		private static readonly MethodInfo DeleteHelperMethod = TypeUtils.GetMethod(() => DeleteHelper(0, null)).GetGenericMethodDefinition();
 
 		#region ExecuteReader
+
+		[RewriteAsync]
 		public override IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
-		{
-			return this.ExecuteReaderAsyncHelper(sql, parameters, false, CancellationToken.None).GetAwaiter().GetResult();
-		}
-
-		public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken)
-		{
-			return this.ExecuteReaderAsyncHelper(sql, parameters, true, cancellationToken);
-		}
-
-		private async Task<IDataReader> ExecuteReaderAsyncHelper(string sql, IReadOnlyList<Tuple<Type, object>> parameters, bool async, CancellationToken cancellationToken)
 		{
 			using (var command = this.CreateCommand())
 			{
@@ -43,14 +35,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					if (async)
-					{
-						return await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						return command.ExecuteReader();
-					}
+					return command.ExecuteReaderEx();
 				}
 				catch (Exception e)
 				{
@@ -68,17 +53,9 @@ namespace Shaolinq.Persistence
 		#endregion
 
 		#region Update
+		
+		[RewriteAsync]
 		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-		{
-			this.UpdateAsyncHelper(type, dataAccessObjects, false, CancellationToken.None).GetAwaiter().GetResult();
-		}
-
-		public override Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-		{
-			return UpdateAsyncHelper(type, dataAccessObjects, true, cancellationToken);
-		}
-
-        private async Task UpdateAsyncHelper(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool async, CancellationToken cancellationToken)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
@@ -107,14 +84,7 @@ namespace Shaolinq.Persistence
 
 					try
 					{
-						if (async)
-						{
-							result = await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-						}
-						else
-						{
-							result = command.ExecuteNonQuery();
-						}
+						result = command.ExecuteNonQueryEx();
 					}
 					catch (Exception e)
 					{
@@ -141,17 +111,8 @@ namespace Shaolinq.Persistence
 
 		#region Insert
 
+		[RewriteAsync]
 		public override InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-		{
-			return this.InsertAsyncHelper(type, dataAccessObjects, false, CancellationToken.None).GetAwaiter().GetResult();
-		}
-
-        public override Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-		{
-			return this.InsertAsyncHelper(type, dataAccessObjects, true, cancellationToken);
-		}
-
-        private async Task<InsertResults> InsertAsyncHelper(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool async, CancellationToken cancellationToken)
 		{
 			var listToFixup = new List<DataAccessObject>();
 			var listToRetry = new List<DataAccessObject>();
@@ -186,32 +147,15 @@ namespace Shaolinq.Persistence
 
 						try
 						{
-							IDataReader reader;
-
-							if (async)
-							{
-								reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-							}
-							else
-							{
-								reader = command.ExecuteReader();
-							}
+							var reader = command.ExecuteReaderEx();
 
 							using (reader)
 							{
 								if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
 								{
-									bool result;
 									var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
 
-									if (async)
-									{
-										result = await reader.ReadAsync(cancellationToken);
-									}
-									else
-									{
-										result = reader.Read();
-									}
+									var result = reader.ReadEx();
 
 									if (result)
 									{
@@ -262,17 +206,8 @@ namespace Shaolinq.Persistence
 
 		#region DeleteExpression
 
-		public override void Delete(SqlDeleteExpression deleteExpression)
-		{
-			this.DeleteAsyncHelper(deleteExpression, false, CancellationToken.None).GetAwaiter().GetResult();
-		}
-
-		public override Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
-		{
-			return this.DeleteAsyncHelper(deleteExpression, true, cancellationToken);
-		}
-
-        private async Task DeleteAsyncHelper(SqlDeleteExpression deleteExpression, bool async, CancellationToken cancellationToken)
+		[RewriteAsync]
+        public override void Delete(SqlDeleteExpression deleteExpression)
 		{
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
 
@@ -289,14 +224,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					if (async)
-					{
-						await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-					}
-					else
-					{
-						command.ExecuteNonQuery();
-					}
+					command.ExecuteNonQueryEx();
 				}
 				catch (Exception e)
 				{
@@ -316,17 +244,8 @@ namespace Shaolinq.Persistence
 
 		#region DeleteObjects
 
+		[RewriteAsync]
 		public override void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-		{
-			this.DeleteAsyncHelper(type, dataAccessObjects, false, CancellationToken.None).GetAwaiter().GetResult();
-		}
-
-		public override Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-		{
-			return this.DeleteAsyncHelper(type, dataAccessObjects, true, cancellationToken);
-		}
-
-        private async Task DeleteAsyncHelper(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool async, CancellationToken cancellationToken)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 			var parameter = Expression.Parameter(typeDescriptor.Type, "value");
@@ -360,14 +279,7 @@ namespace Shaolinq.Persistence
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 			expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 
-	        if (async)
-	        {
-		        await this.DeleteAsync((SqlDeleteExpression)expression, cancellationToken).ConfigureAwait(false);
-			}
-	        else
-	        {
-		        this.Delete((SqlDeleteExpression)expression);
-	        }
+			this.Delete((SqlDeleteExpression)expression);
 		}
 
 		#endregion

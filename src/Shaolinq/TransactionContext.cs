@@ -13,7 +13,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public class TransactionContext
+	public partial class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
 		internal static int GetCurrentContextVersion()
@@ -350,11 +350,16 @@ namespace Shaolinq
 			}
 		}
 
+		[RewriteAsync]
 		public void Commit()
 		{
 			try
 			{
-				this.dataAccessObjectDataContext?.Commit(this, false);
+				// ReSharper disable once UseNullPropagation
+				if (this.dataAccessObjectDataContext != null)
+				{
+					this.dataAccessObjectDataContext.Commit(this, false);
+				}
 
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
 				{
@@ -372,28 +377,7 @@ namespace Shaolinq
 				this.Dispose();
 			}
 		}
-
-		public async Task CommitAsync()
-		{
-			try
-			{
-				this.dataAccessObjectDataContext?.Commit(this, false);
-
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
-				{
-					await commandsContext.CommitAsync();
-				}
-			}
-			catch (Exception e)
-			{
-				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
-			}
-			finally
-			{
-				this.Dispose();
-			}
-		}
-
+		
 		public virtual void Prepare(PreparingEnlistment preparingEnlistment)
 		{
 			var dispose = true;

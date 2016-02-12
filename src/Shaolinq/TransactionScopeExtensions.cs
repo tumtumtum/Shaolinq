@@ -8,26 +8,19 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public static class TransactionScopeExtensions
+	public static partial class TransactionScopeExtensions
 	{
 		public static void Flush(this TransactionScope scope, DataAccessModel dataAccessModel)
 		{
 			dataAccessModel.Flush();
 		}
 
+		[RewriteAsync]
 		public static void Flush(this TransactionScope scope)
 		{
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
 			{
 				dataAccessModel.Flush();
-			}
-		}
-
-		public static async Task FlushAsync(this TransactionScope scope)
-		{
-			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(c => !c.IsDisposed))
-			{
-				await dataAccessModel.FlushAsync();
 			}
 		}
 

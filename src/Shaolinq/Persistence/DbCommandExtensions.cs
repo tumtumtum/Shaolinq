@@ -2,12 +2,39 @@
 
 using System.Data;
 using System.Data.Common;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Shaolinq.Persistence
 {
-	public static class DbCommandExtensions
+	public static partial class DbTransactionExtensions
+	{
+		[RewriteAsync]
+		public static void RollbackEx(this IDbTransaction transaction)
+		{
+			var dbTransaction = transaction as DbTransaction;
+
+			if (dbTransaction != null)
+			{
+				dbTransaction.Rollback();
+			}
+
+			transaction.Rollback();
+		}
+
+		[RewriteAsync]
+		public static void CommitEx(this IDbTransaction transaction)
+		{
+			var dbTransaction = transaction as DbTransaction;
+
+			if (dbTransaction != null)
+			{
+				dbTransaction.Commit();
+			}
+
+			transaction.Commit();
+		}
+	}
+
+	public static partial class DbCommandExtensions
 	{
 		public static T Cast<T>(this IDbCommand command)
 			where T : class, IDbCommand
@@ -15,49 +42,27 @@ namespace Shaolinq.Persistence
 			return (command as T) ?? (T)((command as MarsDbCommand))?.Inner;
 		}
 
-		public static async Task<IDataReader> ExecuteReaderAsync(this IDbCommand command)
+		[RewriteAsync]
+		public static IDataReader ExecuteReaderEx(this IDbCommand command)
 		{
-			var dbCommand = command as DbCommand;
+			var dbCommand = command.Cast<DbCommand>();
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteReaderAsync();
+				return dbCommand.ExecuteReader();
 			}
 
 			return command.ExecuteReader();
 		}
-
-		public static async Task<IDataReader> ExecuteReaderAsync(this IDbCommand command, CancellationToken cancellationToken)
+		
+		[RewriteAsync]
+		public static int ExecuteNonQueryEx(this IDbCommand command)
 		{
-			var dbCommand = command as DbCommand;
+			var dbCommand = command.Cast<DbCommand>();
 
 			if (dbCommand != null)
 			{
-				return await dbCommand.ExecuteReaderAsync(cancellationToken);
-			}
-
-			return command.ExecuteReader();
-		}
-
-		public static async Task<int> ExecuteNonQueryAsync(this IDbCommand command)
-		{
-			var dbCommand = command as DbCommand;
-
-			if (dbCommand != null)
-			{
-				return await dbCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
-			}
-
-			return command.ExecuteNonQuery();
-		}
-
-		public static async Task<int> ExecuteNonQueryAsync(this IDbCommand command, CancellationToken cancellationToken)
-		{
-			var dbCommand = command as DbCommand;
-
-			if (dbCommand != null)
-			{
-				return await dbCommand.ExecuteNonQueryAsync(cancellationToken);
+				return dbCommand.ExecuteNonQuery();
 			}
 
 			return command.ExecuteNonQuery();

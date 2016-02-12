@@ -2,11 +2,14 @@
 
 using System;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public class DataAccessScope
+	public partial class DataAccessScope
 		: IDisposable
 	{
 		public DataAccessIsolationLevel IsolationLevel { get; set; }
@@ -15,27 +18,21 @@ namespace Shaolinq
 		private readonly DataAccessTransaction transaction;
 		private bool completeAsyncCalled;
 
+		private static readonly Func<TransactionContext, CancellationToken, Task> commitAsyncFunc;
+
+		static DataAccessScope()
+		{
+			var param1 = Expression.Parameter(typeof(TransactionContext));
+			var param2 = Expression.Parameter(typeof(CancellationToken));
+
+			commitAsyncFunc = Expression.Lambda<Func<TransactionContext, CancellationToken, Task>>(Expression.Call(param1, "CommitAsync", null), param1, param2).Compile();
+		}
+
 		public DataAccessScope()
 			: this(DataAccessIsolationLevel.Unspecified)
 		{	
 		}
-
-		public void Flush()
-		{
-			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
-			{
-				dataAccessModel.Flush();
-			}
-		}
-
-		public async Task FlushAsync()
-		{
-			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
-			{
-				await dataAccessModel.FlushAsync();
-			}
-		}
-
+		
 		public DataAccessScope(DataAccessIsolationLevel isolationLevel)
 		{
 			this.IsolationLevel = isolationLevel;
@@ -47,13 +44,18 @@ namespace Shaolinq
 				DataAccessTransaction.Current = this.transaction;
 			}
 		}
-
+		
 		public void Complete()
 		{
 			this.complete = true;
 		}
 
-		public async Task CompleteAsync()
+		public Task CompleteAsync()
+		{
+			return this.CompleteAsync(CancellationToken.None);
+		}
+
+		public async Task CompleteAsync(CancellationToken cancellationToken)
 		{
 			this.completeAsyncCalled = true;
 
@@ -69,10 +71,19 @@ namespace Shaolinq
 					throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
 				}
 
-				foreach (var transactionContexts in this.transaction.dataAccessModelsByTransactionContext.Keys)
+				foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
 				{
-					await transactionContexts.CommitAsync();
+					await commitAsyncFunc(transactionContext, cancellationToken);
 				}
+			}
+		}
+		
+		[RewriteAsync]
+		public void Flush()
+		{
+			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
+			{
+				dataAccessModel.Flush();
 			}
 		}
 

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -11,7 +12,7 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence
 {
-	public abstract class SqlTransactionalCommandsContext
+	public abstract partial class SqlTransactionalCommandsContext
 		: IDisposable
 	{
 		internal MarsDataReader currentReader;
@@ -26,44 +27,26 @@ namespace Shaolinq.Persistence
 		private readonly bool emulateMultipleActiveResultSets;
 
 		public abstract void Delete(SqlDeleteExpression deleteExpression);
+		public abstract Task DeleteAsync(SqlDeleteExpression deleteExpression);
+		public abstract Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken);
 		public abstract void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken);
+
 		public abstract void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken);
+
 		public abstract InsertResults Insert(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
+		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken);
+
 		public abstract IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
+		public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
+		public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken);
 
 		public virtual bool IsClosed => this.DbConnection.State == ConnectionState.Closed || this.DbConnection.State == ConnectionState.Broken;
 		
-		public virtual Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
-		{
-			this.Delete(deleteExpression);
-
-			return Task.FromResult<object>(null);
-		}
-
-		public virtual Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-		{
-			this.Delete(type, dataAccessObjects);
-
-			return Task.FromResult<object>(null);
-		}
-
-		public virtual Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-		{
-			this.Update(type, dataAccessObjects);
-
-			return Task.FromResult<object>(null);
-		}
-
-		public virtual Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-		{
-			return Task.FromResult(this.Insert(type, dataAccessObjects));
-		}
-
-		public virtual Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken)
-		{
-			return Task.FromResult(this.ExecuteReader(sql, parameters));
-		}
-
         protected SqlTransactionalCommandsContext()
 			: this(true)
 		{
@@ -135,28 +118,12 @@ namespace Shaolinq.Persistence
 			throw new NotSupportedException();
 		}
 
-		protected virtual void CommitTransaction()
-		{
-			this.dbTransaction?.Commit();
-		}
-
-		protected virtual Task CommitTransactionAsync(CancellationToken cancellationToken)
-		{
-			throw new NotSupportedException();
-		}
-
-		private async Task PrivateCommit(CancellationToken cancellationToken, bool async)
+		[RewriteAsync]
+		public virtual void Commit()
 		{
 			try
 			{
-				if (async)
-				{
-					await this.CommitTransactionAsync(cancellationToken);
-				}
-				else
-				{
-					this.CommitTransaction();
-				}
+				this.dbTransaction.CommitEx();
 
 				this.dbTransaction = null;
 			}
@@ -178,28 +145,15 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public virtual void Commit()
-		{
-			PrivateCommit(CancellationToken.None, false).GetAwaiter().GetResult();
-		}
-
-		public virtual async Task CommitAsync()
-		{
-			await CommitAsync(CancellationToken.None);
-		}
-
-		public virtual async Task CommitAsync(CancellationToken cancellationToken)
-		{
-			await PrivateCommit(cancellationToken, true);
-		}
-
+		[RewriteAsync]
 		public virtual void Rollback()
 		{
 			try
 			{
 				if (this.dbTransaction != null)
 				{
-					this.dbTransaction.Rollback();
+					this.dbTransaction.RollbackEx();
+
 					this.dbTransaction = null;
 				}
 			}

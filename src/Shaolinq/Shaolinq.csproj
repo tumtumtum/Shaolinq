@@ -140,6 +140,7 @@
     <Compile Include="DatabaseCreationOptions.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
+    <Compile Include="GeneratedAsync.cs" />
     <Compile Include="IAsyncEnumerator.cs" />
     <Compile Include="IAsyncEumerable.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
@@ -207,6 +208,7 @@
     <Compile Include="Persistence\MarsDbCommand.cs" />
     <Compile Include="Persistence\SqlTransactionalCommandsContext.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
+    <Compile Include="Persistence\RewriteAsyncAttribute.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
@@ -450,11 +452,10 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets'))" />
   </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
+  <UsingTask TaskName="RewriteAsync" AssemblyFile="../../lib/AsyncRewriter.dll" />
   <Target Name="BeforeBuild">
+    <RewriteAsync Assemblies="System.Data.dll" InputFiles="@(Compile)" OutputFile="GeneratedAsync.cs" />
   </Target>
   <Target Name="AfterBuild">
   </Target>
-  -->
 </Project>

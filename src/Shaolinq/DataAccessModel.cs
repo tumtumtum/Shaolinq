@@ -17,7 +17,7 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
 {
-	public abstract class DataAccessModel
+	public abstract partial class DataAccessModel
 		 : IDisposable
 	{
 		internal ConcurrentDictionary<DataAccessTransaction, TransactionContext> transactionContextsByTransaction;
@@ -687,6 +687,7 @@ namespace Shaolinq
 			}
 		}
 
+		[RewriteAsync]
 		public virtual void Flush()
 		{
 			var transactionContext = this.GetCurrentContext(true);
@@ -694,16 +695,6 @@ namespace Shaolinq
 			using (var context = transactionContext.AcquireVersionContext())
 			{
 				this.GetCurrentDataContext(true).Commit(transactionContext, true);
-			}
-		}
-
-		public virtual async Task FlushAsync()
-		{
-			var transactionContext = this.GetCurrentContext(true);
-
-			using (var context = transactionContext.AcquireVersionContext())
-			{
-				await this.GetCurrentDataContext(true).CommitAsync(transactionContext, true);
 			}
 		}
 

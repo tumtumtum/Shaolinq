@@ -2,6 +2,7 @@
 
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
@@ -13,12 +14,13 @@ using System.Threading.Tasks;
 
 namespace Shaolinq.Postgres
 {
-	public class PostgresSqlTransactionalCommandsContext
+	public partial class PostgresSqlTransactionalCommandsContext
 		: DefaultSqlTransactionalCommandsContext
 	{
 		private string preparedTransactionName;
+		private static readonly Func<NpgsqlTransaction, Task> rollbackAsyncFunc;
 		private static readonly Func<NpgsqlTransaction, CancellationToken, Task> commitAsyncFunc;
-
+		
 		static PostgresSqlTransactionalCommandsContext()
 		{
 			var commitAsyncMethod = typeof(NpgsqlTransaction).GetMethod("CommitAsync", BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(CancellationToken) }, null);
@@ -31,6 +33,17 @@ namespace Shaolinq.Postgres
 				var body = Expression.Call(param1, commitAsyncMethod, param2);
 
 				commitAsyncFunc = Expression.Lambda<Func<NpgsqlTransaction, CancellationToken, Task>>(body, param1, param2).Compile();
+			}
+
+			var rollbackAsyncMethod = typeof(NpgsqlTransaction).GetMethod("RollbackAsync", BindingFlags.Public | BindingFlags.Instance, null, null, null);
+
+			if (rollbackAsyncMethod != null)
+			{
+				var param1 = Expression.Parameter(typeof(NpgsqlTransaction));
+				
+				var body = Expression.Call(param1, rollbackAsyncMethod);
+
+				rollbackAsyncFunc = Expression.Lambda<Func<NpgsqlTransaction, Task>>(body, param1).Compile();
 			}
 		}
 
@@ -57,22 +70,7 @@ namespace Shaolinq.Postgres
 			this.dbTransaction = null;
 		}
 
-		protected override Task CommitTransactionAsync(CancellationToken cancellationToken)
-		{
-			var transaction = (NpgsqlTransaction)this.dbTransaction;
-
-			if (commitAsyncFunc == null)
-			{
-				this.dbTransaction.Commit();
-
-				return Task.FromResult<object>(null);
-			}
-			else
-			{
-				return commitAsyncFunc(transaction, cancellationToken);
-			}
-		}
-
+		[RewriteAsync]
 		public override void Commit()
 		{
 			if (this.preparedTransactionName != null)
@@ -80,13 +78,14 @@ namespace Shaolinq.Postgres
 				using (var command = this.CreateCommand())
 				{
 					command.CommandText = $"COMMIT PREPARED '{this.preparedTransactionName}';";
-					command.ExecuteNonQuery();
+					command.ExecuteNonQueryEx();
 				}
 			}
 
 			base.Commit();
 		}
-
+		
+		[RewriteAsync]
 		public override void Rollback()
 		{
 			if (this.preparedTransactionName != null)
@@ -94,12 +93,13 @@ namespace Shaolinq.Postgres
 				using (var command = this.CreateCommand())
 				{
 					command.CommandText = $"ROLLBACK PREPARED '{this.preparedTransactionName}';";
-					command.ExecuteNonQuery();
+					command.ExecuteNonQueryEx();
 				}
 			}
 
-			base.Rollback();
+			base.Commit();
 		}
+		
 		protected override IDbDataParameter CreateParameter(IDbCommand command, string parameterName, Type type, object value)
 		{
 			var unwrapped = type.GetUnwrappedNullableType();
