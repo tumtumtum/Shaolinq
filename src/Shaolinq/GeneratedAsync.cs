@@ -743,8 +743,11 @@ namespace Shaolinq.Persistence
         {
             try
             {
-                await this.dbTransaction.CommitExAsync(cancellationToken);
-                this.dbTransaction = null;
+                if (this.dbTransaction != null)
+                {
+                    await this.dbTransaction.CommitExAsync(cancellationToken);
+                    this.dbTransaction = null;
+                }
             }
             catch (Exception e)
             {

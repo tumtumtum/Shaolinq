@@ -82,7 +82,10 @@ namespace Shaolinq.Persistence
 
 			this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
 
-			this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction?.IsolationLevel ?? DataAccessIsolationLevel.Unspecified));
+			if (transaction != null)
+			{
+				this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction?.IsolationLevel ?? DataAccessIsolationLevel.Unspecified));
+			}
 		}
 
 		~SqlTransactionalCommandsContext()
@@ -121,9 +124,12 @@ namespace Shaolinq.Persistence
 		{
 			try
 			{
-				this.dbTransaction.CommitEx();
+				if (this.dbTransaction != null)
+				{
+					this.dbTransaction.CommitEx();
 
-				this.dbTransaction = null;
+					this.dbTransaction = null;
+				}
 			}
 			catch (Exception e)
 			{
