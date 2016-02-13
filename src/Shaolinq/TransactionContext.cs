@@ -64,6 +64,11 @@ namespace Shaolinq
 
 		internal TransactionContextVersionContext AcquireVersionContext()
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			return new TransactionContextVersionContext(this);
 		}
 
@@ -76,7 +81,7 @@ namespace Shaolinq
 		{
 			TransactionContext context;
 			var dataAccessTransaction = DataAccessTransaction.Current;
-
+			
 			if (dataAccessTransaction == null && Transaction.Current != null)
 			{
 				dataAccessTransaction = DataAccessTransaction.Current = new DataAccessTransaction();
@@ -91,7 +96,7 @@ namespace Shaolinq
 
 				context = dataAccessModel.asyncLocalTransactionContext.Value;
 
-				if (context == null)
+				if (context == null || context.disposed)
 				{
 					context = new TransactionContext(null, dataAccessModel);
 
@@ -101,7 +106,7 @@ namespace Shaolinq
 				return context;
 			}
 
-			if (dataAccessTransaction.HasAborted)
+			if (dataAccessTransaction.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted)
 			{
 				throw new TransactionAbortedException();
 			}
@@ -130,6 +135,11 @@ namespace Shaolinq
 
 		public DataAccessObjectDataContext GetCurrentDataContext()
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			if (dataAccessObjectDataContext == null)
 			{
 				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext(), false);
@@ -164,6 +174,11 @@ namespace Shaolinq
 
 		internal void VersionContextFinished(TransactionContextVersionContext versionContext)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			if (this.DataAccessTransaction == null)
 			{
 				this.dataAccessObjectDataContext = null;
@@ -191,6 +206,11 @@ namespace Shaolinq
 
 		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			if (this.DataAccessTransaction == null)
 			{
 				throw new InvalidOperationException("Transaction required");
@@ -201,6 +221,11 @@ namespace Shaolinq
 
 		public virtual DatabaseTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext sqlDatabaseContext)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			SqlTransactionalCommandsContext commandsContext;
 
 			if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out commandsContext))
@@ -296,13 +321,18 @@ namespace Shaolinq
 			{
 				if (!DataAccessTransaction.HasSystemTransaction)
 				{
-					DataAccessTransaction.Current = null;
+					DataAccessTransaction.Current?.Dispose();
 				}
 			}
 		}
 
 		public virtual void Commit(Enlistment enlistment)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			try
 			{
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
@@ -329,6 +359,11 @@ namespace Shaolinq
 
 		public virtual void InDoubt(Enlistment enlistment)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			try
 			{
 				enlistment.Done();
@@ -341,6 +376,11 @@ namespace Shaolinq
 
 		public void SinglePhaseCommit(SinglePhaseEnlistment singlePhaseEnlistment)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			try
 			{
 				this.dataAccessObjectDataContext?.Commit(this, false);
@@ -367,6 +407,11 @@ namespace Shaolinq
 		[RewriteAsync]
 		public void Commit()
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			try
 			{
 				// ReSharper disable once UseNullPropagation
@@ -394,6 +439,11 @@ namespace Shaolinq
 		
 		public virtual void Prepare(PreparingEnlistment preparingEnlistment)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			var dispose = true;
 
 			try
@@ -433,6 +483,11 @@ namespace Shaolinq
 
 		internal void Rollback()
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			try
 			{
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
@@ -448,6 +503,11 @@ namespace Shaolinq
 
 		public virtual void Rollback(Enlistment enlistment)
 		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
 			try
 			{
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)

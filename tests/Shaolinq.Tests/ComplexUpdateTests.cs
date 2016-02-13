@@ -157,9 +157,17 @@ namespace Shaolinq.Tests
 				return;
 			}
 
-			e.WaitOne(TimeSpan.FromSeconds(10));
+			while (!task.GetAwaiter().IsCompleted)
+			{
+				if (e.WaitOne(TimeSpan.FromSeconds(1)))
+				{
+					break;
+				}
+			}
 
 			Assert.IsTrue(task.GetAwaiter().IsCompleted);
+
+			task.GetAwaiter().GetResult();
 
 			Test_Set_Object_Property_To_Null();
 		}
@@ -175,11 +183,68 @@ namespace Shaolinq.Tests
 
 				await scope.FlushAsync().ConfigureAwait(false);
 
-				scope.Flush();
-				
 				id = child.Id;
 
 				using (var inner = new DataAccessScope())
+				{
+					child.Nickname = methodName;
+
+					await inner.CompleteAsync().ConfigureAwait(false);
+				}
+
+				await scope.FlushAsync();
+				
+				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+
+				await scope.CompleteAsync().ConfigureAwait(false);
+			}
+			
+			Assert.AreEqual(id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+
+			e.Set();
+		}
+
+		[Test]
+		public void Test_Nested_Scope_Update2()
+		{
+			var e = new ManualResetEvent(false);
+
+			var task = Test_Nested_Scope_Update_Async2(e).ConfigureAwait(false);
+
+			if (task.GetAwaiter().IsCompleted)
+			{
+				Test_Set_Object_Property_To_Null();
+
+				return;
+			}
+
+			while (!task.GetAwaiter().IsCompleted)
+			{
+				if (e.WaitOne(TimeSpan.FromSeconds(1)))
+				{
+					break;
+				}
+			}
+
+			Assert.IsTrue(task.GetAwaiter().IsCompleted);
+
+			Test_Set_Object_Property_To_Null();
+		}
+
+		private async Task Test_Nested_Scope_Update_Async2(ManualResetEvent e)
+		{
+			Guid id;
+			var methodName = MethodBase.GetCurrentMethod().Name;
+
+			using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+			{
+				var child = this.model.Children.Create();
+
+				await scope.FlushAsync().ConfigureAwait(false);
+
+				id = child.Id;
+
+				using (var inner = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
 				{
 					child.Nickname = methodName;
 
@@ -187,19 +252,19 @@ namespace Shaolinq.Tests
 				}
 
 				await scope.FlushAsync().ConfigureAwait(false);
-				
+
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
-				
+
 				scope.Complete();
 			}
-			
+
 			Assert.AreEqual(id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 
 			e.Set();
 		}
-		
+
 		[Test, ExpectedException(typeof(TransactionAbortedException))]
-		public void Test_Nested_Scope_Abort()
+		public void Test_Nested_Scope_Abort1()
 		{
 			var methodName = MethodBase.GetCurrentMethod().Name;
 
@@ -210,6 +275,30 @@ namespace Shaolinq.Tests
 				scope.Flush();
 
 				using (var inner = new TransactionScope())
+				{
+					child.Nickname = methodName;
+				}
+
+				scope.Flush();
+
+				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+
+				scope.Complete();
+			}
+		}
+
+		[Test, ExpectedException(typeof(DataAccessTransactionAbortedException))]
+		public void Test_Nested_Scope_Abort2()
+		{
+			var methodName = MethodBase.GetCurrentMethod().Name;
+
+			using (var scope = new DataAccessScope())
+			{
+				var child = this.model.Children.Create();
+
+				scope.Flush();
+
+				using (var inner = new DataAccessScope())
 				{
 					child.Nickname = methodName;
 				}

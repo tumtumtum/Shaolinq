@@ -84,7 +84,7 @@ namespace Shaolinq.Persistence
 
 			if (transaction != null)
 			{
-				this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction?.IsolationLevel ?? DataAccessIsolationLevel.Unspecified));
+				this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction.IsolationLevel));
 			}
 		}
 
@@ -167,7 +167,6 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		[RewriteAsync]
 		protected virtual void CloseConnection()
 		{
 			try

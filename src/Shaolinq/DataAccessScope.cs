@@ -72,7 +72,10 @@ namespace Shaolinq
 				transactionContext.Commit();
 			}
 
-			DataAccessTransaction.Current = null;
+			if (DataAccessTransaction.Current != null)
+			{
+				DataAccessTransaction.Current.Dispose();
+			}
 		}
 
 		public void Dispose()

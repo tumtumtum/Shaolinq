@@ -27,11 +27,11 @@ namespace Shaolinq.Postgres
                 using (var command = this.CreateCommand())
                 {
                     command.CommandText = $"COMMIT PREPARED '{this.preparedTransactionName}';";
-                    await command.ExecuteNonQueryExAsync(cancellationToken);
+                    await command.ExecuteNonQueryExAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            await base.CommitAsync(cancellationToken);
+            await base.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public Task RollbackAsync()
@@ -46,11 +46,11 @@ namespace Shaolinq.Postgres
                 using (var command = this.CreateCommand())
                 {
                     command.CommandText = $"ROLLBACK PREPARED '{this.preparedTransactionName}';";
-                    await command.ExecuteNonQueryExAsync(cancellationToken);
+                    await command.ExecuteNonQueryExAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            await base.RollbackAsync(cancellationToken);
+            await base.RollbackAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

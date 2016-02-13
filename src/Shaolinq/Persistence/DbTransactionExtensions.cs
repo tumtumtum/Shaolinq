@@ -12,8 +12,8 @@ namespace Shaolinq.Persistence
 {
 	public static partial class DbTransactionExtensions
 	{
-		private static Dictionary<RuntimeTypeHandle, Func<IDbTransaction, Task>> commitAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, Task>>();
-		private static Dictionary<RuntimeTypeHandle, Func<IDbTransaction, Task>> rollbackAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, Task>>();
+		private static Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>> commitAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>>();
+		private static Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>> rollbackAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>>();
 
 		public static void RollbackEx(this IDbTransaction transaction)
 		{
@@ -27,28 +27,35 @@ namespace Shaolinq.Persistence
 
 		public static Task RollbackExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
-			Func<IDbTransaction, Task> func;
+			Func<IDbTransaction, CancellationToken, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);
 
 			if (!rollbackAsyncFuncsByType.TryGetValue(typeHandle, out func))
 			{
 				var type = Type.GetTypeFromHandle(typeHandle);
 				var param1 = Expression.Parameter(typeof(IDbTransaction));
-				var method = type.GetMethod("RollbackAsync");
+				var param2 = Expression.Parameter(typeof(CancellationToken));
 
-				if (method != null)
+				var method1 = type.GetMethod("RollbackAsync", new Type[0]);
+				var method2 = type.GetMethod("RollbackAsync", new[] { typeof(CancellationToken) });
+
+				if (method1 != null)
 				{
-					func = Expression.Lambda<Func<IDbTransaction, Task>>(Expression.Call(Expression.Convert(param1, type), method), param1).Compile();
+					func = Expression.Lambda<Func<IDbTransaction, CancellationToken, Task>>(Expression.Call(Expression.Convert(param1, type), method1), param1, param2).Compile();
+				}
+				else if (method2 != null)
+				{
+					func = Expression.Lambda<Func<IDbTransaction, CancellationToken, Task>>(Expression.Call(Expression.Convert(param1, type), method2, param2), param1, param2).Compile();
 				}
 				else
 				{
-					func = Expression.Lambda<Func<IDbTransaction, Task>>(Expression.Call(TypeUtils.GetMethod(() => Task.FromResult<object>(null)), Expression.Call(Expression.Convert(param1, type), "Rollback", null)), param1).Compile();
+					func = Expression.Lambda<Func<IDbTransaction, CancellationToken, Task>>(Expression.Call(TypeUtils.GetMethod(() => Task.FromResult<object>(null)), Expression.Call(Expression.Convert(param1, type), "Rollback", null)), param1, param2).Compile();
 				}
 
-				rollbackAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, Task>>(commitAsyncFuncsByType) { [typeHandle] = func };
+				rollbackAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction,CancellationToken, Task>>(rollbackAsyncFuncsByType) { [typeHandle] = func };
 			}
 
-			return func(transaction);
+			return func(transaction, cancellationToken);
 		}
 		
 		public static void CommitEx(this IDbTransaction transaction)
@@ -63,29 +70,44 @@ namespace Shaolinq.Persistence
 
 		public static async Task CommitExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
-			Func<IDbTransaction, Task> func;
+			Func<IDbTransaction, CancellationToken, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);
 
 			if (!commitAsyncFuncsByType.TryGetValue(typeHandle, out func))
 			{
 				var type = transaction.GetType();
 				var param1 = Expression.Parameter(typeof(IDbTransaction));
+				var param2 = Expression.Parameter(typeof(CancellationToken));
 
-				var method = type.GetMethod("CommitAsync");
+				var method1 = type.GetMethod("CommitAsync", new Type[0]);
+				var method2 = type.GetMethod("CommitAsync", new[] { typeof(CancellationToken) });
 
-				if (method != null)
+				if (method1 != null)
 				{
-					func = Expression.Lambda<Func<IDbTransaction, Task>>(Expression.Call(Expression.Convert(param1, type), method), param1).Compile();
+					func = Expression.Lambda<Func<IDbTransaction, CancellationToken, Task>>(Expression.Call(Expression.Convert(param1, type), method1), param1, param2).Compile();
+				}
+				else if (method2 != null)
+				{
+					func = Expression.Lambda<Func<IDbTransaction, CancellationToken, Task>>(Expression.Call(Expression.Convert(param1, type), method2, param2), param1, param2).Compile();
 				}
 				else
 				{
-					func = Expression.Lambda<Func<IDbTransaction, Task>>(Expression.Call(TypeUtils.GetMethod(() => Task.FromResult<object>(null)), Expression.Call(Expression.Convert(param1, type), "Commit", null)), param1).Compile();
+					func = Expression.Lambda<Func<IDbTransaction, CancellationToken, Task>>
+					(
+						Expression.Block
+						(
+							Expression.Call(Expression.Convert(param1, type), "Commit", null),
+							Expression.Call(TypeUtils.GetMethod(() => Task.FromResult<object>(null)), Expression.Constant(null))
+						),
+						param1,
+						param2
+					).Compile();
 				}
 
-				commitAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, Task>>(commitAsyncFuncsByType) { [typeHandle] = func };
+				commitAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>>(commitAsyncFuncsByType) { [typeHandle] = func };
 			}
 
-			await func(transaction);
+			await func(transaction, cancellationToken);
 		}
 	}
 }
