@@ -1,15 +1,14 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Transactions;
 using Shaolinq.Persistence;
+using System.Collections.Generic;
 
 namespace Shaolinq
 {
 	public static partial class TransactionScopeExtensions
 	{
+		[RewriteAsync]
 		public static void Flush(this TransactionScope scope, DataAccessModel dataAccessModel)
 		{
 			dataAccessModel.Flush();

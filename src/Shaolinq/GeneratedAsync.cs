@@ -312,6 +312,16 @@ namespace Shaolinq
 
     public static partial class TransactionScopeExtensions
     {
+        public static Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel)
+        {
+            return FlushAsync(scope, dataAccessModel, CancellationToken.None);
+        }
+
+        public static async Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        {
+            await dataAccessModel.FlushAsync(cancellationToken);
+        }
+
         public static Task FlushAsync(this TransactionScope scope)
         {
             return FlushAsync(scope, CancellationToken.None);
