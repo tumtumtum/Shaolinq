@@ -146,6 +146,7 @@ namespace Shaolinq.Tests
 
 		private async Task Test_Nested_Scope_Update_Async(ManualResetEvent e)
 		{
+			Guid id;
 			var methodName = MethodBase.GetCurrentMethod().Name;
 
 			using (var scope = new DataAccessScope())
@@ -153,6 +154,8 @@ namespace Shaolinq.Tests
 				var child = this.model.Children.Create();
 
 				await scope.FlushAsync().ConfigureAwait(false);
+
+				id = child.Id;
 
 				using (var inner = new DataAccessScope())
 				{
@@ -167,6 +170,8 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+			
+			Assert.AreEqual(id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 
 			e.Set();
 		}
