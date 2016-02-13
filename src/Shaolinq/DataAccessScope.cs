@@ -17,6 +17,10 @@ namespace Shaolinq
 		public DataAccessScope()
 			: this(DataAccessIsolationLevel.Unspecified)
 		{
+			if (DataAccessTransaction.Current == null)
+			{
+				transaction = DataAccessTransaction.Current = new DataAccessTransaction();
+			}
 		}
 
 		[RewriteAsync]
@@ -67,6 +71,8 @@ namespace Shaolinq
 			{
 				transactionContext.Commit();
 			}
+
+			DataAccessTransaction.Current = null;
 		}
 
 		public void Dispose()
@@ -82,6 +88,16 @@ namespace Shaolinq
 					foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
 					{
 						transactionContext.Rollback();
+						transactionContext.Dispose();
+					}
+				}
+			}
+			else
+			{
+				if (this.transaction != null)
+				{
+					foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
+					{
 						transactionContext.Dispose();
 					}
 				}

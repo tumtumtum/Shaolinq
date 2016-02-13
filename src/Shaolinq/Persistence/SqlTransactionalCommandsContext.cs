@@ -3,10 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Transactions;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -163,10 +161,26 @@ namespace Shaolinq.Persistence
 			}
 		}
 
+		[RewriteAsync]
 		protected virtual void CloseConnection()
 		{
-			this.currentReader?.Dispose();
-			this.currentReader = null;
+			try
+			{
+				this.currentReader?.Dispose();
+				this.currentReader = null;
+			}
+			catch
+			{
+			}
+
+			try
+			{
+				this.dbTransaction.Dispose();
+				this.dbTransaction = null;
+			}
+			catch
+			{
+			}
 
 			this.DbConnection?.Close();
 			this.DbConnection = null;

@@ -2273,7 +2273,7 @@ namespace Shaolinq.Persistence.Linq
 						expression,
 						Expression.Lambda(Expression.Property(param, propertyInfo.Name), param),
 						nextProperties.Count > 0 ? ProcessJoins(value, nextProperties, index + 1, useFullPath) : value,
-						Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion)
+						Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion, Expression.Constant(this.DataAccessModel))
 					);
 				}
 				else

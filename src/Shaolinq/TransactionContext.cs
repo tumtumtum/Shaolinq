@@ -3,10 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
@@ -16,11 +12,6 @@ namespace Shaolinq
 	public partial class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
-		internal static int GetCurrentContextVersion()
-		{
-			throw new NotImplementedException(MethodBase.GetCurrentMethod().Name);
-		}
-
 		private int version;
 		private int versionNesting;
 		
@@ -43,6 +34,8 @@ namespace Shaolinq
 				if (context.versionNesting == 0)
 				{
 					context.version++;
+
+					this.context.dataAccessModel.asyncLocalVersion.Value = context.version;
 				}
 
 				this.Version = context.version;
@@ -74,10 +67,20 @@ namespace Shaolinq
 			return new TransactionContextVersionContext(this);
 		}
 
+		public static int GetCurrentTransactionContextVersion(DataAccessModel dataAccessModel)
+		{
+			return dataAccessModel.asyncLocalVersion.Value;
+		}
+
 		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite)
 		{
 			TransactionContext context;
 			var dataAccessTransaction = DataAccessTransaction.Current;
+
+			if (dataAccessTransaction == null && Transaction.Current != null)
+			{
+				dataAccessTransaction = DataAccessTransaction.Current = new DataAccessTransaction();
+			}
 
 			if (dataAccessTransaction == null)
 			{
@@ -171,6 +174,8 @@ namespace Shaolinq
 				}
 
 				this.commandsContextsBySqlDatabaseContexts.Clear();
+				this.dataAccessModel.asyncLocalTransactionContext.Value = null;
+				this.Dispose();
 			}
 		}
 
@@ -179,6 +184,7 @@ namespace Shaolinq
 			this.dataAccessModel = dataAccessModel;
 			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = "*";
+			this.version = dataAccessModel.asyncLocalVersion.Value;
 
 			this.commandsContextsBySqlDatabaseContexts = new Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
 		}
@@ -204,13 +210,15 @@ namespace Shaolinq
 				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = commandsContext;
 			}
 
+			var startIndex = this.GetCurrentVersion();
+
 			var retval = new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, commandsContext);
 
 			if (this.DataAccessTransaction == null)
 			{
 				retval.Disposed += (s, e) =>
 				{
-					if (this.GetCurrentVersion() <= 1)
+					if (this.GetCurrentVersion() <= startIndex)
 					{
 						this.dataAccessObjectDataContext = null;
 
@@ -245,8 +253,6 @@ namespace Shaolinq
 			{
 				return;
 			}
-
-			DataAccessTransaction.Current = null;
 
 			List<Exception> exceptions = null;
 
@@ -283,6 +289,14 @@ namespace Shaolinq
 				if (exceptions?.Count > 0)
 				{
 					throw new AggregateException(exceptions);
+				}
+			}
+
+			if (this.DataAccessTransaction != null)
+			{
+				if (!DataAccessTransaction.HasSystemTransaction)
+				{
+					DataAccessTransaction.Current = null;
 				}
 			}
 		}

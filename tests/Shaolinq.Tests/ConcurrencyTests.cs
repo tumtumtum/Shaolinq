@@ -17,7 +17,6 @@ namespace Shaolinq.Tests
 	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
 	[TestFixture("Sqlite")]
 	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
 	public class ConcurrencyTests
 		: BaseTests<TestDataAccessModel>
 	{

@@ -11,8 +11,14 @@ using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("Sqlite")]
+	[TestFixture("MySql")]
 	[TestFixture("Postgres")]
+	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Postgres.DotConnect.Unprepared")]
+	[TestFixture("Sqlite")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	public class ComplexUpdateTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
 	{
@@ -41,11 +47,17 @@ namespace Shaolinq.Tests
 				addressId = address.Id;
 				regionId = address.Region.Id;
 
+				var addresses = this.model.Addresses.ToList();
+
 				scope.Complete();
 			}
 
+			var addresses1 = this.model.Addresses.ToList();
+
 			using (var scope = new TransactionScope())
 			{
+				var addresses = this.model.Addresses.ToList();
+
 				var address = this.model.Addresses.GetByPrimaryKey(this.model.Addresses.GetReference(new { Id = addressId, Region = this.model.Regions.GetReference(new { Id = regionId, Name = "RegionName"})}));
 
 				address.Region = null;
@@ -57,8 +69,12 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(this.model.TypeDescriptorProvider.GetTypeDescriptor(typeof(Region)).PrimaryKeyCount, changedPropertiesFlattened.Count);
 			}
 
+			addresses1 = this.model.Addresses.ToList();
+
 			using (var scope = new TransactionScope())
 			{
+				var addresses = this.model.Addresses.ToList();
+
 				var address = this.model.Addresses.GetByPrimaryKey(this.model.Addresses.GetReference(new { Id = addressId, Region = this.model.Regions.GetReference(new { Id = regionId, Name = "RegionName" }) }));
 
 				Assert.IsNotNull(address.Region2);
@@ -136,12 +152,16 @@ namespace Shaolinq.Tests
 
 			if (task.GetAwaiter().IsCompleted)
 			{
+				Test_Set_Object_Property_To_Null();
+
 				return;
 			}
 
 			e.WaitOne(TimeSpan.FromSeconds(10));
 
 			Assert.IsTrue(task.GetAwaiter().IsCompleted);
+
+			Test_Set_Object_Property_To_Null();
 		}
 
 		private async Task Test_Nested_Scope_Update_Async(ManualResetEvent e)
@@ -155,6 +175,8 @@ namespace Shaolinq.Tests
 
 				await scope.FlushAsync().ConfigureAwait(false);
 
+				scope.Flush();
+				
 				id = child.Id;
 
 				using (var inner = new DataAccessScope())
@@ -165,9 +187,9 @@ namespace Shaolinq.Tests
 				}
 
 				await scope.FlushAsync().ConfigureAwait(false);
-
+				
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
-
+				
 				scope.Complete();
 			}
 			
@@ -176,18 +198,18 @@ namespace Shaolinq.Tests
 			e.Set();
 		}
 		
-		[Test, ExpectedException(typeof(DataAccessTransactionAbortedException))]
+		[Test, ExpectedException(typeof(TransactionAbortedException))]
 		public void Test_Nested_Scope_Abort()
 		{
 			var methodName = MethodBase.GetCurrentMethod().Name;
 
-			using (var scope = new DataAccessScope())
+			using (var scope = new TransactionScope())
 			{
 				var child = this.model.Children.Create();
 
 				scope.Flush();
 
-				using (var inner = new DataAccessScope())
+				using (var inner = new TransactionScope())
 				{
 					child.Nickname = methodName;
 				}

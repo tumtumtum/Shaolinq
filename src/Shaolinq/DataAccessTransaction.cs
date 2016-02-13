@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Collections.Generic;
 using System.Transactions;
 
@@ -13,19 +14,19 @@ namespace Shaolinq
 		{
 			get
 			{
-				if (current.Value != null)
+				var value = current.Value;
+
+				if (value != null)
 				{
-					return current.Value;
+					if (value.SystemTransaction == Transaction.Current)
+					{
+						return value;
+					}
+
+					current.Value = null;
 				}
 
-				if (Transaction.Current == null)
-				{
-					return null;
-				}
-
-				current.Value = new DataAccessTransaction();
-
-				return current.Value;
+				return null;
 			}
 
 			internal set
@@ -34,19 +35,23 @@ namespace Shaolinq
 			}
 		}
 
-		internal bool aborted;
 		internal Transaction SystemTransaction { get; set; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
 		internal Dictionary<TransactionContext, DataAccessModel> dataAccessModelsByTransactionContext = new Dictionary<TransactionContext, DataAccessModel>();
-		
-		public DataAccessIsolationLevel IsolationLevel { get; set; } = DataAccessIsolationLevel.Unspecified;
-		public bool HasAborted => this.aborted|| this.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted;
+		private bool aborted;
 
+		public DataAccessIsolationLevel IsolationLevel { get; set; } = DataAccessIsolationLevel.Unspecified;
+		public bool HasAborted => aborted || this.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted;
 		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext.Values;
 
 		public DataAccessTransaction()
 		{
 			this.SystemTransaction = Transaction.Current;
+		}
+
+		public void Abort()
+		{
+			this.aborted = true;
 		}
 
 		public void AddTransactionContext(TransactionContext context)

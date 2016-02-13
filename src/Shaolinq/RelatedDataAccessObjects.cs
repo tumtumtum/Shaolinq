@@ -44,7 +44,7 @@ namespace Shaolinq
 				return null;
 			}
 
-			if (this.valuesVersion != this.DataAccessModel.GetCurrentContext(false).GetCurrentVersion())
+			if (this.valuesVersion != TransactionContext.GetCurrentTransactionContextVersion(this.DataAccessModel))
 			{
 				this.values = null;
 				this.valuesSet = null;

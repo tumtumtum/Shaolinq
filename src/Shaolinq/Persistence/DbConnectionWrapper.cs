@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Data;
 
 namespace Shaolinq.Persistence
@@ -21,12 +22,26 @@ namespace Shaolinq.Persistence
 
 		public virtual IDbTransaction BeginTransaction()
 		{
-			return this.Inner.BeginTransaction();
+			try
+			{
+				return this.Inner.BeginTransaction();
+			}
+			catch (Exception e)
+			{
+				throw;
+			}
 		}
 
 		public virtual IDbTransaction BeginTransaction(IsolationLevel il)
 		{
-			return this.Inner.BeginTransaction(il);
+			try
+			{
+				return this.Inner.BeginTransaction(il);
+			}
+			catch (Exception e)
+			{
+				throw;
+			}
 		}
 
 		public virtual void Close()

@@ -15,10 +15,10 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
-using System.Transactions;
 using System.Collections.Concurrent;
 using System.Configuration;
 using System.Diagnostics;
+using System.Transactions;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
@@ -68,6 +68,8 @@ namespace Shaolinq
             {
                 await transactionContext.CommitAsync(cancellationToken);
             }
+
+            DataAccessTransaction.Current = null;
         }
     }
 
@@ -757,7 +759,7 @@ namespace Shaolinq.Persistence
             }
             finally
             {
-                this.CloseConnection();
+                await this.CloseConnectionAsync(cancellationToken);
             }
         }
 
@@ -778,8 +780,38 @@ namespace Shaolinq.Persistence
             }
             finally
             {
-                this.CloseConnection();
+                await this.CloseConnectionAsync(cancellationToken);
             }
+        }
+
+        protected virtual Task CloseConnectionAsync()
+        {
+            return CloseConnectionAsync(CancellationToken.None);
+        }
+
+        protected virtual async Task CloseConnectionAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                this.currentReader?.Dispose();
+                this.currentReader = null;
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                this.dbTransaction.Dispose();
+                this.dbTransaction = null;
+            }
+            catch
+            {
+            }
+
+            this.DbConnection?.Close();
+            this.DbConnection = null;
+            GC.SuppressFinalize(this);
         }
     }
 }

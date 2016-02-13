@@ -19,6 +19,7 @@ namespace Shaolinq
 		 : IDisposable
 	{
 		internal ConcurrentDictionary<DataAccessTransaction, TransactionContext> transactionContextsByTransaction;
+		internal readonly AsyncLocal<int> asyncLocalVersion = new AsyncLocal<int>();
 		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = new AsyncLocal<TransactionContext>();
 
 		#region Nested Types
