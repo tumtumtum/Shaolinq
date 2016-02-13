@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Platform;
 
@@ -20,6 +21,11 @@ namespace Shaolinq.Persistence
 		}
 
 		public static Task RollbackExAsync(this IDbTransaction transaction)
+		{
+			return transaction.RollbackExAsync(CancellationToken.None);
+		}
+
+		public static Task RollbackExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
 			Func<IDbTransaction, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);
@@ -50,7 +56,12 @@ namespace Shaolinq.Persistence
 			transaction.Commit();
 		}
 
-		public static Task CommitExAsync(this IDbTransaction transaction)
+		public static async Task CommitExAsync(this IDbTransaction transaction)
+		{
+			await transaction.CommitExAsync(CancellationToken.None);
+		}
+
+		public static async Task CommitExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
 			Func<IDbTransaction, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);
@@ -74,7 +85,7 @@ namespace Shaolinq.Persistence
 				commitAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, Task>>(commitAsyncFuncsByType) { [typeHandle] = func };
 			}
 
-			return func(transaction);
+			await func(transaction);
 		}
 	}
 }

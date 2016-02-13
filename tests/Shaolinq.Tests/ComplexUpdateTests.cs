@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
@@ -126,13 +128,23 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Category("IgnoreOnMono")]
 		public void Test_Nested_Scope_Update()
 		{
-			Test_Nested_Scope_Update_Async().ConfigureAwait(false).GetAwaiter().GetResult();
+			var e = new ManualResetEvent(false);
+
+			var task = Test_Nested_Scope_Update_Async(e).ConfigureAwait(false);
+
+			if (task.GetAwaiter().IsCompleted)
+			{
+				return;
+			}
+
+			e.WaitOne(TimeSpan.FromSeconds(10));
+
+			Assert.IsTrue(task.GetAwaiter().IsCompleted);
 		}
 
-		private async Task Test_Nested_Scope_Update_Async()
+		private async Task Test_Nested_Scope_Update_Async(ManualResetEvent e)
 		{
 			var methodName = MethodBase.GetCurrentMethod().Name;
 
@@ -155,6 +167,8 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			e.Set();
 		}
 		
 		[Test, ExpectedException(typeof(DataAccessTransactionAbortedException))]

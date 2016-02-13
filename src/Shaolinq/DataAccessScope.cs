@@ -16,9 +16,21 @@ namespace Shaolinq
 		
 		public DataAccessScope()
 			: this(DataAccessIsolationLevel.Unspecified)
-		{	
+		{
 		}
-		
+
+		[RewriteAsync]
+		public void Flush()
+		{
+			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
+			{
+				if (!dataAccessModel.IsDisposed)
+				{
+					dataAccessModel.Flush();
+				}
+			}
+		}
+
 		public DataAccessScope(DataAccessIsolationLevel isolationLevel)
 		{
 			this.IsolationLevel = isolationLevel;
@@ -54,15 +66,6 @@ namespace Shaolinq
 			foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
 			{
 				transactionContext.Commit();
-			}
-		}
-		
-		[RewriteAsync]
-		public void Flush()
-		{
-			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
-			{
-				dataAccessModel.Flush();
 			}
 		}
 

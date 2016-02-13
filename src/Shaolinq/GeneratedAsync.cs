@@ -25,6 +25,22 @@ namespace Shaolinq
 {
     public partial class DataAccessScope
     {
+        public Task FlushAsync()
+        {
+            return FlushAsync(CancellationToken.None);
+        }
+
+        public async Task FlushAsync(CancellationToken cancellationToken)
+        {
+            foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
+            {
+                if (!dataAccessModel.IsDisposed)
+                {
+                    await dataAccessModel.FlushAsync(cancellationToken);
+                }
+            }
+        }
+
         public Task CompleteAsync()
         {
             return CompleteAsync(CancellationToken.None);
@@ -51,19 +67,6 @@ namespace Shaolinq
             foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
             {
                 await transactionContext.CommitAsync(cancellationToken);
-            }
-        }
-
-        public Task FlushAsync()
-        {
-            return FlushAsync(CancellationToken.None);
-        }
-
-        public async Task FlushAsync(CancellationToken cancellationToken)
-        {
-            foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
-            {
-                dataAccessModel.Flush();
             }
         }
     }
@@ -256,7 +259,7 @@ namespace Shaolinq
         }
     }
 
-    public abstract partial class DataAccessModel
+    public partial class DataAccessModel
     {
         public virtual Task FlushAsync()
         {
@@ -316,9 +319,12 @@ namespace Shaolinq
 
         public static async Task FlushAsync(this TransactionScope scope, CancellationToken cancellationToken)
         {
-            foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
+            foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
             {
-                dataAccessModel.Flush();
+                if (!dataAccessModel.IsDisposed)
+                {
+                    await dataAccessModel.FlushAsync(cancellationToken);
+                }
             }
         }
     }
@@ -338,7 +344,7 @@ namespace Shaolinq.Persistence
             var marsDbCommand = command as MarsDbCommand;
             if (marsDbCommand != null)
             {
-                return marsDbCommand.ExecuteReader();
+                return await marsDbCommand.ExecuteReaderAsync(cancellationToken);
             }
 
             var dbCommand = command as DbCommand;
@@ -360,7 +366,7 @@ namespace Shaolinq.Persistence
             var marsDbCommand = command as MarsDbCommand;
             if (marsDbCommand != null)
             {
-                return marsDbCommand.ExecuteNonQuery();
+                return await marsDbCommand.ExecuteNonQueryAsync(cancellationToken);
             }
 
             var dbCommand = command as DbCommand;
@@ -635,77 +641,81 @@ namespace Shaolinq.Persistence
         }
     }
 
-    public partial class DbCommandWrapper
+    public partial class MarsDbCommand
     {
-        public virtual Task<int> ExecuteNonQueryAsync()
+        public Task<int> ExecuteNonQueryAsync()
         {
             return ExecuteNonQueryAsync(CancellationToken.None);
         }
 
-        public virtual async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+        public async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
         {
-            var dbInner = this.Inner as DbCommand;
-            if (dbInner != null)
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
             {
-                return await dbInner.ExecuteNonQueryAsync(cancellationToken);
+                return await dbCommand.ExecuteNonQueryAsync(cancellationToken);
             }
             else
             {
-                return this.Inner.ExecuteNonQuery();
+                return base.ExecuteNonQuery();
             }
         }
 
-        public virtual Task<IDataReader> ExecuteReaderAsync()
-        {
-            return ExecuteReaderAsync(CancellationToken.None);
-        }
-
-        public virtual async Task<IDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
-        {
-            var dbInner = this.Inner as DbCommand;
-            if (dbInner != null)
-            {
-                return await dbInner.ExecuteReaderAsync(cancellationToken);
-            }
-            else
-            {
-                return this.Inner.ExecuteReader();
-            }
-        }
-
-        public virtual Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior)
-        {
-            return ExecuteReaderAsync(behavior, CancellationToken.None);
-        }
-
-        public virtual async Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
-        {
-            var dbInner = this.Inner as DbCommand;
-            if (dbInner != null)
-            {
-                return await dbInner.ExecuteReaderAsync(behavior, cancellationToken);
-            }
-            else
-            {
-                return this.Inner.ExecuteReader(behavior);
-            }
-        }
-
-        public virtual Task<object> ExecuteScalarAsync()
+        public Task<object> ExecuteScalarAsync()
         {
             return ExecuteScalarAsync(CancellationToken.None);
         }
 
-        public virtual async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
+        public async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
         {
-            var dbInner = this.Inner as DbCommand;
-            if (dbInner != null)
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
             {
-                return await dbInner.ExecuteScalarAsync(cancellationToken);
+                return await dbCommand.ExecuteScalarAsync(cancellationToken);
             }
             else
             {
-                return this.Inner.ExecuteScalar();
+                return base.ExecuteScalar();
+            }
+        }
+
+        public Task<IDataReader> ExecuteReaderAsync()
+        {
+            return ExecuteReaderAsync(CancellationToken.None);
+        }
+
+        public async Task<IDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
+        {
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
+            {
+                return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(cancellationToken)));
+            }
+            else
+            {
+                return new MarsDataReader(this, base.ExecuteReader());
+            }
+        }
+
+        public Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior)
+        {
+            return ExecuteReaderAsync(behavior, CancellationToken.None);
+        }
+
+        public async Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+        {
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
+            {
+                return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(behavior, cancellationToken)));
+            }
+            else
+            {
+                return new MarsDataReader(this, base.ExecuteReader(behavior));
             }
         }
     }
@@ -721,7 +731,7 @@ namespace Shaolinq.Persistence
         {
             try
             {
-                this.dbTransaction.CommitEx();
+                await this.dbTransaction.CommitExAsync(cancellationToken);
                 this.dbTransaction = null;
             }
             catch (Exception e)
@@ -752,7 +762,7 @@ namespace Shaolinq.Persistence
             {
                 if (this.dbTransaction != null)
                 {
-                    this.dbTransaction.RollbackEx();
+                    await this.dbTransaction.RollbackExAsync(cancellationToken);
                     this.dbTransaction = null;
                 }
             }

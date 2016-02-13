@@ -15,12 +15,12 @@ namespace Shaolinq.Postgres
 {
     public partial class PostgresSqlTransactionalCommandsContext
     {
-        public override Task CommitAsync()
+        public Task CommitAsync()
         {
             return CommitAsync(CancellationToken.None);
         }
 
-        public override async Task CommitAsync(CancellationToken cancellationToken)
+        public async Task CommitAsync(CancellationToken cancellationToken)
         {
             if (this.preparedTransactionName != null)
             {
@@ -34,12 +34,12 @@ namespace Shaolinq.Postgres
             await base.CommitAsync(cancellationToken);
         }
 
-        public override Task RollbackAsync()
+        public Task RollbackAsync()
         {
             return RollbackAsync(CancellationToken.None);
         }
 
-        public override async Task RollbackAsync(CancellationToken cancellationToken)
+        public async Task RollbackAsync(CancellationToken cancellationToken)
         {
             if (this.preparedTransactionName != null)
             {

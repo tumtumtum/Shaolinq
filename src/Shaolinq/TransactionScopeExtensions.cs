@@ -18,9 +18,12 @@ namespace Shaolinq
 		[RewriteAsync]
 		public static void Flush(this TransactionScope scope)
 		{
-			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels.Where(dataAccessModel => !dataAccessModel.IsDisposed))
+			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
 			{
-				dataAccessModel.Flush();
+				if (!dataAccessModel.IsDisposed)
+				{
+					dataAccessModel.Flush();
+				}
 			}
 		}
 

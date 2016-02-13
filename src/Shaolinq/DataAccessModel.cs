@@ -8,8 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
@@ -17,7 +15,7 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
 {
-	public abstract partial class DataAccessModel
+	public partial class DataAccessModel
 		 : IDisposable
 	{
 		internal ConcurrentDictionary<DataAccessTransaction, TransactionContext> transactionContextsByTransaction;
@@ -765,7 +763,14 @@ namespace Shaolinq
 			return null;
 		}
 
-		protected abstract void Initialise();
-		public abstract IQueryable GetDataAccessObjects(Type type);
+		protected virtual void Initialise()
+		{
+			throw new NotImplementedException();
+		}
+
+		public virtual IQueryable GetDataAccessObjects(Type type)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

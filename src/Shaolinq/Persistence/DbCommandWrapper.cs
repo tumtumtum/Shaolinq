@@ -34,65 +34,25 @@ namespace Shaolinq.Persistence
 		{
 			return this.Inner.CreateParameter();
 		}
-
-		[RewriteAsync]
+		
 		public virtual int ExecuteNonQuery()
 		{
-			var dbInner = this.Inner as DbCommand;
-
-			if (dbInner != null)
-			{
-				return dbInner.ExecuteNonQuery();
-			}
-			else
-			{
-				return this.Inner.ExecuteNonQuery();
-			}
+			return this.Inner.ExecuteNonQuery();
 		}
 
-		[RewriteAsync]
 		public virtual IDataReader ExecuteReader()
 		{
-			var dbInner = this.Inner as DbCommand;
-
-			if (dbInner != null)
-			{
-				return dbInner.ExecuteReader();
-			}
-			else
-			{
-				return this.Inner.ExecuteReader();
-			}
+			return this.Inner.ExecuteReader();
 		}
-
-		[RewriteAsync]
+		
 		public virtual IDataReader ExecuteReader(CommandBehavior behavior)
 		{
-			var dbInner = this.Inner as DbCommand;
-
-			if (dbInner != null)
-			{
-				return dbInner.ExecuteReader(behavior);
-			}
-			else
-			{
-				return this.Inner.ExecuteReader(behavior);
-			}
+			return this.Inner.ExecuteReader(behavior);
 		}
 
-		[RewriteAsync]
 		public virtual object ExecuteScalar()
 		{
-			var dbInner = this.Inner as DbCommand;
-
-			if (dbInner != null)
-			{
-				return dbInner.ExecuteScalar();
-			}
-			else
-			{
-				return this.Inner.ExecuteScalar();
-			}
+			return this.Inner.ExecuteScalar();
 		}
 
 		public virtual IDataParameterCollection Parameters => this.Inner.Parameters;
