@@ -1,13 +1,13 @@
 #pragma warning disable
 using System;
-using System.Linq;
 using Shaolinq.Persistence;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Transactions;
 #pragma warning disable
 using System.Data;
 using System.Data.Common;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
@@ -15,10 +15,10 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
+using System.Linq;
 using System.Collections.Concurrent;
 using System.Configuration;
 using System.Diagnostics;
-using System.Transactions;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
@@ -97,14 +97,55 @@ namespace Shaolinq
                 throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
             }
 
-            foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
+            await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            this.transaction.Dispose();
+        }
+
+        public Task FailAsync()
+        {
+            return FailAsync(CancellationToken.None);
+        }
+
+        public async Task FailAsync(CancellationToken cancellationToken)
+        {
+            this.complete = false;
+            if (this.transaction != null)
+            {
+                await this.transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                this.transaction.Dispose();
+            }
+        }
+    }
+
+    public partial class DataAccessTransaction
+    {
+        public Task CommitAsync()
+        {
+            return CommitAsync(CancellationToken.None);
+        }
+
+        public async Task CommitAsync(CancellationToken cancellationToken)
+        {
+            this.isfinishing = true;
+            foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
             {
                 await transactionContext.CommitAsync(cancellationToken).ConfigureAwait(false);
+                transactionContext.Dispose();
             }
+        }
 
-            if (DataAccessTransaction.Current != null)
+        public Task RollbackAsync()
+        {
+            return RollbackAsync(CancellationToken.None);
+        }
+
+        public async Task RollbackAsync(CancellationToken cancellationToken)
+        {
+            this.isfinishing = true;
+            foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
             {
-                DataAccessTransaction.Current.Dispose();
+                await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                transactionContext.Dispose();
             }
         }
     }
@@ -345,6 +386,31 @@ namespace Shaolinq
             {
                 commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
                 throw new DataAccessTransactionAbortedException(e);
+            }
+            finally
+            {
+                this.Dispose();
+            }
+        }
+
+        internal Task RollbackAsync()
+        {
+            return RollbackAsync(CancellationToken.None);
+        }
+
+        internal async Task RollbackAsync(CancellationToken cancellationToken)
+        {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(nameof(TransactionContext));
+            }
+
+            try
+            {
+                foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+                {
+                    await commandsContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                }
             }
             finally
             {

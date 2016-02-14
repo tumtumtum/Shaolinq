@@ -3,10 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Transactions;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public class DataAccessTransaction
+	public partial class DataAccessTransaction
 		: IDisposable
 	{
 		private static readonly AsyncLocal<DataAccessTransaction> current = new AsyncLocal<DataAccessTransaction>();
@@ -21,10 +22,7 @@ namespace Shaolinq
 				{
 					if (!value.disposed && value.SystemTransaction == Transaction.Current)
 					{
-						if (value.SystemTransaction != null || (value.SystemTransaction == null && Transaction.Current == null))
-						{
-							return value;
-						}
+						return value;
 					}
 
 					current.Value = null;
@@ -39,29 +37,81 @@ namespace Shaolinq
 			}
 		}
 
+		private bool disposed;
+		private bool isfinishing;
+
 		internal Transaction SystemTransaction { get; set; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
-		internal Dictionary<TransactionContext, DataAccessModel> dataAccessModelsByTransactionContext = new Dictionary<TransactionContext, DataAccessModel>();
-		private bool disposed;
-
-		public DataAccessIsolationLevel IsolationLevel { get; set; } = DataAccessIsolationLevel.Unspecified;
+		internal Dictionary<DataAccessModel, TransactionContext> dataAccessModelsByTransactionContext;
+		
+		public DataAccessIsolationLevel IsolationLevel { get; private set; }
 		public bool HasAborted => this.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted;
-		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext.Values;
+		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext.Keys;
 
 		public DataAccessTransaction()
+			: this(DataAccessIsolationLevel.Unspecified)
 		{
+		}
+
+		public DataAccessTransaction(DataAccessIsolationLevel isolationLevel)
+		{
+			this.IsolationLevel = isolationLevel;
 			this.SystemTransaction = Transaction.Current;
 		}
 
 		public void AddTransactionContext(TransactionContext context)
 		{
-			this.dataAccessModelsByTransactionContext[context] = context.dataAccessModel;
+			if (dataAccessModelsByTransactionContext == null)
+			{
+				dataAccessModelsByTransactionContext = new Dictionary<DataAccessModel, TransactionContext>();
+			}
+
+			this.dataAccessModelsByTransactionContext[context.dataAccessModel] = context;
 
 			this.SystemTransaction?.EnlistVolatile(context, EnlistmentOptions.None);
 		}
 
+		public void RemoveTransactionContext(TransactionContext context)
+		{
+			if (!this.isfinishing)
+			{
+				this.dataAccessModelsByTransactionContext.Remove(context.dataAccessModel);
+			}
+		}
+
+		[RewriteAsync]
+		public void Commit()
+		{
+			this.isfinishing = true;
+
+			foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+			{
+				transactionContext.Commit();
+				transactionContext.Dispose();
+			}
+		}
+
+		[RewriteAsync]
+		public void Rollback()
+		{
+			this.isfinishing = true;
+
+			foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+			{
+				transactionContext.Rollback();
+				transactionContext.Dispose();
+			}
+		}
+
 		public void Dispose()
 		{
+			this.isfinishing = true;
+
+			foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+			{
+				transactionContext.Dispose();
+			}
+
 			this.disposed = true;
 		}
 	}

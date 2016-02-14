@@ -12,69 +12,67 @@ namespace Shaolinq
 	public partial class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
-		private int version;
-		private int versionNesting;
-		
-		internal int GetCurrentVersion()
-		{
-			return this.version;
-		}
-		
-		internal class TransactionContextVersionContext
+		internal class TransactionContextExecutionVersionContext
 			: IDisposable
 		{
 			private readonly TransactionContext context;
 
 			public int Version { get; }
 
-			public TransactionContextVersionContext(TransactionContext context)
+			public TransactionContextExecutionVersionContext(TransactionContext context)
 			{
 				this.context = context;
 
-				if (context.versionNesting == 0)
+				if (context.executionVersionNesting == 0)
 				{
-					context.version++;
+					context.executionVersion++;
 
-					this.context.dataAccessModel.asyncLocalVersion.Value = context.version;
+					this.context.dataAccessModel.AsyncLocalExecutionVersion = context.executionVersion;
 				}
 
-				this.Version = context.version;
+				this.Version = context.executionVersion;
 
-				context.versionNesting++;
+				context.executionVersionNesting++;
 			}
 
 			public void Dispose()
 			{
-				this.context.versionNesting--;
+				this.context.executionVersionNesting--;
 
-				if (this.context.versionNesting == 0)
+				if (this.context.executionVersionNesting == 0)
 				{
 					this.context.VersionContextFinished(this);
 				}
 			} 
 		}
 
+		private int executionVersion;
+		private int executionVersionNesting;
 		private volatile bool disposed;
 		internal SqlDatabaseContext sqlDatabaseContext;
 		internal readonly DataAccessModel dataAccessModel;
 		internal DataAccessTransaction DataAccessTransaction { get; }
-
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
 		internal readonly Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
 
-		internal TransactionContextVersionContext AcquireVersionContext()
+		internal int GetExecutionVersion()
+		{
+			return this.executionVersion;
+		}
+
+		public static int GetCurrentTransactionContextVersion(DataAccessModel dataAccessModel)
+		{
+			return dataAccessModel.AsyncLocalExecutionVersion;
+		}
+
+		internal TransactionContextExecutionVersionContext AcquireVersionContext()
 		{
 			if (this.disposed)
 			{
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			return new TransactionContextVersionContext(this);
-		}
-
-		public static int GetCurrentTransactionContextVersion(DataAccessModel dataAccessModel)
-		{
-			return dataAccessModel.asyncLocalVersion.Value;
+			return new TransactionContextExecutionVersionContext(this);
 		}
 
 		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite)
@@ -84,7 +82,7 @@ namespace Shaolinq
 			
 			if (dataAccessTransaction == null && Transaction.Current != null)
 			{
-				dataAccessTransaction = DataAccessTransaction.Current = new DataAccessTransaction();
+				dataAccessTransaction = DataAccessTransaction.Current = new DataAccessTransaction(DataAccessIsolationLevel.Unspecified);
 			}
 
 			if (dataAccessTransaction == null)
@@ -94,13 +92,13 @@ namespace Shaolinq
 					throw new InvalidOperationException("Write operation must be performed inside a scope");
 				}
 
-				context = dataAccessModel.asyncLocalTransactionContext.Value;
+				context = dataAccessModel.AsyncLocalTransactionContext;
 
 				if (context == null || context.disposed)
 				{
 					context = new TransactionContext(null, dataAccessModel);
 
-					dataAccessModel.asyncLocalTransactionContext.Value = context;
+					dataAccessModel.AsyncLocalTransactionContext = context;
 				}
 
 				return context;
@@ -111,21 +109,21 @@ namespace Shaolinq
 				throw new TransactionAbortedException();
 			}
 
-			var contexts = dataAccessModel.transactionContextsByTransaction;
+			var contexts = dataAccessTransaction.dataAccessModelsByTransactionContext;
 
 			var skipTest = false;
 			
 			if (contexts == null)
 			{
 				skipTest = true;
-				contexts = dataAccessModel.transactionContextsByTransaction = new ConcurrentDictionary<DataAccessTransaction, TransactionContext>();
-            }
+				contexts = dataAccessTransaction.dataAccessModelsByTransactionContext = new Dictionary<DataAccessModel, TransactionContext>();
+			}
 
-			if (skipTest || !contexts.TryGetValue(dataAccessTransaction, out context))
+			if (skipTest || !contexts.TryGetValue(dataAccessModel, out context))
 			{
 				context = new TransactionContext(dataAccessTransaction, dataAccessModel);
-				contexts[dataAccessTransaction] = context;
-				dataAccessModel.asyncLocalTransactionContext.Value = context;
+				contexts[dataAccessModel] = context;
+				dataAccessModel.AsyncLocalTransactionContext = context;
 
 				dataAccessTransaction.AddTransactionContext(context);
 			}
@@ -172,7 +170,7 @@ namespace Shaolinq
 
 		public string DatabaseContextCategoriesKey { get; private set; }
 
-		internal void VersionContextFinished(TransactionContextVersionContext versionContext)
+		internal void VersionContextFinished(TransactionContextExecutionVersionContext executionVersionContext)
 		{
 			if (this.disposed)
 			{
@@ -189,7 +187,7 @@ namespace Shaolinq
 				}
 
 				this.commandsContextsBySqlDatabaseContexts.Clear();
-				this.dataAccessModel.asyncLocalTransactionContext.Value = null;
+				this.dataAccessModel.AsyncLocalTransactionContext = null;
 				this.Dispose();
 			}
 		}
@@ -199,7 +197,7 @@ namespace Shaolinq
 			this.dataAccessModel = dataAccessModel;
 			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = "*";
-			this.version = dataAccessModel.asyncLocalVersion.Value;
+			this.executionVersion = dataAccessModel.AsyncLocalExecutionVersion;
 
 			this.commandsContextsBySqlDatabaseContexts = new Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
 		}
@@ -235,7 +233,7 @@ namespace Shaolinq
 				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = commandsContext;
 			}
 
-			var startIndex = this.GetCurrentVersion();
+			var startIndex = this.GetExecutionVersion();
 
 			var retval = new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, commandsContext);
 
@@ -243,7 +241,7 @@ namespace Shaolinq
 			{
 				retval.Disposed += (s, e) =>
 				{
-					if (this.GetCurrentVersion() <= startIndex)
+					if (this.GetExecutionVersion() <= startIndex)
 					{
 						this.dataAccessObjectDataContext = null;
 
@@ -300,12 +298,9 @@ namespace Shaolinq
 
 			try
 			{
-				if (this.DataAccessTransaction != null)
-				{
-					((IDictionary<DataAccessTransaction, TransactionContext>)dataAccessModel.transactionContextsByTransaction).Remove(this.DataAccessTransaction);
-				}
+				this.DataAccessTransaction?.RemoveTransactionContext(this);
 
-				this.dataAccessModel.asyncLocalTransactionContext.Value = null;
+				this.dataAccessModel.AsyncLocalTransactionContext = null;
 			}
 			finally
 			{
@@ -481,6 +476,7 @@ namespace Shaolinq
 			}
 		}
 
+		[RewriteAsync]
 		internal void Rollback()
 		{
 			if (this.disposed)

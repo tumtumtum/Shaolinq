@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Linq;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -17,9 +16,17 @@ namespace Shaolinq
 		public DataAccessScope()
 			: this(DataAccessIsolationLevel.Unspecified)
 		{
+		}
+
+		public DataAccessScope(DataAccessIsolationLevel isolationLevel)
+		{
+			this.IsolationLevel = isolationLevel;
+
 			if (DataAccessTransaction.Current == null)
 			{
-				transaction = DataAccessTransaction.Current = new DataAccessTransaction();
+				this.transaction = new DataAccessTransaction(isolationLevel);
+
+				DataAccessTransaction.Current = this.transaction;
 			}
 		}
 
@@ -55,18 +62,6 @@ namespace Shaolinq
 				dataAccessModel.Flush();
 			}
 		}
-
-		public DataAccessScope(DataAccessIsolationLevel isolationLevel)
-		{
-			this.IsolationLevel = isolationLevel;
-
-			if (DataAccessTransaction.Current == null)
-			{
-				this.transaction = new DataAccessTransaction();
-
-				DataAccessTransaction.Current = this.transaction;
-			}
-		}
 		
 		[RewriteAsync]
 		public void Complete()
@@ -88,14 +83,19 @@ namespace Shaolinq
 				throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
 			}
 
-			foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
-			{
-				transactionContext.Commit();
-			}
+			this.transaction.Commit();
+			this.transaction.Dispose();
+		}
 
-			if (DataAccessTransaction.Current != null)
+		[RewriteAsync]
+		public void Fail()
+		{
+			this.complete = false;
+
+			if (this.transaction != null)
 			{
-				DataAccessTransaction.Current.Dispose();
+				this.transaction.Rollback();
+				this.transaction.Dispose();
 			}
 		}
 
@@ -109,21 +109,16 @@ namespace Shaolinq
 				}
 				else
 				{
-					foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
-					{
-						transactionContext.Rollback();
-						transactionContext.Dispose();
-					}
+					this.transaction.Rollback();
 				}
 			}
 			else
 			{
 				if (this.transaction != null)
 				{
-					foreach (var transactionContext in this.transaction.dataAccessModelsByTransactionContext.Keys)
-					{
-						transactionContext.Dispose();
-					}
+					transaction.Dispose();
+
+					this.transaction.Dispose();
 				}
 			}
 		}

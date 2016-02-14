@@ -18,9 +18,19 @@ namespace Shaolinq
 	public partial class DataAccessModel
 		 : IDisposable
 	{
-		internal ConcurrentDictionary<DataAccessTransaction, TransactionContext> transactionContextsByTransaction;
-		internal readonly AsyncLocal<int> asyncLocalVersion = new AsyncLocal<int>();
-		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionContext = new AsyncLocal<TransactionContext>();
+		internal readonly AsyncLocal<Pair<int, TransactionContext>> asyncState = new AsyncLocal<Pair<int, TransactionContext>>();
+		
+		internal int AsyncLocalExecutionVersion
+		{
+			get { return asyncState.Value.Left; }
+			set { asyncState.Value = new Pair<int, TransactionContext>(value, asyncState.Value.Right); }
+		}
+
+		internal TransactionContext AsyncLocalTransactionContext
+		{
+			get { return asyncState.Value.Right; }
+			set { asyncState.Value = new Pair<int, TransactionContext>(asyncState.Value.Left, value); }
+		}
 
 		#region Nested Types
 		private class RawPrimaryKeysPlaceholderType<T>
@@ -132,12 +142,10 @@ namespace Shaolinq
 				return;
 			}
 
-			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionContext.Value?.Dispose());
-			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionContext.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.AsyncLocalTransactionContext?.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.asyncState.Dispose());
 
-			this.asyncLocalTransactionContext.Value = null;
-			this.transactionContextsByTransaction?.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Dispose));
-			this.transactionContextsByTransaction = null;
+			this.asyncState.Value = new Pair<int, TransactionContext>(0, null);
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
 			this.OnDisposed(EventArgs.Empty);
