@@ -15,10 +15,11 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
-	[TestFixture("Sqlite", Category = "SupportsSqlite")]
+	[TestFixture("Sqlite")]
+	[TestFixture("Sqlite:DataAccessScope")]
 	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
-	[TestFixture("SqliteInMemory", Category = "SupportsSqlite")]
-	[TestFixture("SqliteClassicInMemory", Category = "SupportsSqlite")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	public class PrimaryKeyTests
 		: BaseTests<TestDataAccessModel>
 	{
@@ -30,7 +31,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_AutoIncrement_PrimaryKey()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj1 = this.model.Schools.Create();
 				scope.Flush();
@@ -54,7 +55,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Guid_AutoIncrement_PrimaryKey_And_Set_PrimaryKey()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
@@ -67,7 +68,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Guid_AutoIncrement_PrimaryKey_And_Get_PrimaryKey()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
@@ -88,7 +89,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Guid_Non_AutoIncrement_PrimaryKey_And_Dont_Set_PrimaryKey()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
@@ -101,7 +102,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Guid_Non_AutoIncrement_PrimaryKey_And_Set_PrimaryKey()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
@@ -120,7 +121,7 @@ namespace Shaolinq.Tests
 		{
 			try
 			{
-				using (var scope = new TransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var id = Guid.NewGuid();
 
@@ -143,7 +144,7 @@ namespace Shaolinq.Tests
 		{
 			try
 			{
-				using (var scope = new TransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var id = Guid.NewGuid();
 
@@ -162,7 +163,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Long_AutoIncrement_PrimaryKey_And_Set_PrimaryKey()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 
@@ -174,7 +175,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj = this.model.ObjectWithLongAutoIncrementPrimaryKeys.GetByPrimaryKey(10007);
 			}
@@ -183,7 +184,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Long_AutoIncrement_PrimaryKey_And_Get_PrimaryKey()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj1 = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
 				var obj2 = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
@@ -210,7 +211,7 @@ namespace Shaolinq.Tests
 
 			Assert.Throws<TransactionAbortedException>(() =>
 			{
-				using (var scope = new TransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
@@ -228,7 +229,7 @@ namespace Shaolinq.Tests
 
 			Assert.Throws<TransactionAbortedException>(() =>
 			{
-				using (var scope = new TransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
@@ -246,7 +247,7 @@ namespace Shaolinq.Tests
 		{
 			var name = new StackTrace().GetFrame(0).GetMethod().Name;
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
@@ -258,7 +259,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				Assert.AreEqual(1, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Count(c => c.Name == name));
 				Assert.AreEqual(1, this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.First(c => c.Name == name).Id);
@@ -274,7 +275,7 @@ namespace Shaolinq.Tests
 			var secondaryKey = MethodBase.GetCurrentMethod().Name;
 			Guid studentId;
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 				var student = school.Students.Create();
@@ -304,7 +305,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj1 = this.model.ObjectWithCompositePrimaryKeys.Single(c => c.SecondaryKey == secondaryKey && c.Id == 1);
 
@@ -313,7 +314,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.GetReference(studentId);
 
@@ -333,7 +334,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.GetReference(studentId);
 
@@ -364,7 +365,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GetByPrimaryKey1()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 
@@ -377,7 +378,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GetByPrimaryKey2()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 
@@ -394,7 +395,7 @@ namespace Shaolinq.Tests
 			Guid studentId;
 			var secondaryKey = MethodBase.GetCurrentMethod().Name;
 			
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 				var student = school.Students.Create();
@@ -413,7 +414,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.ObjectWithCompositePrimaryKeys.GetByPrimaryKey
 				(
@@ -430,7 +431,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Dao_Primary_Key1()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var parentObject = this.model.ObjectWithManyTypes.Create();
 				var childObject = this.model.ObjectWithDaoPrimaryKeys.Create(parentObject);
@@ -449,7 +450,7 @@ namespace Shaolinq.Tests
 		{
 			long id = 0;
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var parentObject = this.model.ObjectWithManyTypes.Create();
 

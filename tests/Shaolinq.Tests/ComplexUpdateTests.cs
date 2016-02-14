@@ -33,7 +33,7 @@ namespace Shaolinq.Tests
 			long regionId;
 			long addressId;
 			
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var address = this.model.Addresses.Create();
 
@@ -54,7 +54,7 @@ namespace Shaolinq.Tests
 
 			var addresses1 = this.model.Addresses.ToList();
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var addresses = this.model.Addresses.ToList();
 
@@ -71,7 +71,7 @@ namespace Shaolinq.Tests
 
 			addresses1 = this.model.Addresses.ToList();
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var addresses = this.model.Addresses.ToList();
 
@@ -89,7 +89,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var address = this.model.Addresses.GetByPrimaryKey(this.model.Addresses.GetReference(new { Id = addressId, Region = this.model.Regions.GetReference(new { Id = regionId, Name = "RegionName" }) }));
 
@@ -102,7 +102,7 @@ namespace Shaolinq.Tests
 		{
 			try
 			{
-				using (var scope = new TransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var address = this.model.Addresses.Create();
 					
@@ -129,7 +129,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Incomplete_Objects_Then_Delete()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.Create();
 				var address = this.model.Addresses.Create();
@@ -273,13 +273,13 @@ namespace Shaolinq.Tests
 		{
 			var methodName = MethodBase.GetCurrentMethod().Name;
 
-			using (var scope = new TransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var child = this.model.Children.Create();
 
 				scope.Save();
 
-				using (var inner = new TransactionScope())
+				using (var inner = NewTransactionScope())
 				{
 					child.Nickname = methodName;
 				}

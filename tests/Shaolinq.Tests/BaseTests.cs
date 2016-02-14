@@ -2,6 +2,7 @@
 
 using System;
 using System.Reflection;
+using System.Transactions;
 using log4net.Config;
 using NUnit.Framework;
 using Shaolinq.MySql;
@@ -17,11 +18,24 @@ namespace Shaolinq.Tests
     {
         protected T model;
 	    protected internal static readonly bool useMonoData;
+	    private readonly bool useDataAccessScope;
 
 	    static BaseTests()
 	    {
 		    useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_USING_MONODATA"));
 	    }
+		
+		protected TransactionScopeAdapter NewTransactionScope()
+		{
+			if (useDataAccessScope)
+			{
+				return new TransactionScopeAdapter(new DataAccessScope());
+			}
+			else
+			{
+				return new TransactionScopeAdapter(new TransactionScope());
+			}
+		}
 
 		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
 		{
@@ -97,17 +111,23 @@ namespace Shaolinq.Tests
             return (DataAccessModelConfiguration)methodInfo.Invoke(this, new object[] { databaseName });
         }
 
-        protected string ProviderName
-        {
-            get;
-            private set;
-        }
+	    protected string ProviderName { get; private set; }
 
-        public BaseTests(string providerName)
-        {
-	        this.ProviderName = providerName;
+	    public BaseTests(string providerName)
+	    {
+		    var ss = providerName.Split(':');
 
-            XmlConfigurator.Configure();
+		    if (ss.Length <= 1)
+		    {
+			    this.ProviderName = providerName;
+		    }
+		    else
+		    {
+			    this.ProviderName = ss[0];
+			    this.useDataAccessScope = ss[1] == "DataAccessScope";
+		    }
+
+		    XmlConfigurator.Configure();
 
 			try
             {
@@ -117,7 +137,7 @@ namespace Shaolinq.Tests
                 }
                 else
                 {
-	                var configuration = this.Create(providerName, this.GetType().Name);
+	                var configuration = this.Create(this.ProviderName, this.GetType().Name);
 	                this.model = DataAccessModel.BuildDataAccessModel<T>(configuration);
                 }
 
