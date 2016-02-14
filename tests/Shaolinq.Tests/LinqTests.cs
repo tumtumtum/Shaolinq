@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Transactions;
 using NUnit.Framework;
+using Platform;
 using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
@@ -338,6 +339,34 @@ namespace Shaolinq.Tests
 							   select new { Student = student, MaxAddress = (from s in this.model.Address select s.Number).Max()}).ToList();
 
 				Assert.That(results.Count, Is.GreaterThan(0));
+
+				var results2 = (from student in this.model.Students
+							   select new { Student = student, MaxAddress = (from s in this.model.Address select s.Number).Max() }).ToList();
+
+				results.Sort((x, y) => x.Student.Id.GetHashCode() - y.Student.Id.GetHashCode());
+				results2.Sort((x, y) => x.Student.Id.GetHashCode() - y.Student.Id.GetHashCode());
+
+				Assert.True(results.SequenceEqual(results2));
+			}
+		}
+
+		[Test]
+		public void Test_Query_With_Nested_Select_In_Projection_DAS()
+		{
+			using (var scope = new DataAccessScope())
+			{
+				var results = (from student in this.model.Students
+							   select new { Student = student, MaxAddress = (from s in this.model.Address select s.Number).Max() }).ToList();
+
+				Assert.That(results.Count, Is.GreaterThan(0));
+
+				var results2 = (from student in this.model.Students
+								select new { Student = student, MaxAddress = (from s in this.model.Address select s.Number).Max() }).ToList();
+
+				results.Sort((x, y) => x.Student.Id.GetHashCode() - y.Student.Id.GetHashCode());
+				results2.Sort((x, y) => x.Student.Id.GetHashCode() - y.Student.Id.GetHashCode());
+
+				Assert.True(results.SequenceEqual(results2));
 			}
 		}
 

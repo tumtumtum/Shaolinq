@@ -2537,6 +2537,39 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include5_DAS()
+		{
+			using (var scope = new DataAccessScope())
+			{
+				var query = this.model.Malls
+					.OrderByDescending(c => c.Name)
+					.Where(c => c.Name != "")
+					.Include(c => c.SisterMall.Shops)
+					.Include(c => c.SisterMall.Shops2)
+					.Include(c => c.SisterMall.Shops3)
+					.Distinct();
+
+				var malls = query.ToList();
+
+				foreach (var mall in malls.Where(c => c.SisterMall != null))
+				{
+					var s1 = mall.SisterMall.Shops.Items();
+
+					Assert.AreEqual(2, s1.Count);
+					Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+
+					var s2 = mall.SisterMall.Shops2.Items();
+					Assert.AreEqual(0, s2.Count);
+
+					var s3 = mall.SisterMall.Shops3.Items();
+					Assert.AreEqual(1, s3.Count);
+					Assert.IsTrue(s3.All(c => !c.IsDeflatedReference()));
+					Assert.AreEqual("Sister Mall Store B", s3.Single().Name);
+				}
+			}
+		}
+
+		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include6()
 		{
 			var query = this.model.Malls
