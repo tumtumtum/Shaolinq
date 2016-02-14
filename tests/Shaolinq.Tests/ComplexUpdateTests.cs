@@ -268,52 +268,59 @@ namespace Shaolinq.Tests
 			e.Set();
 		}
 
-		[Test, ExpectedException(typeof(TransactionAbortedException))]
+		[Test]
 		public void Test_Nested_Scope_Abort1()
 		{
-			var methodName = MethodBase.GetCurrentMethod().Name;
-
-			using (var scope = NewTransactionScope())
+			Assert.Throws(Is.InstanceOf<TransactionAbortedException>().Or.InstanceOf<DataAccessTransactionAbortedException>(), () =>
 			{
-				var child = this.model.Children.Create();
+				var methodName = MethodBase.GetCurrentMethod().Name;
 
-				scope.Save();
-
-				using (var inner = NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
-					child.Nickname = methodName;
+					var child = this.model.Children.Create();
+
+					scope.Save();
+
+					using (var inner = NewTransactionScope())
+					{
+						child.Nickname = methodName;
+					}
+
+					scope.Save();
+
+					Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+
+					scope.Complete();
 				}
-
-				scope.Save();
-
-				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
-
-				scope.Complete();
-			}
+			});
+			
 		}
 
-		[Test, ExpectedException(typeof(DataAccessTransactionAbortedException))]
+		[Test]
 		public void Test_Nested_Scope_Abort2()
 		{
-			var methodName = MethodBase.GetCurrentMethod().Name;
-
-			using (var scope = new DataAccessScope())
+			Assert.Throws(Is.InstanceOf<TransactionAbortedException>().Or.InstanceOf<DataAccessTransactionAbortedException>(), () =>
 			{
-				var child = this.model.Children.Create();
+				var methodName = MethodBase.GetCurrentMethod().Name;
 
-				scope.Flush();
-
-				using (var inner = new DataAccessScope())
+				using (var scope = new DataAccessScope())
 				{
-					child.Nickname = methodName;
+					var child = this.model.Children.Create();
+
+					scope.Flush();
+
+					using (var inner = new DataAccessScope())
+					{
+						child.Nickname = methodName;
+					}
+
+					scope.Flush();
+
+					Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+
+					scope.Complete();
 				}
-
-				scope.Flush();
-
-				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
-
-				scope.Complete();
-			}
+			});
 		}
 	}
 }
