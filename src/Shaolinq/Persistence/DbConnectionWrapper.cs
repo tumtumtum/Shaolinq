@@ -15,71 +15,16 @@ namespace Shaolinq.Persistence
 			this.Inner = inner;
 		}
 
-		public virtual void Dispose()
-		{
-			this.Inner.Dispose();
-		}
-
-		public virtual IDbTransaction BeginTransaction()
-		{
-			try
-			{
-				return this.Inner.BeginTransaction();
-			}
-			catch (Exception e)
-			{
-				throw;
-			}
-		}
-
-		public virtual IDbTransaction BeginTransaction(IsolationLevel il)
-		{
-			try
-			{
-				return this.Inner.BeginTransaction(il);
-			}
-			catch (Exception e)
-			{
-				throw;
-			}
-		}
-
-		public virtual void Close()
-		{
-			this.Inner.Close();
-		}
-
-		public virtual void ChangeDatabase(string databaseName)
-		{
-			this.Inner.ChangeDatabase(databaseName);
-		}
-
-		public virtual IDbCommand CreateCommand()
-		{
-			return this.Inner.CreateCommand();
-		}
-
-		public virtual void Open()
-		{
-			this.Inner.Open();
-		}
-
-		public virtual string ConnectionString
-		{
-			get
-			{
-				return this.Inner.ConnectionString;
-			}
-			set
-			{
-				this.Inner.ConnectionString = value;
-			}
-		}
-
-		public virtual int ConnectionTimeout => this.Inner.ConnectionTimeout;
-
+		public virtual void Dispose() => this.Inner.Dispose();
+		public virtual IDbTransaction BeginTransaction() => this.Inner.BeginTransaction();
+		public virtual IDbTransaction BeginTransaction(IsolationLevel il) => this.Inner.BeginTransaction(il);
+		public virtual void Close() => this.Inner.Close();
+		public virtual void ChangeDatabase(string databaseName) => this.Inner.ChangeDatabase(databaseName);
+		public virtual IDbCommand CreateCommand() => this.Inner.CreateCommand();
+		public virtual void Open() => this.Inner.Open();
 		public virtual string Database => this.Inner.Database;
-
 		public virtual ConnectionState State => this.Inner.State;
+		public virtual int ConnectionTimeout => this.Inner.ConnectionTimeout;
+		public virtual string ConnectionString { get { return this.Inner.ConnectionString; } set { this.Inner.ConnectionString = value; } }
 	}
 }
