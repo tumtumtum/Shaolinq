@@ -26,12 +26,33 @@ namespace Shaolinq
 		[RewriteAsync]
 		public void Flush()
 		{
+			Save();
+		}
+
+		[RewriteAsync]
+		public void Flush(DataAccessModel dataAccessModel)
+		{
+			Save(dataAccessModel);
+		}
+
+		[RewriteAsync]
+		public void Save()
+		{
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
 			{
 				if (!dataAccessModel.IsDisposed)
 				{
 					dataAccessModel.Flush();
 				}
+			}
+		}
+
+		[RewriteAsync]
+		public void Save(DataAccessModel dataAccessModel)
+		{
+			if (!dataAccessModel.IsDisposed)
+			{
+				dataAccessModel.Flush();
 			}
 		}
 

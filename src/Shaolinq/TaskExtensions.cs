@@ -1,19 +1,20 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Shaolinq
 {
-	internal static class TaskExtensions
+	public static class TaskExtensions
 	{
-		public static void AwaitResultOnAnyContext(this Task task)
+		public static ConfiguredTaskAwaitable ContinueOnAnyContext(this Task task)
 		{
-			task.ConfigureAwait(false).GetAwaiter().GetResult();
+			return task.ConfigureAwait(false);
 		}
 
-		public static T AwaitResultOnAnyContext<T>(this Task<T> task)
+		public static ConfiguredTaskAwaitable<T> ContinueOnAnyContext<T>(this Task<T> task)
 		{
-			return task.ConfigureAwait(false).GetAwaiter().GetResult();
+			return task.ConfigureAwait(false);
 		}
 	}
 }

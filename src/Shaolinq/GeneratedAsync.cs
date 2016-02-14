@@ -32,12 +32,45 @@ namespace Shaolinq
 
         public async Task FlushAsync(CancellationToken cancellationToken)
         {
+            await SaveAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public Task FlushAsync(DataAccessModel dataAccessModel)
+        {
+            return FlushAsync(dataAccessModel, CancellationToken.None);
+        }
+
+        public async Task FlushAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        {
+            await SaveAsync(dataAccessModel, cancellationToken).ConfigureAwait(false);
+        }
+
+        public Task SaveAsync()
+        {
+            return SaveAsync(CancellationToken.None);
+        }
+
+        public async Task SaveAsync(CancellationToken cancellationToken)
+        {
             foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
             {
                 if (!dataAccessModel.IsDisposed)
                 {
                     await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
                 }
+            }
+        }
+
+        public Task SaveAsync(DataAccessModel dataAccessModel)
+        {
+            return SaveAsync(dataAccessModel, CancellationToken.None);
+        }
+
+        public async Task SaveAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        {
+            if (!dataAccessModel.IsDisposed)
+            {
+                await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -322,14 +355,33 @@ namespace Shaolinq
 
     public static partial class TransactionScopeExtensions
     {
-        public static Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel)
+        public static Task SaveAsync(this TransactionScope scope)
         {
-            return FlushAsync(scope, dataAccessModel, CancellationToken.None);
+            return SaveAsync(scope, CancellationToken.None);
         }
 
-        public static async Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        public static async Task SaveAsync(this TransactionScope scope, CancellationToken cancellationToken)
         {
-            await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
+            {
+                if (!dataAccessModel.IsDisposed)
+                {
+                    await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        public static Task SaveAsync(this TransactionScope scope, DataAccessModel dataAccessModel)
+        {
+            return SaveAsync(scope, dataAccessModel, CancellationToken.None);
+        }
+
+        public static async Task SaveAsync(this TransactionScope scope, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        {
+            if (!dataAccessModel.IsDisposed)
+            {
+                await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public static Task FlushAsync(this TransactionScope scope)
@@ -339,13 +391,17 @@ namespace Shaolinq
 
         public static async Task FlushAsync(this TransactionScope scope, CancellationToken cancellationToken)
         {
-            foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
-            {
-                if (!dataAccessModel.IsDisposed)
-                {
-                    await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
+            await scope.SaveAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel)
+        {
+            return FlushAsync(scope, dataAccessModel, CancellationToken.None);
+        }
+
+        public static async Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        {
+            await scope.SaveAsync(dataAccessModel, cancellationToken).ConfigureAwait(false);
         }
     }
 }

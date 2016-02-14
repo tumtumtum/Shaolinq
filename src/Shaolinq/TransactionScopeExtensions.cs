@@ -9,13 +9,7 @@ namespace Shaolinq
 	public static partial class TransactionScopeExtensions
 	{
 		[RewriteAsync]
-		public static void Flush(this TransactionScope scope, DataAccessModel dataAccessModel)
-		{
-			dataAccessModel.Flush();
-		}
-
-		[RewriteAsync]
-		public static void Flush(this TransactionScope scope)
+		public static void Save(this TransactionScope scope)
 		{
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
 			{
@@ -24,6 +18,27 @@ namespace Shaolinq
 					dataAccessModel.Flush();
 				}
 			}
+		}
+
+		[RewriteAsync]
+		public static void Save(this TransactionScope scope, DataAccessModel dataAccessModel)
+		{
+			if (!dataAccessModel.IsDisposed)
+			{
+				dataAccessModel.Flush();
+			}
+		}
+
+		[RewriteAsync]
+		public static void Flush(this TransactionScope scope)
+		{
+			scope.Save();
+		}
+
+		[RewriteAsync]
+		public static void Flush(this TransactionScope scope, DataAccessModel dataAccessModel)
+		{
+			scope.Save(dataAccessModel);
 		}
 
 		public static void SetReadOnly(this TransactionScope scope, DataAccessModel dataAccessModel)

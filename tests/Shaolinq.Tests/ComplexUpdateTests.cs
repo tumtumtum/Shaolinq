@@ -148,7 +148,7 @@ namespace Shaolinq.Tests
 		{
 			var e = new ManualResetEvent(false);
 
-			var task = Test_Nested_Scope_Update_Async(e).ConfigureAwait(false);
+			var task = Test_Nested_Scope_Update_Async(e).ContinueOnAnyContext();
 
 			if (task.GetAwaiter().IsCompleted)
 			{
@@ -181,7 +181,7 @@ namespace Shaolinq.Tests
 			{
 				var child = this.model.Children.Create();
 
-				await scope.FlushAsync().ConfigureAwait(false);
+				await scope.FlushAsync().ContinueOnAnyContext();
 
 				id = child.Id;
 
@@ -189,14 +189,14 @@ namespace Shaolinq.Tests
 				{
 					child.Nickname = methodName;
 
-					await inner.CompleteAsync().ConfigureAwait(false);
+					await inner.CompleteAsync().ContinueOnAnyContext();
 				}
 
 				await scope.FlushAsync();
 				
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 
-				await scope.CompleteAsync().ConfigureAwait(false);
+				await scope.CompleteAsync().ContinueOnAnyContext();
 			}
 			
 			Assert.AreEqual(id, this.model.Children.Single(c => c.Nickname == methodName).Id);
@@ -209,7 +209,7 @@ namespace Shaolinq.Tests
 		{
 			var e = new ManualResetEvent(false);
 
-			var task = Test_Nested_Scope_Update_Async2(e).ConfigureAwait(false);
+			var task = Test_Nested_Scope_Update_Async2(e).ContinueOnAnyContext();
 
 			if (task.GetAwaiter().IsCompleted)
 			{
@@ -240,7 +240,7 @@ namespace Shaolinq.Tests
 			{
 				var child = this.model.Children.Create();
 
-				await scope.FlushAsync().ConfigureAwait(false);
+				await scope.FlushAsync().ContinueOnAnyContext();
 
 				id = child.Id;
 
@@ -251,7 +251,7 @@ namespace Shaolinq.Tests
 					inner.Complete();
 				}
 
-				await scope.FlushAsync().ConfigureAwait(false);
+				await scope.FlushAsync().ContinueOnAnyContext();
 
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 
@@ -272,14 +272,14 @@ namespace Shaolinq.Tests
 			{
 				var child = this.model.Children.Create();
 
-				scope.Flush();
+				scope.Save();
 
 				using (var inner = new TransactionScope())
 				{
 					child.Nickname = methodName;
 				}
 
-				scope.Flush();
+				scope.Save();
 
 				Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 
