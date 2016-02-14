@@ -159,10 +159,7 @@ namespace Shaolinq.Tests
 
 			while (!task.GetAwaiter().IsCompleted)
 			{
-				if (e.WaitOne(TimeSpan.FromSeconds(1)))
-				{
-					break;
-				}
+				e.WaitOne(TimeSpan.FromSeconds(1));
 			}
 
 			Assert.IsTrue(task.GetAwaiter().IsCompleted);
@@ -225,10 +222,7 @@ namespace Shaolinq.Tests
 
 			while (!task.GetAwaiter().IsCompleted)
 			{
-				if (e.WaitOne(TimeSpan.FromSeconds(1)))
-				{
-					break;
-				}
+				e.WaitOne(TimeSpan.FromSeconds(1));
 			}
 
 			Assert.IsTrue(task.GetAwaiter().IsCompleted);
