@@ -204,9 +204,14 @@ namespace Shaolinq.Tests
 			e.Set();
 		}
 
-		[Test]
+		[Test, Category("IgnoreOnMono" /* No support for AsyncFlowOption */)]
 		public void Test_Nested_Scope_Update2()
 		{
+			if (typeof(Transaction).Assembly.GetType("System.Transactions.TransactionScopeAsyncFlowOption") == null)
+			{
+				return;
+			}
+
 			var e = new ManualResetEvent(false);
 
 			var task = Test_Nested_Scope_Update_Async2(e).ContinueOnAnyContext();
