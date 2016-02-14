@@ -209,7 +209,7 @@ namespace Shaolinq.Tests
 		{
 			var name = new StackTrace().GetFrame(0).GetMethod().Name;
 
-			Assert.Throws<TransactionAbortedException>(() =>
+			Assert.Throws(Is.InstanceOf<TransactionAbortedException>().Or.InstanceOf<DataAccessTransactionAbortedException>(), () =>
 			{
 				using (var scope = NewTransactionScope())
 				{
@@ -227,7 +227,7 @@ namespace Shaolinq.Tests
 		{
 			var name = new StackTrace().GetFrame(0).GetMethod().Name;
 
-			Assert.Throws<TransactionAbortedException>(() =>
+			Assert.Throws(Is.InstanceOf<TransactionAbortedException>().Or.InstanceOf<DataAccessTransactionAbortedException>(), () =>
 			{
 				using (var scope = NewTransactionScope())
 				{

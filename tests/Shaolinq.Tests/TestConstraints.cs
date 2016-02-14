@@ -54,7 +54,7 @@ namespace Shaolinq.Tests
 				return;
 			}
 
-			Assert.Throws<TransactionAbortedException>(() =>
+			Assert.Throws(Is.InstanceOf<TransactionAbortedException>().Or.InstanceOf<DataAccessTransactionAbortedException>(), () =>
 			{
 				using (var scope = new TransactionScope())
 				{
