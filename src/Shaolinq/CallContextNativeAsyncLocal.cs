@@ -1,12 +1,13 @@
 using System;
 using System.Runtime.Remoting.Messaging;
+using System.Threading;
 
 namespace Shaolinq
 {
 	internal class CallContextNativeAsyncLocal<T>
 		: AsyncLocal<T>
 	{
-		private readonly string key = Guid.NewGuid().ToString("N");
+		private readonly string key;
 
 		internal class Container
 			: MarshalByRefObject
@@ -19,6 +20,11 @@ namespace Shaolinq
 			public T Value { get; set; }
 		}
 
+		internal class Counter
+		{
+			internal static long count = 0;
+		}
+		
 		public override T Value
 		{
 			get
@@ -31,8 +37,11 @@ namespace Shaolinq
 		}
 
 		public CallContextNativeAsyncLocal()
-			: base(true)
-		{	
+			: base(null)
+		{
+			Interlocked.Increment(ref Counter.count);
+
+			this.key = "CallContextNativeAsyncLocal#" + Counter.count;
 		}
 
 		public override void Dispose()

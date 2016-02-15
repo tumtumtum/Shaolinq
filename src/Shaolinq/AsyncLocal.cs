@@ -27,8 +27,9 @@ namespace Shaolinq
 			}
 		}
 
-		protected AsyncLocal(bool fromSubClass)
+		internal AsyncLocal(AsyncLocal<T> internalAsyncLocal)
 		{
+			this.internalAsyncLocal = internalAsyncLocal;
 		}
 
 		public virtual T Value { get { return this.internalAsyncLocal.Value; } set { this.internalAsyncLocal.Value = value; } }

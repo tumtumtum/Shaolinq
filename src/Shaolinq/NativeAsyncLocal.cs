@@ -10,7 +10,6 @@ namespace Shaolinq
 	{
 		private static readonly Type NativeAsyncLocalType;
 		public static bool Supported => NativeAsyncLocalType != null;
-
 		private static readonly Func<object, T> getValueFunc;
 		private static readonly Action<object, T> setValueFunc;
 		private static readonly Func<object> createAsyncLocalFunc;
@@ -34,7 +33,7 @@ namespace Shaolinq
 		private readonly object nativeAsyncLocal;
 
 		public NativeAsyncLocal()
-			: base(true)
+			: base(null)
 		{
 			this.nativeAsyncLocal = createAsyncLocalFunc();
 		}
