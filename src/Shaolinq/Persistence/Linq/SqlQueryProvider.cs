@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using Platform;
 using Platform.Reflection;
 using Shaolinq.Logging;
@@ -91,12 +92,22 @@ namespace Shaolinq.Persistence.Linq
 			return this.BuildExecution(expression).Evaluate<T>();
 		}
 
-		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
+        public override Task<T> ExecuteAsync<T>(Expression expression)
+        {
+            return this.BuildExecution(expression).EvaluateAsync<Task<T>>();
+        }
+
+        public override IEnumerable<T> GetEnumerable<T>(Expression expression)
 		{
 			return this.BuildExecution(expression).Evaluate<IEnumerable<T>>();
-		}
+        }
 
-		public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression, Type typeForEnums, bool simplerPartialVal = true)
+        public override IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression)
+        {
+            return this.BuildExecution(expression).EvaluateAsync<IAsyncEnumerable<T>>();
+        }
+
+        public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression, Type typeForEnums, bool simplerPartialVal = true)
 		{
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);
 			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
@@ -222,9 +233,9 @@ namespace Shaolinq.Persistence.Linq
 
 	        if (projectionExpression.Aggregator != null)
 	        {
-		        var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
+                var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
 
-		        executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], executor);
+                executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], executor);
 	        }
 
 	        projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
@@ -234,10 +245,11 @@ namespace Shaolinq.Persistence.Linq
 
 			if (projectorCache.TryGetValue(key, out cacheInfo))
 			{
-				return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
+				return new ExecutionBuildResult(formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 			}
 
 			cacheInfo.projector = projector.Compile();
+            cacheInfo.asyncProjector = projector.Compile();
 
 			var oldCache = this.SqlDatabaseContext.projectorCache;
 			Dictionary<ProjectorCacheKey, ProjectorCacheInfo> newCache;
@@ -266,7 +278,7 @@ namespace Shaolinq.Persistence.Linq
 
 			Logger.Debug(() => $"Projector Cache Size: {newCache.Count}");
 
-			return new ExecutionBuildResult(formatResult, cacheInfo.projector, placeholderValues);
+			return new ExecutionBuildResult(formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 		}
 	}
 }

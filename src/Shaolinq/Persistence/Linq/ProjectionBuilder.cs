@@ -358,11 +358,11 @@ namespace Shaolinq.Persistence.Linq
 
 				if (projectionExpression.Type.GetSequenceElementType() == null)
 				{
-					evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(projectionExpression.Type);
+					evaluate = MethodInfoFastRef.ExecutionBuildResultEvaluateMethod.MakeGenericMethod(projectionExpression.Type);
 				}
 				else
 				{
-					evaluate = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition().MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
+					evaluate = MethodInfoFastRef.ExecutionBuildResultEvaluateMethod.MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
 				}
 				
 				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression), projectionProjector, Expression.NewArrayInit(typeof(object), values), Expression.Constant(true)), evaluate);

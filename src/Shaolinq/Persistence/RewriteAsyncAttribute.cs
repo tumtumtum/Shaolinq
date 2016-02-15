@@ -10,7 +10,7 @@ namespace Shaolinq
 		public class RewriteAsyncAttribute
 			: Attribute
 		{
-			public RewriteAsyncAttribute(bool withOverride = false)
+			public RewriteAsyncAttribute(bool promoteToPublic = false)
 			{
 			}
 		}

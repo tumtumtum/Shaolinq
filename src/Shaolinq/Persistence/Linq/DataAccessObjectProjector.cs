@@ -17,45 +17,37 @@ namespace Shaolinq.Persistence.Linq
 		{
 		}
 
-		public override IEnumerator<T> GetEnumerator()
-		{
-			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
+        protected internal override bool ProcessLastMoveNext(ref object context, out T lastValue)
+        {
+            if (context != null)
+            {
+                lastValue = (T)context;
+                context = null;
 
-			using (var versionContext = transactionContext.AcquireVersionContext())
-			{
-				using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
-				{
-					var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
+                return true;
+            }
 
-					using (var dataReader = persistenceTransactionContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
-					{
-						T previous = null;
+            context = null;
+            lastValue = null;
 
-						while (dataReader.Read())
-						{
-							var current = this.objectReader(this, dataReader, versionContext.Version, this.placeholderValues);
+            return false;
+        }
 
-							if (previous == null || current == previous)
-							{
-								previous = current;
+	    protected internal override bool ProcessMoveNext(T value, ref object context, out T result)
+	    {
+	        if (context == default(T) || object.ReferenceEquals(value, context))
+	        {
+                result = value;
+                context = value;
 
-								continue;
-							}
+                return false;
+	        }
 
-							previous.ToObjectInternal().ResetModified();
+            result = (T)context;
+            result.ToObjectInternal().ResetModified();
+            context = value;
 
-							yield return previous;
-
-							previous = current;
-						}
-
-						if (previous != null)
-						{
-							yield return previous;
-						}
-					}
-				}
-			}
-		}
+            return true;
+	    }
 	}
 }

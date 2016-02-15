@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Transactions;
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.Linq;
 #pragma warning disable
 using System.Data;
 using System.Data.Common;
@@ -15,7 +18,6 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
-using System.Linq;
 using System.Collections.Concurrent;
 using System.Configuration;
 using System.Diagnostics;
@@ -147,6 +149,284 @@ namespace Shaolinq
                 await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 transactionContext.Dispose();
             }
+        }
+    }
+
+    internal partial class DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>
+    {
+        public Task<bool> MoveNextAsync()
+        {
+            return MoveNextAsync(CancellationToken.None);
+        }
+
+        public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        {
+            switch (this.state)
+            {
+                case 0:
+                    goto state0;
+                case 1:
+                    goto state1;
+                case 9:
+                    goto state9;
+            }
+
+            state0:
+                var result = this.enumerator.MoveNext();
+            if (!result)
+            {
+                this.Current = this.specifiedValue ?? default (T);
+                this.state = 9;
+                return true;
+            }
+            else
+            {
+                this.state = 1;
+                this.Current = this.specifiedValue;
+                return true;
+            }
+
+            state1:
+                result = this.enumerator.MoveNext();
+            if (result)
+            {
+                this.Current = this.enumerator.Current;
+                return true;
+            }
+            else
+            {
+                this.state = 9;
+                return false;
+            }
+
+            state9:
+                return false;
+        }
+    }
+
+    public static partial class EnumerableExtensions
+    {
+        public static Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> enumerable, T specifiedValue)
+        {
+            return SingleOrSpecifiedValueIfFirstIsDefaultValueAsync(enumerable, specifiedValue, CancellationToken.None);
+        }
+
+        public static async Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> enumerable, T specifiedValue, CancellationToken cancellationToken)
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    return await new T[0].SingleAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                var result = enumerator.Current;
+                if (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return await new T[2].SingleAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                if (object.Equals(result, default (T)))
+                {
+                    return specifiedValue;
+                }
+
+                return result;
+            }
+        }
+
+        public static Task<T> SingleAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return SingleAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<T> SingleAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    return await new T[0].SingleAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                var result = enumerator.Current;
+                if (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return await new T[2].SingleAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                return result;
+            }
+        }
+
+        public static Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return SingleOrDefaultAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    return default (T);
+                }
+
+                var result = enumerator.Current;
+                if (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return await new T[2].SingleAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                return result;
+            }
+        }
+
+        public static Task<T> FirstAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return FirstAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    return Enumerable.Empty<T>().First();
+                }
+
+                return enumerator.Current;
+            }
+        }
+
+        public static Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return FirstOrDefaultAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    return Enumerable.Empty<T>().First();
+                }
+
+                return enumerator.Current;
+            }
+        }
+
+        public static Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > enumerable)where T : struct
+        {
+            return SingleOrExceptionIfFirstIsNullAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > enumerable, CancellationToken cancellationToken)where T : struct
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)) || enumerator.Current == null)
+                {
+                    throw new InvalidOperationException("Sequence contains no elements");
+                }
+
+                return enumerator.Current.Value;
+            }
+        }
+
+        public static Task EachAsync<T>(this IEnumerable<T> enumerable, Action<T> value)
+        {
+            return EachAsync(enumerable, value, CancellationToken.None);
+        }
+
+        public static async Task EachAsync<T>(this IEnumerable<T> enumerable, Action<T> value, CancellationToken cancellationToken)
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    value(enumerator.Current);
+                }
+            }
+        }
+
+        public static Task EachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value)
+        {
+            return EachAsync(enumerable, value, CancellationToken.None);
+        }
+
+        public static async Task EachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value, CancellationToken cancellationToken)
+        {
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!value(enumerator.Current))
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        public static Task<List<T>> ToListAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return ToListAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<List<T>> ToListAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            if (enumerable == null)
+            {
+                return null;
+            }
+
+            var result = enumerable as List<T>;
+            if (result != null)
+            {
+                return result;
+            }
+
+            result = new List<T>();
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    result.Add(enumerator.Current);
+                }
+            }
+
+            return result;
+        }
+
+        public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return ToReadOnlyCollectionAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            if (enumerable == null)
+            {
+                return null;
+            }
+
+            var readOnlyCollection = enumerable as ReadOnlyCollection<T>;
+            if (readOnlyCollection != null)
+            {
+                return readOnlyCollection;
+            }
+
+            var list = enumerable as List<T>;
+            if (list != null)
+            {
+                return new ReadOnlyCollection<T>(list);
+            }
+
+            return new ReadOnlyCollection<T>((await enumerable.ToListAsync(cancellationToken).ConfigureAwait(false)));
         }
     }
 
@@ -914,6 +1194,53 @@ namespace Shaolinq.Persistence
             finally
             {
                 this.CloseConnection();
+            }
+        }
+    }
+}
+
+namespace Shaolinq.Persistence.Linq
+{
+    internal partial class AsyncEnumerator<T, U>
+    {
+        public virtual Task<bool> MoveNextAsync()
+        {
+            return MoveNextAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        {
+            if (this.dataReader == null)
+            {
+                this.dataReader = (await this.acquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+            }
+
+            while (true)
+            {
+                T result;
+                if (this.eof)
+                {
+                    return false;
+                }
+
+                if (!(await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    if (this.objectProjector.ProcessLastMoveNext(ref this.context, out result))
+                    {
+                        this.eof = true;
+                        this.Current = result;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues);
+                if (this.objectProjector.ProcessMoveNext(value, ref this.context, out result))
+                {
+                    this.Current = value;
+                    return true;
+                }
             }
         }
     }

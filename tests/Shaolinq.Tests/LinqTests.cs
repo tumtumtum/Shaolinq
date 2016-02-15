@@ -2503,5 +2503,11 @@ namespace Shaolinq.Tests
 				var results = query.ToList();
 			}
 		}
+
+	    [Test]
+	    public void Test_AsyncRead()
+	    {
+	        
+	    }
 	}
 }

@@ -124,6 +124,7 @@
   <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="AssemblyAttributes.cs" />
+    <Compile Include="AsyncEnumerableAdapter.cs" />
     <Compile Include="AsyncEnumeratorAdapter.cs" />
     <Compile Include="AsyncLocal.cs" />
     <Compile Include="AutoIncrementAttribute.cs" />
@@ -139,11 +140,13 @@
     <Compile Include="DataAccessTransactionAbortedException.cs" />
     <Compile Include="DataAccessTypeAttribute.cs" />
     <Compile Include="DatabaseCreationOptions.cs" />
+    <Compile Include="DefaultIfEmptyCoalesceSpecifiedValueEnumerator.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
+    <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="GeneratedAsync.cs" />
     <Compile Include="IAsyncEnumerator.cs" />
-    <Compile Include="IAsyncEumerable.cs" />
+    <Compile Include="IAsyncEnumerable.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="NativeAsyncLocal.cs" />
@@ -152,7 +155,6 @@
     <Compile Include="Persistence\DataReaderWRapper.cs" />
     <Compile Include="Persistence\DbTransactionExtensions.cs" />
     <Compile Include="Persistence\DefaultSqlTransactionalCommandsContext+Commands.cs" />
-    <Compile Include="Persistence\EnumerableUtils.cs" />
     <Compile Include="ForeignObjectAction.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
     <Compile Include="IHasExtraCondition.cs" />
@@ -174,6 +176,7 @@
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
+    <Compile Include="Persistence\Linq\AsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAliasTypeCollector.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlConstantPlaceholderReplacer.cs" />
