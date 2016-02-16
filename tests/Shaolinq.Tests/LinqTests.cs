@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using Platform;
 using Shaolinq.Tests.TestModel;
@@ -992,7 +994,6 @@ namespace Shaolinq.Tests
 			}
 		}
 
-
 		[Test]
 		public virtual void Test_Select_FirstOrDefault()
 		{
@@ -1004,12 +1005,49 @@ namespace Shaolinq.Tests
 			}
 		}
 
+
+		[Test]
+		public virtual void Test_Select_FirstOrDefaultAsync()
+		{
+			var waiter = __Test_Select_FirstOrDefaultAsync().ContinueOnAnyContext().GetAwaiter();
+
+			waiter.GetResult();
+		}
+
+		public virtual async Task __Test_Select_FirstOrDefaultAsync()
+		{
+			using (var scope = new DataAccessScope())
+			{
+				var student = await this.model.Students.FirstOrDefaultAsync();
+
+				Assert.IsNotNull(student);
+			}
+		}
+
 		[Test]
 		public virtual void Test_ToList()
 		{
 			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
+
+				Assert.Greater(students.Count, 0);
+			}
+		}
+
+		[Test]
+		public virtual void Test_ToListAsync()
+		{
+			var awaiter = __Test_ToListAsync().ContinueOnAnyContext().GetAwaiter();
+
+			awaiter.GetResult();
+		}
+
+		public virtual async Task __Test_ToListAsync()
+		{
+			using (var scope = new DataAccessScope())
+			{
+				var students = await this.model.Students.ToListAsync();
 
 				Assert.Greater(students.Count, 0);
 			}

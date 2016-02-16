@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Platform;
 using Platform.Reflection;
@@ -92,9 +93,9 @@ namespace Shaolinq.Persistence.Linq
 			return this.BuildExecution(expression).Evaluate<T>();
 		}
 
-        public override Task<T> ExecuteAsync<T>(Expression expression)
+        public override Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken)
         {
-            return this.BuildExecution(expression).EvaluateAsync<Task<T>>();
+            return this.BuildExecution(expression).EvaluateAsync<Task<T>>(cancellationToken);
         }
 
         public override IEnumerable<T> GetEnumerable<T>(Expression expression)
@@ -103,8 +104,8 @@ namespace Shaolinq.Persistence.Linq
         }
 
         public override IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression)
-        {
-            return this.BuildExecution(expression).EvaluateAsync<IAsyncEnumerable<T>>();
+		{
+            return this.BuildExecution(expression).EvaluateAsync<IAsyncEnumerable<T>>(CancellationToken.None);
         }
 
         public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression, Type typeForEnums, bool simplerPartialVal = true)
@@ -231,11 +232,17 @@ namespace Shaolinq.Persistence.Linq
 				);
 			}
 
-	        if (projectionExpression.Aggregator != null)
-	        {
-                var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
+	        var asyncExecutor = executor;
+			var cancellationToken = Expression.Parameter(typeof(CancellationToken));
 
-                executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], executor);
+			if (projectionExpression.Aggregator != null)
+	        {
+		        var originalExecutor = executor;
+                var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
+                executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], originalExecutor);
+
+		        newBody = ProjectionAsyncRewriter.Rewrite(newBody, cancellationToken);
+				asyncExecutor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], originalExecutor);
 	        }
 
 	        projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
@@ -248,8 +255,11 @@ namespace Shaolinq.Persistence.Linq
 				return new ExecutionBuildResult(formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 			}
 
+			projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
+			var asyncProjector = Expression.Lambda(asyncExecutor, formatResultsParam, placeholderValuesParam, cancellationToken);
+
 			cacheInfo.projector = projector.Compile();
-            cacheInfo.asyncProjector = projector.Compile();
+            cacheInfo.asyncProjector = asyncProjector.Compile();
 
 			var oldCache = this.SqlDatabaseContext.projectorCache;
 			Dictionary<ProjectorCacheKey, ProjectorCacheInfo> newCache;

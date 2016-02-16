@@ -8,6 +8,7 @@ using System.Transactions;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 #pragma warning disable
 using System.Data;
 using System.Data.Common;
@@ -172,7 +173,7 @@ namespace Shaolinq
             }
 
             state0:
-                var result = this.enumerator.MoveNext();
+                var result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
             if (!result)
             {
                 this.Current = this.specifiedValue ?? default (T);
@@ -187,7 +188,58 @@ namespace Shaolinq
             }
 
             state1:
-                result = this.enumerator.MoveNext();
+                result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+            if (result)
+            {
+                this.Current = this.enumerator.Current;
+                return true;
+            }
+            else
+            {
+                this.state = 9;
+                return false;
+            }
+
+            state9:
+                return false;
+        }
+    }
+
+    internal partial class EmptyIfFirstIsNullEnumerator<T>
+    {
+        public Task<bool> MoveNextAsync()
+        {
+            return MoveNextAsync(CancellationToken.None);
+        }
+
+        public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        {
+            switch (this.state)
+            {
+                case 0:
+                    goto state0;
+                case 1:
+                    goto state1;
+                case 9:
+                    goto state9;
+            }
+
+            state0:
+                var result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+            if (!result)
+            {
+                this.state = 9;
+                return false;
+            }
+            else
+            {
+                this.state = 1;
+                this.Current = this.enumerator.Current;
+                return true;
+            }
+
+            state1:
+                result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
             if (result)
             {
                 this.Current = this.enumerator.Current;
@@ -337,12 +389,12 @@ namespace Shaolinq
             }
         }
 
-        public static Task EachAsync<T>(this IEnumerable<T> enumerable, Action<T> value)
+        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Action<T> value)
         {
-            return EachAsync(enumerable, value, CancellationToken.None);
+            return WithEachAsync(enumerable, value, CancellationToken.None);
         }
 
-        public static async Task EachAsync<T>(this IEnumerable<T> enumerable, Action<T> value, CancellationToken cancellationToken)
+        public static async Task WithEachAsync<T>(this IEnumerable<T> enumerable, Action<T> value, CancellationToken cancellationToken)
         {
             using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
@@ -353,12 +405,12 @@ namespace Shaolinq
             }
         }
 
-        public static Task EachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value)
+        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value)
         {
-            return EachAsync(enumerable, value, CancellationToken.None);
+            return WithEachAsync(enumerable, value, CancellationToken.None);
         }
 
-        public static async Task EachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value, CancellationToken cancellationToken)
+        public static async Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value, CancellationToken cancellationToken)
         {
             using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
             {

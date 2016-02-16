@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Shaolinq.Persistence.Linq
@@ -26,9 +27,9 @@ namespace Shaolinq.Persistence.Linq
 			return ((Func<SqlQueryFormatResult, object[], T>)this.Projector)(this.FormatResult, this.Arguments);
 		}
 
-        public T EvaluateAsync<T>()
+        public T EvaluateAsync<T>(CancellationToken cancellationToken)
         {
-            return ((Func<SqlQueryFormatResult, object[], T>)this.AsyncProjector)(this.FormatResult, this.Arguments);
+            return ((Func<SqlQueryFormatResult, object[], CancellationToken, T>)this.AsyncProjector)(this.FormatResult, this.Arguments, cancellationToken);
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Shaolinq.Persistence;
@@ -36,31 +37,75 @@ namespace Shaolinq
 	    public static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
             where T : struct
         {
-            return new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(enumerable.GetEnumeratorEx(), specifiedValue));
+            return new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(enumerable.GetAsyncEnumerator(), specifiedValue));
         }
+		
+		public static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> enumerable)
+		{
+			using (var enumerator = enumerable.GetEnumeratorEx())
+			{
+				if (!enumerator.MoveNextEx() || enumerator.Current == null)
+				{
+					yield break;
+				}
 
-        public static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> enumerable) => enumerable.GetEnumerator();
+				yield return enumerator.Current;
 
-        public static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> enumerable)
-        {
-            var asyncEnumerable = enumerable as IAsyncEnumerable<T>;
+				while (enumerator.MoveNextEx())
+				{
+					yield return enumerator.Current;
+				}
+			}
+		}
 
-            if (asyncEnumerable == null)
-            {
-                return Task.FromResult<IAsyncEnumerator<T>>(new AsyncEnumeratorAdapter<T>(enumerable.GetEnumerator()));
-            }
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+		{
+			return new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
+		}
 
-            return Task.FromResult(asyncEnumerable.GetAsyncEnumerator());
-        }
-        
-	    internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> enumerable) => enumerable.GetEnumerator();
+
+		internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> enumerable)
+		{
+			return Task.FromResult(enumerable.GetAsyncEnumerator());
+		}
+
+		internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> enumerable)
+		{
+			var asyncEnumerable = enumerable as IAsyncEnumerable<T>;
+
+			if (asyncEnumerable == null)
+			{
+				return new AsyncEnumeratorAdapter<T>(enumerable.GetEnumerator());
+			}
+
+			return asyncEnumerable.GetAsyncEnumerator();
+		}
+
+		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrThrow<T>(this IEnumerable<T> enumerable)
+		{
+			var asyncEnumerable = enumerable as IAsyncEnumerable<T>;
+
+			if (asyncEnumerable == null)
+			{
+				throw new NotSupportedException();
+			}
+
+			return asyncEnumerable.GetAsyncEnumerator();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
 	    {
 	        return enumerator.MoveNext();
 	    }
 
-        internal static async Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
         {
-            return await enumerator.MoveNextAsync(cancellationToken);
+            return enumerator.MoveNextAsync(cancellationToken);
         }
 
         [RewriteAsync(true)]
@@ -174,26 +219,8 @@ namespace Shaolinq
 			}
 		}
         
-        public static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> enumerable)
-		{
-			using (var enumerator = enumerable.GetEnumeratorEx())
-			{
-				if (!enumerator.MoveNextEx() || enumerator.Current == null)
-				{
-					yield break;
-				}
-
-				yield return enumerator.Current;
-				
-				while (enumerator.MoveNextEx())
-				{
-					yield return enumerator.Current;
-				}
-			}
-		}
-
         [RewriteAsync(true)]
-        public static void Each<T>(this IEnumerable<T> enumerable, Action<T> value)
+        public static void WithEach<T>(this IEnumerable<T> enumerable, Action<T> value)
         {
             using (var enumerator = enumerable.GetEnumeratorEx())
             {
@@ -205,7 +232,7 @@ namespace Shaolinq
         }
 
         [RewriteAsync(true)]
-        public static void Each<T>(this IEnumerable<T> enumerable, Func<T, bool> value)
+        public static void WithEach<T>(this IEnumerable<T> enumerable, Func<T, bool> value)
         {
             using (var enumerator = enumerable.GetEnumeratorEx())
             {
@@ -219,7 +246,7 @@ namespace Shaolinq
             }
         }
 
-        public static Task EachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value)
+        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value)
         {
             return enumerable.EachAsync(value, CancellationToken.None);
         }

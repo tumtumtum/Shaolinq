@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Shaolinq.Persistence;
 
@@ -28,7 +29,7 @@ namespace Shaolinq
 
 		public abstract T Execute<T>(Expression expression);
         public abstract object Execute(Expression expression);
-        public abstract Task<T> ExecuteAsync<T>(Expression expression);
+        public abstract Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken);
         public abstract IEnumerable<T> GetEnumerable<T>(Expression expression);
         public abstract IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression);
         public abstract string GetQueryText(Expression expression);

@@ -10,7 +10,7 @@ using Shaolinq.Persistence.Linq;
 namespace Shaolinq
 {
 	public class ReusableQueryable<T>
-		: IOrderedQueryable<T>
+		: IOrderedQueryable<T>, IAsyncEnumerable<T>
 	{
 		public ReusableQueryable(ISqlQueryProvider provider)
 			: this(provider, null)
@@ -29,6 +29,7 @@ namespace Shaolinq
 		public ISqlQueryProvider SqlQueryProvider { get; }
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
 		public override string ToString() => ((SqlQueryProvider)this.Provider).GetQueryText(this.Expression);
-		public virtual IEnumerator<T> GetEnumerator() => this.SqlQueryProvider.GetEnumerable<T>(this.Expression).GetEnumerator();
+		public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
+		public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => this.SqlQueryProvider.GetEnumerable<T>(this.Expression).GetAsyncEnumeratorOrThrow();
 	}
 }

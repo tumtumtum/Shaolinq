@@ -2,20 +2,19 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-    internal partial class DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>
-        : IAsyncEnumerator<T?>, IEnumerator<T?>
+	internal partial class DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>
+        : IAsyncEnumerator<T?>
         where T : struct
     {
         private int state;
         private readonly T? specifiedValue;
-        private readonly IEnumerator<T?> enumerator;
+        private readonly IAsyncEnumerator<T?> enumerator;
 
-        public DefaultIfEmptyCoalesceSpecifiedValueEnumerator(IEnumerator<T?> enumerator, T? specifiedValue)
+        public DefaultIfEmptyCoalesceSpecifiedValueEnumerator(IAsyncEnumerator<T?> enumerator, T? specifiedValue)
         {
             this.enumerator = enumerator;
             this.specifiedValue = specifiedValue;
@@ -48,7 +47,7 @@ namespace Shaolinq
             }
 
 state0:
-            var result = this.enumerator.MoveNext();
+            var result = this.enumerator.MoveNextEx();
 
             if (!result)
             {
@@ -69,7 +68,7 @@ state0:
 
 state1:
 
-            result = this.enumerator.MoveNext();
+            result = this.enumerator.MoveNextEx();
 
             if (result)
             {
