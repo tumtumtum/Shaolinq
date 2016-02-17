@@ -69,7 +69,12 @@ namespace Shaolinq.Tests
 
 	        return Task.Run(() => schools);
 	    }
-        
+
+        private Task<List<School>> ReadAllSchoolsAsync()
+        {
+            return this.model.GetDataAccessObjects<School>().Where(c => c.Name != "ewoiuroi").ToListAsync();
+        }
+
         [Test]
 		public void Test_Query_On_Lots_Of_Threads_No_TransactionScope()
 		{
@@ -118,5 +123,54 @@ namespace Shaolinq.Tests
 
 			exceptions.ForEach(Console.WriteLine);
 		}
-	}
+
+        [Test]
+        public void Test_Query_On_Lots_Of_Threads_No_TransactionScopeAsync()
+        {
+            var exceptions = new List<Exception>();
+            var threads = new List<Thread>();
+            var random = new Random();
+
+            for (var i = 0; i < 10; i++)
+            {
+                var action = (ThreadStart)async delegate
+                {
+                    try
+                    {
+                        for (var j = 0; j < 50; j++)
+                        {
+                            Thread.Sleep(random.Next(0, 5));
+
+                            await ReadAllSchoolsAsync();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        lock (exceptions)
+                        {
+                            exceptions.Add(e);
+
+                            Console.WriteLine(e);
+                        }
+                    }
+                };
+
+                var thread = new Thread(action);
+
+                threads.Add(thread);
+            }
+
+            threads.ForEach(c => c.Start());
+            threads.ForEach(c => c.Join());
+
+            if (exceptions.Count > 0)
+            {
+                exceptions.ForEach(Console.WriteLine);
+            }
+
+            Assert.AreEqual(0, exceptions.Count);
+
+            exceptions.ForEach(Console.WriteLine);
+        }
+    }
 }
