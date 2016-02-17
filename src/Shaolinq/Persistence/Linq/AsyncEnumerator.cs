@@ -11,13 +11,13 @@ namespace Shaolinq.Persistence.Linq
         : IAsyncEnumerator<T>, IEnumerator<T>
         where U : T
     {
+        private int state;
         private IDataReader dataReader;
         private readonly ObjectProjector<T, U> objectProjector;
         private readonly DatabaseTransactionContextAcquisition acquisition;
         private readonly TransactionContext.TransactionContextExecutionVersionContext versionContext;
-        private bool eof;
         private object context;
-
+        
         public AsyncEnumerator(ObjectProjector<T, U> objectProjector)
         {
             this.objectProjector = objectProjector;
@@ -54,33 +54,25 @@ namespace Shaolinq.Persistence.Linq
         [RewriteAsync]
         public virtual bool MoveNext()
         {
-            if (this.dataReader == null)
+            switch (state)
             {
-                this.dataReader = this.acquisition.SqlDatabaseCommandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
+            case 0:
+                goto state0;
+            case 1:
+                goto state1;
+            case 9:
+                goto state9;
             }
+state0:
 
-            while (true)
+            this.state = 1;
+            this.dataReader = this.acquisition.SqlDatabaseCommandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
+            
+state1:
+            T result;
+
+            if (this.dataReader.ReadEx())
             {
-                T result;
-
-                if (this.eof)
-                {
-                    return false;
-                }
-
-                if (!this.dataReader.ReadEx())
-                {
-                    if (this.objectProjector.ProcessLastMoveNext(ref this.context, out result))
-                    {
-                        this.eof = true;
-                        this.Current = result;
-
-                        return true;
-                    }
-
-                    return false;
-                }
-                
                 T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues);
 
                 if (this.objectProjector.ProcessMoveNext(value, ref this.context, out result))
@@ -89,7 +81,22 @@ namespace Shaolinq.Persistence.Linq
 
                     return true;
                 }
+
+                goto state1;
             }
+            
+            this.state = 9;
+
+            if (this.objectProjector.ProcessLastMoveNext(ref this.context, out result))
+            {
+                this.Current = result;
+
+                return true;
+            }
+
+state9:
+
+            return false;
         }
     }
 }

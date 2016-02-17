@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence.Linq
 	}
 	
 	public class ObjectProjector<T, U>
-		: ObjectProjector, IEnumerable<T>, IAsyncEnumerable<T>
+		: ObjectProjector, IAsyncEnumerable<T>
 		where U : T
 	{
 		protected internal readonly object[] placeholderValues;
@@ -59,43 +59,8 @@ namespace Shaolinq.Persistence.Linq
             return null;
 	    }
 
-        public virtual IEnumerator<T> GetEnumerator()
-		{
-			var transactionContext = this.DataAccessModel.GetCurrentContext(false);
-
-			using (var versionContext = transactionContext.AcquireVersionContext())
-			{
-				using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(this.SqlDatabaseContext))
-				{
-					var transactionalCommandsContext = (DefaultSqlTransactionalCommandsContext)acquisition.SqlDatabaseCommandsContext;
-
-					using (var dataReader = transactionalCommandsContext.ExecuteReader(formatResult.CommandText, formatResult.ParameterValues))
-					{
-					    var enumerationContext = this.CreateEnumerationContext();
-
-					    while (dataReader.Read())
-					    {
-                            T result;
-					        var current = objectReader(this, dataReader, versionContext.Version, placeholderValues);
-
-                            if (this.ProcessMoveNext(current, ref enumerationContext, out result))
-					        {
-					            yield return result;
-					        }
-					    }
-
-					    T lastResult;
-
-					    if (this.ProcessLastMoveNext(ref enumerationContext, out lastResult))
-					    {
-					        yield return lastResult;
-					    }
-					}
-				}
-			}
-		}
-        
-	    IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-	    public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new AsyncEnumerator<T, U>(this);
+	    IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();
+	    public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
+        public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new AsyncEnumerator<T, U>(this);
 	}
 }

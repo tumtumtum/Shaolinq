@@ -1262,38 +1262,42 @@ namespace Shaolinq.Persistence.Linq
 
         public virtual async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
         {
-            if (this.dataReader == null)
+            switch (state)
             {
-                this.dataReader = (await this.acquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+                case 0:
+                    goto state0;
+                case 1:
+                    goto state1;
+                case 9:
+                    goto state9;
             }
 
-            while (true)
-            {
+            state0:
+                this.state = 1;
+            this.dataReader = (await this.acquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+            state1:
                 T result;
-                if (this.eof)
-                {
-                    return false;
-                }
-
-                if (!(await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false)))
-                {
-                    if (this.objectProjector.ProcessLastMoveNext(ref this.context, out result))
-                    {
-                        this.eof = true;
-                        this.Current = result;
-                        return true;
-                    }
-
-                    return false;
-                }
-
+            if (await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false))
+            {
                 T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues);
                 if (this.objectProjector.ProcessMoveNext(value, ref this.context, out result))
                 {
                     this.Current = result;
                     return true;
                 }
+
+                goto state1;
             }
+
+            this.state = 9;
+            if (this.objectProjector.ProcessLastMoveNext(ref this.context, out result))
+            {
+                this.Current = result;
+                return true;
+            }
+
+            state9:
+                return false;
         }
     }
 }
