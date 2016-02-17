@@ -7,7 +7,12 @@ namespace Shaolinq
 	internal class CallContextNativeAsyncLocal<T>
 		: AsyncLocal<T>
 	{
-		private readonly string key;
+        internal class Counter
+        {
+            internal static long count = 0;
+        }
+
+        private readonly string key;
 
 		internal class Container
 			: MarshalByRefObject
@@ -18,11 +23,6 @@ namespace Shaolinq
 			}
 
 			public T Value { get; set; }
-		}
-
-		internal class Counter
-		{
-			internal static long count = 0;
 		}
 		
 		public override T Value
@@ -38,10 +38,10 @@ namespace Shaolinq
 
 		public CallContextNativeAsyncLocal()
 			: base(null)
-		{
-			Interlocked.Increment(ref Counter.count);
+		{            
+			var id = Interlocked.Increment(ref Counter.count);
 
-			this.key = "CallContextNativeAsyncLocal#" + Counter.count;
+		    this.key = "CallContextNativeAsyncLocal#" + id;
 		}
 
 		public override void Dispose()
