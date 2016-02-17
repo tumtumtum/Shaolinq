@@ -4,7 +4,18 @@ using System.Threading;
 
 namespace Shaolinq
 {
-	internal class CallContextNativeAsyncLocal<T>
+    internal class CallContextValueContainer<T>
+            : MarshalByRefObject
+    {
+        public CallContextValueContainer(T value)
+        {
+            this.Value = value;
+        }
+
+        public T Value { get; set; }
+    }
+
+    internal class CallContextNativeAsyncLocal<T>
 		: AsyncLocal<T>
 	{
         internal class Counter
@@ -14,26 +25,15 @@ namespace Shaolinq
 
         private readonly string key;
 
-		internal class Container
-			: MarshalByRefObject
-		{
-			public Container(T value)
-			{
-				this.Value = value;
-			}
-
-			public T Value { get; set; }
-		}
-		
 		public override T Value
 		{
 			get
 			{
-				var container = (Container)CallContext.LogicalGetData(this.key);
+				var container = (CallContextValueContainer<T>)CallContext.LogicalGetData(this.key);
 
 				return container != null ? container.Value : default(T);
 			}
-			set { CallContext.LogicalSetData(this.key, new Container(value)); }
+			set { CallContext.LogicalSetData(this.key, new CallContextValueContainer<T>(value)); }
 		}
 
 		public CallContextNativeAsyncLocal()
