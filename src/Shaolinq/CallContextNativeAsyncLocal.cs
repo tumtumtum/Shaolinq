@@ -4,6 +4,11 @@ using System.Threading;
 
 namespace Shaolinq
 {
+    internal class CallContextNativeAsyncLocal
+    {
+        internal static long count = 0;
+    }
+    
     internal class CallContextValueContainer<T>
             : MarshalByRefObject
     {
@@ -18,11 +23,6 @@ namespace Shaolinq
     internal class CallContextNativeAsyncLocal<T>
 		: AsyncLocal<T>
 	{
-        internal class Counter
-        {
-            internal static long count = 0;
-        }
-
         private readonly string key;
 
 		public override T Value
@@ -39,9 +39,9 @@ namespace Shaolinq
 		public CallContextNativeAsyncLocal()
 			: base(null)
 		{            
-			var id = Interlocked.Increment(ref Counter.count);
+			var id = Interlocked.Increment(ref CallContextNativeAsyncLocal.count);
 
-		    this.key = "CallContextNativeAsyncLocal#" + id;
+		    this.key = "CCNAL#" + id;
 		}
 
 		public override void Dispose()
