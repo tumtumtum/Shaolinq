@@ -2,13 +2,12 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 
 namespace Shaolinq.Persistence.Linq
 {
     internal partial class AsyncEnumerator<T, U>
-        : IAsyncEnumerator<T>, IEnumerator<T>
+        : IAsyncEnumerator<T>
         where U : T
     {
         private int state;
@@ -37,9 +36,9 @@ namespace Shaolinq.Persistence.Linq
         protected virtual void Dispose(bool disposing)
         {
             // ReSharper disable EmptyGeneralCatchClause
-            try { this.dataReader.Dispose(); } catch { }
-            try { this.acquisition.Dispose(); } catch { }
-            try { this.versionContext.Dispose(); } catch { }
+            try { this.dataReader?.Dispose(); } catch { }
+            try { this.acquisition?.Dispose(); } catch { }
+            try { this.versionContext?.Dispose(); } catch { }
             // ReSharper restore EmptyGeneralCatchClause
         }
 
