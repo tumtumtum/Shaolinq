@@ -1290,7 +1290,7 @@ namespace Shaolinq.Persistence.Linq
                 T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues);
                 if (this.objectProjector.ProcessMoveNext(value, ref this.context, out result))
                 {
-                    this.Current = value;
+                    this.Current = result;
                     return true;
                 }
             }

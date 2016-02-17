@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Shaolinq
 {
@@ -16,5 +18,15 @@ namespace Shaolinq
         {
             return getEnumerator();
         }
+
+	    public IEnumerator<T> GetEnumerator()
+	    {
+		    return getEnumerator();
+	    }
+
+	    IEnumerator IEnumerable.GetEnumerator()
+	    {
+		    return this.GetEnumerator();
+	    }
     }
 }

@@ -358,5 +358,10 @@ namespace Shaolinq.Persistence.Linq
 
 			return didStrip;
 		}
+
+		public static BinaryExpression ChangeLeftRight(this BinaryExpression obj, Expression left, Expression right)
+		{
+			return Expression.MakeBinary(obj.NodeType, left, right, obj.IsLiftedToNull, obj.Method, obj.Conversion);
+		}
 	}
 }

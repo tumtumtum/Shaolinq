@@ -85,7 +85,7 @@ namespace Shaolinq.Persistence.Linq
 
                 if (this.objectProjector.ProcessMoveNext(value, ref this.context, out result))
                 {
-                    this.Current = value;
+                    this.Current = result;
 
                     return true;
                 }
