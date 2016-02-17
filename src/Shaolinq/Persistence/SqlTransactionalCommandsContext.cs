@@ -169,33 +169,22 @@ namespace Shaolinq.Persistence
 
 		protected virtual void CloseConnection()
 		{
-			try
-			{
-				this.currentReader?.Dispose();
-				this.currentReader = null;
-			}
-			catch
-			{
-			}
+			try { this.currentReader?.Close(); } catch { }
+			try { this.currentReader?.Dispose(); } catch { }
+			try { this.dbTransaction?.Dispose(); } catch { }
+			try { this.DbConnection?.Close(); } catch { }
 
-			try
-			{
-				this.dbTransaction.Dispose();
-				this.dbTransaction = null;
-			}
-			catch
-			{
-			}
-
-			this.DbConnection?.Close();
 			this.DbConnection = null;
-			
+			this.dbTransaction = null;
+			this.currentReader = null;
+
 			GC.SuppressFinalize(this);
 		}
 
 		public void Dispose()
 		{
 			this.Dispose(true);
+
 			GC.SuppressFinalize(this);
 		}
 
@@ -206,7 +195,7 @@ namespace Shaolinq.Persistence
 				return;
 			}
 
-			ActionUtils.IgnoreExceptions(this.CloseConnection);
+			try { this.CloseConnection(); } catch { }
 
 			this.disposed = true;
 		}
