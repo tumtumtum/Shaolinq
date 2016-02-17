@@ -30,6 +30,6 @@ namespace Shaolinq
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
 		public override string ToString() => ((SqlQueryProvider)this.Provider).GetQueryText(this.Expression);
 		public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
-		public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => this.SqlQueryProvider.GetEnumerable<T>(this.Expression).GetAsyncEnumeratorOrThrow();
+		public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => this.SqlQueryProvider.GetAsyncEnumerable<T>(this.Expression).GetAsyncEnumeratorOrThrow();
 	}
 }

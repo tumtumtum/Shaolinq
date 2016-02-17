@@ -46,7 +46,7 @@ namespace Shaolinq
 state0:
 			var result = this.enumerator.MoveNextEx();
 
-			if (!result)
+			if (!result || this.enumerator.Current == null)
 			{
 				this.state = 9;
 

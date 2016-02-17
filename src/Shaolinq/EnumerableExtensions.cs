@@ -13,26 +13,21 @@ namespace Shaolinq
 {
     public static partial class EnumerableExtensions
 	{
-		public static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
+        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return enumerable.DefaultIfEmptyAsync(default(T));
+        }
+
+        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable, T defaultValue)
+        {
+            return new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(enumerable.GetAsyncEnumerator(), defaultValue));
+        }
+
+        public static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
 			where T : struct
-		{
-			using (var enumerator = enumerable.GetEnumeratorEx())
-			{
-				if (!enumerator.MoveNextEx())
-				{
-					yield return specifiedValue ?? default(T);
-
-					yield break;
-				}
-
-				yield return enumerator.Current;
-
-				while (enumerator.MoveNextEx())
-				{
-					yield return enumerator.Current;
-				}
-			}
-		}
+        {
+            return enumerable.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);
+        }
 
 	    public static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
             where T : struct
@@ -42,21 +37,8 @@ namespace Shaolinq
 		
 		public static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> enumerable)
 		{
-			using (var enumerator = enumerable.GetEnumeratorEx())
-			{
-				if (!enumerator.MoveNextEx() || enumerator.Current == null)
-				{
-					yield break;
-				}
-
-				yield return enumerator.Current;
-
-				while (enumerator.MoveNextEx())
-				{
-					yield return enumerator.Current;
-				}
-			}
-		}
+            return new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
+        }
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
@@ -106,6 +88,46 @@ namespace Shaolinq
 		internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
         {
             return enumerator.MoveNextAsync(cancellationToken);
+        }
+
+        [RewriteAsync(true)]
+        private static int Count<T>(this IEnumerable<T> enumerable)
+        {
+            var list = enumerable as IList<T>;
+
+            if (list != null)
+            {
+                return list.Count;
+            }
+
+            var retval = 0;
+
+            using (var enumerator = enumerable.GetEnumeratorEx())
+            {
+                retval++;
+            }
+
+            return retval;
+        }
+
+        [RewriteAsync(true)]
+        private static long LongCount<T>(this IEnumerable<T> enumerable)
+        {
+            var list = enumerable as IList<T>;
+
+            if (list != null)
+            {
+                return list.Count;
+            }
+
+            var retval = 0L;
+
+            using (var enumerator = enumerable.GetEnumeratorEx())
+            {
+                retval++;
+            }
+
+            return retval;
         }
 
         [RewriteAsync(true)]

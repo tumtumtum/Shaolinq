@@ -19,7 +19,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo EnumerableContainsMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).Contains(default(string))).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).DefaultIfEmpty()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableDefaultIfEmptyWithValueMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).DefaultIfEmpty("")).GetGenericMethodDefinition();
-		public static readonly MethodInfo QueryableCountMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Count()).GetGenericMethodDefinition();
+        public static readonly MethodInfo QueryableCountMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableWhereMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Where(c => c.Length == 0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableSelectMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Select(c => c.ToUpper())).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableSelectManyMethod = TypeUtils.GetMethod(() => default(IQueryable<Tuple<IEnumerable<int>, string>>).SelectMany(c => c.Item1, (x, y) => new { x, y })).GetGenericMethodDefinition();

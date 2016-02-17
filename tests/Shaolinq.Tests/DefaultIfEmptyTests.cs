@@ -2,6 +2,8 @@
 
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
@@ -441,10 +443,29 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+        [Test]
+        public virtual void Test_Integer_Select_Then_SumAsync()
+        {
+            var task = ((Func<Task>)(async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var value = await this.queryable.Select(c => c.Integer).SumAsync();
+                    var expectedValue = this.queryable.ToList().Select(c => c.Integer).Sum();
+
+                    Assert.AreEqual(expectedValue, value);
+                    Assert.AreEqual(70, value);
+                }
+            }))();
+
+            Thread.Sleep(20);
+            task.GetAwaiter().GetResult();
+        }
+        
+        [Test]
 		public virtual void Test_Integer_Select_Then_Sum_Empty()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = new DataAccessScope())
 			{
 				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
 				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
@@ -454,10 +475,29 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+        [Test]
+        public virtual void Test_Integer_Select_Then_Sum_EmptyAsync()
+        {
+            var task = ((Func<Task>)(async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var value = await this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).SumAsync();
+                    var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).Sum();
+
+                    Assert.AreEqual(expectedValue, value);
+                    Assert.AreEqual(0, value);
+                }
+            }))();
+
+            Thread.Sleep(20);
+            task.GetAwaiter().GetResult();
+        }
+
+        [Test]
 		public virtual void Test_Integer_Select_DefaultIfEmpty_Then_Sum()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = new DataAccessScope())
 			{
 				var value = this.queryable.Select(c => c.Integer).DefaultIfEmpty().Sum();
 				var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty().Sum();
@@ -467,23 +507,61 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
-		public virtual void Test_Integer_Select_DefaultIfEmpty_Then_Sum_Empty()
-		{
-			using (var scope = new TransactionScope())
-			{
-				var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
-				var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
+        [Test]
+        public virtual void Test_Integer_Select_DefaultIfEmpty_Then_SumAsync()
+        {
+            var task = ((Func<Task>)(async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var value = await this.queryable.Select(c => c.Integer).DefaultIfEmpty().SumAsync();
+                    var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty().Sum();
 
-				Assert.AreEqual(expectedValue, value);
-				Assert.AreEqual(0, value);
-			}
-		}
+                    Assert.AreEqual(expectedValue, value);
+                    Assert.AreEqual(70, value);
+                }
+            }))();
+
+            Thread.Sleep(20);
+            task.GetAwaiter().GetResult();
+        }
+
+	    [Test]
+	    public virtual void Test_Integer_Select_DefaultIfEmpty_Then_Sum_Empty()
+	    {
+	        using (var scope = new DataAccessScope())
+	        {
+	            var value = this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
+	            var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
+
+	            Assert.AreEqual(expectedValue, value);
+	            Assert.AreEqual(0, value);
+	        }
+	    }
+
+	    [Test]
+		public virtual void Test_Integer_Select_DefaultIfEmpty_Then_Sum_EmptyAsync()
+        {
+            var task = ((Func<Task>)(async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var value = await this.queryable.Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().SumAsync();
+                    var expectedValue = this.queryable.ToList().Where(c => c.Integer < 0).Select(c => c.Integer).DefaultIfEmpty().Sum();
+
+                    Assert.AreEqual(expectedValue, value);
+                    Assert.AreEqual(0, value);
+                }
+            }))();
+
+            Thread.Sleep(20);
+            task.GetAwaiter().GetResult();
+        }
 
 		[Test]
 		public virtual void Test_Integer_Select_DefaultIfEmpty707_Then_Sum()
 		{
-			using (var scope = new TransactionScope())
+			using (var scope = new DataAccessScope())
 			{
 				var value = this.queryable.Select(c => c.Integer).DefaultIfEmpty(707).Sum();
 				var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty(707).Sum();
@@ -493,7 +571,26 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore("TODO")]
+        [Test]
+        public virtual void Test_Integer_Select_DefaultIfEmpty707_Then_SumAsync()
+        {
+            var task = ((Func<Task>)(async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var value = await this.queryable.Select(c => c.Integer).DefaultIfEmpty(707).SumAsync();
+                    var expectedValue = this.queryable.ToList().Select(c => c.Integer).DefaultIfEmpty(707).Sum();
+
+                    Assert.AreEqual(expectedValue, value);
+                    Assert.AreEqual(70, value);
+                }
+            }))();
+
+            Thread.Sleep(20);
+            task.GetAwaiter().GetResult();
+        }
+
+        [Test, Ignore("TODO")]
 		public virtual void Test_Integer_Select_DefaultIfEmpty707_Then_Sum_Empty()
 		{
 			using (var scope = new TransactionScope())
@@ -522,7 +619,27 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+        [Test]
+        public virtual void Test_Object_Select_DefaultIfEmptyAsync()
+        {
+            var task = ((Func<Task>)(async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var obj = this.queryable.Create();
+                    var value = await this.queryable.DefaultIfEmpty(obj).ToListAsync();
+                    Assert.AreNotEqual(obj, value.First());
+
+                    var valueInMemory = this.queryable.ToList().DefaultIfEmpty(obj);
+                    Assert.AreEqual(value.First(), valueInMemory.First());
+                }
+            }))();
+
+            Thread.Sleep(20);
+            task.GetAwaiter().GetResult();
+        }
+
+        [Test]
 		public virtual void Test_Object_Select_DefaultIfEmpty_First()
 		{
 			using (var scope = new TransactionScope())

@@ -153,6 +153,58 @@ namespace Shaolinq
         }
     }
 
+    internal partial class DefaultIfEmptyEnumerator<T>
+    {
+        public Task<bool> MoveNextAsync()
+        {
+            return MoveNextAsync(CancellationToken.None);
+        }
+
+        public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        {
+            switch (this.state)
+            {
+                case 0:
+                    goto state0;
+                case 1:
+                    goto state1;
+                case 9:
+                    goto state9;
+            }
+
+            state0:
+                var result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+            if (!result)
+            {
+                this.Current = this.specifiedValue;
+                this.state = 9;
+                return true;
+            }
+            else
+            {
+                this.state = 1;
+                this.Current = this.enumerator.Current;
+                return true;
+            }
+
+            state1:
+                result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+            if (result)
+            {
+                this.Current = this.enumerator.Current;
+                return true;
+            }
+            else
+            {
+                this.state = 9;
+                return false;
+            }
+
+            state9:
+                return false;
+        }
+    }
+
     internal partial class DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>
     {
         public Task<bool> MoveNextAsync()
@@ -183,7 +235,7 @@ namespace Shaolinq
             else
             {
                 this.state = 1;
-                this.Current = this.specifiedValue;
+                this.Current = this.enumerator.Current;
                 return true;
             }
 
@@ -226,7 +278,7 @@ namespace Shaolinq
 
             state0:
                 var result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
-            if (!result)
+            if (!result || this.enumerator.Current == null)
             {
                 this.state = 9;
                 return false;
@@ -258,6 +310,50 @@ namespace Shaolinq
 
     public static partial class EnumerableExtensions
     {
+        public static Task<int> CountAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return CountAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<int> CountAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            var list = enumerable as IList<T>;
+            if (list != null)
+            {
+                return list.Count;
+            }
+
+            var retval = 0;
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                retval++;
+            }
+
+            return retval;
+        }
+
+        public static Task<long> LongCountAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return LongCountAsync(enumerable, CancellationToken.None);
+        }
+
+        public static async Task<long> LongCountAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            var list = enumerable as IList<T>;
+            if (list != null)
+            {
+                return list.Count;
+            }
+
+            var retval = 0L;
+            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            {
+                retval++;
+            }
+
+            return retval;
+        }
+
         public static Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> enumerable, T specifiedValue)
         {
             return SingleOrSpecifiedValueIfFirstIsDefaultValueAsync(enumerable, specifiedValue, CancellationToken.None);
@@ -479,6 +575,229 @@ namespace Shaolinq
             }
 
             return new ReadOnlyCollection<T>((await enumerable.ToListAsync(cancellationToken).ConfigureAwait(false)));
+        }
+    }
+
+    public static partial class QueryableExtensions
+    {
+        public static Task<T> MinAsync<T>(this IQueryable<T> source)
+        {
+            return MinAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<T> MinAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default (IQueryable<T>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<T> MaxAsync<T>(this IQueryable<T> source)
+        {
+            return MaxAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<T> MaxAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Max(default (IQueryable<T>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int> SumAsync(this IQueryable<int> source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<int> SumAsync(this IQueryable<int> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<int>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int ? > SumAsync(this IQueryable<int ? > source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<int ? > SumAsync(this IQueryable<int ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<int ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<long> SumAsync(this IQueryable<long> source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<long> SumAsync(this IQueryable<long> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<long>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<long ? > SumAsync(this IQueryable<long ? > source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<long ? > SumAsync(this IQueryable<long ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<long ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<long ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<float> SumAsync(this IQueryable<float> source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<float> SumAsync(this IQueryable<float> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<float>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<float>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<float ? > SumAsync(this IQueryable<float ? > source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<float ? > SumAsync(this IQueryable<float ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<float ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<float ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<double> SumAsync(this IQueryable<double> source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<double> SumAsync(this IQueryable<double> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<double>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<double ? > SumAsync(this IQueryable<double ? > source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<double ? > SumAsync(this IQueryable<double ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int> AverageAsync(this IQueryable<int> source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<int> AverageAsync(this IQueryable<int> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<int>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int ? > AverageAsync(this IQueryable<int ? > source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<int ? > AverageAsync(this IQueryable<int ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<int ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<long> AverageAsync(this IQueryable<long> source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<long> AverageAsync(this IQueryable<long> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<long>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<long ? > AverageAsync(this IQueryable<long ? > source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<long ? > AverageAsync(this IQueryable<long ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<long ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<long ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<float> AverageAsync(this IQueryable<float> source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<float> AverageAsync(this IQueryable<float> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<float>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<float>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<float ? > AverageAsync(this IQueryable<float ? > source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<float ? > AverageAsync(this IQueryable<float ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<float ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<float ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<double> AverageAsync(this IQueryable<double> source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<double> AverageAsync(this IQueryable<double> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<double>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<double>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<double ? > AverageAsync(this IQueryable<double ? > source)
+        {
+            return AverageAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<double ? > AverageAsync(this IQueryable<double ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<double ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int> CountAsync(this IQueryable<double ? > source)
+        {
+            return CountAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<int> CountAsync(this IQueryable<double ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default (IQueryable<double ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<long> LongCountAsync(this IQueryable<double ? > source)
+        {
+            return LongCountAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<long> LongCountAsync(this IQueryable<double ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.LongCount(default (IQueryable<double ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
         }
     }
 
