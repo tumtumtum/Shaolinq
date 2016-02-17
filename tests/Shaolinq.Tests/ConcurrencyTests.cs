@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
@@ -62,26 +63,31 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+	    private Task<School[]> ReadAllSchools()
+	    {
+            var schools = this.model.GetDataAccessObjects<School>().Where(c => c.Name != "ewoiuroi").ToArray();
+
+	        return Task.Run(() => schools);
+	    }
+        
+        [Test]
 		public void Test_Query_On_Lots_Of_Threads_No_TransactionScope()
 		{
 			var exceptions = new List<Exception>();
 			var threads = new List<Thread>();
 			var random = new Random();
 
-			for (var i = 0; i < 10; i++)
+			for (var i = 0; i < 20; i++)
 			{
-				var action = (ThreadStart)delegate
+				var action = (ThreadStart)async delegate
 				{
 					try
 					{
-						for (var j = 0; j < 100; j++)
+						for (var j = 0; j < 200; j++)
 						{
 							Thread.Sleep(random.Next(0, 5));
 
-							var school = this.model.GetDataAccessObjects<School>().First();
-
-							Assert.IsNotNull(school);
+						    await ReadAllSchools();
 						}
 					}
 					catch (Exception e)
