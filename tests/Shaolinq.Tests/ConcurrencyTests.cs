@@ -82,13 +82,13 @@ namespace Shaolinq.Tests
 			var threads = new List<Thread>();
 			var random = new Random();
 
-			for (var i = 0; i < 20; i++)
+			for (var i = 0; i < 10; i++)
 			{
 				var action = (ThreadStart)async delegate
 				{
 					try
 					{
-						for (var j = 0; j < 200; j++)
+						for (var j = 0; j < 50; j++)
 						{
 							Thread.Sleep(random.Next(0, 5));
 
