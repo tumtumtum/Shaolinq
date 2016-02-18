@@ -1568,6 +1568,25 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Query_Aggregate_AverageAsync()
+		{
+			var task = ((Func<Task>)(async () =>
+			{
+				using (var scope = new DataAccessScope())
+				{
+					var serverSideResult = await this.model.Students.AverageAsync(c => c.Height);
+					var allStudents = this.model.Students.ToList();
+					var clientSideResult = allStudents.Average(c => c.Height);
+
+					Assert.AreEqual(clientSideResult, serverSideResult);
+				}
+			}))();
+
+			Thread.Sleep(20);
+			task.GetAwaiter().GetResult();
+		}
+
+		[Test]
 		public void Test_Query_Aggregate_Average_Complex1()
 		{
 			using (var scope = NewTransactionScope())
@@ -1608,6 +1627,25 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Query_Aggregate_MaxAsync()
+		{
+			var task = ((Func<Task>)(async () =>
+			{
+				using (var scope = new DataAccessScope())
+				{
+					var serverSideResult = await this.model.Students.MaxAsync(c => c.Height);
+					var allStudents = this.model.Students.ToList();
+					var clientSideResult = allStudents.Max(c => c.Height);
+
+					Assert.AreEqual(clientSideResult, serverSideResult);
+				}
+			}))();
+
+			Thread.Sleep(20);
+			task.GetAwaiter().GetResult();
+		}
+
+		[Test]
 		public void Test_Query_Aggregate_Min()
 		{
 			using (var scope = NewTransactionScope())
@@ -1618,6 +1656,25 @@ namespace Shaolinq.Tests
 
 				Assert.AreEqual(clientSideResult, serverSideResult);
 			}
+		}
+
+		[Test]
+		public void Test_Query_Aggregate_MinAsync()
+		{
+			var task = ((Func<Task>)(async () =>
+			{
+				using (var scope = new DataAccessScope())
+				{
+					var serverSideResult = await this.model.Students.MinAsync(c => c.Height);
+					var allStudents = this.model.Students.ToList();
+					var clientSideResult = allStudents.Min(c => c.Height);
+
+					Assert.AreEqual(clientSideResult, serverSideResult);
+				}
+			}))();
+
+			Thread.Sleep(20);
+			task.GetAwaiter().GetResult();
 		}
 
 		[Test]

@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Data;
 using System.Data.Common;
 
 namespace Shaolinq.Persistence

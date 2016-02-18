@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence
@@ -55,22 +54,22 @@ namespace Shaolinq.Persistence
 			this.SupportsAsync = supportsAsync;
 		}
 
-		public static System.Data.IsolationLevel ConvertIsolationLevel(DataAccessIsolationLevel isolationLevel)
+		public static IsolationLevel ConvertIsolationLevel(DataAccessIsolationLevel isolationLevel)
 		{
 			switch (isolationLevel)
 			{
 			case DataAccessIsolationLevel.Serializable:
-				return System.Data.IsolationLevel.Serializable;
+				return IsolationLevel.Serializable;
 			case DataAccessIsolationLevel.ReadCommitted:
-				return System.Data.IsolationLevel.ReadCommitted;
+				return IsolationLevel.ReadCommitted;
 			case DataAccessIsolationLevel.Chaos:
-				return System.Data.IsolationLevel.Chaos;
+				return IsolationLevel.Chaos;
 			case DataAccessIsolationLevel.RepeatableRead:
-				return System.Data.IsolationLevel.RepeatableRead;
+				return IsolationLevel.RepeatableRead;
 			case DataAccessIsolationLevel.Snapshot:
-				return System.Data.IsolationLevel.Snapshot;
+				return IsolationLevel.Snapshot;
 			default:
-				return System.Data.IsolationLevel.Unspecified;
+				return IsolationLevel.Unspecified;
 			}
 		}
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Transactions;
 using Shaolinq.Persistence;
 
@@ -46,7 +47,7 @@ namespace Shaolinq
 		
 		public DataAccessIsolationLevel IsolationLevel { get; private set; }
 		public bool HasAborted => this.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted;
-		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext.Keys;
+		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext?.Keys ?? Enumerable.Empty<DataAccessModel>();
 
 		public DataAccessTransaction()
 			: this(DataAccessIsolationLevel.Unspecified)
@@ -75,7 +76,7 @@ namespace Shaolinq
 		{
 			if (!this.isfinishing)
 			{
-				this.dataAccessModelsByTransactionContext.Remove(context.dataAccessModel);
+				this.dataAccessModelsByTransactionContext?.Remove(context.dataAccessModel);
 			}
 		}
 
@@ -84,10 +85,13 @@ namespace Shaolinq
 		{
 			this.isfinishing = true;
 
-			foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+			if (this.dataAccessModelsByTransactionContext != null)
 			{
-				transactionContext.Commit();
-				transactionContext.Dispose();
+				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+				{
+					transactionContext.Commit();
+					transactionContext.Dispose();
+				}
 			}
 		}
 
@@ -96,10 +100,13 @@ namespace Shaolinq
 		{
 			this.isfinishing = true;
 
-			foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+			if (this.dataAccessModelsByTransactionContext != null)
 			{
-				transactionContext.Rollback();
-				transactionContext.Dispose();
+				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+				{
+					transactionContext.Rollback();
+					transactionContext.Dispose();
+				}
 			}
 		}
 
@@ -107,9 +114,12 @@ namespace Shaolinq
 		{
 			this.isfinishing = true;
 
-			foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+			if (this.dataAccessModelsByTransactionContext != null)
 			{
-				transactionContext.Dispose();
+				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+				{
+					transactionContext.Dispose();
+				}
 			}
 
 			this.disposed = true;
