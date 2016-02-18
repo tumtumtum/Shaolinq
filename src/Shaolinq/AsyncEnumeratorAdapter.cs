@@ -32,6 +32,11 @@ namespace Shaolinq
 	    public T Current => this.enumerator.Current;
         public void Dispose() => this.enumerator.Dispose();
 
+        public Task<bool> MoveNextAsync()
+        {
+            return MoveNextAsync(CancellationToken.None);
+        }
+
         public Task<bool> MoveNextAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult(this.enumerator.MoveNext());
