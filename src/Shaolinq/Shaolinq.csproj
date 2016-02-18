@@ -177,7 +177,7 @@
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
-    <Compile Include="Persistence\Linq\AsyncEnumerator.cs" />
+    <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAliasTypeCollector.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlConstantPlaceholderReplacer.cs" />

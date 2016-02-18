@@ -6,26 +6,34 @@ using System.Data;
 
 namespace Shaolinq.Persistence.Linq
 {
-    internal partial class AsyncEnumerator<T, U>
+    internal partial class ObjectProjectionAsyncEnumerator<T, U>
         : IAsyncEnumerator<T>
         where U : T
     {
         private int state;
-        private IDataReader dataReader;
+		private bool disposed;
+		private object context;
+		private IDataReader dataReader;
         private readonly ObjectProjector<T, U> objectProjector;
         private readonly DatabaseTransactionContextAcquisition acquisition;
         private readonly TransactionContext.TransactionContextExecutionVersionContext versionContext;
-        private object context;
         
-        public AsyncEnumerator(ObjectProjector<T, U> objectProjector)
+        public ObjectProjectionAsyncEnumerator(ObjectProjector<T, U> objectProjector)
         {
             this.objectProjector = objectProjector;
 
             var transactionContext = this.objectProjector.DataAccessModel.GetCurrentContext(false);
 
-            this.versionContext = transactionContext.AcquireVersionContext();
-            this.acquisition = transactionContext.AcquirePersistenceTransactionContext(this.objectProjector.SqlDatabaseContext);
-            this.context = objectProjector.CreateEnumerationContext();
+	        try
+	        {
+		        this.versionContext = transactionContext.AcquireVersionContext();
+		        this.acquisition = transactionContext.AcquirePersistenceTransactionContext(this.objectProjector.SqlDatabaseContext);
+		        this.context = objectProjector.CreateEnumerationContext();
+	        }
+	        finally
+	        {
+		        this.Dispose();
+	        }
         }
 
         public void Dispose()
@@ -33,13 +41,20 @@ namespace Shaolinq.Persistence.Linq
             this.Dispose(true);
         }
 
-        protected virtual void Dispose(bool disposing)
+	    protected virtual void Dispose(bool disposing)
         {
+	        if (disposed)
+	        {
+		        throw new ObjectDisposedException(nameof(ObjectProjectionAsyncEnumerator<T, U>));
+	        }
+
+			disposed = true;
+
             // ReSharper disable EmptyGeneralCatchClause
             try { this.dataReader?.Dispose(); } catch { }
             try { this.acquisition?.Dispose(); } catch { }
             try { this.versionContext?.Dispose(); } catch { }
-            // ReSharper restore EmptyGeneralCatchClause
+			// ReSharper restore EmptyGeneralCatchClause
         }
 
         public void Reset()

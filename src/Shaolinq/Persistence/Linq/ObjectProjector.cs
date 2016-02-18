@@ -61,6 +61,6 @@ namespace Shaolinq.Persistence.Linq
 
 	    IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();
 	    public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
-        public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new AsyncEnumerator<T, U>(this);
+        public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new ObjectProjectionAsyncEnumerator<T, U>(this);
 	}
 }

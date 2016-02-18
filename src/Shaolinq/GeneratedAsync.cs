@@ -1754,7 +1754,7 @@ namespace Shaolinq.Persistence
 
 namespace Shaolinq.Persistence.Linq
 {
-    internal partial class AsyncEnumerator<T, U>
+    internal partial class ObjectProjectionAsyncEnumerator<T, U>
     {
         public virtual Task<bool> MoveNextAsync()
         {
