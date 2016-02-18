@@ -13,48 +13,51 @@ namespace Shaolinq
 {
     public static partial class EnumerableExtensions
 	{
-        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable)
-        {
-            return enumerable.DefaultIfEmptyAsync(default(T));
-        }
-
-        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable, T defaultValue)
-        {
-            return new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(enumerable.GetAsyncEnumerator(), defaultValue));
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
-			where T : struct
-        {
-            return enumerable.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);
-        }
+            where T : struct => enumerable.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);
 
-	    public static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
-            where T : struct
-        {
-            return new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(enumerable.GetAsyncEnumerator(), specifiedValue));
-        }
-		
-		public static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> enumerable)
-		{
-            return new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
+            where T : struct => new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(enumerable.GetAsyncEnumerator(), specifiedValue));
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
-		{
-			return new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
-		}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable)
+            => enumerable.DefaultIfEmptyAsync(default(T));
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> enumerable) => enumerable.GetEnumerator();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable, T defaultValue)
+            => new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(enumerable.GetAsyncEnumerator(), defaultValue));
 
-		internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> enumerable)
-		{
-			return Task.FromResult(enumerable.GetAsyncEnumerator());
-		}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> enumerable) 
+            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
 
-		internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> enumerable)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken) 
+            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> enumerable) 
+            => enumerable.GetEnumerator();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> enumerable) 
+            => Task.FromResult(enumerable.GetAsyncEnumerator());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
+            => enumerator.MoveNext();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
+            => enumerator.MoveNextAsync(cancellationToken);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value)
+            => enumerable.WithEachAsync(value, CancellationToken.None);
+
+        internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> enumerable)
 		{
 			var asyncEnumerable = enumerable as IAsyncEnumerable<T>;
 
@@ -72,25 +75,13 @@ namespace Shaolinq
 
 			if (asyncEnumerable == null)
 			{
-				throw new NotSupportedException();
+				throw new NotSupportedException($"The given enumerable {enumerable.GetType().Name} does not support {nameof(IAsyncEnumerable<T>)}");
 			}
 
 			return asyncEnumerable.GetAsyncEnumerator();
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
-	    {
-	        return enumerator.MoveNext();
-	    }
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
-        {
-            return enumerator.MoveNextAsync(cancellationToken);
-        }
-
-        [RewriteAsync(true)]
+		[RewriteAsync(true)]
         private static int Count<T>(this IEnumerable<T> enumerable)
         {
             var list = enumerable as IList<T>;
@@ -268,12 +259,7 @@ namespace Shaolinq
             }
         }
 
-        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value)
-        {
-            return enumerable.EachAsync(value, CancellationToken.None);
-        }
-
-        public static async Task EachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value, CancellationToken cancellationToken)
+        public static async Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value, CancellationToken cancellationToken)
         {
             using (var enumerator = await enumerable.GetEnumeratorExAsync())
             {
