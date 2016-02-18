@@ -30,9 +30,11 @@ namespace Shaolinq.Persistence.Linq
 		        this.acquisition = transactionContext.AcquirePersistenceTransactionContext(this.objectProjector.SqlDatabaseContext);
 		        this.context = objectProjector.CreateEnumerationContext();
 	        }
-	        finally
+	        catch
 	        {
 		        this.Dispose();
+
+				throw;
 	        }
         }
 
