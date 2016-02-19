@@ -41,6 +41,7 @@ namespace Shaolinq
 		private bool disposed;
 		private bool isfinishing;
 
+	    internal TimeSpan timeout;
 		internal Transaction SystemTransaction { get; set; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
 		internal Dictionary<DataAccessModel, TransactionContext> dataAccessModelsByTransactionContext;

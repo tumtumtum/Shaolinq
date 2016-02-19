@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence
 
 		[XmlAttribute]
 		public int? ConnectionCommandTimeout { get; set; }
-
+        
 		[XmlAttribute]
 		public int? CommandTimeout { get; set; }
 		

@@ -12,19 +12,84 @@ namespace Shaolinq
 
 		private bool complete;
 		private readonly DataAccessTransaction transaction;
-		
-		public DataAccessScope()
+
+        public static DataAccessScope CreateReadCommitted()
+        {
+            return CreateReadCommitted(TimeSpan.Zero);
+        }
+
+        public static DataAccessScope CreateRepeatableRead()
+        {
+            return CreateRepeatableRead(TimeSpan.Zero);
+        }
+
+        public static DataAccessScope CreateReadUncommited()
+        {
+            return CreateReadUncommited(TimeSpan.Zero);
+        }
+
+        public static DataAccessScope CreateSerializable()
+        {
+            return CreateSerializable(TimeSpan.Zero);
+        }
+
+        public static DataAccessScope CreateSnapshot()
+        {
+            return CreateSnapshot(TimeSpan.Zero);
+        }
+
+        public static DataAccessScope CreateChaos()
+        {
+            return CreateChaos(TimeSpan.Zero);
+        }
+
+        public static DataAccessScope CreateReadCommitted(TimeSpan timeout)
+	    {
+	        return new DataAccessScope(DataAccessIsolationLevel.ReadCommitted);
+	    }
+
+        public static DataAccessScope CreateRepeatableRead(TimeSpan timeout)
+        {
+            return new DataAccessScope(DataAccessIsolationLevel.RepeatableRead);
+        }
+
+        public static DataAccessScope CreateReadUncommited(TimeSpan timeout)
+        {
+            return new DataAccessScope(DataAccessIsolationLevel.ReadUncommitted);
+        }
+
+        public static DataAccessScope CreateSerializable(TimeSpan timeout)
+        {
+            return new DataAccessScope(DataAccessIsolationLevel.Serializable);
+        }
+
+        public static DataAccessScope CreateSnapshot(TimeSpan timeout)
+        {
+            return new DataAccessScope(DataAccessIsolationLevel.Snapshot);
+        }
+
+        public static DataAccessScope CreateChaos(TimeSpan timeout)
+        {
+            return new DataAccessScope(DataAccessIsolationLevel.Chaos);
+        }
+        
+        public DataAccessScope()
 			: this(DataAccessIsolationLevel.Unspecified)
 		{
 		}
 
-		public DataAccessScope(DataAccessIsolationLevel isolationLevel)
+	    public DataAccessScope(DataAccessIsolationLevel isolationLevel)
+            : this(isolationLevel, TimeSpan.Zero)
+	    {
+	    }
+
+        public DataAccessScope(DataAccessIsolationLevel isolationLevel, TimeSpan timeout)
 		{
 			this.IsolationLevel = isolationLevel;
 
 			if (DataAccessTransaction.Current == null)
 			{
-				this.transaction = new DataAccessTransaction(isolationLevel);
+			    this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
 
 				DataAccessTransaction.Current = this.transaction;
 			}

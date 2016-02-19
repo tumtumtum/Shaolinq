@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
-using System.Transactions;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
