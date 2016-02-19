@@ -1,7 +1,5 @@
 # Shaolinq
 
-===
-
 Shaolinq is a powerful ORM and Linq provider for C# and .NET. It provides a  thoughtful, fast and powerful alternative to Linq to SQL and the Entity Framework.
 
 Notable features:
@@ -52,8 +50,6 @@ The lack of a suitable free code-first ORM with support for major open-source da
  
 
 ## Code
-
-===
 
 Define data model:
 
@@ -267,6 +263,19 @@ using (var enumerator = model.People.Where(c => c.Description.ToLower().StartsWi
 }
 ```
 
+// Query using SELECT FOR UPDATE (lock individual row)
+
+```csharp
+using (var scope = new DataAccessScope())
+{
+	var person = await model.People.SelectForUpdateAsync(c => c.Name == "Steve");
+	
+	person.Age = 19;
+	
+	await scope.CompleteAsync();
+}
+```
+
 Find all people whos name contains 's' server-side two different ways
 
 ```csharp
@@ -331,6 +340,7 @@ while (await values.MoveNextAsync())
 	Console.WriteLine($"Average age of person with name of {value.Name} is {value.AverageAge}");
 }
 ```
+
 
 
 
