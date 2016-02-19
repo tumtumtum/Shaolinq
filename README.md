@@ -9,6 +9,7 @@ Notable features:
  * Code first object model
  * First class LINQ support
  * Full support for async/await that goes beyond what's possible with the Entity Framework
+ * Full support for *recursively* including collection properties - handles all necessary and complex join(s) for you
  * Automatic schema creation and migration
  * Natural object model architecture with both high-level and super-fine-grained access to SQL via LINQ
  * Insanely fast performance by using dynamically generated code (System.Reflection.Emit) to avoid slow dynamic reflection calls (dynamic calls is used by most other ORMs)
@@ -272,6 +273,21 @@ using (var scope = new DataAccessScope())
 }
 
 ```
+
+Find all people whos name contains 's' server-side two different ways
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var people1 = await model.People.Where(c => c.Name.IsLike("%s%")).ToListAsync();
+	var people2 = await model.People.Where(c => c.Name.IndexOf("s") >= 0).ToListAsync();
+	
+	await scope.CompleteAsync();
+}
+
+```
+
 
 
 ---
