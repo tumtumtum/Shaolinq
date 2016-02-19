@@ -237,7 +237,7 @@ using (var scope = new DataAccessScope())
 ```
 
 
-Delete a person from the database using LINQ
+Delete all people named Steve from the database using LINQ syntax
 
 ```csharp
 
