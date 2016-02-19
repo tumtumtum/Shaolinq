@@ -51,8 +51,6 @@ The lack of a suitable free code-first ORM with support for major open-source da
 
 ## Code
 
-===
-
 Define data model:
 
 ```csharp
