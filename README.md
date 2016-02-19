@@ -66,19 +66,22 @@ public abstract class Person : DataAccessObject<Guid>
 	[PersistedMember]
 	public abstract Guid Id { get; set; }
 	
-    [PersistedMember]
-    public abstract int Age { get; set; }
+	[PersistedMember]
+	public abstract int Age { get; set; }
 	
-    [PersistedMember]
-    public abstract string Name { get; set; }
-    
-    [PersistedMember]
-    public abstract Person BestFriend { get; set; }
-    
-    [Description]
-    [Index(LowercaseIndex = true)]
-    [ComputedTextMember("{Name} of age {Age}")]
-    public abstract string Description { get; set; }
+	[PersistedMember]
+	public abstract string Name { get; set; }
+	
+	[PersistedMember]
+	public abstract Person BestFriend { get; set; }
+	
+	[BackReference]
+	public abstract BorrowedBook { get; set; }
+	
+	[Description]
+	[Index(LowercaseIndex = true)]
+	[ComputedTextMember("{Name} of age {Age}")]
+	public abstract string Description { get; set; }
 }
 
 // Object inheriting from non generic DataAccessObject to manually define its own primary keys
