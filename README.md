@@ -206,8 +206,7 @@ using (var scope = new DataAccessScope())
 
 ```
 
-Perform queries with implicit joins and explicit joins using Include.
-(Query for all books and for each book all borrowers and for each borrow also include the borrow's best friend then print out all the borrowers name and their best friends' name)
+Perform queries with implicit joins and explicit joins using Include. Query for all books and for each book all borrowers and for each borrower their best friend. Then print out the borrower and their best friends' name.
 
 ```csharp
 
