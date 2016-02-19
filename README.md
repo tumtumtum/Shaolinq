@@ -197,9 +197,13 @@ Update object asynchronously and without needing to performa SELECT query:
 
 using (var scope = new DataAccessScope())
 {
+	// Gets a reference to an object with a composite primary key without hitting the database
+	
 	var book  =  model.Books.GetReference(new { Id = 100, PublisherName = "Penguin" });
 	
 	book.Title = "Expert Shaolinq";
+	
+	// Will throw if the book (above) does not exist on commit in a single trip to the database
 	
 	await scope.CompleteAsync();
 }
