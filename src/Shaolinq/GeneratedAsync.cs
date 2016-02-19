@@ -584,6 +584,29 @@ namespace Shaolinq
         }
     }
 
+    public static partial class DataAccessObjectsQueryableExtensions
+    {
+        public static Task DeleteWhereAsync<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)where T : DataAccessObject
+        {
+            return DeleteWhereAsync(queryable, condition, CancellationToken.None);
+        }
+
+        public static async Task DeleteWhereAsync<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition, CancellationToken cancellationToken)where T : DataAccessObject
+        {
+            await queryable.DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+            var transactionContext = queryable.DataAccessModel.GetCurrentContext(true);
+            using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DataAccessModel.GetCurrentSqlDatabaseContext()))
+            {
+                var expression = (Expression)Expression.Call(MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof (DataAccessObjectsQueryable<T>)), condition);
+                expression = Evaluator.PartialEval(expression);
+                expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);
+                expression = SqlObjectOperandComparisonExpander.Expand(expression);
+                expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression, transactionContext.sqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+                await acquisition.SqlDatabaseCommandsContext.DeleteAsync((SqlDeleteExpression)expression, cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
     public static partial class QueryableExtensions
     {
         public static Task<T> MinAsync<T>(this IQueryable<T> source)

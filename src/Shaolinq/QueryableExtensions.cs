@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -8,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Platform;
 using Shaolinq.Persistence;
+
+// ReSharper disable InvokeAsExtensionMethod
 
 namespace Shaolinq
 {
@@ -333,28 +336,27 @@ namespace Shaolinq
 			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
 		}
 		
-        public static T IncludedItems<T>(this IQueryable<T> source)
+		public static IQueryable<T> WhereForUpdate<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.WhereForUpdate(default(IQueryable<T>), c => true)), source.Expression, Expression.Quote(predicate));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<T>>(expression);
+		}
+		
+		public static IQueryable<U> SelectForUpdate<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate)
+			where T : DataAccessObject
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.SelectForUpdate(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(predicate));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<U>>(expression);
+		}
+
+		public static T IncludedItems<T>(this IQueryable<T> source)
 			where T : DataAccessObject
         {
             Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
 
             return source.Provider.ExecuteEx<T>(expression);
-		}
-
-		public static IQueryable<T> WhereForUpdate<T>(this IQueryable<T> queryable, Expression<Func<T, bool>> condition)
-			where T : DataAccessObject
-		{
-		    Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition);
-            
-            return queryable.Provider.CreateQuery<T>(expression);
-		}
-
-		public static IQueryable<R> SelectForUpdate<T, R>(this IQueryable<T> queryable, Expression<Func<T, R>> condition)
-			where T : DataAccessObject
-		{
-		    Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), Expression.Constant(queryable), condition);
-
-			return queryable.Provider.CreateQuery<R>(expression);
 		}
 
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)

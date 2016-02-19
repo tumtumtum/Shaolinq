@@ -5,19 +5,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq
 {
-	public static class DataAccessObjectsQueryableExtensions
+	public static partial class DataAccessObjectsQueryableExtensions
 	{
 		internal static class MethodCache<T>
 		{
 			public static readonly MethodInfo DeleteMethod = typeof(DataAccessObjectsQueryableExtensions).GetMethod("DeleteWhere").MakeGenericMethod(typeof(T));
 		}
-
+		
+		[RewriteAsync]
 		public static void DeleteWhere<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)
 			where T : DataAccessObject
 		{
