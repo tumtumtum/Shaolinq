@@ -301,7 +301,7 @@ using (var scope = new DataAccessScope())
 	var people = await model
 		.People
 		.Where(c => c.BestFriend.BestFriend.Name == "Steve")
-		.WithEach(Console.WriteLine);
+		.WithEachAsync(Console.WriteLine);
 }
 
 ```
