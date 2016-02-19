@@ -335,70 +335,20 @@ namespace Shaolinq
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
 		}
-
-		[RewriteAsync(true)]
-		private static IEnumerable<T> OrderBy<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.OrderBy(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
-
-			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
-		}
-
-		[RewriteAsync(true)]
-		public static IQueryable<T> OrderByDescending<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.OrderByDescending(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
-
-			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<T>>(expression);
-		}
-
-		[RewriteAsync(true)]
-		private static IEnumerable<T> GroupBy<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.GroupBy(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
-
-			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
-		}
-
-		[RewriteAsync(true)]
-		private static IEnumerable<T> GroupBy<T, K, R>(this IQueryable<T> source, Expression<Func<T, K>> keySelector, Expression<Func<K, IEnumerable<T>, R>> resultSelector)
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.GroupBy(default(IQueryable<T>), c => default(K), (c, d) => default(R))), source.Expression, Expression.Quote(keySelector), Expression.Quote(resultSelector));
-
-			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
-		}
-
-		[RewriteAsync(true)]
-		private static IQueryable<T> Where<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Where(default(IQueryable<T>), c =>true)), source.Expression, Expression.Quote(predicate));
-
-			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<T>>(expression);
-		}
-
-		[RewriteAsync(true)]
-		public static IEnumerable<T> WhereForUpdate<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		
+		public static IQueryable<T> WhereForUpdate<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.WhereForUpdate(default(IQueryable<T>), c => true)), source.Expression, Expression.Quote(predicate));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<T>>(expression);
 		}
-
-		[RewriteAsync(true)]
-		private static IEnumerable<U> Select<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate)
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Select(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(predicate));
-
-			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<U>>(expression);
-		}
-
-		[RewriteAsync(true)]
-		public static IEnumerable<U> SelectForUpdate<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate)
+		
+		public static IQueryable<U> SelectForUpdate<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate)
 			where T : DataAccessObject
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.SelectForUpdate(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(predicate));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<U>>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<U>>(expression);
 		}
 
 		public static T IncludedItems<T>(this IQueryable<T> source)
