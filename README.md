@@ -80,7 +80,6 @@ public abstract class Person : DataAccessObject<Guid>
     public abstract string Description { get; set; }
 }
 
-
 // Object inheriting from non generic DataAccessObject to manually define its own primary keys
 
 [DataAccessObject]
@@ -239,7 +238,6 @@ using (var scope = new DataAccessScope())
 
 ```
 
-
 Delete all people named Steve from the database using LINQ syntax
 
 ```csharp
@@ -249,6 +247,26 @@ using (var scope = new DataAccessScope())
 	await model.People.DeleteWhereAsync(c => c.Name == "Steve");
 	
 	Console.WriteLine("Deleted all people named Steve");
+	
+	await scope.CompleteAsync();
+}
+
+```
+
+
+Asynchronously enumerate all people whos name starts with Steve using fast server-side case-insensitive index
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	using (var enumerator = await model.People.Where(c => c.Description.ToLower().StartsWith("steve")))
+	{
+		while (await enumerator.MoveNextAsync())
+		{
+			Console.WriteLine($"Name: {enumerator.Current.Name)");
+		}
+	}
 	
 	await scope.CompleteAsync();
 }
