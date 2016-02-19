@@ -337,11 +337,43 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync(true)]
-		private static IEnumerable<T> Where<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		private static IEnumerable<T> OrderBy<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.OrderBy(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
+		}
+
+		[RewriteAsync(true)]
+		public static IQueryable<T> OrderByDescending<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.OrderByDescending(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<T>>(expression);
+		}
+
+		[RewriteAsync(true)]
+		private static IEnumerable<T> GroupBy<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.GroupBy(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
+		}
+
+		[RewriteAsync(true)]
+		private static IEnumerable<T> GroupBy<T, K, R>(this IQueryable<T> source, Expression<Func<T, K>> keySelector, Expression<Func<K, IEnumerable<T>, R>> resultSelector)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.GroupBy(default(IQueryable<T>), c => default(K), (c, d) => default(R))), source.Expression, Expression.Quote(keySelector), Expression.Quote(resultSelector));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
+		}
+
+		[RewriteAsync(true)]
+		private static IQueryable<T> Where<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Where(default(IQueryable<T>), c =>true)), source.Expression, Expression.Quote(predicate));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<IEnumerable<T>>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<T>>(expression);
 		}
 
 		[RewriteAsync(true)]

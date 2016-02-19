@@ -1005,15 +1005,59 @@ namespace Shaolinq
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<IEnumerable<T>> WhereAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+        public static Task<IEnumerable<T>> OrderByAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
+        {
+            return OrderByAsync(source, selector, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<T>> OrderByAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.OrderBy(default (IQueryable<T>), c => default (U))), source.Expression, Expression.Quote(selector));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<T>>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IQueryable<T>> OrderByDescendingAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
+        {
+            return OrderByDescendingAsync(source, selector, CancellationToken.None);
+        }
+
+        public static async Task<IQueryable<T>> OrderByDescendingAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.OrderByDescending(default (IQueryable<T>), c => default (U))), source.Expression, Expression.Quote(selector));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IQueryable<T>>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IEnumerable<T>> GroupByAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
+        {
+            return GroupByAsync(source, selector, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<T>> GroupByAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.GroupBy(default (IQueryable<T>), c => default (U))), source.Expression, Expression.Quote(selector));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<T>>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IEnumerable<T>> GroupByAsync<T, K, R>(this IQueryable<T> source, Expression<Func<T, K>> keySelector, Expression<Func<K, IEnumerable<T>, R>> resultSelector)
+        {
+            return GroupByAsync(source, keySelector, resultSelector, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<T>> GroupByAsync<T, K, R>(this IQueryable<T> source, Expression<Func<T, K>> keySelector, Expression<Func<K, IEnumerable<T>, R>> resultSelector, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.GroupBy(default (IQueryable<T>), c => default (K), (c, d) => default (R))), source.Expression, Expression.Quote(keySelector), Expression.Quote(resultSelector));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<T>>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IQueryable<T>> WhereAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
             return WhereAsync(source, predicate, CancellationToken.None);
         }
 
-        public static async Task<IEnumerable<T>> WhereAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
+        public static async Task<IQueryable<T>> WhereAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Where(default (IQueryable<T>), c => true)), source.Expression, Expression.Quote(predicate));
-            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<T>>(expression, cancellationToken).ConfigureAwait(false);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IQueryable<T>>(expression, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<IEnumerable<T>> WhereForUpdateAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
