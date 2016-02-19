@@ -1,7 +1,5 @@
 # Shaolinq
 
-===
-
 Shaolinq is a powerful ORM and Linq provider for C# and .NET. It provides a  thoughtful, fast and powerful alternative to Linq to SQL and the Entity Framework.
 
 Notable features:
