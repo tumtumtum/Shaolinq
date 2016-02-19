@@ -8,6 +8,8 @@ Notable features:
 
  * Code first object model
  * Top class LINQ support with everything entity framework supports and beyond
+ * First class composite primary key support
+ * Fully configurable naming by convention using attributes or configuration
  * Full support for async/await that goes beyond what's possible with the Entity Framework
  * Full support for *recursively* including collection properties - handles all necessary and complex join(s) for you
  * Automatic schema creation and migration
@@ -339,6 +341,20 @@ using (var scope = new DataAccessScope())
 }
 
 ```
+
+// Find all people and books that are related using classic linq join syntax
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var result = await (from book in model.Books
+		join person in model.People on book equals person.BorrowedBook
+		select new { person }).ToListAsync();
+}
+
+```
+
 
 
 ---
