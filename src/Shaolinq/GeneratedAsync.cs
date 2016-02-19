@@ -584,6 +584,29 @@ namespace Shaolinq
         }
     }
 
+    public static partial class DataAccessObjectsQueryableExtensions
+    {
+        public static Task DeleteWhereAsync<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)where T : DataAccessObject
+        {
+            return DeleteWhereAsync(queryable, condition, CancellationToken.None);
+        }
+
+        public static async Task DeleteWhereAsync<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition, CancellationToken cancellationToken)where T : DataAccessObject
+        {
+            await queryable.DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+            var transactionContext = queryable.DataAccessModel.GetCurrentContext(true);
+            using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DataAccessModel.GetCurrentSqlDatabaseContext()))
+            {
+                var expression = (Expression)Expression.Call(MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof (DataAccessObjectsQueryable<T>)), condition);
+                expression = Evaluator.PartialEval(expression);
+                expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);
+                expression = SqlObjectOperandComparisonExpander.Expand(expression);
+                expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression, transactionContext.sqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+                await acquisition.SqlDatabaseCommandsContext.DeleteAsync((SqlDeleteExpression)expression, cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
     public static partial class QueryableExtensions
     {
         public static Task<T> MinAsync<T>(this IQueryable<T> source)
@@ -980,6 +1003,50 @@ namespace Shaolinq
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (double ? ))), source.Expression, Expression.Quote(selector));
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IEnumerable<T>> WhereAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+        {
+            return WhereAsync(source, predicate, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<T>> WhereAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Where(default (IQueryable<T>), c => true)), source.Expression, Expression.Quote(predicate));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<T>>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IEnumerable<T>> WhereForUpdateAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+        {
+            return WhereForUpdateAsync(source, predicate, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<T>> WhereForUpdateAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.WhereForUpdate(default (IQueryable<T>), c => true)), source.Expression, Expression.Quote(predicate));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<T>>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IEnumerable<U>> SelectAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate)
+        {
+            return SelectAsync(source, predicate, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<U>> SelectAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Select(default (IQueryable<T>), c => default (U))), source.Expression, Expression.Quote(predicate));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<U>>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<IEnumerable<U>> SelectForUpdateAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate)where T : DataAccessObject
+        {
+            return SelectForUpdateAsync(source, predicate, CancellationToken.None);
+        }
+
+        public static async Task<IEnumerable<U>> SelectForUpdateAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate, CancellationToken cancellationToken)where T : DataAccessObject
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.SelectForUpdate(default (IQueryable<T>), c => default (U))), source.Expression, Expression.Quote(predicate));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<IEnumerable<U>>(expression, cancellationToken).ConfigureAwait(false);
         }
     }
 
