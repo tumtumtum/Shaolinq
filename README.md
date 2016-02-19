@@ -306,7 +306,7 @@ using (var scope = new DataAccessScope())
 
 ```
 
-Assign a person's best friend without querying for the best friend if you know the best friend's primary key.
+Assign a person's best friend without querying for the best friend if you know the object primary keys.
 
 ```csharp
 
