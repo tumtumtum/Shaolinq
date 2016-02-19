@@ -223,7 +223,7 @@ using (var scope = new DataAccessScope())
 	
 	foreach (var value in books.Borrowers.Items().SelectMany(c => new { c.Name, BestFriendName = c.BestFriend.Name })))
 	{
-		Console.WriteLine($"Borrower: {value.Name} BestFriend: {vlaue.BestFriend.Name}")
+		Console.WriteLine($"Borrower: {value.Name} BestFriend: {value.BestFriend.Name}")
 	}
 }
 
@@ -286,6 +286,24 @@ using (var scope = new DataAccessScope())
 	var people1 = await model.People.Where(c => c.Name.IsLike("%s%")).ToListAsync();
 	var people2 = await model.People.Where(c => c.Name.IndexOf("s") >= 0).ToListAsync();
 	
+	await scope.CompleteAsync();
+}
+
+```
+
+Assign a person's best friend without querying for the best friend if you know the best friend's primary key.
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	// No query performed
+	var person1 = model.People.GeReference(personId);
+	
+	// No query performed
+	person1.BestFriend = model.People.GetReference(bestFriendId);
+	
+	// A single UPDATE statement is performed
 	await scope.CompleteAsync();
 }
 
