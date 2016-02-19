@@ -291,7 +291,7 @@ using (var scope = new DataAccessScope())
 
 ```
 
-Print the names all people whos best friends' name is Steve
+Print the names all people who have a bestfriend who has a bestfriend whos name is "Steve"
 
 ```csharp
 
@@ -300,7 +300,7 @@ using (var scope = new DataAccessScope())
 	// Will perform automatic implicit left join on BestFriend
 	var people = await model
 		.People
-		.Where(c => c.BestFriend.Name == "Steve")
+		.Where(c => c.BestFriend.BestFriend.Name == "Steve")
 		.WithEach(Console.WriteLine);
 }
 
