@@ -1,5 +1,6 @@
-Shaolinq
-========
+# Shaolinq
+
+===
 
 Shaolinq is a powerful ORM and Linq provider for C# and .NET. It provides a  thoughtful, fast and powerful alternative to Linq to SQL and the Entity Framework.
 
@@ -7,6 +8,7 @@ Notable features:
 
  * Code first object model
  * First class LINQ support
+ * Full support for async/await that goes beyond what's possible with the Entity Framework
  * Automatic schema creation and migration
  * Natural object model architecture with both high-level and super-fine-grained access to SQL via LINQ
  * Insanely fast performance by using dynamically generated code (System.Reflection.Emit) to avoid slow dynamic reflection calls (dynamic calls is used by most other ORMs)
@@ -45,6 +47,185 @@ The lack of a suitable free code-first ORM with support for major open-source da
  * Support Sqlite, MySql and Postgres and SQL servver out of the box
  * Require only a configuration (web.config) change to switch underlying database providers
  
+
+## Code
+
+===
+
+Define data model:
+
+```csharp
+
+// Object inheriting from generic DataAccessObject to get "Id" primary key property
+
+[DataAccessObject]
+public abstract class Person : DataAccessObject<Guid>
+{
+	[AutoIncrement]
+	[PersistedMember]
+	public abstract Guid Id { get; set; }
+	
+    [PersistedMember]
+    public abstract int Age { get; set; }
+	
+    [PersistedMember]
+    public abstract string Name { get; set; }
+    
+    [PersistedMember]
+    public abstract Person BestFriend { get; set; }
+    
+    [Description]
+    [Index(LowercaseIndex = true)]
+    [ComputedTextMember("{Name} of age {Age}")]
+    public abstract string Description { get; set; }
+}
+
+
+// Object inheriting from non generic DataAccessObject to manually define its own primary keys
+
+[DataAccessObject]
+public abstract Book : DataAccessObject
+{
+	[PrimaryKey("$(TYPE_NAME)$(PROPERTY_NAME)")]
+	[PersistedMember]
+	public abstract long SerialNumber { get; set; }
+		
+	[PrimaryKey]
+	[PersistedMember]
+	public abstract string PublisherName { get; set; }
+	
+	[PersistedMember]
+	public abstract string Title { get; set; }
+	
+	[RelatedDataAccessObjects]
+	public abstract RelatedDataAccessObjects<Person> Borrowers { get; }
+}
+
+// The data access model - defines all types/tables
+
+[DataAccessModel]
+public abstract class ExampleModel : DataAccessModel
+{
+    [DataAccessObjects]
+    public abstract DataAccessObjects<Book> Books { get; }
+    
+    [DataAccessObjects]
+    public abstract DataAccessObjects<Person> People { get; }
+    
+}
+
+
+Create SQLite database:
+
+```csharp
+using Shaolinq;
+using Shaolinq.Sqlite;
+
+static void Main()
+{
+	var configuration = SqliteConfiguration.Create(":memory:");
+	var model = DataAccessModel.BuildDataAccessModel<ExampleModel>(configuration);
+
+	model.Create(DatabaseCreationOptions.DeleteExistingDatabase);
+}
+```
+
+Create MySQL database:
+
+```csharp
+using Shaolinq;
+using Shaolinq.MySql;
+
+static void Main()
+{
+	var configuration = = MySqlConfiguration.Create("ExampleDatabase", "localhost", "root", "root");
+	var model = DataAccessModel.BuildDataAccessModel<ExampleModel>(configuration);
+
+	model.Create(DatabaseCreationOptions.DeleteExistingDatabase);
+}
+```
+
+
+Insert objects:
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var person = model.people.Create();
+	
+	person.Name = "Steve";
+	
+	scope.Complete();
+}
+
+```
+
+
+Insert object async:
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var person = model.People.Create();
+	
+	person.Name = "Steve";
+	
+	await scope.CompleteAsync();
+}
+
+```
+
+
+Update object asynchronously and without needing to performa SELECT query:
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var book  =  model.Books.GetReference(new { Id = 100, PublisherName = "Penguin" });
+	
+	book.Title = "Expert Shaolinq";
+	
+	await scope.CompleteAsync();
+}
+
+```
+
+Perform queries with implicit joins and explicit joins using Include.
+(Query for all books and for each book all borrowers and for each borrow also include the borrow's best friend then print out all the borrowers name and their best friends' name)
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var books  =  await model.Books.Include(c => c.Borrowers.IncludedItems().BestFriend).ToListAsync();
+	
+	foreach (var value in books.Borrowers.Items().SelectMany(c => new { c.Name, BestFriendName = c.BestFriend.Name })))
+	{
+		Console.WriteLine($"Borrower: {value.Name} BestFriend: {vlaue.BestFriend.Name}")
+	}
+}
+
+```
+
+Asynchronously find the age of all people in the database
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var books  =  await model.
+	
+	var averageAge = await model.People.AverageAsync(c => c.Age);
+	
+	Console.WriteLine($"Average age is {averageAge}");
+}
+
+```
+
+
 
 ---
 Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
