@@ -364,7 +364,7 @@ using (var scope = new DataAccessScope())
 {
 	var results = await (from person in model.People
 		group person by person.Name
-		select new { name = person.Name, AverageAge = person.Average(c => Age) });
+		select new { name = person.Name, AverageAge = person.Average(c => Age) }).ToListAsync();
 		
 	foreach (var value in results)
 	{
