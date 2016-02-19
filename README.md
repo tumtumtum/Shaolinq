@@ -267,6 +267,19 @@ using (var enumerator = model.People.Where(c => c.Description.ToLower().StartsWi
 }
 ```
 
+// Query using SELECT FOR UPDATE (lock individual row)
+
+```csharp
+using (var scope = new DataAccessScope())
+{
+	var person = await model.People.SelectForUpdateAsync(c => c.Name == "Steve");
+	
+	person.Age = 19;
+	
+	await scope.CompleteAsync();
+}
+```
+
 Find all people whos name contains 's' server-side two different ways
 
 ```csharp
@@ -331,6 +344,7 @@ while (await values.MoveNextAsync())
 	Console.WriteLine($"Average age of person with name of {value.Name} is {value.AverageAge}");
 }
 ```
+
 
 
 
