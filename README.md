@@ -268,7 +268,7 @@ using (var scope = new DataAccessScope())
 	{
 		while (await enumerator.MoveNextAsync())
 		{
-			Console.WriteLine($"Name: {enumerator.Current.Name)");
+			Console.WriteLine($"Name: {enumerator.Current.Name}");
 		}
 	}
 	
