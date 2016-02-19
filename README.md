@@ -264,7 +264,7 @@ Asynchronously enumerate all people whos name starts with Steve using fast serve
 
 using (var scope = new DataAccessScope())
 {
-	using (var enumerator = await model.People.Where(c => c.Description.ToLower().StartsWith("steve")))
+	using (var enumerator = await model.People.Where(c => c.Description.ToLower().StartsWith("steve")).GetAsyncEnumerator())
 	{
 		while (await enumerator.MoveNextAsync())
 		{
