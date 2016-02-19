@@ -111,9 +111,8 @@ public abstract class ExampleModel : DataAccessModel
     
     [DataAccessObjects]
     public abstract DataAccessObjects<Person> People { get; }
-    
 }
-
+```
 
 Create SQLite database:
 
@@ -161,8 +160,23 @@ using (var scope = new DataAccessScope())
 
 ```
 
+// Insert object using distributed transaction
 
-Insert object async:
+```csharp
+
+using (var scope = new TransactionScope())
+{
+	var person = model.people.Create();
+	
+	person.Name = "Steve";
+	
+	scope.Complete();
+}
+
+```
+
+
+Insert object asynchronously:
 
 ```csharp
 
@@ -176,7 +190,6 @@ using (var scope = new DataAccessScope())
 }
 
 ```
-
 
 Update object asynchronously and without needing to performa SELECT query:
 
@@ -200,7 +213,7 @@ Perform queries with implicit joins and explicit joins using Include.
 
 using (var scope = new DataAccessScope())
 {
-	var books  =  await model.Books.Include(c => c.Borrowers.IncludedItems().BestFriend).ToListAsync();
+	var books = await model.Books.Include(c => c.Borrowers.IncludedItems().BestFriend).ToListAsync();
 	
 	foreach (var value in books.Borrowers.Items().SelectMany(c => new { c.Name, BestFriendName = c.BestFriend.Name })))
 	{
@@ -216,8 +229,6 @@ Asynchronously find the age of all people in the database
 
 using (var scope = new DataAccessScope())
 {
-	var books  =  await model.
-	
 	var averageAge = await model.People.AverageAsync(c => c.Age);
 	
 	Console.WriteLine($"Average age is {averageAge}");
@@ -225,6 +236,21 @@ using (var scope = new DataAccessScope())
 
 ```
 
+
+Delete a person from the database using LINQ
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	await model.People.DeleteWhereAsync(c => c.Name == "Steve");
+	
+	Console.WriteLine("Deleted all people named Steve");
+	
+	await scope.CompleteAsync();
+}
+
+```
 
 
 ---
