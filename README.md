@@ -67,6 +67,9 @@ public abstract class Person : DataAccessObject<Guid>
 	public abstract Guid Id { get; set; }
 	
 	[PersistedMember]
+	public DateTime? Birthdate {get; set; }
+	
+	[PersistedMember]
 	public abstract int Age { get; set; }
 	
 	[PersistedMember]
@@ -172,6 +175,7 @@ using (var scope = new TransactionScope())
 	var person = model.people.Create();
 	
 	person.Name = "Steve";
+	person.Age = 18;
 	
 	scope.Complete();
 }
@@ -188,6 +192,7 @@ using (var scope = new DataAccessScope())
 	var person = model.People.Create();
 	
 	person.Name = "Steve";
+	person.Age = 18;
 	
 	await scope.CompleteAsync();
 }
@@ -324,6 +329,16 @@ using (var scope = new DataAccessScope())
 
 ```
 
+Find all people born in December using server-side date functions
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var people = await model.Where(c => c.Birthdate.Year == 12).ToListAsync();
+}
+
+```
 
 
 ---
