@@ -356,6 +356,25 @@ using (var scope = new DataAccessScope())
 ```
 
 
+// Aggregate query (all people grouped by name with average age)
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	var results = await (from person in model.People
+		group person by person.Name
+		select new { name = person.Name, AverageAge = person.Average(c => Age) });
+		
+	foreach (var value in results)
+	{
+		Console.WriteLine($"Average age of person with name of {value.Name} is {value.AverageAge}");
+	}
+}
+
+```
+
+
 
 ---
 Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
