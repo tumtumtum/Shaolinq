@@ -291,6 +291,21 @@ using (var scope = new DataAccessScope())
 
 ```
 
+Print the names all people whos best friends' name is Steve
+
+```csharp
+
+using (var scope = new DataAccessScope())
+{
+	// Will perform automatic implicit left join on BestFriend
+	var people = await model
+		.People
+		.Where(c => c.BestFriend.Name == "Steve")
+		.WithEach(Console.WriteLine);
+}
+
+```
+
 Assign a person's best friend without querying for the best friend if you know the best friend's primary key.
 
 ```csharp
