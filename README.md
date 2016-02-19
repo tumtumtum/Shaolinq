@@ -7,7 +7,7 @@ Shaolinq is a powerful ORM and Linq provider for C# and .NET. It provides a  tho
 Notable features:
 
  * Code first object model
- * First class LINQ support
+ * Top class LINQ support with everything entity framework supports and beyond
  * Full support for async/await that goes beyond what's possible with the Entity Framework
  * Full support for *recursively* including collection properties - handles all necessary and complex join(s) for you
  * Automatic schema creation and migration
