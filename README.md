@@ -223,30 +223,20 @@ using (var scope = new DataAccessScope())
 Perform queries with implicit joins and explicit joins using Include. Query for all books and for each book all borrowers and for each borrower their best friend. Then print out the borrower and their best friends' name.
 
 ```csharp
+var books = await model.Books.Include(c => c.Borrowers.IncludedItems().BestFriend).ToListAsync();
 
-using (var scope = new DataAccessScope())
+foreach (var value in books.Borrowers.Items().SelectMany(c => new { c.Name, BestFriendName = c.BestFriend.Name })))
 {
-	var books = await model.Books.Include(c => c.Borrowers.IncludedItems().BestFriend).ToListAsync();
-	
-	foreach (var value in books.Borrowers.Items().SelectMany(c => new { c.Name, BestFriendName = c.BestFriend.Name })))
-	{
-		Console.WriteLine($"Borrower: {value.Name} BestFriend: {value.BestFriend.Name}")
-	}
+	Console.WriteLine($"Borrower: {value.Name} BestFriend: {value.BestFriend.Name}")
 }
-
 ```
 
 Asynchronously find the age of all people in the database
 
 ```csharp
+var averageAge = await model.People.AverageAsync(c => c.Age);
 
-using (var scope = new DataAccessScope())
-{
-	var averageAge = await model.People.AverageAsync(c => c.Age);
-	
-	Console.WriteLine($"Average age is {averageAge}");
-}
-
+Console.WriteLine($"Average age is {averageAge}");
 ```
 
 Delete all people named Steve from the database using LINQ syntax
@@ -268,49 +258,30 @@ using (var scope = new DataAccessScope())
 Asynchronously enumerate all people whos name starts with Steve using fast server-side case-insensitive index
 
 ```csharp
-
-using (var scope = new DataAccessScope())
+using (var enumerator = model.People.Where(c => c.Description.ToLower().StartsWith("steve")).GetAsyncEnumerator())
 {
-	using (var enumerator = model.People.Where(c => c.Description.ToLower().StartsWith("steve")).GetAsyncEnumerator())
+	while (await enumerator.MoveNextAsync())
 	{
-		while (await enumerator.MoveNextAsync())
-		{
-			Console.WriteLine($"Name: {enumerator.Current.Name}");
-		}
+		Console.WriteLine($"Name: {enumerator.Current.Name}");
 	}
-	
-	await scope.CompleteAsync();
 }
-
 ```
 
 Find all people whos name contains 's' server-side two different ways
 
 ```csharp
-
-using (var scope = new DataAccessScope())
-{
-	var people1 = await model.People.Where(c => c.Name.IsLike("%s%")).ToListAsync();
-	var people2 = await model.People.Where(c => c.Name.IndexOf("s") >= 0).ToListAsync();
-	
-	await scope.CompleteAsync();
-}
-
+var people1 = await model.People.Where(c => c.Name.IsLike("%s%")).ToListAsync();
+var people2 = await model.People.Where(c => c.Name.IndexOf("s") >= 0).ToListAsync();
 ```
 
 Print the names all people who have a bestfriend who has a bestfriend whos name is "Steve"
 
 ```csharp
-
-using (var scope = new DataAccessScope())
-{
-	// Will perform automatic implicit left join on BestFriend
-	var people = await model
-		.People
-		.Where(c => c.BestFriend.BestFriend.Name == "Steve")
-		.WithEachAsync(Console.WriteLine);
-}
-
+// Will perform automatic implicit left join on BestFriend
+var people = await model
+	.People
+	.Where(c => c.BestFriend.BestFriend.Name == "Steve")
+	.WithEachAsync(Console.WriteLine);
 ```
 
 Assign a person's best friend without querying for the best friend if you know the object primary keys.
@@ -334,44 +305,31 @@ using (var scope = new DataAccessScope())
 Find all people born in December using server-side date functions
 
 ```csharp
-
-using (var scope = new DataAccessScope())
-{
-	var people = await model.Where(c => c.Birthdate.Year == 12).ToListAsync();
-}
-
+var people = await model.Where(c => c.Birthdate.Year == 12).ToListAsync();
 ```
 
 // Find all people and books that are related using classic linq join syntax
 
 ```csharp
-
-using (var scope = new DataAccessScope())
-{
-	var result = await (from book in model.Books
-		join person in model.People on book equals person.BorrowedBook
-		select new { person }).ToListAsync();
-}
-
+var result = await (from book in model.Books
+	join person in model.People on book equals person.BorrowedBook
+	select new { person }).ToListAsync();
 ```
 
 
-// Aggregate query (all people grouped by name with average age)
+// Asynchronously aggregate and enumerate (all people grouped by name with average age)
 
 ```csharp
-
-using (var scope = new DataAccessScope())
+var values = await (from person in model.People
+	group person by person.Name
+	select new { name = person.Name, AverageAge = person.Average(c => Age) }).GetAsyncEnumerator();
+	
+while (await values.MoveNextAsync())
 {
-	var results = await (from person in model.People
-		group person by person.Name
-		select new { name = person.Name, AverageAge = person.Average(c => Age) }).ToListAsync();
-		
-	foreach (var value in results)
-	{
-		Console.WriteLine($"Average age of person with name of {value.Name} is {value.AverageAge}");
-	}
+	var value = values.Current;
+	
+	Console.WriteLine($"Average age of person with name of {value.Name} is {value.AverageAge}");
 }
-
 ```
 
 
