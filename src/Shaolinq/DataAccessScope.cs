@@ -5,15 +5,25 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
+	public enum DataAccessScopeOptions
+	{
+		Required,
+		RequiresNew,
+		Suppress
+	}
+
 	public partial class DataAccessScope
 		: IDisposable
 	{
 		public DataAccessIsolationLevel IsolationLevel { get; set; }
 
 		private bool complete;
+		private bool disposed;
+		private readonly DataAccessScopeOptions options;
 		private readonly DataAccessTransaction transaction;
+		private readonly DataAccessTransaction savedTransaction;
 
-        public static DataAccessScope CreateReadCommitted()
+		public static DataAccessScope CreateReadCommitted()
         {
             return CreateReadCommitted(TimeSpan.Zero);
         }
@@ -83,9 +93,45 @@ namespace Shaolinq
 	    {
 	    }
 
-        public DataAccessScope(DataAccessIsolationLevel isolationLevel, TimeSpan timeout)
+		public DataAccessScope(DataAccessIsolationLevel isolationLevel, TimeSpan timeout)
+			: this(isolationLevel, DataAccessScopeOptions.Required, timeout)
+		{
+		}
+
+		public DataAccessScope(DataAccessIsolationLevel isolationLevel, DataAccessScopeOptions options, TimeSpan timeout)
 		{
 			this.IsolationLevel = isolationLevel;
+
+			switch (options)
+			{
+			case DataAccessScopeOptions.Required:
+				this.savedTransaction = DataAccessTransaction.Current;
+				if (this.savedTransaction == null)
+				{
+					this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
+
+					DataAccessTransaction.Current = this.transaction;
+				}
+				break;
+			case DataAccessScopeOptions.RequiresNew:
+				this.savedTransaction = DataAccessTransaction.Current;
+				if (this.savedTransaction == null)
+				{
+					this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
+
+					this.options = options;
+					DataAccessTransaction.Current = this.transaction;
+				}
+				break;
+			case DataAccessScopeOptions.Suppress:
+				this.savedTransaction = DataAccessTransaction.Current;
+				if (this.savedTransaction != null)
+				{
+					this.options = options;
+					DataAccessTransaction.Current = null;
+				}
+				break;
+			}
 
 			if (DataAccessTransaction.Current == null)
 			{
@@ -135,6 +181,11 @@ namespace Shaolinq
 			
 			if (this.transaction == null)
 			{
+				if (this.options == DataAccessScopeOptions.Suppress)
+				{
+					DataAccessTransaction.Current = this.savedTransaction;
+				}
+
 				return;
 			}
 
@@ -143,13 +194,20 @@ namespace Shaolinq
 				return;
 			}
 
-			if (this.transaction != DataAccessTransaction.Current)
+			try
 			{
-				throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
-			}
+				if (this.transaction != DataAccessTransaction.Current)
+				{
+					throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
+				}
 
-			this.transaction.Commit();
-			this.transaction.Dispose();
+				this.transaction.Commit();
+				this.transaction.Dispose();
+			}
+			finally
+			{
+				DataAccessTransaction.Current = this.savedTransaction;
+			}
 		}
 
 		[RewriteAsync]
@@ -166,25 +224,25 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
-			if (!this.complete)
+			if (disposed)
+			{
+				throw new ObjectDisposedException(nameof(DataAccessScope));
+			}
+
+			disposed = true;
+
+			if (this.complete)
+			{
+				this.transaction?.Dispose();
+			}
+			else
 			{
 				if (this.transaction == null)
 				{
 					throw new DataAccessTransactionAbortedException();
 				}
-				else
-				{
-					this.transaction.Rollback();
-				}
-			}
-			else
-			{
-				if (this.transaction != null)
-				{
-					transaction.Dispose();
 
-					this.transaction.Dispose();
-				}
+				this.transaction.Rollback();
 			}
 		}
 	}

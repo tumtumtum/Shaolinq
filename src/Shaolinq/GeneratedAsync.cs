@@ -87,6 +87,11 @@ namespace Shaolinq
             this.complete = true;
             if (this.transaction == null)
             {
+                if (this.options == DataAccessScopeOptions.Suppress)
+                {
+                    DataAccessTransaction.Current = this.savedTransaction;
+                }
+
                 return;
             }
 
@@ -95,13 +100,20 @@ namespace Shaolinq
                 return;
             }
 
-            if (this.transaction != DataAccessTransaction.Current)
+            try
             {
-                throw new InvalidOperationException($"Cannot dispose {this.GetType().Name} within another Async/Call context");
-            }
+                if (this.transaction != DataAccessTransaction.Current)
+                {
+                    throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
+                }
 
-            await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            this.transaction.Dispose();
+                await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                this.transaction.Dispose();
+            }
+            finally
+            {
+                DataAccessTransaction.Current = this.savedTransaction;
+            }
         }
 
         public Task FailAsync()

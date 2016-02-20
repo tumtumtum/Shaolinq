@@ -34,21 +34,30 @@ namespace Shaolinq.Persistence
 			this.CreateDatabaseSchema(dataDefinitionExpressions, options);
 		}
 
+		public virtual Expression LoadDataDefinitionExpressions()
+		{
+			using (var dataTransactionContext = this.SqlDatabaseContext.CreateSqlTransactionalCommandsContext(null))
+			{
+				
+			}
+				return null;
+		}
+
 		protected virtual SqlDataDefinitionBuilderFlags GetBuilderFlags()
 		{
 			return SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes;
 		}
-
-		protected abstract bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options);
 
 		protected virtual Expression BuildDataDefinitonExpressions(DatabaseCreationOptions options)
 		{
 			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, options, this.SqlDatabaseContext.TableNamePrefix, this.GetBuilderFlags());
 		}
 
+		protected abstract bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options);
+
 		protected virtual void CreateDatabaseSchema(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
-			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
+			using (var scope = new DataAccessScope())
 			{
 				using (var dataTransactionContext = this.SqlDatabaseContext.CreateSqlTransactionalCommandsContext(null))
 				{
