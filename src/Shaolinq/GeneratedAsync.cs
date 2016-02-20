@@ -19,7 +19,6 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
-using System.Collections.Concurrent;
 using System.Configuration;
 using System.Diagnostics;
 using Shaolinq.TypeBuilding;
