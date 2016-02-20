@@ -1,7 +1,6 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -18,19 +17,35 @@ namespace Shaolinq
 	public partial class DataAccessModel
 		 : IDisposable
 	{
-		internal readonly AsyncLocal<Pair<int, TransactionContext>> asyncState = new AsyncLocal<Pair<int, TransactionContext>>();
-		
+		#region ContextData
+
+		internal readonly AsyncLocal<ContextData> asyncState = new AsyncLocal<ContextData>();
+
+		internal struct ContextData
+		{
+			public int version;
+			public TransactionContext transactionContext;
+
+			public ContextData(int version, TransactionContext transactionContext)
+			{
+				this.version = version;
+				this.transactionContext = transactionContext;
+			}
+		}
+
 		internal int AsyncLocalExecutionVersion
 		{
-			get { return asyncState.Value.Left; }
-			set { asyncState.Value = new Pair<int, TransactionContext>(value, asyncState.Value.Right); }
+			get { return asyncState.Value.version; }
+			set { asyncState.Value = new ContextData(value, asyncState.Value.transactionContext); }
 		}
 
 		internal TransactionContext AsyncLocalTransactionContext
 		{
-			get { return asyncState.Value.Right; }
-			set { asyncState.Value = new Pair<int, TransactionContext>(asyncState.Value.Left, value); }
+			get { return asyncState.Value.transactionContext; }
+			set { asyncState.Value = new ContextData(asyncState.Value.version, value); }
 		}
+
+		#endregion
 
 		#region Nested Types
 		private class RawPrimaryKeysPlaceholderType<T>
@@ -145,7 +160,7 @@ namespace Shaolinq
 			ActionUtils.IgnoreExceptions(() => this.AsyncLocalTransactionContext?.Dispose());
 			ActionUtils.IgnoreExceptions(() => this.asyncState.Dispose());
 
-			this.asyncState.Value = new Pair<int, TransactionContext>(0, null);
+			this.asyncState.Value = default(ContextData);
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
 			this.OnDisposed(EventArgs.Empty);

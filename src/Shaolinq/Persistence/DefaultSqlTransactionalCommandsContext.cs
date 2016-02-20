@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -251,8 +251,8 @@ namespace Shaolinq.Persistence
 
 			var result = this.sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
 
-			parameter.DbType = this.GetDbType(result.Item1);
-			parameter.Value = result.Item2 ?? DBNull.Value;
+			parameter.DbType = this.GetDbType(result.Type);
+			parameter.Value = result.Value ?? DBNull.Value;
 		
 			return parameter;
 		}

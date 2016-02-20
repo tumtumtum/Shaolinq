@@ -1,21 +1,21 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Shaolinq.Persistence
 {
 	public interface ISqlQueryProvider
 		: IQueryProvider
 	{
-		IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }
 		IEnumerable<T> GetEnumerable<T>(Expression expression);
-        Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken);
-        IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression);
-
+		IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression);
+		IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }
+		Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken);
+        
         string GetQueryText(Expression expression);
 	}
 }

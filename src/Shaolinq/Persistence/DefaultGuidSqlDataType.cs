@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data;
@@ -24,15 +24,15 @@ namespace Shaolinq.Persistence
 			return "CHAR(32)";
 		}
 
-		public override Tuple<Type, object> ConvertForSql(object value)
+		public override TypedValue ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Tuple<Type, object>(typeof(string), null);
+				return new TypedValue(typeof(string), null);
 			}
 			else
 			{
-				return new Tuple<Type, object>(typeof(string), ((Guid)value).ToString("N"));
+				return new TypedValue(typeof(string), ((Guid)value).ToString("N"));
 			}
 		}
 		

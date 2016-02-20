@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -16,16 +16,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Type = type;
 		}
 
-		public virtual string OriginalToString()
-		{
-			return base.ToString();
-		}
-
 		public override string ToString()
 		{
-			return new Sql92QueryFormatter()
-				.Format(this)
-				.CommandText;
+			return new Sql92QueryFormatter().Format(this).CommandText;
 		}
 	}
 }

@@ -1,9 +1,9 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 
 namespace Shaolinq.Persistence
 {
@@ -22,15 +22,15 @@ namespace Shaolinq.Persistence
 		/// </summary>
 		/// <param name="value">The value</param>
 		/// <returns>The converted value</returns>
-		public virtual Tuple<Type, object> ConvertForSql(object value)
+		public virtual TypedValue ConvertForSql(object value)
 		{
 			if (this.UnderlyingType != null)
 			{
-				return new Tuple<Type, object>(this.UnderlyingType, value);
+				return new TypedValue(this.UnderlyingType, value);
 			}
 			else
 			{
-				return new Tuple<Type, object>(this.SupportedType, value);
+				return new TypedValue(this.SupportedType, value);
 			}
 		}
 

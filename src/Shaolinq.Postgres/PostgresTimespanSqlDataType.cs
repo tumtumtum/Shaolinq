@@ -1,5 +1,8 @@
-﻿using System;
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
@@ -45,15 +48,15 @@ namespace Shaolinq.Postgres
 			}
 		}
 
-		public override Tuple<Type, object> ConvertForSql(object value)
+		public override TypedValue ConvertForSql(object value)
 		{
 			if (this.UnderlyingType != null)
 			{
-				return new Tuple<Type, object>(this.UnderlyingType, value);
+				return new TypedValue(this.UnderlyingType, value);
 			}
 			else
 			{
-				return new Tuple<Type, object>(this.SupportedType, value);
+				return new TypedValue(this.SupportedType, value);
 			}
 		}
     }

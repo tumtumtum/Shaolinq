@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -63,9 +64,24 @@ namespace Shaolinq.Persistence.Linq
 				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition));
 			}
 
-			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
+			var optimisedExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression);
 
-			return result.CommandText;
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(optimisedExpression);
+			var sql = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(formatResult.CommandText, c =>
+			{
+				var index = c.IndexOf(Char.IsDigit);
+
+				if (index < 0)
+				{
+					return "(?!)";
+				}
+
+				index = int.Parse(c.Substring(index));
+
+				return formatResult.ParameterValues[index].Value;
+			});
+
+			return sql;
 		}
 
 		protected override IQueryable CreateQuery(Type elementType, Expression expression)
@@ -109,12 +125,12 @@ namespace Shaolinq.Persistence.Linq
             return this.BuildExecution(expression).EvaluateAsync<IAsyncEnumerable<T>>(CancellationToken.None);
         }
 
-        public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression, Type typeForEnums, bool simplerPartialVal = true)
+        public static Expression Optimize(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression)
 		{
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);
 			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
-			expression = SqlEnumTypeNormalizer.Normalize(expression, typeForEnums);
+			expression = SqlEnumTypeNormalizer.Normalize(expression, sqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 			expression = SqlGroupByCollator.Collate(expression);
 			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
 			expression = SqlUnusedColumnRemover.Remove(expression);
@@ -154,7 +170,7 @@ namespace Shaolinq.Persistence.Linq
 				expression = Evaluator.PartialEval(expression);
 				expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext?.ElementType, this.RelatedDataAccessObjectContext?.ExtraCondition);
 
-				projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums(), true);
+				projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
 			}
 
 			var placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);

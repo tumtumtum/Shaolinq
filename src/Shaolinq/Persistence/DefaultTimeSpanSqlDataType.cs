@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -26,15 +26,15 @@ namespace Shaolinq.Persistence
 			return this.sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(propertyDescriptor);
 		}
 
-		public override Tuple<Type, object> ConvertForSql(object value)
+		public override TypedValue ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Tuple<Type, object>(typeof(long), null);
+				return new TypedValue(typeof(long), null);
 			}
 			else
 			{
-				return new Tuple<Type, object>(typeof(long), ((TimeSpan)value).Ticks);
+				return new TypedValue(typeof(long), ((TimeSpan)value).Ticks);
 			}
 		}
 

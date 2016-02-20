@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace Shaolinq
 				expression = Evaluator.PartialEval(expression);
 				expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);
 				expression = SqlObjectOperandComparisonExpander.Expand(expression);
-				expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression, transactionContext.sqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+				expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, transactionContext.sqlDatabaseContext, expression);
 
 				acquisition.SqlDatabaseCommandsContext.Delete((SqlDeleteExpression)expression);
 			}

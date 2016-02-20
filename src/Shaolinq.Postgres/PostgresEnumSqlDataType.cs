@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -68,15 +68,15 @@ namespace Shaolinq.Postgres
 			}
 		}
 
-		public override Tuple<Type, object> ConvertForSql(object value)
+		public override TypedValue ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Tuple<Type, object>(this.SupportedType, null);
+				return new TypedValue(this.SupportedType, null);
 			}
 			else
 			{
-				return new Tuple<Type, object>(this.SupportedType, Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
+				return new TypedValue(this.SupportedType, Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
 			}
 		}
 	}

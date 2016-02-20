@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -21,13 +21,13 @@ namespace Shaolinq.Persistence.Linq
 		
 		public struct FunctionResolveResult
 		{
-			public static Tuple<Type, object>[] MakeArguments(params object[] args)
+			public static TypedValue[] MakeArguments(params object[] args)
 			{
-				var retval = new Tuple<Type, object>[args.Length];
+				var retval = new TypedValue[args.Length];
 
 				for (var i = 0; i < args.Length; i++)
 				{
-					retval[i] = new Tuple<Type, object>(args[i].GetType(), args[i]);
+					retval[i] = new TypedValue(args[i].GetType(), args[i]);
 				}
 
 				return retval;
@@ -37,8 +37,8 @@ namespace Shaolinq.Persistence.Linq
 			public bool treatAsOperator;
 			public string functionPrefix;
 			public string functionSuffix;
-			public Tuple<Type, object>[] argsAfter;
-			public Tuple<Type, object>[] argsBefore;
+			public TypedValue[] argsAfter;
+			public TypedValue[] argsBefore;
 			public IReadOnlyList<Expression> arguments;
 			public bool excludeParenthesis;
 
@@ -52,7 +52,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 			}
 
-			public FunctionResolveResult(string functionName, bool treatAsOperator, Tuple<Type, object>[] argsBefore, Tuple<Type, object>[] argsAfter, IReadOnlyList<Expression> arguments)
+			public FunctionResolveResult(string functionName, bool treatAsOperator, TypedValue[] argsBefore, TypedValue[] argsAfter, IReadOnlyList<Expression> arguments)
 			{
 				this.functionPrefix = null;
 				this.functionSuffix = null;
@@ -398,7 +398,7 @@ namespace Shaolinq.Persistence.Linq
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Tuple<Type, object>(result.argsBefore[i].Item1, result.argsBefore[i].Item2));
+						this.parameterValues.Add(new TypedValue(result.argsBefore[i].Type, result.argsBefore[i].Value));
 
 						if (i != n || (functionCallExpression.Arguments.Count > 0))
 						{
@@ -424,7 +424,7 @@ namespace Shaolinq.Persistence.Linq
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Tuple<Type, object>(result.argsAfter[i].Item1, result.argsAfter[i].Item2));
+						this.parameterValues.Add(new TypedValue(result.argsAfter[i].Type, result.argsAfter[i].Value));
 
 						if (i != n)
 						{
@@ -534,7 +534,7 @@ namespace Shaolinq.Persistence.Linq
 					this.Write(this.ParameterIndicatorPrefix);
 					this.Write(ParamNamePrefix);
 					this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new Tuple<Type, object>(constantExpression.Type, null));
+					this.parameterValues.Add(new TypedValue(constantExpression.Type, null));
 				}
 			}
 			else
@@ -547,7 +547,7 @@ namespace Shaolinq.Persistence.Linq
 					this.Write (this.ParameterIndicatorPrefix);
 					this.Write(ParamNamePrefix);
 					this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new Tuple<Type, object>(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
+					this.parameterValues.Add(new TypedValue(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
 					break;
 				default:
 					if (typeof(SqlValuesEnumerable).IsAssignableFrom(type))
@@ -561,7 +561,7 @@ namespace Shaolinq.Persistence.Linq
 						this.Write(this.ParameterIndicatorPrefix);
 						this.Write(ParamNamePrefix);
 						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new Tuple<Type, object>(constantExpression.Type, constantExpression.Value));
+						this.parameterValues.Add(new TypedValue(constantExpression.Type, constantExpression.Value));
 					}
 					break;
 				}

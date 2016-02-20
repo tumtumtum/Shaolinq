@@ -1,7 +1,9 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using Platform;
+using Shaolinq.Persistence;
+
 namespace Shaolinq.Postgres.DotConnect
 {
 	public class PostgresDotConnectObjectTimespanSqlDataType
@@ -12,9 +14,9 @@ namespace Shaolinq.Postgres.DotConnect
 		{
 		}
 
-		public override Tuple<Type, object> ConvertForSql(object value)
+		public override TypedValue ConvertForSql(object value)
 		{
-			return new Tuple<Type, object>(this.SupportedType.GetUnwrappedNullableType(), value);
+			return new TypedValue(this.SupportedType.GetUnwrappedNullableType(), value);
 		}
 	}
 }

@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+
+using NUnit.Framework;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Tests

@@ -613,7 +613,7 @@ namespace Shaolinq
                 expression = Evaluator.PartialEval(expression);
                 expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);
                 expression = SqlObjectOperandComparisonExpander.Expand(expression);
-                expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, expression, transactionContext.sqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+                expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, transactionContext.sqlDatabaseContext, expression);
                 await acquisition.SqlDatabaseCommandsContext.DeleteAsync((SqlDeleteExpression)expression, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -1410,18 +1410,18 @@ namespace Shaolinq.Persistence
 
     public partial class DefaultSqlTransactionalCommandsContext
     {
-        public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
+        public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters)
         {
             return ExecuteReaderAsync(sql, parameters, CancellationToken.None);
         }
 
-        public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken)
+        public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
         {
             using (var command = this.CreateCommand())
             {
                 foreach (var value in parameters)
                 {
-                    this.AddParameter(command, value.Item1, value.Item2);
+                    this.AddParameter(command, value.Type, value.Value);
                 }
 
                 command.CommandText = sql;
@@ -1592,7 +1592,7 @@ namespace Shaolinq.Persistence
                 command.CommandText = formatResult.CommandText;
                 foreach (var value in formatResult.ParameterValues)
                 {
-                    this.AddParameter(command, value.Item1, value.Item2);
+                    this.AddParameter(command, value.Type, value.Value);
                 }
 
                 Logger.Debug(() => this.FormatCommand(command));
@@ -1646,7 +1646,7 @@ namespace Shaolinq.Persistence
             expression = Evaluator.PartialEval(expression);
             expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
             expression = SqlObjectOperandComparisonExpander.Expand(expression);
-            expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+            expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
             await this.DeleteAsync((SqlDeleteExpression)expression, cancellationToken).ConfigureAwait(false);
         }
     }

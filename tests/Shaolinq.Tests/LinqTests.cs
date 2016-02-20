@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -1691,11 +1691,15 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Sum_With_Group1()
 		{
-			var sum = (from student in this.model.Students
-					   where student.Firstname == "Tum"
+			const string name = "Tum";
+			var query = from student in this.model.Students
+					   where student.Firstname == name
 						group student by student.Id
 									into g
-									select g.Sum(x => x.Height)).FirstOrDefault();
+									select
+									g.Sum(x => x.Height);
+			
+			var sum = query.FirstOrDefault();
 
 			Assert.AreEqual(177, sum);
 		}

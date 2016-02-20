@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -1755,7 +1755,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		private static readonly PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>> PropertyWiseComparerer = new PropertyWiseEqualityComparer<Tuple<List<MemberBinding>, PropertyInfo>>(type => typeof(ObjectReferenceIdentityEqualityComparer<>).MakeGenericType(type).GetProperty("DefaultConfiguration", BindingFlags.Static | BindingFlags.Public).GetGetMethod().Invoke(null, null));
+		private static readonly PropertyWiseEqualityComparer<Pair<List<MemberBinding>, PropertyInfo>> PropertyWiseComparerer = new PropertyWiseEqualityComparer<Pair<List<MemberBinding>, PropertyInfo>>(type => typeof(ObjectReferenceIdentityEqualityComparer<>).MakeGenericType(type).GetProperty("DefaultConfiguration", BindingFlags.Static | BindingFlags.Public).GetGetMethod().Invoke(null, null));
 
 		private SqlProjectionExpression GetTableProjection(Type type)
 		{
@@ -1808,7 +1808,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var rootPrimaryKeyProperties = new HashSet<string>(typeDescriptor.PrimaryKeyProperties.Select(c => c.PropertyName));
 
-			var propertyAdded = new HashSet<Tuple<List<MemberBinding>, PropertyInfo>>(QueryBinder.PropertyWiseComparerer);
+			var propertyAdded = new HashSet<Pair<List<MemberBinding>, PropertyInfo>>(QueryBinder.PropertyWiseComparerer);
 
 			foreach (var value in columnInfos)
 			{
@@ -1832,7 +1832,7 @@ namespace Shaolinq.Persistence.Linq
 
 						parentBindings.Add(Expression.Bind(property, objectReference));
 
-						propertyAdded.Add(new Tuple<List<MemberBinding>, PropertyInfo>(parentBindings, property));
+						propertyAdded.Add(new Pair<List<MemberBinding>, PropertyInfo>(parentBindings, property));
 					}
 				}
 			}

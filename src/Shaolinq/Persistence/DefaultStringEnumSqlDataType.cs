@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -88,15 +88,15 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override Tuple<Type, object> ConvertForSql(object value)
+		public override TypedValue ConvertForSql(object value)
 		{
 			if (value == null)
 			{
-				return new Tuple<Type, object>(typeof(string), value);
+				return new TypedValue(typeof(string), value);
 			}
 			else
 			{
-				return new Tuple<Type, object>(typeof(string), Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
+				return new TypedValue(typeof(string), Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
 			}
 		}
 

@@ -1,10 +1,11 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence
@@ -38,9 +39,9 @@ namespace Shaolinq.Persistence
 		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken);
 
-		public abstract IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
-		public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters);
-		public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<Tuple<Type, object>> parameters, CancellationToken cancellationToken);
+		public abstract IDataReader ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters);
+		public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters);
+		public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken);
 
 		public virtual bool IsClosed => this.DbConnection == null || this.DbConnection?.State == ConnectionState.Closed || this.DbConnection?.State == ConnectionState.Broken;
 		

@@ -18,13 +18,13 @@ namespace Shaolinq.Persistence
 		#region ExecuteReader
 
 		[RewriteAsync]
-		public override IDataReader ExecuteReader(string sql, IReadOnlyList<Tuple<Type, object>> parameters)
+		public override IDataReader ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters)
 		{
 			using (var command = this.CreateCommand())
 			{
 				foreach (var value in parameters)
 				{
-					this.AddParameter(command, value.Item1, value.Item2);
+					this.AddParameter(command, value.Type, value.Value);
 				}
 
 				command.CommandText = sql;
@@ -215,7 +215,7 @@ namespace Shaolinq.Persistence
 
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Item1, value.Item2);
+					this.AddParameter(command, value.Type, value.Value);
 				}
 
 				Logger.Debug(() => this.FormatCommand(command));
@@ -275,7 +275,7 @@ namespace Shaolinq.Persistence
 			expression = Evaluator.PartialEval(expression);
 			expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
-			expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+			expression = SqlQueryProvider.Optimize(this.DataAccessModel,this.SqlDatabaseContext, expression);
 
 			this.Delete((SqlDeleteExpression)expression);
 		}

@@ -214,6 +214,7 @@
     <Compile Include="Persistence\MarsDataReader.cs" />
     <Compile Include="Persistence\MarsDbCommand.cs" />
     <Compile Include="Persistence\SqlTransactionalCommandsContext.cs" />
+    <Compile Include="Persistence\TypedValue.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
     <Compile Include="Persistence\RewriteAsyncAttribute.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />

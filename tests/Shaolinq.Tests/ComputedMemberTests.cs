@@ -1,4 +1,6 @@
-﻿using System.Transactions;
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
 

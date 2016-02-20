@@ -1,9 +1,10 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq.Persistence.Linq
@@ -12,9 +13,9 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public Expression ProcessedExpression { get; set; }
 		public Dictionary<Expression, List<IncludedPropertyInfo>> IncludedPropertyInfos { get; set; }
-		private readonly List<Tuple<Expression, Dictionary<ObjectPath<PropertyInfo>, Expression>>> replacementExpressionForPropertyPathsByJoin;
+		private readonly List<Pair<Expression, Dictionary<ObjectPath<PropertyInfo>, Expression>>> replacementExpressionForPropertyPathsByJoin;
 
-		internal RelatedPropertiesJoinExpanderResults(List<Tuple<Expression, Dictionary<ObjectPath<PropertyInfo>, Expression>>> replacementExpressionForPropertyPathsByJoin)
+		internal RelatedPropertiesJoinExpanderResults(List<Pair<Expression, Dictionary<ObjectPath<PropertyInfo>, Expression>>> replacementExpressionForPropertyPathsByJoin)
 		{
 			this.replacementExpressionForPropertyPathsByJoin = replacementExpressionForPropertyPathsByJoin;
 		}
@@ -28,7 +29,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				Expression retval;
 
-				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Item1)
+				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
 				{
 					indexFound = index;
 				}
@@ -38,7 +39,7 @@ namespace Shaolinq.Persistence.Linq
 					continue;
 				}
 				
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(propertyPath, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out retval))
 				{
 					return retval;	
 				}
@@ -48,7 +49,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				Expression retval;
 
-				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Item1)
+				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
 				{
 					indexFound = index;
 				}
@@ -58,12 +59,12 @@ namespace Shaolinq.Persistence.Linq
 					continue;
 				}
 
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(propertyPath, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out retval))
 				{
 					return retval;
 				}
 
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Item2.TryGetValue(ObjectPath<PropertyInfo>.Empty, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(ObjectPath<PropertyInfo>.Empty, out retval))
 				{
 					foreach (var property in propertyPath)
 					{

@@ -1,22 +1,23 @@
-// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Platform;
 
 namespace Shaolinq.Persistence.Linq
 {
 	public class SqlQueryFormatResult
 	{
 		public string CommandText { get; }
-		public IReadOnlyList<Tuple<Type, object>> ParameterValues { get; }
+		public IReadOnlyList<TypedValue> ParameterValues { get; }
 		
-		public SqlQueryFormatResult(string commandText, IEnumerable<Tuple<Type, object>> parameterValues)
+		public SqlQueryFormatResult(string commandText, IEnumerable<TypedValue> parameterValues)
 			: this(commandText, parameterValues.ToReadOnlyCollection())
 		{	
 		}
 
-        public SqlQueryFormatResult(string commandText, IReadOnlyList<Tuple<Type, object>> parameterValues)
+        public SqlQueryFormatResult(string commandText, IReadOnlyList<TypedValue> parameterValues)
 		{
 			this.CommandText = commandText;
 			this.ParameterValues = parameterValues;
@@ -24,7 +25,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public SqlQueryFormatResult ChangeParameterValues(object[] values)
 		{
-			return new SqlQueryFormatResult(this.CommandText, this.ParameterValues.Select((c, i) => new Tuple<Type, object>(c.Item1, values[i])));
+			return new SqlQueryFormatResult(this.CommandText, this.ParameterValues.Select((c, i) => new TypedValue(c.Type, values[i])));
 		}
 	}
 }

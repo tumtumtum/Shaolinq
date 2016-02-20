@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -21,19 +21,19 @@ namespace Shaolinq.Persistence
 			this.specifyKindMethod = nullable ? SpecifyKindIfUnspecifiedMethodNullable : SpecifyKindIfUnspecifiedMethod;
 		}
 
-		public override Tuple<Type, object> ConvertForSql(object value)
+		public override TypedValue ConvertForSql(object value)
 		{
 			if (this.UnderlyingType != null)
 			{
 				value = ((DateTime?)value)?.ToUniversalTime();
 
-				return new Tuple<Type, object>(this.UnderlyingType, value);
+				return new TypedValue(this.UnderlyingType, value);
 			}
 			else
 			{
 				value = ((DateTime)value).ToUniversalTime();
 
-				return new Tuple<Type, object>(this.SupportedType, value);
+				return new TypedValue(this.SupportedType, value);
 			}
 		}
 

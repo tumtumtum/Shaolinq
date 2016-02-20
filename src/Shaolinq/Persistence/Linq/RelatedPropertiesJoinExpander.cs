@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -36,7 +36,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private readonly DataAccessModel model;
 		private readonly Dictionary<Expression, List<IncludedPropertyInfo>> includedPropertyInfos = new Dictionary<Expression, List<IncludedPropertyInfo>>();
-		private readonly List<Tuple<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin = new List<Tuple<Expression, Dictionary<PropertyPath, Expression>>>();
+		private readonly List<Pair<Expression, Dictionary<PropertyPath, Expression>>> replacementExpressionForPropertyPathsByJoin = new List<Pair<Expression, Dictionary<PropertyPath, Expression>>>();
 
 		private RelatedPropertiesJoinExpander(DataAccessModel model)
 		{
@@ -440,7 +440,7 @@ namespace Shaolinq.Persistence.Linq
 				break;
 			}
 
-			this.replacementExpressionForPropertyPathsByJoin.Add(new Tuple<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));
+			this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));
 
 			return this.Reselect(newCall, result.ReferencedObjectPaths, result.IndexByPath);
 		}

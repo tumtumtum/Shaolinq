@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -109,7 +109,7 @@ namespace Shaolinq.SqlServer
 					this.Write(this.ParameterIndicatorPrefix);
 					this.Write(ParamNamePrefix);
 					this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 1));
+					this.parameterValues.Add(new TypedValue(typeof(int), 1));
 
 					return constantExpression;
 				}
@@ -118,7 +118,7 @@ namespace Shaolinq.SqlServer
 					this.Write(this.ParameterIndicatorPrefix);
 					this.Write(ParamNamePrefix);
 					this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new Tuple<Type, object>(typeof(int), 0));
+					this.parameterValues.Add(new TypedValue(typeof(int), 0));
 
 					return constantExpression;
 				}
