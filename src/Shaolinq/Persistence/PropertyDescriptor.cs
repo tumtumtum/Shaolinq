@@ -44,7 +44,7 @@ namespace Shaolinq.Persistence
 
 		public static bool IsPropertyPrimaryKey(PropertyInfo propertyInfo)
 		{
-			var value =  propertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
+			var value =  propertyInfo?.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
 
 			return value != null && value.IsPrimaryKey;
 		}

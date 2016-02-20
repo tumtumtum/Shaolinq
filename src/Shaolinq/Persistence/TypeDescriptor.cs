@@ -16,16 +16,17 @@ namespace Shaolinq.Persistence
 		public string PersistedName { get; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
-		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedAndBackReferenceProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PersistedAndBackReferenceProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PrimaryKeyDerivableProperties { get; }
 
 		public string TypeName => this.Type.Name;
-		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
 		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
+		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
 		
 		private readonly List<TypeRelationshipInfo> relationshipInfos;
 		internal readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
@@ -293,9 +294,42 @@ namespace Shaolinq.Persistence
 			this.RelationshipRelatedProperties = relatedProperties.ToReadOnlyCollection();
 			this.PersistedProperties = propertyDescriptorsInOrder.ToReadOnlyCollection();
 			this.PrimaryKeyProperties = this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToReadOnlyCollection();
-			this.ComputedTextProperties = this.PersistedProperties.Where(c => c.IsComputedTextMember && !String.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToReadOnlyCollection();
-			this.ComputedProperties = this.PersistedProperties.Where(c => c.IsComputedMember && !String.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToReadOnlyCollection();
+			this.ComputedTextProperties = this.PersistedProperties.Where(c => c.IsComputedTextMember && !string.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToReadOnlyCollection();
+			this.ComputedProperties = this.PersistedProperties.Where(c => c.IsComputedMember && !string.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToReadOnlyCollection();
 			this.PersistedAndBackReferenceProperties = this.PersistedProperties.Concat(this.RelationshipRelatedProperties.Where(c => c.IsBackReferenceProperty)).ToReadOnlyCollection();
+			
+			var values = new List<PropertyDescriptor>();
+
+			if (this.PrimaryKeyCount == 1)
+			{
+				foreach (var property in this.ComputedProperties)
+				{
+					var setLambda = property.ComputedMemberAttribute.GetSetLambdaExpression(property);
+
+					if (setLambda?.Body.NodeType != ExpressionType.Assign)
+					{
+						continue;
+					}
+
+					var assignmentExpression = setLambda.Body as BinaryExpression;
+
+					if (assignmentExpression.Left?.NodeType != ExpressionType.MemberAccess)
+					{
+						continue;
+					}
+
+					var memberAccess = assignmentExpression.Left as MemberExpression;
+
+					if (!PropertyDescriptor.IsPropertyPrimaryKey(memberAccess.Member as PropertyInfo))
+					{
+						continue;
+					}
+
+					values.Add(property);
+				}
+			}
+
+			this.PrimaryKeyDerivableProperties = values.ToReadOnlyCollection();
 
 			if (this.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide) > 1)
 			{

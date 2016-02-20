@@ -24,6 +24,8 @@ namespace Shaolinq.Tests
 
 				scope.Flush();
 
+				Assert.AreEqual(cat.Id + 100000000, cat.MutatedId);
+
 				scope.Complete();
 			}
 		}

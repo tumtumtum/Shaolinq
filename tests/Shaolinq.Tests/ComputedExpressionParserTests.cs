@@ -38,5 +38,14 @@ namespace Shaolinq.Tests
 
 			Console.WriteLine(((Func<TestObject, int>)func)(obj));
 		}
+
+		[Test]
+		public void TestParse2()
+		{
+			var parser = new ComputedExpressionParser(new StringReader("A = value + 1000"), typeof(TestObject).GetProperty("A"));
+
+			var result = parser.Parse();
+
+		}
 	}
 }
