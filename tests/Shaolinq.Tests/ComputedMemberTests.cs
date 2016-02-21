@@ -5,7 +5,15 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql")]
+	[TestFixture("Postgres")]
+	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Sqlite:DataAccessScope")]
+	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	public class ComputedMemberTests
 		: BaseTests<TestDataAccessModel>
 	{
@@ -20,7 +28,7 @@ namespace Shaolinq.Tests
 			Cat cat;
 			long id;
 			
-			using (var scope = new DataAccessScope())
+			using (var scope = NewTransactionScope())
 			{
 				cat = this.model.Cats.Create();
 
