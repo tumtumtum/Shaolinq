@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence.Computed
 {
@@ -64,6 +65,8 @@ namespace Shaolinq.Persistence.Computed
 
 			while (this.token == ComputedExpressionToken.Assign)
 			{
+				this.Consume();
+
 				var rightOperand = this.ParseNullCoalescing();
 
 				retval = Expression.Assign(retval, rightOperand);
@@ -157,11 +160,11 @@ namespace Shaolinq.Persistence.Computed
 
 				if (operationToken == ComputedExpressionToken.Add)
 				{
-					retval = Expression.Add(leftOperand, rightOperand);
+					retval = Expression.Add(leftOperand.UnwrapNullable(), rightOperand.UnwrapNullable());
 				}
-				else
+				else if (operationToken == ComputedExpressionToken.Subtract)
 				{
-					retval = Expression.Subtract(leftOperand, rightOperand);
+					retval = Expression.Subtract(leftOperand.UnwrapNullable(), rightOperand.UnwrapNullable());
 				}
 
 				this.Consume();

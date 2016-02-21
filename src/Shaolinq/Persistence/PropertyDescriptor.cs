@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
 using Platform.Validation;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
@@ -20,6 +22,8 @@ namespace Shaolinq.Persistence
 		public PropertyInfo PropertyInfo { get; }
 		public UniqueAttribute UniqueAttribute { get; }
 		public TypeDescriptor DeclaringTypeDescriptor { get; }
+		public PropertyInfo ComputedMemberAssignTarget { get; }
+		public Expression ComputedMemberAssignmentValue { get; }
 		public TypeDescriptor PropertyTypeTypeDescriptor => this.DeclaringTypeDescriptor.TypeDescriptorProvider.GetTypeDescriptor(this.PropertyType);
 		public PrimaryKeyAttribute PrimaryKeyAttribute { get; }
 		public DefaultValueAttribute DefaultValueAttribute { get; }
@@ -81,6 +85,21 @@ namespace Shaolinq.Persistence
 				this.PersistedName = named.GetName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberName);
 				this.PrefixName = named.GetPrefixName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberPrefixName);
 				this.SuffixName = named.GetSuffixName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberSuffixName);
+			}
+
+			var expression = this.ComputedMemberAttribute?.GetSetLambdaExpression(this)?.Body.StripConvert();
+
+			if (expression?.NodeType == ExpressionType.Assign)
+			{
+				var assignmentExpression = expression as BinaryExpression;
+
+				if (assignmentExpression.Left.NodeType == ExpressionType.MemberAccess)
+				{
+					var memberAccess = assignmentExpression.Left as MemberExpression;
+
+					this.ComputedMemberAssignTarget = memberAccess.Member as PropertyInfo;
+					this.ComputedMemberAssignmentValue = assignmentExpression.Right;
+				}
 			}
 		}
 

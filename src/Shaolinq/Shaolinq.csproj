@@ -179,6 +179,7 @@
     <Compile Include="Persistence\DbCommandWrapper.cs" />
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\MemberAccessReplacer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAliasTypeCollector.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlConstantPlaceholderReplacer.cs" />
     <Compile Include="Persistence\Linq\ExecutionBuildResult.cs" />

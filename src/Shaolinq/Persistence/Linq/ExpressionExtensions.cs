@@ -234,6 +234,16 @@ namespace Shaolinq.Persistence.Linq
 			});
 		}
 
+		internal static Expression StripConvert(this Expression expression)
+		{
+			while (expression.NodeType == ExpressionType.Convert)
+			{
+				expression = ((UnaryExpression)expression).Operand;
+			}
+
+			return expression;
+		}
+
 		internal static ConstantExpression StripAndGetConstant(this Expression expression)
 		{
 			return expression.Strip(c =>
@@ -362,6 +372,18 @@ namespace Shaolinq.Persistence.Linq
 		public static BinaryExpression ChangeLeftRight(this BinaryExpression obj, Expression left, Expression right)
 		{
 			return Expression.MakeBinary(obj.NodeType, left, right, obj.IsLiftedToNull, obj.Method, obj.Conversion);
+		}
+
+		public static Expression UnwrapNullable(this Expression expression)
+		{
+			var underlyingType = Nullable.GetUnderlyingType(expression.Type);
+
+			if (underlyingType != null)
+			{
+				return Expression.Convert(expression, underlyingType);
+			}
+
+			return expression;
 		}
 	}
 }

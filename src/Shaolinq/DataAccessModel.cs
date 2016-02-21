@@ -10,6 +10,8 @@ using System.Reflection;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
@@ -437,12 +439,13 @@ namespace Shaolinq
 			}
 
 			var idType = primaryKey.GetType();
-			var objectTypeHandle = Type.GetTypeHandle(primaryKey);
+			var primaryKeyTypeHandle = Type.GetTypeHandle(primaryKey);
 			Func<object, ObjectPropertyValue[]> func;
 
-			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectTypeHandle, out func))
+			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(primaryKeyTypeHandle, out func))
 			{
 				var isSimpleKey = false;
+				var typeOfPrimaryKey = Type.GetTypeFromHandle(primaryKeyTypeHandle);
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(type);
 				var idPropertyType = typeDescriptor.PrimaryKeyProperties[0].PropertyType;
 
@@ -458,8 +461,28 @@ namespace Shaolinq
 
 				var parameter = Expression.Parameter(typeof(object));
 				var constructor = ConstructorInfoFastRef.ObjectPropertyValueConstructor;
+				var typedParameter = Expression.Convert(parameter, typeOfPrimaryKey);
 
 				var initializers = new List<Expression>();
+				var replacementPrimaryKeyValues = new Dictionary<string, Expression>();
+
+				if (typeDescriptor.PrimaryKeyDerivableProperties.Count > 0)
+				{
+					var properties = typeDescriptor
+						.PrimaryKeyDerivableProperties
+						.Where(c => idType.GetProperty(c.PropertyName, BindingFlags.Instance | BindingFlags.Public) != null)
+						.ToList();
+
+					replacementPrimaryKeyValues = properties.ToDictionary
+					(
+						c => c.ComputedMemberAssignTarget.Name, 
+						c => MemberAccessReplacer.Replace
+						(
+							c.ComputedMemberAssignmentValue, c.PropertyInfo,
+							Expression.Property(typedParameter, c.PropertyName)
+						)
+					);
+				}
 
 				foreach (var property in typeDescriptor.PrimaryKeyProperties)
 				{
@@ -473,7 +496,10 @@ namespace Shaolinq
 					}
 					else
 					{
-						valueExpression = Expression.PropertyOrField(Expression.Convert(parameter, Type.GetTypeFromHandle(objectTypeHandle)), property.PropertyName);
+						if (!replacementPrimaryKeyValues.TryGetValue(property.PropertyName, out valueExpression))
+						{
+							valueExpression = Expression.PropertyOrField(typedParameter, property.PropertyName);
+						}
 					}
 
 					Expression primaryKeyValue;
@@ -517,7 +543,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType) { [objectTypeHandle] = func };
+				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType) { [primaryKeyTypeHandle] = func };
 
 				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}

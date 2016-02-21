@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
 
@@ -16,18 +15,33 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test()
+		public void Test_GetReference()
 		{
-			using (var scope = new TransactionScope())
+			Cat cat;
+			long id;
+			
+			using (var scope = new DataAccessScope())
 			{
-				var cat = this.model.Cats.Create();
+				cat = this.model.Cats.Create();
 
-				scope.Flush();
+				scope.Save();
+
+				id = cat.Id;
 
 				Assert.AreEqual(cat.Id + 100000000, cat.MutatedId);
 
+				var cat2 = this.model.Cats.GetReference(new { MutatedId = cat.Id + 100000000 });
+
+				Assert.AreSame(cat, cat2);
+
 				scope.Complete();
 			}
+
+			var cat3 = this.model.Cats.GetReference(new { MutatedId = id + 100000000 });
+
+			Assert.AreNotSame(cat, cat3);
+			Assert.AreEqual(id, cat3.Id);
+			Assert.AreEqual(id, cat3.Id);
 		}
 	}
 }
