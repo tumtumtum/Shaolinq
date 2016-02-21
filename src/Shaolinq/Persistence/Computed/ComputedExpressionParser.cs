@@ -69,6 +69,11 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseNullCoalescing();
 
+				if (rightOperand.Type != retval.Type)
+				{
+					rightOperand = Expression.Convert(rightOperand, retval.Type);
+				}
+
 				retval = Expression.Assign(retval, rightOperand);
 			}
 
@@ -145,6 +150,63 @@ namespace Shaolinq.Persistence.Computed
 			return retval;
 		}
 
+		protected void NormalizeOperands(ref Expression left, ref Expression right)
+		{
+			left = left.UnwrapNullable();
+			right = right.UnwrapNullable();
+
+			if (left.Type == typeof(byte) &&
+				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			{
+				left = Expression.Convert(left, right.Type);
+			}
+			else if (left.Type == typeof(char) && 
+				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			{
+				left = Expression.Convert(left, right.Type);
+			}
+			else if (left.Type == typeof(short) &&
+				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			{
+				left = Expression.Convert(left, right.Type);
+			}
+			else if (left.Type == typeof(int) &&
+				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			{
+				left = Expression.Convert(left, right.Type);
+			}
+			else if (left.Type == typeof(long) &&
+				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			{
+				left = Expression.Convert(left, right.Type);
+			}
+			else if (right.Type == typeof(byte) &&
+				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			{
+				right = Expression.Convert(right, left.Type);
+			}
+			else if (right.Type == typeof(char) &&
+				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			{
+				right = Expression.Convert(right, left.Type);
+			}
+			else if (right.Type == typeof(short) &&
+				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			{
+				right = Expression.Convert(right, left.Type);
+			}
+			else if (right.Type == typeof(int) &&
+				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			{
+				right = Expression.Convert(right, left.Type);
+			}
+			else if (right.Type == typeof(long) &&
+				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			{
+				right = Expression.Convert(right, left.Type);
+			}
+		}
+
 		protected Expression ParseAddOrSubtract()
 		{
 			var leftOperand = this.ParseMultiplyOrDivide();
@@ -158,13 +220,15 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseMultiplyOrDivide();
 
+				NormalizeOperands(ref leftOperand, ref rightOperand);
+
 				if (operationToken == ComputedExpressionToken.Add)
 				{
-					retval = Expression.Add(leftOperand.UnwrapNullable(), rightOperand.UnwrapNullable());
+					retval = Expression.Add(leftOperand, rightOperand);
 				}
 				else if (operationToken == ComputedExpressionToken.Subtract)
 				{
-					retval = Expression.Subtract(leftOperand.UnwrapNullable(), rightOperand.UnwrapNullable());
+					retval = Expression.Subtract(leftOperand, rightOperand);
 				}
 
 				this.Consume();
@@ -185,6 +249,8 @@ namespace Shaolinq.Persistence.Computed
 				this.Consume();
 
 				var rightOperand = this.ParseUnary();
+
+				NormalizeOperands(ref leftOperand, ref rightOperand);
 
 				if (operationToken == ComputedExpressionToken.Multiply)
 				{

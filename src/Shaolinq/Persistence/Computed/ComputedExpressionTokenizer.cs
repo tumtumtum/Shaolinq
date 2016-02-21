@@ -194,10 +194,21 @@ namespace Shaolinq.Persistence.Computed
 					this.ConsumeChar();
 				}
 
+				if (this.currentChar == 'l' || this.currentChar == 'L')
+				{
+
+					this.ConsumeChar();
+				}
+
 				var s = this.stringBuilder.ToString();
 
 				this.CurrentToken = ComputedExpressionToken.IntegerLiteral;
 				this.CurrentInteger = Convert.ToInt64(s);
+
+				if (this.CurrentInteger <= int.MaxValue && this.CurrentInteger > int.MinValue)
+				{
+					this.CurrentInteger = (int)this.CurrentInteger;
+				}
 
 				return this.CurrentToken;
 			}
