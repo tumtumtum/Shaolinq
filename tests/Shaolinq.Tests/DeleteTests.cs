@@ -53,6 +53,8 @@ namespace Shaolinq.Tests
 				if (!this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(SqlCapability.SetNullAction))
 				{
 					this.model.Students.Single(c => c.Id == student1Id).BestFriend = null;
+
+					scope.Save();
 				}
 
 			    this.model.Students.Where(c => c.Id == student2Id).Delete();
