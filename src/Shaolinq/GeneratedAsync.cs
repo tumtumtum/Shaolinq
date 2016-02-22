@@ -13,15 +13,15 @@ using System.Runtime.CompilerServices;
 using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
-using System.Reflection;
-using Platform;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.TypeBuilding;
+using Platform;
+using System.Reflection;
 using Shaolinq.Persistence.Linq.Optimizers;
 using System.Configuration;
 using System.Diagnostics;
-using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
 {
@@ -595,31 +595,19 @@ namespace Shaolinq
         }
     }
 
-    public static partial class DataAccessObjectsQueryableExtensions
-    {
-        public static Task DeleteWhereAsync<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition)where T : DataAccessObject
-        {
-            return DeleteWhereAsync(queryable, condition, CancellationToken.None);
-        }
-
-        public static async Task DeleteWhereAsync<T>(this DataAccessObjectsQueryable<T> queryable, Expression<Func<T, bool>> condition, CancellationToken cancellationToken)where T : DataAccessObject
-        {
-            await queryable.DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
-            var transactionContext = queryable.DataAccessModel.GetCurrentContext(true);
-            using (var acquisition = transactionContext.AcquirePersistenceTransactionContext(queryable.DataAccessModel.GetCurrentSqlDatabaseContext()))
-            {
-                var expression = (Expression)Expression.Call(MethodCache<T>.DeleteMethod, Expression.Constant(queryable, typeof (DataAccessObjectsQueryable<T>)), condition);
-                expression = Evaluator.PartialEval(expression);
-                expression = QueryBinder.Bind(queryable.DataAccessModel, expression, queryable.ElementType, (queryable as IHasExtraCondition)?.ExtraCondition);
-                expression = SqlObjectOperandComparisonExpander.Expand(expression);
-                expression = SqlQueryProvider.Optimize(queryable.DataAccessModel, transactionContext.sqlDatabaseContext, expression);
-                await acquisition.SqlDatabaseCommandsContext.DeleteAsync((SqlDeleteExpression)expression, cancellationToken).ConfigureAwait(false);
-            }
-        }
-    }
-
     public static partial class QueryableExtensions
     {
+        public static Task DeleteAsync<T>(this IQueryable<T> source)where T : DataAccessObject
+        {
+            return DeleteAsync(source, CancellationToken.None);
+        }
+
+        public static async Task DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
+        {
+            var expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (T)), source.Expression);
+            ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+        }
+
         public static Task<T> MinAsync<T>(this IQueryable<T> source)
         {
             return MinAsync(source, CancellationToken.None);
@@ -1641,12 +1629,11 @@ namespace Shaolinq.Persistence
             }
 
             var condition = Expression.Lambda(body, parameter);
-            var expression = (Expression)Expression.Call(GetDeleteMethod(typeDescriptor.Type), Expression.Constant(null, typeDescriptor.Type), condition);
-            expression = Evaluator.PartialEval(expression);
-            expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
-            expression = SqlObjectOperandComparisonExpander.Expand(expression);
-            expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
-            await this.DeleteAsync((SqlDeleteExpression)expression, cancellationToken).ConfigureAwait(false);
+            var expression = (Expression)Expression.Call(Expression.Constant(this.DataAccessModel), MethodInfoFastRef.DataAccessModelGetDataAccessObjectsMethod.MakeGenericMethod(typeDescriptor.Type));
+            expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
+            expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
+            var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
+            ((ISqlQueryProvider)provider).ExecuteEx<int>(expression);
         }
     }
 

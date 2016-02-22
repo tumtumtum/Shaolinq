@@ -158,6 +158,8 @@ namespace Shaolinq.Persistence.Linq
 				expression = SqlOrderByRewriter.Rewrite(expression);
 			}
 
+            expression = SqlDeleteNormalizer.Normalize(expression);
+
 			return expression;
 		}
 
@@ -328,3 +330,4 @@ namespace Shaolinq.Persistence.Linq
 		}
 	}
 }
+;

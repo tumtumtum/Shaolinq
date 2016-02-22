@@ -455,14 +455,5 @@ namespace Shaolinq.Persistence
 		{
 			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
 		}
-		
-		public static MethodInfo GetDeleteMethod(Type type)
-		{
-			return DeleteHelperMethod.MakeGenericMethod(type);
-		}
-
-		internal static void DeleteHelper<T>(T type, Expression<Func<T, bool>> condition)
-		{
-		}
 	}
 }

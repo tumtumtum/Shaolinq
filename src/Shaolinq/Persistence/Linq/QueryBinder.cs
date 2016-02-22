@@ -1009,33 +1009,15 @@ namespace Shaolinq.Persistence.Linq
 						return this.BindCollectionContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], methodCallExpression == this.rootExpression);
 					}
 					break;
-				}
+                case "Delete":
+                    if (methodCallExpression.Arguments.Count == 1)
+                    {
+                        return this.BindDelete(methodCallExpression.Arguments[0]);
+                    }
+                    break;
+                }
 
 				throw new NotSupportedException($"Linq function \"{methodCallExpression.Method.Name}\" is not supported");
-			}
-			else if (methodCallExpression.Method.DeclaringType == typeof(DataAccessObjectsQueryableExtensions))
-			{
-				switch (methodCallExpression.Method.Name)
-				{
-				case "DeleteWhere":
-					if (methodCallExpression.Arguments.Count == 2)
-					{
-						return this.BindDelete(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
-					}
-					break;
-				}
-			}
-			else if (methodCallExpression.Method.DeclaringType == typeof(DefaultSqlTransactionalCommandsContext))
-			{
-				switch (methodCallExpression.Method.Name)
-				{
-				case "DeleteHelper":
-					if (methodCallExpression.Arguments.Count == 2)
-					{
-						return this.BindDelete(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
-					}
-					break;
-				}
 			}
 			else if (methodCallExpression.Method.DeclaringType.GetUnwrappedNullableType() == typeof(DateTime))
 			{
@@ -1698,33 +1680,24 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
 
-		private Expression BindDelete(Expression source, LambdaExpression selector)
+		private Expression BindDelete(Expression source)
 		{
-			var localExtraCondition = this.extraCondition;
+		    var projection = (SqlProjectionExpression)this.Visit(source);
 
-			this.extraCondition = null;
+		    var alias = GetNextAlias();
+			var deleteExpression = new SqlDeleteExpression(projection, null);
+		    var select = new SqlSelectExpression(typeof(int), alias, new SqlColumnDeclaration[0], deleteExpression, null, null);
 
-			var projection = this.GetTableProjection(source.Type);
+            var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
 
-			this.AddExpressionByParameter(selector.Parameters[0], projection.Projector);
+            var aggregator = Expression.Lambda
+            (
+                Expression.Call(MethodInfoFastRef.EnumerableCountMethod.MakeGenericMethod(typeof(int)), parameterExpression),
+                parameterExpression
+            );
 
-			if (localExtraCondition != null)
-			{
-				this.AddExpressionByParameter(localExtraCondition.Parameters[0], projection.Projector);
-			}
-
-			var expression = this.Visit(selector.Body);
-
-			var tableExpression = ((SqlTableExpression)projection.Select.From);
-
-			if (localExtraCondition != null)
-			{
-				expression = Expression.AndAlso(selector.Body, localExtraCondition.Body);
-				expression = this.Visit(expression);
-			}
-
-			return new SqlDeleteExpression(new SqlTableExpression(tableExpression.Name), projection.Select.Alias, expression);
-		}
+            return new SqlProjectionExpression(select, Expression.Constant(0), aggregator, false);
+        }
 
 		private static string GetExistingAlias(Expression source)
 		{

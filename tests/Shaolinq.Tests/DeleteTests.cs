@@ -55,7 +55,7 @@ namespace Shaolinq.Tests
 					this.model.Students.Single(c => c.Id == student1Id).BestFriend = null;
 				}
 
-				this.model.Students.DeleteWhere(c => c.Id == student2Id);
+			    this.model.Students.Where(c => c.Id == student2Id).Delete();
 
 				scope.Complete();
 			}
@@ -238,7 +238,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				this.model.Schools.DeleteWhere(c => c.Id == schoolId);
+			    this.model.Schools.Where(c => c.Id == schoolId).Delete();
 
 				scope.Complete();
 			}

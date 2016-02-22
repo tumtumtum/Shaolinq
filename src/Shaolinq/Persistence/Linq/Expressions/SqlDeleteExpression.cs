@@ -7,17 +7,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlDeleteExpression
 		: SqlBaseExpression
 	{
-		public string Alias { get; }
-		public SqlTableExpression Table { get; }
-		public Expression Where { get; }
-		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Delete;
+	    public Expression Source { get; }
+	    public Expression Where { get; set; }
+	    public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Delete;
 
-		public SqlDeleteExpression(SqlTableExpression table, string alias, Expression where)
+		public SqlDeleteExpression(Expression source, Expression where)
 			: base(typeof(void))
 		{
-			this.Where = where;
-			this.Alias = alias;
-			this.Table = table;
+		    this.Source = source;
+		    this.Where = where;
 		}
 	}
 }

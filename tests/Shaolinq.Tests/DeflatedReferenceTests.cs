@@ -179,7 +179,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-				this.model.Schools.DeleteWhere(c => c.Id == schoolId);
+			    this.model.Schools.Where(c => c.Id == schoolId).Delete();
 
 				scope.Complete();
 			}

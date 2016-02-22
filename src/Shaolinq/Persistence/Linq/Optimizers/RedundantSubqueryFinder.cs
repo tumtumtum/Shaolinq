@@ -82,12 +82,41 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				&& (select.Take == null)
                 && (select.Skip == null)
 				&& select.Where == null
-				&& (select.OrderBy?.Count == 0)
-				&& (select.GroupBy?.Count == 0);
+                && !select.Columns.Any(c => c.NoOptimise)
+				&& ((select.OrderBy?.Count ?? 0) == 0)
+				&& ((select.GroupBy?.Count ?? 0) == 0);
 		}
 
-		protected override Expression VisitSelect(SqlSelectExpression select)
+	    private readonly HashSet<Expression> ignoreSet = new HashSet<Expression>();
+
+	    protected override Expression VisitJoin(SqlJoinExpression join)
+	    {
+            ignoreSet.Add(join.Left);
+            ignoreSet.Add(join.Right);
+
+            var left = this.Visit(join.Left);
+            var right = this.Visit(join.Right);
+            
+            ignoreSet.Remove(join.Left);
+            ignoreSet.Remove(join.Right);
+
+            var condition = this.Visit(join.JoinCondition);
+
+            if (left != join.Left || right != join.Right || condition != join.JoinCondition)
+            {
+                return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
+            }
+
+            return join;
+        }
+
+	    protected override Expression VisitSelect(SqlSelectExpression select)
 		{
+	        if (ignoreSet.Contains(select))
+	        {
+	            return base.VisitSelect(select);
+	        }
+
 			if (IsRedudantSubquery(select))
 			{
 				if (this.redundant == null)
@@ -98,7 +127,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				this.redundant.Add(select);
 			}
 
-			return select;
+			return base.VisitSelect(select);
 		}
 
 		protected override Expression VisitSubquery(SqlSubqueryExpression subquery)

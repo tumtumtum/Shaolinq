@@ -1047,19 +1047,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return deleteExpression;
 			}
 
-			this.result = this.result && (current.Alias == deleteExpression.Alias
-			                    && current.Table == deleteExpression.Table);
-
-			if (!this.result)
-			{
-				return deleteExpression;
-			}
-
-			this.currentObject = current.Where;
-			this.Visit(deleteExpression.Where);
+			this.currentObject = current.Source;
+			this.Visit(deleteExpression.Source);
 			this.currentObject = current;
 
-			return deleteExpression;
+            this.currentObject = current.Where;
+            this.Visit(deleteExpression.Where);
+            this.currentObject = current;
+
+            return deleteExpression;
 		}
 
 		protected override Expression VisitOver(SqlOverExpression expression)

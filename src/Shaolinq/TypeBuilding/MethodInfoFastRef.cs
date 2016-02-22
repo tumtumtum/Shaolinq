@@ -21,7 +21,8 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo EnumerableDefaultIfEmptyWithValueMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).DefaultIfEmpty("")).GetGenericMethodDefinition();
         public static readonly MethodInfo QueryableCountMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableWhereMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Where(c => c.Length == 0)).GetGenericMethodDefinition();
-		public static readonly MethodInfo QueryableSelectMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Select(c => c.ToUpper())).GetGenericMethodDefinition();
+        public static readonly MethodInfo QueryableExtensionsDeleteMethod = TypeUtils.GetMethod(() => QueryableExtensions.Delete<DataAccessObject>(null)).GetGenericMethodDefinition();
+        public static readonly MethodInfo QueryableSelectMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Select(c => c.ToUpper())).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableSelectManyMethod = TypeUtils.GetMethod(() => default(IQueryable<Tuple<IEnumerable<int>, string>>).SelectMany(c => c.Item1, (x, y) => new { x, y })).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableJoinMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Join(((IQueryable<int>)null), c => c.Length, c => c, (x, y) => x)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupJoinMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).GroupJoin(default(IQueryable<int>), c => c.Length, c => c, (x, y) => x)).GetGenericMethodDefinition();

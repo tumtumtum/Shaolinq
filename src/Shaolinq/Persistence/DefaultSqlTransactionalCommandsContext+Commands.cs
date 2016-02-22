@@ -2,19 +2,15 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq.Expressions;
-using System.Reflection;
-using Platform;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Optimizers;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence
 {
 	public partial class DefaultSqlTransactionalCommandsContext
 	{
-		private static readonly MethodInfo DeleteHelperMethod = TypeUtils.GetMethod(() => DeleteHelper(0, null)).GetGenericMethodDefinition();
-
 		#region ExecuteReader
 
 		[RewriteAsync]
@@ -268,16 +264,16 @@ namespace Shaolinq.Persistence
 			{
 				return;
 			}
-
+            
 			var condition = Expression.Lambda(body, parameter);
-			var expression = (Expression)Expression.Call(GetDeleteMethod(typeDescriptor.Type), Expression.Constant(null, typeDescriptor.Type), condition);
+		    var expression = (Expression)Expression.Call(Expression.Constant(this.DataAccessModel), MethodInfoFastRef.DataAccessModelGetDataAccessObjectsMethod.MakeGenericMethod(typeDescriptor.Type));
 
-			expression = Evaluator.PartialEval(expression);
-			expression = QueryBinder.Bind(this.DataAccessModel, expression, null, null);
-			expression = SqlObjectOperandComparisonExpander.Expand(expression);
-			expression = SqlQueryProvider.Optimize(this.DataAccessModel,this.SqlDatabaseContext, expression);
+		    expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
+		    expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
 
-			this.Delete((SqlDeleteExpression)expression);
+			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
+
+		    ((ISqlQueryProvider)provider).ExecuteEx<int>(expression);
 		}
 
 		#endregion

@@ -697,6 +697,13 @@ namespace Shaolinq.Persistence.Linq
 			{
 				this.selectNest++;
 
+			    if (selectExpression.From?.NodeType == (ExpressionType)SqlExpressionType.Delete)
+			    {
+			        this.Visit(selectExpression.From);
+
+			        return selectExpression;
+			    }
+
 				this.Write("SELECT ");
 
 				this.AppendTop(selectExpression);
@@ -902,6 +909,9 @@ namespace Shaolinq.Persistence.Linq
 			case SqlExpressionType.Join:
 				this.VisitJoin((SqlJoinExpression)source);
 				break;
+            case SqlExpressionType.Delete:
+			    this.VisitDelete((SqlDeleteExpression)source);
+			    break;
 			default:
 				throw new InvalidOperationException($"Select source ({source.NodeType}) is not valid type");
 			}
@@ -928,17 +938,17 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Write("DELETE ");
 			this.Write("FROM ");
-			this.Visit(deleteExpression.Table);
+			this.Visit(deleteExpression.Source);
 			this.WriteLine();
 			this.Write(" WHERE ");
 			this.WriteLine();
 
-			this.ignoreAlias = deleteExpression.Alias;
-			this.replaceAlias = deleteExpression.Table.Name;
+			//this.ignoreAlias = deleteExpression.Alias;
+			//this.replaceAlias = deleteExpression.Table.Name;
 
-			this.Visit(deleteExpression.Where);
+		    this.Visit(deleteExpression.Where);
 
-			this.ignoreAlias = "";
+			//this.ignoreAlias = "";
 
 			return deleteExpression;
 		}

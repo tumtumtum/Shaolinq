@@ -9,6 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Platform;
 using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq;
+using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Optimizers;
 
 // ReSharper disable InvokeAsExtensionMethod
 
@@ -37,7 +40,16 @@ namespace Shaolinq
     }
 
     public static partial class QueryableExtensions
-	{
+    {   
+        [RewriteAsync]
+        public static void Delete<T>(this IQueryable<T> source)
+            where T : DataAccessObject
+        {
+            var expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
+
+            ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+        }
+
         [RewriteAsync(true)]
         private static T Min<T>(this IQueryable<T> source)
         {
