@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			if (methodCallExpression.Method.DeclaringType == typeof(Queryable))
+			if (methodCallExpression.Method.DeclaringType == typeof(Queryable) || methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
 			{
 				if (methodCallExpression.Method.IsGenericMethod
 					&& methodCallExpression.Arguments.Count == 2)
@@ -32,6 +32,7 @@ namespace Shaolinq.Persistence.Linq
 					case "SingleOrDefault":
 					case "Count":
 					case "Any":
+					case "Delete":
 						methodName = methodCallExpression.Method.Name;
 						arg1 = methodCallExpression.Arguments[1];
 						break;

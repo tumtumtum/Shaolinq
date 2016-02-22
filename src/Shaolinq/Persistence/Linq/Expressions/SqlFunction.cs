@@ -159,6 +159,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		TimeSpanFromSeconds,
 		TimeSpanFromDays,
 		TimeSpanFromHours,
+		RecordsAffected,
 		UserDefined
 	}
 }

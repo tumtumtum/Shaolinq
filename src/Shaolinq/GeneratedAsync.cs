@@ -19,9 +19,9 @@ using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 using Platform;
 using System.Reflection;
-using Shaolinq.Persistence.Linq.Optimizers;
 using System.Configuration;
 using System.Diagnostics;
+using Shaolinq.Persistence.Linq.Optimizers;
 
 namespace Shaolinq
 {
@@ -327,6 +327,16 @@ namespace Shaolinq
 
     public static partial class EnumerableExtensions
     {
+        internal static Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> enumerable)
+        {
+            return AlwaysReadFirstAsync(enumerable, CancellationToken.None);
+        }
+
+        internal static async Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        {
+            return await enumerable.FirstAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         public static Task<int> CountAsync<T>(this IEnumerable<T> enumerable)
         {
             return CountAsync(enumerable, CancellationToken.None);
@@ -597,15 +607,26 @@ namespace Shaolinq
 
     public static partial class QueryableExtensions
     {
-        public static Task DeleteAsync<T>(this IQueryable<T> source)where T : DataAccessObject
+        public static Task<int> DeleteAsync<T>(this IQueryable<T> source)where T : DataAccessObject
         {
             return DeleteAsync(source, CancellationToken.None);
         }
 
-        public static async Task DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
+        public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
         {
-            var expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (T)), source.Expression);
-            ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+            Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (T)), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)where T : DataAccessObject
+        {
+            return DeleteAsync(source, predicate, CancellationToken.None);
+        }
+
+        public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)where T : DataAccessObject
+        {
+            Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<T> MinAsync<T>(this IQueryable<T> source)
@@ -1585,7 +1606,7 @@ namespace Shaolinq.Persistence
                 Logger.Debug(() => this.FormatCommand(command));
                 try
                 {
-                    await command.ExecuteNonQueryExAsync(cancellationToken).ConfigureAwait(false);
+                    var count = (await command.ExecuteNonQueryExAsync(cancellationToken).ConfigureAwait(false));
                 }
                 catch (Exception e)
                 {
@@ -1797,6 +1818,7 @@ namespace Shaolinq.Persistence.Linq
             state0:
                 this.state = 1;
             this.dataReader = (await this.acquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+            this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.versionContext.Version);
             state1:
                 T result;
             if (await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false))

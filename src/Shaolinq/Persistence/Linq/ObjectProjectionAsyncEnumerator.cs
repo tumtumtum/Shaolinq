@@ -28,7 +28,6 @@ namespace Shaolinq.Persistence.Linq
 	        {
 		        this.versionContext = transactionContext.AcquireVersionContext();
 		        this.acquisition = transactionContext.AcquirePersistenceTransactionContext(this.objectProjector.SqlDatabaseContext);
-		        this.context = objectProjector.CreateEnumerationContext();
 	        }
 	        catch
 	        {
@@ -83,7 +82,8 @@ state0:
 
             this.state = 1;
             this.dataReader = this.acquisition.SqlDatabaseCommandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
-            
+			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.versionContext.Version);
+
 state1:
             T result;
 

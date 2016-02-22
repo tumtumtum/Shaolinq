@@ -13,6 +13,7 @@ using Platform.Reflection;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -236,32 +237,52 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var constructor = typeof(ObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+				if ((projectionExpression.Aggregator?.Body as MethodCallExpression)?.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod)
+				{
+					var constructor = typeof(AlwaysReadFirstObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
-				executor = Expression.New
-				(
-					constructor,
-					Expression.Constant(this),
-					Expression.Constant(this.DataAccessModel),
-					Expression.Constant(this.SqlDatabaseContext),
-					Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-					formatResultsParam,
-					placeholderValuesParam,
-					projectionLambda
-				);
+					executor = Expression.New
+					(
+						constructor,
+						Expression.Constant(this),
+						Expression.Constant(this.DataAccessModel),
+						Expression.Constant(this.SqlDatabaseContext),
+						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
+						formatResultsParam,
+						placeholderValuesParam,
+						projectionLambda
+					);
+				}
+				else
+				{
+					var constructor = typeof(ObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+
+					executor = Expression.New
+					(
+						constructor,
+						Expression.Constant(this),
+						Expression.Constant(this.DataAccessModel),
+						Expression.Constant(this.SqlDatabaseContext),
+						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
+						formatResultsParam,
+						placeholderValuesParam,
+						projectionLambda
+					);
+				}
 			}
 
 	        var asyncExecutor = executor;
 			var cancellationToken = Expression.Parameter(typeof(CancellationToken));
 
 			if (projectionExpression.Aggregator != null)
-	        {
-		        var originalExecutor = executor;
-                var newBody = SqlConstantPlaceholderReplacer.Replace(projectionExpression.Aggregator.Body, placeholderValuesParam);
-                executor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], originalExecutor);
+			{
+				var originalExecutor = executor;
+				var aggr = projectionExpression.Aggregator;
+				var newBody = SqlConstantPlaceholderReplacer.Replace(aggr.Body, placeholderValuesParam);
+                executor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
 
 		        newBody = ProjectionAsyncRewriter.Rewrite(newBody, cancellationToken);
-				asyncExecutor = SqlExpressionReplacer.Replace(newBody, projectionExpression.Aggregator.Parameters[0], originalExecutor);
+				asyncExecutor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
 	        }
 
 	        projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);

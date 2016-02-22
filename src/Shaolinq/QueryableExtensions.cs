@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,9 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Platform;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Linq;
-using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.Persistence.Linq.Optimizers;
 
 // ReSharper disable InvokeAsExtensionMethod
 
@@ -42,15 +38,24 @@ namespace Shaolinq
     public static partial class QueryableExtensions
     {   
         [RewriteAsync]
-        public static void Delete<T>(this IQueryable<T> source)
+        public static int Delete<T>(this IQueryable<T> source)
             where T : DataAccessObject
         {
-            var expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
+            Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
 
-            ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
         }
 
-        [RewriteAsync(true)]
+		[RewriteAsync]
+		public static int Delete<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+			where T : DataAccessObject
+		{
+			Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+		}
+
+		[RewriteAsync(true)]
         private static T Min<T>(this IQueryable<T> source)
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default(IQueryable<T>))), source.Expression);

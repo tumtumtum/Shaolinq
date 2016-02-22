@@ -12,7 +12,13 @@ using Shaolinq.Persistence;
 namespace Shaolinq
 {
     public static partial class EnumerableExtensions
-	{
+    {
+	    [RewriteAsync]
+	    internal static T AlwaysReadFirst<T>(this IEnumerable<T> enumerable)
+	    {
+			return enumerable.First();
+		}
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
             where T : struct => enumerable.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);

@@ -38,7 +38,9 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo StringExtensionsIsLikeMethod = TypeUtils.GetMethod(() => string.Empty.IsLike(default(string)));
 		public static readonly MethodInfo ObjectToStringMethod = TypeUtils.GetMethod<object>(c => c.ToString());
 		public static readonly MethodInfo EnumToObjectMethod = TypeUtils.GetMethod(() => Enum.ToObject(typeof(Enum), 0));
+		public static readonly MethodInfo EnumerableExtensionsAlwaysReadFirstMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).AlwaysReadFirst()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableFirstMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).First()).GetGenericMethodDefinition();
+		public static readonly MethodInfo EnumerableFirstOrDefaultMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).FirstOrDefault()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableSingleMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).Single()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableEmptyIfFirstIsNullMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).EmptyIfFirstIsNull()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableSingleOrSpecifiedValueIfFirstIsDefaultValueMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).SingleOrSpecifiedValueIfFirstIsDefaultValue(default(string))).GetGenericMethodDefinition();

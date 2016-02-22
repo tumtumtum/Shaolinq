@@ -110,7 +110,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
             return join;
         }
 
-	    protected override Expression VisitSelect(SqlSelectExpression select)
+		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
+		{
+			return deleteExpression;
+		}
+
+		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
 	        if (ignoreSet.Contains(select))
 	        {

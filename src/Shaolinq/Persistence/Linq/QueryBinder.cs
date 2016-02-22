@@ -225,8 +225,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return new SqlProjectionExpression(select, new SqlColumnExpression(elementType, alias, "value"), aggr, false, (expr as SqlProjectionExpression)?.DefaultValue);
 		}
-
-
+		
 		private Expression BindFirst(Expression source, LambdaExpression predicate, SelectFirstType selectFirstType, bool isRoot = false)
 		{
 			Expression where = null;
@@ -1682,21 +1681,21 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindDelete(Expression source)
 		{
-		    var projection = (SqlProjectionExpression)this.Visit(source);
+			var projection = (SqlProjectionExpression)this.Visit(source);
 
-		    var alias = GetNextAlias();
+			var alias = GetNextAlias();
 			var deleteExpression = new SqlDeleteExpression(projection, null);
 		    var select = new SqlSelectExpression(typeof(int), alias, new SqlColumnDeclaration[0], deleteExpression, null, null);
 
             var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
-
-            var aggregator = Expression.Lambda
+			
+			var aggregator = Expression.Lambda
             (
-                Expression.Call(MethodInfoFastRef.EnumerableCountMethod.MakeGenericMethod(typeof(int)), parameterExpression),
+                Expression.Call(MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod.MakeGenericMethod(typeof(int)), parameterExpression),
                 parameterExpression
             );
 
-            return new SqlProjectionExpression(select, Expression.Constant(0), aggregator, false);
+            return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
         }
 
 		private static string GetExistingAlias(Expression source)

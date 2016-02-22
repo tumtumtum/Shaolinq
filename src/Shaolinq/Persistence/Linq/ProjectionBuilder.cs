@@ -154,7 +154,12 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return Expression.Call(this.Visit(functionCallExpression.Arguments[0]), typeof(DateTime).GetProperty("Date").GetGetMethod(), null);
 			}
-			
+
+			if (functionCallExpression.Function == SqlFunction.RecordsAffected)
+			{
+				return Expression.Property(this.dataReader, TypeUtils.GetProperty<IDataReader>(c => c.RecordsAffected));
+			}
+
 			return base.VisitFunctionCall(functionCallExpression);
 		}
 

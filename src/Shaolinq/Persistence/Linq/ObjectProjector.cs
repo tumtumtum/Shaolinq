@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using TransactionContextExecutionVersionContext = Shaolinq.TransactionContext.TransactionContextExecutionVersionContext;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -25,7 +26,7 @@ namespace Shaolinq.Persistence.Linq
             this.formatResult = formatResult;
 		}
 	}
-	
+
 	public class ObjectProjector<T, U>
 		: ObjectProjector, IAsyncEnumerable<T>
 		where U : T
@@ -54,7 +55,7 @@ namespace Shaolinq.Persistence.Linq
             return true;
         }
 
-	    protected internal virtual object CreateEnumerationContext()
+	    protected internal virtual object CreateEnumerationContext(IDataReader dataReader, int executionVersion)
 	    {
             return null;
 	    }

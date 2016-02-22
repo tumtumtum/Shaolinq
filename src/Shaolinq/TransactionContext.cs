@@ -11,7 +11,7 @@ namespace Shaolinq
 	public partial class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
-		internal class TransactionContextExecutionVersionContext
+		public class TransactionContextExecutionVersionContext
 			: IDisposable
 		{
 			private readonly TransactionContext context;

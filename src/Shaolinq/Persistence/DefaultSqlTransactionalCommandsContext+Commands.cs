@@ -12,7 +12,6 @@ namespace Shaolinq.Persistence
 	public partial class DefaultSqlTransactionalCommandsContext
 	{
 		#region ExecuteReader
-
 		[RewriteAsync]
 		public override IDataReader ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters)
 		{
@@ -218,7 +217,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					command.ExecuteNonQueryEx();
+					var count = command.ExecuteNonQueryEx();
 				}
 				catch (Exception e)
 				{
