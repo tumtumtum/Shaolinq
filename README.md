@@ -241,7 +241,11 @@ Delete all people named Steve from the database using LINQ syntax
 
 using (var scope = new DataAccessScope())
 {
-	await model.People.DeleteWhereAsync(c => c.Name == "Steve");
+	await model.People.Where(c => c.Name == "Steve").DeleteAsync();
+	
+	// or
+	
+	await model.People.DeleteAsync(c => c.Name == "Steve");
 	
 	Console.WriteLine("Deleted all people named Steve");
 	
