@@ -1685,7 +1685,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = GetNextAlias();
 			var deleteExpression = new SqlDeleteExpression(projection, null);
-		    var select = new SqlSelectExpression(typeof(int), alias, new SqlColumnDeclaration[0], deleteExpression, null, null);
+		    var select = new SqlSelectExpression(typeof(int), alias, new [] { new SqlColumnDeclaration("__SHAOLINQ__DELETE", Expression.Constant(null), true) }, deleteExpression, null, null);
 
             var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
 			

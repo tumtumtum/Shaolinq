@@ -1005,7 +1005,6 @@ namespace Shaolinq.Tests
 			}
 		}
 
-
 		[Test]
 		public virtual void Test_Select_FirstOrDefaultAsync()
 		{
@@ -1014,16 +1013,52 @@ namespace Shaolinq.Tests
 			waiter.GetResult();
 		}
 
-		public virtual async Task __Test_Select_FirstOrDefaultAsync()
-		{
-			using (var scope = new DataAccessScope())
-			{
-				var student = await this.model.Students.FirstOrDefaultAsync();
+        public virtual async Task __Test_Select_FirstOrDefaultAsync()
+        {
+            using (var scope = new DataAccessScope())
+            {
+                var student = await this.model.Students.FirstOrDefaultAsync();
 
-				Assert.IsNotNull(student);
-			}
-		}
+                Assert.IsNotNull(student);
+            }
+        }
 
+        [Test]
+        public virtual void Test_Select_FirstOrDefaultAsyncWithPredicate1()
+        {
+            Func<Task> func = async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var student = await this.model.Students.FirstOrDefaultAsync(c => c.Firstname == "Tum");
+
+                    Assert.IsNotNull(student);
+                }
+            };
+
+            var waiter = func().ContinueOnAnyContext().GetAwaiter();
+
+            waiter.GetResult();
+        }
+
+        [Test]
+        public virtual void Test_Select_FirstOrDefaultAsyncWithPredicate2()
+        {
+            Func<Task> func = async () =>
+            {
+                using (var scope = new DataAccessScope())
+                {
+                    var student = await this.model.Students.FirstOrDefaultAsync(c => c.Firstname == "aaaaaazzzzTum");
+
+                    Assert.IsNull(student);
+                }
+            };
+
+            var waiter = func().ContinueOnAnyContext().GetAwaiter();
+
+            waiter.GetResult();
+        }
+       
 		[Test]
 		public virtual void Test_ToList()
 		{

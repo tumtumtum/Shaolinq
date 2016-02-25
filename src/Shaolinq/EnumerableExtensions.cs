@@ -134,14 +134,14 @@ namespace Shaolinq
             {
                 if (!enumerator.MoveNextEx())
                 {
-                    return new T[0].Single();
+                    return Enumerable.Single<T>(Enumerable.Empty<T>());
                 }
 
                 var result = enumerator.Current;
 
                 if (enumerator.MoveNextEx())
                 {
-                    return new T[2].Single();
+                    return Enumerable.Single<T>(new T[2]);
                 }
 
                 if (object.Equals(result, default(T)))
@@ -160,14 +160,14 @@ namespace Shaolinq
 	        {
 	            if (!enumerator.MoveNextEx())
 	            {
-	               return new T[0].Single();
-	            }
+                    return Enumerable.Single<T>(Enumerable.Empty<T>());
+                }
 
 	            var result = enumerator.Current;
 
                 if (enumerator.MoveNextEx())
                 {
-                    return new T[2].Single();
+                    return Enumerable.Single<T>(new T[2]);
                 }
 
 	            return result;
@@ -188,7 +188,7 @@ namespace Shaolinq
 
                 if (enumerator.MoveNextEx())
                 {
-                    return new T[2].Single();
+                    return Enumerable.Single<T>(new T[2]);
                 }
 
                 return result;
@@ -202,7 +202,7 @@ namespace Shaolinq
             {
                 if (!enumerator.MoveNextEx())
                 {
-                    return Enumerable.Empty<T>().First();
+                    return Enumerable.First(Enumerable.Empty<T>());
                 }
 
                 return enumerator.Current;
@@ -216,7 +216,7 @@ namespace Shaolinq
             {
                 if (!enumerator.MoveNextEx())
                 {
-                    return Enumerable.Empty<T>().First();
+                    return default(T);
                 }
 
                 return enumerator.Current;
