@@ -733,7 +733,7 @@ namespace Shaolinq
 
 		public virtual void Create(DatabaseCreationOptions options)
 		{
-			using (var scope = new TransactionScope(TransactionScopeOption.RequiresNew))
+			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.FromMinutes(10)))
 			{
 				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema(options);
 

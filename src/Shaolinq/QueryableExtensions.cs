@@ -38,7 +38,19 @@ namespace Shaolinq
 
     public static partial class QueryableExtensions
     {
-        [RewriteAsync(true)]
+		[RewriteAsync(true)]
+		private static T First<T>(this IQueryable<T> source)
+		{
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => Queryable.First<T>(default(IQueryable<T>))),
+				source.Expression
+			);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+		}
+
+		[RewriteAsync(true)]
         private static T First<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
             Expression expression = Expression.Call
@@ -50,7 +62,19 @@ namespace Shaolinq
             return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
         }
 
-        [RewriteAsync(true)]
+		[RewriteAsync(true)]
+		private static T FirstOrDefault<T>(this IQueryable<T> source)
+		{
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => Queryable.FirstOrDefault<T>(default(IQueryable<T>))),
+				source.Expression
+			);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+		}
+
+		[RewriteAsync(true)]
         private static T FirstOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
             Expression expression = Expression.Call
@@ -62,7 +86,19 @@ namespace Shaolinq
             return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
         }
 
-        [RewriteAsync(true)]
+		[RewriteAsync(true)]
+		private static T Single<T>(this IQueryable<T> source)
+		{
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => Queryable.Single<T>(default(IQueryable<T>))),
+				source.Expression
+			);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+		}
+
+		[RewriteAsync(true)]
         private static T Single<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
             Expression expression = Expression.Call
@@ -74,7 +110,19 @@ namespace Shaolinq
             return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
         }
 
-        [RewriteAsync(true)]
+		[RewriteAsync(true)]
+		private static T SingleOrDefault<T>(this IQueryable<T> source)
+		{
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => Queryable.SingleOrDefault<T>(default(IQueryable<T>))),
+				source.Expression
+			);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+		}
+
+		[RewriteAsync(true)]
         private static T SingleOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
             Expression expression = Expression.Call
@@ -109,6 +157,46 @@ namespace Shaolinq
         }
 
 		[RewriteAsync(true)]
+		private static int Count<T>(this IQueryable<T> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default(IQueryable<T>))), source.Expression);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+		}
+		
+		[RewriteAsync(true)]
+		private static int Count<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => Queryable.Count<T>(default(IQueryable<T>))),
+				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+			);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+		}
+
+		[RewriteAsync(true)]
+		private static long LongCount<T>(this IQueryable<T> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default(IQueryable<T>))), source.Expression);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+		}
+
+		[RewriteAsync(true)]
+		private static long LongCount<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => Queryable.Count<T>(default(IQueryable<T>))),
+				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+			);
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+		}
+
+		[RewriteAsync(true)]
         private static T Min<T>(this IQueryable<T> source)
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default(IQueryable<T>))), source.Expression);
@@ -141,8 +229,6 @@ namespace Shaolinq
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<U>(expression);
 		}
-
-		//
 
 		[RewriteAsync(true)]
         private static int Sum(this IQueryable<int> source)

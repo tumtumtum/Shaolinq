@@ -1260,6 +1260,28 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Query_Related_Objects3()
+		{
+			Func<Task> func = async () =>
+			{
+				using (var scope = NewTransactionScope())
+				{
+					var studentCountBySchoolId = this.model.Schools.ToList().ToDictionary(c => c.Id, c => c.Students.Count());
+
+					foreach (var school in this.model.Schools.ToList() /* MySql ADO provider doesn't allow nested Count below */)
+					{
+						var expected = studentCountBySchoolId[school.Id];
+
+						Assert.AreEqual(expected, await school.Students.CountAsync());
+						Assert.AreEqual(expected, await this.model.Students.CountAsync(c => c.School == school));
+					}
+				}
+			};
+
+			func();
+		}
+
+		[Test]
 		public void Test_Query_First1()
 		{
 			var student = this.model.Students.First();

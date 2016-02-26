@@ -607,6 +607,17 @@ namespace Shaolinq
 
     public static partial class QueryableExtensions
     {
+        public static Task<T> FirstAsync<T>(this IQueryable<T> source)
+        {
+            return FirstAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<T> FirstAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.First<T>(default (IQueryable<T>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
         public static Task<T> FirstAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
             return FirstAsync(source, predicate, CancellationToken.None);
@@ -615,6 +626,17 @@ namespace Shaolinq
         public static async Task<T> FirstAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.First<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source)
+        {
+            return FirstOrDefaultAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.FirstOrDefault<T>(default (IQueryable<T>))), source.Expression);
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
         }
 
@@ -629,6 +651,17 @@ namespace Shaolinq
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
         }
 
+        public static Task<T> SingleAsync<T>(this IQueryable<T> source)
+        {
+            return SingleAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<T> SingleAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Single<T>(default (IQueryable<T>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
         public static Task<T> SingleAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
             return SingleAsync(source, predicate, CancellationToken.None);
@@ -637,6 +670,17 @@ namespace Shaolinq
         public static async Task<T> SingleAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Single<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source)
+        {
+            return SingleOrDefaultAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.SingleOrDefault<T>(default (IQueryable<T>))), source.Expression);
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
         }
 
@@ -671,6 +715,50 @@ namespace Shaolinq
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int> CountAsync<T>(this IQueryable<T> source)
+        {
+            return CountAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<int> CountAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default (IQueryable<T>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<int> CountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+        {
+            return CountAsync(source, predicate, CancellationToken.None);
+        }
+
+        public static async Task<int> CountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<long> LongCountAsync<T>(this IQueryable<T> source)
+        {
+            return LongCountAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default (IQueryable<T>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<long> LongCountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+        {
+            return LongCountAsync(source, predicate, CancellationToken.None);
+        }
+
+        public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task<T> MinAsync<T>(this IQueryable<T> source)
