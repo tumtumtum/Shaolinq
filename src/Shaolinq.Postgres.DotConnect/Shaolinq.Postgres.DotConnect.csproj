@@ -99,12 +99,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Devart.Data, Version=5.0.1350.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
-      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.4.558\lib\Devart.Data.dll</HintPath>
+    <Reference Include="Devart.Data, Version=5.0.1394.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
+      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.4.602\lib\Devart.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Devart.Data.PostgreSql, Version=7.4.558.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
-      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.4.558\lib\Devart.Data.PostgreSql.dll</HintPath>
+    <Reference Include="Devart.Data.PostgreSql, Version=7.4.602.0, Culture=neutral, PublicKeyToken=09af7300eec23701, processorArchitecture=MSIL">
+      <HintPath>..\packages\dotConnect.Express.for.PostgreSQL.7.4.602\lib\Devart.Data.PostgreSql.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Platform, Version=1.2.1.276, Culture=neutral, processorArchitecture=MSIL">
