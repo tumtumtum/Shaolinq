@@ -53,13 +53,13 @@ namespace Shaolinq
 		[RewriteAsync(true)]
         private static T First<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
-            Expression expression = Expression.Call
-            (
-                TypeUtils.GetMethod(() => Queryable.First<T>(default(IQueryable<T>))),
-                Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
-            );
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => QueryableExtensions.First<T>(default(IQueryable<T>))),
+				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+			);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
         }
 
 		[RewriteAsync(true)]
@@ -77,13 +77,13 @@ namespace Shaolinq
 		[RewriteAsync(true)]
         private static T FirstOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
-            Expression expression = Expression.Call
-            (
-                TypeUtils.GetMethod(() => Queryable.FirstOrDefault<T>(default(IQueryable<T>))),
-                Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
-            );
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => QueryableExtensions.FirstOrDefault<T>(default(IQueryable<T>))),
+				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+			);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
         }
 
 		[RewriteAsync(true)]
@@ -101,13 +101,13 @@ namespace Shaolinq
 		[RewriteAsync(true)]
         private static T Single<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
-            Expression expression = Expression.Call
-            (
-                TypeUtils.GetMethod(() => Queryable.Single<T>(default(IQueryable<T>))),
-                Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
-            );
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => QueryableExtensions.Single<T>(default(IQueryable<T>))),
+				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+			);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
         }
 
 		[RewriteAsync(true)]
@@ -125,13 +125,13 @@ namespace Shaolinq
 		[RewriteAsync(true)]
         private static T SingleOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
         {
-            Expression expression = Expression.Call
-            (
-                TypeUtils.GetMethod(() => Queryable.SingleOrDefault<T>(default(IQueryable<T>))),
-                Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
-            );
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => QueryableExtensions.SingleOrDefault<T>(default(IQueryable<T>))),
+				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+			);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
         }
 
         [RewriteAsync]

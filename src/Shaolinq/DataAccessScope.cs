@@ -115,13 +115,11 @@ namespace Shaolinq
 				break;
 			case DataAccessScopeOptions.RequiresNew:
 				this.savedTransaction = DataAccessTransaction.Current;
-				if (this.savedTransaction == null)
-				{
-					this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
 
-					this.options = options;
-					DataAccessTransaction.Current = this.transaction;
-				}
+				this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
+
+				this.options = options;
+				DataAccessTransaction.Current = this.transaction;
 				break;
 			case DataAccessScopeOptions.Suppress:
 				this.savedTransaction = DataAccessTransaction.Current;

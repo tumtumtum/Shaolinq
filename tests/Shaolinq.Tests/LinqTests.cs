@@ -1259,7 +1259,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test]
+		[Test, Ignore]
 		public void Test_Query_Related_Objects3()
 		{
 			Func<Task> func = async () =>
@@ -1278,7 +1278,7 @@ namespace Shaolinq.Tests
 				}
 			};
 
-			func();
+			func().GetAwaiter().GetResult();
 		}
 
 		[Test]
