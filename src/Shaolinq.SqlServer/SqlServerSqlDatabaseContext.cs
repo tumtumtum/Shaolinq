@@ -18,7 +18,8 @@ namespace Shaolinq.SqlServer
 		public string Instance { get; }
 		public bool DeleteDatabaseDropsTablesOnly { get; set; }
 
-		private static readonly Regex ConnectionStringDatabaseNameRegex = new Regex(@".*Initial Catalog\s*\=([^;$]+)[;$]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex EnlistRegex = new Regex(@"Enlist\s*=[^;$]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex DatabaseRegex= new Regex(@".*((Initial Catalog)|(Database))\s*\=([^;$]+)[;$]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 		private static string GetDatabaseName(SqlServerSqlDatabaseContextInfo contextInfo)
 		{
@@ -27,7 +28,7 @@ namespace Shaolinq.SqlServer
 				return contextInfo.DatabaseName;
 			}
 
-			var match = ConnectionStringDatabaseNameRegex.Match(contextInfo.ConnectionString);
+			var match = DatabaseRegex.Match(contextInfo.ConnectionString);
 
 			if (match.Success)
 			{
@@ -61,7 +62,7 @@ namespace Shaolinq.SqlServer
 
 				this.ConnectionString = contextInfo.ConnectionString;
 
-				this.ConnectionString = Regex.Replace(this.ConnectionString, @"Enlist\s*=[^;$]+", c =>
+				this.ConnectionString = EnlistRegex.Replace(this.ConnectionString, c =>
 				{
 					found = true;
 
@@ -73,7 +74,7 @@ namespace Shaolinq.SqlServer
 					this.ConnectionString += ";Enlist=False;";
 				}
 
-				this.ServerConnectionString = ConnectionStringDatabaseNameRegex.Replace(this.ConnectionString, "Initial Catalog=master;");
+				this.ServerConnectionString = DatabaseRegex.Replace(this.ConnectionString, "Initial Catalog=master;");
 			}
 			else
 			{
