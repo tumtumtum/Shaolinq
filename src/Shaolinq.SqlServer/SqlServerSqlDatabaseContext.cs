@@ -4,7 +4,6 @@ using System;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
-using System.Transactions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer

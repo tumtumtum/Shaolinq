@@ -939,16 +939,14 @@ namespace Shaolinq.Persistence.Linq
 			this.Write("DELETE ");
 			this.Write("FROM ");
 			this.Visit(deleteExpression.Source);
-			this.WriteLine();
-			this.Write(" WHERE ");
-			this.WriteLine();
 
-			//this.ignoreAlias = deleteExpression.Alias;
-			//this.replaceAlias = deleteExpression.Table.Name;
-
-		    this.Visit(deleteExpression.Where);
-
-			//this.ignoreAlias = "";
+			if (deleteExpression.Where != null)
+			{
+				this.WriteLine();
+				this.Write(" WHERE ");
+				this.WriteLine();
+				this.Visit(deleteExpression.Where);
+			}
 
 			return deleteExpression;
 		}
