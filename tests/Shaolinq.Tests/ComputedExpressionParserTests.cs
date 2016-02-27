@@ -10,6 +10,11 @@ namespace Shaolinq.Tests
 	[TestFixture]
 	public class ComputedExpressionParserTests
 	{
+		public static int Bar()
+		{
+			return 3;
+		}
+
 		public class TestObject
 		{
 			public int A { get; set; }
@@ -45,7 +50,16 @@ namespace Shaolinq.Tests
 			var parser = new ComputedExpressionParser(new StringReader("A = value + 1000"), typeof(TestObject).GetProperty("A"));
 
 			var result = parser.Parse();
+		}
 
+		[Test]
+		public void TestParse3()
+		{
+			var parser = new ComputedExpressionParser(new StringReader("A = Shaolinq.Tests.ComputedExpressionParserTests.Bar() + 1"), typeof(TestObject).GetProperty("A"));
+
+			var result = parser.Parse();
+
+			Assert.AreEqual(4, result.Compile().DynamicInvoke(new TestObject()));
 		}
 	}
 }

@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence.Computed
@@ -15,6 +17,26 @@ namespace Shaolinq.Persistence.Computed
 		private readonly PropertyInfo propertyInfo;
 		private readonly ParameterExpression targetObject;
 		private readonly ComputedExpressionTokenizer tokenizer;
+		private static readonly HashSet<Type> loadedTypes;
+		private static readonly Dictionary<string, Type> typesByFullName;
+
+		static ComputedExpressionParser()
+		{
+			loadedTypes = new HashSet<Type>
+			(
+				AppDomain
+					.CurrentDomain
+					.GetAssemblies()
+					.SelectMany(c => c.GetTypes())
+			);
+			
+			typesByFullName = new Dictionary<string, Type>();
+
+			foreach (var x in loadedTypes)
+			{
+				typesByFullName[x.FullName] = x;
+			}
+		}
 
 		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo)
 		{
@@ -282,6 +304,8 @@ namespace Shaolinq.Persistence.Computed
 			{
 				if (this.token == ComputedExpressionToken.RightParen)
 				{
+					this.Consume();
+
 					break;
 				}
 
@@ -303,9 +327,17 @@ namespace Shaolinq.Persistence.Computed
 				break;
 			}
 
-			return Expression.Call(target, methodName, null, arguments.ToArray());
+			if (target.NodeType == ExpressionType.Constant
+				&& (target as ConstantExpression)?.Value == null)
+			{
+				return Expression.Call(target.Type, methodName, null, arguments.ToArray());
+			}
+			else
+			{
+				return Expression.Call(target, methodName, null, arguments.ToArray());
+			}
 		}
-
+		
 		protected Expression ParseOperand()
 		{
 			if (this.token == ComputedExpressionToken.LeftParen)
@@ -319,6 +351,7 @@ namespace Shaolinq.Persistence.Computed
 				return retval;
 			}
 
+			var identifierStack = new Stack<string>();
 			Expression current = this.targetObject;
 
 			if (this.token == ComputedExpressionToken.Identifier)
@@ -332,16 +365,47 @@ namespace Shaolinq.Persistence.Computed
 					if (this.token == ComputedExpressionToken.LeftParen)
 					{
 						current = this.ParseMethodCall(current, identifier);
+
+						identifierStack.Push(identifier);
 					}
 					else
 					{
-						if (identifier == "value" && current.Type.GetField("value") == null)
+						var bindingFlags = BindingFlags.Public;
+
+						if (current.NodeType == ExpressionType.Constant
+							&& (current as ConstantExpression)?.Value == null)
 						{
-							current = Expression.Property(this.targetObject, this.propertyInfo);
+							bindingFlags |= BindingFlags.Static;
 						}
 						else
 						{
+							bindingFlags |= BindingFlags.Instance;
+						}
+
+
+						if (identifier == "value" && current == this.targetObject)
+						{
+							current = Expression.Property(current, this.propertyInfo);
+							identifierStack.Clear();
+							identifierStack.Push(identifier);
+						}
+						else if (current.Type.GetProperty(identifier, bindingFlags) != null
+								 || current.Type.GetField(identifier, bindingFlags) != null)
+						{
 							current = Expression.PropertyOrField(current, identifier);
+							identifierStack.Clear();
+							identifierStack.Push(identifier);
+						}
+						else
+						{
+							Type type;
+							identifierStack.Push(identifier);
+							var fullIdentifierName = string.Join(".", identifierStack.Reverse());
+
+							if (typesByFullName.TryGetValue(fullIdentifierName, out type))
+							{
+								current = Expression.Constant(null, type);
+							}
 						}
 					}
 
