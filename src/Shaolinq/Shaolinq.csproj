@@ -136,6 +136,7 @@
     <Compile Include="DataAccessIsolationLevel.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DataAccessScope.cs" />
+    <Compile Include="DataAccessScopeOptions.cs" />
     <Compile Include="DataAccessTransaction.cs" />
     <Compile Include="DataAccessTransactionAbortedException.cs" />
     <Compile Include="DataAccessTypeAttribute.cs" />

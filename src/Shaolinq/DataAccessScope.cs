@@ -1,18 +1,10 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Transactions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public enum DataAccessScopeOptions
-	{
-		Required,
-		RequiresNew,
-		Suppress
-	}
-
 	public partial class DataAccessScope
 		: IDisposable
 	{
@@ -20,10 +12,11 @@ namespace Shaolinq
 
 		private bool complete;
 		private bool disposed;
+		private readonly bool isRoot;
 		private readonly DataAccessScopeOptions options;
+		
 		private readonly DataAccessTransaction transaction;
-		private readonly DataAccessTransaction savedTransaction;
-		private readonly DataAccessScope previousScope;
+		private readonly DataAccessScope outerScope;
 
 		public static DataAccessScope CreateReadCommitted()
         {
@@ -103,49 +96,39 @@ namespace Shaolinq
 		public DataAccessScope(DataAccessIsolationLevel isolationLevel, DataAccessScopeOptions options, TimeSpan timeout)
 		{
 			this.IsolationLevel = isolationLevel;
+			var currentTransaction = DataAccessTransaction.Current;
+
+			this.options = options;
 
 			switch (options)
 			{
 			case DataAccessScopeOptions.Required:
-				this.savedTransaction = DataAccessTransaction.Current;
-				if (this.savedTransaction == null)
+				if (currentTransaction == null)
 				{
-					this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
-
+					this.isRoot = true;
+					this.transaction = new DataAccessTransaction(isolationLevel, this, timeout);
 					DataAccessTransaction.Current = this.transaction;
+				}
+				else
+				{
+					this.transaction = currentTransaction;
+					this.outerScope = currentTransaction.scope;
+					currentTransaction.scope = this;
 				}
 				break;
 			case DataAccessScopeOptions.RequiresNew:
-				this.savedTransaction = DataAccessTransaction.Current;
-
-				this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
-
-				this.options = options;
+				this.isRoot = true;
+				this.outerScope = currentTransaction?.scope;
+				this.transaction = new DataAccessTransaction(isolationLevel, this, timeout);
 				DataAccessTransaction.Current = this.transaction;
 				break;
 			case DataAccessScopeOptions.Suppress:
-				this.savedTransaction = DataAccessTransaction.Current;
-				if (this.savedTransaction != null)
+				if (currentTransaction != null)
 				{
-					this.options = options;
+					this.outerScope = currentTransaction.scope;
 					DataAccessTransaction.Current = null;
 				}
 				break;
-			}
-
-			if (DataAccessTransaction.Current == null)
-			{
-			    this.transaction = new DataAccessTransaction(isolationLevel) { timeout = timeout };
-
-				DataAccessTransaction.Current = this.transaction;
-			}
-		}
-
-		internal void CheckAborted()
-		{
-			if (this.transaction.HasAborted)
-			{
-				throw new DataAccessTransactionAbortedException();
 			}
 		}
 
@@ -164,7 +147,7 @@ namespace Shaolinq
 		[RewriteAsync]
 		public void Save()
 		{
-			CheckAborted();
+			this.transaction.CheckAborted();
 
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
 			{
@@ -178,7 +161,7 @@ namespace Shaolinq
 		[RewriteAsync]
 		public void Save(DataAccessModel dataAccessModel)
 		{
-			CheckAborted();
+			this.transaction.CheckAborted();
 
 			if (!dataAccessModel.IsDisposed)
 			{
@@ -190,14 +173,22 @@ namespace Shaolinq
 		public void Complete()
 		{
 			this.complete = true;
-			
+
+			this.transaction.CheckAborted();
+
 			if (this.transaction == null)
 			{
 				if (this.options == DataAccessScopeOptions.Suppress)
 				{
-					DataAccessTransaction.Current = this.savedTransaction;
+					DataAccessTransaction.Current = this.outerScope.transaction;
+					DataAccessTransaction.Current.scope = this.outerScope;
 				}
 
+				return;
+			}
+
+			if (!this.isRoot)
+			{
 				return;
 			}
 
@@ -218,7 +209,15 @@ namespace Shaolinq
 			}
 			finally
 			{
-				DataAccessTransaction.Current = this.savedTransaction;
+				if (this.outerScope != null)
+				{
+					this.outerScope.transaction.scope = this.outerScope;
+					DataAccessTransaction.Current = this.outerScope.transaction;
+				}
+				else
+				{
+					DataAccessTransaction.Current = null;
+				}
 			}
 		}
 
@@ -226,6 +225,7 @@ namespace Shaolinq
 		public void Fail()
 		{
 			this.complete = false;
+			this.transaction.CheckAborted();
 
 			if (this.transaction != null)
 			{
@@ -242,19 +242,15 @@ namespace Shaolinq
 			}
 
 			this.disposed = true;
+			
+			if (!this.complete)
+			{
+				this.transaction?.Rollback();
+			}
 
-			if (this.complete)
+			if (this.isRoot)
 			{
 				this.transaction?.Dispose();
-			}
-			else
-			{
-				if (this.transaction == null)
-				{
-					throw new DataAccessTransactionAbortedException();
-				}
-
-				this.transaction.Rollback();
 			}
 		}
 	}

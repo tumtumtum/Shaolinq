@@ -42,22 +42,30 @@ namespace Shaolinq
 		private bool isfinishing;
 
 	    internal TimeSpan timeout;
+		internal DataAccessScope scope;
 		internal Transaction SystemTransaction { get; set; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
 		internal Dictionary<DataAccessModel, TransactionContext> dataAccessModelsByTransactionContext;
-		internal DataAccessScope currentScope;
-		
+		internal bool aborted;
+
 		public DataAccessIsolationLevel IsolationLevel { get; private set; }
-		public bool HasAborted => this.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted;
 		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext?.Keys ?? Enumerable.Empty<DataAccessModel>();
 
-		public DataAccessTransaction()
+		internal DataAccessTransaction()
 			: this(DataAccessIsolationLevel.Unspecified)
 		{
 		}
 
-		public DataAccessTransaction(DataAccessIsolationLevel isolationLevel)
+		internal DataAccessTransaction(DataAccessIsolationLevel isolationLevel)
 		{
+			this.IsolationLevel = isolationLevel;
+			this.SystemTransaction = Transaction.Current;
+		}
+
+		internal DataAccessTransaction(DataAccessIsolationLevel isolationLevel, DataAccessScope scope, TimeSpan timeout)
+		{
+			this.timeout = timeout;
+			this.scope = scope;
 			this.IsolationLevel = isolationLevel;
 			this.SystemTransaction = Transaction.Current;
 		}
@@ -101,13 +109,23 @@ namespace Shaolinq
 		public void Rollback()
 		{
 			this.isfinishing = true;
+			this.aborted = true;
 
 			if (this.dataAccessModelsByTransactionContext != null)
 			{
-				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+				try
 				{
-					transactionContext.Rollback();
-					transactionContext.Dispose();
+					foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+					{
+						try { transactionContext.Rollback(); } catch { }
+					}
+				}
+				finally
+				{
+					foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+					{
+						try { transactionContext.Dispose(); } catch { }
+					}
 				}
 			}
 		}
@@ -120,11 +138,19 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
 				{
-					transactionContext.Dispose();
+					try { transactionContext.Dispose(); } catch { }
 				}
 			}
 
 			this.disposed = true;
+		}
+
+		internal void CheckAborted()
+		{
+			if (this.aborted)
+			{
+				throw new TransactionAbortedException();
+			}
 		}
 	}
 }

@@ -1,11 +1,11 @@
 #pragma warning disable
 using System;
-using System.Transactions;
 using Shaolinq.Persistence;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using System.Transactions;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
@@ -54,7 +54,7 @@ namespace Shaolinq
 
         public async Task SaveAsync(CancellationToken cancellationToken)
         {
-            CheckAborted();
+            this.transaction.CheckAborted();
             foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
             {
                 if (!dataAccessModel.IsDisposed)
@@ -71,7 +71,7 @@ namespace Shaolinq
 
         public async Task SaveAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
         {
-            CheckAborted();
+            this.transaction.CheckAborted();
             if (!dataAccessModel.IsDisposed)
             {
                 await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -86,13 +86,20 @@ namespace Shaolinq
         public async Task CompleteAsync(CancellationToken cancellationToken)
         {
             this.complete = true;
+            this.transaction.CheckAborted();
             if (this.transaction == null)
             {
                 if (this.options == DataAccessScopeOptions.Suppress)
                 {
-                    DataAccessTransaction.Current = this.savedTransaction;
+                    DataAccessTransaction.Current = this.outerScope.transaction;
+                    DataAccessTransaction.Current.scope = this.outerScope;
                 }
 
+                return;
+            }
+
+            if (!this.isRoot)
+            {
                 return;
             }
 
@@ -113,7 +120,15 @@ namespace Shaolinq
             }
             finally
             {
-                DataAccessTransaction.Current = this.savedTransaction;
+                if (this.outerScope != null)
+                {
+                    this.outerScope.transaction.scope = this.outerScope;
+                    DataAccessTransaction.Current = this.outerScope.transaction;
+                }
+                else
+                {
+                    DataAccessTransaction.Current = null;
+                }
             }
         }
 
@@ -161,12 +176,34 @@ namespace Shaolinq
         public async Task RollbackAsync(CancellationToken cancellationToken)
         {
             this.isfinishing = true;
+            this.aborted = true;
             if (this.dataAccessModelsByTransactionContext != null)
             {
-                foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+                try
                 {
-                    await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                    transactionContext.Dispose();
+                    foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+                    {
+                        try
+                        {
+                            await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+                finally
+                {
+                    foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+                    {
+                        try
+                        {
+                            transactionContext.Dispose();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
         }
@@ -748,7 +785,7 @@ namespace Shaolinq
 
         public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
         {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default (IQueryable<T>))), source.Expression);
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.LongCount(default (IQueryable<T>))), source.Expression);
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
         }
 
@@ -759,7 +796,7 @@ namespace Shaolinq
 
         public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
         {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.LongCount<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
         }
 

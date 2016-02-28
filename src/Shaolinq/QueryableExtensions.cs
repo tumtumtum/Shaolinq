@@ -179,7 +179,7 @@ namespace Shaolinq
 		[RewriteAsync(true)]
 		private static long LongCount<T>(this IQueryable<T> source)
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default(IQueryable<T>))), source.Expression);
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.LongCount(default(IQueryable<T>))), source.Expression);
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
 		}
@@ -189,7 +189,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call
 			(
-				TypeUtils.GetMethod(() => Queryable.Count<T>(default(IQueryable<T>))),
+				TypeUtils.GetMethod(() => Queryable.LongCount<T>(default(IQueryable<T>))),
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
