@@ -1,11 +1,11 @@
 #pragma warning disable
 using System;
+using System.Transactions;
 using Shaolinq.Persistence;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using System.Transactions;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
@@ -54,6 +54,7 @@ namespace Shaolinq
 
         public async Task SaveAsync(CancellationToken cancellationToken)
         {
+            CheckAborted();
             foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
             {
                 if (!dataAccessModel.IsDisposed)
@@ -70,6 +71,7 @@ namespace Shaolinq
 
         public async Task SaveAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
         {
+            CheckAborted();
             if (!dataAccessModel.IsDisposed)
             {
                 await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);

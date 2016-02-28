@@ -45,6 +45,7 @@ namespace Shaolinq
 		internal Transaction SystemTransaction { get; set; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
 		internal Dictionary<DataAccessModel, TransactionContext> dataAccessModelsByTransactionContext;
+		internal DataAccessScope currentScope;
 		
 		public DataAccessIsolationLevel IsolationLevel { get; private set; }
 		public bool HasAborted => this.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted;

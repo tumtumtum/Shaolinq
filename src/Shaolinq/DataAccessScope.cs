@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Transactions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -22,6 +23,7 @@ namespace Shaolinq
 		private readonly DataAccessScopeOptions options;
 		private readonly DataAccessTransaction transaction;
 		private readonly DataAccessTransaction savedTransaction;
+		private readonly DataAccessScope previousScope;
 
 		public static DataAccessScope CreateReadCommitted()
         {
@@ -139,6 +141,14 @@ namespace Shaolinq
 			}
 		}
 
+		internal void CheckAborted()
+		{
+			if (this.transaction.HasAborted)
+			{
+				throw new DataAccessTransactionAbortedException();
+			}
+		}
+
 		[RewriteAsync]
 		public void Flush()
 		{
@@ -154,6 +164,8 @@ namespace Shaolinq
 		[RewriteAsync]
 		public void Save()
 		{
+			CheckAborted();
+
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
 			{
 				if (!dataAccessModel.IsDisposed)
@@ -166,6 +178,8 @@ namespace Shaolinq
 		[RewriteAsync]
 		public void Save(DataAccessModel dataAccessModel)
 		{
+			CheckAborted();
+
 			if (!dataAccessModel.IsDisposed)
 			{
 				dataAccessModel.Flush();

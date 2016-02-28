@@ -2663,29 +2663,45 @@ namespace Shaolinq.Tests
 	    [Test]
 	    public void Test_Bool()
 	    {
-		    Guid id;
+		    Guid id = Guid.Empty;
 
-		    using (var scope = NewTransactionScope())
+		    try
 		    {
-			    var student = this.model.Students.Create();
+			    using (var scope = NewTransactionScope())
+			    {
+				    var student = this.model.Students.Create();
 
-			    student.School = this.model.Schools.Single(c => c.Name == "Bruce's Kung Fu School");
+				    student.School = this.model.Schools.Single(c => c.Name == "Bruce's Kung Fu School");
 
-				student.Overseas = true;
+				    student.Overseas = true;
 
-			    scope.Save();
+				    scope.Save();
 
-			    id = student.Id;
+				    id = student.Id;
 
-			    scope.Complete();
+				    scope.Complete();
+			    }
+
+			    using (var scope = NewTransactionScope())
+			    {
+				    var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
+
+				    Assert.IsNotNull(student);
+
+				    scope.Complete();
+			    }
 		    }
-
-		    using (var scope = NewTransactionScope())
+		    finally
 		    {
-			    var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
+				using (var scope = NewTransactionScope())
+				{
+					var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
 
-			    Assert.IsNotNull(student);
-		    }
+					student.Delete();
+
+					scope.Complete();
+				}
+			}
 	    }
 	}
 }
