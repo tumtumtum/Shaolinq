@@ -13,6 +13,9 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract Sex Sex { get; set; }
 
+		[PersistedMember]
+		public abstract bool Overseas { get; set; }
+
 		[AutoIncrement]
 		[PersistedMember]
 		public abstract long SerialNumber1 { get; set; }

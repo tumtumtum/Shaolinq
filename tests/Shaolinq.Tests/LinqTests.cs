@@ -2661,9 +2661,31 @@ namespace Shaolinq.Tests
 		}
 
 	    [Test]
-	    public void Test_AsyncRead()
+	    public void Test_Bool()
 	    {
-	        
+		    Guid id;
+
+		    using (var scope = NewTransactionScope())
+		    {
+			    var student = this.model.Students.Create();
+
+			    student.School = this.model.Schools.Single(c => c.Name == "Bruce's Kung Fu School");
+
+				student.Overseas = true;
+
+			    scope.Save();
+
+			    id = student.Id;
+
+			    scope.Complete();
+		    }
+
+		    using (var scope = NewTransactionScope())
+		    {
+			    var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
+
+			    Assert.IsNotNull(student);
+		    }
 	    }
 	}
 }

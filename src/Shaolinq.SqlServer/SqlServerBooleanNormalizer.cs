@@ -85,7 +85,7 @@ namespace Shaolinq.SqlServer
 
 		        if (right.Type.GetUnwrappedNullableType() == typeof(bool) && (right is BitBooleanExpression))
 		        {
-		            right = Expression.Equal(right, Expression.Constant(false));
+		            right = Expression.Equal(right, Expression.Constant(true));
 		        }
 
 		        if (left != binaryExpression.Left || right != binaryExpression.Right)

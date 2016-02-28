@@ -381,8 +381,7 @@ namespace Shaolinq.Persistence.Computed
 						{
 							bindingFlags |= BindingFlags.Instance;
 						}
-
-
+						
 						if (identifier == "value" && current == this.targetObject)
 						{
 							current = Expression.Property(current, this.propertyInfo);

@@ -222,12 +222,12 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
-			if (disposed)
+			if (this.disposed)
 			{
 				throw new ObjectDisposedException(nameof(DataAccessScope));
 			}
 
-			disposed = true;
+			this.disposed = true;
 
 			if (this.complete)
 			{
