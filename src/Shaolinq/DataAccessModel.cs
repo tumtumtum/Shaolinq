@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
@@ -80,6 +82,7 @@ namespace Shaolinq
 		private Dictionary<RuntimeTypeHandle, Func<IQueryable>> createDataAccessObjectsFuncs = new Dictionary<RuntimeTypeHandle, Func<IQueryable>>();
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>>();
+		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>> inflateAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>();
 		private Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>();
 
 		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
@@ -771,7 +774,7 @@ namespace Shaolinq
 			{
 				var definitionType = Type.GetTypeFromHandle(definitionTypeHandle);
 				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");
-				var methodInfo = MethodInfoFastRef.DataAccessModelGenericInflateMethod.MakeGenericMethod(definitionType);
+				var methodInfo = MethodInfoFastRef.DataAccessModelGenericInflateHelperMethod.MakeGenericMethod(definitionType);
 				var body = Expression.Call(Expression.Constant(this), methodInfo, Expression.Convert(parameter, definitionType));
 
 				var lambda = Expression.Lambda<Func<DataAccessObject, DataAccessObject>>(body, parameter);
@@ -789,7 +792,40 @@ namespace Shaolinq
 			return func(dataAccessObject);
 		}
 
-		protected internal T Inflate<T>(T obj)
+		protected internal async Task<DataAccessObject> InflateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
+		{
+			if (dataAccessObject == null)
+			{
+				throw new ArgumentNullException(nameof(dataAccessObject));
+			}
+
+			Func<DataAccessObject, CancellationToken, Task<DataAccessObject>> func;
+			var definitionTypeHandle = dataAccessObject.GetAdvanced().DefinitionType.TypeHandle;
+
+			if (!this.inflateAsyncFuncsByType.TryGetValue(definitionTypeHandle, out func))
+			{
+				var definitionType = Type.GetTypeFromHandle(definitionTypeHandle);
+				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");
+				var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
+				var methodInfo = MethodInfoFastRef.DataAccessModelGenericInflateAsyncHelperMethod.MakeGenericMethod(definitionType);
+				var body = Expression.Call(Expression.Constant(this), methodInfo, Expression.Convert(parameter, definitionType), cancellationTokenParameter);
+
+				var lambda = Expression.Lambda<Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>(body, parameter, cancellationTokenParameter);
+
+				func = lambda.Compile();
+
+				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>(this.inflateAsyncFuncsByType)
+				{
+					[definitionTypeHandle] = func
+				};
+
+				this.inflateAsyncFuncsByType = newDictionary;
+			}
+
+			return await func(dataAccessObject, cancellationToken);
+		}
+
+		internal T InflateHelper<T>(T obj)
 			where T : DataAccessObject
 		{
 			if (!obj.IsDeflatedReference())
@@ -799,6 +835,24 @@ namespace Shaolinq
 
 			var retval = this.GetDataAccessObjects<T>().FirstOrDefault(c => c == obj);
 			
+			if (retval == null)
+			{
+				throw new MissingDataAccessObjectException(obj);
+			}
+
+			return retval;
+		}
+
+		internal async Task<DataAccessObject> InflateAsyncHelper<T>(T obj, CancellationToken cancellationToken)
+			where T : DataAccessObject
+		{
+			if (!obj.IsDeflatedReference())
+			{
+				return obj;
+			}
+
+			var retval = await this.GetDataAccessObjects<T>().FirstOrDefaultAsync(c => c == obj, cancellationToken);
+
 			if (retval == null)
 			{
 				throw new MissingDataAccessObjectException(obj);

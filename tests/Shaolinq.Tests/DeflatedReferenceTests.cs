@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
@@ -641,6 +642,22 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			Func<Task> func = async delegate
+			{
+				using (var scope = new TransactionScope())
+				{
+					var student = this.model.Students.GetReference(studentId);
+
+					Assert.IsTrue(student.IsDeflatedReference());
+
+					await student.InflateAsync();
+
+					Assert.IsFalse(student.IsDeflatedReference());
+				}
+			};
+
+			func().ConfigureAwait(false).GetAwaiter().GetResult();
 
 			using (var scope = new TransactionScope())
 			{

@@ -2,6 +2,8 @@
 
 using System;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
@@ -34,6 +36,40 @@ namespace Shaolinq
 			// ReSharper disable SuspiciousTypeConversion.Global
 			return (IDataAccessObjectInternal)value;
 			// ReSharper restore SuspiciousTypeConversion.Global
+		}
+
+		public static T Inflate<T>(this T dataAccessObject)
+			where T : DataAccessObject
+		{
+			if (!((IDataAccessObjectAdvanced)dataAccessObject).IsDeflatedReference)
+			{
+				return dataAccessObject;
+			}
+
+			var inflated = dataAccessObject.dataAccessModel.Inflate((DataAccessObject)dataAccessObject);
+			dataAccessObject.ToObjectInternal().SwapData(inflated, true);
+
+			return dataAccessObject;
+		}
+
+		public static Task<T> InflateAsync<T>(this T dataAccessObject)
+			where T : DataAccessObject
+		{
+			return dataAccessObject.InflateAsync<T>(CancellationToken.None);
+		}
+
+		public static async Task<T> InflateAsync<T>(this T dataAccessObject, CancellationToken cancellationToken)
+			where T : DataAccessObject
+		{
+			if (!((IDataAccessObjectAdvanced)dataAccessObject).IsDeflatedReference)
+			{
+				return dataAccessObject;
+			}
+
+			var inflated = await dataAccessObject.dataAccessModel.InflateAsync((DataAccessObject)dataAccessObject, cancellationToken);
+			dataAccessObject.ToObjectInternal().SwapData(inflated, true);
+
+			return dataAccessObject;
 		}
 	}
 }

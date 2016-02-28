@@ -225,8 +225,7 @@ namespace Shaolinq
 		public void Fail()
 		{
 			this.complete = false;
-			this.transaction.CheckAborted();
-
+			
 			if (this.transaction != null)
 			{
 				this.transaction.Rollback();

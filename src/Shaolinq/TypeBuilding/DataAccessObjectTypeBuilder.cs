@@ -910,7 +910,7 @@ namespace Shaolinq.TypeBuilding
 							generator.Emit(OpCodes.Brtrue, label);
 
 							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Callvirt, this.typeDescriptor.Type.GetMethod("Inflate", BindingFlags.Instance | BindingFlags.Public));
+							generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => default(DataAccessObject).Inflate<DataAccessObject>()));
 							generator.Emit(OpCodes.Pop);
 						}
 					}

@@ -36,17 +36,9 @@ namespace Shaolinq
 		public bool IsDeflatedReference() => ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
 		public SqlDatabaseContext GetDatabaseConnection() => this.GetDataAccessModel().GetCurrentSqlDatabaseContext();
 
-		public virtual DataAccessObject Inflate()
+		DataAccessObject IDataAccessObjectAdvanced.Inflate()
 		{
-			if (!((IDataAccessObjectAdvanced)this).IsDeflatedReference)
-			{
-				return this;
-			}
-
-			var inflated = this.dataAccessModel.Inflate(this);
-			this.ToObjectInternal().SwapData(inflated, true);
-
-			return this;
+			return this.Inflate();
 		}
 
 		public virtual void Delete()

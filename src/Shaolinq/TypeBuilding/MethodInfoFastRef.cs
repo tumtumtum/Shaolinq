@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
@@ -32,7 +33,8 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => ((DataAccessObject)null).Include(c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumParseMethod = TypeUtils.GetMethod(() => Enum.Parse(typeof(Enum), default(string)));
 		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(new object[0])).GetGenericMethodDefinition();
-		public static readonly MethodInfo DataAccessModelGenericInflateMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.Inflate<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessModelGenericInflateHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateHelper<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessModelGenericInflateAsyncHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateAsyncHelper<DataAccessObject>(default(DataAccessObject), CancellationToken.None)).GetGenericMethodDefinition();
 		public static readonly MethodInfo GuidEqualsMethod = TypeUtils.GetMethod<Guid>(c => c.Equals(Guid.Empty));
 		public static readonly MethodInfo GuidNewGuidMethod = TypeUtils.GetMethod(() => Guid.NewGuid());
 		public static readonly MethodInfo StringExtensionsIsLikeMethod = TypeUtils.GetMethod(() => string.Empty.IsLike(default(string)));
