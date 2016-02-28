@@ -792,7 +792,7 @@ namespace Shaolinq
 			return func(dataAccessObject);
 		}
 
-		protected internal async Task<DataAccessObject> InflateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
+		protected internal Task<DataAccessObject> InflateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
 		{
 			if (dataAccessObject == null)
 			{
@@ -822,7 +822,7 @@ namespace Shaolinq
 				this.inflateAsyncFuncsByType = newDictionary;
 			}
 
-			return await func(dataAccessObject, cancellationToken);
+			return func(dataAccessObject, cancellationToken);
 		}
 
 		internal T InflateHelper<T>(T obj)

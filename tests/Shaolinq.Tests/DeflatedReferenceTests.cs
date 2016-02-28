@@ -645,7 +645,7 @@ namespace Shaolinq.Tests
 
 			Func<Task> func = async delegate
 			{
-				using (var scope = new TransactionScope())
+				using (var scope = new DataAccessScope())
 				{
 					var student = this.model.Students.GetReference(studentId);
 
