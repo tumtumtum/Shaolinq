@@ -233,6 +233,11 @@ namespace Shaolinq
 			}
 		}
 
+		public SqlTransactionalCommandsContext GetCurrentSqlDataTransactionContext(DataAccessModel model)
+		{
+			return model.GetCurrentSqlDatabaseTransactionContext();
+		}
+		
 		public void Dispose()
 		{
 			if (this.disposed)
