@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
+using Platform;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -113,18 +114,15 @@ namespace Shaolinq
 
 			if (this.dataAccessModelsByTransactionContext != null)
 			{
-				try
+				if (this.SystemTransaction != null)
 				{
-					foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
-					{
-						try { transactionContext.Rollback(); } catch { }
-					}
+					this.SystemTransaction.Rollback();
 				}
-				finally
+				else
 				{
 					foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
 					{
-						try { transactionContext.Dispose(); } catch { }
+						ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
 					}
 				}
 			}
@@ -138,7 +136,7 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
 				{
-					try { transactionContext.Dispose(); } catch { }
+					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
 				}
 			}
 

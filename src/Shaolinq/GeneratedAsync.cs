@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
+using Platform;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
@@ -17,7 +18,6 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.TypeBuilding;
-using Platform;
 using System.Reflection;
 using System.Configuration;
 using System.Diagnostics;
@@ -179,30 +179,15 @@ namespace Shaolinq
             this.aborted = true;
             if (this.dataAccessModelsByTransactionContext != null)
             {
-                try
+                if (this.SystemTransaction != null)
                 {
-                    foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
-                    {
-                        try
-                        {
-                            await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                        }
-                        catch
-                        {
-                        }
-                    }
+                    this.SystemTransaction.Rollback();
                 }
-                finally
+                else
                 {
                     foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
                     {
-                        try
-                        {
-                            transactionContext.Dispose();
-                        }
-                        catch
-                        {
-                        }
+                        ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
                     }
                 }
             }
@@ -1413,7 +1398,7 @@ namespace Shaolinq
         {
             if (this.disposed)
             {
-                throw new ObjectDisposedException(nameof(TransactionContext));
+                return;
             }
 
             try
@@ -1449,14 +1434,14 @@ namespace Shaolinq
         {
             if (this.disposed)
             {
-                throw new ObjectDisposedException(nameof(TransactionContext));
+                return;
             }
 
             try
             {
                 foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
                 {
-                    await commandsContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    ActionUtils.IgnoreExceptions(() => commandsContext.Rollback());
                 }
             }
             finally

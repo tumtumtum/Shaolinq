@@ -355,7 +355,7 @@ namespace Shaolinq
 		{
 			if (this.disposed)
 			{
-				throw new ObjectDisposedException(nameof(TransactionContext));
+				return;
 			}
 
 			try
@@ -372,7 +372,7 @@ namespace Shaolinq
 		{
 			if (this.disposed)
 			{
-				throw new ObjectDisposedException(nameof(TransactionContext));
+				return;
 			}
 
 			try
@@ -403,7 +403,7 @@ namespace Shaolinq
 		{
 			if (this.disposed)
 			{
-				throw new ObjectDisposedException(nameof(TransactionContext));
+				return;
 			}
 
 			try
@@ -435,7 +435,7 @@ namespace Shaolinq
 		{
 			if (this.disposed)
 			{
-				throw new ObjectDisposedException(nameof(TransactionContext));
+				return;
 			}
 
 			var dispose = true;
@@ -480,14 +480,14 @@ namespace Shaolinq
 		{
 			if (this.disposed)
 			{
-				throw new ObjectDisposedException(nameof(TransactionContext));
+				return;
 			}
 
 			try
 			{
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
 				{
-					commandsContext.Rollback();
+					ActionUtils.IgnoreExceptions(() => commandsContext.Rollback());
 				}
 			}
 			finally
@@ -500,7 +500,7 @@ namespace Shaolinq
 		{
 			if (this.disposed)
 			{
-				throw new ObjectDisposedException(nameof(TransactionContext));
+				return;
 			}
 
 			try

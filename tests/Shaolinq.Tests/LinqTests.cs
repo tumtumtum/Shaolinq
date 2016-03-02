@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using NUnit.Framework;
 using Platform;
 using Shaolinq.Tests.TestModel;
@@ -2703,5 +2704,20 @@ namespace Shaolinq.Tests
 				}
 			}
 	    }
+
+		[Test, ExpectedException(typeof(TransactionAbortedException))]
+		public void Test_Rollback_DataAccessScope_Inside_TransactionScope()
+		{
+			using (var scope = new TransactionScope())
+			{
+				using (var scope2 = new TransactionScope())
+				{
+					using (var dataAccessScope = DataAccessScope.CreateReadCommitted())
+					{
+						model.Students.SingleOrDefault(c => c.Id == null);
+					}
+				}
+			}
+		}
 	}
 }
