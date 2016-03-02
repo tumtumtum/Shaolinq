@@ -114,16 +114,9 @@ namespace Shaolinq
 
 			if (this.dataAccessModelsByTransactionContext != null)
 			{
-				if (this.SystemTransaction != null)
+				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
 				{
-					this.SystemTransaction.Rollback();
-				}
-				else
-				{
-					foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
-					{
-						ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
-					}
+					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
 				}
 			}
 		}

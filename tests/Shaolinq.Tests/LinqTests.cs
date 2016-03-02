@@ -2705,7 +2705,7 @@ namespace Shaolinq.Tests
 			}
 	    }
 
-		[Test, ExpectedException(typeof(TransactionAbortedException))]
+		[Test]
 		public void Test_Rollback_DataAccessScope_Inside_TransactionScope()
 		{
 			using (var scope = new TransactionScope())

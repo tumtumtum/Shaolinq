@@ -181,7 +181,7 @@ namespace Shaolinq
             {
                 if (this.SystemTransaction != null)
                 {
-                    this.SystemTransaction.Rollback();
+                //this.SystemTransaction.Rollback();
                 }
                 else
                 {
