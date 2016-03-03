@@ -1,12 +1,11 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
 using Shaolinq.TypeBuilding;
 
-namespace Shaolinq.Persistence.Linq
+namespace Shaolinq.Persistence.Linq.Optimizers
 {
 	public class SqlProjectionSelectExpander
 		: SqlExpressionVisitor

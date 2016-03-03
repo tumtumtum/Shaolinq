@@ -48,7 +48,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
 		{
-			expression = ConditionalMethodsToWhereConverter.Convert(expression);
+			expression = SqlPredicateToWhereConverter.Convert(expression);
 			expression = QueryableIncludeExpander.Expand(expression);
 			var joinExpanderResults = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
@@ -298,6 +298,49 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return projection;
+		}
+
+		private Expression BindAll(Expression source, LambdaExpression predicate, bool isRoot)
+		{
+			const string columnName = "EXISTS_COL";
+
+			predicate = Expression.Lambda(Expression.Not(predicate.Body), predicate.Parameters);
+			source = this.BindWhere(source.Type, source, predicate, false);
+
+			if (isRoot)
+			{
+				this.rootExpression = source;
+			}
+
+			var functionExpression = Expression.Not(new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(source)));
+
+			if (this.selectorPredicateStack.Count > 0)
+			{
+				return functionExpression;
+			}
+
+			var alias = this.GetNextAlias();
+			var selectType = typeof(IEnumerable<>).MakeGenericType(typeof(bool));
+
+			var select = new SqlSelectExpression
+			(
+				selectType,
+				alias,
+				new[] { new SqlColumnDeclaration(columnName, functionExpression) },
+				null,
+				null,
+				null,
+				false
+			);
+
+			var retval = (Expression)new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
+
+			if (isRoot)
+			{
+				retval = GetSingletonSequence(retval, "SingleOrDefault");
+			}
+
+			return retval;
 		}
 
 		private Expression BindAny(Expression source, bool isRoot)
@@ -920,6 +963,8 @@ namespace Shaolinq.Persistence.Linq
 					return result;
 				case "Any":
 					return this.BindAny(methodCallExpression.Arguments[0], methodCallExpression == this.rootExpression);
+				case "All":
+					return this.BindAll(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), methodCallExpression == this.rootExpression);
 				case "Count":
 				case "LongCount":
 				case "Min":

@@ -204,6 +204,8 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ProjectionAsyncRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeleteNormalizer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlPredicateToWhereConverter.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlProjectionSelectExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlTupleOrAnonymousTypeComparisonExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlNullComparisonCoalescer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
@@ -225,7 +227,6 @@
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
-    <Compile Include="Persistence\Linq\ConditionalMethodsToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />
     <Compile Include="Persistence\Linq\ExpressionExtensions.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlExpressionEqualityComparer.cs" />
@@ -234,7 +235,6 @@
     <Compile Include="Persistence\Linq\Expressions\SqlPragmaExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlSetCommandExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTableOption.cs" />
-    <Compile Include="Persistence\Linq\SqlProjectionSelectExpander.cs" />
     <Compile Include="Persistence\Linq\LeftRightJoinInfo.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlEnumTypeNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlExistsSubqueryOptimizer.cs" />

@@ -2629,9 +2629,46 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Any_On_DAOs_With_Predicate()
 		{
+			Func<Task> func = async delegate
+			{
+				using (var scope = NewTransactionScope())
+				{
+					var result1 = await this.model.Students.AnyAsync(c => c.Email != null);
+					var result2 = this.model.Students.ToList().Any(c => c.Email != null);
+
+					Assert.AreEqual(result2, result1);
+				}
+			};
+
+			func().GetAwaiter().GetResult();
+		}
+
+		[Test]
+		public void Test_All_On_DAOs_With_Predicate()
+		{
+			Func<Task> func = async delegate
+			{
+				using (var scope = NewTransactionScope())
+				{
+					var result1 = await this.model.Students.AllAsync(c => c.Email == null);
+					var result2 = this.model.Students.ToList().All(c => c.Email == null);
+
+					Assert.AreEqual(result2, result1);
+				}
+			};
+
+			func().GetAwaiter().GetResult();
+		}
+
+		[Test]
+		public void Test_All_On_DAOs_With_Predicate2()
+		{
 			using (var scope = NewTransactionScope())
 			{
-				var result = this.model.Students.Any(c => c.Email != null);
+				var result1 = this.model.Students.All(c => c.Firstname != null && c.Firstname != "George");
+				var result2 = this.model.Students.ToList().All(c => c.Firstname != null && c.Firstname != "George");
+
+				Assert.AreEqual(result2, result1);
 			}
 		}
 

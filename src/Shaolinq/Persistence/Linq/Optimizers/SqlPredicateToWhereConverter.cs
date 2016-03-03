@@ -4,14 +4,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.TypeBuilding;
 
-namespace Shaolinq.Persistence.Linq
+namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class ConditionalMethodsToWhereConverter
+	public class SqlPredicateToWhereConverter
 		: SqlExpressionVisitor
 	{
 		public static Expression Convert(Expression expression)
 		{
-			return new ConditionalMethodsToWhereConverter().Visit(expression);
+			return new SqlPredicateToWhereConverter().Visit(expression);
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
@@ -41,7 +41,6 @@ namespace Shaolinq.Persistence.Linq
 						{
 							methodName = "Any";
 							var param = Expression.Parameter(methodCallExpression.Arguments[1].Type);
-
 							var body = Expression.Equal(param, methodCallExpression.Arguments[1]);
 
 							arg1 = Expression.Lambda(body, param);
