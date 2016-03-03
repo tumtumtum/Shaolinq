@@ -2631,7 +2631,7 @@ namespace Shaolinq.Tests
 		{
 			Func<Task> func = async delegate
 			{
-				using (var scope = NewTransactionScope())
+				using (var scope = DataAccessScope.CreateReadCommitted())
 				{
 					var result1 = await this.model.Students.AnyAsync(c => c.Email != null);
 					var result2 = this.model.Students.ToList().Any(c => c.Email != null);
@@ -2648,7 +2648,7 @@ namespace Shaolinq.Tests
 		{
 			Func<Task> func = async delegate
 			{
-				using (var scope = NewTransactionScope())
+				using (var scope = DataAccessScope.CreateReadCommitted())
 				{
 					var result1 = await this.model.Students.AllAsync(c => c.Email == null);
 					var result2 = this.model.Students.ToList().All(c => c.Email == null);
