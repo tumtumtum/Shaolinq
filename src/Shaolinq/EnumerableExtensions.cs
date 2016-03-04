@@ -16,8 +16,8 @@ namespace Shaolinq
 	    [RewriteAsync]
 	    internal static T AlwaysReadFirst<T>(this IEnumerable<T> enumerable)
 	    {
-			return enumerable.First();
-		}
+		    return enumerable.First();
+	    }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> enumerable, T? specifiedValue)

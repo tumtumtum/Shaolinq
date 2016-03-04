@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Persistence;
@@ -128,7 +129,31 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
-	
+
+		[Test]
+		public void Test_DeleteAsync()
+		{
+			Func<Task> func = async delegate
+			{
+				using (var scope = new DataAccessScope())
+				{
+					var school = this.model.Schools.Create();
+
+					await scope.FlushAsync();
+
+					var id = school.Id;
+
+					await this.model.Schools.Where(c => c.Id == id).DeleteAsync();
+
+					await scope.CompleteAsync();
+				}
+			};
+
+			var task = Task.Run(func);
+
+			task.GetAwaiter().GetResult();
+		}
+
 		[Test]
 		public void Test_Object_Deleted_Flushed_Still_Deleted()
 		{

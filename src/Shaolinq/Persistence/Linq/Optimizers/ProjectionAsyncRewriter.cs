@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Platform;
@@ -141,7 +142,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					var name = methodCallExpression.Method.Name + "Async";
 					var paramTypes = methodParameters.Select(c => c.ParameterType).Concat(typeof(CancellationToken));
 					var asyncMethods = typeof(EnumerableExtensions)
-						.GetMethods()
+						.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)
 						.Where(c => c.Name == name)
 						.Where(c => c.IsGenericMethod)
 						.Where(c => c.GetGenericArguments().Length == 1)
