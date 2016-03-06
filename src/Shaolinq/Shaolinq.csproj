@@ -152,6 +152,7 @@
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="NativeAsyncLocal.cs" />
+    <Compile Include="Persistence\Computed\ComputedExpressionKeyword.cs" />
     <Compile Include="Persistence\DbCommandExtensions.cs" />
     <Compile Include="Persistence\DataReaderExtensions.cs" />
     <Compile Include="Persistence\DataReaderWRapper.cs" />

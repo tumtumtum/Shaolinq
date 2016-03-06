@@ -26,6 +26,11 @@ namespace Shaolinq.Tests
 			{
 				return 101;
 			}
+
+			public static string Make<T>(object x, T value)
+			{
+				return value.ToString();
+			}
 		}
 
 		[Test]
@@ -60,6 +65,16 @@ namespace Shaolinq.Tests
 			var result = parser.Parse();
 
 			Assert.AreEqual(4, result.Compile().DynamicInvoke(new TestObject()));
+		}
+
+		[Test]
+		public void TestParse4()
+		{
+			var parser = new ComputedExpressionParser(new StringReader("A = Shaolinq.Tests.ComputedExpressionParserTests.TestObject.Make(this, 1).GetHashCode()"), typeof(TestObject).GetProperty("A"));
+
+			var result = parser.Parse();
+
+			Assert.AreEqual("1".GetHashCode(), result.Compile().DynamicInvoke(new TestObject()));
 		}
 	}
 }

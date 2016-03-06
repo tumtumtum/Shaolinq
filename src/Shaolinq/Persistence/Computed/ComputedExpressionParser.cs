@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence.Computed
@@ -34,7 +33,7 @@ namespace Shaolinq.Persistence.Computed
 
 			foreach (var x in loadedTypes)
 			{
-				typesByFullName[x.FullName] = x;
+				typesByFullName[x.FullName.Replace("+", ".")] = x;
 			}
 		}
 
@@ -327,15 +326,68 @@ namespace Shaolinq.Persistence.Computed
 				break;
 			}
 
-			if (target.NodeType == ExpressionType.Constant
-				&& (target as ConstantExpression)?.Value == null)
+			this.Consume();
+
+			if (target.NodeType == ExpressionType.Constant && (target as ConstantExpression)?.Value == null)
 			{
-				return Expression.Call(target.Type, methodName, null, arguments.ToArray());
+				var method = FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), true);
+
+				return Expression.Call(method, arguments.ToArray());
 			}
 			else
 			{
-				return Expression.Call(target, methodName, null, arguments.ToArray());
+				var method = FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), false);
+
+				return Expression.Call(target, method, arguments.ToArray());
 			}
+		}
+		
+		private MethodInfo FindMatchingMethod(Type type, string methodName, Type[] argumentTypes, bool isStatic)
+		{
+			var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
+
+			var match = type.GetMethod(methodName, bindingFlags, null, argumentTypes, null);
+
+			if (match != null)
+			{
+				return match;
+			}
+
+			var methods = type
+				.GetMethods(bindingFlags)
+				.Where(c => c.Name == methodName)
+				.Where(c => c.IsGenericMethod)
+				.Where(c => c.GetParameters().Length == argumentTypes.Length);
+
+			foreach (var method in methods)
+			{
+				var parameters = method.GetParameters();
+				var genericArgs = method.GetGenericArguments();
+				var newArgs = (Type[])argumentTypes.Clone();
+				var realisedGenericArgs = new List<Type>();
+
+				foreach (var genericArg in genericArgs)
+				{
+					var index = Array.FindIndex(parameters, c => c.ParameterType == genericArg);
+
+					if (index >= 0 && parameters[index].ParameterType.GetGenericParameterConstraints().All(c => c.IsAssignableFrom(argumentTypes[index])))
+					{
+						realisedGenericArgs.Add(newArgs[index]);
+						newArgs[index] = parameters[index].ParameterType;
+					}
+				}
+
+				match = type.GetMethod(methodName, bindingFlags, null, newArgs, null);
+
+				if (match != null)
+				{
+					match = match.MakeGenericMethod(realisedGenericArgs.ToArray());
+
+					return match;
+				}
+			}
+
+			return null;
 		}
 		
 		protected Expression ParseOperand()
@@ -354,7 +406,7 @@ namespace Shaolinq.Persistence.Computed
 			var identifierStack = new Stack<string>();
 			Expression current = this.targetObject;
 
-			if (this.token == ComputedExpressionToken.Identifier)
+			if (this.token == ComputedExpressionToken.Identifier || (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.This))
 			{
 				while (true)
 				{
@@ -362,11 +414,14 @@ namespace Shaolinq.Persistence.Computed
 
 					this.Consume();
 
+					if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.This)
+					{
+						continue;
+					}
+
 					if (this.token == ComputedExpressionToken.LeftParen)
 					{
 						current = this.ParseMethodCall(current, identifier);
-
-						identifierStack.Push(identifier);
 					}
 					else
 					{

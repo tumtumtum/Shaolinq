@@ -17,6 +17,7 @@ namespace Shaolinq.Persistence.Computed
 		public long CurrentInteger { get; private set; }
 		public string CurrentKey => this.CurrentIdentifier;
 		public ComputedExpressionToken CurrentToken { get; private set; }
+		public ComputedExpressionKeyword CurrentKeyword { get; private set; }
 
 		public bool CurrentTokenMatches(params ComputedExpressionToken[] tokens)
 		{
@@ -223,10 +224,19 @@ namespace Shaolinq.Persistence.Computed
 					this.ConsumeChar();
 				}
 
+				ComputedExpressionKeyword keyword;;
 				var s = this.stringBuilder.ToString();
 
-				this.CurrentToken = ComputedExpressionToken.Identifier;
-				this.CurrentIdentifier = s;
+				if (Enum.TryParse(s, true, out keyword))
+				{
+					this.CurrentToken = ComputedExpressionToken.Keyword;
+					this.CurrentKeyword = keyword;
+				}
+				else
+				{
+					this.CurrentToken = ComputedExpressionToken.Identifier;
+					this.CurrentIdentifier = s;
+				}
 
 				return this.CurrentToken;
 			}

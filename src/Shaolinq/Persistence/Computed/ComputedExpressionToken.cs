@@ -6,6 +6,7 @@ namespace Shaolinq.Persistence.Computed
 	{
 		IntegerLiteral,
 		StringLiteral,
+		Keyword,
 		Semicolon,
 		Period,
 		Assign,
