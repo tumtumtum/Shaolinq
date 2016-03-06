@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence.Computed
@@ -308,9 +309,11 @@ namespace Shaolinq.Persistence.Computed
 
 			this.Consume();
 
-			if (target.NodeType == ExpressionType.Constant && (target as ConstantExpression)?.Value == null)
+			if (target.NodeType == ExpressionType.Constant && target.Type == typeof(TypeHolder))
 			{
-				var method = FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), true);
+				var type = ((target as ConstantExpression).Value as TypeHolder).Type;
+
+				var method = FindMatchingMethod(type, methodName, arguments.Select(c => c.Type).ToArray(), true);
 
 				if (method == null)
 				{
@@ -406,6 +409,16 @@ namespace Shaolinq.Persistence.Computed
 			return false;
 		}
 
+		private class TypeHolder
+		{
+			public Type Type { get; set; }
+
+			public TypeHolder(Type type)
+			{
+				this.Type = type;
+			}
+		}
+
 		protected Expression ParseOperand()
 		{
 			if (this.token == ComputedExpressionToken.LeftParen)
@@ -449,7 +462,7 @@ namespace Shaolinq.Persistence.Computed
 
 						current = current ?? this.targetObject;
 						
-						if (current.NodeType == ExpressionType.Constant && (current as ConstantExpression)?.Value == null)
+						if (current.NodeType == ExpressionType.Constant && current.Type == typeof(TypeHolder))
 						{
 							bindingFlags |= BindingFlags.Static;
 						}
@@ -458,16 +471,21 @@ namespace Shaolinq.Persistence.Computed
 							bindingFlags |= BindingFlags.Instance;
 						}
 
+						MemberInfo member;
+
 						if (identifier == "value" && current == this.targetObject)
 						{
 							current = Expression.Property(current, this.propertyInfo);
 							identifierStack.Clear();
 							identifierStack.Push(identifier);
 						}
-						else if (current.Type.GetProperty(identifier, bindingFlags) != null
-								 || current.Type.GetField(identifier, bindingFlags) != null)
+						else if ((member = current.Type.GetProperty(identifier, bindingFlags)) != null
+								 || (member = current.Type.GetField(identifier, bindingFlags)) != null)
 						{
-							current = Expression.PropertyOrField(current, identifier);
+							var expression = (bindingFlags & BindingFlags.Static) != 0 ? null : current;
+
+							current = Expression.MakeMemberAccess(expression, member);
+
 							identifierStack.Clear();
 							identifierStack.Push(identifier);
 						}
@@ -478,7 +496,7 @@ namespace Shaolinq.Persistence.Computed
 
 							identifierStack.Push(identifier);
 
-							if (current.NodeType == ExpressionType.Constant && (current as ConstantExpression)?.Value == null && current.Type.FullName == fullIdentifierName)
+							if (current.NodeType == ExpressionType.Constant && ((current as ConstantExpression).Value as TypeHolder)?.Type.FullName == fullIdentifierName)
 							{
 								fullIdentifierName += (fullIdentifierName == "" ? "" : "+") + identifierStack.First();
 							}
@@ -489,13 +507,13 @@ namespace Shaolinq.Persistence.Computed
 
 							if (TryGetType(fullIdentifierName, out type))
 							{
-								current = Expression.Constant(null, type);
+								current = Expression.Constant(new TypeHolder(type));
 							}
 							else
 							{
 								if (currentWasNull)
 								{
-									current = Expression.Constant(null, this.targetObject.Type);
+									current = Expression.Constant(new TypeHolder(targetObject.Type));
 								}
 							}
 						}
