@@ -26,7 +26,18 @@ namespace Shaolinq.Persistence.Computed
 				AppDomain
 					.CurrentDomain
 					.GetAssemblies()
-					.SelectMany(c => c.GetTypes())
+					.SelectMany(c =>
+					{
+						try
+						{
+							return c.GetTypes();
+						}
+						catch (Exception)
+						{
+						}
+
+						return Type.EmptyTypes;
+					})
 			);
 			
 			typesByFullName = new Dictionary<string, Type>();
