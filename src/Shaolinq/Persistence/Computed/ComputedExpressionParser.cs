@@ -303,8 +303,6 @@ namespace Shaolinq.Persistence.Computed
 			{
 				if (this.token == ComputedExpressionToken.RightParen)
 				{
-					this.Consume();
-
 					break;
 				}
 
