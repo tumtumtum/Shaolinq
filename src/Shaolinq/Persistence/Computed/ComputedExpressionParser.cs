@@ -14,41 +14,11 @@ namespace Shaolinq.Persistence.Computed
 	{
 		private ComputedExpressionToken token;
 		private readonly PropertyInfo propertyInfo;
+		private readonly List<Assembly> referencedAssemblies;
 		private readonly ParameterExpression targetObject;
 		private readonly ComputedExpressionTokenizer tokenizer;
-		private static readonly HashSet<Type> loadedTypes;
-		private static readonly Dictionary<string, Type> typesByFullName;
-
-		static ComputedExpressionParser()
-		{
-			loadedTypes = new HashSet<Type>
-			(
-				AppDomain
-					.CurrentDomain
-					.GetAssemblies()
-					.SelectMany(c =>
-					{
-						try
-						{
-							return c.GetTypes();
-						}
-						catch (Exception)
-						{
-						}
-
-						return Type.EmptyTypes;
-					})
-			);
-			
-			typesByFullName = new Dictionary<string, Type>();
-
-			foreach (var x in loadedTypes)
-			{
-				typesByFullName[x.FullName.Replace("+", ".")] = x;
-			}
-		}
-
-		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo)
+		
+		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes = null)
 		{
 			if (propertyInfo.DeclaringType == null)
 			{
@@ -56,12 +26,13 @@ namespace Shaolinq.Persistence.Computed
 			}
 
 			this.propertyInfo = propertyInfo;
+			this.referencedAssemblies = new HashSet<Assembly>(referencedTypes?.Select(c => c.Assembly) ?? new Assembly[0]).ToList();
 			this.tokenizer = new ComputedExpressionTokenizer(reader);
 			this.targetObject = Expression.Parameter(propertyInfo.DeclaringType, "object");
 		}
 
-		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo) => new ComputedExpressionParser(reader, propertyInfo).Parse();
-		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo) => Parse(new StringReader(expressionText), propertyInfo);
+		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes) => new ComputedExpressionParser(reader, propertyInfo, referencedTypes).Parse();
+		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo, Type[] referencedTypes) => Parse(new StringReader(expressionText), propertyInfo, referencedTypes);
 
 		public void Consume()
 		{
@@ -341,11 +312,21 @@ namespace Shaolinq.Persistence.Computed
 			{
 				var method = FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), true);
 
+				if (method == null)
+				{
+					throw new InvalidOperationException($"Unable to find method named '{methodName}' in type {target.Type.FullName}");
+				}
+
 				return Expression.Call(method, arguments.ToArray());
 			}
 			else
 			{
 				var method = FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), false);
+
+				if (method == null)
+				{
+					throw new InvalidOperationException($"Unable to find method named '{methodName}' in type {target.Type.FullName}");
+				}
 
 				return Expression.Call(target, method, arguments.ToArray());
 			}
@@ -398,7 +379,33 @@ namespace Shaolinq.Persistence.Computed
 
 			return null;
 		}
-		
+
+		private bool TryGetType(string name, out Type value)
+		{
+			var type = Type.GetType(name);
+
+			if (type != null)
+			{
+				value = type;
+
+				return true;
+			}
+
+			foreach (var assembly in this.referencedAssemblies)
+			{
+				if ((type = assembly.GetType(name)) != null)
+				{
+					value = type;
+
+					return true;
+				}
+			}
+
+			value = null;
+
+			return false;
+		}
+
 		protected Expression ParseOperand()
 		{
 			if (this.token == ComputedExpressionToken.LeftParen)
@@ -413,9 +420,15 @@ namespace Shaolinq.Persistence.Computed
 			}
 
 			var identifierStack = new Stack<string>();
-			Expression current = this.targetObject;
+			Expression current = null;
 
-			if (this.token == ComputedExpressionToken.Identifier || (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.This))
+			if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.This)
+			{
+				current = this.targetObject;
+				this.Consume();
+			}
+			
+			if (this.token == ComputedExpressionToken.Identifier)
 			{
 				while (true)
 				{
@@ -423,21 +436,20 @@ namespace Shaolinq.Persistence.Computed
 
 					this.Consume();
 
-					if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.This)
-					{
-						continue;
-					}
-
 					if (this.token == ComputedExpressionToken.LeftParen)
 					{
+						current = current ?? this.targetObject;
+
 						current = this.ParseMethodCall(current, identifier);
 					}
 					else
 					{
 						var bindingFlags = BindingFlags.Public;
+						var currentWasNull = current == null;
 
-						if (current.NodeType == ExpressionType.Constant
-							&& (current as ConstantExpression)?.Value == null)
+						current = current ?? this.targetObject;
+						
+						if (current.NodeType == ExpressionType.Constant && (current as ConstantExpression)?.Value == null)
 						{
 							bindingFlags |= BindingFlags.Static;
 						}
@@ -445,7 +457,7 @@ namespace Shaolinq.Persistence.Computed
 						{
 							bindingFlags |= BindingFlags.Instance;
 						}
-						
+
 						if (identifier == "value" && current == this.targetObject)
 						{
 							current = Expression.Property(current, this.propertyInfo);
@@ -462,12 +474,29 @@ namespace Shaolinq.Persistence.Computed
 						else
 						{
 							Type type;
-							identifierStack.Push(identifier);
 							var fullIdentifierName = string.Join(".", identifierStack.Reverse());
 
-							if (typesByFullName.TryGetValue(fullIdentifierName, out type))
+							identifierStack.Push(identifier);
+
+							if (current.NodeType == ExpressionType.Constant && (current as ConstantExpression)?.Value == null && current.Type.FullName == fullIdentifierName)
+							{
+								fullIdentifierName += (fullIdentifierName == "" ? "" : "+") + identifierStack.First();
+							}
+							else
+							{
+								fullIdentifierName += (fullIdentifierName == "" ? "" : ".") + identifierStack.First();
+							}
+
+							if (TryGetType(fullIdentifierName, out type))
 							{
 								current = Expression.Constant(null, type);
+							}
+							else
+							{
+								if (currentWasNull)
+								{
+									current = Expression.Constant(null, this.targetObject.Type);
+								}
 							}
 						}
 					}
@@ -499,6 +528,10 @@ namespace Shaolinq.Persistence.Computed
 				this.Consume();
 
 				return Expression.Constant(this.tokenizer.CurrentString);
+			}
+			else if (current != null)
+			{
+				return current;
 			}
 			
 			throw new InvalidOperationException();

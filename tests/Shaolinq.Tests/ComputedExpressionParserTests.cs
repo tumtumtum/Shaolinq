@@ -60,7 +60,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void TestParse3()
 		{
-			var parser = new ComputedExpressionParser(new StringReader("A = Shaolinq.Tests.ComputedExpressionParserTests.Bar() + 1"), typeof(TestObject).GetProperty("A"));
+			var parser = new ComputedExpressionParser(new StringReader("A = Shaolinq.Tests.ComputedExpressionParserTests.Bar() + 1"), typeof(TestObject).GetProperty("A"), new[] { typeof(TestObject) });
 
 			var result = parser.Parse();
 

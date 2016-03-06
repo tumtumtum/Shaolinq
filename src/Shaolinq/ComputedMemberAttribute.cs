@@ -13,6 +13,7 @@ namespace Shaolinq
 	{
 		public string GetExpression { get; set; }
 		public string SetExpression { get; set; }
+		public Type[] ReferencedTypes { get; set; }
 		
         public ComputedMemberAttribute(string getExpression, string setExpression = null)
 		{
@@ -22,12 +23,12 @@ namespace Shaolinq
 
 		public LambdaExpression GetGetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo);
+			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, this.ReferencedTypes);
 		}
 
 		public LambdaExpression GetSetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo);
+			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, this.ReferencedTypes);
 		}
 	}
 }
