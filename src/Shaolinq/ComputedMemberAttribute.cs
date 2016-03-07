@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -15,37 +16,50 @@ namespace Shaolinq
 	{
 		public string GetExpression { get; set; }
 		public string SetExpression { get; set; }
+		public Type ReferencedType { get; set; }
 		public Type[] ReferencedTypes { get; set; }
 		
-		public ComputedMemberAttribute(string getExpression, string setExpression = null, params Type[] referencedTypes)
+		public ComputedMemberAttribute(string getExpression, string setExpression = null)
 		{
 			this.GetExpression = getExpression;
-			this.SetExpression = setExpression;
-			this.ReferencedTypes = referencedTypes;
+	        this.SetExpression = setExpression;
+		}
+
+		private Type[] GetReferencedTypes(PropertyInfo propertyInfo)
+		{
+			var referencedTypes = new List<Type>();
+
+			if (this.ReferencedTypes != null)
+			{
+				referencedTypes.AddRange(this.ReferencedTypes);
+			}
+
+			if (this.ReferencedType != null)
+			{
+				referencedTypes.Add(this.ReferencedType);
+			}
+
+			if (propertyInfo?.PropertyType != null)
+			{
+				referencedTypes.Add(propertyInfo.PropertyType);
+			}
+
+			if (propertyInfo?.DeclaringType != null)
+			{
+				referencedTypes.Add(propertyInfo.DeclaringType);
+			}
+
+			return referencedTypes.ToArray();
 		}
 
 		public LambdaExpression GetGetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			var referencedTypes = this.ReferencedTypes;
-
-			if (propertyInfo?.PropertyType != null && propertyInfo.DeclaringType != null)
-			{
-				referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
-			}
-
-			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, referencedTypes);
+			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, GetReferencedTypes(propertyInfo));
 		}
 
 		public LambdaExpression GetSetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			var referencedTypes = this.ReferencedTypes;
-
-			if (propertyInfo?.PropertyType != null && propertyInfo.DeclaringType != null)
-			{
-				referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
-			}
-
-			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, referencedTypes);
+			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, GetReferencedTypes(propertyInfo));
 		}
 	}
 }
