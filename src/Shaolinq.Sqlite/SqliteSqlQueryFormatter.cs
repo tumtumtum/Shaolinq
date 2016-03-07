@@ -105,21 +105,14 @@ namespace Shaolinq.Sqlite
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
-			switch (functionCallExpression.Function)
-			{
-				case SqlFunction.Year:
-				case SqlFunction.Week:
-				case SqlFunction.DayOfYear:
-				case SqlFunction.DayOfMonth:
-				case SqlFunction.DayOfWeek:
-				case SqlFunction.Minute:
-				case SqlFunction.Second:
-				case SqlFunction.Hour:
-					this.Write("(CAST (");
-					base.VisitFunctionCall(functionCallExpression);
-					this.Write(" AS INTEGER))");
+			if (functionCallExpression.Function >= SqlFunction.NumberBasedDatePartStart
+                && functionCallExpression.Function <= SqlFunction.NumberBasedDatePartStart)
+            {
+				this.Write("(CAST (");
+				base.VisitFunctionCall(functionCallExpression);
+				this.Write(" AS INTEGER))");
 
-					return functionCallExpression;
+				return functionCallExpression;
 			}
 
 			return base.VisitFunctionCall(functionCallExpression);
