@@ -5,7 +5,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public partial class DataAccessScope
+    public partial class DataAccessScope
 		: IDisposable
 	{
 		public DataAccessIsolationLevel IsolationLevel { get; set; }
@@ -132,21 +132,18 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync]
-		public void Flush()
-		{
-			Save();
-		}
-
-		[RewriteAsync]
-		public void Flush(DataAccessModel dataAccessModel)
-		{
-			Save(dataAccessModel);
-		}
-
-		[RewriteAsync]
-		public void Save()
-		{
+        /// <summary>
+        /// Flushes the current transaction for all <see cref="DataAccessModel"/> that have
+        /// participated in the current transaction
+        /// </summary>
+        /// <remarks>
+        /// Flushing a transaction writes any pending INSERTs, UPDATES and DELETES to the database
+        /// but does not commit the transaction. To commit the transaction you must call 
+        /// <see cref="Complete(ScopeCompleteOptions)"/>.
+        /// </remarks>
+        [RewriteAsync]
+        public void Flush()
+        {
 			this.transaction.CheckAborted();
 
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
@@ -158,9 +155,21 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync]
-		public void Save(DataAccessModel dataAccessModel)
-		{
+        /// <summary>
+        /// Flushes the current transaction for the given <paramref name="dataAccessModel"/>
+        /// </summary>
+        /// <remarks>
+        /// Flushing a transaction writes any pending INSERTs, UPDATES and DELETES to the database
+        /// but does not commit the transaction. To commit the transaction you must call 
+        /// <see cref="Complete(ScopeCompleteOptions)"/>.
+        /// </remarks>
+        /// <param name="dataAccessModel">
+        /// The <see cref="DataAccessModel"/> to flush if you only want to flush a single
+        /// DataAccessModel
+        /// </param>
+        [RewriteAsync]
+        public void Flush(DataAccessModel dataAccessModel)
+        {
 			this.transaction.CheckAborted();
 
 			if (!dataAccessModel.IsDisposed)
@@ -168,15 +177,55 @@ namespace Shaolinq
 				dataAccessModel.Flush();
 			}
 		}
-		
-		[RewriteAsync]
-		public void Complete()
+
+        /// <summary>
+        /// Flushes the current transaction and marks the scope as completed
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Flushing a scope commits 
+        /// </para>
+        /// <para>
+        /// By default all nested scopes auto-flush without commiting the transaction. You can
+        /// disable auto-flush by calling <see cref="Complete(ScopeCompleteOptions)"/>
+        /// </para>
+        /// </remarks>
+        [RewriteAsync]
+        public void Complete()
+        {
+            this.Complete(ScopeCompleteOptions.Default);
+        }
+
+        /// <summary>
+        /// Flushes the current transaction and marks the scope as completed
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Flushing a scope commits 
+        /// </para>
+        /// <para>
+        /// A scope is considered to have aborted if Complete is not called before the scope is disposed
+        /// The outer most scope flushes and commits the transaction when it is completed.
+        /// </para>
+        /// <para>
+        /// By default all nested scopes auto-flush without commiting the transaction. You can
+        /// disable auto-flush by calling <see cref="Complete(ScopeCompleteOptions)"/>
+        /// </para>
+        /// </remarks>
+        /// <param name="options">Set to <a cref="ScopeCompleteOptions.SuppressAutoFlush"/> to suppress auto-flush</param>
+        [RewriteAsync]
+		public void Complete(ScopeCompleteOptions options)
 		{
 			this.complete = true;
 
 			this.transaction.CheckAborted();
 
-			if (this.transaction == null)
+            if ((options & ScopeCompleteOptions.SuppressAutoFlush) != 0)
+            {
+                this.Flush();
+            }
+
+            if (this.transaction == null)
 			{
 				if (this.options == DataAccessScopeOptions.Suppress)
 				{
@@ -219,23 +268,6 @@ namespace Shaolinq
 					DataAccessTransaction.Current = null;
 				}
 			}
-		}
-
-		[RewriteAsync]
-		public void Fail()
-		{
-			this.complete = false;
-			
-			if (this.transaction != null)
-			{
-				this.transaction.Rollback();
-				this.transaction.Dispose();
-			}
-		}
-
-		public SqlTransactionalCommandsContext GetCurrentSqlDataTransactionContext(DataAccessModel model)
-		{
-			return model.GetCurrentSqlDatabaseTransactionContext();
 		}
 		
 		public void Dispose()

@@ -2675,7 +2675,7 @@ namespace Shaolinq.Tests
 
 				    student.Overseas = true;
 
-				    scope.Save();
+				    scope.Flush();
 
 				    id = student.Id;
 

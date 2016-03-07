@@ -38,7 +38,43 @@ namespace Shaolinq
 
     public static partial class QueryableExtensions
     {
-		[RewriteAsync(true)]
+        [RewriteAsync(true)]
+        private static bool Any<T>(this IQueryable<T> source)
+        {
+            Expression expression = Expression.Call
+            (
+                TypeUtils.GetMethod(() => Queryable.Any<T>(default(IQueryable<T>))),
+                source.Expression
+            );
+
+            return ((IQueryProvider)source.Provider).ExecuteEx<bool>(expression);
+        }
+
+        [RewriteAsync(true)]
+        private static bool Any<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+        {
+            Expression expression = Expression.Call
+            (
+                TypeUtils.GetMethod(() => QueryableExtensions.Any<T>(default(IQueryable<T>))),
+                Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+            );
+
+            return ((IQueryProvider)source.Provider).ExecuteEx<bool>(expression);
+        }
+
+        [RewriteAsync(true)]
+        private static bool All<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+        {
+            Expression expression = Expression.Call
+            (
+                TypeUtils.GetMethod(() => QueryableExtensions.All<T>(default(IQueryable<T>), default(Expression<Func<T, bool>>))),
+                source.Expression, Expression.Quote(predicate)
+            );
+
+            return ((IQueryProvider)source.Provider).ExecuteEx<bool>(expression);
+        }
+
+        [RewriteAsync(true)]
 		private static T First<T>(this IQueryable<T> source)
 		{
 			Expression expression = Expression.Call
