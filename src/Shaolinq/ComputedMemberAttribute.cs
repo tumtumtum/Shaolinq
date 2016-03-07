@@ -17,22 +17,33 @@ namespace Shaolinq
 		public string SetExpression { get; set; }
 		public Type[] ReferencedTypes { get; set; }
 		
-        public ComputedMemberAttribute(string getExpression, string setExpression = null)
+		public ComputedMemberAttribute(string getExpression, string setExpression = null, params Type[] referencedTypes)
 		{
 			this.GetExpression = getExpression;
-	        this.SetExpression = setExpression;
+			this.SetExpression = setExpression;
+			this.ReferencedTypes = referencedTypes;
 		}
 
 		public LambdaExpression GetGetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			var referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
+			var referencedTypes = this.ReferencedTypes;
+
+			if (propertyInfo?.PropertyType != null && propertyInfo.DeclaringType != null)
+			{
+				referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
+			}
 
 			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, referencedTypes);
 		}
 
 		public LambdaExpression GetSetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			var referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
+			var referencedTypes = this.ReferencedTypes;
+
+			if (propertyInfo?.PropertyType != null && propertyInfo.DeclaringType != null)
+			{
+				referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
+			}
 
 			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, referencedTypes);
 		}
