@@ -317,7 +317,7 @@ namespace Shaolinq.Persistence.Computed
 
 				if (method == null)
 				{
-					throw new InvalidOperationException($"Unable to find method named '{methodName}' in type {target.Type.FullName}");
+					throw new InvalidOperationException($"Unable to find static method named '{methodName}' in type {type}");
 				}
 
 				return Expression.Call(method, arguments.ToArray());
@@ -328,7 +328,7 @@ namespace Shaolinq.Persistence.Computed
 
 				if (method == null)
 				{
-					throw new InvalidOperationException($"Unable to find method named '{methodName}' in type {target.Type.FullName}");
+					throw new InvalidOperationException($"Unable to find instance method named '{methodName}' in type {target.Type.FullName}");
 				}
 
 				return Expression.Call(target, method, arguments.ToArray());
