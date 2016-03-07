@@ -1,8 +1,10 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 using Shaolinq.Persistence.Computed;
 
 namespace Shaolinq
@@ -23,12 +25,16 @@ namespace Shaolinq
 
 		public LambdaExpression GetGetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, this.ReferencedTypes);
+			var referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
+
+			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, referencedTypes);
 		}
 
 		public LambdaExpression GetSetLambdaExpression(PropertyInfo propertyInfo)
 		{
-			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, this.ReferencedTypes);
+			var referencedTypes = this.ReferencedTypes.Concat(propertyInfo.PropertyType).Concat(propertyInfo.DeclaringType).ToArray();
+
+			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, referencedTypes);
 		}
 	}
 }
