@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Configuration;
 using System.Diagnostics;
 using Shaolinq.Persistence.Linq.Optimizers;
+using System.Collections.Concurrent;
 
 namespace Shaolinq
 {
