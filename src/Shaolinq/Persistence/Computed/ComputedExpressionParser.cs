@@ -439,6 +439,11 @@ namespace Shaolinq.Persistence.Computed
 			{
 				current = this.targetObject;
 				this.Consume();
+
+				if (this.token == ComputedExpressionToken.Period)
+				{
+					this.Consume();
+				}
 			}
 			
 			if (this.token == ComputedExpressionToken.Identifier)

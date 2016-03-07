@@ -115,7 +115,8 @@ namespace Shaolinq.Tests
 				marsCat.Name = "Mars";
 
 				var bird = this.model.Birds.Create(marsCat);
-			
+
+				scope.Flush();
 				scope.Complete();
 			}
 
