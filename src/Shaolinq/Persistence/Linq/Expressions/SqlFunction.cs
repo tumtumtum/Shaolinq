@@ -24,10 +24,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// </summary>
 		Date,
 
-		/// <summary>
-		/// Gets a Date's day of the week
-		/// </summary>
-		DayOfWeek,
+        /// <summary>
+        /// Gets a Date's day of the week
+        /// </summary>
+        DayOfWeek,
 
 		/// <summary>
 		/// Gets a Date's day of the month
@@ -69,10 +69,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// </summary>
 		Second,
 
-		/// <summary>
-		/// Compares a string using LIKE
-		/// </summary>
-		Like,
+        NumberBasedDatePartStart = DayOfWeek,
+        NumberBasedDatePartEnd = Second,
+        
+        /// <summary>
+        /// Compares a string using LIKE
+        /// </summary>
+        Like,
 
 		/// <summary>
 		/// Compares a string using NOT LIKE

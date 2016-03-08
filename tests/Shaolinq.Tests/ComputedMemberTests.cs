@@ -32,7 +32,7 @@ namespace Shaolinq.Tests
 			{
 				cat = this.model.Cats.Create();
 
-				scope.Save();
+				scope.Flush();
 
 				id = cat.Id;
 

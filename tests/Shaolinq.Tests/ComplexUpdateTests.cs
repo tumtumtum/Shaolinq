@@ -273,14 +273,14 @@ namespace Shaolinq.Tests
 				{
 					var child = this.model.Children.Create();
 
-					scope.Save();
+					scope.Flush();
 
 					using (var inner = NewTransactionScope())
 					{
 						child.Nickname = methodName;
 					}
 
-					scope.Save();
+					scope.Flush();
 
 					Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
 
