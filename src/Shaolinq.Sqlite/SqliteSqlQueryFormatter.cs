@@ -106,7 +106,7 @@ namespace Shaolinq.Sqlite
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
 			if (functionCallExpression.Function >= SqlFunction.NumberBasedDatePartStart
-                && functionCallExpression.Function <= SqlFunction.NumberBasedDatePartStart)
+                && functionCallExpression.Function <= SqlFunction.NumberBasedDatePartEnd)
             {
 				this.Write("(CAST (");
 				base.VisitFunctionCall(functionCallExpression);
