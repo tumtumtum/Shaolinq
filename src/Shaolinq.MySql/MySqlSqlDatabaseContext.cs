@@ -3,7 +3,6 @@
 using System;
 using System.Data.Common;
 using System.Text.RegularExpressions;
-using System.Transactions;
 using MySql.Data.MySqlClient;
 using Shaolinq.Persistence;
 

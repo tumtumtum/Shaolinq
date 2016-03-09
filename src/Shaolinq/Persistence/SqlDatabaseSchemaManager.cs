@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq.Expressions;
-using System.Transactions;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 

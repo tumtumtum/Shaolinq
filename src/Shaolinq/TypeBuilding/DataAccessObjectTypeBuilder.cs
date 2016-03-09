@@ -126,7 +126,7 @@ namespace Shaolinq.TypeBuilding
 				var attributeBuilder = new CustomAttributeBuilder(typeof(SerializableAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
 
 				this.dataObjectTypeTypeBuilder.SetCustomAttribute(attributeBuilder);
-				this.partialObjectStateField = this.dataObjectTypeTypeBuilder.DefineField("PartialObjectState", typeof(ObjectState), FieldAttributes.Public);
+				this.partialObjectStateField = this.dataObjectTypeTypeBuilder.DefineField("PartialObjectState", typeof(DataAccessObjectState), FieldAttributes.Public);
 				
 				this.isDeflatedReferenceField = this.dataObjectTypeTypeBuilder.DefineField("IsDeflatedReference", typeof(bool), FieldAttributes.Public);
 
@@ -245,19 +245,32 @@ namespace Shaolinq.TypeBuilding
 			
 				this.cctorGenerator.Emit(OpCodes.Ret);
 
+				var baseConstructorWithDataAccessModel = this.baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(DataAccessModel) }, null);
 				var constructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(DataAccessModel), typeof(bool) });
 				var constructorGenerator = constructorBuilder.GetILGenerator();
 
-				constructorGenerator.Emit(OpCodes.Ldarg_0);
-				constructorGenerator.Emit(OpCodes.Call, this.baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null));
+				if (baseConstructorWithDataAccessModel != null)
+				{
+					constructorGenerator.Emit(OpCodes.Ldarg_0);
+					constructorGenerator.Emit(OpCodes.Ldarg_1);
+					constructorGenerator.Emit(OpCodes.Call, baseConstructorWithDataAccessModel);
+				}
+				else
+				{
+					constructorGenerator.Emit(OpCodes.Ldarg_0);
+					constructorGenerator.Emit(OpCodes.Call, this.baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null));
+				}
 
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
 				constructorGenerator.Emit(OpCodes.Newobj, this.dataConstructorBuilder);
 				constructorGenerator.Emit(OpCodes.Stfld, this.dataObjectField);
 
-				constructorGenerator.Emit(OpCodes.Ldarg_0);
-				constructorGenerator.Emit(OpCodes.Ldarg_1);
-				constructorGenerator.Emit(OpCodes.Stfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+				if (baseConstructorWithDataAccessModel == null)
+				{
+					constructorGenerator.Emit(OpCodes.Ldarg_0);
+					constructorGenerator.Emit(OpCodes.Ldarg_1);
+					constructorGenerator.Emit(OpCodes.Stfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+				}
 
 				constructorGenerator.Emit(OpCodes.Ldarg_0);
 				constructorGenerator.Emit(OpCodes.Ldarg_2);
@@ -267,7 +280,7 @@ namespace Shaolinq.TypeBuilding
 				constructorGenerator.Emit(OpCodes.Ldarg_2);
 				constructorGenerator.Emit(OpCodes.Brfalse, skipSetDefault);
 
-				foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties)
+				foreach (var propertyDescriptor in this.typeDescriptor.PersistedPropertiesWithoutBackreferences)
 				{
 					if (propertyDescriptor.IsAutoIncrement
 						&& propertyDescriptor.PropertyType.GetUnwrappedNullableType() == typeof(Guid))
@@ -419,7 +432,7 @@ namespace Shaolinq.TypeBuilding
 			return QueryBinder.GetColumnInfos
 			(
 				 this.typeDescriptorProvider,
-				 this.typeDescriptor.PersistedProperties,
+				 this.typeDescriptor.PersistedPropertiesWithoutBackreferences,
 				 (c, d) => false,
 				 (c, d) => c.IsPropertyThatIsCreatedOnTheServerSide
 			);
@@ -968,7 +981,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
-					generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Deleted);
+					generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
 					generator.Emit(OpCodes.Ceq);
 					generator.Emit(OpCodes.Brfalse, notDeletedLabel);
 					generator.Emit(OpCodes.Ldarg_0);
@@ -1101,7 +1114,7 @@ namespace Shaolinq.TypeBuilding
 					privateGenerator.Emit(OpCodes.Ldarg_0);
 					privateGenerator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					privateGenerator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
-					privateGenerator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Changed);
+					privateGenerator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Changed);
 					privateGenerator.Emit(OpCodes.Or);
 					privateGenerator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 
@@ -1176,7 +1189,7 @@ namespace Shaolinq.TypeBuilding
 			var retLabel = generator.DefineLabel();
 			var switchLabel = generator.DefineLabel();
 			var indexLocal = generator.DeclareLocal(typeof(int));
-			var properties = this.typeDescriptor.PersistedProperties.ToArray();
+			var properties = this.typeDescriptor.PersistedPropertiesWithoutBackreferences.ToArray();
 			var staticDictionaryField = this.typeBuilder.DefineField("$$HasPropertyChanged$$Switch$$", DictionaryType, FieldAttributes.Private | FieldAttributes.Static);
 
 			// if (propertyName == null) return;
@@ -1509,7 +1522,7 @@ namespace Shaolinq.TypeBuilding
 
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.ServerSidePropertiesHydrated));
+				generator.Emit(OpCodes.Ldc_I4, (int)(DataAccessObjectState.ServerSidePropertiesHydrated));
 				generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 				generator.Emit(OpCodes.Ret);
 			}
@@ -1666,13 +1679,13 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 			generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
-			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Changed);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Changed);
 			generator.Emit(OpCodes.And);
-			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Changed);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Changed);
 			generator.Emit(OpCodes.Ceq);
 			generator.Emit(OpCodes.Brfalse, label);
 			
-			foreach (var property in this.typeDescriptor.PersistedProperties)
+			foreach (var property in this.typeDescriptor.PersistedPropertiesWithoutBackreferences)
 			{
 				var innerLabel = generator.DefineLabel();
 
@@ -1765,7 +1778,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsDeleted).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnLabel);
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties)
 			{
 				var changedFieldInfo = this.valueChangedFields[propertyDescriptor.PropertyName];
 
@@ -1777,7 +1790,7 @@ namespace Shaolinq.TypeBuilding
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Unchanged);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Unchanged);
 			generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 
 			generator.MarkLabel(returnLabel);
@@ -1810,7 +1823,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Brfalse, label);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.New);
 			generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
 			generator.MarkLabel(label);
@@ -1818,7 +1831,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 			generator.Emit(OpCodes.Dup);
 			generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
-			generator.Emit(OpCodes.Ldc_I4, ~(int)ObjectState.New);
+			generator.Emit(OpCodes.Ldc_I4, ~(int)DataAccessObjectState.New);
 			generator.Emit(OpCodes.And);
 			generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
@@ -1863,7 +1876,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Brfalse, label);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Deleted);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
 			generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
 			generator.MarkLabel(label);
@@ -2056,7 +2069,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var propertyDescriptors = this.typeDescriptor
-				.PersistedAndBackReferenceProperties
+				.PersistedProperties
 				.Where(c => c.PropertyType.IsDataAccessObjectType())
 				.ToList();
 
@@ -2285,7 +2298,7 @@ namespace Shaolinq.TypeBuilding
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 			var retval = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
 
-			var count = this.typeDescriptor.PersistedAndBackReferenceProperties.Count;
+			var count = this.typeDescriptor.PersistedProperties.Count;
 
 			generator.Emit(OpCodes.Ldc_I4, count);
 			generator.Emit(OpCodes.Newarr, typeof(ObjectPropertyValue));
@@ -2293,7 +2306,7 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties)
 			{
 				var valueField = this.valueFields[propertyDescriptor.PropertyName];
 
@@ -2314,7 +2327,7 @@ namespace Shaolinq.TypeBuilding
 		private void BuildGetChangedPropertiesMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
-			var count = this.typeDescriptor.PersistedProperties.Count + this.typeDescriptor.RelationshipRelatedProperties.Count(c => c.BackReferenceAttribute != null);
+			var count = this.typeDescriptor.PersistedPropertiesWithoutBackreferences.Count + this.typeDescriptor.RelationshipRelatedProperties.Count(c => c.BackReferenceAttribute != null);
 
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
 
@@ -2324,7 +2337,7 @@ namespace Shaolinq.TypeBuilding
 
 			var index = 0;
 
-			foreach (var propertyDescriptor in this.typeDescriptor.PersistedAndBackReferenceProperties)
+			foreach (var propertyDescriptor in this.typeDescriptor.PersistedProperties)
 			{
 				var label = generator.DefineLabel();
 				var label2 = generator.DefineLabel();
@@ -2340,7 +2353,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
+				generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.New);
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, label);
 
@@ -2366,7 +2379,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
-			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, this.typeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide));
+			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, this.typeDescriptor.PersistedPropertiesWithoutBackreferences.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide));
 		
 			var objectVariable = generator.DeclareLocal(typeof(object));
 
@@ -2390,7 +2403,7 @@ namespace Shaolinq.TypeBuilding
 		private void BuildGetChangedPropertiesFlattenedMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
-			var properties = this.typeDescriptor.PersistedAndBackReferenceProperties.ToList();
+			var properties = this.typeDescriptor.PersistedProperties.ToList();
 
 			var columnInfos = QueryBinder.GetColumnInfos(this.typeDescriptorProvider, properties);
 			var listLocal = generator.DeclareLocal(typeof(List<ObjectPropertyValue>));
@@ -2482,7 +2495,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
-			foreach (var property in this.typeDescriptor.PersistedProperties.Where(c => c.PropertyType.IsDataAccessObjectType()))
+			foreach (var property in this.typeDescriptor.PersistedPropertiesWithoutBackreferences.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
 				var skip = generator.DefineLabel();
 
@@ -2500,8 +2513,8 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, this.valueFields[property.PropertyName]);
-				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.ObjectState).GetGetMethod());
-				generator.Emit(OpCodes.Ldc_I4, (int)(ObjectState.New));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.DataAccessObjectState).GetGetMethod());
+				generator.Emit(OpCodes.Ldc_I4, (int)(DataAccessObjectState.New));
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, skip);
 				generator.Emit(OpCodes.Ldc_I4_1);
@@ -2573,18 +2586,18 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
-			var count = this.typeDescriptor.PersistedProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
+			var count = this.typeDescriptor.PersistedPropertiesWithoutBackreferences.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 
 			generator.Emit(OpCodes.Ldc_I4, count);
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildObjectStateProperty()
+		private void BuildDataAccessObjectStateProperty()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			var notDeletedLabel = generator.DefineLabel();
-			var local = generator.DeclareLocal(typeof(ObjectState));
+			var local = generator.DeclareLocal(typeof(DataAccessObjectState));
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
@@ -2592,9 +2605,9 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Stloc, local);
 
 			generator.Emit(OpCodes.Ldloc, local);
-			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Deleted);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
 			generator.Emit(OpCodes.And);
-			generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.Deleted);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
 			generator.Emit(OpCodes.Ceq);
 			generator.Emit(OpCodes.Brfalse, notDeletedLabel);
 			generator.Emit(OpCodes.Ldloc, local);
@@ -2629,7 +2642,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.ReferencesNewObjectWithServerSideProperties);
+				generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.ReferencesNewObjectWithServerSideProperties);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 				generator.Emit(OpCodes.Br, breakLabel1);
@@ -2641,12 +2654,12 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
 				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.New);
+				generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.New);
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, innerLabel2);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.ReferencesNewObject);
+				generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.ReferencesNewObject);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 
@@ -2660,7 +2673,7 @@ namespace Shaolinq.TypeBuilding
 
 			// Go through persisted properties that are object references
 			foreach (var propertyDescriptor in this.typeDescriptor
-				.PersistedProperties
+				.PersistedPropertiesWithoutBackreferences
 				.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
 				var innerLabel1 = generator.DefineLabel();
@@ -2681,7 +2694,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties : (int)ObjectState.ReferencesNewObjectWithServerSideProperties);
+				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties : (int)DataAccessObjectState.ReferencesNewObjectWithServerSideProperties);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 
@@ -2692,12 +2705,12 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
 				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
-				generator.Emit(OpCodes.Ldc_I4, (int) ObjectState.New);
+				generator.Emit(OpCodes.Ldc_I4, (int) DataAccessObjectState.New);
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, innerLabel2);
 
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Ldc_I4, (int)ObjectState.ReferencesNewObject);
+				generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.ReferencesNewObject);
 				generator.Emit(OpCodes.Or);
 				generator.Emit(OpCodes.Stloc, local);
 				

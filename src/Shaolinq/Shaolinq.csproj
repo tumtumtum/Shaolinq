@@ -307,7 +307,7 @@
     <Compile Include="InvalidPrimaryKeyPropertyAccessException.cs" />
     <Compile Include="InvalidPropertyAccessException.cs" />
     <Compile Include="IRelatedDataAccessObjectContext.cs" />
-    <Compile Include="ObjectState.cs" />
+    <Compile Include="DataAccessObjectState.cs" />
     <Compile Include="InvalidDataAccessModelDefinition.cs" />
     <Compile Include="DatabaseTransactionContextAcquisition.cs" />
     <Compile Include="Persistence\ModelTypeDescriptor.cs" />

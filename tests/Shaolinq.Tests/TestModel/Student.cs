@@ -2,7 +2,6 @@
 
 using System;
 using Platform.Validation;
-using Shaolinq.Tests.OtherDataAccessObjects;
 
 namespace Shaolinq.Tests.TestModel
 {

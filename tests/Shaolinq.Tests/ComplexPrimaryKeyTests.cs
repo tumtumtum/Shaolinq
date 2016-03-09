@@ -2,10 +2,7 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
-using System.Transactions;
 using NUnit.Framework;
-using Platform;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests

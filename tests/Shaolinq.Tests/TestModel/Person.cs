@@ -30,11 +30,9 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract int FavouriteNumber { get; set; }
 		
-		[PersistedMember]
 		[ComputedMember("Height + (Weight ?? 0)")]
 		public abstract long HeightAndWeight { get; set; }
         
-		[PersistedMember]
 		[ComputedMember("CalculateHeightAndWeight()")]
 		public abstract long? HeightAndWeight2 { get; set; }
 
@@ -44,8 +42,7 @@ namespace Shaolinq.Tests.TestModel
 		{
 			return (int)(this.Height + (this.Weight ?? 0));
 		}
-
-		[PersistedMember]
+		
 		[ComputedTextMember("{Firstname} {Lastname}")]
 		public abstract string Fullname { get; set; }
 
@@ -57,8 +54,7 @@ namespace Shaolinq.Tests.TestModel
 
 		[DependsOnProperty(nameof(Id))]
 		protected virtual string CompactIdString => this.Id.ToString("N");
-
-		[PersistedMember]
+		
 		[ComputedTextMember("urn:$(PERSISTED_TYPENAME_TOLOWER):{CompactIdString}")]
 		public abstract string Urn { get; set; }
 	}

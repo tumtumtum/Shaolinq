@@ -54,9 +54,9 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				var objectState = dataAccessObject.GetAdvanced().ObjectState;
+				var objectState = dataAccessObject.GetAdvanced().DataAccessObjectState;
 
-				if ((objectState & (ObjectState.Changed | ObjectState.ServerSidePropertiesHydrated)) == 0)
+				if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
 				{
 					continue;
 				}
@@ -112,21 +112,21 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				var objectState = dataAccessObject.GetAdvanced().ObjectState;
+				var objectState = dataAccessObject.GetAdvanced().DataAccessObjectState;
 
-				switch (objectState & ObjectState.NewChanged)
+				switch (objectState & DataAccessObjectState.NewChanged)
 				{
-				case ObjectState.Unchanged:
+				case DataAccessObjectState.Unchanged:
 					continue;
-				case ObjectState.New:
-				case ObjectState.NewChanged:
+				case DataAccessObjectState.New:
+				case DataAccessObjectState.NewChanged:
 					break;
-				case ObjectState.Changed:
+				case DataAccessObjectState.Changed:
 					throw new NotSupportedException("Changed state not supported");
 				}
 
-				var primaryKeyIsComplete = (objectState & ObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
-				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability) || ((objectState & ObjectState.ReferencesNewObject) == 0));
+				var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
+				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability) || ((objectState & DataAccessObjectState.ReferencesNewObject) == 0));
 
 				var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
 
@@ -177,7 +177,7 @@ namespace Shaolinq.Persistence
 							throw;
 						}
 
-						if ((objectState & ObjectState.ReferencesNewObjectWithServerSideProperties) == ObjectState.ReferencesNewObjectWithServerSideProperties)
+						if ((objectState & DataAccessObjectState.ReferencesNewObjectWithServerSideProperties) == DataAccessObjectState.ReferencesNewObjectWithServerSideProperties)
 						{
 							listToFixup.Add(dataAccessObject);
 						}

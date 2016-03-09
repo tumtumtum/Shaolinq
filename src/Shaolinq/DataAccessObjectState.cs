@@ -8,7 +8,7 @@ namespace Shaolinq
 	/// Represents the state of the current object within the current transaction.
 	/// </summary>
 	[Flags]
-	public enum ObjectState
+	public enum DataAccessObjectState
 	{
 		/// <summary>
 		/// The object is unchanged.

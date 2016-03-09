@@ -9,10 +9,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
-using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
 

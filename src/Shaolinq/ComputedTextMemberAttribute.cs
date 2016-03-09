@@ -1,6 +1,5 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,7 +7,7 @@ using System.Text.RegularExpressions;
 namespace Shaolinq
 {
 	public class ComputedTextMemberAttribute
-		: Attribute
+		: PersistedMemberAttribute
 	{
 		internal static readonly Regex FormatRegex = new Regex(@"\{([^\}]+)\}", RegexOptions.Compiled);
 

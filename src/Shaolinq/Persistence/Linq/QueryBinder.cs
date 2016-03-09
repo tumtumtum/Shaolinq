@@ -1801,7 +1801,7 @@ namespace Shaolinq.Persistence.Linq
 			var columnInfos = GetColumnInfos
 			(
 				this.typeDescriptorProvider,
-				typeDescriptor.PersistedAndBackReferenceProperties,
+				typeDescriptor.PersistedProperties,
 				(c, d) => d == 0 || c.IsPrimaryKey,
 				(c, d) => d == 0 || c.IsPrimaryKey
 			);
@@ -1937,7 +1937,7 @@ namespace Shaolinq.Persistence.Linq
 			var columnInfos = GetColumnInfos
 				(
 					this.typeDescriptorProvider,
-					typeDescriptor.PersistedAndBackReferenceProperties,
+					typeDescriptor.PersistedProperties,
 					(c, d) => c.IsPrimaryKey,
 					(c, d) => c.IsPrimaryKey
 				);

@@ -1,6 +1,8 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Reflection;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -11,6 +13,13 @@ namespace Shaolinq
 		public string PropertyName { get; }
 		public string PersistedName { get; }
 		public int PropertyNameHashCode { get; }
+
+		internal static ObjectPropertyValue Create(PropertyDescriptor property, object target)
+		{
+			var value = property.PropertyInfo.GetValue(target);
+
+			return new ObjectPropertyValue(property.PropertyType, property.PropertyName, property.PersistedName, property.PropertyName.GetHashCode(), value);
+		}
 		
 		public ObjectPropertyValue(Type propertyType, string propertyName, string persistedName, int propertyNameHashcode, object value)
 			: this()

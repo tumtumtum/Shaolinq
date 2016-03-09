@@ -4,7 +4,6 @@ using System;
 using System.Data.Common;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Transactions;
 using Npgsql;
 using Shaolinq.Persistence;
 

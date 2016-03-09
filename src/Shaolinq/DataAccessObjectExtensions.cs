@@ -34,7 +34,7 @@ namespace Shaolinq
 		internal static IDataAccessObjectInternal ToObjectInternal(this DataAccessObject value)
 		{
 			// ReSharper disable SuspiciousTypeConversion.Global
-			return (IDataAccessObjectInternal)value;
+			return value as IDataAccessObjectInternal;
 			// ReSharper restore SuspiciousTypeConversion.Global
 		}
 
@@ -47,7 +47,7 @@ namespace Shaolinq
 			}
 
 			var inflated = dataAccessObject.dataAccessModel.Inflate((DataAccessObject)dataAccessObject);
-			dataAccessObject.ToObjectInternal().SwapData(inflated, true);
+			dataAccessObject.ToObjectInternal()?.SwapData(inflated, true);
 
 			return dataAccessObject;
 		}

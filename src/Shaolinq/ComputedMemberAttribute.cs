@@ -2,17 +2,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Platform;
 using Shaolinq.Persistence.Computed;
 
 namespace Shaolinq
 {
 	[AttributeUsage(AttributeTargets.Property)]
 	public class ComputedMemberAttribute
-		: Attribute
+		: PersistedMemberAttribute
 	{
 		public string GetExpression { get; set; }
 		public string SetExpression { get; set; }

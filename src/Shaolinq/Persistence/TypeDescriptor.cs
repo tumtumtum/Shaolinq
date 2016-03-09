@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
@@ -18,11 +17,11 @@ namespace Shaolinq.Persistence
 		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
 		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PersistedPropertiesWithoutBackreferences { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedAndBackReferenceProperties { get; }
+		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyDerivableProperties { get; }
 
 		public string TypeName => this.Type.Name;
@@ -177,10 +176,11 @@ namespace Shaolinq.Persistence
 
 			this.DataAccessObjectAttribute = type.GetFirstCustomAttribute<DataAccessObjectAttribute>(true);
 
+			var relatedProperties = new List<PropertyDescriptor>();
 			this.relationshipInfos = new List<TypeRelationshipInfo>();
 			this.propertyDescriptorByColumnName = new Dictionary<string, PropertyDescriptor>();
 			this.propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
-			
+
 			var alreadyEnteredProperties = new HashSet<string>();
 
 			this.PersistedName = this.DataAccessObjectAttribute.GetName(this, this.TypeDescriptorProvider.Configuration.NamingTransforms?.DataAccessObjectName);
@@ -194,9 +194,9 @@ namespace Shaolinq.Persistence
 
 				alreadyEnteredProperties.Add(propertyInfo.Name);
 
-				var attribute = propertyInfo.GetFirstCustomAttribute<PersistedMemberAttribute>(true);
+				var attribute = (PersistedMemberAttribute)propertyInfo.GetCustomAttributes().FirstOrDefault(c => c is PersistedMemberAttribute);
 
-				if (attribute != null && attribute.GetType() == typeof(PersistedMemberAttribute))
+				if (attribute != null)
 				{
 					var propertyDescriptor = new PropertyDescriptor(this, type, propertyInfo);
 
@@ -221,11 +221,35 @@ namespace Shaolinq.Persistence
 					}
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
+
 					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
+
+					if (propertyInfo.GetFirstCustomAttribute<BackReferenceAttribute>(true) != null)
+					{
+						if (!propertyInfo.PropertyType.IsDataAccessObjectType())
+						{
+							throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is decorated with a BackReference attribute but does not return a type that extends DataAccessObject<OBJECT_TYPE>", propertyInfo.Name, this.Type.Name);
+						}
+
+						if (propertyInfo.GetGetMethod() == null)
+						{
+							throw new InvalidDataAccessObjectModelDefinition("The property {0} is missing a required getter method", propertyInfo.Name);
+						}
+
+						if (propertyInfo.GetSetMethod() == null)
+						{
+							throw new InvalidDataAccessObjectModelDefinition("The property {0} is missing a required setter method", propertyInfo.Name);
+						}
+
+						if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
+						{
+							throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
+						}
+
+						relatedProperties.Add(propertyDescriptor);
+					}
 				}
 			}
-
-			var relatedProperties = new List<PropertyDescriptor>();
 
 			foreach (var propertyInfo in this.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
 			{
@@ -262,42 +286,14 @@ namespace Shaolinq.Persistence
 
 					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
 				}
-				else if (propertyInfo.GetFirstCustomAttribute<BackReferenceAttribute>(true) != null)
-				{
-					if (!propertyInfo.PropertyType.IsDataAccessObjectType())
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is decorated with a BackReference attribute but does not return a type that extends DataAccessObject<OBJECT_TYPE>", propertyInfo.Name, this.Type.Name);
-					}
-
-					if (propertyInfo.GetGetMethod() == null)
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} is missing a required getter method", propertyInfo.Name);
-					}
-
-					if (propertyInfo.GetSetMethod() == null)
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} is missing a required setter method", propertyInfo.Name);
-					}
-
-					if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
-					}
-
-					var propertyDescriptor = new PropertyDescriptor(this, this.Type, propertyInfo);
-
-					relatedProperties.Add(propertyDescriptor);
-
-					this.propertyDescriptorByPropertyName[propertyInfo.Name] = propertyDescriptor;
-				}
 			}
 
+			this.PersistedProperties = propertyDescriptorsInOrder;
 			this.RelationshipRelatedProperties = relatedProperties.ToReadOnlyCollection();
-			this.PersistedProperties = propertyDescriptorsInOrder.ToReadOnlyCollection();
-			this.PrimaryKeyProperties = this.PersistedProperties.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToReadOnlyCollection();
-			this.ComputedTextProperties = this.PersistedProperties.Where(c => c.IsComputedTextMember && !string.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToReadOnlyCollection();
-			this.ComputedProperties = this.PersistedProperties.Where(c => c.IsComputedMember && !string.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToReadOnlyCollection();
-			this.PersistedAndBackReferenceProperties = this.PersistedProperties.Concat(this.RelationshipRelatedProperties.Where(c => c.IsBackReferenceProperty)).ToReadOnlyCollection();
+			this.PersistedPropertiesWithoutBackreferences = this.PersistedProperties.Where(c => !c.IsBackReferenceProperty).ToReadOnlyCollection();
+			this.PrimaryKeyProperties = this.PersistedPropertiesWithoutBackreferences.Where(propertyDescriptor => propertyDescriptor.IsPrimaryKey).ToReadOnlyCollection();
+			this.ComputedTextProperties = this.PersistedPropertiesWithoutBackreferences.Where(c => c.IsComputedTextMember && !string.IsNullOrEmpty(c.ComputedTextMemberAttribute.Format)).ToReadOnlyCollection();
+			this.ComputedProperties = this.PersistedPropertiesWithoutBackreferences.Where(c => c.IsComputedMember && !string.IsNullOrEmpty(c.ComputedMemberAttribute.GetExpression)).ToReadOnlyCollection();
 			
 			this.PrimaryKeyDerivableProperties = this
 				.ComputedProperties

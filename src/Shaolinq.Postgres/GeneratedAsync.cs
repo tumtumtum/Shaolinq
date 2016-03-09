@@ -1,14 +1,11 @@
 #pragma warning disable
 using System;
 using System.Data;
-using System.Data.Common;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
 using Shaolinq.Persistence;
 using Npgsql;
 using NpgsqlTypes;
 using Platform;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Shaolinq.Postgres

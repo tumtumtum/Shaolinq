@@ -1,9 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 
 namespace Shaolinq.Persistence.Linq
 {

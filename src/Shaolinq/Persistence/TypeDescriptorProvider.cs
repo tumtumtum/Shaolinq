@@ -76,7 +76,7 @@ namespace Shaolinq.Persistence
 
 			var typesReferenced = this.typeDescriptorsByType
 				.Values
-				.SelectMany(c => c.PersistedProperties)
+				.SelectMany(c => c.PersistedPropertiesWithoutBackreferences)
 				.Select(c => c.PropertyType)
 				.Where(c => typeof(DataAccessObject).IsAssignableFrom(c))
 				.Distinct();
@@ -92,7 +92,7 @@ namespace Shaolinq.Persistence
 
 			this.enumTypeDescriptorsByType = this.typeDescriptorsByType
 				.Values
-				.SelectMany(c => c.PersistedProperties)
+				.SelectMany(c => c.PersistedPropertiesWithoutBackreferences)
 				.Select(c => c.PropertyType.GetUnwrappedNullableType())
 				.Where(c => c.IsEnum)
 				.Distinct()
@@ -147,7 +147,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var typeDescriptor in typeDescriptorsByType.Values)
 			{
-				foreach (var columnInfo in QueryBinder.GetColumnInfos(this, typeDescriptor.PersistedAndBackReferenceProperties.ToArray()))
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this, typeDescriptor.PersistedProperties.ToArray()))
 				{
 					typeDescriptor.propertyDescriptorByColumnName[columnInfo.ColumnName] = columnInfo.RootProperty;
 				}

@@ -4,6 +4,9 @@ using System;
 
 namespace Shaolinq
 {
+	/// <summary>
+	/// Specifies the attribute
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Property)]
 	public class PersistedMemberAttribute
 		: NamedMemberAttribute

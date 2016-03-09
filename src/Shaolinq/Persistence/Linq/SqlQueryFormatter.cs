@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Text;
-using Platform;
 
 namespace Shaolinq.Persistence.Linq
 {

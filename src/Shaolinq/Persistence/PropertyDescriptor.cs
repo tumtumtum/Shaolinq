@@ -68,6 +68,11 @@ namespace Shaolinq.Persistence
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 			this.ForeignObjectConstraintAttribute = propertyInfo.GetFirstCustomAttribute<ForeignObjectConstraintAttribute>(true);
 
+			if (PersistedMemberAttribute == null)
+			{
+				this.PersistedMemberAttribute = (PersistedMemberAttribute)this.ComputedMemberAttribute ?? this.ComputedTextMemberAttribute;
+			}
+
 			if (this.PropertyType.IsIntegerType(true) || this.PropertyType.GetUnwrappedNullableType() == typeof(Guid))
 			{
 				this.AutoIncrementAttribute = propertyInfo.GetFirstCustomAttribute<AutoIncrementAttribute>(true);

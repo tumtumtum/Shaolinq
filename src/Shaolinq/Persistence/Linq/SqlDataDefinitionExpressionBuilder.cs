@@ -210,7 +210,7 @@ namespace Shaolinq.Persistence.Linq
 			var columnInfos = QueryBinder.GetColumnInfos
 			(
 				this.model.TypeDescriptorProvider,
-				typeDescriptor.PersistedAndBackReferenceProperties,
+				typeDescriptor.PersistedProperties,
 				(c, d) => c.IsPrimaryKey && !c.PropertyType.IsDataAccessObjectType(),
 				(c, d) => c.IsPrimaryKey
 			);
@@ -223,7 +223,7 @@ namespace Shaolinq.Persistence.Linq
 			columnInfos = QueryBinder.GetColumnInfos
 			(
 				this.model.TypeDescriptorProvider,
-				typeDescriptor.PersistedProperties.Where(c => !c.PropertyType.IsDataAccessObjectType()),
+				typeDescriptor.PersistedPropertiesWithoutBackreferences.Where(c => !c.PropertyType.IsDataAccessObjectType()),
 				(c, d) => d == 0 ? !c.IsPrimaryKey : c.IsPrimaryKey,
 				(c, d) => d == 0 ? !c.IsPrimaryKey : c.IsPrimaryKey
 			);
@@ -233,7 +233,7 @@ namespace Shaolinq.Persistence.Linq
 				columnExpressions.Add(this.BuildColumnDefinition(columnInfo));
 			}
 
-			foreach (var property in typeDescriptor.PersistedProperties
+			foreach (var property in typeDescriptor.PersistedPropertiesWithoutBackreferences
 				.Where(c => c.PropertyType.IsDataAccessObjectType()))
 			{
 				columnInfos = QueryBinder.GetColumnInfos
@@ -288,7 +288,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
 		{
-			var allIndexAttributes = typeDescriptor.PersistedProperties.Concat(typeDescriptor.RelationshipRelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
+			var allIndexAttributes = typeDescriptor.PersistedPropertiesWithoutBackreferences.Concat(typeDescriptor.RelationshipRelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
 
 			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName ?? typeDescriptor.PersistedName + "_" + c.Item2.PersistedName + "_idx").Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
 

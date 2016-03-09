@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
-using Platform;
 using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests

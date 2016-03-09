@@ -2,7 +2,6 @@
 
 using System;
 using System.Data;
-using System.Transactions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer

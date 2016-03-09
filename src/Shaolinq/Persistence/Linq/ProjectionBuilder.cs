@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -331,7 +330,7 @@ namespace Shaolinq.Persistence.Linq
 				var where = projectionExpression.Select.Where;
 
 				var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(elementType);
-				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedAndBackReferenceProperties);
+				var columns = QueryBinder.GetColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor.PersistedProperties);
 				
 				var columnExpression = (SqlColumnExpression)SqlExpressionFinder.FindFirst(where, c => c.NodeType == (ExpressionType)SqlExpressionType.Column);
 				var match = columns.Single(d => d.ColumnName == columnExpression.Name);

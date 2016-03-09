@@ -7,7 +7,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using Platform;
-using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.TypeBuilding
