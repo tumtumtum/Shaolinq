@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Transactions;
 using Platform;
@@ -52,7 +53,7 @@ namespace Shaolinq
 		internal readonly DataAccessModel dataAccessModel;
 		internal DataAccessTransaction DataAccessTransaction { get; }
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
-		internal readonly Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
+		internal readonly ConcurrentDictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
 
 		internal int GetExecutionVersion()
 		{
@@ -198,7 +199,7 @@ namespace Shaolinq
 			this.DatabaseContextCategoriesKey = "*";
 			this.executionVersion = dataAccessModel.AsyncLocalExecutionVersion;
 
-			this.commandsContextsBySqlDatabaseContexts = new Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
+			this.commandsContextsBySqlDatabaseContexts = new ConcurrentDictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
 		}
 
 		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext)

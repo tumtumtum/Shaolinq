@@ -2005,8 +2005,24 @@ namespace Shaolinq.Tests
 			}
 		}
 
+        [Test]
+        public void Test_Compare_Month()
+        {
+            using (var scope = NewTransactionScope())
+            {
+                var results = from student in this.model.Students
+                    where student.Birthdate.Value.Date.Year == 12
+                              select student;
 
-		[Test]
+
+                var list = results.ToList();
+
+                scope.Complete();
+            }
+        }
+
+
+        [Test]
 		public void Test_GroupBy_DateTimeDate()
 		{
 			using (var scope = NewTransactionScope())
@@ -2713,7 +2729,7 @@ namespace Shaolinq.Tests
 
 				    student.Overseas = true;
 
-				    scope.Save();
+				    scope.Flush();
 
 				    id = student.Id;
 

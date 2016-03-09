@@ -225,6 +225,7 @@
     <Compile Include="Persistence\TypedValue.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
     <Compile Include="Persistence\RewriteAsyncAttribute.cs" />
+    <Compile Include="ScopeCompleteOptions.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />

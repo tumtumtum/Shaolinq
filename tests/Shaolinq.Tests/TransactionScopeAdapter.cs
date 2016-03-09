@@ -51,19 +51,7 @@ namespace Shaolinq.Tests
 			await this.dataAccessScope?.FlushAsync();
 			await this.transactionScope?.FlushAsync();
 		}
-
-		public void Save()
-		{
-			this.dataAccessScope?.Save();
-			this.transactionScope?.Save();
-		}
-
-		public async Task SaveAsync()
-		{
-			await this.dataAccessScope?.SaveAsync();
-			await this.transactionScope?.SaveAsync();
-		}
-
+        
 		public void Dispose()
 		{
 			this.dataAccessScope?.Dispose();

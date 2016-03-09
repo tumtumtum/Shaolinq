@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Configuration;
 using System.Diagnostics;
 using Shaolinq.Persistence.Linq.Optimizers;
+using System.Collections.Concurrent;
 
 namespace Shaolinq
 {
@@ -34,26 +35,6 @@ namespace Shaolinq
 
         public async Task FlushAsync(CancellationToken cancellationToken)
         {
-            await SaveAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task FlushAsync(DataAccessModel dataAccessModel)
-        {
-            return FlushAsync(dataAccessModel, CancellationToken.None);
-        }
-
-        public async Task FlushAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
-        {
-            await SaveAsync(dataAccessModel, cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task SaveAsync()
-        {
-            return SaveAsync(CancellationToken.None);
-        }
-
-        public async Task SaveAsync(CancellationToken cancellationToken)
-        {
             this.transaction.CheckAborted();
             foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
             {
@@ -64,12 +45,12 @@ namespace Shaolinq
             }
         }
 
-        public Task SaveAsync(DataAccessModel dataAccessModel)
+        public Task FlushAsync(DataAccessModel dataAccessModel)
         {
-            return SaveAsync(dataAccessModel, CancellationToken.None);
+            return FlushAsync(dataAccessModel, CancellationToken.None);
         }
 
-        public async Task SaveAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        public async Task FlushAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
         {
             this.transaction.CheckAborted();
             if (!dataAccessModel.IsDisposed)
@@ -85,8 +66,23 @@ namespace Shaolinq
 
         public async Task CompleteAsync(CancellationToken cancellationToken)
         {
+            await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
+        }
+
+        public Task CompleteAsync(ScopeCompleteOptions options)
+        {
+            return CompleteAsync(options, CancellationToken.None);
+        }
+
+        public async Task CompleteAsync(ScopeCompleteOptions options, CancellationToken cancellationToken)
+        {
             this.complete = true;
             this.transaction.CheckAborted();
+            if ((options & ScopeCompleteOptions.SuppressAutoFlush) != 0)
+            {
+                await this.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             if (this.transaction == null)
             {
                 if (this.options == DataAccessScopeOptions.Suppress)
@@ -129,21 +125,6 @@ namespace Shaolinq
                 {
                     DataAccessTransaction.Current = null;
                 }
-            }
-        }
-
-        public Task FailAsync()
-        {
-            return FailAsync(CancellationToken.None);
-        }
-
-        public async Task FailAsync(CancellationToken cancellationToken)
-        {
-            this.complete = false;
-            if (this.transaction != null)
-            {
-                await this.transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                this.transaction.Dispose();
             }
         }
     }
