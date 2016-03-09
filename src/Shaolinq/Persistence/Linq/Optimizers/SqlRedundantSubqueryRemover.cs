@@ -30,7 +30,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			// Expand all purely redundant subqueries
 
-			var redundantQueries = RedundantSubqueryFinder.Find(select.From);
+			var redundantQueries = SqlRedundantSubqueryFinder.Find(select.From);
 
 			if (redundantQueries != null)
 			{
@@ -46,7 +46,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (projection.Select.From is SqlSelectExpression)
 			{
-				var redundantQueries = RedundantSubqueryFinder.Find(projection.Select);
+				var redundantQueries = SqlRedundantSubqueryFinder.Find(projection.Select);
 
 				if (redundantQueries != null)
 				{
@@ -149,7 +149,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					return false;
 				}
 
-				var selHasNameMapProjection = RedundantSubqueryFinder.IsNameMapProjection(select);
+				var selHasNameMapProjection = SqlRedundantSubqueryFinder.IsNameMapProjection(select);
 				var selHasSkip = select.Skip != null; 
 				var selHasWhere = select.Where != null;
 				var selHasOrderBy = select.OrderBy != null && select.OrderBy.Count > 0;

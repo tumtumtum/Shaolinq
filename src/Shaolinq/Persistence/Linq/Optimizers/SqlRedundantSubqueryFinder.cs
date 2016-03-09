@@ -7,18 +7,18 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class RedundantSubqueryFinder
+	public class SqlRedundantSubqueryFinder
 		: SqlExpressionVisitor
 	{
 		List<SqlSelectExpression> redundant;
 
-		private RedundantSubqueryFinder()
+		private SqlRedundantSubqueryFinder()
 		{
 		}
 
 		internal static List<SqlSelectExpression> Find(Expression source)
 		{
-			var gatherer = new RedundantSubqueryFinder();
+			var gatherer = new SqlRedundantSubqueryFinder();
 
 			gatherer.Visit(source);
 
