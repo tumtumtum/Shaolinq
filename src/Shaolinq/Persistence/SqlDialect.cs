@@ -12,7 +12,6 @@ namespace Shaolinq.Persistence
 			case SqlCapability.Constraints:
 			case SqlCapability.IndexNameCasing:
 			case SqlCapability.IndexToLower:
-			case SqlCapability.SelectForUpdate:
 			case SqlCapability.Deferrability:
 			case SqlCapability.InsertIntoReturning:
 			case SqlCapability.ForeignKeys:

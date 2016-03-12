@@ -11,6 +11,8 @@ namespace Shaolinq.MySql
 		{
 			switch (capability)
 			{
+			case SqlCapability.SelectForUpdate:
+				return true;
 			case SqlCapability.Deferrability:
 				return false;
 			default:

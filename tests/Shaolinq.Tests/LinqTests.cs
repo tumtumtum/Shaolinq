@@ -2772,5 +2772,19 @@ namespace Shaolinq.Tests
 				}
 			}
 		}
+
+		[Test]
+		public void Test_SelectForUpdate()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var students = model
+					.Students
+					.OrderBy(c => c.Nickname)
+					.Select(c => c.Id == Guid.Empty)
+					.ForUpdate()
+					.ToList();
+			}
+		}
 	}
 }

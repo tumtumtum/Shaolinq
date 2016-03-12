@@ -60,5 +60,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			return new SqlProjectionExpression(this.Type, this.Select, projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue);
 		}
+
+		public SqlProjectionExpression ChangeSelect(SqlSelectExpression select)
+		{
+			return new SqlProjectionExpression(this.Type, select, this.Projector, this.Aggregator, this.IsElementTableProjection, this.DefaultValue);
+		}
 	}
 }

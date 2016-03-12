@@ -71,7 +71,6 @@ namespace Shaolinq.Persistence.Linq
 			case "OrderBy":
 			case "GroupBy":
 			case "Where":
-			case "WhereForUpdate":
 			case "Min":
 			case "Max":
 			case "Average":
@@ -85,7 +84,6 @@ namespace Shaolinq.Persistence.Linq
 			case "Include":
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "Select":
-			case "SelectForUpdate":
 				return this.RewriteBasicProjection(methodCallExpression, true);
 			case "Join":
 			{

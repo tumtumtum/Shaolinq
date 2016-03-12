@@ -548,22 +548,12 @@ namespace Shaolinq
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
 		}
-		
-		public static IQueryable<T> WhereForUpdate<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.WhereForUpdate(default(IQueryable<T>), c => true)), source.Expression, Expression.Quote(predicate));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<T>>(expression);
+		public static IQueryable<T> ForUpdate<T>(this IQueryable<T> source)
+		{
+			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
 		}
 		
-		public static IQueryable<U> SelectForUpdate<T, U>(this IQueryable<T> source, Expression<Func<T, U>> predicate)
-			where T : DataAccessObject
-		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.SelectForUpdate(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(predicate));
-
-			return ((IQueryProvider)source.Provider).ExecuteEx<IQueryable<U>>(expression);
-		}
-
 		public static T IncludedItems<T>(this IQueryable<T> source)
 			where T : DataAccessObject
         {
@@ -578,5 +568,5 @@ namespace Shaolinq
 
             return source.Provider.CreateQuery<T>(expression);
 		}
-    }
+	}
 }

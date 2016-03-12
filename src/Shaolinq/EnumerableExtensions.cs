@@ -247,9 +247,9 @@ namespace Shaolinq
 			}
 		}
 
-		public static void WithEach<T>(this IEnumerable<T> queryable, Action<T> value)
+		public static void WithEach<T>(this IEnumerable<T> source, Action<T> value)
 		{
-			using (var enumerator = queryable.GetEnumerator())
+			using (var enumerator = source.GetEnumerator())
 			{
 				while (enumerator.MoveNextEx())
 				{

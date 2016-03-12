@@ -891,21 +891,13 @@ namespace Shaolinq.Persistence.Linq
 					result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
 					this.selectorPredicateStack.Pop();
 					return result;
-				case "WhereForUpdate":
-					this.selectorPredicateStack.Push(methodCallExpression);
-					result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), true);
-					this.selectorPredicateStack.Pop();
-					return result;
 				case "Select":
 					this.selectorPredicateStack.Push(methodCallExpression);
 					result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
 					this.selectorPredicateStack.Pop();
 					return result;
-				case "SelectForUpdate":
-					this.selectorPredicateStack.Push(methodCallExpression);
-					result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), true);
-					this.selectorPredicateStack.Pop();
-					return result;
+				case "ForUpdate":
+					return this.BindForUpdate(methodCallExpression.Arguments[0]);
 				case "OrderBy":
 					this.selectorPredicateStack.Push(methodCallExpression);
 					result = this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Ascending);
@@ -1059,6 +1051,12 @@ namespace Shaolinq.Persistence.Linq
                         return this.BindDelete(methodCallExpression.Arguments[0]);
                     }
                     break;
+				case "Union":
+					if (methodCallExpression.Arguments.Count == 2)
+					{
+						return this.BindUnion(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
+					}
+					break;
                 }
 
 				throw new NotSupportedException($"Linq function \"{methodCallExpression.Method.Name}\" is not supported");
@@ -1352,6 +1350,20 @@ namespace Shaolinq.Persistence.Linq
 			this.thenBys.Add(new SqlOrderByExpression(orderType, orderSelector));
 
 			return this.Visit(source);
+		}
+
+		private Expression BindUnion(Expression left, Expression right)
+		{
+			throw new NotImplementedException();
+		}
+
+		private Expression BindForUpdate(Expression source)
+		{
+			var projection = (SqlProjectionExpression)this.Visit(source);
+
+			var newSelect = projection.Select.ChangeForUpdate(true);
+
+			return projection.ChangeSelect(newSelect);
 		}
 
 		private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate, bool forUpdate, bool sourceAlreadyVisited = false)
