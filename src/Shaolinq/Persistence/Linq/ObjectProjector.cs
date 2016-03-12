@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence.Linq
 	}
 
 	public class ObjectProjector<T, U>
-		: ObjectProjector, IAsyncEnumerable<T>
+		: ObjectProjector, IAsyncEnumerable<T>, IInternalAsyncEnumerable<T>
 		where U : T
 	{
 		protected internal readonly object[] placeholderValues;

@@ -1,6 +1,8 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,30 +16,48 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
 {
-    internal static class SqlQueryProviderExtensions
+	public static partial class QueryableExtensions
     {
-        public static T ExecuteEx<T>(this IQueryProvider queryProvider, Expression expression)
-        {
-            return queryProvider.Execute<T>(expression);
-        }
+		public static Task<List<T>> ToListAsync<T>(this IQueryable<T> source)
+		{
+			return ((IEnumerable<T>)source).ToListAsync();
+		}
 
-        public static Task<T> ExecuteExAsync<T>(this IQueryProvider queryProvider, Expression expression, CancellationToken cancellationToken)
-        {
-            var sqlQueryProvider = queryProvider as ISqlQueryProvider;
+		public static Task<List<T>> ToListAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).ToListAsync(cancellationToken);
+		}
 
-            if (sqlQueryProvider != null)
-            {
-                return sqlQueryProvider.ExecuteAsync<T>(expression, cancellationToken);
-            }
-            else
-            {
-                return Task.FromResult(queryProvider.Execute<T>(expression));
-            }
-        }
-    }
+		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IQueryable<T> source)
+		{
+			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync();
+		}
 
-    public static partial class QueryableExtensions
-    {
+		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync(cancellationToken);
+		}
+
+		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task> value)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value);
+		}
+
+		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task<bool>> value)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value);
+		}
+
+		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value, cancellationToken);
+		}
+
+		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value, cancellationToken);
+		}
+
 		[RewriteAsync(true)]
 		private static bool Any<T>(this IQueryable<T> source)
 		{
@@ -558,5 +578,5 @@ namespace Shaolinq
 
             return source.Provider.CreateQuery<T>(expression);
 		}
-	}
+    }
 }

@@ -2047,7 +2047,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var results = from student in this.model.Students
+				var results = (from student in this.model.Students
 					where student.School.Id == 1
 					group student by student.Firstname
 					into g
@@ -2055,7 +2055,7 @@ namespace Shaolinq.Tests
 					{
 						key = g.Key,
 						count = g.Count()
-					};
+					}).OrderBy(c => c.key);
 
 				var list = results.ToList();
 				

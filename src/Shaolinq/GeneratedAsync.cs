@@ -325,68 +325,74 @@ namespace Shaolinq
 
     public static partial class EnumerableExtensions
     {
-        internal static Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> enumerable)
+        internal static Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> source)
         {
-            return AlwaysReadFirstAsync(enumerable, CancellationToken.None);
+            return AlwaysReadFirstAsync(source, CancellationToken.None);
         }
 
-        internal static async Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        internal static async Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
         {
-            return await enumerable.FirstAsync(cancellationToken).ConfigureAwait(false);
+            return await source.FirstAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public static Task<int> CountAsync<T>(this IEnumerable<T> enumerable)
+        private static Task<int> CountAsync<T>(this IEnumerable<T> source)
         {
-            return CountAsync(enumerable, CancellationToken.None);
+            return CountAsync(source, CancellationToken.None);
         }
 
-        public static async Task<int> CountAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        private static async Task<int> CountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
         {
-            var list = enumerable as IList<T>;
+            var list = source as ICollection<T>;
             if (list != null)
             {
                 return list.Count;
             }
 
             var retval = 0;
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
-                retval++;
+                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    retval++;
+                }
             }
 
             return retval;
         }
 
-        public static Task<long> LongCountAsync<T>(this IEnumerable<T> enumerable)
+        private static Task<long> LongCountAsync<T>(this IEnumerable<T> source)
         {
-            return LongCountAsync(enumerable, CancellationToken.None);
+            return LongCountAsync(source, CancellationToken.None);
         }
 
-        public static async Task<long> LongCountAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        private static async Task<long> LongCountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
         {
-            var list = enumerable as IList<T>;
+            var list = source as ICollection<T>;
             if (list != null)
             {
                 return list.Count;
             }
 
             var retval = 0L;
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
-                retval++;
+                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    retval++;
+                }
             }
 
             return retval;
         }
 
-        public static Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> enumerable, T specifiedValue)
+        internal static Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> source, T specifiedValue)
         {
-            return SingleOrSpecifiedValueIfFirstIsDefaultValueAsync(enumerable, specifiedValue, CancellationToken.None);
+            return SingleOrSpecifiedValueIfFirstIsDefaultValueAsync(source, specifiedValue, CancellationToken.None);
         }
 
-        public static async Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> enumerable, T specifiedValue, CancellationToken cancellationToken)
+        internal static async Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> source, T specifiedValue, CancellationToken cancellationToken)
         {
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
                 if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
                 {
@@ -408,14 +414,14 @@ namespace Shaolinq
             }
         }
 
-        public static Task<T> SingleAsync<T>(this IEnumerable<T> enumerable)
+        private static Task<T> SingleAsync<T>(this IEnumerable<T> source)
         {
-            return SingleAsync(enumerable, CancellationToken.None);
+            return SingleAsync(source, CancellationToken.None);
         }
 
-        public static async Task<T> SingleAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        private static async Task<T> SingleAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
         {
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
                 if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
                 {
@@ -432,14 +438,14 @@ namespace Shaolinq
             }
         }
 
-        public static Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> enumerable)
+        private static Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source)
         {
-            return SingleOrDefaultAsync(enumerable, CancellationToken.None);
+            return SingleOrDefaultAsync(source, CancellationToken.None);
         }
 
-        public static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        private static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
         {
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
                 if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
                 {
@@ -449,19 +455,19 @@ namespace Shaolinq
                 var result = enumerator.Current;
                 if (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    return Enumerable.Single<T>(new T[2]);
+                    return Enumerable.Single(new T[2]);
                 }
 
                 return result;
             }
         }
 
-        public static Task<T> FirstAsync<T>(this IEnumerable<T> enumerable)
+        private static Task<T> FirstAsync<T>(this IEnumerable<T> enumerable)
         {
             return FirstAsync(enumerable, CancellationToken.None);
         }
 
-        public static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        private static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
         {
             using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
@@ -474,14 +480,14 @@ namespace Shaolinq
             }
         }
 
-        public static Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> enumerable)
+        private static Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source)
         {
-            return FirstOrDefaultAsync(enumerable, CancellationToken.None);
+            return FirstOrDefaultAsync(source, CancellationToken.None);
         }
 
-        public static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+        private static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
         {
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
                 if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
                 {
@@ -492,14 +498,14 @@ namespace Shaolinq
             }
         }
 
-        public static Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > enumerable)where T : struct
+        internal static Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > source)where T : struct
         {
-            return SingleOrExceptionIfFirstIsNullAsync(enumerable, CancellationToken.None);
+            return SingleOrExceptionIfFirstIsNullAsync(source, CancellationToken.None);
         }
 
-        public static async Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > enumerable, CancellationToken cancellationToken)where T : struct
+        internal static async Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > source, CancellationToken cancellationToken)where T : struct
         {
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+            using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
             {
                 if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)) || enumerator.Current == null)
                 {
@@ -508,98 +514,6 @@ namespace Shaolinq
 
                 return enumerator.Current.Value;
             }
-        }
-
-        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Action<T> value)
-        {
-            return WithEachAsync(enumerable, value, CancellationToken.None);
-        }
-
-        public static async Task WithEachAsync<T>(this IEnumerable<T> enumerable, Action<T> value, CancellationToken cancellationToken)
-        {
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
-            {
-                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    value(enumerator.Current);
-                }
-            }
-        }
-
-        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value)
-        {
-            return WithEachAsync(enumerable, value, CancellationToken.None);
-        }
-
-        public static async Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, bool> value, CancellationToken cancellationToken)
-        {
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
-            {
-                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    if (!value(enumerator.Current))
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-
-        public static Task<List<T>> ToListAsync<T>(this IEnumerable<T> enumerable)
-        {
-            return ToListAsync(enumerable, CancellationToken.None);
-        }
-
-        public static async Task<List<T>> ToListAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
-        {
-            if (enumerable == null)
-            {
-                return null;
-            }
-
-            var result = enumerable as List<T>;
-            if (result != null)
-            {
-                return result;
-            }
-
-            result = new List<T>();
-            using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
-            {
-                while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    result.Add(enumerator.Current);
-                }
-            }
-
-            return result;
-        }
-
-        public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> enumerable)
-        {
-            return ToReadOnlyCollectionAsync(enumerable, CancellationToken.None);
-        }
-
-        public static async Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
-        {
-            if (enumerable == null)
-            {
-                return null;
-            }
-
-            var readOnlyCollection = enumerable as ReadOnlyCollection<T>;
-            if (readOnlyCollection != null)
-            {
-                return readOnlyCollection;
-            }
-
-            var list = enumerable as List<T>;
-            if (list != null)
-            {
-                return new ReadOnlyCollection<T>(list);
-            }
-
-            return new ReadOnlyCollection<T>((await enumerable.ToListAsync(cancellationToken).ConfigureAwait(false)));
         }
     }
 

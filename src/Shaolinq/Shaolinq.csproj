@@ -207,6 +207,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlDeleteNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPredicateToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlProjectionSelectExpander.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlRedundantSubqueryFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlTupleOrAnonymousTypeComparisonExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlNullComparisonCoalescer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
@@ -227,6 +228,7 @@
     <Compile Include="Persistence\RewriteAsyncAttribute.cs" />
     <Compile Include="ScopeCompleteOptions.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
+    <Compile Include="SqlQueryProviderExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />
@@ -341,7 +343,6 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlAggregateChecker.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlRedundantBinaryExpressionsRemover.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlRedundantFunctionCallRemover.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\RedundantSubqueryFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlUnusedColumnRemover.cs" />
     <Compile Include="Persistence\Linq\SqlExpressionReplacer.cs" />
     <Compile Include="Persistence\Linq\RelatedDataAccessObjectProjector.cs" />

@@ -2379,6 +2379,9 @@ namespace Shaolinq.Tests
 				Assert.That(mall.Shops2.HasItems);
 
 				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
+
+				var x = mall.Shops2.ToList();
+
 				Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
 
 				scope.Flush();

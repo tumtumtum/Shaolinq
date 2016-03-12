@@ -14,42 +14,42 @@ namespace Shaolinq
     public static partial class EnumerableExtensions
     {
 	    [RewriteAsync]
-	    internal static T AlwaysReadFirst<T>(this IEnumerable<T> enumerable)
+	    internal static T AlwaysReadFirst<T>(this IEnumerable<T> source)
 	    {
-		    return enumerable.First();
+		    return source.First();
 	    }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
-            where T : struct => enumerable.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);
+		internal static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> source, T? specifiedValue)
+            where T : struct => source.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> enumerable, T? specifiedValue)
-            where T : struct => new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(enumerable.GetAsyncEnumerator(), specifiedValue));
+        internal static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> source, T? specifiedValue)
+            where T : struct => new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(source.GetAsyncEnumerator(), specifiedValue));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable)
-            => enumerable.DefaultIfEmptyAsync(default(T));
+		internal static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> source)
+            => source.DefaultIfEmptyAsync(default(T));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> enumerable, T defaultValue)
-            => new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(enumerable.GetAsyncEnumerator(), defaultValue));
+		internal static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> source, T defaultValue)
+            => new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(source.GetAsyncEnumerator(), defaultValue));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> enumerable) 
-            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
+		internal static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> source) 
+            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken) 
-            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(enumerable.GetAsyncEnumerator()));
+		internal static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken) 
+            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> enumerable) 
-            => enumerable.GetEnumerator();
+		internal static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> source) 
+            => source.GetEnumerator();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> enumerable) 
-            => Task.FromResult(enumerable.GetAsyncEnumerator());
+        internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> source) 
+            => Task.FromResult(source.GetAsyncEnumerator());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
@@ -58,39 +58,42 @@ namespace Shaolinq
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
             => enumerator.MoveNextAsync(cancellationToken);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value)
-            => enumerable.WithEachAsync(value, CancellationToken.None);
-
-        internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> enumerable)
+		
+        internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> source)
 		{
-			var asyncEnumerable = enumerable as IAsyncEnumerable<T>;
+			var internalAsyncEnumerable = source as IInternalAsyncEnumerable<T>;
+
+			if (internalAsyncEnumerable != null)
+			{
+				return internalAsyncEnumerable.GetAsyncEnumerator();
+			}
+
+			var asyncEnumerable = source as IAsyncEnumerable<T>;
+
+			if (asyncEnumerable != null)
+			{
+				return asyncEnumerable.GetAsyncEnumerator();
+			}
+
+	       return new AsyncEnumeratorAdapter<T>(source.GetEnumerator());
+		}
+
+		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrThrow<T>(this IEnumerable<T> source)
+		{
+			var asyncEnumerable = source as IAsyncEnumerable<T>;
 
 			if (asyncEnumerable == null)
 			{
-				return new AsyncEnumeratorAdapter<T>(enumerable.GetEnumerator());
+				throw new NotSupportedException($"The given enumerable {source.GetType().Name} does not support {nameof(IAsyncEnumerable<T>)}");
 			}
 
 			return asyncEnumerable.GetAsyncEnumerator();
 		}
 
-		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrThrow<T>(this IEnumerable<T> enumerable)
-		{
-			var asyncEnumerable = enumerable as IAsyncEnumerable<T>;
-
-			if (asyncEnumerable == null)
-			{
-				throw new NotSupportedException($"The given enumerable {enumerable.GetType().Name} does not support {nameof(IAsyncEnumerable<T>)}");
-			}
-
-			return asyncEnumerable.GetAsyncEnumerator();
-		}
-
-		[RewriteAsync(true)]
-        private static int Count<T>(this IEnumerable<T> enumerable)
+		[RewriteAsync]
+		private static int Count<T>(this IEnumerable<T> source)
         {
-            var list = enumerable as IList<T>;
+            var list = source as ICollection<T>;
 
             if (list != null)
             {
@@ -99,18 +102,21 @@ namespace Shaolinq
 
             var retval = 0;
 
-            using (var enumerator = enumerable.GetEnumeratorEx())
+            using (var enumerator = source.GetEnumeratorEx())
             {
-                retval++;
+	            while (enumerator.MoveNextEx())
+	            {
+					retval++;
+				}
             }
 
             return retval;
         }
 
-        [RewriteAsync(true)]
-        private static long LongCount<T>(this IEnumerable<T> enumerable)
+        [RewriteAsync]
+		private static long LongCount<T>(this IEnumerable<T> source)
         {
-            var list = enumerable as IList<T>;
+            var list = source as ICollection<T>;
 
             if (list != null)
             {
@@ -119,18 +125,21 @@ namespace Shaolinq
 
             var retval = 0L;
 
-            using (var enumerator = enumerable.GetEnumeratorEx())
+            using (var enumerator = source.GetEnumeratorEx())
             {
-                retval++;
+	            while (enumerator.MoveNextEx())
+	            {
+		            retval++;
+	            }
             }
 
             return retval;
         }
 
-        [RewriteAsync(true)]
-        public static T SingleOrSpecifiedValueIfFirstIsDefaultValue<T>(this IEnumerable<T> enumerable, T specifiedValue)
+        [RewriteAsync]
+		internal static T SingleOrSpecifiedValueIfFirstIsDefaultValue<T>(this IEnumerable<T> source, T specifiedValue)
 		{
-            using (var enumerator = enumerable.GetEnumeratorEx())
+            using (var enumerator = source.GetEnumeratorEx())
             {
                 if (!enumerator.MoveNextEx())
                 {
@@ -153,10 +162,10 @@ namespace Shaolinq
             }
         }
 
-        [RewriteAsync(true)]
-        private static T Single<T>(this IEnumerable<T> enumerable)
+        [RewriteAsync]
+		private static T Single<T>(this IEnumerable<T> source)
 	    {
-	        using (var enumerator = enumerable.GetEnumeratorEx())
+	        using (var enumerator = source.GetEnumeratorEx())
 	        {
 	            if (!enumerator.MoveNextEx())
 	            {
@@ -174,10 +183,10 @@ namespace Shaolinq
 	        }
 	    }
 
-        [RewriteAsync(true)]
-        private static T SingleOrDefault<T>(this IEnumerable<T> enumerable)
+        [RewriteAsync()]
+		private static T SingleOrDefault<T>(this IEnumerable<T> source)
         {
-            using (var enumerator = enumerable.GetEnumeratorEx())
+            using (var enumerator = source.GetEnumeratorEx())
             {
                 if (!enumerator.MoveNextEx())
                 {
@@ -188,15 +197,15 @@ namespace Shaolinq
 
                 if (enumerator.MoveNextEx())
                 {
-                    return Enumerable.Single<T>(new T[2]);
+                    return Enumerable.Single(new T[2]);
                 }
 
                 return result;
             }
         }
 
-        [RewriteAsync(true)]
-	    private static T First<T>(this IEnumerable<T> enumerable)
+        [RewriteAsync]
+		private static T First<T>(this IEnumerable<T> enumerable)
 	    {
             using (var enumerator = enumerable.GetEnumeratorEx())
             {
@@ -209,10 +218,10 @@ namespace Shaolinq
             }
         }
 
-        [RewriteAsync(true)]
-        private static T FirstOrDefault<T>(this IEnumerable<T> enumerable)
+        [RewriteAsync]
+		private static T FirstOrDefault<T>(this IEnumerable<T> source)
         {
-            using (var enumerator = enumerable.GetEnumeratorEx())
+            using (var enumerator = source.GetEnumeratorEx())
             {
                 if (!enumerator.MoveNextEx())
                 {
@@ -223,11 +232,11 @@ namespace Shaolinq
             }
         }
 
-        [RewriteAsync(true)]
-        public static T SingleOrExceptionIfFirstIsNull<T>(this IEnumerable<T?> enumerable)
+        [RewriteAsync]
+        internal static T SingleOrExceptionIfFirstIsNull<T>(this IEnumerable<T?> source)
 			where T : struct
 		{
-			using (var enumerator = enumerable.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumeratorEx())
 			{
 				if (!enumerator.MoveNextEx() || enumerator.Current == null)
 				{
@@ -237,101 +246,228 @@ namespace Shaolinq
 				return enumerator.Current.Value;
 			}
 		}
-        
-        [RewriteAsync(true)]
-        public static void WithEach<T>(this IEnumerable<T> enumerable, Action<T> value)
-        {
-            using (var enumerator = enumerable.GetEnumeratorEx())
-            {
-                while (enumerator.MoveNextEx())
-                {
-                    value(enumerator.Current);
-                }
-            }
-        }
 
-        [RewriteAsync(true)]
-        public static void WithEach<T>(this IEnumerable<T> enumerable, Func<T, bool> value)
-        {
-            using (var enumerator = enumerable.GetEnumeratorEx())
-            {
-                while (enumerator.MoveNextEx())
-                {
-                    if (!value(enumerator.Current))
-                    {
-                        break;
-                    }
-                }
-            }
-        }
+		public static void WithEach<T>(this IEnumerable<T> queryable, Action<T> value)
+		{
+			using (var enumerator = queryable.GetEnumerator())
+			{
+				while (enumerator.MoveNextEx())
+				{
+					value(enumerator.Current);
+				}
+			}
+		}
 
-        public static async Task WithEachAsync<T>(this IEnumerable<T> enumerable, Func<T, Task> value, CancellationToken cancellationToken)
-        {
-            using (var enumerator = await enumerable.GetEnumeratorExAsync())
-            {
-                while (await enumerator.MoveNextAsync(cancellationToken))
-                {
-                    await value(enumerator.Current).ConfigureAwait(false);
+		public static void WithEach<T>(this IEnumerable<T> source, Func<T, bool> value)
+		{
+			using (var enumerator = source.GetEnumerator())
+			{
+				while (enumerator.MoveNextEx())
+				{
+					if (!value(enumerator.Current))
+					{
+						break;
+					}
+				}
+			}
+		}
+		
+		public static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this IEnumerable<T> source)
+		{
+			if (source == null)
+			{
+				return null;
+			}
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        break;
-                    }
-                }
-            }
-        }
+			var readonlyCollection = source as ReadOnlyCollection<T>;
 
-        [RewriteAsync(true)]
-        private static List<T> ToList<T>(this IEnumerable<T> enumerable)
-        {
-            if (enumerable == null)
-            {
-                return null;
-            }
+			if (readonlyCollection != null)
+			{
+				return readonlyCollection;
+			}
 
-            var result = enumerable as List<T>;
+			var list = source as IList<T>;
 
-            if (result != null)
-            {
-                return result;
-            }
+			if (list != null)
+			{
+				return new ReadOnlyCollection<T>(list);
+			}
 
-            result = new List<T>();
+			// ReSharper disable once SuspiciousTypeConversion.Global
+			var collection = source as ICollection<T>;
 
-            using (var enumerator = enumerable.GetEnumeratorEx())
-            {
-                while (enumerator.MoveNextEx())
-                {
-                    result.Add(enumerator.Current);
-                }
-            }
+			var retval = collection == null ? new List<T>() : new List<T>(collection.Count);
 
-            return result;
-        }
+			using (var enumerator = source.GetEnumerator())
+			{
+				while (enumerator.MoveNext())
+				{
+					retval.Add(enumerator.Current);
+				}
+			}
 
-        [RewriteAsync(true)]
-        public static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this IEnumerable<T> enumerable)
-        {
-            if (enumerable == null)
-            {
-                return null;
-            }
+			return new ReadOnlyCollection<T>(retval);
+		}
 
-            var readOnlyCollection = enumerable as ReadOnlyCollection<T>;
+		internal static Task<List<T>> ToListAsync<T>(this IEnumerable<T> source)
+		{
+			return source.ToListAsync(CancellationToken.None);
+		}
 
-            if (readOnlyCollection != null)
-            {
-                return readOnlyCollection;
-            }
+		internal static async Task<List<T>> ToListAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		{
+			// ReSharper disable once SuspiciousTypeConversion.Global
+			var queryable = source as ReusableQueryable<T>;
 
-            var list = enumerable as List<T>;
+			if (queryable == null)
+			{
+				return source.ToList();
+			}
 
-            if (list != null)
-            {
-                return new ReadOnlyCollection<T>(list);
-            }
+			// ReSharper disable once SuspiciousTypeConversion.Global
+			var collection = source as ICollection<T>;
 
-            return new ReadOnlyCollection<T>(enumerable.ToList());
-        }
-    }
+			var result = collection == null ? new List<T>() : new List<T>(collection.Count);
+
+			using (var enumerator = queryable.GetAsyncEnumerator())
+			{
+				while (await enumerator.MoveNextAsync(cancellationToken))
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+
+					result.Add(enumerator.Current);
+				}
+			}
+
+			return result;
+		}
+
+		internal static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> source)
+		{
+			return source.ToReadOnlyCollectionAsync(CancellationToken.None);
+		}
+
+		internal static async Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		{
+			// ReSharper disable once SuspiciousTypeConversion.Global
+			var queryable = source as ReusableQueryable<T>;
+
+			if (queryable != null)
+			{
+				return queryable.ToReadOnlyCollection();
+			}
+
+			// ReSharper disable once SuspiciousTypeConversion.Global
+			var readonlyCollection = source as ReadOnlyCollection<T>;
+
+			if (readonlyCollection != null)
+			{
+				return readonlyCollection;
+			}
+
+			// ReSharper disable once SuspiciousTypeConversion.Global
+			var list = source as IList<T>;
+
+			if (list != null)
+			{
+				return new ReadOnlyCollection<T>(list);
+			}
+
+			// ReSharper disable once SuspiciousTypeConversion.Global
+			var collection = source as ICollection<T>;
+
+			var retval = collection == null ? new List<T>() : new List<T>(collection.Count);
+
+			using (var enumerator = source.GetAsyncEnumerator())
+			{
+				while (await enumerator.MoveNextAsync(cancellationToken))
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+
+					retval.Add(enumerator.Current);
+				}
+			}
+
+			return new ReadOnlyCollection<T>(retval);
+		}
+
+		internal static Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value)
+		{
+			return source.WithEachAsync(value, CancellationToken.None);
+		}
+
+		internal static Task WithEachAsync<T>(this IEnumerable<T> queryable, Func<T, Task<bool>> value)
+		{
+			return queryable.WithEachAsync(value, CancellationToken.None);
+		}
+
+		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
+		{
+			using (var enumerator = await source.GetEnumeratorExAsync())
+			{
+				while (await enumerator.MoveNextAsync(cancellationToken))
+				{
+					cancellationToken.ThrowIfCancellationRequested();
+
+					if (!await value(enumerator.Current).ConfigureAwait(false))
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
+		{
+			using (var enumerator = await source.GetEnumeratorExAsync())
+			{
+				while (await enumerator.MoveNextAsync(cancellationToken))
+				{
+					await value(enumerator.Current).ConfigureAwait(false);
+
+					cancellationToken.ThrowIfCancellationRequested();
+				}
+			}
+		}
+
+		public static Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source)
+		{
+			return source.ToListAsync(CancellationToken.None);
+		}
+
+		public static Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).ToListAsync(cancellationToken);
+		}
+
+		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IAsyncEnumerable<T> source)
+		{
+			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync();
+		}
+
+		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync(cancellationToken);
+		}
+
+		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task> value)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value);
+		}
+
+		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task<bool>> value)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value);
+		}
+
+		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value, cancellationToken);
+		}
+
+		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
+		{
+			return ((IEnumerable<T>)source).WithEachAsync(value, cancellationToken);
+		}
+	}
 }

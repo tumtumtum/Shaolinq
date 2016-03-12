@@ -10,8 +10,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public abstract class ReusableQueryProvider
-		: ISqlQueryProvider
+	public abstract class ReusableQueryProvider : ISqlQueryProvider
 	{
 		public virtual IQueryable<T> CreateQuery<T>(Expression expression)
 		{
@@ -28,8 +27,8 @@ namespace Shaolinq
 		public abstract T Execute<T>(Expression expression);
         public abstract object Execute(Expression expression);
         public abstract Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken);
-        public abstract IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression);
-        public abstract IEnumerable<T> GetEnumerable<T>(Expression expression);
+		public abstract IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression);
+		public abstract IEnumerable<T> GetEnumerable<T>(Expression expression);
         public abstract string GetQueryText(Expression expression);
 		protected abstract IQueryable CreateQuery(Type elementType, Expression expression);
 		public IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }
