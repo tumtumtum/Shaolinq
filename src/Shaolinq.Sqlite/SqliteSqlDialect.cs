@@ -11,12 +11,12 @@ namespace Shaolinq.Sqlite
 		{
 			switch (capability)
 			{
+			case SqlCapability.SelectForUpdate:
 			case SqlCapability.AlterTableAddConstraints:
 				return false;
 			case SqlCapability.Constraints:
 			case SqlCapability.IndexToLower:
 			case SqlCapability.Deferrability:
-			case SqlCapability.SelectForUpdate:
 			case SqlCapability.InlineForeignKeys:
 			case SqlCapability.MultipleActiveResultSets:
 				return true;
