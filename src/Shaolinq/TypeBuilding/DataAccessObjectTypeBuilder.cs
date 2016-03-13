@@ -2816,21 +2816,22 @@ namespace Shaolinq.TypeBuilding
 			
 			if (methodInfo != null && methodInfo.DeclaringType == typeof(DataAccessObject))
 			{
-				interfaceMethodBeingOveridden = methodInfo;
-				callingConventions = methodInfo.CallingConvention;
-				methodName = typeof(IDataAccessObjectInternal).FullName + "." + methodName;
-				methodAttributes = MethodAttributes.Private | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
-				
+				methodAttributes = methodInfo.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot | MethodAttributes.Final);
 				methodReturnType = methodInfo.ReturnType;
+				callingConventions = methodInfo.CallingConvention;
 				methodParameterTypes = methodInfo.GetParameters().Select(c => c.ParameterType).ToArray();
+
 			}
 			else
 			{
 				methodInfo = typeof(IDataAccessObjectAdvanced).GetMethod(methodName) ?? typeof(IDataAccessObjectInternal).GetMethod(methodName);
-
-				methodAttributes = methodInfo.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot | MethodAttributes.Final);
-				methodReturnType = methodInfo.ReturnType;
+				
+				interfaceMethodBeingOveridden = methodInfo;
 				callingConventions = methodInfo.CallingConvention;
+				methodName = typeof(IDataAccessObjectInternal).FullName + "." + methodName;
+				methodAttributes = MethodAttributes.Private | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.SpecialName;
+
+				methodReturnType = methodInfo.ReturnType;
 				methodParameterTypes = methodInfo.GetParameters().Select(c => c.ParameterType).ToArray();
 			}
 
