@@ -871,11 +871,6 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
-			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
-			{
-				return base.VisitMethodCall(methodCallExpression);
-			}
-
 			if (methodCallExpression.Method.DeclaringType == typeof(Queryable)
 				|| methodCallExpression.Method.DeclaringType == typeof(Enumerable)
 				|| methodCallExpression.Method.DeclaringType == typeof(QueryableExtensions))
@@ -884,8 +879,6 @@ namespace Shaolinq.Persistence.Linq
 
 				switch (methodCallExpression.Method.Name)
 				{
-				case "AsEnumerable":
-					return this.Visit(methodCallExpression.Arguments[0]);
 				case "Where":
 					this.selectorPredicateStack.Push(methodCallExpression);
 					result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
@@ -1063,11 +1056,14 @@ namespace Shaolinq.Persistence.Linq
 						return this.BindUnion(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], true);
 					}
 					break;
+				case "AsEnumerable":
+					return this.Visit(methodCallExpression.Arguments[0]);
 				}
 
 				throw new NotSupportedException($"Linq function \"{methodCallExpression.Method.Name}\" is not supported");
 			}
-			else if (methodCallExpression.Method.DeclaringType.GetUnwrappedNullableType() == typeof(DateTime))
+
+			if (methodCallExpression.Method.DeclaringType.GetUnwrappedNullableType() == typeof(DateTime))
 			{
 				switch (methodCallExpression.Method.Name)
 				{
@@ -1082,6 +1078,11 @@ namespace Shaolinq.Persistence.Linq
 				case "AddDays":
 					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromDays, this.VisitExpressionList(methodCallExpression.Arguments)));
 				}
+			}
+
+			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
+			{
+				return base.VisitMethodCall(methodCallExpression);
 			}
 
 			if (typeof(IList).IsAssignableFrom(methodCallExpression.Method.DeclaringType)
@@ -1108,154 +1109,15 @@ namespace Shaolinq.Persistence.Linq
 			else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsLeftJoinMethod)
 			{
 				return this.BindJoin(methodCallExpression.Type, methodCallExpression.Arguments[0],
-						methodCallExpression.Arguments[1],
-						methodCallExpression.Arguments[2].StripQuotes(),
-						methodCallExpression.Arguments[3].StripQuotes(),
-						methodCallExpression.Arguments[4].StripQuotes(),
-						SqlJoinType.Left);
+					methodCallExpression.Arguments[1],
+					methodCallExpression.Arguments[2].StripQuotes(),
+					methodCallExpression.Arguments[3].StripQuotes(),
+					methodCallExpression.Arguments[4].StripQuotes(),
+					SqlJoinType.Left);
 			}
 			else if (methodCallExpression.Method.DeclaringType == typeof(string))
 			{
-				switch (methodCallExpression.Method.Name)
-				{
-				case "Contains":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var operand1 = this.Visit(methodCallExpression.Arguments[0]);
-
-							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.ContainsString, operand0, operand1);
-						}
-
-						break;
-					}
-				case "StartsWith":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var operand1 = this.Visit(methodCallExpression.Arguments[0]);
-
-							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.StartsWith, operand0, operand1);
-						}
-
-						break;
-					}
-				case "EndsWith":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var operand1 = this.Visit(methodCallExpression.Arguments[0]);
-
-							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.EndsWith, operand0, operand1);
-						}
-
-						break;
-					}
-				case "Substring":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-						var operand1 = this.Visit(methodCallExpression.Arguments[0]);
-
-						if (methodCallExpression.Arguments.Count > 2)
-						{
-							var operand2 = this.Visit(methodCallExpression.Arguments[1]);
-
-							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1, operand2);
-						}
-						else
-						{
-							return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1);
-						}
-					}
-				case "Trim":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
-
-							if (newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
-							{
-								throw new NotSupportedException("StringLiteral.Trim(char[])");
-							}
-						}
-
-						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Trim, operand0);
-					}
-				case "TrimStart":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
-							var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
-							var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
-
-							if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
-								&& constantExpression == null && constantPlaceholderExpression == null)
-							{
-								throw new NotSupportedException("StringLiteral.TrimStart(char[])");
-							}
-						}
-
-						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.TrimLeft, operand0);
-					}
-				case "TrimEnd":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count == 1)
-						{
-							var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
-							var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
-							var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
-
-							if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
-								&& constantExpression == null && constantPlaceholderExpression == null)
-							{
-								throw new NotSupportedException("StringLiteral.TrimEnd(char[])");
-							}
-						}
-
-						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.TrimRight, operand0);
-					}
-				case "ToUpper":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count != 0)
-						{
-							throw new NotSupportedException("StringLiteral.Upper()");
-						}
-
-						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Upper, operand0);
-					}
-				case "ToLower":
-					{
-						var operand0 = this.Visit(methodCallExpression.Object);
-
-						if (methodCallExpression.Arguments.Count != 0)
-						{
-							throw new NotSupportedException("StringLiteral.Lower()");
-						}
-
-						return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Lower, operand0);
-					}
-				case "IsNullOrEmpty":
-					{
-						var operand0 = this.Visit(methodCallExpression.Arguments[0]);
-
-						return Expression.Or(Expression.Equal(operand0, Expression.Constant(null)), Expression.Equal(operand0, Expression.Constant(string.Empty)));
-					}
-				}
+				return BindStringMethod(methodCallExpression);
 			}
 			else if (methodCallExpression.Method.ReturnType.IsDataAccessObjectType())
 			{
@@ -1272,6 +1134,132 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return base.VisitMethodCall(methodCallExpression);
+		}
+
+		private Expression BindStringMethod(MethodCallExpression methodCallExpression)
+		{
+			Expression operand0, operand1;
+
+			switch (methodCallExpression.Method.Name)
+			{
+			case "Contains":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count == 1)
+				{
+					operand1 = this.Visit(methodCallExpression.Arguments[0]);
+
+					return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.ContainsString, operand0, operand1);
+				}
+
+				break;
+			case "StartsWith":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count == 1)
+				{
+					operand1 = this.Visit(methodCallExpression.Arguments[0]);
+
+					return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.StartsWith, operand0, operand1);
+				}
+
+				break;
+			case "EndsWith":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count == 1)
+				{
+					operand1 = this.Visit(methodCallExpression.Arguments[0]);
+
+					return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.EndsWith, operand0, operand1);
+				}
+
+				break;
+			case "Substring":
+				operand0 = this.Visit(methodCallExpression.Object);
+				operand1 = this.Visit(methodCallExpression.Arguments[0]);
+
+				if (methodCallExpression.Arguments.Count > 2)
+				{
+					var operand2 = this.Visit(methodCallExpression.Arguments[1]);
+
+					return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1, operand2);
+				}
+
+				return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Substring, operand0, operand1);
+			case "Trim":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count == 1)
+				{
+					var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
+
+					if (newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
+					{
+						throw new NotSupportedException(nameof(string.Trim));
+					}
+				}
+
+				return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Trim, operand0);
+			case "TrimStart":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count == 1)
+				{
+					var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
+					var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
+					var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
+
+					if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
+						&& constantExpression == null && constantPlaceholderExpression == null)
+					{
+						throw new NotSupportedException(nameof(string.TrimStart));
+					}
+				}
+
+				return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.TrimLeft, operand0);
+			case "TrimEnd":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count == 1)
+				{
+					var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
+					var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
+					var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
+
+					if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
+						&& constantExpression == null && constantPlaceholderExpression == null)
+					{
+						throw new NotSupportedException(nameof(string.TrimEnd));
+					}
+				}
+
+				return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.TrimRight, operand0);
+			case "ToUpper":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count != 0)
+				{
+					throw new NotSupportedException(nameof(string.ToUpper));
+				}
+
+				return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Upper, operand0);
+			case "ToLower":
+				operand0 = this.Visit(methodCallExpression.Object);
+
+				if (methodCallExpression.Arguments.Count != 0)
+				{
+					throw new NotSupportedException(nameof(string.ToLower));
+				}
+
+				return new SqlFunctionCallExpression(methodCallExpression.Type, SqlFunction.Lower, operand0);
+			case "IsNullOrEmpty":
+				operand0 = this.Visit(methodCallExpression.Arguments[0]);
+
+				return Expression.Or(Expression.Equal(operand0, Expression.Constant(null)), Expression.Equal(operand0, Expression.Constant(string.Empty)));
+			}
+
+			throw new NotSupportedException($"string.{methodCallExpression.Method.Name}");
 		}
 
 		private MemberInitExpression RemoveNonPrimaryKeyBindings(MemberInitExpression memberInitExpression)
