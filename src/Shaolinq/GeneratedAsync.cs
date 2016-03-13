@@ -1602,7 +1602,7 @@ namespace Shaolinq.Persistence
                         throw new NotSupportedException("Changed state not supported");
                 }
 
-                var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) == 0;
+                var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;
                 var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability) || ((objectState & DataAccessObjectState.ReferencesNewObject) == 0));
                 var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
                 if (objectReadyToBeCommited)
