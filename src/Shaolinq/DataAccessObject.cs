@@ -57,12 +57,12 @@ namespace Shaolinq
 
 		#region These will usually be generated with faster implementations by DataAccessObjectTypeBuilder
 		DataAccessModel IDataAccessObjectAdvanced.DataAccessModel => this.dataAccessModel;
-		DataAccessObjectState IDataAccessObjectAdvanced.State => DataAccessObjectState.Untracked;
+		DataAccessObjectState IDataAccessObjectAdvanced.ObjectState => DataAccessObjectState.Untracked;
 		bool IDataAccessObjectAdvanced.DefinesAnyDirectPropertiesGeneratedOnTheServerSide => ((IDataAccessObjectAdvanced)this).NumberOfPropertiesGeneratedOnTheServerSide > 0;
-		bool IDataAccessObjectAdvanced.IsNew => (((IDataAccessObjectAdvanced)this).State & DataAccessObjectState.New) != 0;
-		bool IDataAccessObjectAdvanced.IsDeleted => (((IDataAccessObjectAdvanced)this).State & DataAccessObjectState.Deleted) != 0;
+		bool IDataAccessObjectAdvanced.IsNew => (((IDataAccessObjectAdvanced)this).ObjectState & DataAccessObjectState.New) != 0;
+		bool IDataAccessObjectAdvanced.IsDeleted => (((IDataAccessObjectAdvanced)this).ObjectState & DataAccessObjectState.Deleted) != 0;
 		bool IDataAccessObjectAdvanced.HasCompositeKey => ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys > 1;
-		bool IDataAccessObjectAdvanced.HasObjectChanged => (((IDataAccessObjectAdvanced)this).State & DataAccessObjectState.Changed) != 0;
+		bool IDataAccessObjectAdvanced.HasObjectChanged => (((IDataAccessObjectAdvanced)this).ObjectState & DataAccessObjectState.Changed) != 0;
 		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor => this.dataAccessModel?.GetTypeDescriptor(this.GetType());
 		Type IDataAccessObjectAdvanced.DefinitionType => this.dataAccessModel?.GetDefinitionTypeFromConcreteType(this.GetType());
 		bool IDataAccessObjectAdvanced.IsMissingAnyPrimaryKeys => false;

@@ -2523,7 +2523,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, this.valueFields[property.PropertyName]);
-				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.State).GetGetMethod());
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.ObjectState).GetGetMethod());
 				generator.Emit(OpCodes.Ldc_I4, (int)(DataAccessObjectState.New));
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, skip);
@@ -2602,7 +2602,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildStateProperty()
+		private void BuildObjectStateProperty()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
