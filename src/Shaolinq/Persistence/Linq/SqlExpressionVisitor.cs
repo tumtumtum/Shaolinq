@@ -88,6 +88,8 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitOver((SqlOverExpression)expression);
 			case SqlExpressionType.Scalar:
 				return this.VisitScalar((SqlScalarExpression)expression);
+			case SqlExpressionType.Union:
+				return this.VisitUnion((SqlUnionExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
@@ -554,6 +556,19 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitQueryArgument(SqlQueryArgumentExpression expression)
 		{
+			return expression;
+		}
+
+		protected virtual Expression VisitUnion(SqlUnionExpression expression)
+		{
+			var left = this.Visit(expression.Left);
+			var right = this.Visit(expression.Right);
+
+			if (left != expression.Left || right != expression.Right)
+			{
+				return new SqlUnionExpression(expression.Type, expression.Alias, left, right, expression.UnionAll);
+			}
+
 			return expression;
 		}
 	}

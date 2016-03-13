@@ -43,7 +43,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
-			if (this.selectsToRemove.Contains(select))	
+			if (this.selectsToRemove.Contains(select))
 			{
 				return this.Visit(select.From);
 			}

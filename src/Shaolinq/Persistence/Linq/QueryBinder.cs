@@ -1054,10 +1054,16 @@ namespace Shaolinq.Persistence.Linq
 				case "Union":
 					if (methodCallExpression.Arguments.Count == 2)
 					{
-						return this.BindUnion(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1]);
+						return this.BindUnion(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], false);
 					}
 					break;
-                }
+				case "Concat":
+					if (methodCallExpression.Arguments.Count == 2)
+					{
+						return this.BindUnion(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], true);
+					}
+					break;
+				}
 
 				throw new NotSupportedException($"Linq function \"{methodCallExpression.Method.Name}\" is not supported");
 			}
@@ -1352,9 +1358,19 @@ namespace Shaolinq.Persistence.Linq
 			return this.Visit(source);
 		}
 
-		private Expression BindUnion(Expression left, Expression right)
+		private Expression BindUnion(Type resultType, Expression left, Expression right, bool unionAll)
 		{
-			throw new NotImplementedException();
+			var leftProjection = this.VisitSequence(left);
+			var rightProjection = this.VisitSequence(right);
+
+			var unionAlias = this.GetNextAlias();
+			var union = new SqlUnionExpression(resultType, unionAlias, leftProjection, rightProjection, unionAll);
+
+			var alias = this.GetNextAlias();
+			var projectedColumns = ProjectColumns(leftProjection.Projector, alias, null, leftProjection.Select.Alias);
+			var columns = projectedColumns.Columns.Select(c => c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? c.ReplaceExpression(((SqlColumnExpression)c.Expression).ChangeAlias(unionAlias)) : c);
+
+			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, columns, union, null, null, leftProjection.Select.ForUpdate || rightProjection.Select.ForUpdate), projectedColumns.Projector, null);
 		}
 
 		private Expression BindForUpdate(Expression source)

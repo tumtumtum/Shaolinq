@@ -911,6 +911,9 @@ namespace Shaolinq.Persistence.Linq
 				break;
             case SqlExpressionType.Delete:
 			    this.VisitDelete((SqlDeleteExpression)source);
+				break;
+			case SqlExpressionType.Union:
+				this.VisitUnion((SqlUnionExpression)source);
 			    break;
 			default:
 				throw new InvalidOperationException($"Select source ({source.NodeType}) is not valid type");
@@ -1389,7 +1392,7 @@ namespace Shaolinq.Persistence.Linq
 			this.Write(expression.Directive);
 			this.WriteLine(";");
 
-			return base.VisitPragma(expression);
+			return expression;
 		}
 
 		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
@@ -1407,7 +1410,32 @@ namespace Shaolinq.Persistence.Linq
 			this.Write(" ");
 			this.Write(expression.Arguments);
 
-			return base.VisitSetCommand(expression);
+			return expression;
+		}
+
+		protected override Expression VisitUnion(SqlUnionExpression expression)
+		{
+			var savedSelectNext = this.selectNest;
+			this.selectNest = 0;
+
+			this.Write("(");
+			this.Visit(expression.Left);
+			if (expression.UnionAll)
+			{
+				this.Write(" UNION ALL ");
+			}
+			else
+			{
+				this.Write(" UNION ");
+			}
+			this.Visit(expression.Right);
+			this.Write(")");
+			this.Write(" AS ");
+			this.WriteQuotedIdentifier(expression.Alias);
+
+			this.selectNest = savedSelectNext;
+
+			return expression;
 		}
 	}
 }

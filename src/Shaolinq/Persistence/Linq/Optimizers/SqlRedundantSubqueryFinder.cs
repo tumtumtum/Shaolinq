@@ -109,6 +109,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
             return join;
         }
 
+		protected override Expression VisitUnion(SqlUnionExpression union)
+		{
+			return union;
+		}
+
 		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
 			return deleteExpression;

@@ -2786,5 +2786,23 @@ namespace Shaolinq.Tests
 					.ToList();
 			}
 		}
+
+		[Test]
+		public void Test_Concat()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var results = model.Students.Concat(model.Students).ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Union()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var results = model.Students.Union(model.Students).ToList();
+			}
+		}
 	}
 }

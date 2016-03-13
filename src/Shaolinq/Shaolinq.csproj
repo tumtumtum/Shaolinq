@@ -180,6 +180,7 @@
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
     <Compile Include="Persistence\Linq\AlwaysReadFirstObjectProjector.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlUnionExpression.cs" />
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AliasReferenceReplacer.cs" />

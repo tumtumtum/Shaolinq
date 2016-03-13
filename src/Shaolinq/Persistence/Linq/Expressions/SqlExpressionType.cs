@@ -43,6 +43,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		Scalar,
 		Exists,
 		In,
-		QueryArgument
+		QueryArgument,
+		Union
 	}
 }
