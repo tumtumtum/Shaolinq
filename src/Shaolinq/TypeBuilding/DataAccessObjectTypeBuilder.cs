@@ -2764,12 +2764,10 @@ namespace Shaolinq.TypeBuilding
 
 		private ILGenerator CreateGeneratorForReflectionEmittedPropertyGetter(string propertyName)
 		{
-			var propertyInfo = typeof(IDataAccessObjectInternal).GetProperty(propertyName) ?? typeof(IDataAccessObjectAdvanced).GetProperty(propertyName);
-
-			if (propertyInfo == null)
+			var propertyInfo = this.typeBuilder.BaseType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+			
+			if (propertyInfo != null && propertyInfo.DeclaringType == typeof(DataAccessObject))
 			{
-				propertyInfo = this.typeBuilder.BaseType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-
 				var methodInfo = propertyInfo.GetGetMethod();
 				var methodAttributes = methodInfo.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot);
 				var methodBuilder = this.typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, methodInfo.GetParameters().Select(c => c.ParameterType).ToArray());
@@ -2778,6 +2776,8 @@ namespace Shaolinq.TypeBuilding
 			}
 			else
 			{
+				propertyInfo = typeof(IDataAccessObjectInternal).GetProperty(propertyName) ?? typeof(IDataAccessObjectAdvanced).GetProperty(propertyName);
+				
 				const MethodAttributes methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Final;
 
 				var methodBuilder = this.typeBuilder.DefineMethod(propertyInfo.DeclaringType.FullName + ".get_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, Type.EmptyTypes);
@@ -2812,12 +2812,10 @@ namespace Shaolinq.TypeBuilding
 			Type[] methodParameterTypes;
 			CallingConventions callingConventions;
 			MethodInfo interfaceMethodBeingOveridden = null;
-			var methodInfo = typeof(IDataAccessObjectAdvanced).GetMethod(methodName) ?? typeof(IDataAccessObjectInternal).GetMethod(methodName); 
+			var methodInfo = this.typeBuilder.BaseType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public); 
 			
-			if (methodInfo == null)
+			if (methodInfo != null && methodInfo.DeclaringType == typeof(DataAccessObject))
 			{
-				methodInfo = this.typeBuilder.BaseType.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
-
 				interfaceMethodBeingOveridden = methodInfo;
 				callingConventions = methodInfo.CallingConvention;
 				methodName = typeof(IDataAccessObjectInternal).FullName + "." + methodName;
@@ -2828,6 +2826,8 @@ namespace Shaolinq.TypeBuilding
 			}
 			else
 			{
+				methodInfo = typeof(IDataAccessObjectAdvanced).GetMethod(methodName) ?? typeof(IDataAccessObjectInternal).GetMethod(methodName);
+
 				methodAttributes = methodInfo.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot | MethodAttributes.Final);
 				methodReturnType = methodInfo.ReturnType;
 				callingConventions = methodInfo.CallingConvention;
