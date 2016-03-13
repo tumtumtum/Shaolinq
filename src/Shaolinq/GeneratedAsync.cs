@@ -1538,7 +1538,7 @@ namespace Shaolinq.Persistence
             var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
             foreach (var dataAccessObject in dataAccessObjects)
             {
-                var objectState = dataAccessObject.GetAdvanced().DataAccessObjectState;
+                var objectState = dataAccessObject.GetAdvanced().State;
                 if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
                 {
                     continue;
@@ -1590,7 +1590,7 @@ namespace Shaolinq.Persistence
             var listToRetry = new List<DataAccessObject>();
             foreach (var dataAccessObject in dataAccessObjects)
             {
-                var objectState = dataAccessObject.GetAdvanced().DataAccessObjectState;
+                var objectState = dataAccessObject.GetAdvanced().State;
                 switch (objectState & DataAccessObjectState.NewChanged)
                 {
                     case DataAccessObjectState.Unchanged:

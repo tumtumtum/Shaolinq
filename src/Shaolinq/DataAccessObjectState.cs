@@ -56,8 +56,18 @@ namespace Shaolinq
 		PrimaryKeyReferencesNewObjectWithServerSideProperties = PrimaryKeyReferencesNewObject | 64,
 		
 		/// <summary>
+		/// The object is a deflated reference
+		/// </summary>
+		Deflated = 4096,
+
+		/// <summary>
+		/// The object was manually constructed and cannot be used for persistence
+		/// </summary>
+		Untracked = 8192,
+		
+		/// <summary>
 		/// The object has been deleted
 		/// </summary>
-		Deleted = 4096
+		Deleted = 16384
 	}
 }

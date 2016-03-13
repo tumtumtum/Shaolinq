@@ -2,20 +2,20 @@
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
-	public abstract class Region
+	public class Region
 		: DataAccessObject<long>
 	{
 		[PrimaryKey]
 		[PersistedMember]
-		public abstract string Name { get; set; }
+		public virtual string Name { get; set; }
 
 		[PersistedMember]
-		public abstract double Range { get; set; }
+		public virtual double Range { get; set; }
 
 		[PersistedMember]
-		public abstract double Diameter { get; set; }
+		public virtual double Diameter { get; set; }
 
 		[PersistedMember]
-		public abstract Coordinate Center { get; set; }
+		public virtual Coordinate Center { get; set; }
 	}
 }

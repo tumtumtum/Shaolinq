@@ -3,21 +3,21 @@
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
-	public abstract class Address
+	public class Address
 		: DataAccessObject<long>
 	{
 		[PrimaryKey]
 		[PersistedMember]
-		public abstract Region Region { get; set; }
+		public virtual Region Region { get; set; }
 
 		[PersistedMember]
-		public abstract Region Region2 { get; set; }
+		public virtual Region Region2 { get; set; }
 
 		[PersistedMember]
-		public abstract int Number { get; set; }
+		public virtual int Number { get; set; }
 
 		[Index]
 		[PersistedMember]
-		public abstract string Street { get; set; }
+		public virtual string Street { get; set; }
 	}
 }

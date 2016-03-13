@@ -982,6 +982,8 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 					generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
 					generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
+					generator.Emit(OpCodes.And);
+					generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
 					generator.Emit(OpCodes.Ceq);
 					generator.Emit(OpCodes.Brfalse, notDeletedLabel);
 					generator.Emit(OpCodes.Ldarg_0);
@@ -1876,13 +1878,21 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Brfalse, label);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
+			generator.Emit(OpCodes.Or);
 			generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
 			generator.MarkLabel(label);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-			generator.Emit(OpCodes.Ldc_I4, (int)0);
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
+			generator.Emit(OpCodes.Ldc_I4, ~(int)DataAccessObjectState.Deleted);
+			generator.Emit(OpCodes.And);
 			generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Ret);
 		}
@@ -2513,7 +2523,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, this.valueFields[property.PropertyName]);
-				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.DataAccessObjectState).GetGetMethod());
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.State).GetGetMethod());
 				generator.Emit(OpCodes.Ldc_I4, (int)(DataAccessObjectState.New));
 				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, skip);
@@ -2592,17 +2602,30 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildDataAccessObjectStateProperty()
+		private void BuildStateProperty()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
 
 			var notDeletedLabel = generator.DefineLabel();
+			var notDeflatedLabel = generator.DefineLabel();
 			var local = generator.DeclareLocal(typeof(DataAccessObjectState));
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 			generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
 			generator.Emit(OpCodes.Stloc, local);
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, dataObjectField);
+			generator.Emit(OpCodes.Ldfld, isDeflatedReferenceField);
+			generator.Emit(OpCodes.Brfalse, notDeflatedLabel);
+
+			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deflated);
+			generator.Emit(OpCodes.Or);
+			generator.Emit(OpCodes.Stloc, local);
+
+			generator.MarkLabel(notDeflatedLabel);
 
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.Deleted);
@@ -2614,6 +2637,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 
 			generator.MarkLabel(notDeletedLabel);
+			
 
 			var breakLabel1 = generator.DefineLabel();
 

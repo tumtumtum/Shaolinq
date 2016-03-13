@@ -2,34 +2,36 @@
 
 using System;
 
+// ReSharper disable UnassignedGetOnlyAutoProperty
+
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
-	public abstract class Mall
+	public class Mall
 		: DataAccessObject<Guid>
 	{
 		[PersistedMember]
-		public abstract string Name { get; set; }
+		public virtual string Name { get; set; }
 
 		[PersistedMember]
-		public abstract Address Address { get; set; }
+		public virtual Address Address { get; set; }
 
 		[PersistedMember]
-		public abstract Mall SisterMall { get; set; }
+		public virtual Mall SisterMall { get; set; }
 
 		[PersistedMember]
-		public abstract Mall SisterMall2 { get; set; }
+		public virtual Mall SisterMall2 { get; set; }
 
         [PersistedMember]
-        public abstract Shop TopShop { get; set; }
+        public virtual Shop TopShop { get; set; }
 
         [RelatedDataAccessObjects]
-		public abstract RelatedDataAccessObjects<Shop> Shops { get; }
+		public virtual RelatedDataAccessObjects<Shop> Shops { get; }
 
 		[RelatedDataAccessObjects(BackReferenceName = "Mall2")]
-		public abstract RelatedDataAccessObjects<Shop> Shops2 { get; }
+		public virtual RelatedDataAccessObjects<Shop> Shops2 { get; }
 
 		[RelatedDataAccessObjects(BackReferenceName = "Mall3")]
-		public abstract RelatedDataAccessObjects<Shop> Shops3 { get; }
+		public virtual RelatedDataAccessObjects<Shop> Shops3 { get; }
 	}
 }

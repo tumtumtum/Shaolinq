@@ -107,7 +107,7 @@ namespace Shaolinq
 
 		public override string ToString()
 		{
-			return String.Format("{0}|{1}|={2}", this.PropertyName, this.PersistedName, this.Value);
+			return $"{this.PropertyName}|{this.PersistedName}|={this.Value}";
 		}
 	}
 }

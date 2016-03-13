@@ -389,13 +389,11 @@ namespace Shaolinq
 		
 		private readonly Dictionary<RuntimeTypeHandle, IObjectsByIdCache> cachesByType = new Dictionary<RuntimeTypeHandle, IObjectsByIdCache>();
 
-		protected bool DisableCache { get; }
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
-		public DataAccessObjectDataContext(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, bool disableCache)
+		public DataAccessObjectDataContext(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext)
 		{
-			this.DisableCache = disableCache;
 			this.DataAccessModel = dataAccessModel;
 			this.SqlDatabaseContext = sqlDatabaseContext;
 		}
@@ -403,6 +401,11 @@ namespace Shaolinq
 		public virtual void Deleted(IDataAccessObjectAdvanced value)
 		{
 			if (value.IsDeleted)
+			{
+				return;
+			}
+
+			if ((value.State & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
 				return;
 			}
@@ -423,11 +426,6 @@ namespace Shaolinq
 
 		public virtual void ImportObject(DataAccessObject value)
 		{
-			if (this.DisableCache)
-			{
-				return;
-			}
-
 			if (value == null)
 			{
 				return;
@@ -438,11 +436,6 @@ namespace Shaolinq
 
 		protected void ImportObject(HashSet<DataAccessObject> alreadyVisited, DataAccessObject value)
 		{
-			if (this.DisableCache)
-			{
-				return;
-			}
-
 			this.CacheObject(value, true);
 
 			alreadyVisited.Add(value);
@@ -463,11 +456,6 @@ namespace Shaolinq
 		public virtual DataAccessObject GetObject(Type type, ObjectPropertyValue[] primaryKeys)
 		{
 			IObjectsByIdCache cache;
-
-			if (this.DisableCache)
-			{
-				return null;
-			}
 
 			return this.cachesByType.TryGetValue(type.TypeHandle, out cache) ? cache.Get(primaryKeys) : null;
 		}
@@ -518,13 +506,13 @@ namespace Shaolinq
 
 		public virtual DataAccessObject CacheObject(DataAccessObject value, bool forImport)
 		{
-			if (this.DisableCache)
+			IObjectsByIdCache cache;
+			var typeHandle = Type.GetTypeHandle(value);
+
+			if ((value.GetAdvanced().State & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
 				return value;
 			}
-
-			IObjectsByIdCache cache;
-			var typeHandle = Type.GetTypeHandle(value);
 
 			if (!this.cachesByType.TryGetValue(typeHandle, out cache))
 			{

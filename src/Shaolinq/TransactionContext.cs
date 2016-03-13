@@ -140,7 +140,7 @@ namespace Shaolinq
 
 			if (dataAccessObjectDataContext == null)
 			{
-				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext(), false);
+				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext());
 			}
 			
 			return this.dataAccessObjectDataContext;

@@ -1,15 +1,15 @@
 ﻿namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
-	public abstract class SuperMall
+	public class SuperMall
 		: DataAccessObject<Mall>
 	{
 		[PrimaryKey]
 		[PersistedMember]
-		public abstract Address Address1 { get; set; }
+		public virtual Address Address1 { get; set; }
 
 		[PrimaryKey]
 		[PersistedMember]
-		public abstract Address Address2 { get; set; }
+		public virtual Address Address2 { get; set; }
 	}
 }
