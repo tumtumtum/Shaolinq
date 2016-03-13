@@ -405,7 +405,7 @@ namespace Shaolinq
 				return;
 			}
 
-			if ((value.State & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
+			if ((value.ObjectState & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
 				return;
 			}
@@ -509,7 +509,7 @@ namespace Shaolinq
 			IObjectsByIdCache cache;
 			var typeHandle = Type.GetTypeHandle(value);
 
-			if ((value.GetAdvanced().State & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
+			if ((value.GetAdvanced().ObjectState & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
 				return value;
 			}

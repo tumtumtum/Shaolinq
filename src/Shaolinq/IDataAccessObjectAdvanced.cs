@@ -70,7 +70,7 @@ namespace Shaolinq
 		/// <summary>
 		/// Gets the object state of the object (mostly used for persistence).
 		/// </summary>S
-		DataAccessObjectState State { get; }
+		DataAccessObjectState ObjectState { get; }
 
 		/// <summary>
 		/// Gets the original abstract type that defined the current object.

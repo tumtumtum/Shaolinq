@@ -54,7 +54,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				var objectState = dataAccessObject.GetAdvanced().State;
+				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 
 				if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
 				{
@@ -112,7 +112,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				var objectState = dataAccessObject.GetAdvanced().State;
+				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 
 				switch (objectState & DataAccessObjectState.NewChanged)
 				{
