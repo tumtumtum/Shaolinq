@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence
 	public partial class DefaultSqlTransactionalCommandsContext
 		: SqlTransactionalCommandsContext
 	{
-		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+		protected static readonly ILog Logger = LogProvider.GetLogger("Shaolinq.Query");
 
 		protected internal struct SqlCommandValue
 		{

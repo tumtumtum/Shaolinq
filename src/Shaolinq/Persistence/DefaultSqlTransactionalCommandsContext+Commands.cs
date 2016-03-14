@@ -24,7 +24,7 @@ namespace Shaolinq.Persistence
 
 				command.CommandText = sql;
 
-				Logger.Debug(() => this.FormatCommand(command));
+				Logger.Info(() => this.FormatCommand(command));
 
 				try
 				{
@@ -71,7 +71,7 @@ namespace Shaolinq.Persistence
 						continue;
 					}
 
-					Logger.Debug(() => this.FormatCommand(command));
+					Logger.Info(() => this.FormatCommand(command));
 
 					int result;
 
@@ -136,7 +136,7 @@ namespace Shaolinq.Persistence
 
 					using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
 					{
-						Logger.Debug(() => this.FormatCommand(command));
+						Logger.Info(() => this.FormatCommand(command));
 
 						try
 						{
@@ -213,7 +213,7 @@ namespace Shaolinq.Persistence
 					this.AddParameter(command, value.Type, value.Value);
 				}
 
-				Logger.Debug(() => this.FormatCommand(command));
+				Logger.Info(() => this.FormatCommand(command));
 
 				try
 				{

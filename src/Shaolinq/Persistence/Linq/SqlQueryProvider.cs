@@ -22,6 +22,8 @@ namespace Shaolinq.Persistence.Linq
         private readonly Random random = new Random();
         private readonly int ProjectorCacheMaxLimit = 512;
         protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+		protected static readonly ILog ProjectionCacheLogger = LogProvider.GetLogger("Shaolinq.ProjectionCache");
+
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
@@ -305,7 +307,7 @@ namespace Shaolinq.Persistence.Linq
 
 	        if (oldCache.Count >= ProjectorCacheMaxLimit)
 	        {
-		        Logger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}\n\n{formatResult.CommandText}\n\n{projector}");
+				ProjectionCacheLogger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}\n\n{formatResult.CommandText}\n\n{projector}");
 
 				newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default);
 
@@ -343,8 +345,8 @@ namespace Shaolinq.Persistence.Linq
 
 			this.SqlDatabaseContext.projectorCache = newCache;
 
-            Logger.Debug(() => $"Cached projection for query:\n{formatResult.CommandText}\n\nprojector:\n{projector}");
-            Logger.Debug(() => $"Projector Cache Size: {newCache.Count}");
+			ProjectionCacheLogger.Info(() => $"Cached projection for query:\n{formatResult.CommandText}\n\nprojector:\n{projector}");
+			ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {newCache.Count}");
 
 			return new ExecutionBuildResult(formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 		}

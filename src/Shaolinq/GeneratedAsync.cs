@@ -1510,7 +1510,7 @@ namespace Shaolinq.Persistence
                 }
 
                 command.CommandText = sql;
-                Logger.Debug(() => this.FormatCommand(command));
+                Logger.Info(() => this.FormatCommand(command));
                 try
                 {
                     return await command.ExecuteReaderExAsync(cancellationToken).ConfigureAwait(false);
@@ -1552,7 +1552,7 @@ namespace Shaolinq.Persistence
                         continue;
                     }
 
-                    Logger.Debug(() => this.FormatCommand(command));
+                    Logger.Info(() => this.FormatCommand(command));
                     int result;
                     try
                     {
@@ -1610,7 +1610,7 @@ namespace Shaolinq.Persistence
                     var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
                     using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
                     {
-                        Logger.Debug(() => this.FormatCommand(command));
+                        Logger.Info(() => this.FormatCommand(command));
                         try
                         {
                             var reader = (await command.ExecuteReaderExAsync(cancellationToken).ConfigureAwait(false));
@@ -1680,7 +1680,7 @@ namespace Shaolinq.Persistence
                     this.AddParameter(command, value.Type, value.Value);
                 }
 
-                Logger.Debug(() => this.FormatCommand(command));
+                Logger.Info(() => this.FormatCommand(command));
                 try
                 {
                     var count = (await command.ExecuteNonQueryExAsync(cancellationToken).ConfigureAwait(false));

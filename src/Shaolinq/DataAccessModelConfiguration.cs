@@ -27,11 +27,14 @@ namespace Shaolinq
 			this.ConstraintDefaultsConfiguration = new ConstraintDefaultsConfiguration();
 		}
 
+		public string GetMd5()
+		{
+			return TextConversion.ToHexString(new MD5CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
+		}
+
 		public string GetSha256()
 		{
-			var sha256 = new SHA256CryptoServiceProvider();
-
-			return TextConversion.ToHexString(sha256.ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
+			return TextConversion.ToHexString(new SHA256CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
 		}
 	}
 }

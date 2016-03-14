@@ -25,11 +25,11 @@ namespace Shaolinq.TypeBuilding
 		{
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 
-			var configSha256 = configuration.GetSha256();
+			var hash = configuration.GetMd5();
 			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + "." + typeDescriptorProvider.DataAccessModelType.Name);
 			var sharedAssemblyName = new AssemblyName("Shaolinq.GeneratedDataAccessModel");
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(sharedAssemblyName, AssemblyBuilderAccess.RunAndSave);
-			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + configSha256 + ".dll");
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + hash + ".dll");
 
 			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder);
 
@@ -62,7 +62,7 @@ namespace Shaolinq.TypeBuilding
 			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 			if (saveConcreteAssembly || isInDebugMode)
 			{
-				ActionUtils.IgnoreExceptions(() => assemblyBuilder.Save(assemblyName + "." + configSha256 + ".dll"));
+				ActionUtils.IgnoreExceptions(() => assemblyBuilder.Save(assemblyName + "." + hash + ".dll"));
 			}
 
 			return assemblyBuilder;
