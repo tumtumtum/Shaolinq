@@ -348,19 +348,7 @@ namespace Shaolinq.Persistence.Linq
 
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
 				{
-					var requiresGrouping = result.arguments[i] is SqlSelectExpression;
-
-					if (requiresGrouping)
-					{
-						this.Write("(");
-					}
-
 					this.Visit(result.arguments[i]);
-
-					if (requiresGrouping)
-					{
-						this.Write(")");
-					}
 
 					if (i != n)
 					{

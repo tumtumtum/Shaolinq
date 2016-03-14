@@ -8,13 +8,26 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class SqlNullComparisonCoalescer
 		: SqlExpressionVisitor
 	{
-		private SqlNullComparisonCoalescer()
+		private readonly Expression ignoreExpression;
+
+		private SqlNullComparisonCoalescer(SqlProjectionExpression rootProjection)
 		{
+			this.ignoreExpression = rootProjection.Projector;
 		}
 
 		public static Expression Coalesce(Expression expression)
 		{
-			return new SqlNullComparisonCoalescer().Visit(expression);
+			return new SqlNullComparisonCoalescer(expression as SqlProjectionExpression).Visit(expression);
+		}
+
+		protected override Expression Visit(Expression expression)
+		{
+			if (this.ignoreExpression == expression)
+			{
+				return expression;
+			}
+
+			return base.Visit(expression);
 		}
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)

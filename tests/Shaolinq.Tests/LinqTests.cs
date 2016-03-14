@@ -2804,5 +2804,19 @@ namespace Shaolinq.Tests
 				var results = model.Students.Union(model.Students).ToList();
 			}
 		}
+
+		[Test]
+		public void Test_NullCheck_In_Projector()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var x = from cat in this.model.Cats
+					let name = cat != null ? cat.Name : ""
+					where name == ""
+					select new { cat, name };
+
+				var results = x.ToList();
+			}
+		}
 	}
 }

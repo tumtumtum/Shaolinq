@@ -161,7 +161,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
             expression = SqlDeleteNormalizer.Normalize(expression);
-
+			
 			return expression;
 		}
 
