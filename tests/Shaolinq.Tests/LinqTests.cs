@@ -2818,5 +2818,19 @@ namespace Shaolinq.Tests
 				var results = x.ToList();
 			}
 		}
+
+		[Test]
+		public void Test_NullCheck_In_Projector2()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var x = from cat in this.model.Cats
+						let name = cat != null ? cat.Name : ""
+						where name == ""
+						select new { cat, name };
+
+				var results = x.ToList();
+			}
+		}
 	}
 }

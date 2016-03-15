@@ -34,6 +34,8 @@ namespace Shaolinq.Persistence.Linq
 			case (ExpressionType)SqlExpressionType.Aggregate:
 			case (ExpressionType)SqlExpressionType.Subquery:
 				return true;
+			case ExpressionType.Conditional:
+				return expression.Type.IsIntegralType();
 			default:
 				return false;
 			}
