@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
@@ -144,7 +145,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return unaryExpression;
 			}
 
-			this.result = this.result && (current.IsLifted == unaryExpression.IsLifted
+			this.result &= (current.IsLifted == unaryExpression.IsLifted
 			                    && current.IsLiftedToNull == unaryExpression.IsLiftedToNull
 			                    && current.Method == unaryExpression.Method);
 
@@ -187,7 +188,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (!(this.result = this.result && (current.TypeOperand == expression.TypeOperand)))
+			if (!(this.result &= (current.TypeOperand == expression.TypeOperand)))
 			{
 				return expression;
 			}
@@ -210,25 +211,25 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if ((this.options & SqlExpressionComparerOptions.IgnoreConstants) != 0)
 			{
-				this.result = this.result && constantExpression.Type == current.Type;
+				this.result &= constantExpression.Type == current.Type;
 
 				return constantExpression;
 			}
 
-			if (!(this.result = this.result && (current.Type == constantExpression.Type)))
+			if (!(this.result &= (current.Type == constantExpression.Type)))
 			{
 				return constantExpression;
 			}
 
 			if (typeof(Expression).IsAssignableFrom(current.Type))
 			{
-				this.result = this.result && SqlExpressionComparer.Equals((Expression)current.Value, (Expression)constantExpression.Value, options);
+				this.result &= SqlExpressionComparer.Equals((Expression)current.Value, (Expression)constantExpression.Value, options);
 
 				return constantExpression;
 			}
 			else
 			{
-				this.result = this.result && Object.Equals(current.Value, constantExpression.Value);
+				this.result &= Object.Equals(current.Value, constantExpression.Value);
 
 				return constantExpression;
 			}
@@ -281,7 +282,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.Name == expression.Name);
+			this.result &= (current.Name == expression.Name);
 
 			return expression;
 		}
@@ -295,7 +296,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return memberExpression;
 			}
 
-			this.result = this.result && (current.Member == memberExpression.Member);
+			this.result &= (current.Member == memberExpression.Member);
 
 			if (!this.result)
 			{
@@ -318,7 +319,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return methodCallExpression;
 			}
 
-			this.result = this.result && (current.Method == methodCallExpression.Method);
+			this.result &= (current.Method == methodCallExpression.Method);
 
 			if (!this.result)
 			{
@@ -354,7 +355,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return original;
 			}
 
-			if (!(this.result = this.result && (current.Count == original.Count)))
+			if (!(this.result &= (current.Count == original.Count)))
 			{
 				return original;
 			}
@@ -386,7 +387,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return assignment;
 			}
 
-			if (!(this.result = this.result && (current.BindingType == assignment.BindingType && current.Member == assignment.Member)))
+			if (!(this.result &= (current.BindingType == assignment.BindingType && current.Member == assignment.Member)))
 			{
 				return assignment;
 			}
@@ -407,7 +408,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return binding;
 			}
 
-			this.result = this.result && (current.BindingType == binding.BindingType
+			this.result &= (current.BindingType == binding.BindingType
 			                    && current.Member == binding.Member);
 
 			if (!this.result)
@@ -431,7 +432,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return binding;
 			}
 
-			this.result = this.result && (current.BindingType == binding.BindingType
+			this.result &= (current.BindingType == binding.BindingType
 			                    && current.Member == binding.Member);
 
 			if (!this.result)
@@ -455,7 +456,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return original;
 			}
 
-			if (!(this.result = this.result && (current.Count == original.Count)))
+			if (!(this.result &= (current.Count == original.Count)))
 			{
 				return original; 
 			}
@@ -482,7 +483,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return original;
 			}
 
-			if (!(this.result = this.result && (current.Count == original.Count)))
+			if (!(this.result &= (current.Count == original.Count)))
 			{
 				return original;
 			}
@@ -509,7 +510,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.Parameters.Count == expression.Parameters.Count);
+			this.result &= (current.Parameters.Count == expression.Parameters.Count);
 
 			if (!this.result)
 			{
@@ -548,7 +549,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.Constructor == expression.Constructor
+			this.result &= (current.Constructor == expression.Constructor
 			                    && current.Arguments.Count == expression.Arguments.Count);
 
 			if (!this.result)
@@ -578,7 +579,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (current.Bindings.Count == expression.Bindings.Count);
+			this.result &= (current.Bindings.Count == expression.Bindings.Count);
 
 			if (!this.result)
 			{
@@ -610,7 +611,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (!(this.result = this.result && (current.Initializers.Count == expression.Initializers.Count)))
+			if (!(this.result &= (current.Initializers.Count == expression.Initializers.Count)))
 			{
 				return expression;
 			}
@@ -631,7 +632,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (!(this.result = this.result && (current.Expressions.Count == expression.Expressions.Count)))
+			if (!(this.result &= (current.Expressions.Count == expression.Expressions.Count)))
 			{
 				return expression;
 			}
@@ -652,7 +653,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (!(this.result = this.result && (current.Arguments.Count == expression.Arguments.Count)))
+			if (!(this.result &= (current.Arguments.Count == expression.Arguments.Count)))
 			{
 				return expression;
 			}
@@ -673,14 +674,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return constantPlaceholder;
 			}
 
-			if (!(this.result = this.result && (current.Index == constantPlaceholder.Index)))
+			if (!(this.result &= (current.Index == constantPlaceholder.Index)))
 			{
 				return constantPlaceholder;
 			}
 
 			if ((this.options & SqlExpressionComparerOptions.IgnoreConstantPlaceholders) != 0)
 			{
-				this.result = this.result && current.Type == constantPlaceholder.Type;
+				this.result &= current.Type == constantPlaceholder.Type;
 
 				return constantPlaceholder;
 			}
@@ -706,7 +707,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return objectReference;
 			}
 
-			if (!(this.result = this.result && (current.Bindings.Count == objectReference.Bindings.Count)))
+			if (!(this.result &= (current.Bindings.Count == objectReference.Bindings.Count)))
 			{
 				return objectReference;
 			}
@@ -727,7 +728,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return join;
 			}
 
-			this.result = this.result && (current.JoinType == join.JoinType);
+			this.result &= (current.JoinType == join.JoinType);
 
 			if (!this.result)
 			{
@@ -757,7 +758,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return table;
 			}
 
-			this.result = this.result && (current.Name == table.Name && current.Alias == table.Alias);
+			this.result &= (current.Name == table.Name && current.Alias == table.Alias);
 
 			return table;
 		}
@@ -771,7 +772,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return columnExpression;
 			}
 
-			this.result = this.result && (current.Name == columnExpression.Name
+			this.result &= (current.Name == columnExpression.Name
 			                    && current.SelectAlias == columnExpression.SelectAlias);
 
 			return columnExpression;
@@ -786,7 +787,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return functionCallExpression;
 			}
 
-			this.result = this.result && (current.Function == functionCallExpression.Function);
+			this.result &= (current.Function == functionCallExpression.Function);
 
 			if (!this.result)
 			{
@@ -825,7 +826,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return sqlAggregate;
 			}
 
-			this.result = this.result && current.IsDistinct == sqlAggregate.IsDistinct
+			this.result &= current.IsDistinct == sqlAggregate.IsDistinct
 			          && current.AggregateType == sqlAggregate.AggregateType;
 
 			if (!this.result)
@@ -849,7 +850,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return aggregate;
 			}
 
-			this.result = this.result && (current.GroupByAlias == aggregate.GroupByAlias);
+			this.result &= (current.GroupByAlias == aggregate.GroupByAlias);
 
 			if (!this.result)
 			{
@@ -881,7 +882,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return columns;
 			}
 
-			if (!(this.result = this.result && (current.Count == columns.Count)))
+			if (!(this.result &= (current.Count == columns.Count)))
 			{
 				return columns;
 			}
@@ -918,7 +919,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return orderByExpression;
 			}
 
-			this.result = this.result && (current.OrderType == orderByExpression.OrderType);
+			this.result &= (current.OrderType == orderByExpression.OrderType);
 
 			if (!this.result)
 			{
@@ -941,7 +942,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return selectExpression;
 			}
 
-			this.result = this.result && (current.Alias == selectExpression.Alias
+			this.result &= (current.Alias == selectExpression.Alias
 			                    && current.Distinct == selectExpression.Distinct
 			                    && current.ForUpdate == selectExpression.ForUpdate);
 
@@ -1007,7 +1008,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return projection;
 			}
 
-			this.result = this.result && current.IsElementTableProjection == projection.IsElementTableProjection;
+			this.result &= current.IsElementTableProjection == projection.IsElementTableProjection;
 					  
 			if (!this.result)
 			{
@@ -1067,7 +1068,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			if (!(this.result = this.result && expression.OrderBy.Count == current.OrderBy.Count))
+			if (!(this.result &= expression.OrderBy.Count == current.OrderBy.Count))
 			{
 				return expression;
 			}
@@ -1115,7 +1116,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && (expression.ConfigurationParameter == current.ConfigurationParameter);
+			this.result &= (expression.ConfigurationParameter == current.ConfigurationParameter);
 
             if (!result)
 			{
@@ -1153,7 +1154,535 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return expression;
 			}
 
-			this.result = this.result && current.Type == expression.Type && current.Index == expression.Index;
+			this.result &= current.Type == expression.Type && current.Index == expression.Index;
+
+			return expression;
+		}
+
+		protected override Expression VisitUnion(SqlUnionExpression expression)
+		{
+			SqlUnionExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Type == expression.Type
+						  && current.Alias == expression.Alias
+						  && current.UnionAll == expression.UnionAll))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Left;
+			this.Visit(expression.Left);
+			this.currentObject = current;
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Right;
+			this.Visit(expression.Right);
+			this.currentObject = current;
+			
+			return expression;
+		}
+
+		protected override Expression VisitType(SqlTypeExpression expression)
+		{
+			SqlTypeExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			this.result &= current.TypeName == expression.TypeName;
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitAlterTable(SqlAlterTableExpression expression)
+		{
+			SqlAlterTableExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Table;
+			this.Visit(expression.Table);
+			
+			this.currentObject = current.Actions;
+			this.VisitExpressionList(expression.Actions);
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override SqlColumnDeclaration VisitColumnDeclaration(SqlColumnDeclaration expression)
+		{
+			SqlColumnDeclaration current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.NoOptimise == expression.NoOptimise && current.Name == expression.Name))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Expression;
+			this.Visit(expression.Expression);
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression expression)
+		{
+			SqlColumnDefinitionExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.CanReduce == expression.CanReduce && current.ColumnName == expression.ColumnName && current.ColumnType == expression.ColumnType && current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.ConstraintExpressions;
+			this.VisitExpressionList(expression.ConstraintExpressions);
+			
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitConstraintAction(SqlConstraintActionExpression expression)
+		{
+			SqlConstraintActionExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.ActionType == expression.ActionType && current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.ConstraintExpression;
+			this.Visit(expression.ConstraintExpression);
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression expression)
+		{
+			SqlReferencesColumnExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Deferrability == expression.Deferrability 
+				&& current.ReferencedColumnNames.SequenceEqual(expression.ReferencedColumnNames) 
+				&& current.Type == expression.Type
+				&& current.OnDeleteAction == expression.OnDeleteAction
+				&& current.OnUpdateAction == expression.OnUpdateAction))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.ReferencedTable;
+			this.Visit(expression.ReferencedTable);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression; 
+		}
+
+		protected override Expression VisitCreateIndex(SqlCreateIndexExpression expression)
+		{
+			SqlCreateIndexExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.IfNotExist == expression.IfNotExist
+								 && current.IndexName == expression.IndexName
+								 && current.IndexType == expression.IndexType
+								 && current.LowercaseIndex == expression.LowercaseIndex
+								 && current.Unique == expression.Unique
+								 && current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Table;
+			this.Visit(expression.Table);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitAssign(SqlAssignExpression expression)
+		{
+			SqlAssignExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Value;
+			this.Visit(expression.Value);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitEnumDefinition(SqlEnumDefinitionExpression expression)
+		{
+			SqlEnumDefinitionExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Labels.SequenceEqual(expression.Labels) && current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitSource(Expression source)
+		{
+			return base.VisitSource(source);
+		}
+
+		protected override Expression VisitCreateTable(SqlCreateTableExpression expression)
+		{
+			SqlCreateTableExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.IfNotExist == expression.IfNotExist && current.TableOptions.SequenceEqual(expression.TableOptions) && current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.ColumnDefinitionExpressions;
+			this.VisitExpressionList(expression.ColumnDefinitionExpressions);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Table;
+			this.Visit(expression.Table);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current.TableConstraints;
+			this.VisitExpressionList(expression.TableConstraints);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression expression)
+		{
+			SqlSimpleConstraintExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Constraint == expression.Constraint 
+				&& current.ColumnNames.SequenceEqual(expression.ColumnNames)
+				&& object.Equals(current.Value, expression.Value)
+				&& current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitPragma(SqlPragmaExpression expression)
+		{
+			SqlPragmaExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Directive == expression.Directive && current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitUpdate(SqlUpdateExpression expression)
+		{
+			SqlUpdateExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Assignments;
+			this.VisitExpressionList(expression.Assignments);
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Table;
+			this.Visit(expression.Table);
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Where;
+			this.Visit(expression.Where);
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression expression)
+		{
+			SqlForeignKeyConstraintExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.ColumnNames.SequenceEqual(expression.ColumnNames)
+				&& current.ConstraintName == expression.ConstraintName
+				&& current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitCreateType(SqlCreateTypeExpression expression)
+		{
+			SqlCreateTypeExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.IfNotExist == expression.IfNotExist
+				&& current.SqlType == expression.SqlType
+				&& current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.AsExpression;
+			this.Visit(expression.AsExpression);
+			
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitStatementList(SqlStatementListExpression statementListExpression)
+		{
+			this.VisitExpressionList(statementListExpression.Statements);
+
+			return statementListExpression;
+		}
+
+		protected override Expression VisitIndexedColumn(SqlIndexedColumnExpression expression)
+		{
+			SqlIndexedColumnExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.LowercaseIndex == expression.LowercaseIndex
+				&& current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.Column;
+			this.Visit(expression.Column);
+
+			if (!result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
+		{
+			SqlInsertIntoExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.ColumnNames.SequenceEqual(expression.ColumnNames)
+				&& current.ReturningAutoIncrementColumnNames.SequenceEqual(expression.ReturningAutoIncrementColumnNames)
+				&& current.Type == expression.Type))
+			{
+				return expression;
+			}
+			
+			this.currentObject = current;
+
+			return expression;
+		}
+
+		protected override Expression VisitTuple(SqlTupleExpression expression)
+		{
+			SqlTupleExpression current;
+
+			if (!this.TryGetCurrent(expression, out current))
+			{
+				return expression;
+			}
+
+			if (!(this.result &= current.Type == expression.Type))
+			{
+				return expression;
+			}
+
+			this.currentObject = current.SubExpressions;
+			this.VisitExpressionList(current.SubExpressions);
+
+			if (!this.result)
+			{
+				return expression;
+			}
+
+			this.currentObject = current;
 
 			return expression;
 		}
