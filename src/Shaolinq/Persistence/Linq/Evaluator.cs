@@ -29,6 +29,11 @@ namespace Shaolinq.Persistence.Linq
 				return true;	
 			}
 
+			if (expression.NodeType == ExpressionType.Constant)
+			{
+				return true;
+			}
+
 			if (((int)expression.NodeType >= (int)SqlExpressionType.Table))
 			{
 				return false;
@@ -95,9 +100,9 @@ namespace Shaolinq.Persistence.Linq
 					return expression;
 				}
 
-				var evalutator = new SubtreeEvaluator(candidates) { index = SqlConstantPlaceholderMaxIndexFinder.Find(expression) };
+				var evaluator = new SubtreeEvaluator(candidates) { index = SqlConstantPlaceholderMaxIndexFinder.Find(expression) + 1 };
 
-				return evalutator.Visit(expression);
+				return evaluator.Visit(expression);
 			}
 
 			protected override Expression Visit(Expression expression)
@@ -121,7 +126,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (e.NodeType == ExpressionType.Constant)
 				{
-					return e.Type.IsValueType || ((ConstantExpression)e).Value == null ? e : new SqlConstantPlaceholderExpression(this.index++, (ConstantExpression) e);
+					return e.Type.IsPrimitive || ((ConstantExpression)e).Value == null ? e : new SqlConstantPlaceholderExpression(this.index++, (ConstantExpression) e);
 				}
 
 				var unaryExpression = e as UnaryExpression;
@@ -130,7 +135,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (unaryExpression.Operand.Type == e.Type || (unaryExpression.Type.IsAssignableFrom(unaryExpression.Operand.Type) && !(unaryExpression.Type.IsNullableType() || unaryExpression.Operand.Type.IsNullableType())))
 					{
-						return unaryExpression.Operand;
+						return this.Visit(unaryExpression.Operand);
 					}
 
 					if ((unaryExpression.Operand.NodeType == ExpressionType.Constant || (unaryExpression.Operand.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)))
@@ -139,12 +144,12 @@ namespace Shaolinq.Persistence.Linq
 
 						if (constantValue == null)
 						{
-							return Expression.Constant(null, unaryExpression.Type);
+							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(null, unaryExpression.Type));
 						}
 
 						if (unaryExpression.Type.IsNullableType())
 						{
-							return Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), unaryExpression.Type);
+							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), unaryExpression.Type));
 						}
 
 						if (unaryExpression.Type.IsInstanceOfType(constantValue))
@@ -169,7 +174,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					value = ExpressionInterpreter.Interpret(e);
 
-					return Expression.Constant(value, e.Type);
+					return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
 				}
 
 				if (e.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
@@ -182,7 +187,7 @@ namespace Shaolinq.Persistence.Linq
 				return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
 			}
 		}
-
+		
 		internal class EvaluatorNominator
 			: SqlExpressionVisitor
 		{

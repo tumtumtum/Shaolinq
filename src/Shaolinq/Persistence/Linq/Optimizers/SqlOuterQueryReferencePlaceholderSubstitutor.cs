@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Platform;
@@ -12,25 +13,43 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	{
 		private int placeholderCount;
 		private readonly HashSet<string> aliases;
-		private readonly List<SqlColumnExpression> replacedColumns;
+		private readonly List<Expression> replacedExpressions;
 
-		private SqlOuterQueryReferencePlaceholderSubstitutor(int placeholderCount, HashSet<string> aliases, List<SqlColumnExpression> replacedColumns)
+		private SqlOuterQueryReferencePlaceholderSubstitutor(int placeholderCount, HashSet<string> aliases, List<Expression> replacedExpressions)
 		{
 			this.placeholderCount = placeholderCount;
 			this.aliases = aliases;
-			this.replacedColumns = replacedColumns;
+			this.replacedExpressions = replacedExpressions;
 		}
 
-		public static Expression Substitute(Expression expression, ref int placeholderCount, List<SqlColumnExpression> replacedColumns)
+		public static Expression Substitute(Expression expression, ref int placeholderCount, List<Expression> replacedExpressions)
 		{
 			var aliases = SqlDeclaredAliasesGatherer.Gather(expression);
-			var visitor = new SqlOuterQueryReferencePlaceholderSubstitutor(placeholderCount, aliases, replacedColumns);
+			var visitor = new SqlOuterQueryReferencePlaceholderSubstitutor(placeholderCount, aliases, replacedExpressions);
 
 			var retval = visitor.Visit(expression);
 
 			placeholderCount = visitor.placeholderCount;
 			
 			return retval;
+		}
+
+		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
+		{
+			var nullableType = constantPlaceholder.Type.MakeNullable();
+
+			if (nullableType == constantPlaceholder.Type)
+			{
+				replacedExpressions.Add(constantPlaceholder);
+
+				return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, nullableType));
+			}
+			else
+			{
+				replacedExpressions.Add(new SqlConstantPlaceholderExpression(constantPlaceholder.Index, Expression.Constant(constantPlaceholder.ConstantExpression.Value, nullableType)));
+
+				return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, nullableType));
+			}
 		}
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
@@ -41,13 +60,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (nullableType == columnExpression.Type)
 				{
-					replacedColumns.Add(columnExpression);
+					replacedExpressions.Add(columnExpression);
 
 					return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, columnExpression.Type.MakeNullable()));
 				}
 				else
 				{
-					replacedColumns.Add(columnExpression.ChangeToNullable());
+					replacedExpressions.Add(columnExpression.ChangeToNullable());
 
 					return Expression.Convert(new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, columnExpression.Type.MakeNullable())), columnExpression.Type);
 				}

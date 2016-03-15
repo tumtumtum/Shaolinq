@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -21,8 +22,10 @@ namespace Shaolinq.Persistence.Linq
 	{
         private readonly Random random = new Random();
         private readonly int ProjectorCacheMaxLimit = 512;
-        protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+		private readonly int ProjectionExpressionCacheMaxLimit = 512;
+		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 		protected static readonly ILog ProjectionCacheLogger = LogProvider.GetLogger("Shaolinq.ProjectionCache");
+		protected static readonly ILog ProjectionExpressionCacheLogger = LogProvider.GetLogger("Shaolinq.ProjectionExpressionCache");
 
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
@@ -55,23 +58,14 @@ namespace Shaolinq.Persistence.Linq
 		
 		public override string GetQueryText(Expression expression)
 		{
-			SqlProjectionExpression projectionExpression;
-
-			if (this.RelatedDataAccessObjectContext == null)
-			{
-				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, null, null));
-			}
-			else
-			{
-				projectionExpression = (SqlProjectionExpression)(QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext.ElementType, this.RelatedDataAccessObjectContext.ExtraCondition));
-			}
-
+			var projectionExpression = (SqlProjectionExpression)QueryBinder.Bind(this.DataAccessModel, expression);
+			
 			var optimisedExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression);
 
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(optimisedExpression);
 			var sql = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(formatResult.CommandText, c =>
 			{
-				var index = c.IndexOf(Char.IsDigit);
+				var index = c.IndexOf(char.IsDigit);
 
 				if (index < 0)
 				{
@@ -132,7 +126,6 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);
 			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
-			expression = SqlEnumTypeNormalizer.Normalize(expression, sqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
 			expression = SqlGroupByCollator.Collate(expression);
 			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
 			expression = SqlUnusedColumnRemover.Remove(expression);
@@ -142,7 +135,6 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlExistsSubqueryOptimizer.Optimize(expression);
 			expression = SqlRedundantBinaryExpressionsRemover.Remove(expression);
 			expression = SqlCrossJoinRewriter.Rewrite(expression);
-			expression = Evaluator.PartialEval(expression);
 			expression = SqlRedundantFunctionCallRemover.Remove(expression);
 			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
@@ -167,21 +159,67 @@ namespace Shaolinq.Persistence.Linq
 
 		public ExecutionBuildResult BuildExecution(Expression expression)
 		{
+			var original = expression;
 			var projectionExpression = expression as SqlProjectionExpression;
-			
+			object[] placeholderValues = null;
+
 			if (projectionExpression == null)
 			{
-				expression = Evaluator.PartialEval(expression);
-				expression = QueryBinder.Bind(this.DataAccessModel, expression, this.RelatedDataAccessObjectContext?.ElementType, this.RelatedDataAccessObjectContext?.ExtraCondition);
+				var key = new ExpressionCacheKey(expression);
 
-				projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+				if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out projectionExpression))
+				{
+					expression = Evaluator.PartialEval(expression);
+					expression = QueryBinder.Bind(this.DataAccessModel, expression);
+					expression = SqlEnumTypeNormalizer.Normalize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+					expression = Evaluator.PartialEval(expression);
+					placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
+					
+					projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+
+					var oldCache = this.SqlDatabaseContext.projectionExpressionCache;
+
+					if (this.SqlDatabaseContext.projectionExpressionCache.Count >= ProjectorCacheMaxLimit)
+					{
+						ProjectionExpressionCacheLogger.Info(() => $"ProjectionExpressionCache has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjectionExpression: {projectionExpression}\n\nAt: {new StackTrace()}");
+						
+						var newCache = new Dictionary<ExpressionCacheKey, SqlProjectionExpression>(ProjectorCacheMaxLimit, ExpressionCacheKeyEqualityComparer.Default);
+
+						foreach (var value in oldCache.Take(oldCache.Count / 3))
+						{
+							newCache[value.Key] = value.Value;
+						}
+
+						newCache[key] = projectionExpression;
+
+						this.SqlDatabaseContext.projectionExpressionCache = newCache;
+					}
+					else
+					{
+						var newCache = new Dictionary<ExpressionCacheKey, SqlProjectionExpression>(oldCache, ExpressionCacheKeyEqualityComparer.Default) { [key] = projectionExpression };
+
+						this.SqlDatabaseContext.projectionExpressionCache = newCache;
+					}
+				}
+				else
+				{
+					ProjectionExpressionCacheLogger.Debug($"ProjectionExpressionCache hit for expression: {expression}");
+				}
 			}
 
-			var placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
+			if (placeholderValues == null)
+			{
+				expression = Evaluator.PartialEval(expression);
+				expression = QueryBinder.Bind(this.DataAccessModel, expression);
+				expression = SqlEnumTypeNormalizer.Normalize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+				expression = Evaluator.PartialEval(expression);
+				placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
+			}
+			
 			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
 			var projector = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns.ToArray()));
 
-			return this.BuildExecution(projectionExpression, projector, placeholderValues);
+			return this.BuildExecution(projectionExpression, projector, placeholderValues, true);
 		}
 
 	    public ExecutionBuildResult BuildExecution(SqlProjectionExpression projectionExpression, LambdaExpression projector, object[] placeholderValues, bool replaceValuesForFormat = false)
@@ -307,7 +345,7 @@ namespace Shaolinq.Persistence.Linq
 
 	        if (oldCache.Count >= ProjectorCacheMaxLimit)
 	        {
-				ProjectionCacheLogger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}\n\n{formatResult.CommandText}\n\n{projector}");
+				ProjectionCacheLogger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}\n\nCommand: {formatResult.CommandText}\n\nProjector: {projector}\n\nAt: {new StackTrace()}");
 
 				newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default);
 

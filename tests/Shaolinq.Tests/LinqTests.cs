@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
+using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
@@ -2820,16 +2821,36 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_NullCheck_In_Projector2()
+		public void Test_QuerySimilarStructure_Different_Variables_And_Consts()
 		{
 			using (var scope = NewTransactionScope())
 			{
+				var s = "Mars";
+				
 				var x = from cat in this.model.Cats
 						let name = cat != null ? cat.Name : ""
-						where name == ""
+						where name == s
 						select new { cat, name };
 
-				var results = x.ToList();
+				Assert.AreEqual(1, x.ToList().Count);
+
+				var y = from cat in this.model.Cats
+					let name = cat != null ? cat.Name : ""
+					where name == "hello"
+					select new { cat, name };
+
+				Assert.AreEqual(0, y.ToList().Count);
+
+				var z = from cat in this.model.Cats
+						let name = cat != null ? cat.Name : ""
+						where name == s
+						select new { cat, name };
+
+				Assert.AreEqual(1, z.ToList().Count);
+
+				s = "test";
+
+				Assert.AreEqual(0, x.ToList().Count); 
 			}
 		}
 	}

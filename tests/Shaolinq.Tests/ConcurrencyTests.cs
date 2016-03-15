@@ -82,9 +82,9 @@ namespace Shaolinq.Tests
 			var threads = new List<Thread>();
 			var random = new Random();
 
-			for (var i = 0; i < 10; i++)
+			for (var i = 0; i < 1; i++)
 			{
-				var action = (ThreadStart)async delegate
+				var action = (ThreadStart)delegate
 				{
 					try
 					{
@@ -92,7 +92,7 @@ namespace Shaolinq.Tests
 						{
 							Thread.Sleep(random.Next(0, 5));
 
-						    await ReadAllSchools();
+							this.model.GetDataAccessObjects<School>().Where(c => c.Name != "ewoiuroi").ToList();
 						}
 					}
 					catch (Exception e)

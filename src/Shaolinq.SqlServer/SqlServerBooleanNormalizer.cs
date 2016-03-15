@@ -62,6 +62,15 @@ namespace Shaolinq.SqlServer
 					return Expression.MakeUnary(unaryExpression.NodeType, Expression.Equal(operand, Expression.Constant(true)), typeof(bool));
 				}
 			}
+			else if (unaryExpression.NodeType == ExpressionType.Convert && unaryExpression.Type.GetUnwrappedNullableType() == typeof(bool))
+			{
+				var operand = this.Visit(unaryExpression.Operand);
+
+				if (operand is BitBooleanExpression)
+				{
+					return Expression.MakeUnary(unaryExpression.NodeType, Expression.Equal(operand, Expression.Constant(true)), typeof(bool));
+				}
+			}
 
 			return base.VisitUnary(unaryExpression);
 		}

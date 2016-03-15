@@ -374,7 +374,7 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		protected virtual Expression VisitProjection(SqlProjectionExpression projection)
-		{
+		{	
 			var source = (SqlSelectExpression)this.Visit(projection.Select);
 
 			var projector = this.Visit(projection.Projector);

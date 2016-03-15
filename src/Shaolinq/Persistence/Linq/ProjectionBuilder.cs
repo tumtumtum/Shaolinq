@@ -321,12 +321,12 @@ namespace Shaolinq.Persistence.Linq
 			if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(projectionExpression.Type))
 			{
 				var elementType = projectionExpression.Type.GetGenericArguments()[0];
-                var originalPlaceholderCount = ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
+				var originalPlaceholderCount = 0;//SqlConstantPlaceholderMaxIndexFinder.Find(projectionExpression) + 1;//  ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
 				var currentPlaceholderCount = originalPlaceholderCount;
 
-				var replacedColumns = new List<SqlColumnExpression>();
-				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedColumns);
-				var values = replacedColumns.Select(c => Expression.Convert(this.Visit(c), typeof(object))).ToList();
+				var replacedExpressions = new List<Expression>();
+				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedExpressions);
+				var values = replacedExpressions.Select(c => Expression.Convert(this.Visit(c), typeof(object))).ToList();
 				var where = projectionExpression.Select.Where;
 
 				var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(elementType);
@@ -342,10 +342,10 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var currentPlaceholderCount = ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
+				var currentPlaceholderCount = 0;//ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
 
-				var replacedColumns = new List<SqlColumnExpression>();
-				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedColumns);
+				var replacedExpressions = new List<Expression>();
+				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedExpressions);
 
 				var newColumnIndexes = projectionExpression.Select.Columns.Select((c, i) => new { c.Name, i }).ToDictionary(d => d.Name, d => d.i);
 
@@ -354,7 +354,7 @@ namespace Shaolinq.Persistence.Linq
 				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, versionParameter, dynamicParameters);
 				this.scope = savedScope;
 
-				var values = replacedColumns.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
+				var values = replacedExpressions.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
 
 				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[]), default(bool)));
 

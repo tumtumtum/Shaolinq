@@ -234,7 +234,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		protected override Expression VisitNew(NewExpression expression)
 		{
 			this.hashCode ^= expression.Arguments.Count;
-			this.hashCode ^= expression.Constructor.GetHashCode();
+			this.hashCode ^= expression.Constructor?.GetHashCode() ?? 0;
 
 			return base.VisitNew(expression);
 		}

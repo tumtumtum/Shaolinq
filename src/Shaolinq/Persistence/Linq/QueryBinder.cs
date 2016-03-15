@@ -21,8 +21,6 @@ namespace Shaolinq.Persistence.Linq
 
 		private int aliasCount;
 		private int aggregateCount;
-		private readonly Type conditionType;
-		private LambdaExpression extraCondition;
 		private Expression rootExpression;
 		private List<SqlOrderByExpression> thenBys;
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
@@ -36,17 +34,15 @@ namespace Shaolinq.Persistence.Linq
 			this.expressionsByParameter[parameterExpression] = expression;
 		}
 
-		private QueryBinder(DataAccessModel dataAccessModel, Expression rootExpression, Type conditionType, LambdaExpression extraCondition, RelatedPropertiesJoinExpanderResults joinExpanderResults)
+		private QueryBinder(DataAccessModel dataAccessModel, Expression rootExpression, RelatedPropertiesJoinExpanderResults joinExpanderResults)
 		{
-			this.conditionType = conditionType;
 			this.DataAccessModel = dataAccessModel;
 			this.rootExpression = rootExpression;
-			this.extraCondition = extraCondition;
 			this.joinExpanderResults = joinExpanderResults;
 			this.typeDescriptorProvider = dataAccessModel.TypeDescriptorProvider;
 		}
 
-		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, Type conditionType, LambdaExpression extraCondition)
+		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression)
 		{
 			expression = SqlPredicateToWhereConverter.Convert(expression);
 			expression = QueryableIncludeExpander.Expand(expression);
@@ -54,7 +50,7 @@ namespace Shaolinq.Persistence.Linq
 
 			expression = joinExpanderResults.ProcessedExpression;
 
-			var queryBinder = new QueryBinder(dataAccessModel, expression, conditionType, extraCondition, joinExpanderResults);
+			var queryBinder = new QueryBinder(dataAccessModel, expression, joinExpanderResults);
 
 			return queryBinder.Visit(expression);
 		}
@@ -1472,7 +1468,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else if (expression.Type.GetGenericTypeDefinitionOrNull() == TypeHelper.IQueryableType)
 				{
-					if (memberAccessExpression.Expression.NodeType == ExpressionType.Constant)
+					if (memberAccessExpression.Expression.NodeType == ExpressionType.Constant || memberAccessExpression.Expression.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 					{
 						return null;
 					}
@@ -1882,17 +1878,6 @@ namespace Shaolinq.Persistence.Linq
 			var resultType = typeof(IEnumerable<>).MakeGenericType(elementType);
 			var projection = new SqlProjectionExpression(new SqlSelectExpression(resultType, selectAlias, tableColumns, new SqlTableExpression(resultType, tableAlias, typeDescriptor.PersistedName), null, null, false), projectorExpression, null);
 
-			if ((this.conditionType == elementType || (this.conditionType != null && this.conditionType.IsAssignableFrom(elementType))) && this.extraCondition != null)
-			{
-				this.AddExpressionByParameter(this.extraCondition.Parameters[0], projection.Projector);
-
-				var where = this.Visit(this.extraCondition.Body);
-				var alias = this.GetNextAlias();
-				var pc = ProjectColumns(projection.Projector, alias, null, GetExistingAlias(projection.Select));
-
-				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, false), pc.Projector, null);
-			}
-
 			return projection;
 		}
 
@@ -2068,6 +2053,7 @@ namespace Shaolinq.Persistence.Linq
 					break;
 				}
 			case ExpressionType.Constant:
+			case ((ExpressionType)SqlExpressionType.ConstantPlaceholder):
 
 				if (memberExpression.Type.IsDataAccessObjectType())
 				{
