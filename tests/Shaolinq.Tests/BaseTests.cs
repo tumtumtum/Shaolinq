@@ -33,7 +33,7 @@ namespace Shaolinq.Tests
 			}
 			else
 			{
-				return new TransactionScopeAdapter(TransactionScopeFactory.CreateReadCommitted());
+				return new TransactionScopeAdapter(new TransactionScope());
 			}
 		}
 
