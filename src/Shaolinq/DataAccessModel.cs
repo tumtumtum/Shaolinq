@@ -21,50 +21,48 @@ namespace Shaolinq
 	{
 		#region ContextData
 
-		internal readonly AsyncLocal<ContextData> asyncState = new AsyncLocal<ContextData>();
+		internal readonly AsyncLocal<ByRefContainer<int>> asyncExecutionVersion = new AsyncLocal<ByRefContainer<int>>();
+		internal readonly AsyncLocal<ByValueContainer<TransactionContext>> asyncTransactionContext = new AsyncLocal<ByValueContainer<TransactionContext>>();
 
-		internal class ContextData
+		internal class ByRefContainer<T>
 		{
-			public int version;
-			public TransactionContext transactionContext;
+			public T value;
 
-			public ContextData(int version, TransactionContext transactionContext)
+			public ByRefContainer(T value)
 			{
-				this.version = version;
-				this.transactionContext = transactionContext;
+				this.value = value;
+			}
+		}
+
+		internal struct ByValueContainer<T>
+		{
+			public T value;
+
+			public ByValueContainer(T value)
+			{
+				this.value = value;
 			}
 		}
 
 		internal int AsyncLocalExecutionVersion
 		{
-			get { return asyncState.Value?.version ?? 0; }
+			get { return asyncExecutionVersion.Value?.value ?? 0; }
 			set
 			{
-				if (asyncState.Value == null)
+				if (asyncExecutionVersion.Value == null)
 				{
-					asyncState.Value = new ContextData(value, null);
+					asyncExecutionVersion.Value = new ByRefContainer<int>(value);
 				}
 				else
 				{
-					asyncState.Value.version = value;	
+					asyncExecutionVersion.Value.value = value;
 				}
 			}
 		}
 
 		internal TransactionContext AsyncLocalTransactionContext
 		{
-			get { return asyncState.Value?.transactionContext; }
-			set
-			{
-				if (asyncState.Value == null)
-				{
-					asyncState.Value = new ContextData(0, value);
-				}
-				else
-				{
-					asyncState.Value.transactionContext = value;
-				}
-			}
+			get { return asyncTransactionContext.Value.value; } set { asyncTransactionContext.Value = new ByValueContainer<TransactionContext>(value); }
 		}
 
 		#endregion
@@ -181,9 +179,9 @@ namespace Shaolinq
 			}
 
 			ActionUtils.IgnoreExceptions(() => this.AsyncLocalTransactionContext?.Dispose());
-			ActionUtils.IgnoreExceptions(() => this.asyncState.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.asyncExecutionVersion.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.asyncTransactionContext.Dispose());
 
-			this.asyncState.Value = default(ContextData);
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
 			this.OnDisposed(EventArgs.Empty);
