@@ -39,13 +39,24 @@ namespace Shaolinq
 
 		private IReadOnlyList<T> AssertValues()
 		{
+			var error = "";
+
+			return AssertValues(ref error);
+		}
+
+		private IReadOnlyList<T> AssertValues(ref string error)
+		{
 			if (this.readOnlyValues == null)
 			{
 				return null;
 			}
 
-			if (this.valuesVersion != TransactionContext.GetCurrentTransactionContextVersion(this.DataAccessModel))
+			var version = TransactionContext.GetCurrentTransactionContextVersion(this.DataAccessModel);
+
+			if (this.valuesVersion != version)
 			{
+				error = $"{(error == null ? "" : error + ". ")}Cache flushed because collection version {valuesVersion} did not match current DataAccessModel version {version}";
+
 				this.values = null;
 				this.valuesSet = null;
 				this.readOnlyValues = null;
@@ -68,11 +79,13 @@ namespace Shaolinq
 
 		public virtual IReadOnlyList<T> Items()
 		{
-			var retval = this.AssertValues();
+			var error = "No cached values available";
+
+			var retval = this.AssertValues(ref error);
 
 			if (retval == null)
 			{
-				throw new InvalidOperationException("No cached values available");
+				throw new InvalidOperationException(error);
 			}
 
 			return retval;

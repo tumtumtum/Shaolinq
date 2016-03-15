@@ -444,7 +444,7 @@ namespace Shaolinq.Persistence.Linq
 
 					if (Convert.ToInt32(constantExpressionRight.Value) != 0)
 					{
-						throw new InvalidOperationException("Expected CompareTo argument to be 0");
+						throw new InvalidOperationException($"Result of CompareTo call requires an inequality comparison with 0 not {constantExpressionRight.Value}");
 					}
 				}
 				else if (methodCallExpressionRight != null && constantExpressionLeft != null)
@@ -454,7 +454,7 @@ namespace Shaolinq.Persistence.Linq
 
 					if (Convert.ToInt32(constantExpressionLeft.Value) != 0)
 					{
-						throw new InvalidOperationException("Expected CompareTo argument to be 0");
+						throw new InvalidOperationException($"Result of CompareTo call requires an inequality comparison with 0 not {constantExpressionLeft.Value}");
 					}
 
 					switch (operation)
@@ -1255,7 +1255,7 @@ namespace Shaolinq.Persistence.Linq
 				return Expression.Or(Expression.Equal(operand0, Expression.Constant(null)), Expression.Equal(operand0, Expression.Constant(string.Empty)));
 			}
 
-			throw new NotSupportedException($"string.{methodCallExpression.Method.Name}");
+			return base.VisitMethodCall(methodCallExpression);
 		}
 
 		private MemberInitExpression RemoveNonPrimaryKeyBindings(MemberInitExpression memberInitExpression)

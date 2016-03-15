@@ -35,13 +35,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if (placeholderValues != null)
 			{
-				return Expression.Convert(Expression.ArrayIndex(this.placeholderValues, Expression.Constant(constantPlaceholder.Index)), constantPlaceholder.Type);
+				var retval = Expression.ArrayIndex(this.placeholderValues, Expression.Constant(constantPlaceholder.Index));
+
+				return retval.Type == constantPlaceholder.Type ? retval : (Expression)Expression.Convert(retval, constantPlaceholder.Type);
 			}
 			else
 			{
 				if (constantPlaceholder.Index < this.placeholderValuesLiteral.Length)
 				{
-					return Expression.Convert(Expression.Constant(this.placeholderValuesLiteral[constantPlaceholder.Index]), constantPlaceholder.Type);
+					var retval = Expression.Constant(this.placeholderValuesLiteral[constantPlaceholder.Index]);
+
+					return retval.Type == constantPlaceholder.Type ? retval : (Expression)Expression.Convert(retval, constantPlaceholder.Type);
 				}
 				else
 				{

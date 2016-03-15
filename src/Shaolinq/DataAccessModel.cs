@@ -23,7 +23,7 @@ namespace Shaolinq
 
 		internal readonly AsyncLocal<ContextData> asyncState = new AsyncLocal<ContextData>();
 
-		internal struct ContextData
+		internal class ContextData
 		{
 			public int version;
 			public TransactionContext transactionContext;
@@ -37,14 +37,34 @@ namespace Shaolinq
 
 		internal int AsyncLocalExecutionVersion
 		{
-			get { return asyncState.Value.version; }
-			set { asyncState.Value = new ContextData(value, asyncState.Value.transactionContext); }
+			get { return asyncState.Value?.version ?? 0; }
+			set
+			{
+				if (asyncState.Value == null)
+				{
+					asyncState.Value = new ContextData(value, null);
+				}
+				else
+				{
+					asyncState.Value.version = value;	
+				}
+			}
 		}
 
 		internal TransactionContext AsyncLocalTransactionContext
 		{
-			get { return asyncState.Value.transactionContext; }
-			set { asyncState.Value = new ContextData(asyncState.Value.version, value); }
+			get { return asyncState.Value?.transactionContext; }
+			set
+			{
+				if (asyncState.Value == null)
+				{
+					asyncState.Value = new ContextData(0, value);
+				}
+				else
+				{
+					asyncState.Value.transactionContext = value;
+				}
+			}
 		}
 
 		#endregion

@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
@@ -2568,6 +2569,71 @@ namespace Shaolinq.Tests
 					Assert.AreEqual("Sister Mall Store B", s3.Single().Name);
 				}
 			}
+		}
+		
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6_Async1()
+		{
+			var func = (Func<Task>)async delegate
+			{
+				var query = this.model.Malls
+					.Include(c => c.Shops)
+					.Include(c => c.SisterMall.Include(d => d.Shops).Include(d => d.Shops2));
+
+				var malls = await query.ToListAsync();
+				
+				foreach (var mall in malls.Where(c => c.SisterMall != null))
+				{
+					Assert.AreEqual(1, mall.Shops.Items().Count);
+					Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
+
+					var s1 = mall.SisterMall.Shops.Items();
+
+					Assert.AreEqual(2, s1.Count);
+					Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+					Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
+
+					var s2 = mall.SisterMall.Shops2.Items();
+
+					Assert.AreEqual(0, s2.Count);
+				}
+			};
+
+			func().GetAwaiter().GetResult();
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6_Async2()
+		{
+			var func = (Func<Task>)async delegate
+			{
+				using (var scope = DataAccessScope.CreateReadCommitted())
+				{
+					var query = this.model.Malls
+						.Include(c => c.Shops)
+						.Include(c => c.SisterMall.Include(d => d.Shops).Include(d => d.Shops2));
+
+					var malls = await query.ToListAsync();
+
+					foreach (var mall in malls.Where(c => c.SisterMall != null))
+					{
+						Assert.AreEqual(1, mall.Shops.Items().Count);
+						Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
+
+						var s1 = mall.SisterMall.Shops.Items();
+
+						Assert.AreEqual(2, s1.Count);
+						Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+						Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
+
+						var s2 = mall.SisterMall.Shops2.Items();
+
+						Assert.AreEqual(0, s2.Count);
+					}
+				}
+			};
+
+			func().GetAwaiter().GetResult();
 		}
 
 		[Test]

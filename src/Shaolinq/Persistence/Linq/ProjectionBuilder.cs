@@ -321,7 +321,7 @@ namespace Shaolinq.Persistence.Linq
 			if (typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(projectionExpression.Type))
 			{
 				var elementType = projectionExpression.Type.GetGenericArguments()[0];
-				var originalPlaceholderCount = 0;//SqlConstantPlaceholderMaxIndexFinder.Find(projectionExpression) + 1;//  ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
+				var originalPlaceholderCount = 0;
 				var currentPlaceholderCount = originalPlaceholderCount;
 
 				var replacedExpressions = new List<Expression>();
@@ -342,8 +342,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var currentPlaceholderCount = 0;//ExpressionCounter.Count(projectionExpression, c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder);
-
+				var currentPlaceholderCount = 0;
 				var replacedExpressions = new List<Expression>();
 				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedExpressions);
 

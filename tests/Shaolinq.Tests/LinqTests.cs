@@ -2820,6 +2820,35 @@ namespace Shaolinq.Tests
 			}
 		}
 
+
+		[Test]
+		public void Test_Compare_Strings()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var x = from student1 in this.model.Students
+					from student2 in this.model.Students
+					where student1.Nickname.CompareTo(student2.Nickname) > 0
+					select new { student1, student2 };
+
+				var results = x.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Compare_Guids()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var x = from student1 in this.model.Students
+						from student2 in this.model.Students
+						where student1.Id.CompareTo(student2.Id) > 0
+						select new { student1, student2 };
+
+				var results = x.ToList();
+			}
+		}
+
 		[Test]
 		public void Test_QuerySimilarStructure_Different_Variables_And_Consts()
 		{
