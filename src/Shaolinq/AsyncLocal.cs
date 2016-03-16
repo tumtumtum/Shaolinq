@@ -9,7 +9,7 @@ namespace Shaolinq
 	{
 		private static AsyncLocal<T> Create()
 		{
-			if (NativeAsyncLocal<T>.Supported && false)
+			if (NativeAsyncLocal<T>.Supported)
 			{
 				return new NativeAsyncLocal<T>();
 			}
