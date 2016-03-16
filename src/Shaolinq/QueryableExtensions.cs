@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Platform;
 using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq;
 using Shaolinq.TypeBuilding;
 
 // ReSharper disable InvokeAsExtensionMethod
@@ -197,6 +198,8 @@ namespace Shaolinq
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default(IQueryable<T>))), source.Expression);
 
+	        ((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
+
 			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
         }
 
@@ -210,7 +213,9 @@ namespace Shaolinq
                 Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
             );
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
         }
 
 		[RewriteAsync(true)]

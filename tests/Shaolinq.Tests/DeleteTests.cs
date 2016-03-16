@@ -143,7 +143,15 @@ namespace Shaolinq.Tests
 
 					var id = school.Id;
 
+					var item = await this.model.Schools.FirstOrDefaultAsync(c => c.Id == id);
+
+					Assert.IsNotNull(item);
+
 					await this.model.Schools.Where(c => c.Id == id).DeleteAsync();
+
+					item = await this.model.Schools.FirstOrDefaultAsync(c => c.Id == id);
+
+					Assert.IsNull(item);
 
 					await scope.CompleteAsync();
 				}

@@ -648,6 +648,7 @@ namespace Shaolinq
         public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), source.Expression);
+            await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
         }
 
@@ -659,6 +660,7 @@ namespace Shaolinq
         public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)where T : DataAccessObject
         {
             Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+            await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
         }
 
