@@ -6,7 +6,8 @@ using Shaolinq.Persistence;
 namespace Shaolinq.Tests
 {
 	[TestFixture]
-	public class VariableSubstituterTests
+	public class 
+		VariableSubstituterTests
 	{
 		[Test]
 		public void Test()

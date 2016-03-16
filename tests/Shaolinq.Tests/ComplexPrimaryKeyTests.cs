@@ -2369,17 +2369,33 @@ namespace Shaolinq.Tests
 			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model.Malls
-					.Include(c => c.Shops)
-					.Include(c => c.Shops2.IncludedItems().Address.Region)
+					.Include(c => c.Shops.IncludedItems().Address.Region)
+					.Include(c => c.Shops2)
 					.Include(c => c.Address)
 					.ToList();
 
 				var mall = malls.First();
+				var count = mall.Shops.Items().Count;
 
 				Assert.That(mall.Shops.HasItems);
 				Assert.That(mall.Shops2.HasItems);
+				Assert.That(mall.Shops.Items().Count, Is.GreaterThan(0));
 
 				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
+
+				var malls2 = this.model.Malls
+					.Include(c => c.Shops.IncludedItems().Address.Region)
+					.Include(c => c.Shops)
+					.Include(c => c.Address)
+					.ToList();
+
+				Assert.IsFalse(mall.Shops.Items().First().Address.IsDeflatedReference());
+				Assert.IsFalse(mall.Shops.Items().First().Address.Region.IsDeflatedReference());
+
+				var mall2 = malls2.First();
+
+				Assert.AreEqual(count, mall2.Shops.Items().Count);
+				Assert.AreSame(mall, mall2);
 
 				var x = mall.Shops2.ToList();
 
@@ -2387,12 +2403,53 @@ namespace Shaolinq.Tests
 
 				scope.Flush();
 
-				Assert.That(!mall.Shops.HasItems);
-				Assert.That(!mall.Shops2.HasItems);
+				Assert.That(mall.Shops.HasItems);
+				Assert.That(mall.Shops2.HasItems);
 
 				Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
 				Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
 			}
+		}
+
+		[Test]
+		public void Test_Include_Without_Scope()
+		{
+			var malls = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2.IncludedItems().Address.Region)
+				.Include(c => c.Address)
+				.ToList();
+
+			var mall = malls.First();
+			var count = mall.Shops2.Items().Count;
+
+			Assert.That(mall.Shops.HasItems);
+			Assert.That(mall.Shops2.HasItems);
+			Assert.That(mall.Shops.Items().Count, Is.GreaterThan(0));
+
+			Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
+
+			var malls2 = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2.IncludedItems().Address.Region)
+				.Include(c => c.Address)
+				.ToList();
+
+			var mall2 = malls2.First();
+
+			Assert.AreEqual(count, mall2.Shops2.Items().Count);
+			Assert.AreNotSame(mall, mall2);
+			Assert.AreEqual(mall, mall2);
+
+			var x = mall.Shops2.ToList();
+
+			Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
+
+			Assert.That(mall.Shops.HasItems);
+			Assert.That(mall.Shops2.HasItems);
+
+			Assert.That(mall.Shops.Count(), Is.GreaterThan(0));
+			Assert.That(mall.Shops2.Count(), Is.EqualTo(0));
 		}
 
 		[Test]

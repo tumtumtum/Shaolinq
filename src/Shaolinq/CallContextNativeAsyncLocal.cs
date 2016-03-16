@@ -1,6 +1,5 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
 
@@ -11,17 +10,6 @@ namespace Shaolinq
         internal static long count = 0;
     }
     
-    internal class CallContextValueContainer<T>
-            : MarshalByRefObject
-    {
-        public CallContextValueContainer(T value)
-        {
-            this.Value = value;
-        }
-
-        public T Value { get; set; }
-    }
-
     internal class CallContextNativeAsyncLocal<T>
 		: AsyncLocal<T>
 	{
@@ -31,11 +19,11 @@ namespace Shaolinq
 		{
 			get
 			{
-				var container = (CallContextValueContainer<T>)CallContext.LogicalGetData(this.key);
+				var container = CallContext.LogicalGetData(this.key) as ByRefContainer<T>;
 
-				return container != null ? container.Value : default(T);
+				return container == null ? default(T) : container.value;
 			}
-			set { CallContext.LogicalSetData(this.key, new CallContextValueContainer<T>(value)); }
+			set { CallContext.LogicalSetData(this.key, new ByRefContainer<T>(value)); }
 		}
 
 		public CallContextNativeAsyncLocal()
@@ -43,7 +31,7 @@ namespace Shaolinq
 		{            
 			var id = Interlocked.Increment(ref CallContextNativeAsyncLocal.count);
 
-		    this.key = "CCNAL#" + id;
+		    this.key = "SLQ-CCNAL#" + id;
 		}
 
 		public override void Dispose()

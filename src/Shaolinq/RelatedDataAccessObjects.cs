@@ -18,7 +18,7 @@ namespace Shaolinq
 		private int valuesVersion;
 		private IReadOnlyList<T> readOnlyValues;
 		private readonly TypeRelationshipInfo relationshipInfo;
-		public bool HasItems => this.AssertValues() != null;
+		public bool HasItems => this.values != null;
 		public LambdaExpression ExtraCondition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
@@ -35,13 +35,6 @@ namespace Shaolinq
 
 			this.ExtraCondition = this.CreateJoinCondition(relationshipInfo.TargetProperty);
 			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod(parentType, relationshipInfo.TargetProperty);
-		}
-
-		private IReadOnlyList<T> AssertValues()
-		{
-			var error = "";
-
-			return AssertValues(ref error);
 		}
 
 		private IReadOnlyList<T> AssertValues(ref string error)
@@ -81,7 +74,7 @@ namespace Shaolinq
 		{
 			var error = "No cached values available";
 
-			var retval = this.AssertValues(ref error);
+			var retval = this.values;
 
 			if (retval == null)
 			{

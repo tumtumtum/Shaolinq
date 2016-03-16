@@ -21,43 +21,13 @@ namespace Shaolinq
 	{
 		#region ContextData
 
-		internal readonly AsyncLocal<ByValueContainer<ByRefContainer<int>>> asyncExecutionVersion = new AsyncLocal<ByValueContainer<ByRefContainer<int>>>();
+		internal readonly AsyncLocal<ByValueContainer<int>> asyncExecutionVersion = new AsyncLocal<ByValueContainer<int>>();
 		internal readonly AsyncLocal<ByValueContainer<TransactionContext>> asyncTransactionContext = new AsyncLocal<ByValueContainer<TransactionContext>>();
-
-		internal class ByRefContainer<T>
-		{
-			public T value;
-
-			public ByRefContainer(T value)
-			{
-				this.value = value;
-			}
-		}
-
-		internal struct ByValueContainer<T>
-		{
-			public T value;
-
-			public ByValueContainer(T value)
-			{
-				this.value = value;
-			}
-		}
-
+		
 		internal int AsyncLocalExecutionVersion
 		{
-			get { return asyncExecutionVersion.Value.value?.value ?? 0; }
-			set
-			{
-				if (asyncExecutionVersion.Value.value == null)
-				{
-					asyncExecutionVersion.Value = new ByValueContainer<ByRefContainer<int>>(new ByRefContainer<int>(value));
-				}
-				else
-				{
-					asyncExecutionVersion.Value.value.value = value;
-				}
-			}
+			get { return asyncExecutionVersion.Value.value; }
+			set { asyncExecutionVersion.Value = new ByValueContainer<int>(value); }
 		}
 
 		internal TransactionContext AsyncLocalTransactionContext
