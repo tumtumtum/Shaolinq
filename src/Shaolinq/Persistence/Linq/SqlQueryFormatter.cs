@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Text;
+using Platform;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -54,16 +55,20 @@ namespace Shaolinq.Persistence.Linq
 		protected List<TypedValue> parameterValues;
 		internal int IndentationWidth { get; }
 		public string ParameterIndicatorPrefix { get; protected set; }
+		protected bool canReuse = true;
+		protected List<Pair<int, int>> parameterIndexToPlaceholderIndexes;
+		
 		protected readonly SqlDialect sqlDialect;
 
 		public virtual SqlQueryFormatResult Format(Expression expression)
 		{
 			this.writer = new StringWriter(new StringBuilder(1024));
 			this.parameterValues = new List<TypedValue>();
+			this.parameterIndexToPlaceholderIndexes = null;
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(this.writer.ToString(), this.parameterValues);
+			return new SqlQueryFormatResult(this.writer.ToString(), this.parameterValues, parameterIndexToPlaceholderIndexes);
 		}
 
 		public virtual SqlQueryFormatResult Format(Expression expression, TextWriter writer)
@@ -73,7 +78,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(null, this.parameterValues);
+			return new SqlQueryFormatResult(null, this.parameterValues, parameterIndexToPlaceholderIndexes);
 		}
 
 		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)

@@ -262,7 +262,7 @@ namespace Shaolinq.Persistence.Linq
 			case SqlFunction.Like:
 				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, arguments);
 			case SqlFunction.CompareObject:
-				var expressionType = (ExpressionType)((ConstantExpression)arguments[0]).Value;
+				var expressionType = (ExpressionType)((ConstantExpression)arguments[0].StripConstantWrappers()).Value;
 				var args = new Expression[2];
 
 				args[0] = arguments[1];
@@ -499,7 +499,25 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if ((this.options & SqlQueryFormatterOptions.EvaluateConstantPlaceholders) != 0)
 			{
-				return base.VisitConstantPlaceholder(constantPlaceholderExpression);
+				var startIndex = this.parameterValues.Count;
+
+				var retval = base.VisitConstantPlaceholder(constantPlaceholderExpression);
+
+				var endIndex = this.parameterValues.Count;
+
+				if (canReuse && endIndex - startIndex == 1)
+				{
+					var index = startIndex;
+
+					if (parameterIndexToPlaceholderIndexes == null)
+					{
+						parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
+					}
+
+					parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
+				}
+
+				return retval;
 			}
 			else
 			{
@@ -528,30 +546,22 @@ namespace Shaolinq.Persistence.Linq
 			else
 			{
 				var type = constantExpression.Value.GetType();
-
-				switch (Type.GetTypeCode(type))
+				
+				if (typeof(SqlValuesEnumerable).IsAssignableFrom(type))
 				{
-				case TypeCode.Boolean:
-					this.Write (this.ParameterIndicatorPrefix);
+					canReuse = false;
+					parameterIndexToPlaceholderIndexes = null;
+
+					this.Write("(");
+					this.WriteDeliminatedListOfItems((IEnumerable)constantExpression.Value, c => this.VisitConstant(Expression.Constant(c)));
+					this.Write(")");
+				}
+				else
+				{
+					this.Write(this.ParameterIndicatorPrefix);
 					this.Write(ParamNamePrefix);
 					this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new TypedValue(typeof(bool), Convert.ToBoolean(constantExpression.Value)));
-					break;
-				default:
-					if (typeof(SqlValuesEnumerable).IsAssignableFrom(type))
-					{
-						this.Write("(");
-						this.WriteDeliminatedListOfItems((IEnumerable)constantExpression.Value, c => this.VisitConstant(Expression.Constant(c)));
-						this.Write(")");
-					}
-					else
-					{
-						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
-						this.parameterValues.Add(new TypedValue(constantExpression.Type, constantExpression.Value));
-					}
-					break;
+					this.parameterValues.Add(new TypedValue(constantExpression.Type, constantExpression.Value));
 				}
 			}
 

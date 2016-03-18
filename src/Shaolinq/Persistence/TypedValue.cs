@@ -15,5 +15,15 @@ namespace Shaolinq.Persistence
 			this.Type = type;
 			this.Value = value;
 		}
+
+		public TypedValue ChangeValue(object value)
+		{
+			if (value != null && !this.Type.IsInstanceOfType(value))
+			{
+				throw new InvalidOperationException($"{nameof(value)} is not of type {this.Type.Name}");
+			}
+
+			return new TypedValue(this.Type, value);
+		}
 	}
 }

@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence
 		public TimeSpan? CommandTimeout { get; protected set; }
 
 		protected DbProviderFactory dbProviderFactory;
-		internal volatile Dictionary<ExpressionCacheKey, SqlProjectionExpression> projectionExpressionCache = new Dictionary<ExpressionCacheKey, SqlProjectionExpression>(ExpressionCacheKeyEqualityComparer.Default);
+		internal volatile Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo> projectionExpressionCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(ExpressionCacheKeyEqualityComparer.Default);
 		internal volatile Dictionary<ProjectorCacheKey, ProjectorCacheInfo> projectorCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default);
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedInsertSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
 		internal volatile Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue> formattedUpdateSqlCache = new Dictionary<DefaultSqlTransactionalCommandsContext.SqlCommandKey, DefaultSqlTransactionalCommandsContext.SqlCommandValue>(DefaultSqlTransactionalCommandsContext.CommandKeyComparer.Default);
