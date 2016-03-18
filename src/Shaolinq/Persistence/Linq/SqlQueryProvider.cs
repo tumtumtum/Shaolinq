@@ -58,11 +58,10 @@ namespace Shaolinq.Persistence.Linq
 		
 		public override string GetQueryText(Expression expression)
 		{
-			var projectionExpression = (SqlProjectionExpression)QueryBinder.Bind(this.DataAccessModel, expression);
-			
-			var optimisedExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression);
+			expression = (SqlProjectionExpression)this.Bind(expression);
+			var projectionExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
-			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(optimisedExpression);
 			var sql = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(formatResult.CommandText, c =>
 			{
 				var index = c.IndexOf(char.IsDigit);
@@ -157,9 +156,18 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
+		private Expression Bind(Expression expression)
+		{
+			expression = Evaluator.PartialEval(expression);
+			expression = QueryBinder.Bind(this.DataAccessModel, expression);
+			expression = SqlEnumTypeNormalizer.Normalize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+			expression = Evaluator.PartialEval(expression);
+
+			return expression;
+		}
+
 		public ExecutionBuildResult BuildExecution(Expression expression)
 		{
-			var original = expression;
 			var projectionExpression = expression as SqlProjectionExpression;
 			object[] placeholderValues = null;
 
@@ -169,10 +177,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out projectionExpression))
 				{
-					expression = Evaluator.PartialEval(expression);
-					expression = QueryBinder.Bind(this.DataAccessModel, expression);
-					expression = SqlEnumTypeNormalizer.Normalize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
-					expression = Evaluator.PartialEval(expression);
+					expression = this.Bind(expression);
 					placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
 					
 					projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
@@ -209,10 +214,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (placeholderValues == null)
 			{
-				expression = Evaluator.PartialEval(expression);
-				expression = QueryBinder.Bind(this.DataAccessModel, expression);
-				expression = SqlEnumTypeNormalizer.Normalize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
-				expression = Evaluator.PartialEval(expression);
+				expression = this.Bind(expression);
 				placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
 			}
 			

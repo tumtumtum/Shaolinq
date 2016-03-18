@@ -32,14 +32,14 @@ namespace Shaolinq.Persistence
 		{
 			if (this.formatCommandRegex == null)
 			{
-				this.formatCommandRegex = new Regex(string.Format(@"\{0}" + Sql92QueryFormatter.ParamNamePrefix + "[0-9]+", this.parameterPrefix), RegexOptions.Compiled);
+				this.formatCommandRegex = new Regex($@"\{this.parameterPrefix}{Sql92QueryFormatter.ParamNamePrefix}[0-9]+", RegexOptions.Compiled);
 			}
-
+			
 			return this.formatCommandRegex.Replace(commandText, match =>
 			{
 				var value = paramNameToValue(match.Value);
 
-				if (value == null)
+				if (value == null || value == DBNull.Value)
 				{
 					return this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null);
 				}
@@ -59,7 +59,14 @@ namespace Shaolinq.Persistence
 
 					return this.stringQuote + guidValue.ToString("D") + this.stringQuote;
 				}
-				
+
+				if(type == typeof(TimeSpan))
+				{
+					var timespanValue = (TimeSpan)value;
+
+					return this.stringQuote + timespanValue + this.stringQuote;
+				}
+
 				if (type == typeof(DateTime))
 				{
 					var dateTime = ((DateTime)value).ToUniversalTime();

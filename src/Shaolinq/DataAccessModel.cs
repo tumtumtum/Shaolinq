@@ -20,7 +20,7 @@ namespace Shaolinq
 		 : IDisposable
 	{
 		#region ContextData
-
+		
 		internal readonly AsyncLocal<ByValueContainer<int>> asyncExecutionVersion = new AsyncLocal<ByValueContainer<int>>();
 		internal readonly AsyncLocal<ByValueContainer<TransactionContext>> asyncTransactionContext = new AsyncLocal<ByValueContainer<TransactionContext>>();
 		
