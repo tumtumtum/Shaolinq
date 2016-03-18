@@ -188,8 +188,22 @@ namespace Shaolinq.Persistence.Linq
 					var oldCache = this.SqlDatabaseContext.projectionExpressionCache;
 					formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
+					var formatResultForCache = formatResult;
+
+					if (formatResult.ParameterIndexToPlaceholderIndexes != null)
+					{
+						var parameters = formatResult.ParameterValues.ToList();
+
+						foreach (var mapping in formatResult.ParameterIndexToPlaceholderIndexes)
+						{
+							parameters[mapping.Left] = parameters[mapping.Left].ChangeValue(null);
+						}
+
+						formatResultForCache = formatResult.ChangeParameterValues(parameters);
+					}
+
 					skipFormatResultSubstitution = true;
-					cacheInfo = new ProjectorExpressionCacheInfo(projectionExpression, formatResult);
+					cacheInfo = new ProjectorExpressionCacheInfo(projectionExpression, formatResultForCache);
 						
 					if (this.SqlDatabaseContext.projectionExpressionCache.Count >= ProjectorCacheMaxLimit)
 					{
