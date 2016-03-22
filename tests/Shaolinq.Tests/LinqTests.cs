@@ -2850,6 +2850,19 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Binary_Expression_With_Bools()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var x = from student in this.model.Students
+					where student.Lastname.ToLower() == "TEST".ToLower() && student.Firstname != "" && student.Overseas
+					select student;
+
+				var results = x.ToList();
+			}
+		}
+
+		[Test]
 		public void Test_QuerySimilarStructure_Different_Variables_And_Consts()
 		{
 			using (var scope = NewTransactionScope())
