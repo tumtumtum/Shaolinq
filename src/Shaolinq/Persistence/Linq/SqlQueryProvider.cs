@@ -166,112 +166,131 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		public ExecutionBuildResult BuildExecution(Expression expression)
+		internal ExecutionBuildResult BuildExecution(Expression expression, LambdaExpression projection = null, object[] placeholderValues = null)
 		{
+			ProjectorExpressionCacheInfo cacheInfo;
 			var skipFormatResultSubstitution = false;
-			SqlQueryFormatResult formatResult = null;
-			var projectionExpression = expression as SqlProjectionExpression;
-			object[] placeholderValues = null;
+			var projectionExpression = expression as SqlProjectionExpression ?? (SqlProjectionExpression)this.Bind(expression);
 
-			if (projectionExpression == null)
-			{
-				ProjectorExpressionCacheInfo cacheInfo;
-				var key = new ExpressionCacheKey(expression);
+			var key = new ExpressionCacheKey(projectionExpression, projection);
 				
-				if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out cacheInfo))
+			if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out cacheInfo))
+			{
+				if (expression != projectionExpression)
 				{
-					expression = this.Bind(expression);
-					placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
-					
-					projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+					placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(projectionExpression);
+					projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression);
+				}
 
-					var oldCache = this.SqlDatabaseContext.projectionExpressionCache;
-					formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
+				var oldCache = this.SqlDatabaseContext.projectionExpressionCache;
+				var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
-					var formatResultForCache = formatResult;
+				var formatResultForCache = formatResult;
 
-					if (formatResult.ParameterIndexToPlaceholderIndexes != null)
+				if (formatResult.ParameterIndexToPlaceholderIndexes != null)
+				{
+					var parameters = formatResult.ParameterValues.ToList();
+
+					foreach (var mapping in formatResult.ParameterIndexToPlaceholderIndexes)
 					{
-						var parameters = formatResult.ParameterValues.ToList();
-
-						foreach (var mapping in formatResult.ParameterIndexToPlaceholderIndexes)
-						{
-							parameters[mapping.Left] = parameters[mapping.Left].ChangeValue(null);
-						}
-
-						formatResultForCache = formatResult.ChangeParameterValues(parameters);
+						parameters[mapping.Left] = parameters[mapping.Left].ChangeValue(null);
 					}
 
-					skipFormatResultSubstitution = true;
-					cacheInfo = new ProjectorExpressionCacheInfo(projectionExpression, formatResultForCache);
-						
-					if (this.SqlDatabaseContext.projectionExpressionCache.Count >= ProjectorCacheMaxLimit)
+					formatResultForCache = formatResult.ChangeParameterValues(parameters);
+				}
+
+				skipFormatResultSubstitution = true;
+
+				cacheInfo = new ProjectorExpressionCacheInfo(projectionExpression, formatResultForCache);
+
+				if (projection == null)
+				{
+					var columns = projectionExpression.Select.Columns.Select(c => c.Name);
+
+					projection = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns.ToArray()));
+				}
+
+				BuildProjector(projection, projectionExpression.Aggregator, out cacheInfo.projector, out cacheInfo.asyncProjector);
+
+				if (this.SqlDatabaseContext.projectionExpressionCache.Count >= ProjectorCacheMaxLimit)
+				{
+					ProjectionExpressionCacheLogger.Info(() => $"ProjectionExpressionCache has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjectionExpression: {projectionExpression}\n\nAt: {new StackTrace()}");
+
+					var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(ProjectorCacheMaxLimit, ExpressionCacheKeyEqualityComparer.Default);
+
+					foreach (var value in oldCache.Take(oldCache.Count / 3))
 					{
-						ProjectionExpressionCacheLogger.Info(() => $"ProjectionExpressionCache has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjectionExpression: {projectionExpression}\n\nAt: {new StackTrace()}");
-						
-						var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(ProjectorCacheMaxLimit, ExpressionCacheKeyEqualityComparer.Default);
-
-						foreach (var value in oldCache.Take(oldCache.Count / 3))
-						{
-							newCache[value.Key] = value.Value;
-						}
-
-						newCache[key] = cacheInfo;
-
-						this.SqlDatabaseContext.projectionExpressionCache = newCache;
+						newCache[value.Key] = value.Value;
 					}
-					else
-					{
-						var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(oldCache, ExpressionCacheKeyEqualityComparer.Default) { [key] = cacheInfo };
 
-						this.SqlDatabaseContext.projectionExpressionCache = newCache;
-					}
+					newCache[key] = cacheInfo;
+
+					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 				else
 				{
-					formatResult = cacheInfo.formatResult;
-					projectionExpression = cacheInfo.projectionExpression;
-					ProjectionExpressionCacheLogger.Debug($"ProjectionExpressionCache hit for expression: {expression}");
+					Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo> newCache;
+					
+					var i = 0;
+
+					while (true)
+					{
+						oldCache = this.SqlDatabaseContext.projectionExpressionCache;
+						newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(oldCache, ExpressionCacheKeyEqualityComparer.Default);
+
+						if (oldCache.Count == newCache.Count)
+						{
+							break;
+						}
+
+						if (i++ > 10)
+						{
+							break;
+						}
+
+						Thread.Sleep(random.Next(25));
+					}
+
+					newCache[key] = cacheInfo;
+					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
+
+				ProjectionCacheLogger.Info(() => $"Cached projection for query:\n{formatResult.CommandText}\n\nprojector:\n{cacheInfo.projector}");
+				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
+
+				cacheInfo.formatResult = formatResult;
 			}
 
 			if (placeholderValues == null)
 			{
-				expression = this.Bind(expression);
-				placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(expression);
+				placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(projectionExpression);
 			}
-			
-			var columns = projectionExpression.Select.Columns.Select(c => c.Name);
-			var projector = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns.ToArray()));
 
-			return this.BuildExecution(projectionExpression, projector, placeholderValues, formatResult, skipFormatResultSubstitution);
+			if (cacheInfo.formatResult?.ParameterIndexToPlaceholderIndexes == null)
+			{
+				var projectorForFormat = SqlConstantPlaceholderReplacer.Replace(cacheInfo.projectionExpression, placeholderValues);
+
+				cacheInfo.formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectorForFormat);
+			}
+			else if (!skipFormatResultSubstitution)
+			{
+				var parameters = cacheInfo.formatResult.ParameterValues.ToList();
+
+				foreach (var mapping in cacheInfo.formatResult.ParameterIndexToPlaceholderIndexes)
+				{
+					parameters[mapping.Left] = parameters[mapping.Left].ChangeValue(placeholderValues[mapping.Right]);
+				}
+
+				cacheInfo.formatResult = cacheInfo.formatResult.ChangeParameterValues(parameters);
+			}
+
+			return new ExecutionBuildResult(cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 		}
 
-	    public ExecutionBuildResult BuildExecution(SqlProjectionExpression projectionExpression, LambdaExpression projector, object[] placeholderValues, SqlQueryFormatResult formatResult = null, bool skipFormatResultSubstitution = false)
-        {
-			ProjectorCacheInfo cacheInfo;
-
-		    if (formatResult?.ParameterIndexToPlaceholderIndexes == null)
-		    {
-			    var projectorForFormat = SqlConstantPlaceholderReplacer.Replace(projectionExpression, placeholderValues);
-
-			    formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectorForFormat);
-		    }
-		    else if (!skipFormatResultSubstitution)
-		    {
-			    var parameters = formatResult.ParameterValues.ToList();
-
-			    foreach (var mapping in formatResult.ParameterIndexToPlaceholderIndexes)
-			    {
-				    parameters[mapping.Left] = parameters[mapping.Left].ChangeValue(placeholderValues[mapping.Right]);
-			    }
-
-			    formatResult = formatResult.ChangeParameterValues(parameters);
-		    }
-
-		    var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
+		private void BuildProjector(LambdaExpression projectionLambda, LambdaExpression aggregator, out Delegate projector, out Delegate asyncProjector)
+		{
+			var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
 			var placeholderValuesParam = Expression.Parameter(typeof(object[]));
-			var projectionLambda = projector;
 
 			var elementType = projectionLambda.ReturnType;
 
@@ -316,7 +335,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				if ((projectionExpression.Aggregator?.Body as MethodCallExpression)?.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod)
+				if ((aggregator?.Body as MethodCallExpression)?.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod)
 				{
 					var constructor = typeof(AlwaysReadFirstObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
@@ -350,84 +369,25 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-	        var asyncExecutor = executor;
+			var asyncExecutor = executor;
 			var cancellationToken = Expression.Parameter(typeof(CancellationToken));
 
-			if (projectionExpression.Aggregator != null)
+			if (aggregator != null)
 			{
 				var originalExecutor = executor;
-				var aggr = projectionExpression.Aggregator;
+				var aggr = aggregator;
 				var newBody = SqlConstantPlaceholderReplacer.Replace(aggr.Body, placeholderValuesParam);
-                executor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
+				executor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
 
-		        newBody = ProjectionAsyncRewriter.Rewrite(newBody, cancellationToken);
+				newBody = ProjectionAsyncRewriter.Rewrite(newBody, cancellationToken);
 				asyncExecutor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
-	        }
-
-	        projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
-            
-			var key = new ProjectorCacheKey(formatResult.CommandText, projector);
-			var projectorCache = this.SqlDatabaseContext.projectorCache;
-
-			if (projectorCache.TryGetValue(key, out cacheInfo))
-			{
-				return new ExecutionBuildResult(formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 			}
 
-			projector = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
-			var asyncProjector = Expression.Lambda(asyncExecutor, formatResultsParam, placeholderValuesParam, cancellationToken);
+			projectionLambda = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
+			var asyncProjectorLambda = Expression.Lambda(asyncExecutor, formatResultsParam, placeholderValuesParam, cancellationToken);
 
-			cacheInfo.projector = projector.Compile();
-            cacheInfo.asyncProjector = asyncProjector.Compile();
-
-			var oldCache = this.SqlDatabaseContext.projectorCache;
-			Dictionary<ProjectorCacheKey, ProjectorCacheInfo> newCache;
-
-	        if (oldCache.Count >= ProjectorCacheMaxLimit)
-	        {
-				ProjectionCacheLogger.Error(() => $"ProjectorCache has been flushed because it overflowed with a size of {ProjectorCacheMaxLimit}\n\nCommand: {formatResult.CommandText}\n\nProjector: {projector}\n\nAt: {new StackTrace()}");
-
-				newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheEqualityComparer.Default);
-
-		        foreach (var value in oldCache.Take(oldCache.Count / 3))
-		        {
-			        newCache[value.Key] = value.Value;
-		        }
-
-	            newCache[key] = cacheInfo;
-	        }
-	        else
-	        {
-	            var i = 0;
-
-	            while (true)
-	            {
-	                oldCache = this.SqlDatabaseContext.projectorCache;
-	                newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(oldCache, ProjectorCacheEqualityComparer.Default);
-
-	                if (oldCache.Count == newCache.Count)
-	                {
-                        break;
-	                }
-
-	                if (i++ > 10)
-	                {
-                        break;
-	                }
-
-	                Thread.Sleep(random.Next(25));
-	            }
-                
-	            newCache[key] = cacheInfo;
-	        }
-
-			this.SqlDatabaseContext.projectorCache = newCache;
-
-			ProjectionCacheLogger.Info(() => $"Cached projection for query:\n{formatResult.CommandText}\n\nprojector:\n{projector}");
-			ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {newCache.Count}");
-
-			return new ExecutionBuildResult(formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
+			projector = projectionLambda.Compile();
+			asyncProjector = asyncProjectorLambda.Compile();
 		}
 	}
 }
-;

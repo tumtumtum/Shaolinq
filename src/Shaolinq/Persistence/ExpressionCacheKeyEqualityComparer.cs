@@ -16,7 +16,8 @@ namespace Shaolinq.Persistence
 
 		public bool Equals(ExpressionCacheKey x, ExpressionCacheKey y)
 		{
-			return SqlExpressionComparer.Equals(x.expression, y.expression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
+			return SqlExpressionComparer.Equals(x.expression, y.expression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders)
+				   && SqlExpressionComparer.Equals(x.projector, y.projector);
 		}
 
 		public int GetHashCode(ExpressionCacheKey obj)

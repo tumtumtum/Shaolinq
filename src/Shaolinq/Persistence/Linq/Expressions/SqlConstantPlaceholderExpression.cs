@@ -17,5 +17,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Index = index;
 			this.ConstantExpression = constantExpression;
 		}
+
+		public SqlConstantPlaceholderExpression ChangeConstant(ConstantExpression expression)
+		{
+			return new SqlConstantPlaceholderExpression(this.Index, expression);
+		}
 	}
 }

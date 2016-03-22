@@ -55,7 +55,7 @@ namespace Shaolinq.Persistence.Linq
 		protected List<TypedValue> parameterValues;
 		internal int IndentationWidth { get; }
 		public string ParameterIndicatorPrefix { get; protected set; }
-		protected bool canReuse = true;
+		protected bool canReuse;
 		protected List<Pair<int, int>> parameterIndexToPlaceholderIndexes;
 		
 		protected readonly SqlDialect sqlDialect;
@@ -64,21 +64,22 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.writer = new StringWriter(new StringBuilder(1024));
 			this.parameterValues = new List<TypedValue>();
-			this.parameterIndexToPlaceholderIndexes = null;
+			this.parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(this.writer.ToString(), this.parameterValues, parameterIndexToPlaceholderIndexes);
+			return new SqlQueryFormatResult(this.writer.ToString(), this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
 		}
 
 		public virtual SqlQueryFormatResult Format(Expression expression, TextWriter writer)
 		{
 			this.writer = writer;
 			this.parameterValues = new List<TypedValue>();
+			this.parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(null, this.parameterValues, parameterIndexToPlaceholderIndexes);
+			return new SqlQueryFormatResult(null, this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
 		}
 
 		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)

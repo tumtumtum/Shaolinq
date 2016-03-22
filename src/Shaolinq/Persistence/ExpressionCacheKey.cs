@@ -9,12 +9,14 @@ namespace Shaolinq.Persistence
 	{
 		public int hash;
 		public Expression expression;
-		
-		public ExpressionCacheKey(Expression expression)
+		public LambdaExpression projector;
+
+		public ExpressionCacheKey(SqlProjectionExpression expression, LambdaExpression projector)
 			: this()
 		{
 			this.expression = expression;
-			this.hash = SqlExpressionHasher.Hash(expression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
+			this.projector = projector;
+			this.hash = SqlExpressionHasher.Hash(expression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders) ^ SqlExpressionHasher.Hash(projector);
 		}
 	}
 }

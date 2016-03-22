@@ -170,10 +170,19 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return binaryExpression;
 			}
 
+			if (!(this.result &= binaryExpression.Method == current.Method
+								 && binaryExpression.IsLifted == current.IsLifted
+								 && binaryExpression.IsLiftedToNull == current.IsLiftedToNull))
+			{
+				return binaryExpression;
+			}
+				
 			this.currentObject = current.Left;
 			this.Visit(binaryExpression.Left);
 			this.currentObject = current.Right;
 			this.Visit(binaryExpression.Right);
+			this.currentObject = current.Conversion;
+			this.Visit(binaryExpression.Conversion);
 			this.currentObject = current;
 
 			return binaryExpression;
@@ -974,7 +983,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				return selectExpression;
 			}
-			
+
+			this.currentObject = current.From;
+			this.Visit(selectExpression.From);
+
+			if (!this.result)
+			{
+				return selectExpression;
+			}
+
 			this.currentObject = current.Where;
 			this.Visit(selectExpression.Where);
 			
@@ -1033,6 +1050,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			this.currentObject = current.Select;
 			this.Visit(projection.Select);
+
+			if (!this.result)
+			{
+				return projection;
+			}
+
+			this.currentObject = current.DefaultValue;
+			this.Visit(projection.DefaultValue);
 
 			this.currentObject = current;
 

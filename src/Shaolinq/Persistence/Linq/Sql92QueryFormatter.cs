@@ -288,40 +288,58 @@ namespace Shaolinq.Persistence.Linq
 				return new FunctionResolveResult("UTCNOW", false, arguments);
 			case SqlFunction.StartsWith:
 			{
-				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
-				newArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
+				var newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
+				var optimisedNewArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
+
+				if (optimisedNewArgument != newArgument)
+				{
+					canReuse = false;
+					this.parameterIndexToPlaceholderIndexes = null;
+				}
 
 				var list = new List<Expression>
 				{
 					arguments[0],
-					newArgument
+					optimisedNewArgument
 				};
 
 				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyCollection());
 			}
 			case SqlFunction.ContainsString:
 			{
-				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
+				var newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant("%"));
 				newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), newArgument);
-				newArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
+				var optimisedNewArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
+
+				if (optimisedNewArgument != newArgument)
+				{
+					canReuse = false;
+					this.parameterIndexToPlaceholderIndexes = null;
+				}
 
 				var list = new List<Expression>
 				{
 					arguments[0],
-					newArgument
+					optimisedNewArgument
 				};
 
 				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyCollection());
 			}
 			case SqlFunction.EndsWith:
 			{
-				Expression newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
-				newArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
+				var newArgument = new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, Expression.Constant("%"), arguments[1]);
+				var optimisedNewArgument = SqlRedundantFunctionCallRemover.Remove(newArgument);
+
+				if (optimisedNewArgument != newArgument)
+				{
+					canReuse = false;
+					this.parameterIndexToPlaceholderIndexes = null;
+				}
 
 				var list = new List<Expression>
 				{
 					arguments[0],
-					newArgument
+					optimisedNewArgument
 				};
 
 				return new FunctionResolveResult(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Like), true, list.ToReadOnlyCollection());
@@ -505,14 +523,9 @@ namespace Shaolinq.Persistence.Linq
 
 				var endIndex = this.parameterValues.Count;
 
-				if (canReuse && endIndex - startIndex == 1)
+				if (endIndex - startIndex == 1)
 				{
 					var index = startIndex;
-
-					if (parameterIndexToPlaceholderIndexes == null)
-					{
-						parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
-					}
 
 					parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
 				}
@@ -545,9 +558,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var type = constantExpression.Value.GetType();
-				
-				if (typeof(SqlValuesEnumerable).IsAssignableFrom(type))
+				if (typeof(SqlValuesEnumerable).IsAssignableFrom(constantExpression.Type))
 				{
 					canReuse = false;
 					parameterIndexToPlaceholderIndexes = null;
