@@ -59,7 +59,7 @@ namespace Shaolinq.SqlServer
 
 				if (operand is BitBooleanExpression)
 				{
-					return Expression.MakeUnary(unaryExpression.NodeType, Expression.Equal(operand, Expression.Constant(true)), typeof(bool));
+					return Expression.MakeUnary(unaryExpression.NodeType, Expression.Equal(operand, Expression.Constant(true, operand.Type)), typeof(bool));
 				}
 			}
 			else if (unaryExpression.NodeType == ExpressionType.Convert && unaryExpression.Type.GetUnwrappedNullableType() == typeof(bool))
@@ -68,7 +68,7 @@ namespace Shaolinq.SqlServer
 
 				if (operand is BitBooleanExpression)
 				{
-					return Expression.MakeUnary(unaryExpression.NodeType, Expression.Equal(operand, Expression.Constant(true)), typeof(bool));
+					return Expression.MakeUnary(unaryExpression.NodeType, Expression.Equal(operand, Expression.Constant(true, operand.Type)), typeof(bool));
 				}
 			}
 
@@ -88,12 +88,12 @@ namespace Shaolinq.SqlServer
 
 		        if (left.Type.GetUnwrappedNullableType() == typeof(bool) && (left is BitBooleanExpression))
 		        {
-		            left = Expression.Equal(left, Expression.Constant(true));
+		            left = Expression.Equal(left, Expression.Constant(true, left.Type));
 		        }
 
 		        if (right.Type.GetUnwrappedNullableType() == typeof(bool) && (right is BitBooleanExpression))
 		        {
-		            right = Expression.Equal(right, Expression.Constant(true));
+		            right = Expression.Equal(right, Expression.Constant(true, right.Type));
 		        }
 
 		        if (left != binaryExpression.Left || right != binaryExpression.Right)
@@ -129,7 +129,7 @@ namespace Shaolinq.SqlServer
 
 			if (test is BitBooleanExpression)
 			{
-				test = Expression.Equal(test, Expression.Constant(true));
+				test = Expression.Equal(test, Expression.Constant(true, test.Type));
 			}
 
 			if (ifFalse.Type.GetUnwrappedNullableType() == typeof(bool) && !(ifFalse is BitBooleanExpression))
@@ -160,7 +160,7 @@ namespace Shaolinq.SqlServer
 
 			if (condition?.Type.GetUnwrappedNullableType() == typeof(bool) && condition is BitBooleanExpression)
 			{
-				condition = Expression.Equal(condition, Expression.Constant(true));
+				condition = Expression.Equal(condition, Expression.Constant(true, condition.Type));
 			}
 
 			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
@@ -217,7 +217,7 @@ namespace Shaolinq.SqlServer
 			
 			if (where is BitBooleanExpression)
 			{
-				where = Expression.Equal(where, Expression.Constant(true));
+				where = Expression.Equal(where, Expression.Constant(true, where.Type));
 			}
 
 			if (from != selectExpression.From || where != selectExpression.Where || newColumns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
