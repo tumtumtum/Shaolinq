@@ -349,6 +349,36 @@ namespace Shaolinq
 			}
 		}
 
+		public virtual T GetReference<T>(LambdaExpression predicate)
+			where T : DataAccessObject
+		{
+			return (T)GetReference(typeof(T), predicate);
+		}
+
+		protected internal virtual DataAccessObject GetReference(Type type, LambdaExpression predicate)
+		{
+			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(type), predicate);
+
+			if (existing != null)
+			{
+				return existing;
+			}
+			else
+			{
+				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, false);
+
+				var internalDataAccessObject = retval.ToObjectInternal();
+
+				internalDataAccessObject.SetIsDeflatedReference(true);
+				internalDataAccessObject.SetDeflatedPredicate(predicate);
+				internalDataAccessObject.ResetModified();
+				internalDataAccessObject.FinishedInitializing();
+				internalDataAccessObject.SubmitToCache();
+
+				return retval;
+			}
+		}
+
 		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
 			where T : DataAccessObject
 		{
@@ -547,12 +577,6 @@ namespace Shaolinq
 			var propertyValues = this.GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
 			return this.GetReference<T>(propertyValues);
-		}
-
-		public virtual T GetReference<T, K>(Expression<Func<K, T>> condition, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
-			where T : DataAccessObject
-		{
-			return null;
 		}
 
 		public virtual DataAccessObject CreateDataAccessObject(Type type)
@@ -820,14 +844,30 @@ namespace Shaolinq
 				return obj;
 			}
 
-			var retval = this.GetDataAccessObjects<T>().FirstOrDefault(c => c == obj);
-			
-			if (retval == null)
-			{
-				throw new MissingDataAccessObjectException(obj);
-			}
+			var predicate = obj.ToObjectInternal().DeflatedPredicate;
 
-			return retval;
+			if (predicate != null)
+			{
+				var retval = this.GetDataAccessObjects<T>().SingleOrDefault((Expression<Func<T, bool>>)predicate);
+
+				if (retval == null)
+				{
+					throw new MissingDataAccessObjectException(obj);
+				}
+
+				return retval;
+			}
+			else
+			{
+				var retval = this.GetDataAccessObjects<T>().FirstOrDefault(c => c == obj);
+
+				if (retval == null)
+				{
+					throw new MissingDataAccessObjectException(obj);
+				}
+
+				return retval;
+			}
 		}
 
 		internal async Task<DataAccessObject> InflateAsyncHelper<T>(T obj, CancellationToken cancellationToken)
@@ -838,14 +878,30 @@ namespace Shaolinq
 				return obj;
 			}
 
-			var retval = await this.GetDataAccessObjects<T>().FirstOrDefaultAsync(c => c == obj, cancellationToken);
+			var predicate = obj.ToObjectInternal().DeflatedPredicate;
 
-			if (retval == null)
+			if (predicate != null)
 			{
-				throw new MissingDataAccessObjectException(obj);
-			}
+				var retval = await this.GetDataAccessObjects<T>().SingleOrDefaultAsync((Expression<Func<T, bool>>)predicate, cancellationToken);
 
-			return retval;
+				if (retval == null)
+				{
+					throw new MissingDataAccessObjectException(obj);
+				}
+
+				return retval;
+			}
+			else
+			{
+				var retval = await this.GetDataAccessObjects<T>().FirstOrDefaultAsync(c => c == obj, cancellationToken);
+
+				if (retval == null)
+				{
+					throw new MissingDataAccessObjectException(obj);
+				}
+
+				return retval;
+			}
 		}
 
 		public virtual DataAccessObjects<T> ExecuteProcedure<T>(string procedureName, object[] args)

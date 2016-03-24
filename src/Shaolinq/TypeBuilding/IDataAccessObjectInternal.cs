@@ -1,5 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Linq.Expressions;
+
 namespace Shaolinq.TypeBuilding
 {
 	internal interface IDataAccessObjectInternal
@@ -36,6 +38,10 @@ namespace Shaolinq.TypeBuilding
 
 		void MarkServerSidePropertiesAsApplied();
 
+		LambdaExpression DeflatedPredicate { get; }
+
+		void SetDeflatedPredicate(LambdaExpression value);
+
 		/// <summary>
 		/// Update all properties that rely on server side generated properties.
 		/// </summary>
@@ -56,7 +62,7 @@ namespace Shaolinq.TypeBuilding
 		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
 
 		/// <summary>
-		/// Sets the underlying data container of the current data access object with the one in the given domain object.
+		/// Sets the underlying data container of the current data access object with the one in the given DataAccessObject.
 		/// </summary>
 		void SwapData(DataAccessObject source, bool transferChangedProperties);
 

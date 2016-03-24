@@ -785,5 +785,35 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
+
+		[Test]
+		public void Test_PredicatedDeflatedReference()
+		{
+			long schoolId;
+			var schoolName = "Predicated School Name";
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				school.Name = schoolName;
+
+				scope.Flush();
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			var s = this.model.Schools.GetReference(c => c.Name == schoolName);
+
+			Assert.IsTrue(s.IsDeflatedReference());
+
+			var x = s.Id;
+
+			Assert.IsFalse(s.IsDeflatedReference());
+
+			Assert.AreEqual(schoolId, x);
+		}
 	}
 }

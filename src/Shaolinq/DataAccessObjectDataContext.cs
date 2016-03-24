@@ -7,6 +7,8 @@ using System.Linq.Expressions;
 using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.TypeBuilding;
+// ReSharper disable SuspiciousTypeConversion.Global
 
 namespace Shaolinq
 {
@@ -59,6 +61,32 @@ namespace Shaolinq
 		}
 		#endregion
 
+		protected internal struct PredicatePrimaryKey
+		{
+			internal readonly LambdaExpression predicate;
+
+			public PredicatePrimaryKey(LambdaExpression predicate)
+			{
+				this.predicate = predicate;
+			}
+		}
+
+		protected internal class PredicatePrimaryKeyComparer
+			: IEqualityComparer<PredicatePrimaryKey>
+		{
+			public static readonly PredicatePrimaryKeyComparer Default = new PredicatePrimaryKeyComparer();
+
+			public bool Equals(PredicatePrimaryKey x, PredicatePrimaryKey y)
+			{
+				return SqlExpressionComparer.Equals(x.predicate, y.predicate);
+			}
+
+			public int GetHashCode(PredicatePrimaryKey obj)
+			{
+				return SqlExpressionHasher.Hash(obj.predicate);
+			}
+		}
+
 		#region CompositePrimaryKey
 
 		protected internal struct CompositePrimaryKey
@@ -109,32 +137,6 @@ namespace Shaolinq
 
 		#endregion
 
-		#region ObjectsByCondition
-
-		private class ObjectsByCondition
-		{
-			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
-			private Dictionary<ConditionalKey, DataAccessObject> objectsDeletedByCondition;
-			private readonly Dictionary<ConditionalKey, DataAccessObject> objectsForUpdateByCondition;
-			
-			public ObjectsByCondition(DataAccessObjectDataContext dataAccessObjectDataContext)
-			{
-				this.dataAccessObjectDataContext = dataAccessObjectDataContext;
-
-				this.objectsDeletedByCondition = new Dictionary<ConditionalKey, DataAccessObject>(ConditionalKeyComparer.Default);
-				this.objectsForUpdateByCondition = new Dictionary<ConditionalKey, DataAccessObject>(ConditionalKeyComparer.Default);
-			}
-
-			public DataAccessObject Get(ConditionalKey key)
-			{
-				DataAccessObject retval;
-
-				return this.objectsForUpdateByCondition.TryGetValue(key, out retval) ? retval : null;
-			}
-		}
-
-		#endregion
-
 		#region ObjectsByIdCache
 
 		private interface IObjectsByIdCache
@@ -147,6 +149,7 @@ namespace Shaolinq
 			ICollection<DataAccessObject> GetDeletedObjects();
 			DataAccessObject Cache(DataAccessObject value, bool forImport);
 			DataAccessObject Get(ObjectPropertyValue[] primaryKeys);
+			DataAccessObject Get(LambdaExpression predicate);
 			void Deleted(DataAccessObject value);
 		}
 
@@ -154,19 +157,21 @@ namespace Shaolinq
 		{
 			return new CompositePrimaryKey(dataAccessObject.GetAdvanced().GetPrimaryKeys());
 		}
-
+		
 		private class ObjectsByIdCache<K>
 			: IObjectsByIdCache
 		{
+			public Type Type { get; }
 			private readonly Func<DataAccessObject, K> getIdFunc;
 			private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
 			private readonly HashSet<DataAccessObject> objectsNotReadyForCommit;
-
 			private readonly Dictionary<K, DataAccessObject> objectsDeleted;
 			private readonly Dictionary<K, DataAccessObject> objectsByIdCache;
 			private readonly Dictionary<DataAccessObject, DataAccessObject> newObjects;
-
-			public Type Type { get; }
+			public ICollection<DataAccessObject> GetNewObjects() => this.newObjects.Values;
+			public ICollection<DataAccessObject> GetObjectsById() => this.objectsByIdCache.Values;
+			public ICollection<DataAccessObject> GetDeletedObjects() => this.objectsDeleted.Values;
+			private readonly Dictionary<LambdaExpression, DataAccessObject> objectsByPredicateCache;
 
 			public ObjectsByIdCache(Type type, DataAccessObjectDataContext dataAccessObjectDataContext, Func<DataAccessObject, K> getIdFunc, IEqualityComparer<K> keyComparer)
 			{
@@ -175,13 +180,10 @@ namespace Shaolinq
 				this.dataAccessObjectDataContext = dataAccessObjectDataContext;
 				this.objectsByIdCache = new Dictionary<K, DataAccessObject>(keyComparer ?? EqualityComparer<K>.Default);
 				this.objectsDeleted = new Dictionary<K, DataAccessObject>();
+				this.objectsByPredicateCache = new Dictionary<LambdaExpression, DataAccessObject>();
 				this.objectsNotReadyForCommit = new HashSet<DataAccessObject>(ObjectReferenceIdentityEqualityComparer<IDataAccessObjectAdvanced>.Default);
 				this.newObjects = new Dictionary<DataAccessObject, DataAccessObject>(DataAccessObjectServerSidePropertiesAccountingComparer.Default);
 			}
-
-			public ICollection<DataAccessObject> GetNewObjects() => this.newObjects.Values;
-			public ICollection<DataAccessObject> GetObjectsById() => this.objectsByIdCache.Values;
-			public ICollection<DataAccessObject> GetDeletedObjects() => this.objectsDeleted.Values;
 
 			public void AssertObjectsAreReadyForCommit()
 			{
@@ -241,24 +243,43 @@ namespace Shaolinq
 
 					this.objectsByIdCache.Remove(id);
 					this.objectsDeleted[id] = value;
+
+					var internalDao = (IDataAccessObjectInternal)value;
+
+					if (internalDao?.DeflatedPredicate != null)
+					{
+						this.objectsByPredicateCache.Remove(internalDao.DeflatedPredicate);
+					}
 				}
 			}
 
-            public DataAccessObject Get(ObjectPropertyValue[] primaryKeys)
+			public DataAccessObject Get(ObjectPropertyValue[] primaryKeys)
 			{
 				K key;
 				DataAccessObject outValue;
 
-	            if (typeof(K) == typeof(CompositePrimaryKey))
-	            {
-		            key = (K)(object)(new CompositePrimaryKey(primaryKeys));
-	            }
-	            else
-	            {
-		            key = (K)(object)primaryKeys[0].Value;
-	            }
+				if (typeof(K) == typeof(CompositePrimaryKey))
+				{
+					key = (K)(object)(new CompositePrimaryKey(primaryKeys));
+				}
+				else
+				{
+					key = (K)(object)primaryKeys[0].Value;
+				}
 
 				if (this.objectsByIdCache.TryGetValue(key, out outValue))
+				{
+					return outValue;
+				}
+
+				return null;
+			}
+
+			public DataAccessObject Get(LambdaExpression predicate)
+			{
+				DataAccessObject outValue;
+
+				if (this.objectsByPredicateCache.TryGetValue(predicate, out outValue))
 				{
 					return outValue;
 				}
@@ -322,6 +343,30 @@ namespace Shaolinq
 						return value;
 					}
 				}
+
+		        var internalDao = value.ToObjectInternal();
+		        var predicate = internalDao?.DeflatedPredicate;
+
+				if (predicate != null)
+				{
+					if (forImport)
+					{
+						throw new InvalidOperationException("Cannot import predicated deflated object");
+					}
+
+					DataAccessObject existing;
+
+					if (this.objectsByPredicateCache.TryGetValue(predicate, out existing))
+					{
+						existing.ToObjectInternal().SwapData(value, true);
+
+						return existing;
+					}
+
+					this.objectsByPredicateCache[predicate] = value;
+
+					return value;
+		        }
 
 				if (value.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
 				{
@@ -458,6 +503,13 @@ namespace Shaolinq
 			IObjectsByIdCache cache;
 
 			return this.cachesByType.TryGetValue(type.TypeHandle, out cache) ? cache.Get(primaryKeys) : null;
+		}
+
+		public virtual DataAccessObject GetObject(Type type, LambdaExpression predicate)
+		{
+			IObjectsByIdCache cache;
+
+			return this.cachesByType.TryGetValue(type.TypeHandle, out cache) ? cache.Get(predicate) : null;
 		}
 
 		private static Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>> cacheConstructor = new Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>>();

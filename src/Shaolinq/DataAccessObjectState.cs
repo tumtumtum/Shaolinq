@@ -56,9 +56,14 @@ namespace Shaolinq
 		PrimaryKeyReferencesNewObjectWithServerSideProperties = PrimaryKeyReferencesNewObject | 64,
 		
 		/// <summary>
-		/// The object is a deflated reference
+		/// The object is a deflated reference where the primary key is known
 		/// </summary>
-		Deflated = 4096,
+		Deflated = 2048,
+
+		/// <summary>
+		/// The object is a deflated reference where keys other than the primary key are known
+		/// </summary>
+		DeflatedPredicated = Deflated | 4096,
 
 		/// <summary>
 		/// The object was manually constructed and cannot be used for persistence

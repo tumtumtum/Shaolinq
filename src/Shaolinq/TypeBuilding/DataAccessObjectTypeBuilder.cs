@@ -33,6 +33,7 @@ namespace Shaolinq.TypeBuilding
 		private TypeBuilder typeBuilder;
 		private FieldInfo swappingField;
 		private FieldInfo dataObjectField;
+		private FieldInfo predicateField;
 		private ILGenerator cctorGenerator;
 		private FieldInfo originalPrimaryKeyField;
 		private FieldInfo isDeflatedReferenceField;
@@ -126,9 +127,11 @@ namespace Shaolinq.TypeBuilding
 				var attributeBuilder = new CustomAttributeBuilder(typeof(SerializableAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
 
 				this.dataObjectTypeTypeBuilder.SetCustomAttribute(attributeBuilder);
-				this.partialObjectStateField = this.dataObjectTypeTypeBuilder.DefineField("PartialObjectState", typeof(DataAccessObjectState), FieldAttributes.Public);
+				this.partialObjectStateField = this.dataObjectTypeTypeBuilder.DefineField("$$PartialObjectState", typeof(DataAccessObjectState), FieldAttributes.Public);
 				
-				this.isDeflatedReferenceField = this.dataObjectTypeTypeBuilder.DefineField("IsDeflatedReference", typeof(bool), FieldAttributes.Public);
+				this.isDeflatedReferenceField = this.dataObjectTypeTypeBuilder.DefineField("$$IsDeflatedReference", typeof(bool), FieldAttributes.Public);
+
+				this.predicateField = this.dataObjectTypeTypeBuilder.DefineField("$$DeflatedPredicate", typeof(LambdaExpression), FieldAttributes.Public);
 
 				this.dataObjectField = this.typeBuilder.DefineField(DataObjectFieldName, this.dataObjectTypeTypeBuilder, FieldAttributes.Public);
 			}
@@ -436,6 +439,29 @@ namespace Shaolinq.TypeBuilding
 				 (c, d) => false,
 				 (c, d) => c.IsPropertyThatIsCreatedOnTheServerSide
 			);
+		}
+
+		private void BuildDeflatedPredicateProperty()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldfld, this.predicateField);
+
+			generator.Emit(OpCodes.Ret);
+		}
+
+		private void BuildSetDeflatedPredicateMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldarg_1);
+			generator.Emit(OpCodes.Stfld, this.predicateField);
+
+			generator.Emit(OpCodes.Ret);
 		}
 
 		private void BuildGetPropertiesGeneratedOnTheServerSideMethod()
@@ -908,24 +934,29 @@ namespace Shaolinq.TypeBuilding
 			switch (propertyMethodType)
 			{
 				case PropertyMethodType.Get:
-					if (!currentPropertyDescriptor.IsPrimaryKey)
+					if (currentPropertyDescriptor.IsPrimaryKey)
 					{
 						generator.Emit(OpCodes.Ldarg_0);
 						generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-						generator.Emit(OpCodes.Ldfld, this.isDeflatedReferenceField);
+						generator.Emit(OpCodes.Ldfld, this.predicateField);
 						generator.Emit(OpCodes.Brfalse, label);
+					}
 
-						if (valueChangedFieldInDataObject != null)
-						{
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-							generator.Emit(OpCodes.Ldfld, valueChangedFieldInDataObject);
-							generator.Emit(OpCodes.Brtrue, label);
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+					generator.Emit(OpCodes.Ldfld, this.isDeflatedReferenceField);
+					generator.Emit(OpCodes.Brfalse, label);
 
-							generator.Emit(OpCodes.Ldarg_0);
-							generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => default(DataAccessObject).Inflate<DataAccessObject>()));
-							generator.Emit(OpCodes.Pop);
-						}
+					if (valueChangedFieldInDataObject != null)
+					{
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+						generator.Emit(OpCodes.Ldfld, valueChangedFieldInDataObject);
+						generator.Emit(OpCodes.Brtrue, label);
+
+						generator.Emit(OpCodes.Ldarg_0);
+						generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => default(DataAccessObject).Inflate()));
+						generator.Emit(OpCodes.Pop);
 					}
 
 					generator.MarkLabel(label);
