@@ -7,14 +7,16 @@ namespace Shaolinq.Persistence.Linq
 {
 	public struct ExecutionBuildResult
 	{
-		public object[] Arguments { get; set; }
-		public Delegate Projector { get; set; }
-        public Delegate AsyncProjector { get; set; }
-        public SqlQueryFormatResult FormatResult { get; set; }
+		public object[] Arguments { get; }
+		public Delegate Projector { get; }
+        public Delegate AsyncProjector { get; }
+        public SqlQueryFormatResult FormatResult { get; }
+		public SqlQueryProvider SqlQueryProvider { get; }
 
-		public ExecutionBuildResult(SqlQueryFormatResult formatResult, Delegate projector, Delegate asyncProjector, object[] arguments)
+		public ExecutionBuildResult(SqlQueryProvider sqlQueryProvider, SqlQueryFormatResult formatResult, Delegate projector, Delegate asyncProjector, object[] arguments)
 			: this()
 		{
+			this.SqlQueryProvider = sqlQueryProvider;
 			this.Arguments = arguments;
 			this.Projector = projector;
 		    this.AsyncProjector = asyncProjector;
@@ -23,12 +25,12 @@ namespace Shaolinq.Persistence.Linq
 
 		public T Evaluate<T>()
 		{
-			return ((Func<SqlQueryFormatResult, object[], T>)this.Projector)(this.FormatResult, this.Arguments);
+			return ((Func<SqlQueryProvider, SqlQueryFormatResult, object[], T>)this.Projector)(this.SqlQueryProvider, this.FormatResult, this.Arguments);
 		}
 
         public T EvaluateAsync<T>(CancellationToken cancellationToken)
         {
-            return ((Func<SqlQueryFormatResult, object[], CancellationToken, T>)this.AsyncProjector)(this.FormatResult, this.Arguments, cancellationToken);
+            return ((Func<SqlQueryProvider, SqlQueryFormatResult, object[], CancellationToken, T>)this.AsyncProjector)(this.SqlQueryProvider, this.FormatResult, this.Arguments, cancellationToken);
         }
     }
 }

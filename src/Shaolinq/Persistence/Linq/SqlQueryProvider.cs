@@ -269,11 +269,12 @@ namespace Shaolinq.Persistence.Linq
 				cacheInfo.formatResult = cacheInfo.formatResult.ChangeParameterValues(parameters);
 			}
 
-			return new ExecutionBuildResult(cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
+			return new ExecutionBuildResult(this, cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 		}
 
 		private void BuildProjector(LambdaExpression projectionLambda, LambdaExpression aggregator, out Delegate projector, out Delegate asyncProjector)
 		{
+			var sqlQueryProviderParam = Expression.Parameter(typeof(SqlQueryProvider));
 			var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
 			var placeholderValuesParam = Expression.Parameter(typeof(object[]));
 
@@ -290,7 +291,7 @@ namespace Shaolinq.Persistence.Linq
 				executor = Expression.New
 				(
 					constructor,
-					Expression.Constant(this),
+					sqlQueryProviderParam,
 					Expression.Constant(this.DataAccessModel),
 					Expression.Constant(this.SqlDatabaseContext),
 					formatResultsParam,
@@ -307,7 +308,7 @@ namespace Shaolinq.Persistence.Linq
 					executor = Expression.New
 					(
 						constructor,
-						Expression.Constant(this),
+						sqlQueryProviderParam,
 						Expression.Constant(this.DataAccessModel),
 						Expression.Constant(this.SqlDatabaseContext),
 						formatResultsParam,
@@ -322,7 +323,7 @@ namespace Shaolinq.Persistence.Linq
 					executor = Expression.New
 					(
 						constructor,
-						Expression.Constant(this),
+						sqlQueryProviderParam,
 						Expression.Constant(this.DataAccessModel),
 						Expression.Constant(this.SqlDatabaseContext),
 						formatResultsParam,
@@ -346,8 +347,8 @@ namespace Shaolinq.Persistence.Linq
 				asyncExecutor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
 			}
 
-			projectionLambda = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
-			var asyncProjectorLambda = Expression.Lambda(asyncExecutor, formatResultsParam, placeholderValuesParam, cancellationToken);
+			projectionLambda = Expression.Lambda(executor, sqlQueryProviderParam, formatResultsParam, placeholderValuesParam);
+			var asyncProjectorLambda = Expression.Lambda(asyncExecutor, sqlQueryProviderParam, formatResultsParam, placeholderValuesParam, cancellationToken);
 
 			ProjectorCacheInfo cacheInfo;
 			var key = new ProjectorCacheKey(projectionLambda);
