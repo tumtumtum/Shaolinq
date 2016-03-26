@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public static bool Equals(Expression left, Expression right, SqlExpressionComparerOptions options)
 		{
-			if (left == null && right == null)
+			if (object.ReferenceEquals(left, right))
 			{
 				return true;
 			}

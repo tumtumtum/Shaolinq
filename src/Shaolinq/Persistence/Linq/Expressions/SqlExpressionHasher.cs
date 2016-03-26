@@ -23,6 +23,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public static int Hash(Expression expression, SqlExpressionComparerOptions options)
 		{
+			if (expression == null)
+			{
+				return 0;
+			}
+
 			var hasher = new SqlExpressionHasher(options);
 
 			hasher.Visit(expression);
