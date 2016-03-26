@@ -8,7 +8,7 @@ namespace Shaolinq
 	public interface IRelatedDataAccessObjectContext
 	{
 		Type ElementType { get; }
-		LambdaExpression ExtraCondition { get; }
+		LambdaExpression Condition { get; }
 		IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
 	}

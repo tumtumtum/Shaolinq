@@ -10,7 +10,7 @@ using Shaolinq.Persistence;
 namespace Shaolinq
 {
 	public class RelatedDataAccessObjects<T>
-		: DataAccessObjectsQueryable<T>, IRelatedDataAccessObjectContext, IDataAccessObjectActivator, IHasExtraCondition
+		: DataAccessObjectsQueryable<T>, IRelatedDataAccessObjectContext, IDataAccessObjectActivator, IHasCondition
 		where T : DataAccessObject
 	{
 		private List<T> values;
@@ -19,7 +19,7 @@ namespace Shaolinq
 		private IReadOnlyList<T> readOnlyValues;
 		private readonly TypeRelationshipInfo relationshipInfo;
 		public bool HasItems => this.values != null;
-		public LambdaExpression ExtraCondition { get; protected set; }
+		public LambdaExpression Condition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
@@ -32,7 +32,7 @@ namespace Shaolinq
 			var parentType = this.DataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentDataAccessObject.GetType()));
 			this.relationshipInfo = parentType.GetRelationshipInfos().Single(c => c.ReferencingProperty.PropertyName == parentPropertyName);
 
-			this.ExtraCondition = this.CreateJoinCondition(relationshipInfo.TargetProperty);
+			this.Condition = this.CreateJoinCondition(relationshipInfo.TargetProperty);
 			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod(parentType, relationshipInfo.TargetProperty);
 		}
 

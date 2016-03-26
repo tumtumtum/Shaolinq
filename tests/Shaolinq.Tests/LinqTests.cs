@@ -2935,6 +2935,9 @@ namespace Shaolinq.Tests
 				Assert.IsTrue(students1.All(c => c.School.Id == school1Id));
 				Assert.IsTrue(students2.All(c => c.School.Id == school2Id));
 
+				this.model.Students.Delete(c => c.School.Id == school1Id || c.School.Id == school2Id);
+				this.model.Schools.Delete(c => c.Id == school1Id || c.Id == school2Id);
+
 				scope.Complete();
 			}
 		}

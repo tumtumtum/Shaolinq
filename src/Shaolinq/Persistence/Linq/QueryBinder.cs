@@ -1902,11 +1902,11 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var retval = this.GetTableProjection(type);
 
-				var hasExtraCondition = constantExpression.Value as IHasExtraCondition;
+				var hasCondition = constantExpression.Value as IHasCondition;
 
-				if (hasExtraCondition?.ExtraCondition != null)
+				if (hasCondition?.Condition != null)
 				{
-					return this.BindWhere(retval.Type, retval, hasExtraCondition.ExtraCondition, false, true);
+					return this.BindWhere(retval.Type, retval, hasCondition.Condition, false, true);
 				}
 
 				return retval;

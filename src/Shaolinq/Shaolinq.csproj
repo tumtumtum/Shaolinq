@@ -162,7 +162,7 @@
     <Compile Include="Persistence\DefaultSqlTransactionalCommandsContext+Commands.cs" />
     <Compile Include="ForeignObjectAction.cs" />
     <Compile Include="ForeignObjectConstraintAttribute.cs" />
-    <Compile Include="IHasExtraCondition.cs" />
+    <Compile Include="IHasCondition.cs" />
     <Compile Include="InternalListExtensions.cs" />
     <Compile Include="InvalidDataAccessModelDefinitionException.cs" />
     <Compile Include="MissingDataAccessObjectException.cs" />

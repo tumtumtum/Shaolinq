@@ -4,8 +4,8 @@ using System.Linq.Expressions;
 
 namespace Shaolinq
 {
-	public interface IHasExtraCondition
+	public interface IHasCondition
 	{
-		LambdaExpression ExtraCondition { get; }
+		LambdaExpression Condition { get; }
 	}
 }
