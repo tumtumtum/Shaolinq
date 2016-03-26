@@ -12,8 +12,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public bool Equals(ProjectorCacheKey x, ProjectorCacheKey y)
 		{
-			return x.commandText == y.commandText
-				   && SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
+			return SqlExpressionComparer.Equals(x.projectionExpression, y.projectionExpression, SqlExpressionComparerOptions.IgnoreConstantPlaceholders);
 		}
 
 		public int GetHashCode(ProjectorCacheKey obj)

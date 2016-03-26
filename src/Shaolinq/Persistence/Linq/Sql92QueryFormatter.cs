@@ -65,7 +65,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		private readonly SqlQueryFormatterOptions options;
+		private SqlQueryFormatterOptions options;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		
 		public IndentationContext AcquireIndentationContext()
@@ -519,11 +519,17 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var startIndex = this.parameterValues.Count;
 
+				var savedOptions = this.options;
+
+				this.options &= ~SqlQueryFormatterOptions.OptimiseOutConstantNulls;
+
 				var retval = base.VisitConstantPlaceholder(constantPlaceholderExpression);
+
+				this.options = savedOptions;
 
 				var endIndex = this.parameterValues.Count;
 
-				if (endIndex - startIndex == 1)
+				if (endIndex - startIndex == 1 && canReuse)
 				{
 					var index = startIndex;
 

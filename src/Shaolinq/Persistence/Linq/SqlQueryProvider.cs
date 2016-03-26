@@ -173,13 +173,14 @@ namespace Shaolinq.Persistence.Linq
 			var projectionExpression = expression as SqlProjectionExpression ?? (SqlProjectionExpression)this.Bind(expression);
 
 			var key = new ExpressionCacheKey(projectionExpression, projection);
-				
+
 			if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out cacheInfo))
 			{
 				if (expression != projectionExpression)
 				{
 					placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(projectionExpression);
 					projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression);
+					skipFormatResultSubstitution = true;
 				}
 
 				var oldCache = this.SqlDatabaseContext.projectionExpressionCache;
@@ -193,14 +194,15 @@ namespace Shaolinq.Persistence.Linq
 
 					foreach (var mapping in formatResult.ParameterIndexToPlaceholderIndexes)
 					{
-						parameters[mapping.Left] = parameters[mapping.Left].ChangeValue(null);
+						var value = parameters[mapping.Left];
+
+						parameters[mapping.Left] = value.ChangeValue(value.Type.GetDefaultValue());
 					}
 
 					formatResultForCache = formatResult.ChangeParameterValues(parameters);
 				}
 
-				skipFormatResultSubstitution = true;
-
+				
 				cacheInfo = new ProjectorExpressionCacheInfo(projectionExpression, formatResultForCache);
 
 				if (projection == null)
@@ -229,29 +231,8 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo> newCache;
-					
-					var i = 0;
+					var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(oldCache, ExpressionCacheKeyEqualityComparer.Default) { [key] = cacheInfo };
 
-					while (true)
-					{
-						oldCache = this.SqlDatabaseContext.projectionExpressionCache;
-						newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(oldCache, ExpressionCacheKeyEqualityComparer.Default);
-
-						if (oldCache.Count == newCache.Count)
-						{
-							break;
-						}
-
-						if (i++ > 10)
-						{
-							break;
-						}
-
-						Thread.Sleep(random.Next(25));
-					}
-
-					newCache[key] = cacheInfo;
 					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 
@@ -259,6 +240,10 @@ namespace Shaolinq.Persistence.Linq
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 
 				cacheInfo.formatResult = formatResult;
+			}
+			else
+			{
+				ProjectionCacheLogger.Info(() => $"Cache hit for query:\n{cacheInfo.formatResult.CommandText}");
 			}
 
 			if (placeholderValues == null)
@@ -386,8 +371,43 @@ namespace Shaolinq.Persistence.Linq
 			projectionLambda = Expression.Lambda(executor, formatResultsParam, placeholderValuesParam);
 			var asyncProjectorLambda = Expression.Lambda(asyncExecutor, formatResultsParam, placeholderValuesParam, cancellationToken);
 
-			projector = projectionLambda.Compile();
-			asyncProjector = asyncProjectorLambda.Compile();
+			ProjectorCacheInfo cacheInfo;
+			var key = new ProjectorCacheKey(projectionLambda);
+			var oldCache = this.SqlDatabaseContext.projectorCache;
+
+			if (!oldCache.TryGetValue(key, out cacheInfo))
+			{
+				cacheInfo.projector = projectionLambda.Compile();
+				cacheInfo.asyncProjector = asyncProjectorLambda.Compile();
+
+				if (this.SqlDatabaseContext.projectorCache.Count >= ProjectorCacheMaxLimit)
+				{
+					ProjectionExpressionCacheLogger.Info(() => $"Projector has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjector: {projectionLambda}\n\nAt: {new StackTrace()}");
+
+					var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheMaxLimit, ProjectorCacheEqualityComparer.Default);
+
+					foreach (var value in oldCache.Take(oldCache.Count / 3))
+					{
+						newCache[value.Key] = value.Value;
+					}
+
+					newCache[key] = cacheInfo;
+
+					this.SqlDatabaseContext.projectorCache = newCache;
+				}
+				else
+				{
+					var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(oldCache, ProjectorCacheEqualityComparer.Default) { [key] = cacheInfo };
+
+					this.SqlDatabaseContext.projectorCache = newCache;
+				}
+
+				ProjectionCacheLogger.Info(() => $"Cached projector:\n{cacheInfo.projector}");
+				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
+			}
+			
+			projector = cacheInfo.projector;
+			asyncProjector = cacheInfo.asyncProjector;
 		}
 	}
 }

@@ -55,7 +55,7 @@ namespace Shaolinq.Persistence.Linq
 		protected List<TypedValue> parameterValues;
 		internal int IndentationWidth { get; }
 		public string ParameterIndicatorPrefix { get; protected set; }
-		protected bool canReuse;
+		protected bool canReuse = true;
 		protected List<Pair<int, int>> parameterIndexToPlaceholderIndexes;
 		
 		protected readonly SqlDialect sqlDialect;
