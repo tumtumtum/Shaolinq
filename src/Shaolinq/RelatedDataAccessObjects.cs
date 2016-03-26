@@ -28,7 +28,6 @@ namespace Shaolinq
 			: base(dataAccessModel)
 		{
 			this.RelatedDataAccessObject = parentDataAccessObject;
-			this.SqlQueryProvider.RelatedDataAccessObjectContext = this;
 			
 			var parentType = this.DataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentDataAccessObject.GetType()));
 			this.relationshipInfo = parentType.GetRelationshipInfos().Single(c => c.ReferencingProperty.PropertyName == parentPropertyName);

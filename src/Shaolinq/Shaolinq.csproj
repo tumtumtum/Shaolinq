@@ -350,7 +350,6 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlRedundantFunctionCallRemover.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlUnusedColumnRemover.cs" />
     <Compile Include="Persistence\Linq\SqlExpressionReplacer.cs" />
-    <Compile Include="Persistence\Linq\RelatedDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\SelectFirstType.cs" />
     <Compile Include="Persistence\Linq\SqlJoinType.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlFunctionCoalescer.cs" />

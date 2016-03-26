@@ -13,15 +13,13 @@ namespace Shaolinq.Persistence.Linq
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 		
 		public SqlQueryProvider QueryProvider { get; }
-		protected internal readonly IRelatedDataAccessObjectContext relatedDataAccessObjectContext;
         protected internal readonly SqlQueryFormatResult formatResult;
 
-        public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult)
+        public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult)
 		{
 			this.QueryProvider = queryProvider;
 			this.DataAccessModel = dataAccessModel;
 			this.SqlDatabaseContext = sqlDatabaseContext;
-			this.relatedDataAccessObjectContext = relatedDataAccessObjectContext;
             this.formatResult = formatResult;
 		}
 	}
@@ -33,8 +31,8 @@ namespace Shaolinq.Persistence.Linq
 		protected internal readonly object[] placeholderValues;
 		protected internal readonly Func<ObjectProjector, IDataReader, int, object[], U> objectReader;
 		
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, IRelatedDataAccessObjectContext relatedDataAccessObjectContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
-			: base(queryProvider, dataAccessModel, sqlDatabaseContext, relatedDataAccessObjectContext, formatResult)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
+			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult)
 		{
 			this.placeholderValues = placeholderValues;
 			this.objectReader = objectReader;

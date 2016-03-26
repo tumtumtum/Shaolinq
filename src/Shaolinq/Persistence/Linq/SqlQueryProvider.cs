@@ -285,38 +285,18 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
 
-				if (this.RelatedDataAccessObjectContext == null)
-				{
-					var constructor = typeof(DataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+				var constructor = typeof(DataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
-					executor = Expression.New
-					(
-						constructor,
-						Expression.Constant(this),
-						Expression.Constant(this.DataAccessModel),
-						Expression.Constant(this.SqlDatabaseContext),
-						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-						formatResultsParam,
-						placeholderValuesParam,
-						projectionLambda
-					);
-				}
-				else
-				{
-					var constructor = typeof(RelatedDataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-
-					executor = Expression.New
-					(
-						constructor,
-						Expression.Constant(this),
-						Expression.Constant(this.DataAccessModel),
-						Expression.Constant(this.SqlDatabaseContext),
-						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
-						formatResultsParam,
-						placeholderValuesParam,
-						projectionLambda
-					);
-				}
+				executor = Expression.New
+				(
+					constructor,
+					Expression.Constant(this),
+					Expression.Constant(this.DataAccessModel),
+					Expression.Constant(this.SqlDatabaseContext),
+					formatResultsParam,
+					placeholderValuesParam,
+					projectionLambda
+				);
 			}
 			else
 			{
@@ -330,7 +310,6 @@ namespace Shaolinq.Persistence.Linq
 						Expression.Constant(this),
 						Expression.Constant(this.DataAccessModel),
 						Expression.Constant(this.SqlDatabaseContext),
-						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
 						formatResultsParam,
 						placeholderValuesParam,
 						projectionLambda
@@ -346,7 +325,6 @@ namespace Shaolinq.Persistence.Linq
 						Expression.Constant(this),
 						Expression.Constant(this.DataAccessModel),
 						Expression.Constant(this.SqlDatabaseContext),
-						Expression.Constant(this.RelatedDataAccessObjectContext, typeof(IRelatedDataAccessObjectContext)),
 						formatResultsParam,
 						placeholderValuesParam,
 						projectionLambda

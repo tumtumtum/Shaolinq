@@ -13,7 +13,6 @@ namespace Shaolinq.Persistence
 	{
 		IEnumerable<T> GetEnumerable<T>(Expression expression);
 		IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression);
-		IRelatedDataAccessObjectContext RelatedDataAccessObjectContext { get; set; }
 		Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken);
         
         string GetQueryText(Expression expression);

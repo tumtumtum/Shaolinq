@@ -2895,5 +2895,48 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(0, x.ToList().Count); 
 			}
 		}
+
+		[Test]
+		public void Test_Get_Related_Similar_Query_Structure()
+		{
+			long school1Id;
+			long school2Id;
+
+			using (var scope = NewTransactionScope())
+			{
+				var school1 = this.model.Schools.Create();
+				var school2 = this.model.Schools.Create();
+
+				var student1 = school1.Students.Create();
+				student1.Firstname = "Update1";
+				student1.Lastname = "Last";
+
+				var student2 = school2.Students.Create();
+				student2.Firstname = "Update1";
+				student2.Lastname = "Last";
+
+				scope.Flush();
+
+				school1Id = school1.Id;
+				school2Id = school2.Id;
+
+
+				scope.Complete();
+			}
+
+			using (var scope = NewTransactionScope())
+			{
+				var obj1 = this.model.Schools.GetByPrimaryKey(school1Id);
+				var obj2 = this.model.Schools.GetByPrimaryKey(school2Id);
+
+				var students1 = obj1.Students.ToList();
+				var students2 = obj2.Students.ToList();
+
+				Assert.IsTrue(students1.All(c => c.School.Id == school1Id));
+				Assert.IsTrue(students2.All(c => c.School.Id == school2Id));
+
+				scope.Complete();
+			}
+		}
 	}
 }
