@@ -70,13 +70,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.OrderBy;
-            this.VisitExpressionList(expression.OrderBy);
-            if (!this.result)
-            {
-                return expression;
-            }
-
             this.currentObject = current;
             return expression;
         }
@@ -106,13 +99,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Target;
             this.Visit(expression.Target);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.Arguments;
-            this.VisitExpressionList(expression.Arguments);
             if (!this.result)
             {
                 return expression;
@@ -170,13 +156,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
-            {
-                return expression;
-            }
-
-            this.currentObject = current.Labels;
-            this.VisitExpressionList(expression.Labels);
-            if (!this.result)
             {
                 return expression;
             }
@@ -340,13 +319,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.Assignments;
-            this.VisitExpressionList(expression.Assignments);
-            if (!this.result)
-            {
-                return expression;
-            }
-
             this.currentObject = current;
             return expression;
         }
@@ -371,27 +343,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Table;
             this.VisitTable(expression.Table);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ColumnNames;
-            this.VisitExpressionList(expression.ColumnNames);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ValueExpressions;
-            this.VisitExpressionList(expression.ValueExpressions);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ReturningAutoIncrementColumnNames;
-            this.VisitExpressionList(expression.ReturningAutoIncrementColumnNames);
             if (!this.result)
             {
                 return expression;
@@ -436,13 +387,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
-            {
-                return expression;
-            }
-
-            this.currentObject = current.SubExpressions;
-            this.VisitExpressionList(expression.SubExpressions);
-            if (!this.result)
             {
                 return expression;
             }
@@ -644,13 +588,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.Arguments;
-            this.VisitExpressionList(expression.Arguments);
-            if (!this.result)
-            {
-                return expression;
-            }
-
             this.currentObject = current;
             return expression;
         }
@@ -825,27 +762,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Skip;
             this.Visit(expression.Skip);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.OrderBy;
-            this.VisitExpressionList(expression.OrderBy);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.GroupBy;
-            this.VisitExpressionList(expression.GroupBy);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.Columns;
-            this.VisitExpressionList(expression.Columns);
             if (!this.result)
             {
                 return expression;
@@ -1067,13 +983,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.ConstraintExpressions;
-            this.VisitExpressionList(expression.ConstraintExpressions);
-            if (!this.result)
-            {
-                return expression;
-            }
-
             this.currentObject = current;
             return expression;
         }
@@ -1103,27 +1012,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Table;
             this.VisitTable(expression.Table);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.TableConstraints;
-            this.VisitExpressionList(expression.TableConstraints);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.TableOptions;
-            this.VisitExpressionList(expression.TableOptions);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ColumnDefinitionExpressions;
-            this.VisitExpressionList(expression.ColumnDefinitionExpressions);
             if (!this.result)
             {
                 return expression;
@@ -1174,13 +1062,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Table;
             this.Visit(expression.Table);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.Actions;
-            this.VisitExpressionList(expression.Actions);
             if (!this.result)
             {
                 return expression;
@@ -1288,13 +1169,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.Columns;
-            this.VisitExpressionList(expression.Columns);
-            if (!this.result)
-            {
-                return expression;
-            }
-
             this.currentObject = current;
             return expression;
         }
@@ -1334,13 +1208,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.ReferencedTable;
             this.VisitTable(expression.ReferencedTable);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ReferencedColumnNames;
-            this.VisitExpressionList(expression.ReferencedColumnNames);
             if (!this.result)
             {
                 return expression;
@@ -1421,13 +1288,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.Statements;
-            this.VisitExpressionList(expression.Statements);
-            if (!this.result)
-            {
-                return expression;
-            }
-
             this.currentObject = current;
             return expression;
         }
@@ -1451,13 +1311,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ColumnNames;
-            this.VisitExpressionList(expression.ColumnNames);
-            if (!this.result)
             {
                 return expression;
             }

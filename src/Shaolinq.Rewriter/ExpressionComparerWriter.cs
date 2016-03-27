@@ -19,39 +19,7 @@ namespace Shaolinq.Rewriter
 		{
 			this.paths = paths;
 		}
-
-		private List<TypeDeclarationSyntax> GetExpressionTypes(IList<SyntaxTree> syntaxTrees)
-		{
-			return syntaxTrees
-				.SelectMany(c => c.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().Where(d => d.BaseList.Types.Any(e => e.ToString() == "SqlBaseExpression"))).ToList();
-		}
-
-		private bool InheritsFrom(INamedTypeSymbol symbol, string typeName)
-		{
-			if (symbol == null)
-			{
-				return false;
-			}
-
-			while (true)
-			{
-				if (symbol.Name== typeName)
-				{
-					return true;
-				}
-
-				if (symbol.BaseType != null)
-				{
-					symbol = symbol.BaseType;
-					continue;
-				}
-
-				break;
-			}
-
-			return false;
-		}
-
+		
 		private IEnumerable<IPropertySymbol> GetProperties(INamedTypeSymbol type,bool inherited = true)
 		{
 			return GetProperties(type, new HashSet<string>(), inherited);
@@ -151,7 +119,7 @@ namespace Shaolinq.Rewriter
 				.ToList();
 
 			var expressionProperties = properties
-				.Where(c => IsOfType(c.Type, "Expression") || allVisitMethods.Any(d => d.Parameters[0].Type.Name == c.Type.Name))
+				.Where(c => IsOfType(c.Type, "Expression") || (!IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.Any(d => d.Parameters[0].Type.Name == c.Type.Name)))
 				.ToList();
 
 			var collectionProperties = properties
@@ -284,26 +252,26 @@ namespace Shaolinq.Rewriter
 			var namespaces = SyntaxFactory.List<MemberDeclarationSyntax>
 			(
 				syntaxTree.GetRoot()
-				.DescendantNodes()
-				.OfType<MethodDeclarationSyntax>()
-				.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>())
-				.GroupBy(g => g.Key.FirstAncestorOrSelf<NamespaceDeclarationSyntax>())
-				.Select
-				(
-					nsGrp => SyntaxFactory.NamespaceDeclaration(nsGrp.Key.Name).WithMembers
+					.DescendantNodes()
+					.OfType<MethodDeclarationSyntax>()
+					.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>())
+					.GroupBy(g => g.Key.FirstAncestorOrSelf<NamespaceDeclarationSyntax>())
+					.Select
 					(
-						SyntaxFactory.List<MemberDeclarationSyntax>
+						nsGrp => SyntaxFactory.NamespaceDeclaration(nsGrp.Key.Name).WithMembers
 						(
-							nsGrp.Select
+							SyntaxFactory.List<MemberDeclarationSyntax>
 							(
-								clsGrp => SyntaxFactory.ClassDeclaration(clsGrp.Key.Identifier)
-									.WithModifiers(clsGrp.Key.Modifiers)
-									.WithTypeParameterList(clsGrp.Key.TypeParameterList)
-									.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(methods))
+								nsGrp.Select
+								(
+									clsGrp => SyntaxFactory.ClassDeclaration(clsGrp.Key.Identifier)
+										.WithModifiers(clsGrp.Key.Modifiers)
+										.WithTypeParameterList(clsGrp.Key.TypeParameterList)
+										.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(methods))
+								)
 							)
 						)
 					)
-				)
 			);
 
 			var result = SyntaxFactory.SyntaxTree
