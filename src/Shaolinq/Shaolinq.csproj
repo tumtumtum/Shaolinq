@@ -123,6 +123,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../Shaolinq.Rewriter/Shaolinq.Rewriter.csproj"> 
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly> 
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="AsyncEnumerableAdapter.cs" />
