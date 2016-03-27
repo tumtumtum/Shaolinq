@@ -18,15 +18,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Select;
-            this.Visit(expression.Select);
+            this.VisitSelect(expression.Select);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -40,19 +47,36 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Source;
             this.Visit(expression.Source);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.OrderBy;
             this.VisitExpressionList(expression.OrderBy);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.OrderBy;
+            this.VisitExpressionList(expression.OrderBy);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -65,22 +89,42 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.ConfigurationParameter, expression.ConfigurationParameter)))
+            if (!(this.result &= object.Equals(current.ConfigurationParameter, expression.ConfigurationParameter)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Target;
             this.Visit(expression.Target);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Arguments;
             this.VisitExpressionList(expression.Arguments);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Arguments;
+            this.VisitExpressionList(expression.Arguments);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -93,14 +137,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.Directive, expression.Directive)))
+            if (!(this.result &= object.Equals(current.Directive, expression.Directive)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -114,15 +165,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Labels;
-            this.VisitNameList(expression.Labels);
+            this.VisitExpressionList(expression.Labels);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Labels;
+            this.VisitObjectList(expression.Labels);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -135,16 +200,26 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.TypeName, expression.TypeName)))
+            if (!(this.result &= object.Equals(current.TypeName, expression.TypeName)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.UserDefinedType == expression.UserDefinedType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -158,21 +233,34 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.IfNotExist == expression.IfNotExist))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.SqlType;
             this.Visit(expression.SqlType);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.AsExpression;
             this.Visit(expression.AsExpression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -186,19 +274,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Target;
             this.Visit(expression.Target);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Value;
             this.Visit(expression.Value);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -212,23 +310,43 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Table;
-            this.Visit(expression.Table);
+            this.VisitTable(expression.Table);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Where;
             this.Visit(expression.Where);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Assignments;
             this.VisitExpressionList(expression.Assignments);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Assignments;
+            this.VisitExpressionList(expression.Assignments);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -242,27 +360,64 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Table;
-            this.Visit(expression.Table);
+            this.VisitTable(expression.Table);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.ColumnNames;
-            this.VisitNameList(expression.ColumnNames);
+            this.VisitExpressionList(expression.ColumnNames);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.ValueExpressions;
             this.VisitExpressionList(expression.ValueExpressions);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.ReturningAutoIncrementColumnNames;
-            this.VisitNameList(expression.ReturningAutoIncrementColumnNames);
+            this.VisitExpressionList(expression.ReturningAutoIncrementColumnNames);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.ColumnNames;
+            this.VisitObjectList(expression.ColumnNames);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ValueExpressions;
+            this.VisitExpressionList(expression.ValueExpressions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ReturningAutoIncrementColumnNames;
+            this.VisitObjectList(expression.ReturningAutoIncrementColumnNames);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -276,15 +431,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.SubExpressions;
             this.VisitExpressionList(expression.SubExpressions);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.SubExpressions;
+            this.VisitExpressionList(expression.SubExpressions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -298,15 +467,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Bindings;
             this.VisitBindingList(expression.Bindings);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -320,25 +496,41 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.JoinType == expression.JoinType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Left;
             this.Visit(expression.Left);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Right;
             this.Visit(expression.Right);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.JoinCondition;
             this.Visit(expression.JoinCondition);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -351,16 +543,26 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.Name, expression.Name)))
+            if (!(this.result &= object.Equals(current.Name, expression.Name)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Alias, expression.Alias)))
+            }
+
+            if (!(this.result &= object.Equals(current.Alias, expression.Alias)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -373,20 +575,36 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.Name, expression.Name)))
+            if (!(this.result &= object.Equals(current.Name, expression.Name)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Special == expression.Special))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.SelectAlias, expression.SelectAlias)))
+            }
+
+            if (!(this.result &= object.Equals(current.SelectAlias, expression.SelectAlias)))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.AliasedName, expression.AliasedName)))
+            }
+
+            if (!(this.result &= object.Equals(current.AliasedName, expression.AliasedName)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -400,19 +618,39 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Function == expression.Function))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.UserDefinedFunctionName, expression.UserDefinedFunctionName)))
+            }
+
+            if (!(this.result &= object.Equals(current.UserDefinedFunctionName, expression.UserDefinedFunctionName)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Arguments;
             this.VisitExpressionList(expression.Arguments);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Arguments;
+            this.VisitExpressionList(expression.Arguments);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -426,15 +664,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Select;
-            this.Visit(expression.Select);
+            this.VisitSelect(expression.Select);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -448,19 +693,32 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.IsDistinct == expression.IsDistinct))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.AggregateType == expression.AggregateType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Argument;
             this.Visit(expression.Argument);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -473,22 +731,35 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.GroupByAlias, expression.GroupByAlias)))
+            if (!(this.result &= object.Equals(current.GroupByAlias, expression.GroupByAlias)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.AggregateInGroupSelect;
             this.Visit(expression.AggregateInGroupSelect);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.AggregateAsSubquery;
-            this.Visit(expression.AggregateAsSubquery);
+            this.VisitSubquery(expression.AggregateAsSubquery);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -502,47 +773,105 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Distinct == expression.Distinct))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.ForUpdate == expression.ForUpdate))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Reverse == expression.Reverse))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Alias, expression.Alias)))
+            }
+
+            if (!(this.result &= object.Equals(current.Alias, expression.Alias)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.From;
             this.Visit(expression.From);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Where;
             this.Visit(expression.Where);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Take;
             this.Visit(expression.Take);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Skip;
             this.Visit(expression.Skip);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.OrderBy;
             this.VisitExpressionList(expression.OrderBy);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.GroupBy;
             this.VisitExpressionList(expression.GroupBy);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Columns;
+            this.VisitExpressionList(expression.Columns);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.OrderBy;
+            this.VisitExpressionList(expression.OrderBy);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.GroupBy;
+            this.VisitExpressionList(expression.GroupBy);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current.Columns;
             this.VisitColumnDeclarations(expression.Columns);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -556,17 +885,27 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.OrderType == expression.OrderType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Expression;
             this.Visit(expression.Expression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -580,29 +919,48 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.IsElementTableProjection == expression.IsElementTableProjection))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.DefaultValue;
             this.Visit(expression.DefaultValue);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Select;
-            this.Visit(expression.Select);
+            this.VisitSelect(expression.Select);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Projector;
             this.Visit(expression.Projector);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Aggregator;
-            this.Visit(expression.Aggregator);
+            this.VisitLambda(expression.Aggregator);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -615,14 +973,23 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.Name, expression.Name)))
+            if (!(this.result &= object.Equals(current.Name, expression.Name)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NoOptimise == expression.NoOptimise))
+            {
                 return expression;
+            }
+
             this.currentObject = current.Expression;
             this.Visit(expression.Expression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -636,19 +1003,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Source;
             this.Visit(expression.Source);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Where;
             this.Visit(expression.Where);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -661,22 +1038,42 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.ColumnName, expression.ColumnName)))
+            if (!(this.result &= object.Equals(current.ColumnName, expression.ColumnName)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.ColumnType;
             this.Visit(expression.ColumnType);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.ConstraintExpressions;
             this.VisitExpressionList(expression.ConstraintExpressions);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.ConstraintExpressions;
+            this.VisitExpressionList(expression.ConstraintExpressions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -690,29 +1087,69 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.IfNotExist == expression.IfNotExist))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Table;
-            this.Visit(expression.Table);
+            this.VisitTable(expression.Table);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.TableConstraints;
             this.VisitExpressionList(expression.TableConstraints);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.TableOptions;
-            this.VisitTableOptionList(expression.TableOptions);
+            this.VisitExpressionList(expression.TableOptions);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.ColumnDefinitionExpressions;
             this.VisitExpressionList(expression.ColumnDefinitionExpressions);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.TableConstraints;
+            this.VisitExpressionList(expression.TableConstraints);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.TableOptions;
+            this.VisitObjectList(expression.TableOptions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ColumnDefinitionExpressions;
+            this.VisitExpressionList(expression.ColumnDefinitionExpressions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -726,19 +1163,36 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Table;
             this.Visit(expression.Table);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Actions;
             this.VisitExpressionList(expression.Actions);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Actions;
+            this.VisitExpressionList(expression.Actions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -752,17 +1206,27 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.ActionType == expression.ActionType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.ConstraintExpression;
             this.Visit(expression.ConstraintExpression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -776,29 +1240,61 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Unique == expression.Unique))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.IndexName, expression.IndexName)))
+            }
+
+            if (!(this.result &= object.Equals(current.IndexName, expression.IndexName)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.IfNotExist == expression.IfNotExist))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.LowercaseIndex == expression.LowercaseIndex))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.IndexType == expression.IndexType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Table;
-            this.Visit(expression.Table);
+            this.VisitTable(expression.Table);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Columns;
             this.VisitExpressionList(expression.Columns);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Columns;
+            this.VisitExpressionList(expression.Columns);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -812,25 +1308,51 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Deferrability == expression.Deferrability))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.OnDeleteAction == expression.OnDeleteAction))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.OnUpdateAction == expression.OnUpdateAction))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.ReferencedTable;
-            this.Visit(expression.ReferencedTable);
+            this.VisitTable(expression.ReferencedTable);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.ReferencedColumnNames;
-            this.VisitNameList(expression.ReferencedColumnNames);
+            this.VisitExpressionList(expression.ReferencedColumnNames);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.ReferencedColumnNames;
+            this.VisitObjectList(expression.ReferencedColumnNames);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -843,20 +1365,33 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.Value, expression.Value)))
+            if (!(this.result &= object.Equals(current.Value, expression.Value)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Constraint == expression.Constraint))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.ColumnNames;
-            this.VisitNameList(expression.ColumnNames);
+            this.VisitObjectList(expression.ColumnNames);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -870,15 +1405,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Statements;
             this.VisitExpressionList(expression.Statements);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Statements;
+            this.VisitExpressionList(expression.Statements);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -891,22 +1440,42 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.ConstraintName, expression.ConstraintName)))
+            if (!(this.result &= object.Equals(current.ConstraintName, expression.ConstraintName)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
-            this.currentObject = current.ReferencesColumnExpression;
-            this.Visit(expression.ReferencesColumnExpression);
-            if (!this.result)
-                return expression;
+            }
+
             this.currentObject = current.ColumnNames;
-            this.VisitNameList(expression.ColumnNames);
+            this.VisitExpressionList(expression.ColumnNames);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.ReferencesColumnExpression;
+            this.VisitReferencesColumn(expression.ReferencesColumnExpression);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ColumnNames;
+            this.VisitObjectList(expression.ColumnNames);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -920,19 +1489,32 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.LowercaseIndex == expression.LowercaseIndex))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.SortOrder == expression.SortOrder))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Column;
-            this.Visit(expression.Column);
+            this.VisitColumn(expression.Column);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -946,13 +1528,20 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Index == expression.Index))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -966,23 +1555,39 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.UnionAll == expression.UnionAll))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Alias, expression.Alias)))
+            }
+
+            if (!(this.result &= object.Equals(current.Alias, expression.Alias)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Left;
             this.Visit(expression.Left);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Right;
             this.Visit(expression.Right);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -996,17 +1601,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Target, expression.Target)))
+            }
+
+            this.currentObject = current.Target;
+            this.VisitLabelTarget(expression.Target);
+            if (!this.result)
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.DefaultValue;
             this.Visit(expression.DefaultValue);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1020,19 +1637,34 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Target, expression.Target)))
-                return expression;
+            }
+
             if (!(this.result &= current.Kind == expression.Kind))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Value;
             this.Visit(expression.Value);
             if (!this.result)
+            {
                 return expression;
+            }
+
+            this.currentObject = current.Target;
+            this.VisitLabelTarget(expression.Target);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1046,23 +1678,36 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Result;
             this.Visit(expression.Result);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Expressions;
             this.VisitExpressionList(expression.Expressions);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Variables;
             this.VisitExpressionList(expression.Variables);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1076,9 +1721,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.BindingType == expression.BindingType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Member, expression.Member)))
+            }
+
+            if (!(this.result &= object.Equals(current.Member, expression.Member)))
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1091,12 +1742,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.AddMethod, expression.AddMethod)))
+            if (!(this.result &= current.AddMethod == expression.AddMethod))
+            {
                 return expression;
+            }
+
             this.currentObject = current.Arguments;
             this.VisitExpressionList(expression.Arguments);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1110,21 +1767,37 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Method, expression.Method)))
+            }
+
+            if (!(this.result &= current.Method == expression.Method))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.IsLifted == expression.IsLifted))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.IsLiftedToNull == expression.IsLiftedToNull))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Operand;
             this.Visit(expression.Operand);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1137,30 +1810,52 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
+            if (!(this.result &= current.Method == expression.Method))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Method, expression.Method)))
-                return expression;
+            }
+
             if (!(this.result &= current.IsLifted == expression.IsLifted))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.IsLiftedToNull == expression.IsLiftedToNull))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             this.currentObject = current.Right;
             this.Visit(expression.Right);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Left;
             this.Visit(expression.Left);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Conversion;
-            this.Visit(expression.Conversion);
+            this.VisitLambda(expression.Conversion);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1174,17 +1869,27 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.TypeOperand == expression.TypeOperand))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Expression;
             this.Visit(expression.Expression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1198,23 +1903,36 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Test;
             this.Visit(expression.Test);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.IfTrue;
             this.Visit(expression.IfTrue);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.IfFalse;
             this.Visit(expression.IfFalse);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1228,15 +1946,25 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Name, expression.Name)))
+            }
+
+            if (!(this.result &= object.Equals(current.Name, expression.Name)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.IsByRef == expression.IsByRef))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1249,18 +1977,28 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= Equals(current.Member, expression.Member)))
+            if (!(this.result &= object.Equals(current.Member, expression.Member)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Expression;
             this.Visit(expression.Expression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1274,21 +2012,34 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Method, expression.Method)))
+            }
+
+            if (!(this.result &= current.Method == expression.Method))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Object;
             this.Visit(expression.Object);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Arguments;
             this.VisitExpressionList(expression.Arguments);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1302,13 +2053,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.BindingType == expression.BindingType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Member, expression.Member)))
+            }
+
+            if (!(this.result &= object.Equals(current.Member, expression.Member)))
+            {
                 return expression;
+            }
+
             this.currentObject = current.Expression;
             this.Visit(expression.Expression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1322,13 +2082,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.BindingType == expression.BindingType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Member, expression.Member)))
+            }
+
+            if (!(this.result &= object.Equals(current.Member, expression.Member)))
+            {
                 return expression;
+            }
+
             this.currentObject = current.Bindings;
             this.VisitBindingList(expression.Bindings);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1342,13 +2111,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.BindingType == expression.BindingType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Member, expression.Member)))
+            }
+
+            if (!(this.result &= object.Equals(current.Member, expression.Member)))
+            {
                 return expression;
+            }
+
             this.currentObject = current.Initializers;
             this.VisitElementInitializerList(expression.Initializers);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1362,25 +2140,44 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Name, expression.Name)))
+            }
+
+            if (!(this.result &= object.Equals(current.Name, expression.Name)))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.ReturnType == expression.ReturnType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.TailCall == expression.TailCall))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Body;
             this.Visit(expression.Body);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Parameters;
             this.VisitExpressionList(expression.Parameters);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1394,21 +2191,34 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= Equals(current.Constructor, expression.Constructor)))
+            }
+
+            if (!(this.result &= object.Equals(current.Constructor, expression.Constructor)))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Arguments;
             this.VisitExpressionList(expression.Arguments);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Members;
-            this.VisitMemberList(expression.Members);
+            this.VisitObjectList(expression.Members);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1422,19 +2232,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             this.currentObject = current.NewExpression;
-            this.Visit(expression.NewExpression);
+            this.VisitNew(expression.NewExpression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Bindings;
             this.VisitBindingList(expression.Bindings);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1448,19 +2268,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.NewExpression;
-            this.Visit(expression.NewExpression);
+            this.VisitNew(expression.NewExpression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Initializers;
             this.VisitElementInitializerList(expression.Initializers);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1474,15 +2304,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Expressions;
             this.VisitExpressionList(expression.Expressions);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -1496,19 +2333,29 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
                 return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
                 return expression;
-            if (!(this.result &= current.CanReduce == expression.CanReduce))
-                return expression;
+            }
+
             this.currentObject = current.Expression;
             this.Visit(expression.Expression);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current.Arguments;
             this.VisitExpressionList(expression.Arguments);
             if (!this.result)
+            {
                 return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }

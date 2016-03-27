@@ -144,14 +144,14 @@ namespace Shaolinq.Rewriter
 			var ifTryGetValue = SyntaxFactory
 				.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, tryGetValue), SyntaxFactory.Block(SyntaxFactory.ReturnStatement(expressionParam)));
 
-			var properties = GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).ToList();
+			var properties = GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).Where(c => c.Name != "CanReduce").ToList();
 
 			var simpleProperties = properties
-				.Where(c => !IsOfType(c.Type, "Expression") && !IsOfType(c.Type, "IReadOnlyList"))
+				.Where(c => !IsOfType(c.Type, "Expression") && !IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.All(d => d.Parameters[0].Type.Name != c.Type.Name))
 				.ToList();
 
 			var expressionProperties = properties
-				.Where(c => IsOfType(c.Type, "Expression"))
+				.Where(c => IsOfType(c.Type, "Expression") || allVisitMethods.Any(d => d.Parameters[0].Type.Name == c.Type.Name))
 				.ToList();
 
 			var collectionProperties = properties
@@ -164,8 +164,9 @@ namespace Shaolinq.Rewriter
 			var simplePropertyChecks = simpleProperties.Select(c =>
 			{
 				var type = c.Type;
+				var fullname = type.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 				
-				if (type.IsValueType || type.Name == "Type")
+				if (type.IsValueType || fullname == "System.Type" || fullname == "System.Reflection.FieldInfo" || fullname == "System.Reflection.MethodInfo" || fullname == "System.Reflection.PropertyInfo")
 				{
 					return (ExpressionSyntax)SyntaxFactory.BinaryExpression
 					(
@@ -176,9 +177,9 @@ namespace Shaolinq.Rewriter
 				}
 				else
 				{
-					return (ExpressionSyntax)SyntaxFactory.InvocationExpression
+					return SyntaxFactory.InvocationExpression
 					(
-						SyntaxFactory.IdentifierName("Equals"),
+						SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("object"), SyntaxFactory.IdentifierName("Equals")),
 						SyntaxFactory.ArgumentList().AddArguments
 						(
 							SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("current"), SyntaxFactory.IdentifierName(c.Name))),
@@ -188,7 +189,7 @@ namespace Shaolinq.Rewriter
 				}
 			})
 			.Select(c => SyntaxFactory.AssignmentExpression(SyntaxKind.AndAssignmentExpression, result, c))
-			.Select(c => SyntaxFactory.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, SyntaxFactory.ParenthesizedExpression(c)), SyntaxFactory.ReturnStatement(expressionParam)))
+			.Select(c => SyntaxFactory.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, SyntaxFactory.ParenthesizedExpression(c)), SyntaxFactory.Block(SyntaxFactory.ReturnStatement(expressionParam))))
 			.ToArray<StatementSyntax>();
 
 			var visitMethod = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("this"), SyntaxFactory.IdentifierName("Visit"));
@@ -196,8 +197,8 @@ namespace Shaolinq.Rewriter
 			var expressionPropertyChecks = expressionProperties.Select(c => new StatementSyntax[]
 			{
 				SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, currentObject, SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("current"), SyntaxFactory.IdentifierName(c.Name)))),
-				SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(visitMethod, SyntaxFactory.ArgumentList().AddArguments(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("expression"), SyntaxFactory.IdentifierName(c.Name)))))),
-				SyntaxFactory.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, result), SyntaxFactory.ReturnStatement(expressionParam)),
+				SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(allVisitMethods.FirstOrDefault(d => d.Parameters[0].Type.Name == c.Type.Name) == null ? visitMethod : SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("this"), SyntaxFactory.IdentifierName(allVisitMethods.FirstOrDefault(d => d.Parameters[0].Type.Name == c.Type.Name).Name)), SyntaxFactory.ArgumentList().AddArguments(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("expression"), SyntaxFactory.IdentifierName(c.Name)))))),
+				SyntaxFactory.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, result), SyntaxFactory.Block(SyntaxFactory.ReturnStatement(expressionParam))),
 			})
 			.SelectMany(c => c)
 			.ToArray();
@@ -217,7 +218,7 @@ namespace Shaolinq.Rewriter
 					}
 					else
 					{
-						visitMethodToCall = allVisitMethods.FirstOrDefault(d => d.Parameters[0].Type.AllInterfaces.Concat(new[] { d.Parameters[0].Type as INamedTypeSymbol }).Any(e => e.Name == "Object"));
+						visitMethodToCall = allVisitMethods.Where(d => d.Name.EndsWith("ObjectList")).FirstOrDefault(d => d.Parameters[0].Type.AllInterfaces.Concat(new[] { d.Parameters[0].Type as INamedTypeSymbol }).Any(e => e.Name == "IReadOnlyList" && e.TypeArguments[0].Name == "T"));
 					}
 				}
 
@@ -227,7 +228,7 @@ namespace Shaolinq.Rewriter
 				{
 					SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, currentObject, SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("current"), SyntaxFactory.IdentifierName(c.Name)))),
 					SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(visitMethodMethodToCallExpr, SyntaxFactory.ArgumentList().AddArguments(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("expression"), SyntaxFactory.IdentifierName(c.Name)))))),
-					SyntaxFactory.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, result), SyntaxFactory.ReturnStatement(expressionParam))
+					SyntaxFactory.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, result), SyntaxFactory.Block(SyntaxFactory.ReturnStatement(expressionParam)))
 				};
 			})
 			.SelectMany(c => c)

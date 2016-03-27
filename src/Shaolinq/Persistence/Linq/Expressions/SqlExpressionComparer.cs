@@ -208,22 +208,31 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return original;
 		}
 
-		protected virtual IReadOnlyList<SqlTableOption> VisitTableOptionList(IReadOnlyList<SqlTableOption> original)
+		protected virtual LabelTarget VisitLabelTarget(LabelTarget original)
 		{
-			return this.VisitObjectList(original);
+			LabelTarget current;
+
+			if (!this.TryGetCurrent(original, out current))
+			{
+				return original;
+			}
+
+			if (!(this.result &= current.Name == original.Name))
+			{
+				return original;
+			}
+
+			if (!(this.result &= current.Type == original.Type))
+			{
+				return original;
+			}
+
+			this.currentObject = current;
+
+			return original;
 		}
 
-		protected virtual IReadOnlyList<MemberInfo> VisitMemberList(IReadOnlyList<MemberInfo> original)
-		{
-			return this.VisitObjectList(original);
-		}
-
-		protected virtual IReadOnlyList<string> VisitNameList(IReadOnlyList<string> original)
-		{
-			return this.VisitObjectList(original);
-		}
-
-		protected IReadOnlyList<T> VisitObjectList<T>(IReadOnlyList<T> original)
+		protected virtual IReadOnlyList<T> VisitObjectList<T>(IReadOnlyList<T> original)
 		{
 			IReadOnlyList<T> current;
 
