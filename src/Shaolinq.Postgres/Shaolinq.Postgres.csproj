@@ -144,6 +144,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Shaolinq.Rewriter\Shaolinq.Rewriter.csproj"> 
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly> 
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
@@ -165,8 +170,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <UsingTask TaskName="RewriteAsync" AssemblyFile="../../lib/AsyncRewriter.dll" />
+  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
+  <Target Name="GenerateSource">
+    <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
+  </Target>
   <Target Name="BeforeBuild">
-    <RewriteAsync Assemblies="System.Data.dll;..\Shaolinq\bin\$(Configuration)\Shaolinq.dll" InputFiles="@(Compile)" OutputFile="GeneratedAsync.cs" />
+    <Exec Command='"$(MSBuildToolsPath)\msbuild.exe" $(ProjectName).csproj /v:m /m:2 /target:GenerateSource' WorkingDirectory="."/>
   </Target>
 </Project>

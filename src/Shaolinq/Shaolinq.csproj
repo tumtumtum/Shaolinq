@@ -123,7 +123,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Shaolinq.Rewriter/Shaolinq.Rewriter.csproj"> 
+    <ProjectReference Include="..\Shaolinq.Rewriter\Shaolinq.Rewriter.csproj"> 
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly> 
     </ProjectReference>
   </ItemGroup>
@@ -479,7 +479,7 @@
   </Target>
   <Target Name="BeforeBuild">
     <NugetContentRestoreTask SolutionDir="$(SolutionDir)" ProjectDir="$(ProjectDir)" />
-    <Exec Command='"$(MSBuildToolsPath)\msbuild.exe" Shaolinq.csproj /v:m /m:2 /target:GenerateSource' WorkingDirectory="."/>
+    <Exec Command='"$(MSBuildToolsPath)\msbuild.exe" $(ProjectName).csproj /v:m /m:2 /target:GenerateSource' WorkingDirectory="."/>
   </Target>
   <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
