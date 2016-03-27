@@ -466,10 +466,10 @@
   <ItemGroup>
     <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
   </ItemGroup>
-  <UsingTask TaskName="RewriteAsync" AssemblyFile="../../lib/AsyncRewriter.dll" />
+  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
   <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
   <Target Name="GenerateSource">
-    <RewriteAsync Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
+    <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
     <ExpressionComparerWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionComparer.cs" />
   </Target>
   <Target Name="BeforeBuild">

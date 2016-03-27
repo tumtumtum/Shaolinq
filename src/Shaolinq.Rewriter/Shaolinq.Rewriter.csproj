@@ -71,6 +71,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncRewriter.cs" />
+    <Compile Include="AsyncRewriterTask.cs" />
     <Compile Include="ExpressionComparerWriter.cs" />
     <Compile Include="ExpressionComparerWriterTask.cs" />
     <Compile Include="Tests.cs" />
