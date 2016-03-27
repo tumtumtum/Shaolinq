@@ -175,6 +175,6 @@
     <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
   </Target>
   <Target Name="BeforeBuild">
-    <Exec Command='"$(MSBuildToolsPath)\msbuild.exe" $(ProjectName).csproj /v:m /m:2 /target:GenerateSource' WorkingDirectory="."/>
+    <Exec Command='"$(MSBuildToolsPath)\msbuild.exe" /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateSource' WorkingDirectory="."/>
   </Target>
 </Project>
