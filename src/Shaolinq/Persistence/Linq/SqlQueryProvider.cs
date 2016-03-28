@@ -162,7 +162,7 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static Expression Bind(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, Expression expression)
 		{
-			var placeholderCount = 0;
+			var placeholderCount = -1;
 
 			expression = Evaluator.PartialEval(expression, ref placeholderCount);
 			expression = QueryBinder.Bind(dataAccessModel, expression);
