@@ -2059,19 +2059,22 @@ namespace Shaolinq.Persistence.Linq
 					if (constantValue != null && parentExpression.Type.IsDataAccessObjectType())
 					{
 						var parentValue = ExpressionFastCompiler.CompileAndRun(parentExpression) as DataAccessObject;
-						
-						var propertyAccess =  (Expression)MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject
-							.MakeGenericMethod(parentExpression.Type, value.DefinitionProperty.PropertyType)
-							.Invoke(null, new object[] { parentValue, value.DefinitionProperty.PropertyName });
 
-						bindings.Add(Expression.Bind(value.DefinitionProperty, this.Visit(propertyAccess)));
-					}
-					else
-					{
-						var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
+						if (parentValue.ToObjectInternal().DeflatedPredicate != null)
+						{
+							var subqueryExpression = (Expression)MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject
+								.MakeGenericMethod(parentExpression.Type, value.DefinitionProperty.PropertyType)
+								.Invoke(null, new object[] { parentValue, value.DefinitionProperty.PropertyName });
 
-						bindings.Add(Expression.Bind(value.DefinitionProperty, propertyAccess));
+							bindings.Add(Expression.Bind(value.DefinitionProperty, this.Visit(subqueryExpression)));
+
+							continue;
+						}
 					}
+
+					var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
+
+					bindings.Add(Expression.Bind(value.DefinitionProperty, propertyAccess));
 				}
 			}
 
