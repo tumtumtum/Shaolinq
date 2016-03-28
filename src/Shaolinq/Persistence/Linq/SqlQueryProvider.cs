@@ -127,8 +127,6 @@ namespace Shaolinq.Persistence.Linq
 
         public static Expression Optimize(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression)
 		{
-			expression = SqlNullComparisonCoalescer.Coalesce(expression);
-			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
 			expression = SqlGroupByCollator.Collate(expression);
 			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
 			expression = SqlUnusedColumnRemover.Remove(expression);
@@ -168,6 +166,8 @@ namespace Shaolinq.Persistence.Linq
 			expression = QueryBinder.Bind(dataAccessModel, expression);
 			expression = SqlEnumTypeNormalizer.Normalize(expression, sqlDataTypeProvider.GetTypeForEnums());
 			expression = Evaluator.PartialEval(expression);
+			expression = SqlNullComparisonCoalescer.Coalesce(expression);
+			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 
 			return expression;
