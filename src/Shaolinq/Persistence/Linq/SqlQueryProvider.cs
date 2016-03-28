@@ -20,7 +20,6 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
-        private readonly Random random = new Random();
         private readonly int ProjectorCacheMaxLimit = 512;
 		private readonly int ProjectionExpressionCacheMaxLimit = 512;
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
@@ -59,9 +58,15 @@ namespace Shaolinq.Persistence.Linq
 		public override string GetQueryText(Expression expression)
 		{
 			expression = (SqlProjectionExpression)this.Bind(expression);
+
 			var projectionExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
+			return GetQueryText(formatResult);
+		}
+
+		internal string GetQueryText(SqlQueryFormatResult formatResult)
+		{
 			var sql = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(formatResult.CommandText, c =>
 			{
 				var index = c.IndexOf(char.IsDigit);
@@ -216,7 +221,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (this.SqlDatabaseContext.projectionExpressionCache.Count >= ProjectorCacheMaxLimit)
 				{
-					ProjectionExpressionCacheLogger.Info(() => $"ProjectionExpressionCache has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjectionExpression: {projectionExpression}\n\nAt: {new StackTrace()}");
+					ProjectionExpressionCacheLogger.Debug(() => $"ProjectionExpressionCache has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjectionExpression: {projectionExpression}\n\nAt: {new StackTrace()}");
 
 					var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(ProjectorCacheMaxLimit, ExpressionCacheKeyEqualityComparer.Default);
 
@@ -236,14 +241,14 @@ namespace Shaolinq.Persistence.Linq
 					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 
-				ProjectionCacheLogger.Info(() => $"Cached projection for query:\n{formatResult.CommandText}\n\nprojector:\n{cacheInfo.projector}");
+				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult)}\n\nProjector:\n{cacheInfo.projector}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 
 				cacheInfo.formatResult = formatResult;
 			}
 			else
 			{
-				ProjectionCacheLogger.Info(() => $"Cache hit for query:\n{cacheInfo.formatResult.CommandText}");
+				ProjectionCacheLogger.Debug(() => $"Cache hit for query:\n{GetQueryText(cacheInfo.formatResult)}");
 			}
 
 			if (placeholderValues == null)

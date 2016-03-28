@@ -81,10 +81,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				return constantPlaceholder;
 			}
-			else
-			{
-				return base.VisitConstantPlaceholder(constantPlaceholder);
-			}
+
+			return base.VisitConstantPlaceholder(constantPlaceholder);
 		}
 	}
 }

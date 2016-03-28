@@ -8,17 +8,19 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class SqlQueryFormatResult
 	{
+		public SqlQueryFormatter Formatter { get; }
 		public string CommandText { get; }
 		public IReadOnlyList<TypedValue> ParameterValues { get; }
 		public List<Pair<int, int>> ParameterIndexToPlaceholderIndexes { get; }
 		
-		public SqlQueryFormatResult(string commandText, IEnumerable<TypedValue> parameterValues, List<Pair<int, int>> parameterIndexToPlaceholderIndexes)
-			: this(commandText, parameterValues.ToReadOnlyCollection(), parameterIndexToPlaceholderIndexes)
-		{	
+		public SqlQueryFormatResult(SqlQueryFormatter formatter, string commandText, IEnumerable<TypedValue> parameterValues, List<Pair<int, int>> parameterIndexToPlaceholderIndexes)
+			: this(formatter, commandText, parameterValues.ToReadOnlyCollection(), parameterIndexToPlaceholderIndexes)
+		{
 		}
 
-        public SqlQueryFormatResult(string commandText, IReadOnlyList<TypedValue> parameterValues, List<Pair<int, int>> parameterIndexToPlaceholderIndexes)
+		public SqlQueryFormatResult(SqlQueryFormatter formatter, string commandText, IReadOnlyList<TypedValue> parameterValues, List<Pair<int, int>> parameterIndexToPlaceholderIndexes)
 		{
+			this.Formatter = formatter;
 			this.CommandText = commandText;
 			this.ParameterValues = parameterValues;
 	        this.ParameterIndexToPlaceholderIndexes = parameterIndexToPlaceholderIndexes;
@@ -26,12 +28,12 @@ namespace Shaolinq.Persistence.Linq
 
 		public SqlQueryFormatResult ChangeParameterValues(IEnumerable<TypedValue> values)
 		{
-			return new SqlQueryFormatResult(this.CommandText, values.ToReadOnlyCollection(), this.ParameterIndexToPlaceholderIndexes);
+			return new SqlQueryFormatResult(this.Formatter, this.CommandText, values.ToReadOnlyCollection(), this.ParameterIndexToPlaceholderIndexes);
 		}
 
 		public SqlQueryFormatResult ChangeParameterValues(object[] values)
 		{
-			return new SqlQueryFormatResult(this.CommandText, this.ParameterValues.Select((c, i) => new TypedValue(c.Type, values[i])), this.ParameterIndexToPlaceholderIndexes);
+			return new SqlQueryFormatResult(this.Formatter, this.CommandText, this.ParameterValues.Select((c, i) => new TypedValue(c.Type, values[i])), this.ParameterIndexToPlaceholderIndexes);
 		}
 	}
 }

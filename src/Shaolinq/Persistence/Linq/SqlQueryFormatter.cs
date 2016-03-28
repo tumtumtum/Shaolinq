@@ -62,24 +62,28 @@ namespace Shaolinq.Persistence.Linq
 
 		public virtual SqlQueryFormatResult Format(Expression expression)
 		{
+			this.depth = 0;
+			this.canReuse = true;
 			this.writer = new StringWriter(new StringBuilder(1024));
 			this.parameterValues = new List<TypedValue>();
 			this.parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(this.writer.ToString(), this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
+			return new SqlQueryFormatResult(this, this.writer.ToString(), this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
 		}
 
 		public virtual SqlQueryFormatResult Format(Expression expression, TextWriter writer)
 		{
+			this.depth = 0;
+			this.canReuse = true;
 			this.writer = writer;
 			this.parameterValues = new List<TypedValue>();
 			this.parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(null, this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
+			return new SqlQueryFormatResult(this,null, this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
 		}
 
 		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)
