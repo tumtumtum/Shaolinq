@@ -9,12 +9,23 @@ namespace Shaolinq.Rewriter
 	public class Tests
 	{
 		[Test]
-		public void Test()
+		public void TestWriter()
 		{
 			var paths = Directory.EnumerateFiles(@"..\..\..\..\src\Shaolinq", "*.cs", SearchOption.AllDirectories)
 				.Where(c => !Path.GetFileName(c).StartsWith("Generated")).ToArray();
 
 			var s = ExpressionComparerWriter.Write(paths);
+
+			Console.WriteLine(s);
+		}
+
+		[Test]
+		public void TestHasher()
+		{
+			var paths = Directory.EnumerateFiles(@"..\..\..\..\src\Shaolinq", "*.cs", SearchOption.AllDirectories)
+				.Where(c => !Path.GetFileName(c).StartsWith("Generated")).ToArray();
+
+			var s = ExpressionHasherWriter.Write(paths);
 
 			Console.WriteLine(s);
 		}

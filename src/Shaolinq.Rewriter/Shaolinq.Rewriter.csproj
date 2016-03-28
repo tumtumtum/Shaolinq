@@ -73,6 +73,8 @@
   <ItemGroup>
     <Compile Include="AsyncRewriter.cs" />
     <Compile Include="AsyncRewriterTask.cs" />
+    <Compile Include="ExpressionHasherWriterTask.cs" />
+    <Compile Include="ExpressionHasherWriter.cs" />
     <Compile Include="ExpressionComparerWriter.cs" />
     <Compile Include="ExpressionComparerWriterTask.cs" />
     <Compile Include="Tests.cs" />

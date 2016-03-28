@@ -123,8 +123,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Shaolinq.Rewriter\Shaolinq.Rewriter.csproj"> 
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly> 
+    <ProjectReference Include="..\Shaolinq.Rewriter\Shaolinq.Rewriter.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +156,7 @@
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="GeneratedAsync.cs" />
     <Compile Include="GeneratedSqlExpressionComparer.cs" />
+    <Compile Include="GeneratedSqlExpressionHasher.cs" />
     <Compile Include="IAsyncEnumerator.cs" />
     <Compile Include="IAsyncEnumerable.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
@@ -473,13 +474,15 @@
   </ItemGroup>
   <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
   <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
+  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
   <Target Name="GenerateSource">
     <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
     <ExpressionComparerWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionComparer.cs" />
+    <ExpressionHasherWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionHasher.cs" />
   </Target>
   <Target Name="BeforeBuild">
     <NugetContentRestoreTask SolutionDir="$(SolutionDir)" ProjectDir="$(ProjectDir)" />
-    <Exec Command='"$(MSBuildToolsPath)\msbuild.exe" /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateSource' WorkingDirectory="."/>
+    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateSource" WorkingDirectory="." />
   </Target>
   <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
