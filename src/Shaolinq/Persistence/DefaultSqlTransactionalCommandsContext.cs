@@ -11,6 +11,7 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence
 {
@@ -21,7 +22,9 @@ namespace Shaolinq.Persistence
 
 		protected internal struct SqlCommandValue
 		{
-			public string commandText;
+			public SqlQueryFormatResult formatResult;
+			public int[] valueIndexesToParameterPlaceholderIndexes;
+			public int[] primaryKeyIndexesToParameterPlaceholderIndexes;
 		}
 
 		protected internal struct SqlCommandKey
@@ -255,45 +258,205 @@ namespace Shaolinq.Persistence
 			return parameter;
 		}
 
-		private void FillParameters(IDbCommand command, IEnumerable<ObjectPropertyValue> changedProperties, ObjectPropertyValue[] primaryKeys)
+		private void FillParameters(IDbCommand command, SqlCommandValue commandValue, IReadOnlyCollection<ObjectPropertyValue> changedProperties, IReadOnlyCollection<ObjectPropertyValue> primaryKeys)
 		{
-			foreach (var infoAndValue in changedProperties)
+			if (changedProperties == null && primaryKeys == null)
 			{
-				this.AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
+				foreach (var parameter in commandValue.formatResult.ParameterValues)
+				{
+					this.AddParameter(command, parameter.Type, parameter.Value);
+				}
+
+				return;
+			}
+
+			if (commandValue.formatResult.ParameterValues.Count == (changedProperties?.Count ?? 0) + (primaryKeys?.Count ?? 0))
+			{
+				foreach (var value in changedProperties)
+				{
+					this.AddParameter(command, value.PropertyType, value.Value);
+				}
+
+				if (primaryKeys != null)
+				{
+					foreach (var value in primaryKeys)
+					{
+						this.AddParameter(command, value.PropertyType, value.Value);
+					}
+				}
+
+				return;
+			}
+
+			var newParameters = new List<TypedValue>(commandValue.formatResult.ParameterValues);
+			
+			var i = 0;
+
+			if (changedProperties != null)
+			{
+				foreach (var changed in changedProperties)
+				{
+					var index = commandValue.valueIndexesToParameterPlaceholderIndexes[i];
+					var typedValue = newParameters[index];
+
+					newParameters[index] = typedValue.ChangeValue(changed.Value);
+
+					i++;
+				}
 			}
 
 			if (primaryKeys != null)
 			{
-				foreach (var infoAndValue in primaryKeys)
+				i = 0;
+
+				foreach (var primaryKey in primaryKeys)
 				{
-					this.AddParameter(command, infoAndValue.PropertyType, infoAndValue.Value);
+					var index = commandValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
+					var typedValue = newParameters[index];
+
+					newParameters[index] = typedValue.ChangeValue(primaryKey.Value);
+
+					i++;
+				}
+			}
+
+			foreach (var parameter in newParameters)
+			{
+				this.AddParameter(command, parameter.Type, parameter.Value);
+			}
+		}
+
+		protected IDbCommand BuildUpdateCommandForDeflatedPredicated(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject, bool valuesPredicated, bool primaryKeysPredicated, List<ObjectPropertyValue> updatedProperties, ObjectPropertyValue[] primaryKeys)
+		{
+			var constantPlaceholdersCount = 0;
+			var assignments = new List<Expression>();
+			var success = false;
+
+			var parameter1 = Expression.Parameter(typeDescriptor.Type);
+
+			foreach (var updated in updatedProperties)
+			{
+				var value = updated.Value;
+				var placeholder = updated.Value as Expression;
+
+				if (placeholder == null)
+				{
+					placeholder = (Expression)new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(updated.Value, updated.PropertyType.CanBeNull() ? updated.PropertyType : updated.PropertyType.MakeNullable()));
+				}
+
+				if (placeholder.Type != updated.PropertyType)
+				{
+					placeholder = Expression.Convert(placeholder, updated.PropertyType);
+				}
+
+				var m = TypeUtils.GetMethod(() => default(DataAccessObject).SetColumnValue(default(string), default(int)))
+					.GetGenericMethodDefinition()
+					.MakeGenericMethod(typeDescriptor.Type, updated.PropertyType);
+
+				assignments.Add(Expression.Call(null, m, parameter1, Expression.Constant(updated.PersistedName), placeholder));
+			}
+
+			Expression where = null;
+			
+			Debug.Assert(primaryKeys.Length > 0);
+
+			var parameter = Expression.Parameter(typeDescriptor.Type);
+
+			foreach (var primaryKey in primaryKeys)
+			{
+				var value = primaryKey.Value;
+				var placeholder = primaryKey.Value as Expression;
+
+				if (placeholder == null)
+				{
+					placeholder = new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(value, primaryKey.PropertyType.CanBeNull() ? primaryKey.PropertyType : primaryKey.PropertyType.MakeNullable()));
+				}
+
+				if (placeholder.Type != primaryKey.PropertyType)
+				{
+					placeholder = Expression.Convert(placeholder, primaryKey.PropertyType);
+				}
+
+				var pathComponents = primaryKey.PropertyName.Split('.');
+				var propertyExpression = pathComponents.Aggregate<string, Expression>(parameter, Expression.Property);
+				var currentExpression = Expression.Equal(propertyExpression, placeholder);
+
+				where = where == null ? currentExpression : Expression.And(where, currentExpression);
+			}
+
+			var predicate = Expression.Lambda(where, parameter);
+			var method = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).UpdateHelper(default(Expression<Action<DataAccessObject>>)))
+				.GetGenericMethodDefinition()
+				.MakeGenericMethod(typeDescriptor.Type);
+
+			var source = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), Expression.Constant(this.DataAccessModel.GetDataAccessObjects(typeDescriptor.Type)), Expression.Quote(predicate));
+			var selector = Expression.Lambda(Expression.Block(assignments), parameter1);
+			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector));
+
+			expression = SqlQueryProvider.Bind(this.DataAccessModel, this.sqlDataTypeProvider, expression);
+			expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+			var projectionExpression = expression as SqlProjectionExpression;
+
+			expression = projectionExpression.Select.From;
+
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default);
+
+			IDbCommand command = null;
+
+			try
+			{
+				command = this.CreateCommand();
+
+				command.CommandText = result.CommandText;
+
+				var commandValue = new SqlCommandValue { formatResult = result };
+
+				FillParameters(command, commandValue, null, null);
+
+				success = true;
+
+				return command;
+			}
+			finally
+			{
+				if (!success)
+				{
+					command?.Dispose();
 				}
 			}
 		}
 
 		protected virtual IDbCommand BuildUpdateCommand(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject)
 		{
+			bool valuesPredicated;
+			bool primaryKeysPredicated;
 			IDbCommand command = null;
 			SqlCommandValue sqlCommandValue;
-			var updatedProperties = dataAccessObject.GetAdvanced().GetChangedPropertiesFlattened();
-			
+			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out valuesPredicated);
+
 			if (updatedProperties.Count == 0)
 			{
 				return null;
 			}
-
+			
 			var success = false;
-			var primaryKeys = dataAccessObject.GetAdvanced().GetPrimaryKeysForUpdateFlattened();
-			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
+			var primaryKeys = dataAccessObject.ToObjectInternal().GetPrimaryKeysForUpdateFlattened(out primaryKeysPredicated);
 
+			if (valuesPredicated || primaryKeysPredicated)
+			{
+				return BuildUpdateCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, valuesPredicated, primaryKeysPredicated, updatedProperties, primaryKeys);
+			}
+
+			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
+		
 			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
 			{
 				try
 				{
 					command = this.CreateCommand();
 
-					command.CommandText = sqlCommandValue.commandText;
-					this.FillParameters(command, updatedProperties, primaryKeys);
+					command.CommandText = sqlCommandValue.formatResult.CommandText;
+					this.FillParameters(command, sqlCommandValue, updatedProperties, primaryKeys);
 
 					success = true;
 
@@ -308,22 +471,56 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-			var assignments = updatedProperties.Select(c => (Expression)new SqlAssignExpression(new SqlColumnExpression(c.PropertyType, null, c.PersistedName), Expression.Constant(c.Value))).ToReadOnlyCollection();
+			var constantPlaceholdersCount = 0;
+			var valueIndexesToParameterPlaceholderIndexes = new int[updatedProperties.Count];
+			var primaryKeyIndexesToParameterPlaceholderIndexes = new int[primaryKeys.Length];
 
+			var assignments = new List<Expression>();
+
+			foreach (var updated in updatedProperties)
+			{
+				var value = (Expression)new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(updated.Value, updated.PropertyType.CanBeNull() ? updated.PropertyType : updated.PropertyType.MakeNullable()));
+
+				if (value.Type != updated.PropertyType)
+				{
+					value = Expression.Convert(value, updated.PropertyType);
+				}
+
+				assignments.Add(new SqlAssignExpression(new SqlColumnExpression(updated.PropertyType, null, updated.PersistedName), value));
+			}
+			
 			Expression where = null;
 
 			Debug.Assert(primaryKeys.Length > 0);
 
 			foreach (var primaryKey in primaryKeys)
 			{
-				var currentExpression = Expression.Equal(new SqlColumnExpression(primaryKey.PropertyType, null, primaryKey.PersistedName), Expression.Constant(primaryKey.Value));
+				var value = primaryKey.Value;
+				var placeholder = (Expression)new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(value, primaryKey.PropertyType.CanBeNull() ? primaryKey.PropertyType : primaryKey.PropertyType.MakeNullable()));
+
+				if (placeholder.Type != primaryKey.PropertyType)
+				{
+					placeholder = Expression.Convert(placeholder, primaryKey.PropertyType);
+				}
+
+				var currentExpression = Expression.Equal(new SqlColumnExpression(primaryKey.PropertyType, null, primaryKey.PersistedName), placeholder);
 				
 				where = where == null ? currentExpression : Expression.And(where, currentExpression);
 			}
 
-			var expression = new SqlUpdateExpression(new SqlTableExpression(typeDescriptor.PersistedName), assignments, where);
+			for (var i = 0; i < assignments.Count; i++)
+			{
+				valueIndexesToParameterPlaceholderIndexes[i] = i;
+			}
 
-			expression = (SqlUpdateExpression)SqlObjectOperandComparisonExpander.Expand(expression);
+			for (var i = 0; i < primaryKeys.Length; i++)
+			{
+				primaryKeyIndexesToParameterPlaceholderIndexes[i] = i + assignments.Count;
+			}
+
+			var expression = (Expression)new SqlUpdateExpression(new SqlTableExpression(typeDescriptor.PersistedName), assignments, where);
+
+			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
@@ -332,8 +529,92 @@ namespace Shaolinq.Persistence
 				command = this.CreateCommand();
 
 				command.CommandText = result.CommandText;
-				this.CacheUpdateCommand(commandKey, new SqlCommandValue() { commandText = command.CommandText });
-				this.FillParameters(command, updatedProperties, primaryKeys);
+
+				sqlCommandValue = new SqlCommandValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = primaryKeyIndexesToParameterPlaceholderIndexes };
+
+				if (result.CanReuse && (!valuesPredicated && !primaryKeysPredicated))
+				{
+					this.CacheUpdateCommand(commandKey, sqlCommandValue);
+				}
+
+				FillParameters(command, sqlCommandValue, null, null);
+				
+				success = true;
+
+				return command;
+			}
+			finally
+			{
+				if (!success)
+				{
+					command?.Dispose();
+				}
+			}
+		}
+
+		protected IDbCommand BuildInsertCommandForDeflatedPredicated(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject, bool predicated, List<ObjectPropertyValue> updatedProperties)
+		{
+			var constantPlaceholdersCount = 0;
+			var assignments = new List<Expression>();
+			var success = false;
+
+			var parameter1 = Expression.Parameter(typeDescriptor.Type);
+
+			foreach (var updated in updatedProperties)
+			{
+				var placeholder = updated.Value as Expression ?? new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(updated.Value, updated.PropertyType.CanBeNull() ? updated.PropertyType : updated.PropertyType.MakeNullable()));
+
+				if (placeholder.Type != updated.PropertyType)
+				{
+					placeholder = Expression.Convert(placeholder, updated.PropertyType);
+				}
+
+				var m = TypeUtils.GetMethod(() => default(DataAccessObject).SetColumnValue(default(string), default(int)))
+					.GetGenericMethodDefinition()
+					.MakeGenericMethod(typeDescriptor.Type, updated.PropertyType);
+
+				assignments.Add(Expression.Call(null, m, parameter1, Expression.Constant(updated.PersistedName), placeholder));
+			}
+
+			var method = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).InsertHelper(default(Expression<Action<DataAccessObject>>)))
+				.GetGenericMethodDefinition()
+				.MakeGenericMethod(typeDescriptor.Type);
+
+			var source = Expression.Constant(this.DataAccessModel.GetDataAccessObjects(typeDescriptor.Type));
+			var selector = Expression.Lambda(Expression.Block(assignments), parameter1);
+			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector));
+
+			expression = SqlQueryProvider.Bind(this.DataAccessModel, this.sqlDataTypeProvider, expression);
+			expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+			var projectionExpression = expression as SqlProjectionExpression;
+
+			expression = projectionExpression.Select.From;
+
+			if (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
+			{
+				var list = new List<Expression>
+				{
+					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(true)),
+					expression,
+					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(false)),
+				};
+
+				expression = new SqlStatementListExpression(list);
+			}
+
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression);
+
+			IDbCommand command = null;
+
+			try
+			{
+				command = this.CreateCommand();
+
+				command.CommandText = result.CommandText;
+
+				var commandValue = new SqlCommandValue { formatResult = result };
+
+				FillParameters(command, commandValue, null, null);
 
 				success = true;
 
@@ -353,8 +634,15 @@ namespace Shaolinq.Persistence
 			var success = false;
 			IDbCommand command = null;
 			SqlCommandValue sqlCommandValue;
+			bool predicated;
 
-			var updatedProperties = dataAccessObject.GetAdvanced().GetChangedPropertiesFlattened();
+			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out predicated);
+
+			if (predicated)
+			{
+				return BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, predicated, updatedProperties);
+			}
+
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
 			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))
@@ -362,8 +650,8 @@ namespace Shaolinq.Persistence
 				try
 				{
 					command = this.CreateCommand();
-					command.CommandText = sqlCommandValue.commandText;
-					this.FillParameters(command, updatedProperties, null);
+					command.CommandText = sqlCommandValue.formatResult.CommandText;
+					this.FillParameters(command, sqlCommandValue, updatedProperties, null);
 
 					success = true;
 
@@ -387,9 +675,17 @@ namespace Shaolinq.Persistence
 				returningAutoIncrementColumnNames = propertyDescriptors.Select(c => c.PersistedName).ToReadOnlyCollection();
 			}
 
+			var constantPlaceholdersCount = 0;
+			var valueIndexesToParameterPlaceholderIndexes = new int[updatedProperties.Count];
+			
 			var columnNames = updatedProperties.Select(c => c.PersistedName).ToReadOnlyCollection();
-			var valueExpressions = updatedProperties.Select(c => (Expression)Expression.Constant(c.Value)).ToReadOnlyCollection();
+			var valueExpressions = updatedProperties.Select(c => (Expression)new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(c.Value, c.PropertyType))).ToReadOnlyCollection();
 			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
+
+			for (var i = 0; i < constantPlaceholdersCount; i++)
+			{
+				valueIndexesToParameterPlaceholderIndexes[i] = i;
+			}
 
 			if (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
 			{
@@ -405,8 +701,6 @@ namespace Shaolinq.Persistence
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
 
-			Debug.Assert(result.ParameterValues.Count == updatedProperties.Count);
-
 			try
 			{
 				command = this.CreateCommand();
@@ -414,8 +708,10 @@ namespace Shaolinq.Persistence
 				var commandText = result.CommandText;
 
 				command.CommandText = commandText;
-				this.CacheInsertCommand(commandKey, new SqlCommandValue { commandText = command.CommandText });
-				this.FillParameters(command, updatedProperties, null);
+				sqlCommandValue = new SqlCommandValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = null };
+
+				this.CacheInsertCommand(commandKey, sqlCommandValue);
+				this.FillParameters(command, sqlCommandValue, updatedProperties, null);
 
 				success = true;
 

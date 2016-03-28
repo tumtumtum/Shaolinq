@@ -128,6 +128,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analytics\IQueryAnalytics.cs" />
+    <Compile Include="Analytics\QueryAnalytics.cs" />
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="AsyncEnumerableAdapter.cs" />
@@ -218,6 +220,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlDeclaredAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ProjectionAsyncRewriter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlDeleteNormalizer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlInsertIntoNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPredicateToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlProjectionSelectExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlRedundantSubqueryFinder.cs" />
@@ -227,6 +230,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlSubCollectionOrderByAmender.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlUpdateNormalizer.cs" />
     <Compile Include="Persistence\Linq\ProjectionBuilderScope.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheInfo.cs" />

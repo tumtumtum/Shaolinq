@@ -35,6 +35,13 @@ namespace Shaolinq.Tests
 			return timeSpan;
 		}
 
+		public void Test(out bool test)
+		{
+			test = false;
+
+			var x = test;
+		}
+
 		public TypeTests(string providerName)
 			: base(providerName)
 		{

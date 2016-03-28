@@ -119,6 +119,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return deleteExpression;
 		}
 
+		protected override Expression VisitUpdate(SqlUpdateExpression updateExpression)
+		{
+			return updateExpression;
+		}
+
+		protected override Expression VisitInsertInto(SqlInsertIntoExpression insertIntoExpression)
+		{
+			return insertIntoExpression;
+		}
+
 		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
 	        if (ignoreSet.Contains(select))

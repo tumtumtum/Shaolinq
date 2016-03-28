@@ -38,7 +38,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public override int GetHashCode()
 		{
-			return this.SelectAlias.GetHashCode() ^ this.Name.GetHashCode();
+			return (this.SelectAlias?.GetHashCode() ?? 0) ^ (this.Name?.GetHashCode() ?? 0);
 		}
 
 		public override bool Equals(object obj)

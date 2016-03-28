@@ -18,7 +18,17 @@ using Shaolinq.TypeBuilding;
 namespace Shaolinq
 {
 	public static partial class QueryableExtensions
-    {
+	{
+		internal static IQueryable<T> InsertHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated)
+		{
+			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
+		}
+
+		internal static IQueryable<T> UpdateHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated)
+		{
+			return source.Provider.CreateQuery<T>(Expression.Call(null,((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
+		}
+
 		public static Task<List<T>> ToListAsync<T>(this IQueryable<T> source)
 		{
 			return ((IEnumerable<T>)source).ToListAsync();

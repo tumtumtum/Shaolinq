@@ -28,7 +28,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					return command.ExecuteReaderEx();
+					return command.ExecuteReaderEx(this.DataAccessModel);
 				}
 				catch (Exception e)
 				{
@@ -77,7 +77,7 @@ namespace Shaolinq.Persistence
 
 					try
 					{
-						result = command.ExecuteNonQueryEx();
+						result = command.ExecuteNonQueryEx(this.DataAccessModel);
 					}
 					catch (Exception e)
 					{
@@ -140,7 +140,7 @@ namespace Shaolinq.Persistence
 
 						try
 						{
-							var reader = command.ExecuteReaderEx();
+							var reader = command.ExecuteReaderEx(this.DataAccessModel);
 
 							using (reader)
 							{
@@ -217,7 +217,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					var count = command.ExecuteNonQueryEx();
+					var count = command.ExecuteNonQueryEx(this.DataAccessModel);
 				}
 				catch (Exception e)
 				{

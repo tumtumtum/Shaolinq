@@ -12,6 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		public string CommandText { get; }
 		public IReadOnlyList<TypedValue> ParameterValues { get; }
 		public List<Pair<int, int>> ParameterIndexToPlaceholderIndexes { get; }
+		public bool CanReuse => ParameterIndexToPlaceholderIndexes != null;
 		
 		public SqlQueryFormatResult(SqlQueryFormatter formatter, string commandText, IEnumerable<TypedValue> parameterValues, List<Pair<int, int>> parameterIndexToPlaceholderIndexes)
 			: this(formatter, commandText, parameterValues.ToReadOnlyCollection(), parameterIndexToPlaceholderIndexes)

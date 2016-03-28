@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Shaolinq.TypeBuilding
@@ -69,5 +70,9 @@ namespace Shaolinq.TypeBuilding
 		int GetHashCodeAccountForServerGenerated();
 
 		bool EqualsAccountForServerGenerated(object dataAccessObject);
+
+		ObjectPropertyValue[] GetPrimaryKeysFlattened(out bool predicated);
+		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened(out bool predicated);
+		List<ObjectPropertyValue> GetChangedPropertiesFlattened(out bool predicated);
 	}
 }

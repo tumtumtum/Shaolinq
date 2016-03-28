@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Platform;
+using Shaolinq.Analytics;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
@@ -57,6 +58,10 @@ namespace Shaolinq
 			}
 		}
 		#endregion
+
+		internal QueryAnalytics queryAnalytics = new QueryAnalytics();
+
+		public virtual IQueryAnalytics QueryAnalytics => queryAnalytics;
 
 		public virtual event EventHandler Disposed;
 

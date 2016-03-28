@@ -298,8 +298,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.Table;
-            this.VisitTable(expression.Table);
+            this.currentObject = current.Source;
+            this.Visit(expression.Source);
             if (!this.result)
             {
                 return expression;
@@ -341,8 +341,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.Table;
-            this.VisitTable(expression.Table);
+            this.currentObject = current.Source;
+            this.Visit(expression.Source);
             if (!this.result)
             {
                 return expression;

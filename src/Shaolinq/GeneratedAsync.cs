@@ -21,6 +21,7 @@ using Shaolinq.TypeBuilding;
 using System.Reflection;
 using System.Configuration;
 using System.Diagnostics;
+using Shaolinq.Analytics;
 using Shaolinq.Persistence.Linq.Optimizers;
 using System.Collections.Concurrent;
 
@@ -1202,6 +1203,7 @@ namespace Shaolinq
             var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
             acquisitions.Add(acquisition);
             await acquisition.SqlDatabaseCommandsContext.UpdateAsync(cache.Type, cache.GetObjectsById(), cancellationToken).ConfigureAwait(false);
+            await acquisition.SqlDatabaseCommandsContext.UpdateAsync(cache.Type, cache.GetObjectsByPredicate(), cancellationToken).ConfigureAwait(false);
         }
 
         private Task CommitUpdatedAsync(HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext)
@@ -1431,44 +1433,48 @@ namespace Shaolinq.Persistence
 {
     public static partial class DbCommandExtensions
     {
-        public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command)
+        public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel)
         {
-            return ExecuteReaderExAsync(command, CancellationToken.None);
+            return ExecuteReaderExAsync(command, dataAccessModel, CancellationToken.None);
         }
 
-        public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, CancellationToken cancellationToken)
+        public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
         {
             var marsDbCommand = command as MarsDbCommand;
             if (marsDbCommand != null)
             {
+                dataAccessModel.queryAnalytics.IncrementQueryCount();
                 return await marsDbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             }
 
             var dbCommand = command as DbCommand;
             if (dbCommand != null)
             {
+                dataAccessModel.queryAnalytics.IncrementQueryCount();
                 return await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return command.ExecuteReader();
         }
 
-        public static Task<int> ExecuteNonQueryExAsync(this IDbCommand command)
+        public static Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel)
         {
-            return ExecuteNonQueryExAsync(command, CancellationToken.None);
+            return ExecuteNonQueryExAsync(command, dataAccessModel, CancellationToken.None);
         }
 
-        public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, CancellationToken cancellationToken)
+        public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
         {
             var marsDbCommand = command as MarsDbCommand;
             if (marsDbCommand != null)
             {
+                dataAccessModel.queryAnalytics.IncrementQueryCount();
                 return await marsDbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
 
             var dbCommand = command as DbCommand;
             if (dbCommand != null)
             {
+                dataAccessModel.queryAnalytics.IncrementQueryCount();
                 return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -1515,7 +1521,7 @@ namespace Shaolinq.Persistence
                 Logger.Info(() => this.FormatCommand(command));
                 try
                 {
-                    return await command.ExecuteReaderExAsync(cancellationToken).ConfigureAwait(false);
+                    return await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -1558,7 +1564,7 @@ namespace Shaolinq.Persistence
                     int result;
                     try
                     {
-                        result = (await command.ExecuteNonQueryExAsync(cancellationToken).ConfigureAwait(false));
+                        result = (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
                     }
                     catch (Exception e)
                     {
@@ -1615,7 +1621,7 @@ namespace Shaolinq.Persistence
                         Logger.Info(() => this.FormatCommand(command));
                         try
                         {
-                            var reader = (await command.ExecuteReaderExAsync(cancellationToken).ConfigureAwait(false));
+                            var reader = (await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
                             using (reader)
                             {
                                 if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
@@ -1685,7 +1691,7 @@ namespace Shaolinq.Persistence
                 Logger.Info(() => this.FormatCommand(command));
                 try
                 {
-                    var count = (await command.ExecuteNonQueryExAsync(cancellationToken).ConfigureAwait(false));
+                    var count = (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
                 }
                 catch (Exception e)
                 {

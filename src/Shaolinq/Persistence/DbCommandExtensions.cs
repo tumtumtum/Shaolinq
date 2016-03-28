@@ -14,12 +14,14 @@ namespace Shaolinq.Persistence
 		}
 
 		[RewriteAsync]
-		public static IDataReader ExecuteReaderEx(this IDbCommand command)
+		public static IDataReader ExecuteReaderEx(this IDbCommand command, DataAccessModel dataAccessModel)
 		{
 			var marsDbCommand = command as MarsDbCommand;
 
 			if (marsDbCommand != null)
 			{
+				dataAccessModel.queryAnalytics.IncrementQueryCount();
+
 				return marsDbCommand.ExecuteReader();
 			}
 
@@ -27,6 +29,8 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
+				dataAccessModel.queryAnalytics.IncrementQueryCount();
+
 				return dbCommand.ExecuteReader();
 			}
 			
@@ -34,12 +38,14 @@ namespace Shaolinq.Persistence
 		}
 		
 		[RewriteAsync]
-		public static int ExecuteNonQueryEx(this IDbCommand command)
+		public static int ExecuteNonQueryEx(this IDbCommand command, DataAccessModel dataAccessModel)
 		{
 			var marsDbCommand = command as MarsDbCommand;
 
 			if (marsDbCommand != null)
 			{
+				dataAccessModel.queryAnalytics.IncrementQueryCount();
+
 				return marsDbCommand.ExecuteNonQuery();
 			}
 
@@ -47,6 +53,8 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
+				dataAccessModel.queryAnalytics.IncrementQueryCount();
+
 				return dbCommand.ExecuteNonQuery();
 			}
 

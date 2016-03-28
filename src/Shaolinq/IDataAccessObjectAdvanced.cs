@@ -22,9 +22,14 @@ namespace Shaolinq
 		DataAccessModel DataAccessModel { get; }
 
 		/// <summary>
-		/// Returns true if the current object has only been partially loaded and can't be read.
+		/// Returns true if the current object has only been partially loaded and can't be read (except for primary keys).
 		/// </summary>
 		bool IsDeflatedReference { get; }
+
+		/// <summary>
+		/// Returns true if the current object has only been partially loaded and can't be read.
+		/// </summary>
+		bool IsDeflatedPredicatedReference { get; }
 
 		/// <summary>
 		/// Returns true if the current object has not yet been persisted or flushed.

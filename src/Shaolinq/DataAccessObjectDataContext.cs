@@ -145,6 +145,7 @@ namespace Shaolinq
 			void ProcessAfterCommit();
 			void AssertObjectsAreReadyForCommit();
 			ICollection<DataAccessObject> GetObjectsById();
+			ICollection<DataAccessObject> GetObjectsByPredicate();
 			ICollection<DataAccessObject> GetNewObjects();
 			ICollection<DataAccessObject> GetDeletedObjects();
 			DataAccessObject Cache(DataAccessObject value, bool forImport);
@@ -170,6 +171,7 @@ namespace Shaolinq
 			private readonly Dictionary<DataAccessObject, DataAccessObject> newObjects;
 			public ICollection<DataAccessObject> GetNewObjects() => this.newObjects.Values;
 			public ICollection<DataAccessObject> GetObjectsById() => this.objectsByIdCache.Values;
+			public ICollection<DataAccessObject> GetObjectsByPredicate() => this.objectsByPredicateCache.Values;
 			public ICollection<DataAccessObject> GetDeletedObjects() => this.objectsDeleted.Values;
 			private readonly Dictionary<LambdaExpression, DataAccessObject> objectsByPredicateCache;
 
@@ -658,6 +660,7 @@ namespace Shaolinq
 
 			acquisitions.Add(acquisition);
 			acquisition.SqlDatabaseCommandsContext.Update(cache.Type, cache.GetObjectsById());
+			acquisition.SqlDatabaseCommandsContext.Update(cache.Type, cache.GetObjectsByPredicate());
 		}
 
 		[RewriteAsync]

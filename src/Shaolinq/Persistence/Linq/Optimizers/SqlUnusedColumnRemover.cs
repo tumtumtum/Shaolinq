@@ -29,6 +29,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			HashSet<string> columns;
 
+			alias = alias ?? "";
+
 			if (!this.allColumnsUsed.TryGetValue(alias, out columns))
 			{
 				columns = new HashSet<string>();

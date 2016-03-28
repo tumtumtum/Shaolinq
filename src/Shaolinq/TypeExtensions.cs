@@ -24,6 +24,11 @@ namespace Shaolinq
 			throw new InvalidOperationException();
 		}
 
+		internal static bool CanBeNull(this Type type)
+		{
+			return !type.IsValueType || type.IsNullableType();
+		}
+
 		internal static bool IsTypeRequiringJoin(this Type type)
 		{
 			return type.IsDataAccessObjectType() || (type.GetSequenceElementType()?.IsDataAccessObjectType() ?? false);

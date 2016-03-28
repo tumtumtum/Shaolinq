@@ -20,6 +20,7 @@ namespace Shaolinq.MySql
 			expression = base.PreProcess(expression);
 			expression = MySqlAutoIncrementAmender.Amend(expression);
 			expression = MySqlInsertIntoAutoIncrementAmender.Amend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
+			expression = MySqlNestedTableReferenceInUpdateFixer.Fix(expression);
 
 			return expression;
 		}

@@ -33,7 +33,7 @@ namespace Shaolinq.MySql
 
 					newValueExpressions[index] = new SqlFunctionCallExpression(newValueExpressions[index].Type, "LAST_INSERT_ID", newValueExpressions[index]);
 
-					return new SqlInsertIntoExpression(expression.Table, expression.ColumnNames, expression.ReturningAutoIncrementColumnNames, newValueExpressions);
+					return new SqlInsertIntoExpression(expression.Source, expression.ColumnNames, expression.ReturningAutoIncrementColumnNames, newValueExpressions);
 				}
 			}
 			

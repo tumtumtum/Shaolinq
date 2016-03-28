@@ -23,6 +23,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Name = name;
 		}
 
+		public SqlTableExpression ChangeAlias(string alias)
+		{
+			return new SqlTableExpression(this.Type, alias, this.Name);
+		}
+
 		public override string ToString()
 		{
 			return this.GetType().Name + ":" + new Sql92QueryFormatter().Format(this).CommandText;

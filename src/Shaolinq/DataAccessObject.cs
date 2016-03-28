@@ -74,14 +74,17 @@ namespace Shaolinq
 		int IDataAccessObjectAdvanced.NumberOfPrimaryKeys => this.dataAccessModel?.GetTypeDescriptor(this.GetType()).PrimaryKeyCount ?? 0;
 		int IDataAccessObjectAdvanced.NumberOfPrimaryKeysGeneratedOnServerSide => this.TypeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 		bool IDataAccessObjectAdvanced.IsDeflatedReference => false;
+		bool IDataAccessObjectAdvanced.IsDeflatedPredicatedReference => false;
 		bool IDataAccessObjectAdvanced.PrimaryKeyIsCommitReady => false;
 		int IDataAccessObjectAdvanced.NumberOfPropertiesGeneratedOnTheServerSide => this.TypeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
-		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysFlattened() { throw new NotImplementedException(); }
-		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysForUpdateFlattened() {  throw new NotImplementedException(); }
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysFlattened() => this.ToObjectInternal().GetPrimaryKeysFlattened(out placeholder);
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysForUpdateFlattened() => this.ToObjectInternal().GetPrimaryKeysForUpdateFlattened(out placeholder);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeys() => this.TypeDescriptor.PrimaryKeyProperties.Select(c => ObjectPropertyValue.Create(c, this)).ToArray();
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetRelatedObjectProperties() => this.TypeDescriptor.PersistedProperties.Where(c => c.PropertyType.IsDataAccessObjectType()).Select(c => ObjectPropertyValue.Create(c, this)).ToArray();
-		List<ObjectPropertyValue> IDataAccessObjectAdvanced.GetChangedPropertiesFlattened() { throw new NotImplementedException(); }
+		List<ObjectPropertyValue> IDataAccessObjectAdvanced.GetChangedPropertiesFlattened() => this.ToObjectInternal().GetChangedPropertiesFlattened(out placeholder);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPropertiesGeneratedOnTheServerSide() => this.TypeDescriptor.PersistedProperties.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).Select(c => ObjectPropertyValue.Create(c, this)).ToArray();
 		#endregion
+
+		static bool placeholder;
 	}
 }

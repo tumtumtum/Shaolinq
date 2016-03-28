@@ -885,6 +885,12 @@ namespace Shaolinq.Persistence.Linq
 					result = this.BindSelect(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
 					this.selectorPredicateStack.Pop();
 					return result;
+				case "UpdateHelper":
+					result = this.BindUpdateHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
+					return result;
+				case "InsertHelper":
+					result = this.BindInsertHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
+					return result;
 				case "ForUpdate":
 					return this.BindForUpdate(methodCallExpression.Arguments[0]);
 				case "OrderBy":
@@ -1130,6 +1136,83 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return base.VisitMethodCall(methodCallExpression);
+		}
+
+		private Expression BindUpdateHelper(Type type, Expression source, LambdaExpression updatedValues)
+		{
+			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
+			var assignments = new List<Expression>();
+
+			var projection = (SqlProjectionExpression)this.Visit(source);
+			
+			this.AddExpressionByParameter(updatedValues.Parameters[0], source);
+
+			var alias = GetNextAlias();
+
+			foreach (var updated in updatedValueExpressions)
+			{
+				var assignment = updated as MethodCallExpression;
+				var propertyType = assignment.Method.GetGenericArguments()[1];
+				var persistedName = assignment.Arguments[1].StripAndGetConstant().Value as string;
+				var value = assignment.Arguments[2];
+
+				assignments.Add(new SqlAssignExpression(new SqlColumnExpression(propertyType, null, persistedName), this.Visit(value)));
+			}
+			
+			var update = new SqlUpdateExpression(projection, assignments.ToReadOnlyCollection(), null);
+			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__UPDATE", Expression.Constant(null), true) }, update, null, null);
+
+			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
+
+			var aggregator = Expression.Lambda
+			(
+				Expression.Call(MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod.MakeGenericMethod(typeof(int)), parameterExpression),
+				parameterExpression
+			);
+
+			return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
+		}
+
+		private Expression BindInsertHelper(Type type, Expression source, LambdaExpression updatedValues)
+		{
+			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
+			var values = new List<Expression>();
+			var columnNames = new List<string>();
+
+			var projection = (SqlProjectionExpression)this.Visit(source);
+
+			this.AddExpressionByParameter(updatedValues.Parameters[0], source);
+
+			var alias = GetNextAlias();
+
+			foreach (var updated in updatedValueExpressions)
+			{
+				var assignment = updated as MethodCallExpression;
+				var persistedName = assignment.Arguments[1].StripAndGetConstant().Value as string;
+				var value = assignment.Arguments[2];
+
+				columnNames.Add(persistedName);
+
+				values.Add(this.Visit(value));
+			}
+
+			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(source.Type.GetSequenceElementType());
+
+			var propertyDescriptors = typeDescriptor.PersistedPropertiesWithoutBackreferences.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
+			var returningAutoIncrementColumnNames = propertyDescriptors.Select(c => c.PersistedName).ToReadOnlyCollection();
+
+			var insert = new SqlInsertIntoExpression(projection, columnNames, returningAutoIncrementColumnNames, values.ToReadOnlyCollection());
+			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__INSERT", Expression.Constant(null), true) }, insert, null, null);
+
+			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
+
+			var aggregator = Expression.Lambda
+			(
+				Expression.Call(MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod.MakeGenericMethod(typeof(int)), parameterExpression),
+				parameterExpression
+			);
+
+			return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
 		}
 
 		private Expression BindStringMethod(MethodCallExpression methodCallExpression)
@@ -1936,12 +2019,12 @@ namespace Shaolinq.Persistence.Linq
 			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(expression.Type));
 
 			var columnInfos = GetColumnInfos
-				(
-					this.typeDescriptorProvider,
-					typeDescriptor.PersistedProperties,
-					(c, d) => c.IsPrimaryKey,
-					(c, d) => c.IsPrimaryKey
-				);
+			(
+				this.typeDescriptorProvider,
+				typeDescriptor.PersistedProperties,
+				(c, d) => c.IsPrimaryKey,
+				(c, d) => c.IsPrimaryKey
+			);
 
 			var groupedColumnInfos = columnInfos
 				.GroupBy(c => c.VisitedProperties, ArrayEqualityComparer<PropertyDescriptor>.Default)
@@ -1952,6 +2035,8 @@ namespace Shaolinq.Persistence.Linq
 			var bindings = new List<MemberBinding>();
 
 			expressionForKey[new PropertyDescriptor[0]] = expression;
+
+			var constantValue = (expression as ConstantExpression).Value;
 
 			foreach (var groupedColumnInfo in groupedColumnInfos)
 			{
@@ -1971,9 +2056,22 @@ namespace Shaolinq.Persistence.Linq
 
 				foreach (var value in groupedColumnInfo)
 				{
-					var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
+					if (constantValue != null && parentExpression.Type.IsDataAccessObjectType())
+					{
+						var parentValue = ExpressionFastCompiler.CompileAndRun(parentExpression) as DataAccessObject;
+						
+						var propertyAccess =  (Expression)MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject
+							.MakeGenericMethod(parentExpression.Type, value.DefinitionProperty.PropertyType)
+							.Invoke(null, new object[] { parentValue, value.DefinitionProperty.PropertyName });
 
-					bindings.Add(Expression.Bind(value.DefinitionProperty, propertyAccess));
+						bindings.Add(Expression.Bind(value.DefinitionProperty, this.Visit(propertyAccess)));
+					}
+					else
+					{
+						var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
+
+						bindings.Add(Expression.Bind(value.DefinitionProperty, propertyAccess));
+					}
 				}
 			}
 

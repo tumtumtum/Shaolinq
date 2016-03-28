@@ -57,7 +57,7 @@ namespace Shaolinq.Persistence.Linq
 		
 		public override string GetQueryText(Expression expression)
 		{
-			expression = (SqlProjectionExpression)this.Bind(expression);
+			expression = (SqlProjectionExpression)Bind(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, expression);
 
 			var projectionExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
@@ -129,7 +129,6 @@ namespace Shaolinq.Persistence.Linq
 		{
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);
 			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
-			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 			expression = SqlGroupByCollator.Collate(expression);
 			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
 			expression = SqlUnusedColumnRemover.Remove(expression);
@@ -157,16 +156,19 @@ namespace Shaolinq.Persistence.Linq
 			}
 
             expression = SqlDeleteNormalizer.Normalize(expression);
-			
+			expression = SqlUpdateNormalizer.Normalize(expression);
+			expression = SqlInsertIntoNormalizer.Normalize(expression);
+
 			return expression;
 		}
 
-		private Expression Bind(Expression expression)
+		internal static Expression Bind(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, Expression expression)
 		{
 			expression = Evaluator.PartialEval(expression);
-			expression = QueryBinder.Bind(this.DataAccessModel, expression);
-			expression = SqlEnumTypeNormalizer.Normalize(expression, this.SqlDatabaseContext.SqlDataTypeProvider.GetTypeForEnums());
+			expression = QueryBinder.Bind(dataAccessModel, expression);
+			expression = SqlEnumTypeNormalizer.Normalize(expression, sqlDataTypeProvider.GetTypeForEnums());
 			expression = Evaluator.PartialEval(expression);
+			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 
 			return expression;
 		}
@@ -175,7 +177,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			ProjectorExpressionCacheInfo cacheInfo;
 			var skipFormatResultSubstitution = false;
-			var projectionExpression = expression as SqlProjectionExpression ?? (SqlProjectionExpression)this.Bind(expression);
+			var projectionExpression = expression as SqlProjectionExpression ?? (SqlProjectionExpression)Bind(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, expression);
 
 			var key = new ExpressionCacheKey(projectionExpression, projection);
 

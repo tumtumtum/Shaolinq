@@ -198,8 +198,8 @@ namespace Shaolinq.Persistence.Linq
 			switch (unaryExpression.NodeType)
 			{
 			case ExpressionType.Convert:
-				var unaryType = Nullable.GetUnderlyingType(unaryExpression.Type) ?? unaryExpression.Type;
-				var operandType = Nullable.GetUnderlyingType(unaryExpression.Operand.Type) ?? unaryExpression.Operand.Type;
+				var unaryType = unaryExpression.Type.GetUnwrappedNullableType();
+				var operandType = unaryExpression.Operand.Type.GetUnwrappedNullableType();
 
 				if (operandType == typeof(object) || unaryType == typeof(object)
 					|| unaryType == operandType
@@ -457,7 +457,9 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Write("(");
 
+			this.Write("(");
 			this.Visit(binaryExpression.Left);
+			this.Write(")");
 
 			switch (binaryExpression.NodeType)
 			{
@@ -506,7 +508,9 @@ namespace Shaolinq.Persistence.Linq
 				throw new NotSupportedException($"The binary operator '{binaryExpression.NodeType}' is not supported");
 			}
 
+			this.Write("(");
 			this.Visit(binaryExpression.Right);
+			this.Write(")");
 
 			this.Write(")");
 
@@ -901,8 +905,12 @@ namespace Shaolinq.Persistence.Linq
 				var table = (SqlTableExpression)source;
 
 				this.Visit(table);
-				this.Write(" AS ");
-				this.WriteQuotedIdentifier(table.Alias);
+
+				if (table.Alias != null)
+				{
+					this.Write(" AS ");
+					this.WriteQuotedIdentifier(table.Alias);
+				}
 
 				break;
 			case SqlExpressionType.Select:
@@ -926,6 +934,9 @@ namespace Shaolinq.Persistence.Linq
 				break;
             case SqlExpressionType.Delete:
 			    this.VisitDelete((SqlDeleteExpression)source);
+				break;
+			case SqlExpressionType.Update:
+				this.VisitUpdate((SqlUpdateExpression)source);
 				break;
 			case SqlExpressionType.Union:
 				this.VisitUnion((SqlUnionExpression)source);
@@ -1266,7 +1277,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
 		{
 			this.Write("INSERT INTO ");
-			this.Visit(expression.Table);
+			this.Visit(expression.Source);
 
 			if (expression.ValueExpressions == null || expression.ValueExpressions.Count == 0)
 			{
@@ -1286,7 +1297,13 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				this.Write("VALUES (");
-				this.WriteDeliminatedListOfItems(expression.ValueExpressions, c => this.Visit(c));
+				this.WriteDeliminatedListOfItems(expression.ValueExpressions, c =>
+				{
+					this.Write("(");
+					this.Visit(c);
+					this.Write(")");
+				});
+
 				this.Write(")");
 			}
 
@@ -1304,7 +1321,9 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.Visit(expression.Target);
 			this.Write(" = ");
+			this.Write("(");
 			this.Visit(expression.Value);
+			this.Write(")");
 
 			return expression;
 		}
@@ -1312,7 +1331,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitUpdate(SqlUpdateExpression expression)
 		{
 			this.Write("UPDATE ");
-			this.Visit(expression.Table);
+			this.Visit(expression.Source);
 			this.Write(" SET ");
 
 			this.WriteDeliminatedListOfItems(expression.Assignments, c => this.Visit(c));

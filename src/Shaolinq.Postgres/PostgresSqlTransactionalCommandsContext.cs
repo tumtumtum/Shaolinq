@@ -45,7 +45,7 @@ namespace Shaolinq.Postgres
 				using (var command = this.CreateCommand())
 				{
 					command.CommandText = $"COMMIT PREPARED '{this.preparedTransactionName}';";
-					command.ExecuteNonQueryEx();
+					command.ExecuteNonQueryEx(this.DataAccessModel);
 				}
 			}
 
@@ -60,7 +60,7 @@ namespace Shaolinq.Postgres
 				using (var command = this.CreateCommand())
 				{
 					command.CommandText = $"ROLLBACK PREPARED '{this.preparedTransactionName}';";
-					command.ExecuteNonQueryEx();
+					command.ExecuteNonQueryEx(this.DataAccessModel);
 				}
 			}
 

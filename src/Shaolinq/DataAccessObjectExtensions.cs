@@ -75,6 +75,12 @@ namespace Shaolinq
 
 			return dataAccessObject;
 		}
+
+		internal static void SetColumnValue<T, U>(this T obj, string columnName, U value)
+			where T : DataAccessObject
+		{
+			throw new NotImplementedException();
+		}
 		
 		internal static Expression GetPropertyValueExpressionFromPredicatedDeflatedObject<T, U>(this T obj, string propertyPath)
 			where T : DataAccessObject
@@ -87,7 +93,7 @@ namespace Shaolinq
 				.Where((Expression<Func<T, bool>>)obj.ToObjectInternal().DeflatedPredicate)
 				.Select(Expression.Lambda<Func<T, U>>(propertyExpression, parameter)).Expression;
 
-			return Expression.Call(null, TypeUtils.GetMethod(() => default(IQueryable<T>).Single()).MakeGenericMethod(typeof(T)), expression);
+			return Expression.Call(null, TypeUtils.GetMethod(() => default(IQueryable<U>).First()), expression);
 		}
 	}
 }

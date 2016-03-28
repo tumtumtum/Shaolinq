@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
@@ -814,6 +815,197 @@ namespace Shaolinq.Tests
 			Assert.IsFalse(s.IsDeflatedReference());
 
 			Assert.AreEqual(schoolId, x);
+		}
+
+		[Test]
+		public void Test_UpdatedPredicatedDeflatedReference()
+		{
+			long schoolId;
+			var schoolName = MethodBase.GetCurrentMethod().Name;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				school.Name = schoolName;
+
+				scope.Flush();
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var s = this.model.Schools.GetReference(c => c.Name == schoolName);
+
+				Assert.IsTrue(s.IsDeflatedReference());
+
+				s.Name = schoolName + "Changed";
+				
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_SetPropertyUsing_DeflatedPredicate()
+		{
+			long schoolId;
+			Guid studentId1, studentId2;
+			string studentName1, studentName2;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				var student1 = school.Students.Create();
+				var student2 = school.Students.Create();
+
+				student1.Firstname = MethodBase.GetCurrentMethod().Name + "_A";
+				student2.Firstname = MethodBase.GetCurrentMethod().Name + "_B";
+
+				scope.Flush();
+
+				schoolId = school.Id;
+				studentId1 = student1.Id;
+				studentId2 = student2.Id;
+				studentName1 = student1.Firstname;
+				studentName2 = student2.Firstname;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var student1 = this.model.Students.GetReference(studentId1);
+				var student2 = this.model.Students.GetReference(c => c.Firstname == studentName1);
+
+				student1.BestFriend = student2;
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_SetProperty_OnNew_Using_DeflatedPredicate()
+		{
+			long schoolId;
+			Guid studentId1, studentId2;
+			string studentName1, studentName2;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				var student1 = school.Students.Create();
+				var student2 = school.Students.Create();
+
+				student1.Firstname = MethodBase.GetCurrentMethod().Name + "_A";
+				student2.Firstname = MethodBase.GetCurrentMethod().Name + "_B";
+
+				scope.Flush();
+
+				schoolId = school.Id;
+				studentId1 = student1.Id;
+				studentId2 = student2.Id;
+				studentName1 = student1.Firstname;
+				studentName2 = student2.Firstname;
+
+				scope.Complete();
+			}
+
+			var count = this.model.QueryAnalytics.QueryCount;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.GetReference(schoolId);
+				var student3 = school.Students.Create();
+				var student2 = this.model.Students.GetReference(c => c.Firstname == studentName2);
+
+				student3.BestFriend = student2;
+
+				scope.Complete();
+			}
+
+			Assert.AreEqual(count + 1, this.model.QueryAnalytics.QueryCount);
+		}
+
+		[Test]
+		public void Test_Compared_With_DeflatedPredicateReference()
+		{
+			long schoolId;
+			Guid studentId1, studentId2;
+			string studentName1, studentName2;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				var student1 = school.Students.Create();
+				var student2 = school.Students.Create();
+
+				student1.Firstname = MethodBase.GetCurrentMethod().Name + "_A";
+				student2.Firstname = MethodBase.GetCurrentMethod().Name + "_B";
+
+				student1.BestFriend = student2;
+
+				scope.Flush();
+
+				schoolId = school.Id;
+				studentId1 = student1.Id;
+				studentId2 = student2.Id;
+				studentName1 = student1.Firstname;
+				studentName2 = student2.Firstname;
+
+				scope.Complete();
+			}
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.GetReference(schoolId);
+				var student2 = this.model.Students.GetReference(c => c.Firstname == studentName2);
+
+				var student1 = this.model.Students.Single(c => c.BestFriend == student2);
+
+				Assert.AreEqual(student1.Id, studentId1);
+				var count = this.model.QueryAnalytics.QueryCount;
+				Assert.AreEqual(student1.BestFriend.Id, studentId2);
+				Assert.AreEqual(count, this.model.QueryAnalytics.QueryCount);
+
+				Assert.IsTrue(student2.IsDeflatedReference());
+				Assert.AreEqual(student1.BestFriend.Id, student2.Id);
+				Assert.IsFalse(student2.IsDeflatedReference());
+				Assert.AreEqual(count + 1, this.model.QueryAnalytics.QueryCount);
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Updated_DeflatedPredicated_That_Does_Not_Exist()
+		{
+			Assert.Throws<MissingDataAccessObjectException>(() =>
+			{
+				try
+				{
+					using (var scope = new DataAccessScope())
+					{
+						var student = this.model.Students.GetReference(c => c.Firstname == Guid.NewGuid().ToString());
+
+						student.Nickname = "Test";
+						student.TimeSinceLastSlept = TimeSpan.FromHours(72);
+
+						Assert.IsTrue(student.IsDeflatedReference());
+
+						scope.Complete();
+					}
+				}
+				catch (DataAccessTransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 	}
 }

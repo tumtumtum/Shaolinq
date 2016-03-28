@@ -176,12 +176,13 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitUpdate(SqlUpdateExpression expression)
 		{
+			var newSource = this.Visit(expression.Source);
 			var newWhere = this.Visit(expression.Where);
 			var newAssignments = this.VisitExpressionList(expression.Assignments);
 
-			if (newWhere != expression.Where || newAssignments != expression.Assignments)
+			if (newSource != expression.Source || newWhere != expression.Where || newAssignments != expression.Assignments)
 			{
-				return new SqlUpdateExpression(expression.Table, newAssignments, newWhere);
+				return new SqlUpdateExpression(newSource, newAssignments, newWhere);
 			}
 
 			return expression;
@@ -189,12 +190,12 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitInsertInto(SqlInsertIntoExpression expression)
 		{
-			var table = (SqlTableExpression)this.VisitTable(expression.Table);
+			var source = this.VisitSource(expression.Source);
 			var valueExpressions = this.VisitExpressionList(expression.ValueExpressions);
 
-			if (table != expression.Table || valueExpressions != expression.ValueExpressions)
+			if (source != expression.Source || valueExpressions != expression.ValueExpressions)
 			{
-				return expression.ChangeTableAndValueExpressions(table, valueExpressions);
+				return new SqlInsertIntoExpression(source, expression.ColumnNames, expression.ReturningAutoIncrementColumnNames, valueExpressions);
 			}
 
 			return expression;
