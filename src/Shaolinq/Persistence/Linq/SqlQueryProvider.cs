@@ -162,10 +162,12 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static Expression Bind(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, Expression expression)
 		{
-			expression = Evaluator.PartialEval(expression);
+			var placeholderCount = 0;
+
+			expression = Evaluator.PartialEval(expression, ref placeholderCount);
 			expression = QueryBinder.Bind(dataAccessModel, expression);
 			expression = SqlEnumTypeNormalizer.Normalize(expression, sqlDataTypeProvider.GetTypeForEnums());
-			expression = Evaluator.PartialEval(expression);
+			expression = Evaluator.PartialEval(expression, ref placeholderCount);
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);
 			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);

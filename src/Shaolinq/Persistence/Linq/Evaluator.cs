@@ -12,14 +12,21 @@ namespace Shaolinq.Persistence.Linq
 {
 	public static class Evaluator
 	{
-		public static Expression PartialEval(Expression expression, Func<Expression, bool> fnCanBeEvaluated)
+		public static Expression PartialEval(Expression expression, Func<Expression, bool> fnCanBeEvaluated, ref int placeholderCount)
 		{
-			return SubtreeEvaluator.Eval(new EvaluatorNominator(fnCanBeEvaluated).Nominate(expression), expression);
+			return SubtreeEvaluator.Eval(new EvaluatorNominator(fnCanBeEvaluated).Nominate(expression), expression, ref placeholderCount);
 		}
 		
 		public static Expression PartialEval(Expression expression)
 		{
-			return PartialEval(expression, CanBeEvaluatedLocally);
+			var placeholderCount = -1;
+
+			return PartialEval(expression, ref placeholderCount);
+		}
+
+		public static Expression PartialEval(Expression expression, ref int placeholderCount)
+		{
+			return PartialEval(expression, CanBeEvaluatedLocally, ref placeholderCount);
 		}
 
 		internal static bool CanBeEvaluatedLocally(Expression expression)
@@ -93,14 +100,16 @@ namespace Shaolinq.Persistence.Linq
 				this.candidates = candidates;
 			}
 
-			internal static Expression Eval(HashSet<Expression> candidates, Expression expression)
+			internal static Expression Eval(HashSet<Expression> candidates, Expression expression, ref int placeholderCount)
 			{
 				if (candidates.Count == 0)
 				{
 					return expression;
 				}
 
-				var evaluator = new SubtreeEvaluator(candidates) { index = SqlConstantPlaceholderMaxIndexFinder.Find(expression) + 1 };
+				var i = placeholderCount >= 0 ? placeholderCount : SqlConstantPlaceholderMaxIndexFinder.Find(expression) + 1;
+
+				var evaluator = new SubtreeEvaluator(candidates) { index = i };
 
 				return evaluator.Visit(expression);
 			}
