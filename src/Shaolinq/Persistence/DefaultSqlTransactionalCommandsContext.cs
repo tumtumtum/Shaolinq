@@ -475,7 +475,7 @@ namespace Shaolinq.Persistence
 			var valueIndexesToParameterPlaceholderIndexes = new int[updatedProperties.Count];
 			var primaryKeyIndexesToParameterPlaceholderIndexes = new int[primaryKeys.Length];
 
-			var assignments = new List<Expression>();
+			var assignments = new List<Expression>(updatedProperties.Count);
 
 			foreach (var updated in updatedProperties)
 			{
@@ -679,7 +679,21 @@ namespace Shaolinq.Persistence
 			var valueIndexesToParameterPlaceholderIndexes = new int[updatedProperties.Count];
 			
 			var columnNames = updatedProperties.Select(c => c.PersistedName).ToReadOnlyCollection();
-			var valueExpressions = updatedProperties.Select(c => (Expression)new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(c.Value, c.PropertyType))).ToReadOnlyCollection();
+			
+			var valueExpressions = new List<Expression>(updatedProperties.Count);
+
+			foreach (var updated in updatedProperties)
+			{
+				var value = (Expression)new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(updated.Value, updated.PropertyType.CanBeNull() ? updated.PropertyType : updated.PropertyType.MakeNullable()));
+
+				if (value.Type != updated.PropertyType)
+				{
+					value = Expression.Convert(value, updated.PropertyType);
+				}
+
+				valueExpressions.Add(value);
+			}
+
 			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
 
 			for (var i = 0; i < constantPlaceholdersCount; i++)
