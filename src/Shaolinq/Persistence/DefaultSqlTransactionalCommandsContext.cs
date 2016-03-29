@@ -290,35 +290,35 @@ namespace Shaolinq.Persistence
 
 			var newParameters = new List<TypedValue>(commandValue.formatResult.ParameterValues);
 			
-			var i = 0;
-
 			if (changedProperties != null)
 			{
-				foreach (var changed in changedProperties)
-				{
-					var index = commandValue.valueIndexesToParameterPlaceholderIndexes[i];
-					var typedValue = newParameters[index];
+			    var i = 0;
 
-					newParameters[index] = typedValue.ChangeValue(changed.Value);
+			    foreach (var changed in changedProperties)
+			    {
+			        var temp = commandValue.valueIndexesToParameterPlaceholderIndexes[i];
+			        var parameterIndex = commandValue.formatResult.PlaceholderIndexToParameterIndex[temp];
+                    var typedValue = newParameters[parameterIndex];
 
-					i++;
-				}
-			}
+			        newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
+			        i++;
+			    }
+            }
 
 			if (primaryKeys != null)
 			{
-				i = 0;
+				var i = 0;
+                
+                foreach (var changed in primaryKeys)
+                {
+                    var temp = commandValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
+                    var parameterIndex = commandValue.formatResult.PlaceholderIndexToParameterIndex[temp];
+                    var typedValue = newParameters[parameterIndex];
 
-				foreach (var primaryKey in primaryKeys)
-				{
-					var index = commandValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
-					var typedValue = newParameters[index];
-
-					newParameters[index] = typedValue.ChangeValue(primaryKey.Value);
-
-					i++;
-				}
-			}
+                    newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
+                    i++;
+                }
+            }
 
 			foreach (var parameter in newParameters)
 			{
@@ -645,7 +645,7 @@ namespace Shaolinq.Persistence
 
 			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
 
-			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue))
+			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue) && false)
 			{
 				try
 				{
@@ -724,7 +724,8 @@ namespace Shaolinq.Persistence
 				command.CommandText = commandText;
 				sqlCommandValue = new SqlCommandValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = null };
 
-				this.CacheInsertCommand(commandKey, sqlCommandValue);
+
+                //this.CacheInsertCommand(commandKey, sqlCommandValue);
 				this.FillParameters(command, sqlCommandValue, updatedProperties, null);
 
 				success = true;

@@ -533,12 +533,16 @@ namespace Shaolinq.Persistence.Linq
 
 				var endIndex = this.parameterValues.Count;
 
-				if (endIndex - startIndex == 1 && canReuse)
-				{
-					var index = startIndex;
+			    if (endIndex - startIndex == 1 && canReuse)
+			    {
+			        var index = startIndex;
 
-					parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
-				}
+			        parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
+			    }
+			    else
+			    {
+			        canReuse = false;
+			    }
 
 				return retval;
 			}

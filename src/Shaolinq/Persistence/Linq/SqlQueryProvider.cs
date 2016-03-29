@@ -201,11 +201,11 @@ namespace Shaolinq.Persistence.Linq
 				{
 					var parameters = formatResult.ParameterValues.ToList();
 
-					foreach (var mapping in formatResult.ParameterIndexToPlaceholderIndexes)
+				    foreach (var index in formatResult.ParameterIndexToPlaceholderIndexes.Keys)
 					{
-						var value = parameters[mapping.Left];
+						var value = parameters[index];
 
-						parameters[mapping.Left] = value.ChangeValue(value.Type.GetDefaultValue());
+						parameters[index] = value.ChangeValue(value.Type.GetDefaultValue());
 					}
 
 					formatResultForCache = formatResult.ChangeParameterValues(parameters);
@@ -236,13 +236,13 @@ namespace Shaolinq.Persistence.Linq
 
 					newCache[key] = cacheInfo;
 
-					this.SqlDatabaseContext.projectionExpressionCache = newCache;
+					//this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 				else
 				{
 					var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(oldCache, ExpressionCacheKeyEqualityComparer.Default) { [key] = cacheInfo };
 
-					this.SqlDatabaseContext.projectionExpressionCache = newCache;
+					//this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 
 				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult)}\n\nProjector:\n{cacheInfo.projector}");
@@ -269,13 +269,16 @@ namespace Shaolinq.Persistence.Linq
 			else if (!skipFormatResultSubstitution)
 			{
 				var parameters = cacheInfo.formatResult.ParameterValues.ToList();
+                
+                foreach (var indexes in cacheInfo.formatResult.ParameterIndexToPlaceholderIndexes)
+                {
+                    var index = indexes.Key;
+                    var placeholderIndex = indexes.Value;
+                    
+                    parameters[index] = parameters[index].ChangeValue(placeholderValues[placeholderIndex]);
+                }
 
-				foreach (var mapping in cacheInfo.formatResult.ParameterIndexToPlaceholderIndexes)
-				{
-					parameters[mapping.Left] = parameters[mapping.Left].ChangeValue(placeholderValues[mapping.Right]);
-				}
-
-				cacheInfo.formatResult = cacheInfo.formatResult.ChangeParameterValues(parameters);
+                cacheInfo.formatResult = cacheInfo.formatResult.ChangeParameterValues(parameters);
 			}
 
 			return new ExecutionBuildResult(this, cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
