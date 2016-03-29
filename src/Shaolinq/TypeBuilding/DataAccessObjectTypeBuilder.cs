@@ -2265,6 +2265,7 @@ namespace Shaolinq.TypeBuilding
 				var referencedTypeBuilder = this.AssemblyBuildContext.TypeBuilders[visited.PropertyInfo.ReflectedType];
 				var localDataObjectField = referencedTypeBuilder.dataObjectField;
 				var localValueField = referencedTypeBuilder.valueFields[visited.PropertyName];
+				var localPredicateField = referencedTypeBuilder.predicateField;
 				var currentObject = generator.DeclareLocal(referencedTypeBuilder.typeBuilder);
 				var valueChangedField = referencedTypeBuilder.valueChangedFields[visited.PropertyName];
 
@@ -2309,13 +2310,14 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldloc, currentObject);
 					generator.Emit(OpCodes.Ldfld, localDataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueIsSetField);
-					generator.Emit(OpCodes.Brtrue, label2);
-
+					
 					if (!checkChanged)
 					{
+						generator.Emit(OpCodes.Brtrue, label2);
+
 						generator.Emit(OpCodes.Ldloc, currentObject);
 						generator.Emit(OpCodes.Ldfld, localDataObjectField);
-						generator.Emit(OpCodes.Ldfld, predicateField);
+						generator.Emit(OpCodes.Ldfld, localPredicateField);
 						generator.Emit(OpCodes.Brfalse, label2);
 
 						generator.Emit(OpCodes.Ldloc, currentObject);
@@ -2332,10 +2334,13 @@ namespace Shaolinq.TypeBuilding
 						}
 
 						generator.Emit(OpCodes.Br, done);
+						generator.MarkLabel(label2);
 					}
-
-					generator.MarkLabel(label2);
-
+					else
+					{
+						generator.Emit(OpCodes.Brfalse, continueLabel);
+					}
+					
 					if (checkChanged)
 					{
 						if (!changedSet)
@@ -2356,7 +2361,7 @@ namespace Shaolinq.TypeBuilding
 					{
 						generator.Emit(OpCodes.Ldloc, currentObject);
 						generator.Emit(OpCodes.Ldfld, localDataObjectField);
-						generator.Emit(OpCodes.Ldfld, predicateField);
+						generator.Emit(OpCodes.Ldfld, localPredicateField);
 						generator.Emit(OpCodes.Brfalse, label);
 
 						generator.Emit(OpCodes.Ldloc, currentObject);
