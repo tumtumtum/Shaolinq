@@ -293,8 +293,11 @@ namespace Shaolinq.Persistence.Linq
 
 				if (optimisedNewArgument != newArgument)
 				{
-					canReuse = false;
-					this.parameterIndexToPlaceholderIndexes = null;
+					if (SqlExpressionFinder.FindExists(arguments[1], c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder))
+					{
+						canReuse = false;
+						this.parameterIndexToPlaceholderIndexes = null;
+					}
 				}
 
 				var list = new List<Expression>
@@ -313,8 +316,11 @@ namespace Shaolinq.Persistence.Linq
 
 				if (optimisedNewArgument != newArgument)
 				{
-					canReuse = false;
-					this.parameterIndexToPlaceholderIndexes = null;
+					if (SqlExpressionFinder.FindExists(arguments[1], c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder))
+					{
+						canReuse = false;
+						this.parameterIndexToPlaceholderIndexes = null;
+					}
 				}
 
 				var list = new List<Expression>
@@ -332,8 +338,11 @@ namespace Shaolinq.Persistence.Linq
 
 				if (optimisedNewArgument != newArgument)
 				{
-					canReuse = false;
-					this.parameterIndexToPlaceholderIndexes = null;
+					if (SqlExpressionFinder.FindExists(arguments[1], c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder))
+					{
+						canReuse = false;
+						this.parameterIndexToPlaceholderIndexes = null;
+					}
 				}
 
 				var list = new List<Expression>
@@ -525,7 +534,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedOptions = this.options;
 
-				// Preserve cacheability of null values
+				// Never optimise-out null constant placeholders
 
 				this.options &= ~SqlQueryFormatterOptions.OptimiseOutConstantNulls;
 
