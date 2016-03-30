@@ -6,7 +6,7 @@ using Shaolinq.Persistence.Linq.Expressions;
 namespace Shaolinq.SqlServer
 {
 	public class SqlServerUniqueNullIndexAnsiComplianceFixer
-	: SqlExpressionVisitor
+		: SqlExpressionVisitor
 	{
 		public static Expression Fix(Expression expression)
 		{
