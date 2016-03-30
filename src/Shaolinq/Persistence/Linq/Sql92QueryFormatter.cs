@@ -558,9 +558,6 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if ((this.options & SqlQueryFormatterOptions.OptimiseOutConstantNulls) != 0)
 				{
-					this.canReuse = false;
-					this.parameterIndexToPlaceholderIndexes = null;
-
 					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null));
 				}
 				else
