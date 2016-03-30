@@ -11,17 +11,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class SqlSubCollectionOrderByAmender
 		: SqlExpressionVisitor
 	{
-		private readonly DataAccessModel dataAccessModel;
 		private SqlProjectionExpression currentProjection;
+		private readonly TypeDescriptorProvider typeDescriptorProvider;
 
-		private SqlSubCollectionOrderByAmender(DataAccessModel dataAccessModel)
+		private SqlSubCollectionOrderByAmender(TypeDescriptorProvider typeDescriptorProvider)
 		{
-			this.dataAccessModel = dataAccessModel;
+			this.typeDescriptorProvider = typeDescriptorProvider;
 		}
 
-		public static Expression Amend(DataAccessModel dataAccessModel, Expression expression)
+		public static Expression Amend(TypeDescriptorProvider typeDescriptorProvider, Expression expression)
 		{
-			return new SqlSubCollectionOrderByAmender(dataAccessModel).Visit(expression);
+			return new SqlSubCollectionOrderByAmender(typeDescriptorProvider).Visit(expression);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
@@ -39,7 +39,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			var aliasesAndTypes = SqlAliasTypeCollector.Collect(selectExpression)
-				.ToDictionary(c => c.Item1, c => dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(c.Item2.GetSequenceElementType() ?? c.Item2));
+				.ToDictionary(c => c.Item1, c => typeDescriptorProvider.GetTypeDescriptor(c.Item2.GetSequenceElementType() ?? c.Item2));
 
 			List<Expression> orderBys = null;
 			var includeJoins = selectExpression.From.GetIncludeJoins().ToList();
@@ -57,8 +57,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (leftMostColumns == null)
 				{
-					var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(objectType);
-					var primaryKeyColumns = new HashSet<string>(QueryBinder.GetPrimaryKeyColumnInfos(this.dataAccessModel.TypeDescriptorProvider, typeDescriptor).Select(c => c.ColumnName));
+					var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(objectType);
+					var primaryKeyColumns = new HashSet<string>(QueryBinder.GetPrimaryKeyColumnInfos(this.typeDescriptorProvider, typeDescriptor).Select(c => c.ColumnName));
 					
 					leftMostColumns = primaryKeyColumns
 						.Select(c => new SqlColumnExpression(objectType, left.SelectAlias, c))

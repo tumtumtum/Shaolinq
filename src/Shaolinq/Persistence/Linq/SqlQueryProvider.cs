@@ -138,7 +138,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlCrossJoinRewriter.Rewrite(expression);
 			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
-			expression = SqlSubCollectionOrderByAmender.Amend(dataAccessModel, expression);
+			expression = SqlSubCollectionOrderByAmender.Amend(dataAccessModel.TypeDescriptorProvider, expression);
 			expression = SqlOrderByRewriter.Rewrite(expression);
 
 			var rewritten = SqlCrossApplyRewriter.Rewrite(expression);
