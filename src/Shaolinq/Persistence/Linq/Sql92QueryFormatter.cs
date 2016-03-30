@@ -1047,9 +1047,17 @@ namespace Shaolinq.Persistence.Linq
 			this.Visit(createIndexExpression.Table);
 			this.Write("(");
 			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, c => this.Visit(c));
-			this.WriteLine(");");
+			this.WriteLine(")");
 
-			return createIndexExpression;
+		    if (createIndexExpression.Where != null)
+		    {
+		        this.Write("WHERE ");
+		        this.Visit(createIndexExpression.Where);
+		    }
+
+            this.WriteLine(";");
+
+		    return createIndexExpression;
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)

@@ -69,6 +69,7 @@
     <Compile Include="SqlServerSqlTransactionsCommandContext.cs" />
     <Compile Include="SqlServerStringDateTimeType.cs" />
     <Compile Include="SqlServerSubqueryOrderByFixer.cs" />
+    <Compile Include="SqlServerUniqueNullIndexAnsiComplianceFixer.cs" />
     <Compile Include="SqlTakeAllValueExpression.cs" />
   </ItemGroup>
   <ItemGroup>

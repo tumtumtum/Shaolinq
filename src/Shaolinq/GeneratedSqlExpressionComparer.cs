@@ -1162,6 +1162,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            this.currentObject = current.Where;
+            this.Visit(expression.Where);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current.Columns;
             this.VisitExpressionList(expression.Columns);
             if (!this.result)

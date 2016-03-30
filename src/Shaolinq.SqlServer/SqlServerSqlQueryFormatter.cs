@@ -91,7 +91,6 @@ namespace Shaolinq.SqlServer
 			return base.VisitUnary(unaryExpression);
 		}
 
-
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
 			if (constantExpression.Value == null)
@@ -121,8 +120,10 @@ namespace Shaolinq.SqlServer
 			expression = SqlServerLimitAmender.Amend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
 			expression = SqlServerDateTimeFunctionsAmender.Amend(expression);
+		    expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression);
 
-			return base.PreProcess(expression);
+
+            return base.PreProcess(expression);
 		}
 
 		protected override void AppendTop(SqlSelectExpression selectExpression)
