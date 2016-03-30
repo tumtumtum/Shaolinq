@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		public string CommandText { get; }
 		public IReadOnlyList<TypedValue> ParameterValues { get; }
 	    public Dictionary<int, int> ParameterIndexToPlaceholderIndexes;
-	    public bool CanReuse => ParameterIndexToPlaceholderIndexes != null;
+	    public bool Cacheable => ParameterIndexToPlaceholderIndexes != null;
 	    public Dictionary<int, int> PlaceholderIndexToParameterIndex;
 	    
         public SqlQueryFormatResult(SqlQueryFormatter formatter, string commandText, IEnumerable<TypedValue> parameterValues, IReadOnlyList<Pair<int, int>> parameterIndexToPlaceholderIndexes)

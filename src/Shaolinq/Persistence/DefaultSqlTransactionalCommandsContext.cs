@@ -20,19 +20,19 @@ namespace Shaolinq.Persistence
 	{
 		protected static readonly ILog Logger = LogProvider.GetLogger("Shaolinq.Query");
 
-		protected internal struct SqlCommandValue
+		protected internal struct SqlCachedUpdateInsertFormatValue
 		{
 			public SqlQueryFormatResult formatResult;
 			public int[] valueIndexesToParameterPlaceholderIndexes;
 			public int[] primaryKeyIndexesToParameterPlaceholderIndexes;
 		}
 
-		protected internal struct SqlCommandKey
+		protected internal struct SqlCachedUpdateInsertFormatKey
 		{
 			public readonly Type dataAccessObjectType;
 			public readonly IList<ObjectPropertyValue> changedProperties;
 
-			public SqlCommandKey(Type dataAccessObjectType, IList<ObjectPropertyValue> changedProperties)
+			public SqlCachedUpdateInsertFormatKey(Type dataAccessObjectType, IList<ObjectPropertyValue> changedProperties)
 			{
 				this.dataAccessObjectType = dataAccessObjectType;
 				this.changedProperties = changedProperties;
@@ -40,11 +40,11 @@ namespace Shaolinq.Persistence
 		}
 
 		protected internal class CommandKeyComparer
-			: IEqualityComparer<SqlCommandKey>
+			: IEqualityComparer<SqlCachedUpdateInsertFormatKey>
 		{
 			public static readonly CommandKeyComparer Default = new CommandKeyComparer();
 
-			public bool Equals(SqlCommandKey x, SqlCommandKey y)
+			public bool Equals(SqlCachedUpdateInsertFormatKey x, SqlCachedUpdateInsertFormatKey y)
 			{
 				if (x.dataAccessObjectType != y.dataAccessObjectType)
 				{
@@ -67,7 +67,7 @@ namespace Shaolinq.Persistence
 				return true;
 			}
 
-			public int GetHashCode(SqlCommandKey obj)
+			public int GetHashCode(SqlCachedUpdateInsertFormatKey obj)
 			{
 				var count = obj.changedProperties.Count;
 				var retval = obj.dataAccessObjectType.GetHashCode() ^ count;
@@ -258,11 +258,11 @@ namespace Shaolinq.Persistence
 			return parameter;
 		}
 
-		private void FillParameters(IDbCommand command, SqlCommandValue commandValue, IReadOnlyCollection<ObjectPropertyValue> changedProperties, IReadOnlyCollection<ObjectPropertyValue> primaryKeys)
+		private void FillParameters(IDbCommand command, SqlCachedUpdateInsertFormatValue cachedValue, IReadOnlyCollection<ObjectPropertyValue> changedProperties, IReadOnlyCollection<ObjectPropertyValue> primaryKeys)
 		{
 			if (changedProperties == null && primaryKeys == null)
 			{
-				foreach (var parameter in commandValue.formatResult.ParameterValues)
+				foreach (var parameter in cachedValue.formatResult.ParameterValues)
 				{
 					this.AddParameter(command, parameter.Type, parameter.Value);
 				}
@@ -270,7 +270,7 @@ namespace Shaolinq.Persistence
 				return;
 			}
 
-			if (commandValue.formatResult.ParameterValues.Count == (changedProperties?.Count ?? 0) + (primaryKeys?.Count ?? 0))
+			if (cachedValue.formatResult.ParameterValues.Count == (changedProperties?.Count ?? 0) + (primaryKeys?.Count ?? 0))
 			{
 				foreach (var value in changedProperties)
 				{
@@ -288,7 +288,7 @@ namespace Shaolinq.Persistence
 				return;
 			}
 
-			var newParameters = new List<TypedValue>(commandValue.formatResult.ParameterValues);
+			var newParameters = new List<TypedValue>(cachedValue.formatResult.ParameterValues);
 			
 			if (changedProperties != null)
 			{
@@ -296,12 +296,17 @@ namespace Shaolinq.Persistence
 
 			    foreach (var changed in changedProperties)
 			    {
-			        var temp = commandValue.valueIndexesToParameterPlaceholderIndexes[i];
-			        var parameterIndex = commandValue.formatResult.PlaceholderIndexToParameterIndex[temp];
-                    var typedValue = newParameters[parameterIndex];
+			        var temp = cachedValue.valueIndexesToParameterPlaceholderIndexes[i];
+				    int parameterIndex;
 
-			        newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
-			        i++;
+				    if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
+				    {
+					    var typedValue = newParameters[parameterIndex];
+
+					    newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
+				    }
+
+				    i++;
 			    }
             }
 
@@ -311,12 +316,17 @@ namespace Shaolinq.Persistence
                 
                 foreach (var changed in primaryKeys)
                 {
-                    var temp = commandValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
-                    var parameterIndex = commandValue.formatResult.PlaceholderIndexToParameterIndex[temp];
-                    var typedValue = newParameters[parameterIndex];
+                    var temp = cachedValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
+	                int parameterIndex;
 
-                    newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
-                    i++;
+	                if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
+	                {
+		                var typedValue = newParameters[parameterIndex];
+
+		                newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
+	                }
+
+	                i++;
                 }
             }
 
@@ -356,11 +366,14 @@ namespace Shaolinq.Persistence
 				assignments.Add(Expression.Call(null, m, parameter1, Expression.Constant(updated.PersistedName), placeholder));
 			}
 
-			Expression where = null;
-			
-			Debug.Assert(primaryKeys.Length > 0);
-
 			var parameter = Expression.Parameter(typeDescriptor.Type);
+
+			if (primaryKeys.Length <= 0)
+			{
+				throw new InvalidOperationException("Expected more than 1 primary key");
+			}
+
+			Expression where = null;
 
 			foreach (var primaryKey in primaryKeys)
 			{
@@ -399,7 +412,7 @@ namespace Shaolinq.Persistence
 
 			expression = projectionExpression.Select.From;
 
-			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default);
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression);
 
 			IDbCommand command = null;
 
@@ -409,9 +422,9 @@ namespace Shaolinq.Persistence
 
 				command.CommandText = result.CommandText;
 
-				var commandValue = new SqlCommandValue { formatResult = result };
+				var cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result };
 
-				FillParameters(command, commandValue, null, null);
+				FillParameters(command, cachedValue, null, null);
 
 				success = true;
 
@@ -431,7 +444,7 @@ namespace Shaolinq.Persistence
 			bool valuesPredicated;
 			bool primaryKeysPredicated;
 			IDbCommand command = null;
-			SqlCommandValue sqlCommandValue;
+			SqlCachedUpdateInsertFormatValue cachedValue;
 			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out valuesPredicated);
 
 			if (updatedProperties.Count == 0)
@@ -447,16 +460,16 @@ namespace Shaolinq.Persistence
 				return BuildUpdateCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, valuesPredicated, primaryKeysPredicated, updatedProperties, primaryKeys);
 			}
 
-			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
+			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties);
 		
-			if (this.TryGetUpdateCommand(commandKey, out sqlCommandValue))
+			if (this.TryGetUpdateCommand(commandKey, out cachedValue))
 			{
 				try
 				{
 					command = this.CreateCommand();
+					command.CommandText = cachedValue.formatResult.CommandText;
 
-					command.CommandText = sqlCommandValue.formatResult.CommandText;
-					this.FillParameters(command, sqlCommandValue, updatedProperties, primaryKeys);
+					this.FillParameters(command, cachedValue, updatedProperties, primaryKeys);
 
 					success = true;
 
@@ -522,22 +535,21 @@ namespace Shaolinq.Persistence
 
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 
-			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default);
 
 			try
 			{
 				command = this.CreateCommand();
-
 				command.CommandText = result.CommandText;
 
-				sqlCommandValue = new SqlCommandValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = primaryKeyIndexesToParameterPlaceholderIndexes };
+				cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = primaryKeyIndexesToParameterPlaceholderIndexes };
 
-				if (result.CanReuse && (!valuesPredicated && !primaryKeysPredicated))
+				if (result.Cacheable)
 				{
-					this.CacheUpdateCommand(commandKey, sqlCommandValue);
+					this.CacheUpdateCommand(commandKey, cachedValue);
 				}
 
-				FillParameters(command, sqlCommandValue, null, null);
+				FillParameters(command, cachedValue, null, null);
 				
 				success = true;
 
@@ -552,7 +564,7 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected IDbCommand BuildInsertCommandForDeflatedPredicated(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject, bool predicated, List<ObjectPropertyValue> updatedProperties)
+		protected IDbCommand BuildInsertCommandForDeflatedPredicated(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject, List<ObjectPropertyValue> updatedProperties)
 		{
 			var constantPlaceholdersCount = 0;
 			var assignments = new List<Expression>();
@@ -609,12 +621,11 @@ namespace Shaolinq.Persistence
 			try
 			{
 				command = this.CreateCommand();
-
 				command.CommandText = result.CommandText;
 
-				var commandValue = new SqlCommandValue { formatResult = result };
+				var cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result };
 
-				FillParameters(command, commandValue, null, null);
+				FillParameters(command, cachedValue, null, null);
 
 				success = true;
 
@@ -633,25 +644,25 @@ namespace Shaolinq.Persistence
 		{
 			var success = false;
 			IDbCommand command = null;
-			SqlCommandValue sqlCommandValue;
+			SqlCachedUpdateInsertFormatValue cachedValue;
 			bool predicated;
 
 			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out predicated);
 
 			if (predicated)
 			{
-				return BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, predicated, updatedProperties);
+				return BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, updatedProperties);
 			}
 
-			var commandKey = new SqlCommandKey(dataAccessObject.GetType(), updatedProperties);
+			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties);
 
-			if (this.TryGetInsertCommand(commandKey, out sqlCommandValue) && false)
+			if (this.TryGetInsertCommand(commandKey, out cachedValue))
 			{
 				try
 				{
 					command = this.CreateCommand();
-					command.CommandText = sqlCommandValue.formatResult.CommandText;
-					this.FillParameters(command, sqlCommandValue, updatedProperties, null);
+					command.CommandText = cachedValue.formatResult.CommandText;
+					this.FillParameters(command, cachedValue, updatedProperties, null);
 
 					success = true;
 
@@ -713,7 +724,7 @@ namespace Shaolinq.Persistence
 				expression = new SqlStatementListExpression(list);
 			}
 
-			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression, SqlQueryFormatterOptions.Default & ~SqlQueryFormatterOptions.OptimiseOutConstantNulls);
+			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression);
 
 			try
 			{
@@ -722,11 +733,14 @@ namespace Shaolinq.Persistence
 				var commandText = result.CommandText;
 
 				command.CommandText = commandText;
-				sqlCommandValue = new SqlCommandValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = null };
+				cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = null };
 
+				if (result.Cacheable)
+				{
+					this.CacheInsertCommand(commandKey, cachedValue);
+				}
 
-                //this.CacheInsertCommand(commandKey, sqlCommandValue);
-				this.FillParameters(command, sqlCommandValue, updatedProperties, null);
+				this.FillParameters(command, cachedValue, updatedProperties, null);
 
 				success = true;
 
@@ -741,28 +755,28 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected void CacheInsertCommand(SqlCommandKey sqlCommandKey, SqlCommandValue sqlCommandValue)
+		protected void CacheInsertCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedInsertSqlCache, CommandKeyComparer.Default) { [sqlCommandKey] = sqlCommandValue };
+			var newDictionary = new Dictionary<SqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue>(this.SqlDatabaseContext.formattedInsertSqlCache, CommandKeyComparer.Default) { [sqlCachedUpdateInsertFormatKey] = sqlCachedUpdateInsertFormatValue };
 			
 			this.SqlDatabaseContext.formattedInsertSqlCache = newDictionary;
 		}
 
-		protected bool TryGetInsertCommand(SqlCommandKey sqlCommandKey, out SqlCommandValue sqlCommandValue)
+		protected bool TryGetInsertCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, out SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			return this.SqlDatabaseContext.formattedInsertSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
+			return this.SqlDatabaseContext.formattedInsertSqlCache.TryGetValue(sqlCachedUpdateInsertFormatKey, out sqlCachedUpdateInsertFormatValue);
 		}
 
-		protected void CacheUpdateCommand(SqlCommandKey sqlCommandKey, SqlCommandValue sqlCommandValue)
+		protected void CacheUpdateCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			var newDictionary = new Dictionary<SqlCommandKey, SqlCommandValue>(this.SqlDatabaseContext.formattedUpdateSqlCache, CommandKeyComparer.Default) { [sqlCommandKey] = sqlCommandValue };
+			var newDictionary = new Dictionary<SqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue>(this.SqlDatabaseContext.formattedUpdateSqlCache, CommandKeyComparer.Default) { [sqlCachedUpdateInsertFormatKey] = sqlCachedUpdateInsertFormatValue };
 			
 			this.SqlDatabaseContext.formattedUpdateSqlCache = newDictionary;
 		}
 
-		protected bool TryGetUpdateCommand(SqlCommandKey sqlCommandKey, out SqlCommandValue sqlCommandValue)
+		protected bool TryGetUpdateCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, out SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCommandKey, out sqlCommandValue);
+			return this.SqlDatabaseContext.formattedUpdateSqlCache.TryGetValue(sqlCachedUpdateInsertFormatKey, out sqlCachedUpdateInsertFormatValue);
 		}
 	}
 }

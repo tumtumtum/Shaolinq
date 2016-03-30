@@ -525,6 +525,8 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedOptions = this.options;
 
+				// Preserve cacheability of null values
+
 				this.options &= ~SqlQueryFormatterOptions.OptimiseOutConstantNulls;
 
 				var retval = base.VisitConstantPlaceholder(constantPlaceholderExpression);
@@ -538,10 +540,6 @@ namespace Shaolinq.Persistence.Linq
 			        var index = startIndex;
 
 			        parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
-			    }
-			    else
-			    {
-			        canReuse = false;
 			    }
 
 				return retval;
@@ -560,6 +558,9 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if ((this.options & SqlQueryFormatterOptions.OptimiseOutConstantNulls) != 0)
 				{
+					this.canReuse = false;
+					this.parameterIndexToPlaceholderIndexes = null;
+
 					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null));
 				}
 				else

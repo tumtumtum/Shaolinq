@@ -195,13 +195,13 @@ namespace Shaolinq.Persistence.Linq
 				var oldCache = this.SqlDatabaseContext.projectionExpressionCache;
 				var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
-				var formatResultForCache = formatResult;
+				SqlQueryFormatResult formatResultForCache = null;
 
-				if (formatResult.ParameterIndexToPlaceholderIndexes != null)
+				if (formatResult.Cacheable)
 				{
 					var parameters = formatResult.ParameterValues.ToList();
 
-				    foreach (var index in formatResult.ParameterIndexToPlaceholderIndexes.Keys)
+					foreach (var index in formatResult.ParameterIndexToPlaceholderIndexes.Keys)
 					{
 						var value = parameters[index];
 
@@ -210,7 +210,19 @@ namespace Shaolinq.Persistence.Linq
 
 					formatResultForCache = formatResult.ChangeParameterValues(parameters);
 				}
+				else
+				{
+					if (!skipFormatResultSubstitution)
+					{
+						// Edge case where inner projection from ProjectionBuilder can't be cached (related DeflatedPredicated with a complex predicate)
 
+						skipFormatResultSubstitution = true;
+
+						projectionExpression = (SqlProjectionExpression)SqlConstantPlaceholderReplacer.Replace(projectionExpression, placeholderValues);
+
+						formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
+					}
+				}
 				
 				cacheInfo = new ProjectorExpressionCacheInfo(projectionExpression, formatResultForCache);
 
@@ -236,13 +248,13 @@ namespace Shaolinq.Persistence.Linq
 
 					newCache[key] = cacheInfo;
 
-					//this.SqlDatabaseContext.projectionExpressionCache = newCache;
+					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 				else
 				{
 					var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(oldCache, ExpressionCacheKeyEqualityComparer.Default) { [key] = cacheInfo };
 
-					//this.SqlDatabaseContext.projectionExpressionCache = newCache;
+					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 
 				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult)}\n\nProjector:\n{cacheInfo.projector}");
@@ -260,11 +272,12 @@ namespace Shaolinq.Persistence.Linq
 				placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(projectionExpression);
 			}
 
-			if (cacheInfo.formatResult?.ParameterIndexToPlaceholderIndexes == null)
+			if (cacheInfo.formatResult == null)
 			{
-				var projectorForFormat = SqlConstantPlaceholderReplacer.Replace(cacheInfo.projectionExpression, placeholderValues);
+				var projector = SqlConstantPlaceholderReplacer.Replace(cacheInfo.projectionExpression, placeholderValues);
+				var optimizedProjector = Optimize(this.DataAccessModel, this.SqlDatabaseContext, projector);
 
-				cacheInfo.formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectorForFormat);
+				cacheInfo.formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(optimizedProjector);
 			}
 			else if (!skipFormatResultSubstitution)
 			{
