@@ -136,7 +136,6 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlExistsSubqueryOptimizer.Optimize(expression);
 			expression = SqlRedundantBinaryExpressionsRemover.Remove(expression);
 			expression = SqlCrossJoinRewriter.Rewrite(expression);
-			expression = SqlRedundantFunctionCallRemover.Remove(expression);
 			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
 			expression = SqlSubCollectionOrderByAmender.Amend(dataAccessModel, expression);
@@ -171,6 +170,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);
 			expression = SqlTupleOrAnonymousTypeComparisonExpander.Expand(expression);
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
+			expression = SqlRedundantFunctionCallRemover.Remove(expression);
 
 			return expression;
 		}

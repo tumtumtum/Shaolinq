@@ -2054,6 +2054,35 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public void Test_Select_List_Contains5()
+		{
+			var ids1 = new List<Guid>();
+			var ids2 = this.model.Students.Select(c => c.Id).Take(1).ToList();
+
+			using (var scope = NewTransactionScope())
+			{
+				var list = this.model.Students.Where(c => c.SerialNumber1 != 9999991123 && !ids1.Contains(c.Id))
+					.Select(c => c.Id)
+					.ToList();
+
+				Assert.AreEqual(this.model.Students.Count(), list.Count);
+
+				scope.Complete();
+			}
+
+			using (var scope = NewTransactionScope())
+			{
+				var list = this.model.Students.Where(c => c.SerialNumber1 != 9999991123 && !ids2.Contains(c.Id))
+					.Select(c => c.Id)
+					.ToList();
+
+				Assert.AreEqual(this.model.Students.Count() - 1, list.Count);
+
+				scope.Complete();
+			}
+		}
+
 		private class KeyCount
 		{
 			public DateTime Key { get; set; }
