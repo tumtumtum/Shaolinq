@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence
 	public abstract class SqlDatabaseSchemaManager
 		: IDisposable
 	{
-		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+		protected static readonly ILog Logger = LogProvider.GetLogger("Shaolinq.Query");
 
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 		public ServerSqlDataDefinitionExpressionBuilder ServerSqlDataDefinitionExpressionBuilder { get; }
@@ -39,7 +39,8 @@ namespace Shaolinq.Persistence
 			{
 				
 			}
-				return null;
+
+			return null;
 		}
 
 		protected virtual SqlDataDefinitionBuilderFlags GetBuilderFlags()
@@ -68,7 +69,7 @@ namespace Shaolinq.Persistence
 						{
 							command.CommandText = result.CommandText;
 
-							Logger.Debug(command.CommandText);
+							Logger.Info(command.CommandText);
 
 							command.ExecuteNonQuery();
 						}

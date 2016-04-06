@@ -27,6 +27,7 @@ namespace Shaolinq.SqlServer
 			{
 			case SqlCapability.InsertOutput:
 			case SqlCapability.PragmaIdentityInsert:
+			case SqlCapability.IndexInclude:
 				return true;
 			case SqlCapability.MultipleActiveResultSets:
 				return marsEnabled;

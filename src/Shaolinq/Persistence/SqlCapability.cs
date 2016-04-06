@@ -12,6 +12,7 @@ namespace Shaolinq.Persistence
 		IndexNameCasing,
 		IndexToLower,
 		InsertOutput,
+		IndexInclude,
 		InsertIntoReturning,
 		ForeignKeys,
 		InlineForeignKeys,

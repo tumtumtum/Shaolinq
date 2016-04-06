@@ -275,15 +275,25 @@ namespace Shaolinq.Persistence.Linq
 
 			var indexedColumns = new List<SqlIndexedColumnExpression>();
 
-			foreach (var attributeAndProperty in sorted)
+			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.DontIndexButIncludeValue))
 			{
 				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
 				{
 					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName), attributeAndProperty.Item1.SortOrder, attributeAndProperty.Item1.LowercaseIndex));
 				}
 			}
-				
-			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, indexedColumns);
+
+			var includedColumns = new List<SqlColumnExpression>();
+
+			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.DontIndexButIncludeValue))
+			{
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
+				{
+					includedColumns.Add(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName));
+				}
+			}
+
+			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, indexedColumns, includedColumns);
 		}
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
@@ -300,7 +310,12 @@ namespace Shaolinq.Persistence.Linq
 
 				var propertyDescriptors = group.ToArray();
 
-				yield return this.BuildIndexExpression(table, indexName, propertyDescriptors);
+				var index = this.BuildIndexExpression(table, indexName, propertyDescriptors);
+
+				if (index != null)
+				{
+					yield return index;
+				}
 			}
 		}
 

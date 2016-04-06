@@ -1049,9 +1049,21 @@ namespace Shaolinq.Persistence.Linq
 			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, c => this.Visit(c));
 			this.WriteLine(")");
 
+			if (this.sqlDialect.SupportsCapability(SqlCapability.IndexInclude))
+			{
+				if (createIndexExpression.IncludedColumns?.Count > 0)
+				{
+					this.Write(" INCLUDE ");
+
+					this.Write("(");
+					this.WriteDeliminatedListOfItems(createIndexExpression.IncludedColumns, c => this.Visit(c));
+					this.WriteLine(")");
+				}
+			}
+
 		    if (createIndexExpression.Where != null)
 		    {
-		        this.Write("WHERE ");
+		        this.Write(" WHERE ");
 		        this.Visit(createIndexExpression.Where);
 		    }
 
