@@ -121,8 +121,7 @@ namespace Shaolinq.SqlServer
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
 			expression = SqlServerDateTimeFunctionsAmender.Amend(expression);
 		    expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression);
-
-
+			
             return base.PreProcess(expression);
 		}
 

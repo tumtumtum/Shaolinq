@@ -9,10 +9,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public Expression Source { get; }
-		public IReadOnlyList<Expression> OrderBy { get; }
+		public IReadOnlyList<SqlOrderByExpression> OrderBy { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Over;
 		
-		public SqlOverExpression(Expression source, IReadOnlyList<Expression> orderBy)
+		public SqlOverExpression(Expression source, IReadOnlyList<SqlOrderByExpression> orderBy)
 			: base(typeof(void))
 		{
 			this.Source = source;

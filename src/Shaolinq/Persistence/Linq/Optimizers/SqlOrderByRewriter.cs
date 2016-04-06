@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Move OrderBy expressions to the outer most select
 	/// </summary>
-	internal class SqlOrderByRewriter
+	public class SqlOrderByRewriter
 		: SqlExpressionVisitor
 	{
 		private bool isOuterMostSelect;
@@ -68,7 +68,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					}
 				}
 
-				if (canHaveOrderBy && (orderings != select.OrderBy || columns != select.Columns))
+				if (orderings != select.OrderBy || columns != select.Columns)
 				{
 					select = new SqlSelectExpression(select.Type, select.Alias, columns, select.From, select.Where, orderings, select.GroupBy, select.Distinct, select.Skip, select.Take, select.ForUpdate);
 				}

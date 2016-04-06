@@ -59,6 +59,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return new SqlSelectExpression(this.Type, this.Alias, columnsAlreadyOrdered ? columns.ToReadOnlyCollection() : columns.OrderBy(c => c.Name).ToReadOnlyCollection(), this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, this.Take, this.Skip, this.ForUpdate);
 		}
 
+		public SqlSelectExpression ChangeAlias(string alias)
+		{
+			return new SqlSelectExpression(this.Type, alias, this.Columns, this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, this.Take, this.Skip, this.ForUpdate);
+		}
+
 		public SqlSelectExpression ChangeWhere(Expression where)
 		{
 			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, where, this.OrderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, this.ForUpdate, this.Reverse);

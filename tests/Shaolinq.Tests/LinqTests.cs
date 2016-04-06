@@ -2697,6 +2697,42 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Skip_With_Distinct()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result = this.model.Students.Select(c => new { c.Lastname }).Distinct().Skip(1).ToList().OrderBy(c => c.Lastname).ToList();
+				var result2 = this.model.Students.ToList().Select(c => new { c.Lastname }).Distinct().Skip(1).ToList().OrderBy(c => c.Lastname).ToList();
+
+				Assert.IsTrue(result.SequenceEqual(result2));
+			}
+		}
+		
+		[Test]
+		public void Test_Skip_With_OrderBy()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result = this.model.Students.OrderBy(c => c.Nickname).Skip(1).ToList();
+				var result2 = this.model.Students.ToList().OrderBy(c => c.Nickname).Skip(1).ToList();
+
+				Assert.IsTrue(result.SequenceEqual(result2));
+			}
+		}
+
+		[Test]
+		public void Test_Skip_With_Distinct_OrderBy()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result = this.model.Students.Select(c => c.Nickname).OrderBy(c => c).Distinct().Skip(1).ToList();
+				var result2 = this.model.Students.ToList().Select(c => c.Nickname).OrderBy(c => c).Distinct().Skip(1).ToList();
+
+				Assert.IsTrue(result.SequenceEqual(result2));
+			}
+		}
+
+		[Test]
 		public void Test_SelectMany()
 		{
 			using (var scope = NewTransactionScope())
