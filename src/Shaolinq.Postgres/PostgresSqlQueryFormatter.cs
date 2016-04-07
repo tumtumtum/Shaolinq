@@ -42,6 +42,23 @@ namespace Shaolinq.Postgres
 			return expression;
 		}
 
+		protected override Expression VisitOrderBy(SqlOrderByExpression orderByExpression)
+		{
+			base.VisitOrderBy(orderByExpression);
+
+			switch (orderByExpression.OrderType)
+			{
+			case OrderType.Ascending:
+				this.Write(" NULLS FIRST");
+				break;
+			default:
+				this.Write(" NULLS LAST");
+				break;
+			}
+
+			return orderByExpression;
+		}
+
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)
 		{
 			var function = functionCallExpression.Function;

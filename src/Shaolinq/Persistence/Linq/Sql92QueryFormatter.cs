@@ -788,15 +788,9 @@ namespace Shaolinq.Persistence.Linq
 					this.WriteLine();
 					this.Write("ORDER BY ");
 
-
 					this.WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
 					{
 						this.Visit(c);
-
-						if (((SqlOrderByExpression)c).OrderType == OrderType.Descending)
-						{
-							this.Write(" DESC");
-						}
 					});
 				}
 
@@ -818,6 +812,18 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return selectExpression;
+		}
+
+		protected override Expression VisitOrderBy(SqlOrderByExpression orderByExpression)
+		{
+			base.VisitOrderBy(orderByExpression);
+
+			if (((SqlOrderByExpression)orderByExpression).OrderType == OrderType.Descending)
+			{
+				this.Write(" DESC");
+			}
+
+			return orderByExpression;
 		}
 
 		protected virtual void AppendTop(SqlSelectExpression selectExpression)
