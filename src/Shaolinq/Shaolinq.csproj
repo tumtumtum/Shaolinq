@@ -476,7 +476,6 @@
   <ItemGroup>
     <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
   </ItemGroup>
-<!--
   <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
   <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
   <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.Rewriter/bin/$(Configuration)/Shaolinq.Rewriter.dll" />
@@ -489,7 +488,6 @@
     <NugetContentRestoreTask SolutionDir="$(SolutionDir)" ProjectDir="$(ProjectDir)" />
     <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateSource" WorkingDirectory="." />
   </Target>
--->
   <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
