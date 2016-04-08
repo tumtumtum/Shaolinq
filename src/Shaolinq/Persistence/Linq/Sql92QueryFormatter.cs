@@ -736,13 +736,13 @@ namespace Shaolinq.Persistence.Linq
 
 				this.Write("SELECT ");
 
-				this.AppendTop(selectExpression);
-
 				if (selectExpression.Distinct)
 				{
 					this.Write("DISTINCT ");
 				}
 
+				this.AppendTop(selectExpression);
+				
 				if (selectExpression.Columns.Count == 0)
 				{
 					this.Write("* ");

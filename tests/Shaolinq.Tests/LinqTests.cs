@@ -2705,7 +2705,17 @@ namespace Shaolinq.Tests
 				var result2 = this.model.Students.ToList().Select(c => new { c.Lastname }).Distinct().Skip(1).ToList();
 			}
 		}
-		
+
+		[Test]
+		public void Test_Take_With_Distinct()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result = this.model.Students.Select(c => new { c.Lastname }).Distinct().Take(1).ToList();
+				var result2 = this.model.Students.ToList().Select(c => new { c.Lastname }).Distinct().Take(1).ToList();
+			}
+		}
+
 		[Test]
 		public void Test_Skip_With_OrderBy()
 		{
