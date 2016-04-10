@@ -3088,5 +3088,18 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
+
+		[Test]
+		public virtual void Test_Query_With_Skip_Take_OrderBy()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = this.model.Students.Skip(0).Take(100).Where(c => c.FavouriteNumber > 10).OrderByDescending(c => c.Nickname).ToList();
+
+				Assert.AreEqual(1, results.ToList().Count);
+			}
+		}
 	}
 }
