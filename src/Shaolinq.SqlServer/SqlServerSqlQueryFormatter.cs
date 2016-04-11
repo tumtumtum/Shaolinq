@@ -164,11 +164,6 @@ namespace Shaolinq.SqlServer
 			this.WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
 			{
 				this.Visit(c);
-
-				if (((SqlOrderByExpression)c).OrderType == OrderType.Descending)
-				{
-					this.Write(" DESC");
-				}
 			});
 
 			this.Write(")");

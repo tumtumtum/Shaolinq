@@ -109,14 +109,14 @@ namespace Shaolinq
 				throw new TransactionAbortedException();
 			}
 
-			var contexts = dataAccessTransaction.dataAccessModelsByTransactionContext;
+			var contexts = dataAccessTransaction.transactionContextsByDataAccessModel;
 
 			var skipTest = false;
 			
 			if (contexts == null)
 			{
 				skipTest = true;
-				contexts = dataAccessTransaction.dataAccessModelsByTransactionContext = new Dictionary<DataAccessModel, TransactionContext>();
+				contexts = dataAccessTransaction.transactionContextsByDataAccessModel = new Dictionary<DataAccessModel, TransactionContext>();
 			}
 
 			if (skipTest || !contexts.TryGetValue(dataAccessModel, out context))
@@ -265,14 +265,14 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
-			Dispose(true);
+			this.Dispose(true);
 
 			GC.SuppressFinalize(this);
 		}
 
 		protected void Dispose(bool disposing)
 		{
-			if (disposed)
+			if (this.disposed)
 			{
 				return;
 			}
@@ -299,12 +299,12 @@ namespace Shaolinq
 			try
 			{
 				this.DataAccessTransaction?.RemoveTransactionContext(this);
-
 				this.dataAccessModel.AsyncLocalTransactionContext = null;
+				this.dataAccessObjectDataContext = null;
 			}
 			finally
 			{
-				disposed = true;
+				this.disposed = true;
 
 				if (exceptions?.Count > 0)
 				{

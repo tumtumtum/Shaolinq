@@ -46,11 +46,11 @@ namespace Shaolinq
 		internal DataAccessScope scope;
 		internal Transaction SystemTransaction { get; set; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
-		internal Dictionary<DataAccessModel, TransactionContext> dataAccessModelsByTransactionContext;
+		internal Dictionary<DataAccessModel, TransactionContext> transactionContextsByDataAccessModel;
 		internal bool aborted;
 
 		public DataAccessIsolationLevel IsolationLevel { get; private set; }
-		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.dataAccessModelsByTransactionContext?.Keys ?? Enumerable.Empty<DataAccessModel>();
+		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.transactionContextsByDataAccessModel?.Keys ?? Enumerable.Empty<DataAccessModel>();
 
 		internal DataAccessTransaction()
 			: this(DataAccessIsolationLevel.Unspecified)
@@ -73,12 +73,12 @@ namespace Shaolinq
 
 		public void AddTransactionContext(TransactionContext context)
 		{
-			if (dataAccessModelsByTransactionContext == null)
+			if (this.transactionContextsByDataAccessModel == null)
 			{
-				dataAccessModelsByTransactionContext = new Dictionary<DataAccessModel, TransactionContext>();
+				this.transactionContextsByDataAccessModel = new Dictionary<DataAccessModel, TransactionContext>();
 			}
 
-			this.dataAccessModelsByTransactionContext[context.dataAccessModel] = context;
+			this.transactionContextsByDataAccessModel[context.dataAccessModel] = context;
 
 			this.SystemTransaction?.EnlistVolatile(context, EnlistmentOptions.None);
 		}
@@ -87,7 +87,7 @@ namespace Shaolinq
 		{
 			if (!this.isfinishing)
 			{
-				this.dataAccessModelsByTransactionContext?.Remove(context.dataAccessModel);
+				this.transactionContextsByDataAccessModel?.Remove(context.dataAccessModel);
 			}
 		}
 
@@ -96,9 +96,9 @@ namespace Shaolinq
 		{
 			this.isfinishing = true;
 
-			if (this.dataAccessModelsByTransactionContext != null)
+			if (this.transactionContextsByDataAccessModel != null)
 			{
-				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
 					transactionContext.Commit();
 					transactionContext.Dispose();
@@ -112,9 +112,9 @@ namespace Shaolinq
 			this.isfinishing = true;
 			this.aborted = true;
 
-			if (this.dataAccessModelsByTransactionContext != null)
+			if (this.transactionContextsByDataAccessModel != null)
 			{
-				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
 					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
 				}
@@ -125,9 +125,9 @@ namespace Shaolinq
 		{
 			this.isfinishing = true;
 
-			if (this.dataAccessModelsByTransactionContext != null)
+			if (this.transactionContextsByDataAccessModel != null)
 			{
-				foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
 					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
 				}

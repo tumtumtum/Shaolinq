@@ -140,9 +140,9 @@ namespace Shaolinq
         public async Task CommitAsync(CancellationToken cancellationToken)
         {
             this.isfinishing = true;
-            if (this.dataAccessModelsByTransactionContext != null)
+            if (this.transactionContextsByDataAccessModel != null)
             {
-                foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+                foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
                 {
                     await transactionContext.CommitAsync(cancellationToken).ConfigureAwait(false);
                     transactionContext.Dispose();
@@ -159,9 +159,9 @@ namespace Shaolinq
         {
             this.isfinishing = true;
             this.aborted = true;
-            if (this.dataAccessModelsByTransactionContext != null)
+            if (this.transactionContextsByDataAccessModel != null)
             {
-                foreach (var transactionContext in this.dataAccessModelsByTransactionContext.Values)
+                foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
                 {
                     ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
                 }
