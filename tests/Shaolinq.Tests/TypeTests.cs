@@ -49,7 +49,7 @@ namespace Shaolinq.Tests
 			{
 				this.floatSignificantFigures = 6;
 
-				this.MaxDateTime -= TimeSpan.FromSeconds(1);
+				this.MaxDateTime -= TimeSpan.FromDays(1);
 			}
 			else if (useMonoData && this.ProviderName.StartsWith("Sqlite"))
 			{
@@ -92,18 +92,12 @@ namespace Shaolinq.Tests
 		public void Test_Max_Values()
 		{
 			var maxDecimal = decimal.MaxValue;
-		    var dateTimeAdjust = TimeSpan.Zero;
-
+		   
 			//decimal.MaxValue seems to be too large for dotConnect to handle
 			if (this.ProviderName.StartsWith("Postgres.DotConnect"))
 			{
 				maxDecimal = long.MaxValue;
 			}
-
-		    if (this.ProviderName.Contains("MySql"))
-		    {
-		        dateTimeAdjust = TimeSpan.FromDays(1);
-		    }
 
 			this.ExecuteTest(
 				"test",
@@ -118,10 +112,10 @@ namespace Shaolinq.Tests
 				(float) TruncateToSignificantDigits(float.MaxValue, this.floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MaxValue,
 				true,
-				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)) - dateTimeAdjust,
+				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromDays(1) + TimeSpan.FromSeconds(1),
 				Sex.Female,
-				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)) - dateTimeAdjust,
+				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				Encoding.UTF8.GetBytes("Hi Kitty Kat 😻😻😻"));
 		}
 
