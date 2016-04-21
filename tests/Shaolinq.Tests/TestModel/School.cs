@@ -9,7 +9,7 @@ namespace Shaolinq.Tests.TestModel
 		public abstract string Name { get; set; }
 
 		[PersistedMember]
-		[ComputedTextMember("urn:$(PERSISTED_TYPENAME):{Id}")]
+		[ComputedTextMember("urn:$(PERSISTED_TYPENAME:L):{Id}")]
 		public abstract string Urn { get; set; }
 
 		[RelatedDataAccessObjects]
