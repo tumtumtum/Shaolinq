@@ -957,6 +957,7 @@ namespace Shaolinq.Tests
 			using (var scope = NewTransactionScope())
 			{
 				var tum = this.model.Students.FirstOrDefault(c => c.Firstname == "Tum");
+				
 				var student = this.model.Students.FirstOrDefault(c => c.Urn == "urn:student:" + tum.Id.ToString("N"));
 
 				Assert.AreSame(tum, student);

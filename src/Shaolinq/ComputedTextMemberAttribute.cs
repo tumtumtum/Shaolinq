@@ -9,7 +9,7 @@ namespace Shaolinq
 	public class ComputedTextMemberAttribute
 		: PersistedMemberAttribute
 	{
-		internal static readonly Regex FormatRegex = new Regex(@"\{([^\}]+)\}", RegexOptions.Compiled);
+		internal static readonly Regex FormatRegex = new Regex(@"\{([^\}:]+)(:([^\}]+))?\}", RegexOptions.Compiled);
 
 		public string Format { get; set; }
 

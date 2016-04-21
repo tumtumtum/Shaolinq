@@ -9,7 +9,7 @@ namespace Shaolinq.Persistence
 {
 	internal static class VariableSubstituter
 	{
-		private static readonly Regex PatternRegex = new Regex(@"\$\((env\\_)?([a-z_A-Z]+?)(_TOLOWER)?\)", RegexOptions.Compiled | RegexOptions.IgnoreCase); 
+		private static readonly Regex PatternRegex = new Regex(@"\$\((env\\_)?([a-z_A-Z]+?)((_TOLOWER)|(:([^\)]+)))?\)", RegexOptions.Compiled | RegexOptions.IgnoreCase); 
 
 		public static string Substitute(string value, Func<string, string> variableToValue)
 		{
@@ -17,9 +17,22 @@ namespace Shaolinq.Persistence
 			{
 				var result = match.Groups[1].Length != 0 ? Environment.GetEnvironmentVariable(match.Groups[2].Value) : variableToValue(match.Groups[2].Value);
 
-				if (match.Groups[3].Length > 0)
+				if (match.Groups[4].Length > 0)
 				{
 					result = result?.ToLowerInvariant();
+				}
+
+				if (match.Groups[6].Length > 0)
+				{
+					switch (match.Groups[6].Value)
+					{
+					case "L":
+						result = result?.ToLowerInvariant();
+						break;
+					case "U":
+						result = result?.ToUpperInvariant();
+						break;
+					}
 				}
 
 				return result;

@@ -692,6 +692,7 @@ namespace Shaolinq.TypeBuilding
 						PropertyInfo pi;
 						PropertyBuilder pb; 
 						var name = c.Groups[1].Value;
+						var format = c.Groups[3].Value;
 
 						if (!this.propertyBuilders.TryGetValue(name, out pb))
 						{
@@ -704,7 +705,14 @@ namespace Shaolinq.TypeBuilding
 
 						propertiesToLoad.Add(pi);
 
-					    return "{" + (propertiesToLoad.Count - 1) + "}";
+						if (string.IsNullOrEmpty(format))
+						{
+							return "{" + (propertiesToLoad.Count - 1) + "}";
+						}
+						else
+						{
+							return "{" + (propertiesToLoad.Count - 1) + ":" + format +"}";
+						}
 					}
 				);
 
