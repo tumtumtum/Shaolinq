@@ -37,7 +37,7 @@ namespace Shaolinq.Persistence
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; }
 		public string PropertyName => this.PropertyInfo.Name;
-		public Type PropertyType => this.PropertyInfo.PropertyType;
+		public Type PropertyType => this.PropertyInfo?.PropertyType;
 		public bool HasUniqueAttribute => this.UniqueAttribute != null;
 		public bool IsBackReferenceProperty => this.BackReferenceAttribute != null;
 		public bool IsComputedMember => this.ComputedMemberAttribute != null;
@@ -92,7 +92,7 @@ namespace Shaolinq.Persistence
 				this.SuffixName = named.GetSuffixName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberSuffixName);
 			}
 
-			var expression = this.ComputedMemberAttribute?.GetSetLambdaExpression(this)?.Body.StripConvert();
+			var expression = this.ComputedMemberAttribute?.GetSetLambdaExpression(this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration, this)?.Body.StripConvert();
 
 			if (expression?.NodeType == ExpressionType.Assign)
 			{

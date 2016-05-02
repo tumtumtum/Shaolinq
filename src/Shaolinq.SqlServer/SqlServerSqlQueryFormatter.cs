@@ -44,6 +44,32 @@ namespace Shaolinq.SqlServer
 			return base.ResolveSqlFunction(functionCallExpression);
 		}
 
+		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
+		{
+			base.VisitSimpleConstraint(simpleConstraintExpression);
+
+			if (simpleConstraintExpression.Constraint != SqlSimpleConstraint.AutoIncrement)
+			{
+				return simpleConstraintExpression;
+			}
+
+			var options = simpleConstraintExpression.Value as object[];
+
+			if (options != null && options.Length == 2 && (options[0] as long?) > 0)
+			{
+				if (options[1] as long? == 0)
+				{
+					options[1] = 1L;
+				}
+
+				this.Write("(");
+				this.WriteDeliminatedListOfItems(options, this.Write);
+				this.Write(")");
+			}
+
+			return simpleConstraintExpression;
+		}
+
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
 			switch (functionCallExpression.Function)

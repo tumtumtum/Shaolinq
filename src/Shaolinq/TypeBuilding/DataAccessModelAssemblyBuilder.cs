@@ -25,7 +25,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 
-			var hash = configuration.GetMd5();
+			var hash = configuration.GetSha1();
 			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + "." + typeDescriptorProvider.DataAccessModelType.Name);
 			var sharedAssemblyName = new AssemblyName("Shaolinq.GeneratedDataAccessModel");
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(sharedAssemblyName, AssemblyBuilderAccess.RunAndSave);

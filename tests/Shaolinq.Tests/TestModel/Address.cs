@@ -6,6 +6,9 @@ namespace Shaolinq.Tests.TestModel
 	public abstract class Address
 		: DataAccessObject<long>
 	{
+		[AutoIncrement(Seed = 70000, Step = 1)]
+		public abstract override long Id { get; set; }
+
 		[PersistedMember]
 		public abstract int Number { get; set; }
 

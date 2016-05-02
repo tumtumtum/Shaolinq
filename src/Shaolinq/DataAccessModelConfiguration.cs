@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using Platform.Text;
@@ -21,20 +22,18 @@ namespace Shaolinq
 		[XmlElement("NamingTransforms")]
 		public NamingTransformsConfiguration NamingTransforms { get; set; }
 
+		[XmlElement("ReferencedTypes")]
+		public Type[] ReferencedTypes { get; set; }
+
 		public DataAccessModelConfiguration()
 		{
 			this.SqlDatabaseContextInfos = new SqlDatabaseContextInfo[0];
 			this.ConstraintDefaultsConfiguration = new ConstraintDefaultsConfiguration();
 		}
 
-		public string GetMd5()
+		public string GetSha1()
 		{
-			return TextConversion.ToHexString(new MD5CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
-		}
-
-		public string GetSha256()
-		{
-			return TextConversion.ToHexString(new SHA256CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
+			return TextConversion.ToHexString(new SHA1CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
 		}
 	}
 }

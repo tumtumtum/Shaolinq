@@ -631,6 +631,10 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldc_I4_1);
 				generator.Emit(OpCodes.Call, typeof(MemberInfoUtils).GetMethod("GetFirstCustomAttribute", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(typeof(ComputedMemberAttribute)));
 
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.Configuration).GetGetMethod());
+
 				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
 				generator.Emit(OpCodes.Callvirt, computedMemberAttribute.LocalType.GetMethod("GetGetLambdaExpression", BindingFlags.Instance | BindingFlags.Public));
 				generator.Emit(OpCodes.Stloc, lambdaLocal);
@@ -2004,7 +2008,7 @@ namespace Shaolinq.TypeBuilding
 
 			foreach (var propertyDescriptor in this.typeDescriptor.ComputedProperties)
 			{
-				var expression = propertyDescriptor.ComputedMemberAttribute.GetGetLambdaExpression(propertyDescriptor.PropertyInfo);
+				var expression = propertyDescriptor.ComputedMemberAttribute.GetGetLambdaExpression(this.typeDescriptorProvider.Configuration, propertyDescriptor);
 				var target = expression.Parameters.First();
 
 				var referencedProperties = ReferencedPropertiesGatherer.Gather(expression, target).Select(c => c.Name).ToArray();

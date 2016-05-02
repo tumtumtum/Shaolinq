@@ -23,9 +23,14 @@ namespace Shaolinq
 	        this.SetExpression = setExpression;
 		}
 
-		private Type[] GetReferencedTypes(PropertyInfo propertyInfo)
+		private Type[] GetReferencedTypes(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
 			var referencedTypes = new List<Type>();
+
+			if (configuration.ReferencedTypes != null)
+			{
+				referencedTypes.AddRange(configuration.ReferencedTypes);
+			}
 
 			if (this.ReferencedTypes != null)
 			{
@@ -50,14 +55,14 @@ namespace Shaolinq
 			return referencedTypes.ToArray();
 		}
 
-		public LambdaExpression GetGetLambdaExpression(PropertyInfo propertyInfo)
+		public LambdaExpression GetGetLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
-			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, GetReferencedTypes(propertyInfo));
+			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo));
 		}
 
-		public LambdaExpression GetSetLambdaExpression(PropertyInfo propertyInfo)
+		public LambdaExpression GetSetLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
-			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, GetReferencedTypes(propertyInfo));
+			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo));
 		}
 	}
 }

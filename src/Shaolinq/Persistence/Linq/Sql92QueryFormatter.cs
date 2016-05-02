@@ -1240,16 +1240,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					this.Write(s);
 				}
-
-				var autoIncrementParams = simpleConstraintExpression.Value as object[];
-
-				if (autoIncrementParams != null)
-				{
-					this.Write("(");
-					this.WriteDeliminatedListOfItems(autoIncrementParams, this.WriteQuotedStringOrObject);
-					this.Write(")");
-				}
-
+				
 				break;
 			}
 			case SqlSimpleConstraint.PrimaryKey:
