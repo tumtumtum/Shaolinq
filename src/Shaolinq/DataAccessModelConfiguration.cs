@@ -23,6 +23,7 @@ namespace Shaolinq
 		public NamingTransformsConfiguration NamingTransforms { get; set; }
 
 		[XmlElement("ReferencedTypes")]
+		[XmlListElement("Type", ItemType = typeof(Type), SerializeAsValueNode = true, ValueNodeAttributeName = "Name")]
 		public Type[] ReferencedTypes { get; set; }
 
 		public DataAccessModelConfiguration()
