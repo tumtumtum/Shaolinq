@@ -587,11 +587,10 @@ namespace Shaolinq.TypeBuilding
 		{
 			FieldBuilder fieldBuilder;
 			MethodBuilder methodBuilder;
-			var attribute = propertyInfo.GetFirstCustomAttribute<ComputedMemberAttribute>(true);
 
 			if (typeBuildContext.IsFirstPass())
 			{
-				fieldBuilder = this.typeBuilder.DefineField("$$$" + propertyInfo.Name + "ComputeFunc", typeof(Func<,>).MakeGenericType(this.typeBuilder.BaseType, propertyInfo.PropertyType), FieldAttributes.Public);
+				fieldBuilder = this.typeBuilder.DefineField("$$$" + propertyInfo.Name + "ComputeFunc", typeof(Func<,>).MakeGenericType(this.typeBuilder.BaseType, propertyInfo.PropertyType), FieldAttributes.Public | FieldAttributes.Static);
 
 				const MethodAttributes methodAttributes = MethodAttributes.Public;
 
@@ -612,15 +611,14 @@ namespace Shaolinq.TypeBuilding
 
 				var skip = generator.DefineLabel();
 
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, fieldBuilder);
+				generator.Emit(OpCodes.Ldsfld, fieldBuilder);
 				generator.Emit(OpCodes.Brtrue, skip);
 
 				var lambdaLocal = generator.DeclareLocal(typeof(LambdaExpression));
 				var computedMemberAttribute = generator.DeclareLocal(typeof(ComputedMemberAttribute));
 				var propertyInfoLocal = generator.DeclareLocal(typeof(PropertyInfo));
 
-				generator.Emit(OpCodes.Ldtoken, propertyInfo.DeclaringType);
+				generator.Emit(OpCodes.Ldtoken, this.typeBuilder.BaseType);
 				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 				generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 				generator.Emit(OpCodes.Ldc_I4, (int)(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
@@ -638,21 +636,23 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
 				generator.Emit(OpCodes.Callvirt, computedMemberAttribute.LocalType.GetMethod("GetGetLambdaExpression", BindingFlags.Instance | BindingFlags.Public));
 				generator.Emit(OpCodes.Stloc, lambdaLocal);
-
-				generator.Emit(OpCodes.Ldarg_0);
+				
 				generator.Emit(OpCodes.Ldloc, lambdaLocal);
 				generator.Emit(OpCodes.Callvirt, typeof(LambdaExpression).GetMethod("Compile", BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null));
 				generator.Emit(OpCodes.Castclass, fieldBuilder.FieldType);
-				generator.Emit(OpCodes.Stfld, fieldBuilder);
+				generator.Emit(OpCodes.Stsfld, fieldBuilder);
 
 				generator.MarkLabel(skip);
 
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, fieldBuilder);
+				var result = generator.DeclareLocal(propertyInfo.PropertyType);
+
+				generator.Emit(OpCodes.Ldsfld, fieldBuilder);
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Callvirt, fieldBuilder.FieldType.GetMethod("Invoke"));
+				generator.Emit(OpCodes.Stloc, result);
 
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldloc, result);
 				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod());
 
 				generator.Emit(OpCodes.Ret);
