@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Transactions;
 using log4net.Config;
 using NUnit.Framework;
+using Platform.Reflection;
 using Shaolinq.MySql;
 using Shaolinq.Postgres;
 using Shaolinq.Postgres.DotConnect;
@@ -23,6 +24,8 @@ namespace Shaolinq.Tests
 	    static BaseTests()
 	    {
 		    useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_USING_MONODATA"));
+
+		    default(MemberInfo).GetFirstCustomAttribute<Attribute>(true);
 	    }
 		
 		protected TransactionScopeAdapter NewTransactionScope()

@@ -15,37 +15,37 @@ namespace Shaolinq.Persistence.Linq
 		{
 		}
 
-        protected internal override bool ProcessLastMoveNext(ref object context, out T lastValue)
-        {
-            if (context != null)
-            {
-                lastValue = (T)context;
-                context = null;
+		protected internal override bool ProcessLastMoveNext(ref object context, out T lastValue)
+		{
+			if (context != null)
+			{
+				lastValue = (T)context;
+				context = null;
 
-                return true;
-            }
+				return true;
+			}
 
-            context = null;
-            lastValue = null;
+			context = null;
+			lastValue = null;
 
-            return false;
-        }
+			return false;
+		}
 
-	    protected internal override bool ProcessMoveNext(T value, ref object context, out T result)
-	    {
-	        if (context == default(T) || object.ReferenceEquals(value, context))
-	        {
-                result = value;
-                context = value;
+		protected internal override bool ProcessMoveNext(T value, ref object context, out T result)
+		{
+			if (context == default(T) || object.ReferenceEquals(value, context))
+			{
+				result = value;
+				context = value;
 
-                return false;
-	        }
+				return false;
+			}
 
-            result = (T)context;
-            result.ToObjectInternal().ResetModified();
-            context = value;
+			result = (T)context;
+			result.ToObjectInternal().ResetModified();
+			context = value;
 
-            return true;
-	    }
+			return true;
+		}
 	}
 }

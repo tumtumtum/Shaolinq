@@ -11,16 +11,16 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-		
-		public SqlQueryProvider QueryProvider { get; }
-        protected internal readonly SqlQueryFormatResult formatResult;
 
-        public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult)
+		public SqlQueryProvider QueryProvider { get; }
+		protected internal readonly SqlQueryFormatResult formatResult;
+
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult)
 		{
 			this.QueryProvider = queryProvider;
 			this.DataAccessModel = dataAccessModel;
 			this.SqlDatabaseContext = sqlDatabaseContext;
-            this.formatResult = formatResult;
+			this.formatResult = formatResult;
 		}
 	}
 
@@ -30,7 +30,7 @@ namespace Shaolinq.Persistence.Linq
 	{
 		protected internal readonly object[] placeholderValues;
 		protected internal readonly Func<ObjectProjector, IDataReader, int, object[], U> objectReader;
-		
+
 		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
 			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult)
 		{
@@ -38,27 +38,27 @@ namespace Shaolinq.Persistence.Linq
 			this.objectReader = objectReader;
 		}
 
-	    protected internal virtual bool ProcessLastMoveNext(ref object context, out T result)
-	    {
-            result = default(T);
+		protected internal virtual bool ProcessLastMoveNext(ref object context, out T result)
+		{
+			result = default(T);
 
-            return false;
-	    }
-        
-        protected internal virtual bool ProcessMoveNext(T value, ref object context, out T result)
-        {
-            result = value;
+			return false;
+		}
 
-            return true;
-        }
+		protected internal virtual bool ProcessMoveNext(T value, ref object context, out T result)
+		{
+			result = value;
 
-	    protected internal virtual object CreateEnumerationContext(IDataReader dataReader, int executionVersion)
-	    {
-            return null;
-	    }
+			return true;
+		}
 
-	    IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();
-	    public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
-        public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new ObjectProjectionAsyncEnumerator<T, U>(this);
+		protected internal virtual object CreateEnumerationContext(IDataReader dataReader, int executionVersion)
+		{
+			return null;
+		}
+
+		IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();
+		public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
+		public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new ObjectProjectionAsyncEnumerator<T, U>(this);
 	}
 }
