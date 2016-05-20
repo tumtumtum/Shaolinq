@@ -93,14 +93,14 @@ namespace Shaolinq.Postgres
 		
 		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)
 		{
-			var postgresException = exception as NpgsqlException;
+			var postgresException = exception as PostgresException;
 
 			if (postgresException == null)
 			{
 				return base.DecorateException(exception, dataAccessObject, relatedQuery);
 			}
 
-			switch (postgresException.Code)
+			switch (postgresException.SqlState)
 			{
 			case "40001":
 				return new ConcurrencyException(exception, relatedQuery);
