@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
@@ -39,6 +40,7 @@ namespace Shaolinq.Postgres
 		[XmlAttribute]
 		public bool NativeEnums { get; set; }
 
+		[Obsolete]
 		[XmlAttribute]
 		public bool BackendTimeouts { get; set; } = true;
 

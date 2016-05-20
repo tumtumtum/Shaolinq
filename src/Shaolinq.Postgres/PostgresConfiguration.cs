@@ -20,7 +20,7 @@ namespace Shaolinq.Postgres
 			};
 		}
 
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections = PostgresSqlDatabaseContextInfo.DefaultPooling, string categories = null, int port = PostgresSqlDatabaseContextInfo.DefaultPostgresPort, int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout, int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout, bool backendTimeouts = true)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userId, string password, bool poolConnections = PostgresSqlDatabaseContextInfo.DefaultPooling, string categories = null, int port = PostgresSqlDatabaseContextInfo.DefaultPostgresPort, int commandTimeout = SqlDatabaseContextInfo.DefaultCommandTimeout, int connectionTimeout = SqlDatabaseContextInfo.DefaultConnectionTimeout)
 		{
 			return Create(new PostgresSqlDatabaseContextInfo
 			{
@@ -32,8 +32,7 @@ namespace Shaolinq.Postgres
 				UserId = userId,
 				Password = password,
 				ConnectionCommandTimeout = commandTimeout,
-				ConnectionTimeout = connectionTimeout,
-				BackendTimeouts = backendTimeouts
+				ConnectionTimeout = connectionTimeout
 			});
 		}
 

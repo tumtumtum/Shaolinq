@@ -45,7 +45,6 @@ namespace Shaolinq.Postgres
 				Port = contextInfo.Port,
 				Pooling = contextInfo.Pooling,
 				Enlist = false,
-				BackendTimeouts = contextInfo.BackendTimeouts,
 				MinPoolSize = contextInfo.MinPoolSize,
 				MaxPoolSize = contextInfo.MaxPoolSize
 			};
