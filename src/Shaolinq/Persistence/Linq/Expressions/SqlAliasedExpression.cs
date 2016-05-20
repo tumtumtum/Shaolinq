@@ -5,9 +5,10 @@ using System;
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlAliasedExpression
-		: SqlBaseExpression
+		: SqlBaseExpression, ISqlExposesAliases
 	{
 		public string Alias { get; }
+		public string[] Aliases => new[] { this.Alias };
 
 		public SqlAliasedExpression(Type type, string alias)
 			: base(type)

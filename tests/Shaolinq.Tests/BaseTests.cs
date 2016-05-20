@@ -24,8 +24,6 @@ namespace Shaolinq.Tests
 	    static BaseTests()
 	    {
 		    useMonoData = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_USING_MONODATA"));
-
-		    default(MemberInfo).GetFirstCustomAttribute<Attribute>(true);
 	    }
 		
 		protected TransactionScopeAdapter NewTransactionScope()

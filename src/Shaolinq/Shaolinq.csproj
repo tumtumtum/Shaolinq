@@ -194,6 +194,7 @@
     <Compile Include="Persistence\ExpressionCacheKey.cs" />
     <Compile Include="Persistence\ExpressionCacheKeyEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\AlwaysReadFirstObjectProjector.cs" />
+    <Compile Include="Persistence\Linq\Expressions\ISqlExposesAliases.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUnionExpression.cs" />
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq;
@@ -25,18 +26,22 @@ namespace Shaolinq.SqlServer
 			{
 				var rowNumber = new SqlFunctionCallExpression(typeof(int), "ROW_NUMBER");
 
-				var oldAlias = (selectExpression.From as SqlAliasedExpression)?.Alias;
-
-				var x = SqlOrderByRewriter.Rewrite(selectExpression);
-
+				var oldAliases = (selectExpression.From as ISqlExposesAliases)?.Aliases;
 				var innerSelectWithRowAlias = selectExpression.Alias + "_ROW";
 
-				var over = new SqlOverExpression(rowNumber, selectExpression.OrderBy?.Cast<SqlOrderByExpression>().ToReadOnlyCollection() ?? selectExpression.Columns.Select(c => new SqlOrderByExpression(OrderType.Ascending, c.Expression)).ToReadOnlyCollection());
+				var cols = selectExpression.Columns.Select(c => new SqlColumnDeclaration(c.Name, new SqlColumnExpression(c.Expression.Type, selectExpression.Alias, c.Name))).ToList();
+				var over = new SqlOverExpression(rowNumber, selectExpression.OrderBy?.Cast<SqlOrderByExpression>().ToReadOnlyCollection() ?? cols.Select(c => new SqlOrderByExpression(OrderType.Ascending, c.Expression)).ToReadOnlyCollection());
 
-				over = (SqlOverExpression)AliasReferenceReplacer.Replace(over, oldAlias, selectExpression.Alias);
+				if (oldAliases != null)
+				{
+					over = (SqlOverExpression)AliasReferenceReplacer.Replace(over, oldAliases.Contains, selectExpression.Alias);
+				}
 
 				var rowColumn = new SqlColumnDeclaration(RowColumnName, over);
-				var innerSelectWithRowColumns = selectExpression.Columns.Select(c => new SqlColumnDeclaration(c.Name, new SqlColumnExpression(c.Expression.Type, selectExpression.Alias, c.Name))).Concat(rowColumn).ToReadOnlyCollection();
+
+				cols.Add(rowColumn);
+
+				var innerSelectWithRowColumns = cols.ToReadOnlyCollection();
 				var innerSelectWithRow = new SqlSelectExpression(selectExpression.Type, innerSelectWithRowAlias, innerSelectWithRowColumns, selectExpression.ChangeOrderBy(null).ChangeSkipTake(null, null), null, null, null, false, null, null, false);
 				var outerColumns = selectExpression.Columns.Select(c => new SqlColumnDeclaration(c.Name, new SqlColumnExpression(c.Expression.Type, innerSelectWithRowAlias, c.Name)));
 
@@ -53,7 +58,7 @@ namespace Shaolinq.SqlServer
 
 				var newOrderBy = selectExpression
 					.OrderBy?
-					.Select(c => AliasReferenceReplacer.Replace(c, oldAlias, innerSelectWithRowAlias))
+					.Select(c => oldAliases == null ? c : AliasReferenceReplacer.Replace(c, oldAliases.Contains, innerSelectWithRowAlias))
 					.Concat(new SqlOrderByExpression(OrderType.Ascending, new SqlColumnExpression(typeof(int), innerSelectWithRowAlias, rowColumn.Name)))
 					.ToReadOnlyCollection();
 

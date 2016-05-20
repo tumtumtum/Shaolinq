@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -8,23 +9,28 @@ namespace Shaolinq.Persistence.Linq.Optimizers
     public class AliasReferenceReplacer
         : SqlExpressionVisitor
     {
-        private readonly string alias;
         private readonly string replacement;
+		private readonly Func<string, bool> oldAliasMatch;
 
-        private AliasReferenceReplacer(string alias, string replacement)
+		private AliasReferenceReplacer(Func<string, bool> oldAliasMatch, string replacement)
         {
-            this.alias = alias;
-            this.replacement = replacement;
+	        this.oldAliasMatch = oldAliasMatch;
+	        this.replacement = replacement;
         }
 
-        public static Expression Replace(Expression expression, string alias, string replacement)
+	    public static Expression Replace(Expression expression, string oldAliasMatch, string replacement)
         {
-            return new AliasReferenceReplacer(alias, replacement).Visit(expression);
+            return new AliasReferenceReplacer(c => c == oldAliasMatch, replacement).Visit(expression);
         }
 
-        protected override Expression VisitColumn(SqlColumnExpression columnExpression)
+		public static Expression Replace(Expression expression, Func<string, bool> oldAliasMatch, string replacement)
+		{
+			return new AliasReferenceReplacer(oldAliasMatch, replacement).Visit(expression);
+		}
+
+		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
         {
-            if (columnExpression.SelectAlias == this.alias)
+            if (this.oldAliasMatch(columnExpression.SelectAlias))
             {
                 return columnExpression.ChangeAlias(this.replacement);
             }

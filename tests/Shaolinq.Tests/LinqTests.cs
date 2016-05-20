@@ -2698,6 +2698,50 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Skip_Take1()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result = this.model
+					.Students
+					.Include(c => c.School)
+					.Skip(0)
+					.Take(5)
+					.OrderBy(c => c.Nickname)
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Skip_Take2()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result = this.model
+					.Students
+					.Include(c => c.School)
+					.Skip(0)
+					.Take(5)
+					.OrderBy(c => c.School.Name)
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Skip_Take3()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result = this.model
+					.Students
+					.Include(c => c.School)
+					.Skip(0)
+					.Take(5)
+					.ToList();
+			}
+		}
+
+		[Test]
 		public void Test_Skip_With_Distinct()
 		{
 			using (var scope = NewTransactionScope())

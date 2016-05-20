@@ -475,6 +475,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            this.currentObject = current.Aliases;
+            this.VisitObjectList(expression.Aliases);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current;
             return expression;
         }
@@ -503,6 +510,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.Type == expression.Type))
+            {
+                return expression;
+            }
+
+            this.currentObject = current.Aliases;
+            this.VisitObjectList(expression.Aliases);
+            if (!this.result)
             {
                 return expression;
             }
@@ -783,6 +797,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Columns;
             this.VisitColumnDeclarations(expression.Columns);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.Aliases;
+            this.VisitObjectList(expression.Aliases);
             if (!this.result)
             {
                 return expression;
@@ -1450,6 +1471,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Right;
             this.Visit(expression.Right);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.Aliases;
+            this.VisitObjectList(expression.Aliases);
             if (!this.result)
             {
                 return expression;
