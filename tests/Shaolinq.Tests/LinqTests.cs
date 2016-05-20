@@ -1825,6 +1825,18 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Query_GroupBy_Object_And_Select_Object()
+		{
+			var students = (from student in this.model.Students
+							group student by student.School
+								into g
+							select new
+							{
+								g.Key
+							}).ToList();
+		}
+
+		[Test]
 		public void Test_Query_GroupBy_Multiple_Values()
 		{
 			var students = (from student in this.model.Students

@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -97,7 +98,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 							where = fromSelect.Where;
 						}
 					}
-
+					
 					var orderBy = select.OrderBy != null && select.OrderBy.Count > 0 ? select.OrderBy : fromSelect.OrderBy;
 					var groupBy = select.GroupBy != null && select.GroupBy.Count > 0 ? select.GroupBy : fromSelect.GroupBy;
 					var skip = select.Skip ?? fromSelect.Skip;
@@ -176,8 +177,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					return false;
 				}
 
-				// Cannot move forward GroupBy if outer has a where clause
-				if (frmHasGroupBy && (select.Where != null))
+				// Cannot move forward GroupBy
+				if (frmHasGroupBy)
 				{
 					return false;
 				}
