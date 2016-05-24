@@ -17,7 +17,8 @@ namespace Shaolinq.Persistence.Computed
 		private readonly List<Assembly> referencedAssemblies;
 		private readonly ParameterExpression targetObject;
 		private readonly ComputedExpressionTokenizer tokenizer;
-		
+		private readonly Dictionary<string, Type> referencedTypesByName;
+
 		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes = null)
 		{
 			if (propertyInfo.DeclaringType == null)
@@ -26,6 +27,7 @@ namespace Shaolinq.Persistence.Computed
 			}
 
 			this.propertyInfo = propertyInfo;
+			this.referencedTypesByName = (referencedTypes ?? new Type[0]).ToDictionary(c => c.Name, c => c);
 			this.referencedAssemblies = new HashSet<Assembly>(referencedTypes?.Select(c => c.Assembly) ?? new Assembly[0]).ToList();
 			this.tokenizer = new ComputedExpressionTokenizer(reader);
 			this.targetObject = Expression.Parameter(propertyInfo.DeclaringType, "object");
@@ -393,14 +395,16 @@ namespace Shaolinq.Persistence.Computed
 				return true;
 			}
 
-			foreach (var assembly in this.referencedAssemblies)
+			if (!name.Contains(".") && referencedTypesByName.TryGetValue(name, out value))
 			{
-				if ((type = assembly.GetType(name)) != null)
-				{
-					value = type;
+				return true;
+			}
 
-					return true;
-				}
+			if (this.referencedAssemblies.Any(assembly => (type = assembly.GetType(name)) != null))
+			{
+				value = type;
+
+				return true;
 			}
 
 			value = null;
@@ -410,7 +414,7 @@ namespace Shaolinq.Persistence.Computed
 
 		private class TypeHolder
 		{
-			public Type Type { get; set; }
+			public Type Type { get; }
 
 			public TypeHolder(Type type)
 			{
