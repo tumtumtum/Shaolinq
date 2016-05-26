@@ -2065,6 +2065,26 @@ namespace Shaolinq.TypeBuilding
 				}
 			}
 
+			foreach (var propertyDescriptor in this.typeDescriptor.ComputedProperties)
+			{
+				var expression = propertyDescriptor.ComputedMemberAttribute.GetGetLambdaExpression(this.typeDescriptorProvider.Configuration, propertyDescriptor);
+				var target = expression.Parameters.First();
+
+				var referencedProperties = ReferencedPropertiesGatherer.Gather(expression, target).Select(c => c.Name).ToArray();
+
+				var computedTextDependsOnAutoIncrementId = this.GetPropertyNamesAndDependentPropertyNames(referencedProperties.Concat(propertyDescriptor.PropertyName))
+					.Select(propertyName => this.typeDescriptor.GetPropertyDescriptorByPropertyName(propertyName))
+					.Any(referencedPropertyDescriptor => referencedPropertyDescriptor != null && referencedPropertyDescriptor.IsPropertyThatIsCreatedOnTheServerSide);
+
+				if (computedTextDependsOnAutoIncrementId)
+				{
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Callvirt, this.setComputedValueMethods[propertyDescriptor.PropertyName]);
+
+					count++;
+				}
+			}
+
 			generator.Emit(count > 0 ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Ret);
 		}
@@ -2101,7 +2121,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 
 			// Load property name
-			generator.Emit(OpCodes.Ldstr, String.Intern(propertyName));
+			generator.Emit(OpCodes.Ldstr, string.Intern(propertyName));
 
 			// Load persisted name
 			generator.Emit(OpCodes.Ldstr, String.Intern(persistedName));

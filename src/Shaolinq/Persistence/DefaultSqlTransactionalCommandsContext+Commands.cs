@@ -46,9 +46,15 @@ namespace Shaolinq.Persistence
 		#endregion
 
 		#region Update
-		
+
 		[RewriteAsync]
 		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		{
+			Update(type, dataAccessObjects, true);
+		}
+
+		[RewriteAsync]
+		private void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
 		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
@@ -96,7 +102,10 @@ namespace Shaolinq.Persistence
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
 
-					dataAccessObject.ToObjectInternal().ResetModified();
+					if (resetModified)
+					{
+						dataAccessObject.ToObjectInternal().ResetModified();
+					}
 				}
 			}
 		}
@@ -160,7 +169,7 @@ namespace Shaolinq.Persistence
 
 									if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
 									{
-										this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
+										this.Update(dataAccessObject.GetType(), new[] { dataAccessObject }, false);
 									}
 								}
 							}

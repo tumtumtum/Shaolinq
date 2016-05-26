@@ -204,9 +204,13 @@ namespace Shaolinq.Rewriter
 			var methodInvocation = SyntaxFactory.InvocationExpression
 			(
 				SyntaxFactory.IdentifierName(outMethodName),
-				SyntaxFactory.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>()
-					.AddRange(inMethodSymbol.Parameters.Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
-					.Add(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("CancellationToken"), SyntaxFactory.IdentifierName("None")))))
+				SyntaxFactory.ArgumentList
+				(
+					new SeparatedSyntaxList<ArgumentSyntax>()
+					.AddRange(inMethodSymbol.Parameters.TakeWhile(c => !c.HasExplicitDefaultValue).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
+					.Add(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("CancellationToken"), SyntaxFactory.IdentifierName("None"))))
+					.AddRange(inMethodSymbol.Parameters.SkipWhile(c => !c.HasExplicitDefaultValue).Skip(1).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
+				)
 			);
 
 			var callAsyncWithCancellationToken = methodInvocation;

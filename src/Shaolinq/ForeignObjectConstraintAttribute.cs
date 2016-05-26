@@ -4,6 +4,9 @@ using System;
 
 namespace Shaolinq
 {
+	/// <summary>
+	/// Configures how foriegn key constraints react to deletes or primary keys
+	/// </summary>
 	public class ForeignObjectConstraintAttribute
 		: Attribute
 	{

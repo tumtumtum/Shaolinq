@@ -35,6 +35,8 @@ namespace Shaolinq.Tests
 				var cat = this.model.Cats.Create();
 				var parentCat = this.model.Cats.Create();
 
+				parentCat.Name = "ParentCat";
+
 				cat.Name = "Mars";
 				cat.Parent = parentCat;
 

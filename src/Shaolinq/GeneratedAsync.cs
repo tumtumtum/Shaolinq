@@ -1543,6 +1543,16 @@ namespace Shaolinq.Persistence
 
         public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
         {
+            await UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
+        }
+
+        private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
+        {
+            return UpdateAsync(type, dataAccessObjects, resetModified, CancellationToken.None);
+        }
+
+        private async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified, CancellationToken cancellationToken)
+        {
             var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
             foreach (var dataAccessObject in dataAccessObjects)
             {
@@ -1582,7 +1592,10 @@ namespace Shaolinq.Persistence
                         throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
                     }
 
-                    dataAccessObject.ToObjectInternal().ResetModified();
+                    if (resetModified)
+                    {
+                        dataAccessObject.ToObjectInternal().ResetModified();
+                    }
                 }
             }
         }
@@ -1637,7 +1650,7 @@ namespace Shaolinq.Persistence
                                     reader.Close();
                                     if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
                                     {
-                                        await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
+                                        await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, false, cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                             }
