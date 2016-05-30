@@ -46,6 +46,7 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.Create();
 
 				school.Name = "Bruce's Kung Fu School";
+				school.Address = this.model.Address.Create();
 
 				scope.Flush();
 
@@ -1113,6 +1114,72 @@ namespace Shaolinq.Tests
 					.SelectMany(c => c.Students).Select(c => c.School.Name);
 
 				var results = query.ToList();
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_Students_From_Schools3()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Invalid School")
+					.DefaultIfEmpty()
+					.Include(c => c.Address)
+					.SelectMany(c => c.Students.DefaultIfEmpty(), (s, c) => new {s, c});
+
+				var list = query.ToList();
+
+				Assert.AreEqual(1, list.Count);
+				Assert.IsNull(list[0].s);
+				Assert.IsNull(list[0].c);
+			}
+
+			using (var scope = NewTransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.DefaultIfEmpty()
+					.Include(c => c.Address)
+					.SelectMany(c => c.Students.DefaultIfEmpty(), (s, c) => new { s, c });
+
+				var list = query.ToList();
+
+				Assert.AreEqual(2, list.Count);
+				Assert.IsNotNull(list[0].s);
+				Assert.IsNotNull(list[0].c);
+				Assert.IsNotNull(list[1].s);
+				Assert.IsNotNull(list[1].c);
+				Assert.AreSame(list[0].s, list[1].s);
+				Assert.AreNotEqual(list[0].c, list[1].c);
+			}
+
+			using (var scope = NewTransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Empty school")
+					.DefaultIfEmpty()
+					.Include(c => c.Address)
+					.SelectMany(c => c.Students.DefaultIfEmpty(), (s, c) => new { s, c });
+
+				var list = query.ToList();
+
+				Assert.AreEqual(1, list.Count);
+				Assert.IsNotNull(list[0].s);
+				Assert.IsNull(list[0].c);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_Students_From_Schools4()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var ids = new List<long> { 0, 1, 2, 3, 4, 5 };
+
+				var query = this.model.Schools.Where(c => c.Name == "blahblah").DefaultIfEmpty();
+
+				Assert.AreEqual(1, query.ToList().Count);
 			}
 		}
 

@@ -319,17 +319,32 @@ namespace Shaolinq.Persistence.Linq
 			}
 			case "SelectMany":
 			{
-				var projectionResultType = result.NewSelectors[1].ReturnType;
-				newParameterType = result.NewSelectors[0].Parameters[0].Type;
-				var collectionType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
-				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
-
-				newCall = Expression.Call(methodWithElementSelector, new[]
+				if (result.NewSelectors.Count == 1)
 				{
-					result.NewSource,
-					result.NewSelectors[0],
-					result.NewSelectors[1]
-				});
+					var projectionResultType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
+					newParameterType = result.NewSelectors[0].Parameters[0].Type;
+					methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
+
+					newCall = Expression.Call(methodWithElementSelector, new[]
+					{
+						result.NewSource,
+						result.NewSelectors[0]
+					});
+				}
+				else
+				{
+					var collectionType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
+					newParameterType = result.NewSelectors[0].Parameters[0].Type;
+					var projectionResultType = result.NewSelectors[1].ReturnType;
+					methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
+
+					newCall = Expression.Call(methodWithElementSelector, new[]
+					{
+						result.NewSource,
+						result.NewSelectors[0],
+						result.NewSelectors[1]
+					});
+				}
 
 				break;
 			}

@@ -59,6 +59,8 @@ namespace Shaolinq.Tests
 			}
 		}
 
+
+
 		[Test]
 		public virtual void Test_Count_With_DefaultIfEmpty()
 		{
@@ -66,6 +68,19 @@ namespace Shaolinq.Tests
 			{
 				var result = this.queryable.Where(c => c.Id < 0).DefaultIfEmpty().Count();
 				var expectedResult = this.queryable.AsEnumerable().Where(c => c.Id < 0).DefaultIfEmpty().Count();
+
+				Assert.AreEqual(expectedResult, result);
+				Assert.AreEqual(1, result);
+			}
+		}
+
+		[Test]
+		public virtual void Test_DefaultIfEmpty_With_Count_After_Projection()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var result = this.queryable.Where(c => c.Id < 0).DefaultIfEmpty().ToList().Count();
+				var expectedResult = this.queryable.AsEnumerable().Where(c => c.Id < 0).DefaultIfEmpty().ToList().Count();
 
 				Assert.AreEqual(expectedResult, result);
 				Assert.AreEqual(1, result);

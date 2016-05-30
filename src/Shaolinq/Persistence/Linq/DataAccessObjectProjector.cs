@@ -10,22 +10,34 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 		where T : DataAccessObject
 	{
+		private class Optional
+		{
+			private T value;
+			public bool HasValue { get; private set; }
+			public T Value { get { return value; } set { this.value = value; this.HasValue = true; } }
+		}
+
 		public DataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
 			: base(provider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
 		{
 		}
 
+		protected internal override object CreateEnumerationContext(IDataReader dataReader, int executionVersion)
+		{
+			return new Optional();
+		}
+
 		protected internal override bool ProcessLastMoveNext(ref object context, out T lastValue)
 		{
-			if (context != null)
-			{
-				lastValue = (T)context;
-				context = null;
+			var optional = (Optional)context;
 
+			if (optional.HasValue)
+			{
+				lastValue = optional.Value;
+			
 				return true;
 			}
-
-			context = null;
+			
 			lastValue = null;
 
 			return false;
@@ -33,17 +45,19 @@ namespace Shaolinq.Persistence.Linq
 
 		protected internal override bool ProcessMoveNext(T value, ref object context, out T result)
 		{
-			if (context == default(T) || object.ReferenceEquals(value, context))
+			var optional = (Optional)context;
+
+			if (!optional.HasValue || object.ReferenceEquals(value, optional.Value))
 			{
 				result = value;
-				context = value;
+				optional.Value = value;
 
 				return false;
 			}
 
-			result = (T)context;
+			result = optional.Value;
 			result.ToObjectInternal().ResetModified();
-			context = value;
+			optional.Value = value;
 
 			return true;
 		}
