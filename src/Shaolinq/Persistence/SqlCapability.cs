@@ -24,6 +24,8 @@ namespace Shaolinq.Persistence
 		SetDefaultAction,
 		UpdateAutoIncrementColumns,
 		PragmaIdentityInsert,
-		MultipleActiveResultSets
+		MultipleActiveResultSets,
+		CrossApply,
+		OuterApply
 	}
 }

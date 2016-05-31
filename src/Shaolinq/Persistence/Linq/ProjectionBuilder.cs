@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -25,6 +26,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly SqlQueryProvider queryProvider;
 		private readonly ParameterExpression versionParameter;
+		private readonly ParameterExpression filterParameter;
 		
 		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, ProjectionBuilderScope scope)
 		{
@@ -38,6 +40,7 @@ namespace Shaolinq.Persistence.Linq
 			this.objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
 			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
 			this.versionParameter = Expression.Parameter(typeof(int), "version");
+			this.filterParameter = Expression.Parameter(typeof(Func<DataAccessObject, DataAccessObject>), "filter");
 		}
 
 		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, ProjectionBuilderScope scope)
@@ -45,8 +48,28 @@ namespace Shaolinq.Persistence.Linq
 			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, queryProvider, scope);
 
 			var body = projectionBuilder.Visit(expression);
-            
-			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.versionParameter, projectionBuilder.dynamicParameters);
+
+			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.versionParameter, projectionBuilder.dynamicParameters, projectionBuilder.filterParameter);
+		}
+
+		protected override Expression VisitNewArray(NewArrayExpression expression)
+		{
+			if (expression.Type.GetArrayRank() == 1 && !expression.Type.GetElementType().IsDataAccessObjectType())
+			{
+				if (expression.Expressions.All(c => c.Type.IsDataAccessObjectType()))
+				{
+					if (expression.NodeType == ExpressionType.NewArrayInit)
+					{
+						return Expression.NewArrayInit(typeof(DataAccessObject), this.VisitExpressionList(expression.Expressions));
+					}
+					else
+					{
+						return Expression.NewArrayBounds(typeof(DataAccessObject), this.VisitExpressionList(expression.Expressions));
+					}
+				}
+			}
+
+			return base.VisitNewArray(expression);
 		}
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
@@ -99,12 +122,12 @@ namespace Shaolinq.Persistence.Linq
 				var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 				var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 
-				retval = Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), retval.Type);
+				retval = Expression.Convert(Expression.Invoke(filterParameter, Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), typeof(DataAccessObject))), retval.Type);
 			}
 
 			if (nullCheck != null)
 			{
-				return Expression.Condition(nullCheck, Expression.Constant(null, retval.Type), retval);
+				return Expression.Condition(nullCheck, Expression.Convert(Expression.Invoke(filterParameter,  Expression.Constant(null, retval.Type)), retval.Type), retval);
 			}
 			else
 			{
@@ -255,7 +278,8 @@ namespace Shaolinq.Persistence.Linq
 				{
 					return this.ConvertColumnToDataReaderRead((SqlColumnExpression)unaryExpression.Operand, unaryExpression.Operand.Type.MakeNullable());
 				}
-				else if (unaryExpression.Type.IsDataAccessObjectType())
+
+				if (unaryExpression.Type.IsDataAccessObjectType())
 				{
 					var concrete = this.dataAccessModel.GetConcreteTypeFromDefinitionType(unaryExpression.Type);
 
@@ -289,19 +313,15 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return Expression.Convert(Expression.Constant(null), column.Type);
 			}
-			else
-			{
-				var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(type);
 
-				if (!this.scope.ColumnIndexes.ContainsKey(column.Name))
-				{
-					throw new InvalidOperationException($"Unable to find matching column reference named {column.Name}");
-				}
-				else
-				{
-					return sqlDataType.GetReadExpression(this.dataReader, this.scope.ColumnIndexes[column.Name]);
-				}
+			var sqlDataType = this.sqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(type);
+
+			if (!this.scope.ColumnIndexes.ContainsKey(column.Name))
+			{
+				throw new InvalidOperationException($"Unable to find matching column reference named {column.Name}");
 			}
+
+			return sqlDataType.GetReadExpression(this.dataReader, this.scope.ColumnIndexes[column.Name]);
 		}
 
 		protected override Expression VisitObjectReference(SqlObjectReferenceExpression sqlObjectReferenceExpression)
@@ -350,7 +370,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedScope = this.scope;
 				this.scope = new ProjectionBuilderScope(newColumnIndexes);
-				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, versionParameter, dynamicParameters);
+				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, versionParameter, dynamicParameters, filterParameter);
 				this.scope = savedScope;
 
 				var values = replacedExpressions.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();

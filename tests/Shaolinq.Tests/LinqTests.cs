@@ -69,7 +69,7 @@ namespace Shaolinq.Tests
 				tum.Address = address;
 				tum.TimeSinceLastSlept = TimeSpan.FromHours(7.5);
 				tum.Birthdate = new DateTime(1979, 12, 24, 04, 00, 00);
-
+				
 				var mars = school.Students.Create();
 
 				mars.Firstname = "Mars";
@@ -81,6 +81,12 @@ namespace Shaolinq.Tests
 				mars.BestFriend = tum;
 				mars.Birthdate = new DateTime(2003, 11, 2);
 				mars.FavouriteNumber = 1;
+
+				var cat1 = tum.Cats.Create();
+				var cat2 = tum.Cats.Create();
+
+				cat1.Name = "Cat1";
+				cat2.Name = "Cat2";
 
 				school = this.model.Schools.Create();
 
@@ -394,12 +400,13 @@ namespace Shaolinq.Tests
 			{
 				var results = from student in this.model.Students
 							  group student by student.Firstname into g
+							  orderby g.Key
 							  select new { Count = g.Count(), Name = g.Key };
 
-				var resultsArray = results.OrderBy(c => c.Name).ToArray();
+				var resultsArray = results.ToArray();
 
-				Assert.AreEqual("Chuck", resultsArray[0].Name);
 				Assert.AreEqual(2, resultsArray[0].Count);
+				Assert.AreEqual("Chuck", resultsArray[0].Name);
 				
 				scope.Complete();
 			}
@@ -1140,8 +1147,7 @@ namespace Shaolinq.Tests
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
 					.DefaultIfEmpty()
-					.Include(c => c.Address)
-					.SelectMany(c => c.Students.DefaultIfEmpty(), (s, c) => new { s, c });
+					.SelectMany(c => c.Students.DefaultIfEmpty().Include(d => d.Cats), (s, c) => new { s, c });
 
 				var list = query.ToList();
 
@@ -1167,6 +1173,74 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(1, list.Count);
 				Assert.IsNotNull(list[0].s);
 				Assert.IsNull(list[0].c);
+			}
+
+			using (var scope = NewTransactionScope())
+			{
+				var query = this.model.Schools
+					.Where(c => c.Name == "Bruce's Kung Fu School")
+					.DefaultIfEmpty()
+					.SelectMany(c => c.Students.DefaultIfEmpty(), (s, c) => new { s, c });
+
+				var list = query.ToList();
+
+				Assert.AreEqual(2, list.Count);
+				Assert.IsNotNull(list[0].s);
+				Assert.IsNotNull(list[0].c);
+				Assert.IsNotNull(list[1].s);
+				Assert.IsNotNull(list[1].c);
+				Assert.AreSame(list[0].s, list[1].s);
+				Assert.AreNotEqual(list[0].c, list[1].c);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_Students_From_Schools5()
+		{
+			if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(Persistence.SqlCapability.CrossApply))
+			{
+				using (var scope = NewTransactionScope())
+				{
+					var query = this.model.Schools
+						.Where(c => c.Name == "Bruce's Kung Fu School")
+						.DefaultIfEmpty()
+						.SelectMany(c => c.Students.DefaultIfEmpty().Include(d => d.Cats), (s, c) => new { s, c });
+
+					var list = query.ToList();
+
+					Assert.AreEqual(2, list.Count);
+					Assert.IsNotNull(list[0].s);
+					Assert.IsNotNull(list[0].c);
+					Assert.IsNotNull(list[1].s);
+					Assert.IsNotNull(list[1].c);
+					Assert.AreSame(list[0].s, list[1].s);
+					Assert.AreNotEqual(list[0].c, list[1].c);
+				}
+			}
+		}
+
+		[Test]
+		public virtual void Test_Select_Many_Students_From_Schools6()
+		{
+			if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(Persistence.SqlCapability.CrossApply))
+			{
+				using (var scope = NewTransactionScope())
+				{
+					var query = this.model.Schools
+						.Where(c => c.Name == "Bruce's Kung Fu School")
+						.DefaultIfEmpty()
+						.SelectMany(c => c.Students.DefaultIfEmpty().Include(d => d.Cats), (s, c) => new object[] { s, c });
+
+					var list = query.ToList();
+
+					Assert.AreEqual(2, list.Count);
+					Assert.IsNotNull(list[0][0]);
+					Assert.IsNotNull(list[0][1]);
+					Assert.IsNotNull(list[1][0]);
+					Assert.IsNotNull(list[1][1]);
+					Assert.AreSame(list[0][0], list[1][0]);
+					Assert.AreNotEqual(list[0][1], list[1][1]);
+				}
 			}
 		}
 

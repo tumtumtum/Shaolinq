@@ -28,6 +28,8 @@ namespace Shaolinq.SqlServer
 			case SqlCapability.InsertOutput:
 			case SqlCapability.PragmaIdentityInsert:
 			case SqlCapability.IndexInclude:
+			case SqlCapability.CrossApply:
+			case SqlCapability.OuterApply:
 				return true;
 			case SqlCapability.MultipleActiveResultSets:
 				return marsEnabled;

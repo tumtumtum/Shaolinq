@@ -174,6 +174,13 @@ namespace Shaolinq.Persistence.Linq
 
 			return expression;
 		}
+		
+		private static bool IsConsideredSimpleType(Type type)
+		{
+			type = type.GetUnwrappedNullableType();
+
+			return type.IsPrimitive || (type.IsIntegralType() && !type.IsArray);
+		}
 
 		internal ExecutionBuildResult BuildExecution(Expression expression, LambdaExpression projection = null, object[] placeholderValues = null)
 		{
@@ -343,7 +350,9 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					var constructor = typeof(ObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+					var projectorType = !DataAccessObjectAwareResultTypeComparerBuilder.NeedsComparer(projectionLambda.ReturnType) ? typeof(ObjectProjector<,>) : typeof(DataAccessObjectContainerProjector<,>);
+
+					var constructor = projectorType.MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
 					executor = Expression.New
 					(

@@ -29,9 +29,9 @@ namespace Shaolinq.Persistence.Linq
 		where U : T
 	{
 		protected internal readonly object[] placeholderValues;
-		protected internal readonly Func<ObjectProjector, IDataReader, int, object[], U> objectReader;
+		protected internal readonly Func<ObjectProjector, IDataReader, int, object[], Func<DataAccessObject, DataAccessObject>, U> objectReader;
 
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], U> objectReader)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], Func<DataAccessObject, DataAccessObject>, U> objectReader)
 			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult)
 		{
 			this.placeholderValues = placeholderValues;
@@ -55,6 +55,11 @@ namespace Shaolinq.Persistence.Linq
 		protected internal virtual object CreateEnumerationContext(IDataReader dataReader, int executionVersion)
 		{
 			return null;
+		}
+
+		protected internal virtual DataAccessObject ProcessDataAccessObject(DataAccessObject value, ref object context)
+		{
+			return value;	
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();
