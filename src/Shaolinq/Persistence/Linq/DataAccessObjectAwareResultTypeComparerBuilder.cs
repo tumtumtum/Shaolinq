@@ -57,8 +57,9 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return false;
 			}
+			var type = typeof(T);
 
-			if (typeof(T).Assembly == typeof(DataAccessObject).Assembly)
+			if (typeof(T).Assembly == typeof(DataAccessObject).Assembly && !(typeof(T).IsArray || (type.GetInterfaces().Any(c => c.GetGenericTypeDefinitionOrNull() == typeof(IEnumerable<>) && c.GetGenericArguments()[0].IsDataAccessObjectType()))))
 			{
 				return false;
 			}
@@ -118,7 +119,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private static bool ConsideredTypeForBasicComparison(Type type)
 		{
-			if (type.IsArray && type.GetInterfaces().Any(c => c.GetGenericTypeDefinitionOrNull() == typeof(IEnumerable<>) && c.GetGenericArguments()[0].IsDataAccessObjectType()))
+			if (type.GetInterfaces().Any(c => c.GetGenericTypeDefinitionOrNull() == typeof(IEnumerable<>) && c.GetGenericArguments()[0].IsDataAccessObjectType()))
 			{
 				return false;
 			}
