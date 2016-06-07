@@ -74,7 +74,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression<Func<T, T, bool>> CreateComparerLambdaExpression<T>()
 		{
-			bool foundDataAccessObject = false;
+			var foundDataAccessObject = false;
 
 			return (Expression<Func<T, T, bool>>)CreateComparerLambdaExpression(typeof(T), ref foundDataAccessObject);
 		}

@@ -14,6 +14,8 @@ namespace Shaolinq.Postgres
 			case SqlCapability.IndexToLower:
 			case SqlCapability.Deferrability:
 			case SqlCapability.SelectForUpdate:
+			case SqlCapability.CrossApply:
+			case SqlCapability.OuterApply:
 				return true;
 			case SqlCapability.InlineForeignKeys:
 				return false;

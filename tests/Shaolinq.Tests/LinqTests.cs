@@ -1142,22 +1142,25 @@ namespace Shaolinq.Tests
 				Assert.IsNull(list[0].c);
 			}
 
-			using (var scope = NewTransactionScope())
+			if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(Persistence.SqlCapability.CrossApply))
 			{
-				var query = this.model.Schools
-					.Where(c => c.Name == "Bruce's Kung Fu School")
-					.DefaultIfEmpty()
-					.SelectMany(c => c.Students.DefaultIfEmpty().Include(d => d.Cats), (s, c) => new { s, c });
+				using (var scope = NewTransactionScope())
+				{
+					var query = this.model.Schools
+						.Where(c => c.Name == "Bruce's Kung Fu School")
+						.DefaultIfEmpty()
+						.SelectMany(c => c.Students.DefaultIfEmpty().Include(d => d.Cats), (s, c) => new { s, c });
 
-				var list = query.ToList();
+					var list = query.ToList();
 
-				Assert.AreEqual(2, list.Count);
-				Assert.IsNotNull(list[0].s);
-				Assert.IsNotNull(list[0].c);
-				Assert.IsNotNull(list[1].s);
-				Assert.IsNotNull(list[1].c);
-				Assert.AreSame(list[0].s, list[1].s);
-				Assert.AreNotEqual(list[0].c, list[1].c);
+					Assert.AreEqual(2, list.Count);
+					Assert.IsNotNull(list[0].s);
+					Assert.IsNotNull(list[0].c);
+					Assert.IsNotNull(list[1].s);
+					Assert.IsNotNull(list[1].c);
+					Assert.AreSame(list[0].s, list[1].s);
+					Assert.AreNotEqual(list[0].c, list[1].c);
+				}
 			}
 
 			using (var scope = NewTransactionScope())

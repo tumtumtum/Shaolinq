@@ -859,13 +859,9 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected override Expression VisitJoin(SqlJoinExpression join)
+		protected virtual void Write(SqlJoinType joinType)
 		{
-			this.VisitSource(join.Left);
-
-			this.WriteLine();
-
-			switch (join.JoinType)
+			switch (joinType)
 			{
 			case SqlJoinType.Cross:
 				this.Write(" CROSS JOIN ");
@@ -889,8 +885,17 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(" OUTER APPLY ");
 				break;
 			default:
-				throw new ArgumentOutOfRangeException(nameof(join), join.JoinType, "Join type incorrect");
+				throw new ArgumentOutOfRangeException(nameof(joinType), joinType, $"JoinType {joinType} not supported");
 			}
+		}
+
+		protected override Expression VisitJoin(SqlJoinExpression join)
+		{
+			this.VisitSource(join.Left);
+
+			this.WriteLine();
+
+			this.Write(join.JoinType);
 
 			this.VisitSource(join.Right);
 

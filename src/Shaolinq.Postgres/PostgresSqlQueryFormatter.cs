@@ -35,6 +35,22 @@ namespace Shaolinq.Postgres
 			return retval;
 		}
 
+		protected override void Write(SqlJoinType joinType)
+		{
+			switch (joinType)
+			{
+			case SqlJoinType.CrossApply:
+				this.Write(" CROSS JOIN LATERAL ");
+				break;
+			case SqlJoinType.OuterApply:
+				this.Write(" OUTER JOIN LATERAL ");
+				break;
+			default:
+				base.Write(joinType);
+				break;
+			}
+		}
+		
 		protected override Expression PreProcess(Expression expression)
 		{
 			expression =  PostgresDataDefinitionExpressionAmender.Amend(base.PreProcess(expression), this.sqlDataTypeProvider);
