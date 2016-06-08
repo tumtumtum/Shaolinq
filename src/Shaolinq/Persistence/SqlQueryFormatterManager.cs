@@ -13,12 +13,14 @@ namespace Shaolinq.Persistence
 		private readonly SqlDialect sqlDialect;
 		private readonly string stringQuote; 
 		private readonly string parameterPrefix;
-		
+		private readonly string stringEscape;
+
 		public abstract SqlQueryFormatter CreateQueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default);
 		
 		protected SqlQueryFormatterManager(SqlDialect sqlDialect)
 		{
 			this.sqlDialect = sqlDialect;
+			this.stringEscape = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringEscape);
 			this.stringQuote = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote); 
 			this.parameterPrefix = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 		}
@@ -50,7 +52,14 @@ namespace Shaolinq.Persistence
 
 				if (type == typeof(string) || type.IsEnum)
 				{
-					return this.stringQuote + value + this.stringQuote;
+					var str = value.ToString();
+
+					if (str.Contains(this.stringQuote))
+					{
+						return this.stringQuote + str.Replace(this.stringQuote, this.stringEscape + this.stringQuote) + this.stringQuote;
+					}
+
+					return this.stringQuote + str + this.stringQuote;
 				}
 
 				if (type == typeof(Guid))
@@ -60,7 +69,7 @@ namespace Shaolinq.Persistence
 					return this.stringQuote + guidValue.ToString("D") + this.stringQuote;
 				}
 
-				if(type == typeof(TimeSpan))
+				if (type == typeof(TimeSpan))
 				{
 					var timespanValue = (TimeSpan)value;
 

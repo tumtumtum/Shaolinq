@@ -39,6 +39,10 @@ namespace Shaolinq.Persistence
 				return "@";
 			case SqlSyntaxSymbol.StringQuote:
 				return "'";
+			case SqlSyntaxSymbol.StringQuoteAlt:
+				return "\"";
+			case SqlSyntaxSymbol.StringEscape:
+				return "\\";
 			default:
 				return "";
 			}

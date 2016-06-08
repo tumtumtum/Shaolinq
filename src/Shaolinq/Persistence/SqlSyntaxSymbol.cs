@@ -6,6 +6,8 @@ namespace Shaolinq.Persistence
 		Null,
 		Like,
 		StringQuote,
+		StringQuoteAlt,
+		StringEscape,
 		IdentifierQuote,
 		ParameterPrefix,
 		AutoIncrement

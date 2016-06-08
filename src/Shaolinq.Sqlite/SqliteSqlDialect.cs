@@ -27,12 +27,17 @@ namespace Shaolinq.Sqlite
 
 		public override string GetSyntaxSymbolString(SqlSyntaxSymbol symbol)
 		{
-			if (symbol == SqlSyntaxSymbol.AutoIncrement)
+			switch (symbol)
 			{
+			case SqlSyntaxSymbol.AutoIncrement:
 				return "AUTOINCREMENT";
+			case SqlSyntaxSymbol.StringQuote:
+				return "'";
+			case SqlSyntaxSymbol.StringEscape:
+				return "'";
+			default:
+				return base.GetSyntaxSymbolString(symbol);
 			}
-
-			return base.GetSyntaxSymbolString(symbol);
 		}
 	}
 }
