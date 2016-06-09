@@ -15,6 +15,9 @@ namespace Shaolinq.Tests.TestModel
 		[RelatedDataAccessObjects]
 		public abstract RelatedDataAccessObjects<Student> Students { get; }
 
+		[RelatedDataAccessObjects]
+		public abstract RelatedDataAccessObjects<ConcreteGenericDao> ConcreteGenericDao { get; }
+
 		[PersistedMember]
 		public abstract Address Address { get; set; }
 	}

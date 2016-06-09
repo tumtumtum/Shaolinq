@@ -135,6 +135,19 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void TestGenericDao()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var dao = this.model.ConcreteGenericDaos.Create();
+
+				dao.RelatedObject = this.model.Schools.First();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
 		public void Test_Get_CustomPrimaryKeyObject()
 		{
 			using (var scope = NewTransactionScope())

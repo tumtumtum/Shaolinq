@@ -9,6 +9,9 @@ namespace Shaolinq.Tests.TestModel
 		: DataAccessModel
 	{
 		[DataAccessObjects]
+		public abstract DataAccessObjects<ConcreteGenericDao> ConcreteGenericDaos { get; }
+		
+		[DataAccessObjects]
 		public abstract DataAccessObjects<Bird> Birds { get; }
 
 		[DataAccessObjects]

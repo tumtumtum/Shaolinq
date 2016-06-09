@@ -146,6 +146,7 @@
     <Compile Include="NonPrimaryAutoIncrement.cs" />
     <Compile Include="TestModel\Address.cs" />
     <Compile Include="AutoIncrementTests.cs" />
+    <Compile Include="TestModel\BaseGenericDao.cs" />
     <Compile Include="TestModel\Bird.cs" />
     <Compile Include="TestModel\Cat.cs" />
     <Compile Include="TestModel\Club.cs" />

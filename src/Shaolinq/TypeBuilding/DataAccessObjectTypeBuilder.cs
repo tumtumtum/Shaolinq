@@ -93,8 +93,15 @@ namespace Shaolinq.TypeBuilding
 		{
 			if (typeBuildContext.IsFirstPass())
 			{
-				this.typeBuilder = this.ModuleBuilder.DefineType(this.baseType.FullName, TypeAttributes.Class | TypeAttributes.Public, this.baseType);
-				this.dataObjectTypeTypeBuilder = this.ModuleBuilder.DefineType(this.baseType.FullName + "Data", TypeAttributes.Class | TypeAttributes.Public, typeof(object));
+				if (this.baseType.FullName.Contains("Base"))
+				{
+					;
+				}
+
+				var typeName = this.baseType.Namespace + "." + this.baseType.Name;
+
+				this.typeBuilder = this.ModuleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, this.baseType);
+				this.dataObjectTypeTypeBuilder = this.ModuleBuilder.DefineType(typeName + "Data", TypeAttributes.Class | TypeAttributes.Public, typeof(object));
 				this.typeBuilder.AddInterfaceImplementation(typeof(IDataAccessObjectAdvanced));
 				this.typeBuilder.AddInterfaceImplementation(typeof(IDataAccessObjectInternal));
 
@@ -2941,8 +2948,10 @@ namespace Shaolinq.TypeBuilding
 				
 				const MethodAttributes methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Final;
 
-				var methodBuilder = this.typeBuilder.DefineMethod(propertyInfo.DeclaringType.FullName + ".get_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, Type.EmptyTypes);
-				var propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.DeclaringType.FullName + "." + propertyName, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
+				var name = propertyInfo.DeclaringType.Namespace + "." + propertyInfo.DeclaringType.Name;
+
+				var methodBuilder = this.typeBuilder.DefineMethod(name + ".get_" + propertyName, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, propertyInfo.PropertyType, Type.EmptyTypes);
+				var propertyBuilder = this.typeBuilder.DefineProperty(name + "." + propertyName, PropertyAttributes.None, propertyInfo.PropertyType, null, null, null, null, null);
 
 				propertyBuilder.SetGetMethod(methodBuilder);
 
