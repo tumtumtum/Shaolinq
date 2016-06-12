@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public static bool ReadEx(this IDataReader reader)
 		{
-            var dbDataReader = reader as DbDataReader;
+			var dbDataReader = reader as DbDataReader;
 
 			if (dbDataReader != null)
 			{

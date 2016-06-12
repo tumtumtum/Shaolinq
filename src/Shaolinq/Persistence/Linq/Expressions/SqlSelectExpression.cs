@@ -48,7 +48,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ForUpdate = forUpdate;
 			this.Reverse = reverse;
 		}
-        
+		
 		public SqlSelectExpression ChangeColumns(IEnumerable<SqlColumnDeclaration> columns)
 		{
 			return this.ChangeColumns(columns, false);

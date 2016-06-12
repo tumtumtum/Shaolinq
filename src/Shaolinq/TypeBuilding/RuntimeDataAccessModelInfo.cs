@@ -75,7 +75,7 @@ namespace Shaolinq.TypeBuilding
 			if (!this.dataAccessObjectConstructors.TryGetValue(dataAccessObjectType, out constructor))
 			{
 				Type type;
-                
+				
 				if (!this.concreteTypesByType.TryGetValue(dataAccessObjectType, out type))
 				{
 					throw new InvalidDataAccessObjectModelDefinition("{0} it not part of {1}", dataAccessObjectType.Name, this.dataAccessModelType.Name);

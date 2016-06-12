@@ -11,12 +11,12 @@ namespace Shaolinq.Sqlite
 			return new DataAccessModelConfiguration
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
-       			{
-       				new SqliteSqlDatabaseContextInfo
-       				{
-       					ConnectionString = connectionString
-       				},
-       			}
+				{
+					new SqliteSqlDatabaseContextInfo
+					{
+						ConnectionString = connectionString
+					},
+				}
 			};
 		}
 
@@ -24,15 +24,15 @@ namespace Shaolinq.Sqlite
 		{
 			return new DataAccessModelConfiguration
 			{
-		       	SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
-       			{
-       				new SqliteSqlDatabaseContextInfo()
-       				{
-       					Categories = categories,
-       					FileName = fileName,
+				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				{
+					new SqliteSqlDatabaseContextInfo()
+					{
+						Categories = categories,
+						FileName = fileName,
 						UseMonoData = useMonoData
-       				},
-       			}
+					},
+				}
 			};
 		}
 	}

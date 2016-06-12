@@ -1040,12 +1040,12 @@ namespace Shaolinq.Persistence.Linq
 						return this.BindCollectionContains(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], methodCallExpression == this.rootExpression);
 					}
 					break;
-                case "Delete":
-                    if (methodCallExpression.Arguments.Count == 1)
-                    {
-                        return this.BindDelete(methodCallExpression.Arguments[0]);
-                    }
-                    break;
+				case "Delete":
+					if (methodCallExpression.Arguments.Count == 1)
+					{
+						return this.BindDelete(methodCallExpression.Arguments[0]);
+					}
+					break;
 				case "Union":
 					if (methodCallExpression.Arguments.Count == 2)
 					{
@@ -1825,18 +1825,18 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = GetNextAlias();
 			var deleteExpression = new SqlDeleteExpression(projection, null);
-		    var select = new SqlSelectExpression(typeof(int), alias, new [] { new SqlColumnDeclaration("__SHAOLINQ__DELETE", Expression.Constant(null), true) }, deleteExpression, null, null);
+			var select = new SqlSelectExpression(typeof(int), alias, new [] { new SqlColumnDeclaration("__SHAOLINQ__DELETE", Expression.Constant(null), true) }, deleteExpression, null, null);
 
-            var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
+			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
 			
 			var aggregator = Expression.Lambda
-            (
-                Expression.Call(MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod.MakeGenericMethod(typeof(int)), parameterExpression),
-                parameterExpression
-            );
+			(
+				Expression.Call(MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod.MakeGenericMethod(typeof(int)), parameterExpression),
+				parameterExpression
+			);
 
-            return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
-        }
+			return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
+		}
 
 		private static string GetExistingAlias(Expression source)
 		{

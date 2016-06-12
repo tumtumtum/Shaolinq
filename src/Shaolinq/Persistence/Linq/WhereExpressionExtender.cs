@@ -53,7 +53,7 @@ namespace Shaolinq.Persistence.Linq
 
 									arguments[0] = newSelectSource;
 									arguments[1] = selectCondition;
-                                    
+									
 									return Expression.Call(methodCallExpression.Method, arguments);
 								}
 							}

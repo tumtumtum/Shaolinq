@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace Shaolinq
 {
-    public interface IAsyncEnumerable<out T>
+	public interface IAsyncEnumerable<out T>
 		: IEnumerable<T>
-    {
-        IAsyncEnumerator<T> GetAsyncEnumerator();
-    }
+	{
+		IAsyncEnumerator<T> GetAsyncEnumerator();
+	}
 
 	public interface IInternalAsyncEnumerable<out T>
 	   : IEnumerable<T>

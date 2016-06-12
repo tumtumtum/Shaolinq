@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence
 		{
 			this.sqlDataTypesByType[sqlDataType.SupportedType] = sqlDataType;
 		}
-        
+		
 		protected void DefineSqlDataType(Type type, string name, string getValueMethod)
 		{
 			this.DefineSqlDataType(type, name, DataRecordMethods.GetMethod(getValueMethod));

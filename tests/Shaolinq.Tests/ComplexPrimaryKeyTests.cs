@@ -859,11 +859,11 @@ namespace Shaolinq.Tests
 							address1
 						}
 					).Select(c =>
-						         new
-						         {
-							         street = c.shop.Address.Street,
-							         diameter = c.shop.Address.Region.Diameter
-						         });
+								 new
+								 {
+									 street = c.shop.Address.Street,
+									 diameter = c.shop.Address.Region.Diameter
+								 });
 
 			var results = query.ToList();
 		}
@@ -2719,10 +2719,10 @@ namespace Shaolinq.Tests
 			}
 		}
 
-	    [Test]
-	    public void Test_Join_With_Multiple_Conditions()
-	    {
-            var x = from mall in model.Malls
+		[Test]
+		public void Test_Join_With_Multiple_Conditions()
+		{
+			var x = from mall in model.Malls
 				join shop in model.Shops
 				on new { mall.TopShop.Id, mall.Address  } equals new { shop.Id, shop.Address } into shops
 				from shop in shops.DefaultIfEmpty()
@@ -2732,7 +2732,7 @@ namespace Shaolinq.Tests
 					mall.Address
 				};
 
-	        var y = x.ToList();
-	    }
+			var y = x.ToList();
+		}
 	}
 }

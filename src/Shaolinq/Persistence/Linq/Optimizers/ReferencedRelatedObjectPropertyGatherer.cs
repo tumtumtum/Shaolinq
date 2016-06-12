@@ -61,11 +61,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, null, forProjection);
 
-            var reducedExpressions = expressions.Select(c =>
-            {
+			var reducedExpressions = expressions.Select(c =>
+			{
 				gatherer.sourceParameterExpression = c.Item1;
 				return SqlExpressionReplacer.Replace(gatherer.Visit(c.Item2), d => d.StripForIncludeScanning());
-            }).ToArray();
+			}).ToArray();
 
 			return new ReferencedRelatedObjectPropertyGathererResults
 			{
@@ -191,7 +191,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var fullAccessPropertyPath = new PropertyPath(c => c.Name, referencedRelatedObject.FullAccessPropertyPath);
 			var currentPropertyPath = new PropertyPath(c => c.Name, prefixPath.Concat(referencedRelatedObject.IncludedPropertyPath));
 			
-            while (currentPropertyPath.Length > 0)
+			while (currentPropertyPath.Length > 0)
 			{
 				var includedPropertyInfo = new IncludedPropertyInfo
 				{

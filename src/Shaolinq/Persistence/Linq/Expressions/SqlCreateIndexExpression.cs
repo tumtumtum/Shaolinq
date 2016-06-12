@@ -14,7 +14,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public bool LowercaseIndex { get; }
 		public IndexType IndexType { get; }
 		public SqlTableExpression Table { get; }
-        public Expression Where { get; }
+		public Expression Where { get; }
 		public IReadOnlyList<SqlIndexedColumnExpression> Columns { get; }
 		public IReadOnlyList<SqlColumnExpression> IncludedColumns { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateIndex;
@@ -35,12 +35,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.IfNotExist = ifNotExist;
 			this.Columns = columns;
 			this.IncludedColumns = includedColumns;
-            this.Where = where;
+			this.Where = where;
 		}
 
-        public Expression ChangeWhere(Expression where)
-        {
-            return new SqlCreateIndexExpression(this.IndexName, this.Table, this.Unique, this.LowercaseIndex, this.IndexType, this.IfNotExist, this.Columns, this.IncludedColumns, where);
-        }
+		public Expression ChangeWhere(Expression where)
+		{
+			return new SqlCreateIndexExpression(this.IndexName, this.Table, this.Unique, this.LowercaseIndex, this.IndexType, this.IfNotExist, this.Columns, this.IncludedColumns, where);
+		}
 	}
 }

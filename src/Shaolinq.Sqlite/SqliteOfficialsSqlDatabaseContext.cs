@@ -126,14 +126,14 @@ namespace Shaolinq.Sqlite
 				Logger.WarnFormat("Cannot parse sqlite version: {0}", versionString);
 			}
 
-		    var connectionStringBuilder = new SQLiteConnectionStringBuilder
-		    {
-		        FullUri = this.FileName,
-		        Enlist = false,
-		        ForeignKeys = true
-		    };
-            
-		    this.ConnectionString = connectionStringBuilder.ConnectionString;
+			var connectionStringBuilder = new SQLiteConnectionStringBuilder
+			{
+				FullUri = this.FileName,
+				Enlist = false,
+				ForeignKeys = true
+			};
+			
+			this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.ServerConnectionString = this.ConnectionString;
 
 			this.SchemaManager = new SqliteOfficialSqlDatabaseSchemaManager(this);

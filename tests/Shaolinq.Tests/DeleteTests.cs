@@ -275,7 +275,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-			    this.model.Schools.Where(c => c.Id == schoolId).Delete();
+				this.model.Schools.Where(c => c.Id == schoolId).Delete();
 
 				scope.Complete();
 			}

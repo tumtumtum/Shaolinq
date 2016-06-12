@@ -32,7 +32,7 @@ namespace Shaolinq.Tests.TestModel
 		
 		[ComputedMember("Height + (Weight ?? 0)")]
 		public abstract long HeightAndWeight { get; set; }
-        
+		
 		[ComputedMember("CalculateHeightAndWeight()")]
 		public abstract long? HeightAndWeight2 { get; set; }
 

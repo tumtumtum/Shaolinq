@@ -268,12 +268,12 @@ namespace Shaolinq.Tests
 					y
 				}).ToList();
 				var result2 = (from x in this.model.Students
-				               from y in this.model.Schools
-				               select new
-				               {
-					               x,
-					               y
-				               }).ToList();
+							   from y in this.model.Schools
+							   select new
+							   {
+								   x,
+								   y
+							   }).ToList();
 
 
 				var result3 = (from x in this.model.Students.ToList()
@@ -317,7 +317,7 @@ namespace Shaolinq.Tests
 			{
 				var results = (from student in this.model.Students
 							   where student.School.Id == ((from s in this.model.Schools where s.Name == "Bruce's Kung Fu School" select s.Id).First())
-				               select student).ToList();
+							   select student).ToList();
 
 				Assert.That(results.Count, Is.GreaterThan(0));
 
@@ -552,14 +552,14 @@ namespace Shaolinq.Tests
 				var schools = this.model.Schools.ToArray();
 
 				var resultsLocal = (from student in students
-				                    from school in schools
-				                    orderby student.Firstname, student.Lastname
-				                    where student.School.Id == school.Id
-				                    select new
-				                    {
-					                    student.Fullname,
-					                    school.Name
-				                    }).ToList();
+									from school in schools
+									orderby student.Firstname, student.Lastname
+									where student.School.Id == school.Id
+									select new
+									{
+										student.Fullname,
+										school.Name
+									}).ToList();
 
 				Assert.IsTrue(resultsLocal.SequenceEqual(results));
 
@@ -715,8 +715,8 @@ namespace Shaolinq.Tests
 				var students = this.model.Students.ToList();
 
 				var results = ((from student in this.model.Students
-				                orderby student.Firstname
-				                select student).Skip(2)).ToArray();
+								orderby student.Firstname
+								select student).Skip(2)).ToArray();
 
 				Assert.IsTrue(students.OrderBy(c => c.Firstname).Skip(2).SequenceEqual(results));
 			}
@@ -769,8 +769,8 @@ namespace Shaolinq.Tests
 				var students = this.model.Students.ToList();
 
 				var results = ((from student in this.model.Students
-				                orderby student.Firstname
-				                select student).Take(2));
+								orderby student.Firstname
+								select student).Take(2));
 
 				Assert.IsTrue(students.OrderBy(c => c.Firstname).Take(2).SequenceEqual(results));
 			}
@@ -784,8 +784,8 @@ namespace Shaolinq.Tests
 				var students = this.model.Students.ToList();
 
 				var results = ((from student in this.model.Students
-				                orderby student.Firstname
-				                select student).Skip(1).Take(2)).ToList();
+								orderby student.Firstname
+								select student).Skip(1).Take(2)).ToList();
 
 				Assert.AreEqual(2, results.Count);
 
@@ -916,13 +916,13 @@ namespace Shaolinq.Tests
 
 				male.SexOptional = Sex.Male;
 
-			    scope.Flush();
+				scope.Flush();
 
-                count = this.model.Students.Count(c => c.SexOptional == Sex.Male);
+				count = this.model.Students.Count(c => c.SexOptional == Sex.Male);
 
-			    Assert.AreEqual(1, count);
+				Assert.AreEqual(1, count);
 
-                scope.Complete();
+				scope.Complete();
 			}
 		}
 
@@ -1036,52 +1036,52 @@ namespace Shaolinq.Tests
 			waiter.GetResult();
 		}
 
-        public virtual async Task __Test_Select_FirstOrDefaultAsync()
-        {
-            using (var scope = new DataAccessScope())
-            {
-                var student = await this.model.Students.FirstOrDefaultAsync();
+		public virtual async Task __Test_Select_FirstOrDefaultAsync()
+		{
+			using (var scope = new DataAccessScope())
+			{
+				var student = await this.model.Students.FirstOrDefaultAsync();
 
-                Assert.IsNotNull(student);
-            }
-        }
+				Assert.IsNotNull(student);
+			}
+		}
 
-        [Test]
-        public virtual void Test_Select_FirstOrDefaultAsyncWithPredicate1()
-        {
-            Func<Task> func = async () =>
-            {
-                using (var scope = new DataAccessScope())
-                {
-                    var student = await this.model.Students.FirstOrDefaultAsync(c => c.Firstname == "Tum");
+		[Test]
+		public virtual void Test_Select_FirstOrDefaultAsyncWithPredicate1()
+		{
+			Func<Task> func = async () =>
+			{
+				using (var scope = new DataAccessScope())
+				{
+					var student = await this.model.Students.FirstOrDefaultAsync(c => c.Firstname == "Tum");
 
-                    Assert.IsNotNull(student);
-                }
-            };
+					Assert.IsNotNull(student);
+				}
+			};
 
-            var waiter = func().ContinueOnAnyContext().GetAwaiter();
+			var waiter = func().ContinueOnAnyContext().GetAwaiter();
 
-            waiter.GetResult();
-        }
+			waiter.GetResult();
+		}
 
-        [Test]
-        public virtual void Test_Select_FirstOrDefaultAsyncWithPredicate2()
-        {
-            Func<Task> func = async () =>
-            {
-                using (var scope = new DataAccessScope())
-                {
-                    var student = await this.model.Students.FirstOrDefaultAsync(c => c.Firstname == "aaaaaazzzzTum");
+		[Test]
+		public virtual void Test_Select_FirstOrDefaultAsyncWithPredicate2()
+		{
+			Func<Task> func = async () =>
+			{
+				using (var scope = new DataAccessScope())
+				{
+					var student = await this.model.Students.FirstOrDefaultAsync(c => c.Firstname == "aaaaaazzzzTum");
 
-                    Assert.IsNull(student);
-                }
-            };
+					Assert.IsNull(student);
+				}
+			};
 
-            var waiter = func().ContinueOnAnyContext().GetAwaiter();
+			var waiter = func().ContinueOnAnyContext().GetAwaiter();
 
-            waiter.GetResult();
-        }
-       
+			waiter.GetResult();
+		}
+	   
 		[Test]
 		public virtual void Test_ToList()
 		{
@@ -1562,7 +1562,7 @@ namespace Shaolinq.Tests
 			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
-				              where student.Firstname == "Tum" && student.Lastname == "Nguyen"
+							  where student.Firstname == "Tum" && student.Lastname == "Nguyen"
 							  select student;
 
 				Assert.AreEqual(1, students.Count());
@@ -1927,13 +1927,13 @@ namespace Shaolinq.Tests
 			var mars = this.model.Students.Single(c => c.Firstname == "Mars");
 
 			var sums = (from student in this.model.Students
-			            group student by student.Id
-			            into g
-			            select new
-			            {
-				            Sum = g.Sum(x => x.Height),
-				            Id = g.Key
-			            }).ToDictionary(c => c.Id, c => c);
+						group student by student.Id
+						into g
+						select new
+						{
+							Sum = g.Sum(x => x.Height),
+							Id = g.Key
+						}).ToDictionary(c => c.Id, c => c);
 
 			Assert.AreEqual(tum.Height, sums[tum.Id].Sum);
 			Assert.AreEqual(mars.Height, sums[mars.Id].Sum);
@@ -1962,7 +1962,7 @@ namespace Shaolinq.Tests
 		public void Test_Query_With_OrderBy()
 		{
 			var students = (from student in this.model.Students
-			                orderby student.Firstname
+							orderby student.Firstname
 								select student).ToList();
 
 			Assert.That(students.Count, Is.GreaterThan(1));
@@ -1997,18 +1997,18 @@ namespace Shaolinq.Tests
 		public void Test_Query_GroupBy_Multiple_Values()
 		{
 			var students = (from student in this.model.Students
-			                group student by new
-			                {
-				                student.Id,
-				                student.Firstname
-			                }
-			                into g
-			                select new
-			                {
-				                g.Key.Id,
-				                g.Key.Firstname,
-				                Count = g.Count()
-			                }).ToList();
+							group student by new
+							{
+								student.Id,
+								student.Firstname
+							}
+							into g
+							select new
+							{
+								g.Key.Id,
+								g.Key.Firstname,
+								Count = g.Count()
+							}).ToList();
 		}
 
 		[Test]
@@ -2017,12 +2017,12 @@ namespace Shaolinq.Tests
 			using (var scope = NewTransactionScope())
 			{
 				var tum = (from student in this.model.Students
-				           where student.Nickname == ""
-				                 && student.Firstname == "Tum"
-				           select new
-				           {
-					           Student = student
-				           }).FirstOrDefault();
+						   where student.Nickname == ""
+								 && student.Firstname == "Tum"
+						   select new
+						   {
+							   Student = student
+						   }).FirstOrDefault();
 
 				Assert.IsNull(tum);
 			}
@@ -2030,12 +2030,12 @@ namespace Shaolinq.Tests
 			using (var scope = NewTransactionScope())
 			{
 				var tum = (from student in this.model.Students
-				           where (student.Nickname ?? "") == ""
-				                 && student.Firstname == "Tum"
-				           select new
-				           {
-					           Student = student
-				           }).Single();
+						   where (student.Nickname ?? "") == ""
+								 && student.Firstname == "Tum"
+						   select new
+						   {
+							   Student = student
+						   }).Single();
 
 				Assert.IsNotNull(tum);
 			}
@@ -2100,25 +2100,25 @@ namespace Shaolinq.Tests
 				scope.Flush();
 
 				var group = (from student in this.model.Students
-				             group student by student.Birthdate.GetValueOrDefault().Date
-				             into g
-				             select new
-				             {
-					             Date = g.Key,
-					             Count = g.Count()
-				             }).ToList();
+							 group student by student.Birthdate.GetValueOrDefault().Date
+							 into g
+							 select new
+							 {
+								 Date = g.Key,
+								 Count = g.Count()
+							 }).ToList();
 
 				Assert.That(group.Count, Is.GreaterThan(2));
 
 				group = (from student in this.model.Students
-				         where student.Firstname == "Tum"
-				         group student by student.Birthdate.GetValueOrDefault().Date
-				         into g
-				         select new
-				         {
-					         Date = g.Key,
-					         Count = g.Count()
-				         }).ToList();
+						 where student.Firstname == "Tum"
+						 group student by student.Birthdate.GetValueOrDefault().Date
+						 into g
+						 select new
+						 {
+							 Date = g.Key,
+							 Count = g.Count()
+						 }).ToList();
 
 
 				Assert.That(group.Count, Is.EqualTo(1));
@@ -2138,8 +2138,8 @@ namespace Shaolinq.Tests
 			using (var scope = NewTransactionScope())
 			{
 				Assert.IsFalse(this.model.Students
-					               .Select(c => c.Lastname)
-					               .Contains("zzzzz"));
+								   .Select(c => c.Lastname)
+								   .Contains("zzzzz"));
 
 				Assert.IsTrue(this.model.Students
 								   .Select(c => c.Lastname)
@@ -2278,24 +2278,24 @@ namespace Shaolinq.Tests
 			}
 		}
 
-        [Test]
-        public void Test_Compare_Month()
-        {
-            using (var scope = NewTransactionScope())
-            {
-                var results = from student in this.model.Students
-                    where student.Birthdate.Value.Date.Year == 12
-                              select student;
+		[Test]
+		public void Test_Compare_Month()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var results = from student in this.model.Students
+					where student.Birthdate.Value.Date.Year == 12
+							  select student;
 
 
-                var list = results.ToList();
+				var list = results.ToList();
 
-                scope.Complete();
-            }
-        }
+				scope.Complete();
+			}
+		}
 
 
-        [Test]
+		[Test]
 		public void Test_GroupBy_DateTimeDate()
 		{
 			using (var scope = NewTransactionScope())
@@ -3075,39 +3075,39 @@ namespace Shaolinq.Tests
 			}
 		}
 
-	    [Test]
-	    public void Test_Bool()
-	    {
-		    Guid id = Guid.Empty;
+		[Test]
+		public void Test_Bool()
+		{
+			Guid id = Guid.Empty;
 
-		    try
-		    {
-			    using (var scope = NewTransactionScope())
-			    {
-				    var student = this.model.Students.Create();
+			try
+			{
+				using (var scope = NewTransactionScope())
+				{
+					var student = this.model.Students.Create();
 
-				    student.School = this.model.Schools.Single(c => c.Name == "Bruce's Kung Fu School");
+					student.School = this.model.Schools.Single(c => c.Name == "Bruce's Kung Fu School");
 
-				    student.Overseas = true;
+					student.Overseas = true;
 
-				    scope.Flush();
+					scope.Flush();
 
-				    id = student.Id;
+					id = student.Id;
 
-				    scope.Complete();
-			    }
+					scope.Complete();
+				}
 
-			    using (var scope = NewTransactionScope())
-			    {
-				    var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
+				using (var scope = NewTransactionScope())
+				{
+					var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
 
-				    Assert.IsNotNull(student);
+					Assert.IsNotNull(student);
 
-				    scope.Complete();
-			    }
-		    }
-		    finally
-		    {
+					scope.Complete();
+				}
+			}
+			finally
+			{
 				using (var scope = NewTransactionScope())
 				{
 					var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
@@ -3117,7 +3117,7 @@ namespace Shaolinq.Tests
 					scope.Complete();
 				}
 			}
-	    }
+		}
 
 		[Test]
 		public void Test_Rollback_DataAccessScope_Inside_TransactionScope()

@@ -44,12 +44,12 @@ namespace Shaolinq.Persistence
 
 		public virtual bool IsClosed => this.DbConnection == null || this.DbConnection?.State == ConnectionState.Closed || this.DbConnection?.State == ConnectionState.Broken;
 		
-        protected SqlTransactionalCommandsContext()
+		protected SqlTransactionalCommandsContext()
 			: this(true)
 		{
 		}
 
-        protected SqlTransactionalCommandsContext(bool supportsAsync)
+		protected SqlTransactionalCommandsContext(bool supportsAsync)
 		{
 			this.SupportsAsync = supportsAsync;
 		}

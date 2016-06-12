@@ -142,7 +142,7 @@ namespace Shaolinq.TypeBuilding
 
 				this.dataObjectField = this.typeBuilder.DefineField(DataObjectFieldName, this.dataObjectTypeTypeBuilder, FieldAttributes.Public);
 			}
-        
+		
 			var type = this.baseType;
 			var alreadyImplementedProperties = new HashSet<string>();
 
@@ -541,9 +541,9 @@ namespace Shaolinq.TypeBuilding
 			var generator = methodBuilder.GetILGenerator();
 
 			var constructor = currentFieldInDataObject.FieldType.GetConstructor(new [] { typeof(DataAccessModel), typeof(IDataAccessObjectAdvanced), typeof(string) });
-    
+	
 			var local = generator.DeclareLocal(currentFieldInDataObject.FieldType);
-            
+			
 			var returnLabel = generator.DefineLabel();
 
 			// Load field and store in temp variable
@@ -675,7 +675,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				return;
 			}
-            
+			
 			if (typeBuildContext.IsFirstPass())
 			{
 				const MethodAttributes methodAttributes = MethodAttributes.Public;
@@ -1672,7 +1672,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				var label = generator.DefineLabel();
 				var valueField = this.valueFields[propertyDescriptor.PropertyName];
-                
+				
 				// Load our value
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);

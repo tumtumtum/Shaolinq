@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 		}
 
-        public SqlExpressionEqualityComparer(SqlExpressionComparerOptions options)
+		public SqlExpressionEqualityComparer(SqlExpressionComparerOptions options)
 		{
 			this.options = options;
 		}

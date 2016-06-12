@@ -16,9 +16,9 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class ProjectionBuilder
 		: SqlExpressionVisitor
-    {
-	    private ProjectionBuilderScope scope;
-        private Type currentNewExpressionType = null;
+	{
+		private ProjectionBuilderScope scope;
+		private Type currentNewExpressionType = null;
 		private readonly ParameterExpression dataReader;
 		private readonly ParameterExpression objectProjector;
 		private readonly ParameterExpression dynamicParameters;
@@ -200,7 +200,7 @@ namespace Shaolinq.Persistence.Linq
 					throw new InvalidOperationException(@"Missing constructor for {expression.Type}");
 				}
 
-                return Expression.New
+				return Expression.New
 				(
 					constructor,
 					Expression.Property(this.objectProjector, "DataAccessModel"),
@@ -358,7 +358,7 @@ namespace Shaolinq.Persistence.Linq
 				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByValuesMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
 				var property = typeDescriptor.GetRelationshipInfos().Single(c => c.ReferencingProperty == match.RootProperty).TargetProperty;
 
-                return Expression.Convert(Expression.Property(reference, property), this.dataAccessModel.GetConcreteTypeFromDefinitionType(property.PropertyType));
+				return Expression.Convert(Expression.Property(reference, property), this.dataAccessModel.GetConcreteTypeFromDefinitionType(property.PropertyType));
 			}
 			else
 			{

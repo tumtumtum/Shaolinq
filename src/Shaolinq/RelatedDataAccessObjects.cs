@@ -114,7 +114,7 @@ namespace Shaolinq
 					AddIfNotExist(value);
 				}
 			}
-            else if (this.values.Count > 0)
+			else if (this.values.Count > 0)
 			{
 				if (value != null)
 				{

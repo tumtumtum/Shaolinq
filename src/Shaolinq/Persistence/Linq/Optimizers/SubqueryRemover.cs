@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private SubqueryRemover(IEnumerable<SqlSelectExpression> selectsToRemove)
 		{
 			this.selectsToRemove = new HashSet<SqlSelectExpression>(selectsToRemove);
-            
+			
 			this.columnsBySelectAliasByColumnName = this.selectsToRemove.ToDictionary(d => d.Alias, d => d.Columns.ToDictionary(d2 => d2.Name, d2 => d2.Expression));
 		}
 

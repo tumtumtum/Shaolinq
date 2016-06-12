@@ -26,36 +26,36 @@ namespace Shaolinq.Persistence.Computed
 			return gatherer.results;
 		}
 
-        protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
-        {
-            if (methodCallExpression.Object == this.target && this.target != null)
-            {
-                var attributes = methodCallExpression.Method.GetCustomAttributes(typeof(DependsOnPropertyAttribute), true);
+		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+		{
+			if (methodCallExpression.Object == this.target && this.target != null)
+			{
+				var attributes = methodCallExpression.Method.GetCustomAttributes(typeof(DependsOnPropertyAttribute), true);
 
-                foreach (DependsOnPropertyAttribute attribute in attributes)
-                {
-                    var property = this.target.Type.GetProperty(attribute.PropertyName);
+				foreach (DependsOnPropertyAttribute attribute in attributes)
+				{
+					var property = this.target.Type.GetProperty(attribute.PropertyName);
 
-                    this.results.Add(property);
-                }
-            }
+					this.results.Add(property);
+				}
+			}
 
-            return base.VisitMethodCall(methodCallExpression);
-        }
+			return base.VisitMethodCall(methodCallExpression);
+		}
 
-        protected override Expression VisitMemberAccess(MemberExpression memberExpression)
+		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
 			if (memberExpression.Expression == this.target)
 			{
-			    var info = memberExpression.Member as PropertyInfo;
+				var info = memberExpression.Member as PropertyInfo;
 
-                if (info != null)
+				if (info != null)
 				{
 					this.results.Add(info);
 				}
 			}
 
-		    return base.VisitMemberAccess(memberExpression);
+			return base.VisitMemberAccess(memberExpression);
 		}
 	}
 }

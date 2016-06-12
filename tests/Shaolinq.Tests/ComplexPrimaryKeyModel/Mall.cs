@@ -22,10 +22,10 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public virtual Mall SisterMall2 { get; set; }
 
-        [PersistedMember]
-        public virtual Shop TopShop { get; set; }
+		[PersistedMember]
+		public virtual Shop TopShop { get; set; }
 
-        [RelatedDataAccessObjects]
+		[RelatedDataAccessObjects]
 		public virtual RelatedDataAccessObjects<Shop> Shops { get; }
 
 		[RelatedDataAccessObjects(BackReferenceName = "Mall2")]

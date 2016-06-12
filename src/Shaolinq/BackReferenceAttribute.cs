@@ -12,7 +12,7 @@ namespace Shaolinq
 	public class BackReferenceAttribute
 		: PersistedMemberAttribute
 	{
-	    public BackReferenceAttribute()
+		public BackReferenceAttribute()
 		{
 		}
 

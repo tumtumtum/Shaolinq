@@ -55,7 +55,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
 			if (methodCallExpression.Method.GetGenericMethodOrRegular() != MethodInfoFastRef.QueryableExtensionsIncludeMethod)
-            {
+			{
 				return base.VisitMethodCall(methodCallExpression);
 			}
 

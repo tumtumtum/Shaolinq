@@ -43,7 +43,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var columnRemoved = false; 
 			
 			select = (SqlSelectExpression)base.VisitSelect(select);
-            
+			
 			var columnsOrderedByName = select.Columns.OrderBy(c => c.Name).ToList();
 
 			var removedColumns = new BitArray(select.Columns.Count);
@@ -52,7 +52,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				var icolumn = columnsOrderedByName[i];
 				var iNewColumnExpression = new SqlColumnExpression(icolumn.Expression.Type, select.Alias, icolumn.Name);
-                
+				
 				for (var j = i + 1; j < n; j++)
 				{
 					if (!removedColumns.Get(j))
@@ -103,8 +103,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			var retval = typedLeft != null && typedRight != null
 					&& typedLeft.Type == typedRight.Type
-			       && typedLeft.SelectAlias == typedRight.SelectAlias
-			       && typedLeft.Name == typedRight.Name;
+				   && typedLeft.SelectAlias == typedRight.SelectAlias
+				   && typedLeft.Name == typedRight.Name;
 
 			return retval;
 		}

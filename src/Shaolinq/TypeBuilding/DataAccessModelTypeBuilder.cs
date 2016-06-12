@@ -51,7 +51,7 @@ namespace Shaolinq.TypeBuilding
 			foreach (var propertyInfo in baseType.GetProperties())
 			{
 				var queryableAttribute = propertyInfo.GetFirstCustomAttribute<DataAccessObjectsAttribute>(true);
-                
+				
 				if (queryableAttribute == null)
 				{
 					continue;
@@ -81,7 +81,7 @@ namespace Shaolinq.TypeBuilding
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
 					initialiseGenerator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
-                    
+					
 					var propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
 
 					// Implement get method

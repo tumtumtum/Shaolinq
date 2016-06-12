@@ -9,14 +9,14 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.DotConnect
 {
-    public class PostgresDotConnectSqlDatabaseContext
+	public class PostgresDotConnectSqlDatabaseContext
 		: SqlDatabaseContext
-    {
+	{
 		public int Port { get; set; }
 		public string Host { get; set; }
-	    public string UserId { get; set; }
-	    public string Password { get; set; }
-	    
+		public string UserId { get; set; }
+		public string Password { get; set; }
+		
 		public static PostgresDotConnectSqlDatabaseContext Create(PostgresDotConnectSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
@@ -29,7 +29,7 @@ namespace Shaolinq.Postgres.DotConnect
 
 		protected PostgresDotConnectSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDotConnectSqlDatabaseContextInfo contextInfo)
 			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
-        {
+		{
 			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
 			{
 				this.ConnectionString = contextInfo.ConnectionString;
@@ -72,22 +72,22 @@ namespace Shaolinq.Postgres.DotConnect
 			}
 
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
-        }
+		}
 
-        public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-        {
-            return new PostgresDotConnectSqlTransactionalCommandsContext(this, transaction);
-        }
+		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
+		{
+			return new PostgresDotConnectSqlTransactionalCommandsContext(this, transaction);
+		}
 
 		public override DbProviderFactory CreateDbProviderFactory()
-        {
-            return PgSqlProviderFactory.Instance;
-        }
+		{
+			return PgSqlProviderFactory.Instance;
+		}
 		
-	    public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
-        {
-            return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);	
-        }
+		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
+		{
+			return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);	
+		}
 
 		public override void DropAllConnections()
 		{
@@ -145,5 +145,5 @@ namespace Shaolinq.Postgres.DotConnect
 
 			return new DataAccessException(exception, relatedQuery);
 		}
-    }
+	}
 }

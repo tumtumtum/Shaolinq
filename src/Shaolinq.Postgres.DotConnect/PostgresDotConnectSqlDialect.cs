@@ -17,5 +17,5 @@ namespace Shaolinq.Postgres.DotConnect
 				return base.SupportsCapability(capability);
 			}
 		}
-    }
+	}
 }

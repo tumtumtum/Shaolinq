@@ -18,11 +18,11 @@ namespace Shaolinq
 			{
 				IsolationLevel = IsolationLevel.ReadCommitted,
 			};
-            
+			
 			if (transactionScopeOption == TransactionScopeOption.Required)
 			{
 
-                var currentTransaction = Transaction.Current;
+				var currentTransaction = Transaction.Current;
 				if (currentTransaction != null && (currentTransaction.IsolationLevel == IsolationLevel.Serializable || currentTransaction.IsolationLevel == IsolationLevel.RepeatableRead))
 				{
 					transactionOptions.IsolationLevel = currentTransaction.IsolationLevel;
@@ -48,7 +48,7 @@ namespace Shaolinq
 			{
 				IsolationLevel = IsolationLevel.RepeatableRead,
 			};
-            
+			
 			if (transactionScopeOption == TransactionScopeOption.Required)
 			{
 				var currentTransaction = Transaction.Current;

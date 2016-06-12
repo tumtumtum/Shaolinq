@@ -6,22 +6,22 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-    public class AliasReferenceReplacer
-        : SqlExpressionVisitor
-    {
-        private readonly string replacement;
+	public class AliasReferenceReplacer
+		: SqlExpressionVisitor
+	{
+		private readonly string replacement;
 		private readonly Func<string, bool> oldAliasMatch;
 
 		private AliasReferenceReplacer(Func<string, bool> oldAliasMatch, string replacement)
-        {
-	        this.oldAliasMatch = oldAliasMatch;
-	        this.replacement = replacement;
-        }
+		{
+			this.oldAliasMatch = oldAliasMatch;
+			this.replacement = replacement;
+		}
 
-	    public static Expression Replace(Expression expression, string oldAliasMatch, string replacement)
-        {
-            return new AliasReferenceReplacer(c => c == oldAliasMatch, replacement).Visit(expression);
-        }
+		public static Expression Replace(Expression expression, string oldAliasMatch, string replacement)
+		{
+			return new AliasReferenceReplacer(c => c == oldAliasMatch, replacement).Visit(expression);
+		}
 
 		public static Expression Replace(Expression expression, Func<string, bool> oldAliasMatch, string replacement)
 		{
@@ -29,13 +29,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		}
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
-        {
-            if (this.oldAliasMatch(columnExpression.SelectAlias))
-            {
-                return columnExpression.ChangeAlias(this.replacement);
-            }
+		{
+			if (this.oldAliasMatch(columnExpression.SelectAlias))
+			{
+				return columnExpression.ChangeAlias(this.replacement);
+			}
 
-            return base.VisitColumn(columnExpression);
-        }
-    }
+			return base.VisitColumn(columnExpression);
+		}
+	}
 }

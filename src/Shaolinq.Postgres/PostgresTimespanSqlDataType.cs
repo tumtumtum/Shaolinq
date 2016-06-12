@@ -58,5 +58,5 @@ namespace Shaolinq.Postgres
 				return new TypedValue(this.SupportedType, value);
 			}
 		}
-    }
+	}
 }

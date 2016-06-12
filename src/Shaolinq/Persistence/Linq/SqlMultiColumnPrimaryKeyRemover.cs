@@ -24,7 +24,7 @@ namespace Shaolinq.Persistence.Linq
 				.Where(columnDefinition => columnDefinition
 					.ConstraintExpressions
 					.OfType<SqlSimpleConstraintExpression>()
-				    .Any(simpleConstraint => simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey)))
+					.Any(simpleConstraint => simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey)))
 			{
 				count++;
 

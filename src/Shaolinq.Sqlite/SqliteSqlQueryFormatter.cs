@@ -12,7 +12,7 @@ namespace Shaolinq.Sqlite
 		: Sql92QueryFormatter
 	{
 		public SqliteSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect,  SqlDataTypeProvider sqlDataTypeProvider)
-            : base(options, sqlDialect, sqlDataTypeProvider)
+			: base(options, sqlDialect, sqlDataTypeProvider)
 		{
 		}
 
@@ -106,8 +106,8 @@ namespace Shaolinq.Sqlite
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
 			if (functionCallExpression.Function >= SqlFunction.NumberBasedDatePartStart
-                && functionCallExpression.Function <= SqlFunction.NumberBasedDatePartEnd)
-            {
+				&& functionCallExpression.Function <= SqlFunction.NumberBasedDatePartEnd)
+			{
 				this.Write("(CAST (");
 				base.VisitFunctionCall(functionCallExpression);
 				this.Write(" AS INTEGER))");

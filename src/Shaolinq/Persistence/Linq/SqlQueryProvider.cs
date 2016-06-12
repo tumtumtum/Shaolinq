@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
-        private readonly int ProjectorCacheMaxLimit = 512;
+		private readonly int ProjectorCacheMaxLimit = 512;
 		private readonly int ProjectionExpressionCacheMaxLimit = 512;
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
 		protected static readonly ILog ProjectionCacheLogger = LogProvider.GetLogger("Shaolinq.ProjectionCache");
@@ -110,22 +110,22 @@ namespace Shaolinq.Persistence.Linq
 			return this.BuildExecution(expression).Evaluate<T>();
 		}
 
-        public override Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken)
-        {
-            return this.BuildExecution(expression).EvaluateAsync<Task<T>>(cancellationToken);
-        }
+		public override Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken)
+		{
+			return this.BuildExecution(expression).EvaluateAsync<Task<T>>(cancellationToken);
+		}
 
-        public override IEnumerable<T> GetEnumerable<T>(Expression expression)
+		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
 		{
 			return this.BuildExecution(expression).Evaluate<IEnumerable<T>>();
-        }
+		}
 
-        public override IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression)
+		public override IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression)
 		{
-            return this.BuildExecution(expression).EvaluateAsync<IAsyncEnumerable<T>>(CancellationToken.None);
-        }
+			return this.BuildExecution(expression).EvaluateAsync<IAsyncEnumerable<T>>(CancellationToken.None);
+		}
 
-        public static Expression Optimize(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression)
+		public static Expression Optimize(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression)
 		{
 			expression = SqlGroupByCollator.Collate(expression);
 			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
@@ -152,7 +152,7 @@ namespace Shaolinq.Persistence.Linq
 				expression = SqlOrderByRewriter.Rewrite(expression);
 			}
 
-            expression = SqlDeleteNormalizer.Normalize(expression);
+			expression = SqlDeleteNormalizer.Normalize(expression);
 			expression = SqlUpdateNormalizer.Normalize(expression);
 			expression = SqlInsertIntoNormalizer.Normalize(expression);
 
@@ -289,16 +289,16 @@ namespace Shaolinq.Persistence.Linq
 			else if (!skipFormatResultSubstitution)
 			{
 				var parameters = cacheInfo.formatResult.ParameterValues.ToList();
-                
-                foreach (var indexes in cacheInfo.formatResult.ParameterIndexToPlaceholderIndexes)
-                {
-                    var index = indexes.Key;
-                    var placeholderIndex = indexes.Value;
-                    
-                    parameters[index] = parameters[index].ChangeValue(placeholderValues[placeholderIndex]);
-                }
+				
+				foreach (var indexes in cacheInfo.formatResult.ParameterIndexToPlaceholderIndexes)
+				{
+					var index = indexes.Key;
+					var placeholderIndex = indexes.Value;
+					
+					parameters[index] = parameters[index].ChangeValue(placeholderValues[placeholderIndex]);
+				}
 
-                cacheInfo.formatResult = cacheInfo.formatResult.ChangeParameterValues(parameters);
+				cacheInfo.formatResult = cacheInfo.formatResult.ChangeParameterValues(parameters);
 			}
 
 			return new ExecutionBuildResult(this, cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);

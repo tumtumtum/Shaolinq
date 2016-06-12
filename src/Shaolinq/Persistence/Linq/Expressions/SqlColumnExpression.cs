@@ -55,9 +55,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return nullableType == this.Type ? this : new SqlColumnExpression(nullableType, this.SelectAlias, this.Name, this.Special);
 		}
 
-	    public Expression ChangeAlias(string replacement)
-	    {
-	        return new SqlColumnExpression(this.Type, replacement, this.Name, this.Special);
-	    }
+		public Expression ChangeAlias(string replacement)
+		{
+			return new SqlColumnExpression(this.Type, replacement, this.Name, this.Special);
+		}
 	}
 }

@@ -24,10 +24,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// </summary>
 		Date,
 
-        /// <summary>
-        /// Gets a Date's day of the week
-        /// </summary>
-        DayOfWeek,
+		/// <summary>
+		/// Gets a Date's day of the week
+		/// </summary>
+		DayOfWeek,
 
 		/// <summary>
 		/// Gets a Date's day of the month
@@ -69,13 +69,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// </summary>
 		Second,
 
-        NumberBasedDatePartStart = DayOfWeek,
-        NumberBasedDatePartEnd = Second,
-        
-        /// <summary>
-        /// Compares a string using LIKE
-        /// </summary>
-        Like,
+		NumberBasedDatePartStart = DayOfWeek,
+		NumberBasedDatePartEnd = Second,
+		
+		/// <summary>
+		/// Compares a string using LIKE
+		/// </summary>
+		Like,
 
 		/// <summary>
 		/// Compares a string using NOT LIKE
@@ -96,7 +96,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// Gets part of a string
 		/// </summary>
 		Substring,
-        
+		
 		StartsWith,
 
 		EndsWith,
@@ -145,17 +145,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		/// </summary>
 		Exists,
 
-        /// <summary>
-        /// Round function for floating point numbers. 
-        /// </summary>
-        Round,
-        
+		/// <summary>
+		/// Round function for floating point numbers. 
+		/// </summary>
+		Round,
+		
 		/// <summary>
 		/// Count of blobbed lists or dictionaries
 		/// </summary>
 		CollectionCount,
 
-        Coalesce,
+		Coalesce,
 		CompareObject,
 		DateTimeAddTimeSpan,
 		TimeSpanFromMinutes,

@@ -17,7 +17,7 @@ namespace Shaolinq.MySql
 						ConnectionString = connectionString
 					}
 				},
-                ConstraintDefaultsConfiguration = { IndexedStringMaximumLength = 255 }
+				ConstraintDefaultsConfiguration = { IndexedStringMaximumLength = 255 }
 			};
 		}
 

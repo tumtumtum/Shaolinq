@@ -5,13 +5,13 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.SqlServer
 {
-    /// <summary>
-    /// Represents a boolean data type in SQL which is 1 or 0.
-    /// </summary>
-    /// <remarks>
-    /// <see cref="SqlServerBooleanNormalizer"/> automatically adds comparisons to convert BitBooleans 
-    /// values into logical true/false when needed for joins, where conditions, etc
-    /// </remarks>
+	/// <summary>
+	/// Represents a boolean data type in SQL which is 1 or 0.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="SqlServerBooleanNormalizer"/> automatically adds comparisons to convert BitBooleans 
+	/// values into logical true/false when needed for joins, where conditions, etc
+	/// </remarks>
 	public class BitBooleanExpression
 		: SqlBaseExpression
 	{

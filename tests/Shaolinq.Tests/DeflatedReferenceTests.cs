@@ -62,7 +62,7 @@ namespace Shaolinq.Tests
 				var schoolAndStudent = 
 					(from school in this.model.Schools
 					join student in this.model.Students
- 					on school equals student.School
+					on school equals student.School
 					select new {school, student}).ToList();
 
 				var firstStudent = schoolAndStudent.FirstOrDefault().student;
@@ -181,7 +181,7 @@ namespace Shaolinq.Tests
 
 			using (var scope = new TransactionScope())
 			{
-			    this.model.Schools.Where(c => c.Id == schoolId).Delete();
+				this.model.Schools.Where(c => c.Id == schoolId).Delete();
 
 				scope.Complete();
 			}

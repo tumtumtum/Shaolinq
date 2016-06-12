@@ -292,43 +292,43 @@ namespace Shaolinq.Persistence
 			
 			if (changedProperties != null)
 			{
-			    var i = 0;
+				var i = 0;
 
-			    foreach (var changed in changedProperties)
-			    {
-			        var temp = cachedValue.valueIndexesToParameterPlaceholderIndexes[i];
-				    int parameterIndex;
+				foreach (var changed in changedProperties)
+				{
+					var temp = cachedValue.valueIndexesToParameterPlaceholderIndexes[i];
+					int parameterIndex;
 
-				    if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
-				    {
-					    var typedValue = newParameters[parameterIndex];
+					if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
+					{
+						var typedValue = newParameters[parameterIndex];
 
-					    newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
-				    }
+						newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
+					}
 
-				    i++;
-			    }
-            }
+					i++;
+				}
+			}
 
 			if (primaryKeys != null)
 			{
 				var i = 0;
-                
-                foreach (var changed in primaryKeys)
-                {
-                    var temp = cachedValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
-	                int parameterIndex;
+				
+				foreach (var changed in primaryKeys)
+				{
+					var temp = cachedValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
+					int parameterIndex;
 
-	                if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
-	                {
-		                var typedValue = newParameters[parameterIndex];
+					if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
+					{
+						var typedValue = newParameters[parameterIndex];
 
-		                newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
-	                }
+						newParameters[parameterIndex] = typedValue.ChangeValue(changed.Value);
+					}
 
-	                i++;
-                }
-            }
+					i++;
+				}
+			}
 
 			foreach (var parameter in newParameters)
 			{

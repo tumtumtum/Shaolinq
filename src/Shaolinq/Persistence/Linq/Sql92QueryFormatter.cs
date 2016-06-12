@@ -141,7 +141,7 @@ namespace Shaolinq.Persistence.Linq
 				return methodCallExpression;
 			}
 			else if (methodCallExpression.Method.DeclaringType?.GetGenericTypeDefinitionOrNull() == typeof(Nullable<>)
-			         && methodCallExpression.Method.Name == "GetValueOrDefault")
+					 && methodCallExpression.Method.Name == "GetValueOrDefault")
 			{
 				this.Visit(methodCallExpression.Object);
 
@@ -165,7 +165,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			return methodCallExpression.Method.DeclaringType == typeof(ShaolinqStringExtensions)
-			       && methodCallExpression.Method.Name == "IsLike";
+				   && methodCallExpression.Method.Name == "IsLike";
 		}
 
 		private static bool IsNumeric(Type type)
@@ -544,12 +544,12 @@ namespace Shaolinq.Persistence.Linq
 
 				var endIndex = this.parameterValues.Count;
 
-			    if (endIndex - startIndex == 1 && canReuse)
-			    {
-			        var index = startIndex;
+				if (endIndex - startIndex == 1 && canReuse)
+				{
+					var index = startIndex;
 
-			        parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
-			    }
+					parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
+				}
 
 				return retval;
 			}
@@ -727,12 +727,12 @@ namespace Shaolinq.Persistence.Linq
 			{
 				this.selectNest++;
 
-			    if (selectExpression.From?.NodeType == (ExpressionType)SqlExpressionType.Delete)
-			    {
-			        this.Visit(selectExpression.From);
+				if (selectExpression.From?.NodeType == (ExpressionType)SqlExpressionType.Delete)
+				{
+					this.Visit(selectExpression.From);
 
-			        return selectExpression;
-			    }
+					return selectExpression;
+				}
 
 				this.Write("SELECT ");
 
@@ -954,15 +954,15 @@ namespace Shaolinq.Persistence.Linq
 			case SqlExpressionType.Join:
 				this.VisitJoin((SqlJoinExpression)source);
 				break;
-            case SqlExpressionType.Delete:
-			    this.VisitDelete((SqlDeleteExpression)source);
+			case SqlExpressionType.Delete:
+				this.VisitDelete((SqlDeleteExpression)source);
 				break;
 			case SqlExpressionType.Update:
 				this.VisitUpdate((SqlUpdateExpression)source);
 				break;
 			case SqlExpressionType.Union:
 				this.VisitUnion((SqlUnionExpression)source);
-			    break;
+				break;
 			default:
 				throw new InvalidOperationException($"Select source ({source.NodeType}) is not valid type");
 			}
@@ -1072,15 +1072,15 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-		    if (createIndexExpression.Where != null)
-		    {
-		        this.Write(" WHERE ");
-		        this.Visit(createIndexExpression.Where);
-		    }
+			if (createIndexExpression.Where != null)
+			{
+				this.Write(" WHERE ");
+				this.Visit(createIndexExpression.Where);
+			}
 
-            this.WriteLine(";");
+			this.WriteLine(";");
 
-		    return createIndexExpression;
+			return createIndexExpression;
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)

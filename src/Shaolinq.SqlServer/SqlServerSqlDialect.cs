@@ -19,7 +19,7 @@ namespace Shaolinq.SqlServer
 
 				marsEnabled = contextInfo.MultipleActiveResultSets || marsEnabledInConnectionString;
 			}
-        }
+		}
 
 		public override bool SupportsCapability(SqlCapability capability)
 		{

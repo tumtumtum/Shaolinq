@@ -11,12 +11,12 @@ namespace Shaolinq.Postgres
 			return new DataAccessModelConfiguration
 			{
 				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
-       			{
-       				new PostgresSqlDatabaseContextInfo
-       				{
-       					ConnectionString = connectionString
-       				},
-       			}
+				{
+					new PostgresSqlDatabaseContextInfo
+					{
+						ConnectionString = connectionString
+					},
+				}
 			};
 		}
 

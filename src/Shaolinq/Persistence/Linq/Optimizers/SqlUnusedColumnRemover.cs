@@ -159,7 +159,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			return UpdateProjection(projection, select, projector, projection.Aggregator);
 		}
-        
+		
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
 			// Visit join in reverse order

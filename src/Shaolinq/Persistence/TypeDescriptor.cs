@@ -132,11 +132,11 @@ namespace Shaolinq.Persistence
 				|| type.IsEnum
 				|| type == typeof(Decimal)
 				|| type == typeof(DateTime)
-			    || type.IsDataAccessObjectType()
-			    || type == typeof(Guid)
-			    || type == typeof(TimeSpan)
-			    || type == typeof(string)
-			    || type == typeof(byte[]);
+				|| type.IsDataAccessObjectType()
+				|| type == typeof(Guid)
+				|| type == typeof(TimeSpan)
+				|| type == typeof(string)
+				|| type == typeof(byte[]);
 		}
 
 		private IEnumerable<PropertyInfo> GetPropertiesInOrder()

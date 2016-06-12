@@ -428,12 +428,12 @@ namespace Shaolinq.Persistence.Linq
 		protected virtual Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
 			var source = this.Visit(deleteExpression.Source);
-            var where = this.Visit(deleteExpression.Where);
+			var where = this.Visit(deleteExpression.Where);
 
-            if (deleteExpression.Source != source || deleteExpression.Where != where)
-            {
-                return new SqlDeleteExpression(source, where);
-            }
+			if (deleteExpression.Source != source || deleteExpression.Where != where)
+			{
+				return new SqlDeleteExpression(source, where);
+			}
 
 			return deleteExpression;
 		}

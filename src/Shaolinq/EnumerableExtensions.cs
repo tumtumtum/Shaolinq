@@ -11,55 +11,55 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-    public static partial class EnumerableExtensions
-    {
-	    [RewriteAsync]
-	    internal static T AlwaysReadFirst<T>(this IEnumerable<T> source)
-	    {
-		    return source.First();
-	    }
+	public static partial class EnumerableExtensions
+	{
+		[RewriteAsync]
+		internal static T AlwaysReadFirst<T>(this IEnumerable<T> source)
+		{
+			return source.First();
+		}
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValue<T>(this IEnumerable<T?> source, T? specifiedValue)
-            where T : struct => source.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);
+			where T : struct => source.DefaultIfEmptyCoalesceSpecifiedValueAsync(specifiedValue);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> source, T? specifiedValue)
-            where T : struct => new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(source.GetAsyncEnumerator(), specifiedValue));
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> source, T? specifiedValue)
+			where T : struct => new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(source.GetAsyncEnumerator(), specifiedValue));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> source)
-            => source.DefaultIfEmptyAsync(default(T));
+			=> source.DefaultIfEmptyAsync(default(T));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> source, T defaultValue)
-            => new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(source.GetAsyncEnumerator(), defaultValue));
+			=> new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(source.GetAsyncEnumerator(), defaultValue));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> source) 
-            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
+			=> new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken) 
-            => new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
+			=> new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> source) 
-            => source.GetEnumerator();
+			=> source.GetEnumerator();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> source) 
-            => Task.FromResult(source.GetAsyncEnumerator());
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> source) 
+			=> Task.FromResult(source.GetAsyncEnumerator());
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
-            => enumerator.MoveNext();
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
+			=> enumerator.MoveNext();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
-            => enumerator.MoveNextAsync(cancellationToken);
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
+			=> enumerator.MoveNextAsync(cancellationToken);
 		
-        internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> source)
+		internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> source)
 		{
 			var internalAsyncEnumerable = source as IInternalAsyncEnumerable<T>;
 
@@ -75,7 +75,7 @@ namespace Shaolinq
 				return asyncEnumerable.GetAsyncEnumerator();
 			}
 
-	       return new AsyncEnumeratorAdapter<T>(source.GetEnumerator());
+		   return new AsyncEnumeratorAdapter<T>(source.GetEnumerator());
 		}
 
 		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrThrow<T>(this IEnumerable<T> source)
@@ -92,148 +92,148 @@ namespace Shaolinq
 
 		[RewriteAsync]
 		private static int Count<T>(this IEnumerable<T> source)
-        {
-            var list = source as ICollection<T>;
+		{
+			var list = source as ICollection<T>;
 
-            if (list != null)
-            {
-                return list.Count;
-            }
+			if (list != null)
+			{
+				return list.Count;
+			}
 
-            var retval = 0;
+			var retval = 0;
 
-            using (var enumerator = source.GetEnumeratorEx())
-            {
-	            while (enumerator.MoveNextEx())
-	            {
+			using (var enumerator = source.GetEnumeratorEx())
+			{
+				while (enumerator.MoveNextEx())
+				{
 					retval++;
 				}
-            }
+			}
 
-            return retval;
-        }
+			return retval;
+		}
 
-        [RewriteAsync]
+		[RewriteAsync]
 		private static long LongCount<T>(this IEnumerable<T> source)
-        {
-            var list = source as ICollection<T>;
+		{
+			var list = source as ICollection<T>;
 
-            if (list != null)
-            {
-                return list.Count;
-            }
+			if (list != null)
+			{
+				return list.Count;
+			}
 
-            var retval = 0L;
+			var retval = 0L;
 
-            using (var enumerator = source.GetEnumeratorEx())
-            {
-	            while (enumerator.MoveNextEx())
-	            {
-		            retval++;
-	            }
-            }
+			using (var enumerator = source.GetEnumeratorEx())
+			{
+				while (enumerator.MoveNextEx())
+				{
+					retval++;
+				}
+			}
 
-            return retval;
-        }
+			return retval;
+		}
 
-        [RewriteAsync]
+		[RewriteAsync]
 		internal static T SingleOrSpecifiedValueIfFirstIsDefaultValue<T>(this IEnumerable<T> source, T specifiedValue)
 		{
-            using (var enumerator = source.GetEnumeratorEx())
-            {
-                if (!enumerator.MoveNextEx())
-                {
-                    return Enumerable.Single<T>(Enumerable.Empty<T>());
-                }
+			using (var enumerator = source.GetEnumeratorEx())
+			{
+				if (!enumerator.MoveNextEx())
+				{
+					return Enumerable.Single<T>(Enumerable.Empty<T>());
+				}
 
-                var result = enumerator.Current;
+				var result = enumerator.Current;
 
-                if (enumerator.MoveNextEx())
-                {
-                    return Enumerable.Single<T>(new T[2]);
-                }
+				if (enumerator.MoveNextEx())
+				{
+					return Enumerable.Single<T>(new T[2]);
+				}
 
-                if (object.Equals(result, default(T)))
-                {
-                    return specifiedValue;
-                }
+				if (object.Equals(result, default(T)))
+				{
+					return specifiedValue;
+				}
 
-                return result;
-            }
-        }
+				return result;
+			}
+		}
 
-        [RewriteAsync]
+		[RewriteAsync]
 		private static T Single<T>(this IEnumerable<T> source)
-	    {
-	        using (var enumerator = source.GetEnumeratorEx())
-	        {
-	            if (!enumerator.MoveNextEx())
-	            {
-                    return Enumerable.Single<T>(Enumerable.Empty<T>());
-                }
+		{
+			using (var enumerator = source.GetEnumeratorEx())
+			{
+				if (!enumerator.MoveNextEx())
+				{
+					return Enumerable.Single<T>(Enumerable.Empty<T>());
+				}
 
-	            var result = enumerator.Current;
+				var result = enumerator.Current;
 
-                if (enumerator.MoveNextEx())
-                {
-                    return Enumerable.Single<T>(new T[2]);
-                }
+				if (enumerator.MoveNextEx())
+				{
+					return Enumerable.Single<T>(new T[2]);
+				}
 
-	            return result;
-	        }
-	    }
+				return result;
+			}
+		}
 
-        [RewriteAsync()]
+		[RewriteAsync()]
 		private static T SingleOrDefault<T>(this IEnumerable<T> source)
-        {
-            using (var enumerator = source.GetEnumeratorEx())
-            {
-                if (!enumerator.MoveNextEx())
-                {
-                    return default(T);
-                }
+		{
+			using (var enumerator = source.GetEnumeratorEx())
+			{
+				if (!enumerator.MoveNextEx())
+				{
+					return default(T);
+				}
 
-                var result = enumerator.Current;
+				var result = enumerator.Current;
 
-                if (enumerator.MoveNextEx())
-                {
-                    return Enumerable.Single(new T[2]);
-                }
+				if (enumerator.MoveNextEx())
+				{
+					return Enumerable.Single(new T[2]);
+				}
 
-                return result;
-            }
-        }
+				return result;
+			}
+		}
 
-        [RewriteAsync]
+		[RewriteAsync]
 		private static T First<T>(this IEnumerable<T> enumerable)
-	    {
-            using (var enumerator = enumerable.GetEnumeratorEx())
-            {
-                if (!enumerator.MoveNextEx())
-                {
-                    return Enumerable.First(Enumerable.Empty<T>());
-                }
+		{
+			using (var enumerator = enumerable.GetEnumeratorEx())
+			{
+				if (!enumerator.MoveNextEx())
+				{
+					return Enumerable.First(Enumerable.Empty<T>());
+				}
 
-                return enumerator.Current;
-            }
-        }
+				return enumerator.Current;
+			}
+		}
 
-        [RewriteAsync]
+		[RewriteAsync]
 		private static T FirstOrDefault<T>(this IEnumerable<T> source)
-        {
-            using (var enumerator = source.GetEnumeratorEx())
-            {
-                if (!enumerator.MoveNextEx())
-                {
-                    return default(T);
-                }
+		{
+			using (var enumerator = source.GetEnumeratorEx())
+			{
+				if (!enumerator.MoveNextEx())
+				{
+					return default(T);
+				}
 
-                return enumerator.Current;
-            }
-        }
+				return enumerator.Current;
+			}
+		}
 
-        [RewriteAsync]
-        internal static T SingleOrExceptionIfFirstIsNull<T>(this IEnumerable<T?> source)
+		[RewriteAsync]
+		internal static T SingleOrExceptionIfFirstIsNull<T>(this IEnumerable<T?> source)
 			where T : struct
 		{
 			using (var enumerator = source.GetEnumeratorEx())

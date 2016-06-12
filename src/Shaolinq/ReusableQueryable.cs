@@ -21,7 +21,7 @@ namespace Shaolinq
 		{
 			this.Expression = expression ?? Expression.Constant(this);
 			this.SqlQueryProvider = provider;
-        }
+		}
 
 		public Type ElementType => typeof(T);
 		public Expression Expression { get; }

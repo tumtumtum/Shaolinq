@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			return x.RootExpression == y.RootExpression
-			       && PropertyPathEqualityComparer.Default.Equals(x.FullAccessPropertyPath, y.FullAccessPropertyPath);
+				   && PropertyPathEqualityComparer.Default.Equals(x.FullAccessPropertyPath, y.FullAccessPropertyPath);
 		}
 
 		public int GetHashCode(IncludedPropertyInfo obj)

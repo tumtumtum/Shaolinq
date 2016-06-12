@@ -14,11 +14,11 @@ namespace Shaolinq
 		{
 		}
 
-        public RelatedDataAccessObjectsAttribute(string name, string backReferenceName)
+		public RelatedDataAccessObjectsAttribute(string name, string backReferenceName)
 			: base(name)
-        {
-	        this.BackReferenceName = backReferenceName;
-        }
+		{
+			this.BackReferenceName = backReferenceName;
+		}
 	}
 }
 

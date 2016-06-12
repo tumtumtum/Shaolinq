@@ -37,7 +37,7 @@ namespace Shaolinq.TypeBuilding
 			dataAccessModelTypeBuilder.BuildType(typeDescriptorProvider.DataAccessModelType);
 
 			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
-            
+			
 			foreach (var typeDescriptor in typeDescriptors)
 			{
 				dataAccessObjectTypeBuilder = new DataAccessObjectTypeBuilder(typeDescriptorProvider, assemblyBuildContext, moduleBuilder, typeDescriptor.Type);

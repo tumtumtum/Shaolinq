@@ -103,7 +103,7 @@ namespace Shaolinq
 			: IEqualityComparer<CompositePrimaryKey>
 		{
 			public static readonly CompositePrimaryKeyComparer Default = new CompositePrimaryKeyComparer();
-            
+			
 			public bool Equals(CompositePrimaryKey x, CompositePrimaryKey y)
 			{
 				if (x.keyValues.Length != y.keyValues.Length)
@@ -305,7 +305,7 @@ namespace Shaolinq
 				}
 			}
 
-	        public DataAccessObject Cache(DataAccessObject value, bool forImport)
+			public DataAccessObject Cache(DataAccessObject value, bool forImport)
 			{
 				if (this.dataAccessObjectDataContext.isCommiting)
 				{
@@ -346,8 +346,8 @@ namespace Shaolinq
 					}
 				}
 
-		        var internalDao = value.ToObjectInternal();
-		        var predicate = internalDao?.DeflatedPredicate;
+				var internalDao = value.ToObjectInternal();
+				var predicate = internalDao?.DeflatedPredicate;
 
 				if (predicate != null)
 				{
@@ -368,7 +368,7 @@ namespace Shaolinq
 					this.objectsByPredicateCache[predicate] = value;
 
 					return value;
-		        }
+				}
 
 				if (value.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys)
 				{
@@ -426,7 +426,7 @@ namespace Shaolinq
 					}
 				}
 
-	            this.objectsByIdCache[id] = value;
+				this.objectsByIdCache[id] = value;
 
 				return value;
 			}
@@ -713,7 +713,7 @@ namespace Shaolinq
 			{
 				var didRetry = false;
 
-                // Perform the retry list
+				// Perform the retry list
 				foreach (var i in currentInsertResultsByType)
 				{
 					var type = i.Key.Type;

@@ -9,7 +9,7 @@ namespace Shaolinq.Persistence.Linq
 	internal struct ProjectorCacheInfo
 	{
 		public Delegate projector;
-	    public Delegate asyncProjector;
+		public Delegate asyncProjector;
 	}
 
 	internal struct ProjectorExpressionCacheInfo

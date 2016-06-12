@@ -125,7 +125,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return name;
 		}
-        
+		
 		private string GetNextColumnName()
 		{
 			string name;

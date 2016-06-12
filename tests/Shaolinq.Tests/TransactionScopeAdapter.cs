@@ -51,7 +51,7 @@ namespace Shaolinq.Tests
 			await this.dataAccessScope?.FlushAsync();
 			await this.transactionScope?.FlushAsync();
 		}
-        
+		
 		public void Dispose()
 		{
 			this.dataAccessScope?.Dispose();

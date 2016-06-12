@@ -25,11 +25,11 @@ namespace Shaolinq
 		}
 
 		public abstract T Execute<T>(Expression expression);
-        public abstract object Execute(Expression expression);
-        public abstract Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken);
+		public abstract object Execute(Expression expression);
+		public abstract Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken);
 		public abstract IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression);
 		public abstract IEnumerable<T> GetEnumerable<T>(Expression expression);
-        public abstract string GetQueryText(Expression expression);
+		public abstract string GetQueryText(Expression expression);
 		protected abstract IQueryable CreateQuery(Type elementType, Expression expression);
 	}
 }

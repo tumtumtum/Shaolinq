@@ -5,15 +5,15 @@ using System.Threading;
 
 namespace Shaolinq
 {
-    internal class CallContextNativeAsyncLocal
-    {
-        internal static long count = 0;
-    }
-    
-    internal class CallContextNativeAsyncLocal<T>
+	internal class CallContextNativeAsyncLocal
+	{
+		internal static long count = 0;
+	}
+	
+	internal class CallContextNativeAsyncLocal<T>
 		: AsyncLocal<T>
 	{
-        private readonly string key;
+		private readonly string key;
 
 		public override T Value
 		{
@@ -31,12 +31,12 @@ namespace Shaolinq
 		{            
 			var id = Interlocked.Increment(ref CallContextNativeAsyncLocal.count);
 
-		    this.key = "SLQ-CCNAL#" + id;
+			this.key = "SLQ-CCNAL#" + id;
 		}
 
 		public override void Dispose()
 		{
-            CallContext.FreeNamedDataSlot(this.key);
+			CallContext.FreeNamedDataSlot(this.key);
 		}
 	}
 }

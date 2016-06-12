@@ -355,14 +355,14 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var didStrip = false;
 
-            Expression current;
-	        var previous = expression;
+			Expression current;
+			var previous = expression;
 
 			while ((current = inner(previous)) != null)
 			{
 				previous = current;
 				didStrip = true;
-            }
+			}
 
 			retval = previous;
 

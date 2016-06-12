@@ -119,8 +119,8 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync(true)]
-        private static T First<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
-        {
+		private static T First<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
 			Expression expression = Expression.Call
 			(
 				TypeUtils.GetMethod(() => Queryable.First<T>(default(IQueryable<T>))),
@@ -128,7 +128,7 @@ namespace Shaolinq
 			);
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
-        }
+		}
 
 		[RewriteAsync(true)]
 		private static T FirstOrDefault<T>(this IQueryable<T> source)
@@ -143,8 +143,8 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync(true)]
-        private static T FirstOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
-        {
+		private static T FirstOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
 			Expression expression = Expression.Call
 			(
 				TypeUtils.GetMethod(() => Queryable.FirstOrDefault<T>(default(IQueryable<T>))),
@@ -152,7 +152,7 @@ namespace Shaolinq
 			);
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
-        }
+		}
 
 		[RewriteAsync(true)]
 		private static T Single<T>(this IQueryable<T> source)
@@ -167,8 +167,8 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync(true)]
-        private static T Single<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
-        {
+		private static T Single<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
 			Expression expression = Expression.Call
 			(
 				TypeUtils.GetMethod(() => Queryable.Single<T>(default(IQueryable<T>))),
@@ -176,7 +176,7 @@ namespace Shaolinq
 			);
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
-        }
+		}
 
 		[RewriteAsync(true)]
 		private static T SingleOrDefault<T>(this IQueryable<T> source)
@@ -191,8 +191,8 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync(true)]
-        private static T SingleOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
-        {
+		private static T SingleOrDefault<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
 			Expression expression = Expression.Call
 			(
 				TypeUtils.GetMethod(() => Queryable.SingleOrDefault<T>(default(IQueryable<T>))),
@@ -200,33 +200,33 @@ namespace Shaolinq
 			);
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
-        }
+		}
 
-        [RewriteAsync]
-        public static int Delete<T>(this IQueryable<T> source)
-            where T : DataAccessObject
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default(IQueryable<T>))), source.Expression);
+		[RewriteAsync]
+		public static int Delete<T>(this IQueryable<T> source)
+			where T : DataAccessObject
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default(IQueryable<T>))), source.Expression);
 
-	        ((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
+			((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
-        }
+		}
 
 		[RewriteAsync]
 		public static int Delete<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 			where T : DataAccessObject
 		{
-		    Expression expression = Expression.Call
-            (
-                TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default(IQueryable<T>))),
-                Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
-            );
+			Expression expression = Expression.Call
+			(
+				TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default(IQueryable<T>))),
+				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
+			);
 
 			((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
-        }
+		}
 
 		[RewriteAsync(true)]
 		private static int Count<T>(this IQueryable<T> source)
@@ -269,20 +269,20 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync(true)]
-        private static T Min<T>(this IQueryable<T> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default(IQueryable<T>))), source.Expression);
+		private static T Min<T>(this IQueryable<T> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default(IQueryable<T>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static T Max<T>(this IQueryable<T> source)
-        {
+		[RewriteAsync(true)]
+		private static T Max<T>(this IQueryable<T> source)
+		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Max(default(IQueryable<T>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+		}
 
 		//
 
@@ -303,68 +303,68 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync(true)]
-        private static int Sum(this IQueryable<int> source)
-	    {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<int>))), source.Expression);
+		private static int Sum(this IQueryable<int> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<int>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static int? Sum(this IQueryable<int?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<int?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static int? Sum(this IQueryable<int?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<int?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
-        }
-        
-        [RewriteAsync(true)]
-        private static long Sum(this IQueryable<long> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<long>))), source.Expression);
+			return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
+		}
+		
+		[RewriteAsync(true)]
+		private static long Sum(this IQueryable<long> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<long>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static long? Sum(this IQueryable<long?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<long?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static long? Sum(this IQueryable<long?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<long?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static float Sum(this IQueryable<float> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<float>))), source.Expression);
+		[RewriteAsync(true)]
+		private static float Sum(this IQueryable<float> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<float>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static float? Sum(this IQueryable<float?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<float?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static float? Sum(this IQueryable<float?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<float?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static double Sum(this IQueryable<double> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double>))), source.Expression);
+		[RewriteAsync(true)]
+		private static double Sum(this IQueryable<double> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static double? Sum(this IQueryable<double?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static double? Sum(this IQueryable<double?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
+		}
 
 		//
 
@@ -435,68 +435,68 @@ namespace Shaolinq
 		//
 
 		[RewriteAsync(true)]
-        private static int Average(this IQueryable<int> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<int>))), source.Expression);
+		private static int Average(this IQueryable<int> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<int>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static int? Average(this IQueryable<int?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<int?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static int? Average(this IQueryable<int?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<int?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static long Average(this IQueryable<long> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<long>))), source.Expression);
+		[RewriteAsync(true)]
+		private static long Average(this IQueryable<long> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<long>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static long? Average(this IQueryable<long?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<long?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static long? Average(this IQueryable<long?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<long?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static float Average(this IQueryable<float> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<float>))), source.Expression);
+		[RewriteAsync(true)]
+		private static float Average(this IQueryable<float> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<float>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static float? Average(this IQueryable<float?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<float?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static float? Average(this IQueryable<float?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<float?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static double Average(this IQueryable<double> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<double>))), source.Expression);
+		[RewriteAsync(true)]
+		private static double Average(this IQueryable<double> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<double>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
+		}
 
-        [RewriteAsync(true)]
-        private static double? Average(this IQueryable<double?> source)
-        {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<double?>))), source.Expression);
+		[RewriteAsync(true)]
+		private static double? Average(this IQueryable<double?> source)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<double?>))), source.Expression);
 
-            return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
-        }
+			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
+		}
 
 		//
 
@@ -571,17 +571,17 @@ namespace Shaolinq
 		
 		public static T IncludedItems<T>(this IQueryable<T> source)
 			where T : DataAccessObject
-        {
-            Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
+		{
+			Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
 
-            return source.Provider.ExecuteEx<T>(expression);
+			return source.Provider.ExecuteEx<T>(expression);
 		}
 
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)
 		{
-		    Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T), typeof(U)), new[] { source.Expression, Expression.Quote(include) });
+			Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T), typeof(U)), new[] { source.Expression, Expression.Quote(include) });
 
-            return source.Provider.CreateQuery<T>(expression);
+			return source.Provider.CreateQuery<T>(expression);
 		}
 	}
 }

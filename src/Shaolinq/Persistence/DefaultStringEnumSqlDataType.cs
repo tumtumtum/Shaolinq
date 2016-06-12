@@ -47,7 +47,7 @@ namespace Shaolinq.Persistence
 			: base(CreateConstraintDefaults(constraintDefaultsConfiguration, typeof(T)), typeof(T))
 		{
 		}
-        
+		
 		public override Expression GetReadExpression(Expression dataReader, int ordinal)
 		{
 			if (this.UnderlyingType == null)

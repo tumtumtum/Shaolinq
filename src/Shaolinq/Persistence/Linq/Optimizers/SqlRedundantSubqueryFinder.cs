@@ -79,35 +79,35 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return (IsSimpleProjection(select) || IsNameMapProjection(select))
 				&& !select.Distinct
 				&& (select.Take == null)
-                && (select.Skip == null)
+				&& (select.Skip == null)
 				&& select.Where == null
-                && !select.Columns.Any(c => c.NoOptimise)
+				&& !select.Columns.Any(c => c.NoOptimise)
 				&& ((select.OrderBy?.Count ?? 0) == 0)
 				&& ((select.GroupBy?.Count ?? 0) == 0);
 		}
 
-	    private readonly HashSet<Expression> ignoreSet = new HashSet<Expression>();
+		private readonly HashSet<Expression> ignoreSet = new HashSet<Expression>();
 
-	    protected override Expression VisitJoin(SqlJoinExpression join)
-	    {
-            ignoreSet.Add(join.Left);
-            ignoreSet.Add(join.Right);
+		protected override Expression VisitJoin(SqlJoinExpression join)
+		{
+			ignoreSet.Add(join.Left);
+			ignoreSet.Add(join.Right);
 
-            var left = this.Visit(join.Left);
-            var right = this.Visit(join.Right);
-            
-            ignoreSet.Remove(join.Left);
-            ignoreSet.Remove(join.Right);
+			var left = this.Visit(join.Left);
+			var right = this.Visit(join.Right);
+			
+			ignoreSet.Remove(join.Left);
+			ignoreSet.Remove(join.Right);
 
-            var condition = this.Visit(join.JoinCondition);
+			var condition = this.Visit(join.JoinCondition);
 
-            if (left != join.Left || right != join.Right || condition != join.JoinCondition)
-            {
-                return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
-            }
+			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
+			{
+				return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
+			}
 
-            return join;
-        }
+			return join;
+		}
 
 		protected override Expression VisitUnion(SqlUnionExpression union)
 		{
@@ -131,10 +131,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
-	        if (ignoreSet.Contains(select))
-	        {
-	            return base.VisitSelect(select);
-	        }
+			if (ignoreSet.Contains(select))
+			{
+				return base.VisitSelect(select);
+			}
 
 			if (IsRedudantSubquery(select))
 			{

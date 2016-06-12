@@ -209,7 +209,7 @@ namespace Shaolinq.Persistence
 		#region DeleteExpression
 
 		[RewriteAsync]
-        public override void Delete(SqlDeleteExpression deleteExpression)
+		public override void Delete(SqlDeleteExpression deleteExpression)
 		{
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
 
@@ -272,16 +272,16 @@ namespace Shaolinq.Persistence
 			{
 				return;
 			}
-            
+			
 			var condition = Expression.Lambda(body, parameter);
-		    var expression = (Expression)Expression.Call(Expression.Constant(this.DataAccessModel), MethodInfoFastRef.DataAccessModelGetDataAccessObjectsMethod.MakeGenericMethod(typeDescriptor.Type));
+			var expression = (Expression)Expression.Call(Expression.Constant(this.DataAccessModel), MethodInfoFastRef.DataAccessModelGetDataAccessObjectsMethod.MakeGenericMethod(typeDescriptor.Type));
 
-		    expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
-		    expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
+			expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
+			expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
 
 			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
 
-		    ((ISqlQueryProvider)provider).ExecuteEx<int>(expression);
+			((ISqlQueryProvider)provider).ExecuteEx<int>(expression);
 		}
 
 		#endregion

@@ -20,7 +20,7 @@ namespace Shaolinq
 		public ComputedMemberAttribute(string getExpression, string setExpression = null)
 		{
 			this.GetExpression = getExpression;
-	        this.SetExpression = setExpression;
+			this.SetExpression = setExpression;
 		}
 
 		private Type[] GetReferencedTypes(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)

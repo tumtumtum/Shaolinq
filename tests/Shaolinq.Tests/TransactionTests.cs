@@ -151,7 +151,7 @@ namespace Shaolinq.Tests
 			this.Test_AsyncSelect_Private().Wait();
 		}
 
-        private async Task Test_AsyncSelect_Private()
+		private async Task Test_AsyncSelect_Private()
 		{
 			using (var scope = new TransactionScope())
 			{

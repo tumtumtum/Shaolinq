@@ -172,7 +172,7 @@ namespace Shaolinq.Persistence
 			if (options.Contains("g"))
 			{
 				maxCount = int.MaxValue;
-            }
+			}
 
 			if (options.Contains("i"))
 			{

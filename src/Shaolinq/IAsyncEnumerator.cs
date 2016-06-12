@@ -9,7 +9,7 @@ namespace Shaolinq
 	public interface IAsyncEnumerator<out T>
 		: IEnumerator<T>
 	{
-	    Task<bool> MoveNextAsync();
-        Task<bool> MoveNextAsync(CancellationToken cancellationToken);
+		Task<bool> MoveNextAsync();
+		Task<bool> MoveNextAsync(CancellationToken cancellationToken);
 	}
 }

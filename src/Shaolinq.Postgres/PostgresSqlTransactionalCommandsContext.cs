@@ -71,7 +71,7 @@ namespace Shaolinq.Postgres
 		{
 			var unwrapped = type.GetUnwrappedNullableType();
 
-            if (unwrapped.IsEnum)
+			if (unwrapped.IsEnum)
 			{
 				return new NpgsqlParameter(parameterName, NpgsqlDbType.Unknown) { Value = value };
 			}
