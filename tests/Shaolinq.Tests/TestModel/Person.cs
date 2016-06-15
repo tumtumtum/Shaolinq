@@ -28,6 +28,9 @@ namespace Shaolinq.Tests.TestModel
 		public abstract double? Weight { get; set; }
 
 		[PersistedMember]
+		public abstract decimal BankBalance { get; set; }
+
+		[PersistedMember]
 		public abstract int FavouriteNumber { get; set; }
 		
 		[ComputedMember("Height + (Weight ?? 0)")]

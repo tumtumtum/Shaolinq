@@ -841,6 +841,28 @@ namespace Shaolinq
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
         }
 
+        public static Task<decimal> SumAsync(this IQueryable<decimal> source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<decimal> SumAsync(this IQueryable<decimal> source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double>))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal>(expression, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static Task<decimal ? > SumAsync(this IQueryable<decimal ? > source)
+        {
+            return SumAsync(source, CancellationToken.None);
+        }
+
+        public static async Task<decimal ? > SumAsync(this IQueryable<decimal ? > source, CancellationToken cancellationToken)
+        {
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double ? >))), source.Expression);
+            return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal ? >(expression, cancellationToken).ConfigureAwait(false);
+        }
+
         public static Task<int> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector)
         {
             return SumAsync(source, selector, CancellationToken.None);

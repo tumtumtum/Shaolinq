@@ -1771,6 +1771,19 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Query_Aggregate_Sum4()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var serverSideResult = this.model.Students.Sum(c => c.BankBalance);
+				var allStudents = this.model.Students.ToList();
+				var clientSideResult = allStudents.Sum(c => c.BankBalance);
+
+				Assert.AreEqual(clientSideResult, serverSideResult);
+			}
+		}
+
+		[Test]
 		public void Test_Query_Aggregate_Average()
 		{
 			using (var scope = NewTransactionScope())

@@ -18,7 +18,7 @@ namespace Shaolinq.Persistence.Linq
 		: SqlExpressionVisitor
 	{
 		private ProjectionBuilderScope scope;
-		private Type currentNewExpressionType = null;
+		private TypeDescriptor currentNewExpressionTypeDescriptor;
 		private readonly ParameterExpression dataReader;
 		private readonly ParameterExpression objectProjector;
 		private readonly ParameterExpression dynamicParameters;
@@ -74,9 +74,9 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
-			var previousCurrentNewExpressionType = this.currentNewExpressionType;
+			var previousCurrentNewExpressionTypeDescriptor = this.currentNewExpressionTypeDescriptor;
 
-			this.currentNewExpressionType = expression.NewExpression.Type;
+			this.currentNewExpressionTypeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(expression.NewExpression.Type);
 
 			Expression nullCheck = null;
 			
@@ -114,7 +114,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var retval = base.VisitMemberInit(expression);
 
-			this.currentNewExpressionType = previousCurrentNewExpressionType;
+			this.currentNewExpressionTypeDescriptor = previousCurrentNewExpressionTypeDescriptor;
 
 			if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
 			{
@@ -142,13 +142,13 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
 		{
-			if (this.currentNewExpressionType != null)
+			if (this.currentNewExpressionTypeDescriptor != null)
 			{
 				// Turn all Object.Id expressions into Object.ForceId (to bypass validation checking)
 
 				if (assignment.Member.DeclaringType.IsDataAccessObjectType())
 				{
-					var typeDescriptor = this.dataAccessModel.GetTypeDescriptor(this.currentNewExpressionType);
+					var typeDescriptor = this.currentNewExpressionTypeDescriptor;
 					var propertyDescriptor = typeDescriptor.GetPropertyDescriptorByPropertyName(assignment.Member.Name);
 
 					if (propertyDescriptor == null)
@@ -158,7 +158,7 @@ namespace Shaolinq.Persistence.Linq
 
 					if (propertyDescriptor.IsComputedTextMember || propertyDescriptor.IsComputedMember)
 					{
-						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(this.currentNewExpressionType);
+						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(this.currentNewExpressionTypeDescriptor.Type);
 						var propertyInfo = concreteType.GetProperty(DataAccessObjectTypeBuilder.ForceSetPrefix + assignment.Member.Name);
 						var assignmentExpression = this.Visit(assignment.Expression);
 
