@@ -22,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.SqlServer", "Shaol
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Tests.OtherDataAccessObjects", "..\tests\Shaolinq.Tests.OtherDataAccessObjects\Shaolinq.Tests.OtherDataAccessObjects.csproj", "{737A2E9A-A1B9-4BC8-94BD-5327134142CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Rewriter", "Shaolinq.Rewriter\Shaolinq.Rewriter.csproj", "{7B84B214-6A47-4BB6-BF08-307432B68F4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.AsyncRewriter", "Shaolinq.AsyncRewriter\Shaolinq.AsyncRewriter.csproj", "{7B84B214-6A47-4BB6-BF08-307432B68F4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
