@@ -7,8 +7,8 @@
     <ProjectGuid>{7B84B214-6A47-4BB6-BF08-307432B68F4E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Shaolinq.Rewriter</RootNamespace>
-    <AssemblyName>Shaolinq.Rewriter</AssemblyName>
+    <RootNamespace>Shaolinq.AsyncRewriter</RootNamespace>
+    <AssemblyName>Shaolinq.AsyncRewriter</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

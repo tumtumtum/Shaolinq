@@ -13,11 +13,16 @@ namespace Shaolinq.Persistence
 	public class DefaultStringEnumSqlDataType<T>
 		: DefaultStringSqlDataType
 	{
-		private static int GetRecommendedLength(Type enumType)
+		private static int GetRecommendedLength(ConstraintDefaultsConfiguration defaultsConfiguration, Type enumType)
 		{
 			var type = Nullable.GetUnderlyingType(enumType) ?? enumType;
 
 			var names = Enum.GetNames(type);
+
+			if (names.Length == 0)
+			{
+				return defaultsConfiguration.StringMaximumLength;
+			}
 
 			var maximumSize = names.Max(c => c.Length);
 
@@ -33,7 +38,7 @@ namespace Shaolinq.Persistence
 
 		private static ConstraintDefaultsConfiguration CreateConstraintDefaults(ConstraintDefaultsConfiguration defaultsConfiguration, Type type)
 		{
-			var length = GetRecommendedLength(type);
+			var length = GetRecommendedLength(defaultsConfiguration, type);
 
 			return new ConstraintDefaultsConfiguration(defaultsConfiguration)
 			{
