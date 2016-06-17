@@ -846,6 +846,15 @@ namespace Shaolinq.Tests
 				
 				scope.Complete();
 			}
+
+			using (var scope = new TransactionScope())
+			{
+				var s = this.model.Schools.GetReference(c => c.Id == schoolId);
+
+				Assert.AreEqual(schoolName + "Changed", s.Name);
+
+				scope.Complete();
+			}
 		}
 
 		[Test]
