@@ -2343,12 +2343,26 @@ namespace Shaolinq.TypeBuilding
 				{
 					var label = generator.DefineLabel();
 					var label2 = generator.DefineLabel();
+					var label3 = generator.DefineLabel();
+					var setOrDeflatedReference = generator.DeclareLocal(typeof(bool));
 
 					var valueIsSetField = referencedTypeBuilder.valueIsSetFields[visited.PropertyName];
 				
 					generator.Emit(OpCodes.Ldloc, currentObject);
 					generator.Emit(OpCodes.Ldfld, localDataObjectField);
 					generator.Emit(OpCodes.Ldfld, valueIsSetField);
+					generator.Emit(OpCodes.Stloc, setOrDeflatedReference);
+
+					generator.Emit(OpCodes.Ldloc, currentObject);
+					generator.Emit(OpCodes.Ldfld, localDataObjectField);
+					generator.Emit(OpCodes.Ldfld, localPredicateField);
+					generator.Emit(OpCodes.Brfalse, label3);
+					generator.Emit(OpCodes.Ldc_I4_1);
+					generator.Emit(OpCodes.Stloc, setOrDeflatedReference);
+
+					generator.MarkLabel(label3);
+
+					generator.Emit(OpCodes.Ldloc, setOrDeflatedReference);
 					
 					if (!checkChanged)
 					{
@@ -2360,7 +2374,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Brfalse, label2);
 
 						generator.Emit(OpCodes.Ldloc, currentObject);
-						generator.Emit(OpCodes.Ldstr, string.Join(".", path.Select(c => c.PropertyName)));
+						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
 
 						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(this.baseType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);
@@ -2404,7 +2418,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Brfalse, label);
 
 						generator.Emit(OpCodes.Ldloc, currentObject);
-						generator.Emit(OpCodes.Ldstr, string.Join(".", path.Select(c => c.PropertyName)));
+						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
 
 						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(this.baseType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);

@@ -917,6 +917,8 @@ namespace Shaolinq.Tests
 
 			var count = this.model.QueryAnalytics.QueryCount;
 
+			Guid student3Id;
+
 			using (var scope = new TransactionScope())
 			{
 				var school = this.model.Schools.GetReference(schoolId);
@@ -925,10 +927,17 @@ namespace Shaolinq.Tests
 
 				student3.BestFriend = student2;
 
+				scope.Flush();
+
+				student3Id = student3.Id;
+
+				Assert.AreEqual(count + 1, this.model.QueryAnalytics.QueryCount);
+
 				scope.Complete();
 			}
 
-			Assert.AreEqual(count + 1, this.model.QueryAnalytics.QueryCount);
+			var s3 = this.model.Schools.GetReference(schoolId).Students.GetByPrimaryKey(student3Id);
+			Assert.IsNotNull(s3.BestFriend);
 		}
 
 		[Test]
