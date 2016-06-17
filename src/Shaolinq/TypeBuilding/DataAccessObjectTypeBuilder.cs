@@ -2231,8 +2231,7 @@ namespace Shaolinq.TypeBuilding
 			var count = columnInfos.Length;
 
 			var arrayLocal = generator.DeclareLocal(typeof(ObjectPropertyValue[]));
-			var predicated = generator.DeclareLocal(typeof(bool));
-
+			
 			generator.Emit(OpCodes.Ldc_I4, count);
 			generator.Emit(OpCodes.Newarr, arrayLocal.LocalType.GetElementType());
 			generator.Emit(OpCodes.Stloc, arrayLocal);
@@ -2374,7 +2373,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Brfalse, label2);
 
 						generator.Emit(OpCodes.Ldloc, currentObject);
-						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
+						generator.Emit(OpCodes.Ldstr, string.Join(".", (path.Count > 1 ? path.Skip(1) : path).Select(c => c.PropertyName)));
 
 						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(this.baseType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);
@@ -2418,7 +2417,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Brfalse, label);
 
 						generator.Emit(OpCodes.Ldloc, currentObject);
-						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
+						generator.Emit(OpCodes.Ldstr, string.Join(".", (path.Count > 1 ? path.Skip(1) : path).Select(c => c.PropertyName)));
 
 						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(this.baseType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);
