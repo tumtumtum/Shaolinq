@@ -104,10 +104,10 @@ namespace Shaolinq.Persistence
 			{
 				if (!command.Parameters.Contains(c))
 				{
-					return "(?!)";
+					return new Pair<object, bool>("(?!)", true);
 				}
 
-				return ((IDbDataParameter)command.Parameters[c]).Value;
+				return new Pair<object, bool>(((IDbDataParameter)command.Parameters[c]).Value, true);
 			});
 		}
 

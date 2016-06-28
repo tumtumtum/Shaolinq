@@ -3,6 +3,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
@@ -30,7 +31,7 @@ namespace Shaolinq.Persistence
 			return this.CreateQueryFormatter(options).Format(expression);
 		}
 		
-		public virtual string Format(string commandText, Func<string, object> paramNameToValue)
+		public virtual string Format(string commandText, Func<string, Pair<object, bool>> paramNameToValue)
 		{
 			if (this.formatCommandRegex == null)
 			{
@@ -39,11 +40,18 @@ namespace Shaolinq.Persistence
 			
 			return this.formatCommandRegex.Replace(commandText, match =>
 			{
-				var value = paramNameToValue(match.Value);
+				var result = paramNameToValue(match.Value);
+				var value = result.Left;
+				var shouldQuote = result.Right;
 
 				if (value == null || value == DBNull.Value)
 				{
 					return this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null);
+				}
+
+				if (!shouldQuote)
+				{
+					return Convert.ToString(value);
 				}
 
 				var type = value.GetType();

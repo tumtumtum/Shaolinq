@@ -20,6 +20,7 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlQueryProvider
 		: ReusableQueryProvider
 	{
+		private readonly string paramPrefix;
 		private readonly int ProjectorCacheMaxLimit = 512;
 		private readonly int ProjectionExpressionCacheMaxLimit = 512;
 		protected static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
@@ -30,6 +31,7 @@ namespace Shaolinq.Persistence.Linq
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
 		public static Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>> createQueryCache = new Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>>();
+		
 
 		public static IQueryable CreateQuery(Type elementType, SqlQueryProvider provider, Expression expression)
 		{
@@ -65,7 +67,7 @@ namespace Shaolinq.Persistence.Linq
 			return GetQueryText(formatResult);
 		}
 
-		internal string GetQueryText(SqlQueryFormatResult formatResult)
+		internal string GetQueryText(SqlQueryFormatResult formatResult, Func<int, Pair<object, bool>> paramSelector = null)
 		{
 			var sql = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(formatResult.CommandText, c =>
 			{
@@ -73,12 +75,12 @@ namespace Shaolinq.Persistence.Linq
 
 				if (index < 0)
 				{
-					return "(?!)";
+					return new Pair<object, bool>("(?!)", true);
 				}
 
 				index = int.Parse(c.Substring(index));
-
-				return formatResult.ParameterValues[index].Value;
+				
+				return paramSelector?.Invoke(index) ?? new Pair<object, bool>(formatResult.ParameterValues[index].Value, true);
 			});
 
 			return sql;
@@ -93,8 +95,9 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.DataAccessModel = dataAccessModel;
 			this.SqlDatabaseContext = sqlDatabaseContext;
+			this.paramPrefix = this.SqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 		}
-		
+
 		public override IQueryable<T> CreateQuery<T>(Expression expression)
 		{
 			return new SqlQueryable<T>(this, expression);
@@ -264,7 +267,7 @@ namespace Shaolinq.Persistence.Linq
 					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 
-				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult)}\n\nProjector:\n{cacheInfo.projector}");
+				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult, c => new Pair<object, bool>(paramPrefix + "PARAM" + c, false))}\n\nProjector:\n{cacheInfo.projector}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 
 				cacheInfo.formatResult = formatResult;
