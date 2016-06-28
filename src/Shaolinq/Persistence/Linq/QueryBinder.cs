@@ -259,7 +259,7 @@ namespace Shaolinq.Persistence.Linq
 				var alias = this.GetNextAlias();
 				var pc = ProjectColumns(projection.Projector, alias, null, projection.Select.Alias);
 
-				projection = new SqlProjectionExpression(new SqlSelectExpression(isRoot ? projection.Select.Type : projection.Select.Type.GetSequenceElementType(), alias, pc.Columns, projection.Select, where, null, null, false, null, take, false, isLast), pc.Projector, null, false, projection.DefaultValue);
+				projection = new SqlProjectionExpression(new SqlSelectExpression(isRoot ? projection.Select.Type : projection.Select.Type.GetSequenceElementType(), alias, pc.Columns, projection.Select, where, null, null, false, null, take, projection.Select.ForUpdate, isLast), pc.Projector, null, false, projection.DefaultValue);
 			}
 
 			if (localSideAggregateEval)
@@ -301,14 +301,14 @@ namespace Shaolinq.Persistence.Linq
 			const string columnName = "EXISTS_COL";
 
 			predicate = Expression.Lambda(Expression.Not(predicate.Body), predicate.Parameters);
-			source = this.BindWhere(source.Type, source, predicate, false);
+			var projection = (SqlProjectionExpression)this.BindWhere(source.Type, source, predicate);
 
 			if (isRoot)
 			{
-				this.rootExpression = source;
+				this.rootExpression = projection;
 			}
 
-			var functionExpression = Expression.Not(new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(source)));
+			var functionExpression = Expression.Not(new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(projection)));
 
 			if (this.selectorPredicateStack.Count > 0)
 			{
@@ -326,7 +326,7 @@ namespace Shaolinq.Persistence.Linq
 				null,
 				null,
 				null,
-				false
+				projection.Select.ForUpdate
 			);
 
 			var retval = (Expression)new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
@@ -348,7 +348,8 @@ namespace Shaolinq.Persistence.Linq
 				this.rootExpression = source;
 			}
 
-			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(source));
+			var projection = (SqlProjectionExpression)this.Visit(source);
+			var functionExpression = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, projection);
 
 			if (this.selectorPredicateStack.Count > 0)
 			{
@@ -366,7 +367,7 @@ namespace Shaolinq.Persistence.Linq
 				null,
 				null,
 				null,
-				false
+				projection.Select.ForUpdate
 			);
 
 			var retval = (Expression)new SqlProjectionExpression(select, new SqlColumnExpression(typeof(bool), alias, columnName), null);
@@ -583,7 +584,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var projected = ProjectColumns(projection.Projector, alias, null, leftSelect.Alias, projection.Select.Alias);
 
-				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projected.Columns, join, null, null, null, false, null, null), projected.Projector, null, false);
+				return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projected.Columns, join, null, null, null, false, null, null, projection.Select.ForUpdate), projected.Projector, null, false); 
 			}
 			else
 			{
@@ -675,7 +676,7 @@ namespace Shaolinq.Persistence.Linq
 				projectedColumns = ProjectColumns(resultExpression, alias, null, projection.Select.Alias, collectionProjection.Select.Alias);
 			}
 
-			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, join, null, null, false), projectedColumns.Projector, null);
+			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, join, null, null, projection.Select.ForUpdate), projectedColumns.Projector, null);
 		}
 
 		protected virtual Expression BindGroupBy(Expression source, LambdaExpression keySelector, LambdaExpression elementSelector, LambdaExpression resultSelector)
@@ -847,7 +848,7 @@ namespace Shaolinq.Persistence.Linq
 			var alias = this.GetNextAlias();
 			var pc = ProjectColumns(resultExpr, alias, null, outerProjection.Select.Alias);
 
-			return new SqlProjectionExpression(new SqlSelectExpression(outerProjection.Select.Type, alias, pc.Columns, outerProjection.Select, null, null, false), pc.Projector, null);
+			return new SqlProjectionExpression(new SqlSelectExpression(outerProjection.Select.Type, alias, pc.Columns, outerProjection.Select, null, null, outerProjection.Select.ForUpdate), pc.Projector, null);
 		}
 
 		public static LambdaExpression GetLambda(Expression e)
@@ -877,7 +878,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 				case "Where":
 					this.selectorPredicateStack.Push(methodCallExpression);
-					result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), false);
+					result = this.BindWhere(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 					this.selectorPredicateStack.Pop();
 					return result;
 				case "Select":
@@ -1160,7 +1161,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			
 			var update = new SqlUpdateExpression(projection, assignments.ToReadOnlyCollection(), null);
-			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__UPDATE", Expression.Constant(null), true) }, update, null, null);
+			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__UPDATE", Expression.Constant(null), true) }, update, null, null, projection.Select.ForUpdate);
 
 			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
 
@@ -1202,7 +1203,7 @@ namespace Shaolinq.Persistence.Linq
 			var returningAutoIncrementColumnNames = propertyDescriptors.Select(c => c.PersistedName).ToReadOnlyCollection();
 
 			var insert = new SqlInsertIntoExpression(projection, columnNames, returningAutoIncrementColumnNames, values.ToReadOnlyCollection());
-			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__INSERT", Expression.Constant(null), true) }, insert, null, null);
+			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__INSERT", Expression.Constant(null), true) }, insert, null, null, projection.Select.ForUpdate);
 
 			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
 
@@ -1449,7 +1450,7 @@ namespace Shaolinq.Persistence.Linq
 			return projection.ChangeSelect(newSelect);
 		}
 
-		private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate, bool forUpdate, bool sourceAlreadyVisited = false)
+		private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate, bool sourceAlreadyVisited = false)
 		{
 			var projection = (SqlProjectionExpression)(sourceAlreadyVisited ? source : this.Visit(source));
 
@@ -1461,7 +1462,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var pc = ProjectColumns(projection.Projector, alias, null, GetExistingAlias(projection.Select));
 
-			var retval = new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, null, false, null, null, false, false), pc.Projector, null);
+			var retval = new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, where, null, null, false, null, null, projection.Select.ForUpdate, false), pc.Projector, null);
 
 			return retval;
 		}
@@ -1547,7 +1548,7 @@ namespace Shaolinq.Persistence.Linq
 
 					var condition = Expression.Lambda(body, parameter);
 
-					return (SqlProjectionExpression)this.BindWhere(expression.Type.GetGenericArguments()[0], source, condition, false);
+					return (SqlProjectionExpression)this.BindWhere(expression.Type.GetGenericArguments()[0], source, condition);
 				}
 				else if (expression.Type.GetGenericTypeDefinitionOrNull() == TypeHelper.IQueryableType)
 				{
@@ -1825,7 +1826,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var alias = GetNextAlias();
 			var deleteExpression = new SqlDeleteExpression(projection, null);
-			var select = new SqlSelectExpression(typeof(int), alias, new [] { new SqlColumnDeclaration("__SHAOLINQ__DELETE", Expression.Constant(null), true) }, deleteExpression, null, null);
+			var select = new SqlSelectExpression(typeof(int), alias, new [] { new SqlColumnDeclaration("__SHAOLINQ__DELETE", Expression.Constant(null), true) }, deleteExpression, null, null, projection.Select.ForUpdate);
 
 			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));
 			
@@ -1989,7 +1990,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (hasCondition?.Condition != null)
 				{
-					return this.BindWhere(retval.Type, retval, hasCondition.Condition, false, true);
+					return this.BindWhere(retval.Type, retval, hasCondition.Condition, true);
 				}
 
 				return retval;
@@ -2115,7 +2116,7 @@ namespace Shaolinq.Persistence.Linq
 						var param = Expression.Parameter(memberExpression.Type.GetSequenceElementType());
 						var where = Expression.Lambda(Expression.Equal(Expression.Property(param, relationship.TargetProperty), source), param);
 
-						return this.BindWhere(memberExpression.Type, inner, where, false, true);
+						return this.BindWhere(memberExpression.Type, inner, where, true);
 					}
 
 					for (int i = 0, n = min.Bindings.Count; i < n; i++)

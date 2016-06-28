@@ -3162,6 +3162,20 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Select_ForUpdate_First()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var students = model
+					.Students
+					.OrderBy(c => c.Nickname)
+					.Select(c => c.Id == Guid.Empty)
+					.ForUpdate()
+					.FirstOrDefault();
+			}
+		}
+
+		[Test]
 		public void Test_Concat()
 		{
 			using (var scope = NewTransactionScope())
