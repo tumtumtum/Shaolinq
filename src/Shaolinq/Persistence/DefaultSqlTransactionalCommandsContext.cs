@@ -12,6 +12,7 @@ using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
+using FormatParamValue = Shaolinq.Persistence.SqlQueryFormatterManager.FormatParamValue;
 
 namespace Shaolinq.Persistence
 {
@@ -104,10 +105,10 @@ namespace Shaolinq.Persistence
 			{
 				if (!command.Parameters.Contains(c))
 				{
-					return new Pair<object, bool>("(?!)", true);
+					return new FormatParamValue("(?!)", true);
 				}
 
-				return new Pair<object, bool>(((IDbDataParameter)command.Parameters[c]).Value, true);
+				return new FormatParamValue(((IDbDataParameter)command.Parameters[c]).Value, true);
 			});
 		}
 

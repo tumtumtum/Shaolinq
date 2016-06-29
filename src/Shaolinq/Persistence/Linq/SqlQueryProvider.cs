@@ -14,6 +14,7 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
+using FormatParamValue = Shaolinq.Persistence.SqlQueryFormatterManager.FormatParamValue;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -67,20 +68,20 @@ namespace Shaolinq.Persistence.Linq
 			return GetQueryText(formatResult);
 		}
 
-		internal string GetQueryText(SqlQueryFormatResult formatResult, Func<int, Pair<object, bool>> paramSelector = null)
+		internal FormatParamValue GetParamName(int index)
+		{
+			return new FormatParamValue(paramPrefix + "PARAM" + index, false);
+		}
+
+		internal string GetQueryText(SqlQueryFormatResult formatResult, Func<int, FormatParamValue> paramSelector = null)
 		{
 			var sql = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(formatResult.CommandText, c =>
 			{
 				var index = c.IndexOf(char.IsDigit);
 
-				if (index < 0)
-				{
-					return new Pair<object, bool>("(?!)", true);
-				}
-
 				index = int.Parse(c.Substring(index));
-				
-				return paramSelector?.Invoke(index) ?? new Pair<object, bool>(formatResult.ParameterValues[index].Value, true);
+
+				return paramSelector?.Invoke(index) ?? new FormatParamValue(formatResult.ParameterValues[index].Value, true);
 			});
 
 			return sql;
@@ -177,13 +178,6 @@ namespace Shaolinq.Persistence.Linq
 
 			return expression;
 		}
-		
-		private static bool IsConsideredSimpleType(Type type)
-		{
-			type = type.GetUnwrappedNullableType();
-
-			return type.IsPrimitive || (type.IsIntegralType() && !type.IsArray);
-		}
 
 		internal ExecutionBuildResult BuildExecution(Expression expression, LambdaExpression projection = null, object[] placeholderValues = null)
 		{
@@ -191,6 +185,7 @@ namespace Shaolinq.Persistence.Linq
 			var skipFormatResultSubstitution = false;
 			var projectionExpression = expression as SqlProjectionExpression ?? (SqlProjectionExpression)Bind(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, expression);
 
+			var foundCachedProjection = false;
 			var key = new ExpressionCacheKey(projectionExpression, projection);
 
 			if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out cacheInfo))
@@ -267,14 +262,14 @@ namespace Shaolinq.Persistence.Linq
 					this.SqlDatabaseContext.projectionExpressionCache = newCache;
 				}
 
-				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult, c => new Pair<object, bool>(paramPrefix + "PARAM" + c, false))}\n\nProjector:\n{cacheInfo.projector}");
+				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult, this.GetParamName)}\n\nProjector:\n{cacheInfo.projector}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 
 				cacheInfo.formatResult = formatResult;
 			}
 			else
 			{
-				ProjectionCacheLogger.Debug(() => $"Cache hit for query:\n{GetQueryText(cacheInfo.formatResult)}");
+				foundCachedProjection = true;
 			}
 
 			if (placeholderValues == null)
@@ -302,6 +297,11 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				cacheInfo.formatResult = cacheInfo.formatResult.ChangeParameterValues(parameters);
+			}
+
+			if (foundCachedProjection)
+			{
+				ProjectionCacheLogger.Debug(() => $"Cache hit for query:\n{GetQueryText(cacheInfo.formatResult, this.GetParamName)}");
 			}
 
 			return new ExecutionBuildResult(this, cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);

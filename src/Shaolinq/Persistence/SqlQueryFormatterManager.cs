@@ -10,6 +10,18 @@ namespace Shaolinq.Persistence
 {
 	public abstract class SqlQueryFormatterManager
 	{
+		public struct FormatParamValue
+		{
+			public object Value { get; set; }
+			public bool AutoQuote { get; set; }
+
+			public FormatParamValue(object value, bool autoQuote)
+			{
+				this.Value = value;
+				this.AutoQuote = autoQuote;
+			}
+		}
+
 		private volatile Regex formatCommandRegex;
 		private readonly SqlDialect sqlDialect;
 		private readonly string stringQuote; 
@@ -31,7 +43,7 @@ namespace Shaolinq.Persistence
 			return this.CreateQueryFormatter(options).Format(expression);
 		}
 		
-		public virtual string Format(string commandText, Func<string, Pair<object, bool>> paramNameToValue)
+		public virtual string Format(string commandText, Func<string, FormatParamValue> paramNameToValue)
 		{
 			if (this.formatCommandRegex == null)
 			{
@@ -41,15 +53,15 @@ namespace Shaolinq.Persistence
 			return this.formatCommandRegex.Replace(commandText, match =>
 			{
 				var result = paramNameToValue(match.Value);
-				var value = result.Left;
-				var shouldQuote = result.Right;
+				var value = result.Value;
+				var autoQuote = result.AutoQuote;
 
 				if (value == null || value == DBNull.Value)
 				{
 					return this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null);
 				}
 
-				if (!shouldQuote)
+				if (!autoQuote)
 				{
 					return Convert.ToString(value);
 				}
