@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				func = Expression.Lambda<Func<bool>>(Expression.Call(needsComparerMethod.MakeGenericMethod(type))).Compile();
 
-				needsComparerFuncs = new Dictionary<RuntimeTypeHandle, Func<bool>>(needsComparerFuncs) { [type.TypeHandle] = func };
+				needsComparerFuncs = needsComparerFuncs.Clone(type.TypeHandle, func);
 			}
 
 			return func();

@@ -101,10 +101,7 @@ namespace Shaolinq
 
 				func = Expression.Lambda<Func<IQueryable>>(body).Compile();
 
-				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<IQueryable>>(this.createDataAccessObjectsFuncs) { [typeHandle] = func };
-
-
-				this.createDataAccessObjectsFuncs = newDictionary;
+				this.createDataAccessObjectsFuncs = this.createDataAccessObjectsFuncs.Clone(typeHandle, func);
 			}
 
 			return func();
@@ -445,10 +442,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType)
-				{
-					[objectTypeHandle] = func
-				};
+				var newPropertyInfoAndValueGetterFuncByType = this.propertyInfoAndValueGetterFuncByType.Clone(objectTypeHandle, func);
 
 				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
 			}
@@ -568,9 +562,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>(this.propertyInfoAndValueGetterFuncByType) { [primaryKeyTypeHandle] = func };
-
-				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
+				this.propertyInfoAndValueGetterFuncByType = this.propertyInfoAndValueGetterFuncByType.Clone(primaryKeyTypeHandle, func);
 			}
 
 			return func(primaryKey);
@@ -796,13 +788,8 @@ namespace Shaolinq
 				var lambda = Expression.Lambda<Func<DataAccessObject, DataAccessObject>>(body, parameter);
 
 				func = lambda.Compile();
-
-				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>>(this.inflateFuncsByType)
-				{
-					[definitionTypeHandle] = func
-				};
-
-				this.inflateFuncsByType = newDictionary;
+				
+				this.inflateFuncsByType = this.inflateFuncsByType.Clone(definitionTypeHandle, func);
 			}
 
 			return func(dataAccessObject);
@@ -829,13 +816,8 @@ namespace Shaolinq
 				var lambda = Expression.Lambda<Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>(body, parameter, cancellationTokenParameter);
 
 				func = lambda.Compile();
-
-				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>(this.inflateAsyncFuncsByType)
-				{
-					[definitionTypeHandle] = func
-				};
-
-				this.inflateAsyncFuncsByType = newDictionary;
+				
+				this.inflateAsyncFuncsByType = this.inflateAsyncFuncsByType.Clone(definitionTypeHandle, func);
 			}
 
 			return func(dataAccessObject, cancellationToken);

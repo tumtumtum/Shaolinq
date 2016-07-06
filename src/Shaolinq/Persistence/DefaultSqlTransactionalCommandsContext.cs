@@ -219,13 +219,8 @@ namespace Shaolinq.Persistence
 				var lambda = Expression.Lambda<Func<DataAccessObject, IDataReader, DataAccessObject>>(body, objectParameter, readerParameter);
 				
 				applicator = lambda.Compile();
-
-				var newDictionary = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>>(this.serverSideGeneratedPropertySettersByType)
-				{
-					[Type.GetTypeHandle(dataAccessObject)] = applicator
-				};
-
-				this.serverSideGeneratedPropertySettersByType = newDictionary;
+				
+				this.serverSideGeneratedPropertySettersByType = this.serverSideGeneratedPropertySettersByType.Clone(Type.GetTypeHandle(dataAccessObject), applicator);
 			}
 
 			return applicator(dataAccessObject, reader);
@@ -758,9 +753,7 @@ namespace Shaolinq.Persistence
 
 		protected void CacheInsertCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			var newDictionary = new Dictionary<SqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue>(this.SqlDatabaseContext.formattedInsertSqlCache, CommandKeyComparer.Default) { [sqlCachedUpdateInsertFormatKey] = sqlCachedUpdateInsertFormatValue };
-			
-			this.SqlDatabaseContext.formattedInsertSqlCache = newDictionary;
+			this.SqlDatabaseContext.formattedInsertSqlCache = this.SqlDatabaseContext.formattedInsertSqlCache.Clone(sqlCachedUpdateInsertFormatKey, sqlCachedUpdateInsertFormatValue);
 		}
 
 		protected bool TryGetInsertCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, out SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
@@ -770,9 +763,7 @@ namespace Shaolinq.Persistence
 
 		protected void CacheUpdateCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			var newDictionary = new Dictionary<SqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue>(this.SqlDatabaseContext.formattedUpdateSqlCache, CommandKeyComparer.Default) { [sqlCachedUpdateInsertFormatKey] = sqlCachedUpdateInsertFormatValue };
-			
-			this.SqlDatabaseContext.formattedUpdateSqlCache = newDictionary;
+			this.SqlDatabaseContext.formattedUpdateSqlCache = this.SqlDatabaseContext.formattedUpdateSqlCache.Clone(sqlCachedUpdateInsertFormatKey, sqlCachedUpdateInsertFormatValue);
 		}
 
 		protected bool TryGetUpdateCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, out SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)

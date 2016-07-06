@@ -50,9 +50,7 @@ namespace Shaolinq.Persistence.Linq
 					expressionParam
 				), providerParam, expressionParam).Compile();
 
-				var newCreateQueryCache = new Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>>(createQueryCache) { [elementType.TypeHandle] = func };
-
-				createQueryCache = newCreateQueryCache;
+				createQueryCache = createQueryCache.Clone(elementType.TypeHandle, func);
 			}
 
 			return func(provider, expression);
@@ -257,9 +255,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(oldCache, ExpressionCacheKeyEqualityComparer.Default) { [key] = cacheInfo };
-
-					this.SqlDatabaseContext.projectionExpressionCache = newCache;
+					this.SqlDatabaseContext.projectionExpressionCache = this.SqlDatabaseContext.projectionExpressionCache.Clone(key, cacheInfo);
 				}
 
 				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult, this.GetParamName)}\n\nProjector:\n{cacheInfo.projector}");
@@ -413,9 +409,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(oldCache, ProjectorCacheEqualityComparer.Default) { [key] = cacheInfo };
-
-					this.SqlDatabaseContext.projectorCache = newCache;
+					this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo);
 				}
 
 				ProjectionCacheLogger.Info(() => $"Cached projector:\n{cacheInfo.projector}");

@@ -113,7 +113,7 @@ namespace Shaolinq.Persistence
 					).Compile();
 				}
 
-				commitAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>>(commitAsyncFuncsByType) { [typeHandle] = func };
+				commitAsyncFuncsByType = commitAsyncFuncsByType.Clone(typeHandle, func);
 			}
 
 			return func(transaction, cancellationToken);

@@ -551,8 +551,8 @@ namespace Shaolinq
 				var contextParam = Expression.Parameter(typeof(DataAccessObjectDataContext));
 
 				func = Expression.Lambda<Func<DataAccessObjectDataContext, IObjectsByIdCache>>(Expression.New(constructor, Expression.Constant(dao.GetType()), contextParam, Expression.Constant(getIdFunc, getIdFunc.GetType()), keyComparer), contextParam).Compile();
-					
-				cacheConstructor = new Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>>(cacheConstructor) { [typeHandle] = func };
+
+				cacheConstructor = cacheConstructor.Clone(typeHandle, func);
 			}
 
 			return func(context);

@@ -8,9 +8,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlExpressionEqualityComparer
 		: IEqualityComparer<Expression>
 	{
-		private readonly SqlExpressionComparerOptions options;
 		public static readonly SqlExpressionEqualityComparer Default = new SqlExpressionEqualityComparer();
+		public static readonly SqlExpressionEqualityComparer IgnoreConstants = new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstants);
 
+		private readonly SqlExpressionComparerOptions options;
+		
 		public SqlExpressionEqualityComparer()
 			: this(SqlExpressionComparerOptions.None)
 		{

@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public static class ExpressionFastCompiler
 	{
-		private static Dictionary<Expression, SubstituteConstantsResult> cachedSubstitutedExpressions = new Dictionary<Expression, SubstituteConstantsResult>(new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstants));
+		private static Dictionary<Expression, SubstituteConstantsResult> cachedSubstitutedExpressions = new Dictionary<Expression, SubstituteConstantsResult>(SqlExpressionEqualityComparer.IgnoreConstants);
 		private static Dictionary<SubstituteConstantsResult, Delegate> delegatesByCachedCompileResult = new Dictionary<SubstituteConstantsResult, Delegate>(ObjectReferenceIdentityEqualityComparer<SubstituteConstantsResult>.Default);
 
 		public static object CompileAndRun(LambdaExpression expression, params object[] args)
@@ -39,9 +39,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					del = Expression.Lambda(resultWithValues.Result.Body, expression.Parameters.Concat(resultWithValues.Result.AdditionalParameters)).Compile();
 				}
 
-				var newDelegatesByCachedCompileResult = new Dictionary<SubstituteConstantsResult, Delegate>(delegatesByCachedCompileResult) {[resultWithValues.Result] = del };
-
-				delegatesByCachedCompileResult = newDelegatesByCachedCompileResult;
+				delegatesByCachedCompileResult = delegatesByCachedCompileResult.Clone(resultWithValues.Result, del);
 			}
 
 			if (args.Length == 0)
@@ -80,6 +78,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			
 			if (!cachedSubstitutedExpressions.TryGetValue(expression, out result))
 			{
+				var comparer = new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstants);
+
+				if (cachedSubstitutedExpressions.Count >= 2)
+				{
+					var x = comparer.GetHashCode(expression);
+					var y = comparer.GetHashCode(cachedSubstitutedExpressions.Skip(1).First().Key);
+					var z = comparer.Equals(expression, cachedSubstitutedExpressions.Skip(1).First().Key);
+
+					Console.WriteLine();
+				}
+
 				var values = new List<object>();
 				var parameters = new List<ParameterExpression>();
 
@@ -103,10 +112,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				var parametersArray = parameters.ToArray();
 
 				result = new SubstituteConstantsResult(replacement, parametersArray);
-				
-				var replacementCache = new Dictionary<Expression, SubstituteConstantsResult>(cachedSubstitutedExpressions) { [expression] = result };
 
-				cachedSubstitutedExpressions = replacementCache;
+				cachedSubstitutedExpressions = cachedSubstitutedExpressions.Clone(expression, result);
 			}
 
 			if (args == null)

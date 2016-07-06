@@ -152,11 +152,8 @@ namespace Shaolinq
 			var body = Expression.Call(Expression.Convert(childObject, typeof(T)), childBackReferenceProperty.PropertyInfo.GetSetMethod(), Expression.Convert(parentObject, parentType.Type));
 			var lambda = Expression.Lambda(body, parentObject, childObject);
 			var retval = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
-			
-			var newCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(cache)
-			{
-				[key] = retval
-			};
+
+			var newCache = cache.Clone(key, retval);
 
 			this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache = newCache;
 

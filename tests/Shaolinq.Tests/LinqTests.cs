@@ -3342,5 +3342,18 @@ namespace Shaolinq.Tests
 				Assert.IsTrue(results.SequenceEqual(results2));
 			}
 		}
+
+		[Test]
+		public void Test_FastCompiler()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var student1 = this.model.Students.Skip(0).First();
+				var student2 = this.model.Students.Skip(1).First();
+
+				var s1 = this.model.Students.First(c => c == student1);
+				var s2 = this.model.Students.First(c => c == student2);
+			}
+		}
 	}
 }
