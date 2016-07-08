@@ -3403,5 +3403,26 @@ namespace Shaolinq.Tests
 				Assert.IsTrue(students1.SequenceEqual(students2));
 			}
 		}
+
+		[Test]
+		public void Test_DataAccessObjectAwareComparer2()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students1 = this.model
+					.Students.Select(c => (TestStruct?)new TestStruct { X = c.SerialNumber1 })
+					.Union(this.model.Students.Select(c => (TestStruct?)new TestStruct { X = c.SerialNumber1 }))
+					.ToList()
+					.OrderBy(c => c.Value.X);
+
+				var students2 = this.model
+					.Students.ToList().Select(c => (TestStruct?)new TestStruct { X = c.SerialNumber1 })
+					.Union(this.model.Students.ToList().Select(c => (TestStruct?)new TestStruct { X = c.SerialNumber1 }))
+					.ToList()
+					.OrderBy(c => c.Value.X);
+
+				Assert.IsTrue(students1.SequenceEqual(students2));
+			}
+		}
 	}
 }

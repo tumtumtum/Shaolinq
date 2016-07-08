@@ -145,8 +145,8 @@ namespace Shaolinq.Persistence.Linq
 			
 			if (originalType.IsNullableType())
 			{
-				body = Expression.AndAlso(Expression.Equal(left, Expression.Constant(null, type)), Expression.Equal(right, Expression.Constant(null, type)));
-				body = Expression.Or(body, CreateComparerExpression(type, left, right, ref foundDataAccessObject));
+				body = Expression.AndAlso(Expression.Equal(left, Expression.Constant(null, originalType)), Expression.Equal(right, Expression.Constant(null, originalType)));
+				body = Expression.Or(body, CreateComparerExpression(type, Expression.Convert(left, type), Expression.Convert(right, type), ref foundDataAccessObject));
 
 				return body;
 			}
