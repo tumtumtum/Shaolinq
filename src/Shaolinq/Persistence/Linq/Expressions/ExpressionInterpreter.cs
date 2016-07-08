@@ -42,13 +42,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			case ExpressionType.AndAlso:
 			case ExpressionType.Or:
 			case ExpressionType.OrElse:
+			case ExpressionType.Multiply:
+			case ExpressionType.Equal:
 				return this.Visit((BinaryExpression)expression);
 			case ExpressionType.Call:
 				return this.Visit((MethodCallExpression)expression);
 			case ExpressionType.Constant:
 				return this.Visit((ConstantExpression)expression);
-			case ExpressionType.Equal:
-				return this.Visit((BinaryExpression)expression);
+			case ExpressionType.Conditional:
+				return this.Visit((ConditionalExpression)expression);
 			}
 
 			return InterpretFailed;
@@ -119,7 +121,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return InterpretFailed;
 		}
 
-
 		protected object Visit(NewExpression expression)
 		{
 			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
@@ -175,6 +176,25 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return expression.Method.Invoke(parentValue, args);
 		}
 
+		protected object Visit(ConditionalExpression expression)
+		{
+			var result = this.Visit(expression.Test);
+
+			if (result == InterpretFailed)
+			{
+				return InterpretFailed;
+			}
+
+			if ((bool)result)
+			{
+				return this.Visit(expression.IfTrue);
+			}
+			else
+			{
+				return this.Visit(expression.IfFalse);
+			}
+		}
+
 		protected object Visit(BinaryExpression expression)
 		{
 			switch (expression.NodeType)
@@ -226,10 +246,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 					return InterpretFailed;
 				}
-
 				return InterpretFailed;
 			}
 			case ExpressionType.Add:
+			case ExpressionType.Subtract:
+			case ExpressionType.Multiply:
+			case ExpressionType.Divide:
 			{
 				var left = this.Visit(expression.Left);
 
@@ -245,21 +267,139 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					return InterpretFailed;
 				}
 
-				if (left is short && right is short)
+				Type type = null;
+
+				if (expression.Left.Type == typeof(string) || expression.Right.Type == typeof(string))
 				{
-					return ((short)left + (short)right);
+					type = typeof(string);
+
+					left = Convert.ChangeType(left, typeof(string));
+					right = Convert.ChangeType(right, typeof(string));
 				}
-				else if (left is int && right is int)
+				else if (expression.Left.Type == typeof(decimal) || expression.Right.Type == typeof(decimal))
 				{
-					return (int)left + (int)right;
+					type = typeof(decimal);
+
+					left = Convert.ChangeType(left, typeof(decimal));
+					right = Convert.ChangeType(right, typeof(decimal));
 				}
-				else if (left is long && right is long)
+				else if (expression.Left.Type == typeof(double) || expression.Right.Type == typeof(double))
 				{
-					return (long)left + (long)right;
+					type = typeof(double);
+
+					left = Convert.ChangeType(left, typeof(double));
+					right = Convert.ChangeType(right, typeof(double));
 				}
-				else if (left is string || right is string)
+				else if (expression.Left.Type == typeof(float) || expression.Right.Type == typeof(float))
 				{
-					return Convert.ToString(left)  + Convert.ToString(right);
+					type = typeof(float);
+
+					left = Convert.ChangeType(left, typeof(float));
+					right = Convert.ChangeType(right, typeof(float));
+				}
+				else if (expression.Left.Type == typeof(long) || expression.Right.Type == typeof(long))
+				{
+					type = typeof(long);
+
+					left = Convert.ChangeType(left, typeof(long));
+					right = Convert.ChangeType(right, typeof(long));
+				}
+				else if (expression.Left.Type == typeof(uint) || expression.Right.Type == typeof(uint))
+				{
+					if (expression.Left.Type == typeof(uint) && expression.Right.Type == typeof(uint))
+					{
+						type = typeof(uint);
+
+						left = Convert.ChangeType(left, typeof(uint));
+						right = Convert.ChangeType(right, typeof(uint));
+					}
+					else
+					{
+						type = typeof(long);
+						
+						left = Convert.ChangeType(left, typeof(long));
+						right = Convert.ChangeType(right, typeof(long));
+					}
+				}
+				else if (expression.Left.Type == typeof(int) || expression.Right.Type == typeof(int))
+				{
+					type = typeof(int);
+
+					left = Convert.ChangeType(left, typeof(int));
+					right = Convert.ChangeType(right, typeof(int));
+				}
+				else if (expression.Left.Type == typeof(ushort) || expression.Right.Type == typeof(ushort))
+				{
+					if (expression.Left.Type == typeof(ushort) && expression.Right.Type == typeof(ushort))
+					{
+						type = typeof(ushort);
+
+						left = Convert.ChangeType(left, typeof(ushort));
+						right = Convert.ChangeType(right, typeof(ushort));
+					}
+					else
+					{
+						type = typeof(int);
+
+						left = Convert.ChangeType(left, typeof(int));
+						right = Convert.ChangeType(right, typeof(int));
+					}
+				}
+				else if (expression.Left.Type == typeof(short) || expression.Right.Type == typeof(short))
+				{
+					type = typeof(short);
+
+					left = Convert.ChangeType(left, typeof(short));
+					right = Convert.ChangeType(right, typeof(short));
+				}
+				else if (expression.Left.Type == typeof(byte) || expression.Right.Type == typeof(byte))
+				{
+					type = typeof(byte);
+
+					left = Convert.ChangeType(left, typeof(byte));
+					right = Convert.ChangeType(right, typeof(byte));
+				}
+				else if (expression.Left.Type == typeof(sbyte) || expression.Right.Type == typeof(sbyte))
+				{
+					type = typeof(int);
+
+					left = Convert.ChangeType(left, typeof(int));
+					right = Convert.ChangeType(right, typeof(int));
+				}
+				else if (expression.Left.Type == typeof(byte) || expression.Right.Type == typeof(byte))
+				{
+					type = typeof(int);
+
+					left = Convert.ChangeType(left, typeof(int));
+					right = Convert.ChangeType(right, typeof(int));
+				}
+
+				if (type == null)
+				{
+					return InterpretFailed;
+				}
+
+				Func<object, object, object> func = null;
+
+				switch (expression.NodeType)
+				{
+				case ExpressionType.Add:
+					func = BinaryOperations.GetAddFunc(type);
+					break;
+				case ExpressionType.Subtract:
+					func = BinaryOperations.GetSubtractFunc(type);
+					break;
+				case ExpressionType.Multiply:
+					func = BinaryOperations.GetMultiplyFunc(type);
+					break;
+				case ExpressionType.Divide:
+					func = BinaryOperations.GetDivideFunc(type);
+					break;
+				}
+
+				if (func != null)
+				{
+					return func(left, right);
 				}
 
 				return InterpretFailed;
@@ -328,7 +468,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			try
 			{
-				return Convert.ChangeType(result, expression.Type);
+				return Convert.ChangeType(result, expression.Type.GetUnwrappedNullableType());
 			}
 			catch (InvalidCastException)
 			{

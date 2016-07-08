@@ -192,6 +192,7 @@
     <Compile Include="Persistence\Linq\AlwaysReadFirstObjectProjector.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectAwareResultTypeComparerBuilder.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectContainerProjector.cs" />
+    <Compile Include="Persistence\Linq\Expressions\BinaryOperations.cs" />
     <Compile Include="Persistence\Linq\Expressions\ISqlExposesAliases.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUnionExpression.cs" />
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />

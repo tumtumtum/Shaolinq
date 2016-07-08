@@ -3424,5 +3424,36 @@ namespace Shaolinq.Tests
 				Assert.IsTrue(students1.SequenceEqual(students2));
 			}
 		}
+		
+		private void QuerySchoolAndStudentsLookup(IEnumerable<string> schoolNames)
+		{
+			var query =
+				from school in model.Schools
+				join st in model.Students on school equals st.School into g
+				from student in g.DefaultIfEmpty()
+				select new
+				{
+					School = school,
+					Student = student
+				};
+
+			if (schoolNames != null && schoolNames.Any())
+			{
+				query = query.Where(x => schoolNames.Contains(x.School.Name));
+			}
+
+			var scopes = query.ToLookup(x => x.School, x => x.Student);
+
+			var result = scopes.ToList();
+		}
+
+		[Test]
+		public void Test()
+		{
+			for (var i = 0; i < 10; i++)
+			{
+				QuerySchoolAndStudentsLookup(new [] { "Bruce's Kung Fu School" });
+			}
+		}
 	}
 }

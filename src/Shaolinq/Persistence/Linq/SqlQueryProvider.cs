@@ -374,25 +374,7 @@ namespace Shaolinq.Persistence.Linq
 				cacheInfo.projector = projectionLambda.Compile();
 				cacheInfo.asyncProjector = asyncProjectorLambda.Compile();
 
-				if (this.SqlDatabaseContext.projectorCache.Count >= ProjectorCacheMaxLimit)
-				{
-					ProjectionExpressionCacheLogger.Info(() => $"Projector has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjector: {projectionLambda}\n\nAt: {new StackTrace()}");
-
-					var newCache = new Dictionary<ProjectorCacheKey, ProjectorCacheInfo>(ProjectorCacheMaxLimit, ProjectorCacheEqualityComparer.Default);
-
-					foreach (var value in oldCache.Take(oldCache.Count / 3))
-					{
-						newCache[value.Key] = value.Value;
-					}
-
-					newCache[key] = cacheInfo;
-
-					this.SqlDatabaseContext.projectorCache = newCache;
-				}
-				else
-				{
-					this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo, "projectorCache");
-				}
+				this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo, "projectorCache");
 
 				ProjectionCacheLogger.Info(() => $"Cached projector:\n{cacheInfo.projector}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");

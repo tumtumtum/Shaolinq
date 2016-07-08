@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Shaolinq.Logging;
 
 namespace Shaolinq
@@ -19,7 +18,7 @@ namespace Shaolinq
 				return self;
 			}
 
-			return new Dictionary<K, V>(self) { [key] = value };
+			return new Dictionary<K, V>(self, self.Comparer) { [key] = value };
 		}
 	}
 }
