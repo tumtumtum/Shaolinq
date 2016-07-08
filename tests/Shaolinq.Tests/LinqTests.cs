@@ -3355,5 +3355,53 @@ namespace Shaolinq.Tests
 				var s2 = this.model.Students.First(c => c == student2);
 			}
 		}
+
+		void Foo(string[] names)
+		{
+			using (var scope = new TransactionScope())
+			{
+				for (var i = 0; i < 2; i++)
+				{
+					var student1 = this.model
+						.Students
+						.Where(c => names.Contains(c.Address.Country))
+						.Select(c => new { X = c.Firstname, Y = c.Lastname })
+						.ToList();
+				}
+			}
+		}
+
+		[Test]
+		public void Test_FastCompiler2()
+		{
+			Foo(new[] { "a", "b" });
+			Foo(new[] { "c", "d" });
+		}
+
+		public struct TestStruct
+		{
+			public long X;
+		}
+
+		[Test]
+		public void Test_DataAccessObjectAwareComparer()
+		{
+			using (var scope = new TransactionScope())
+			{
+				var students1 = this.model
+					.Students.Select(c => new TestStruct { X = c.SerialNumber1 })
+					.Union(this.model.Students.Select(c => new TestStruct { X = c.SerialNumber1 }))
+					.ToList()
+					.OrderBy(c => c.X);
+
+				var students2 = this.model
+					.Students.ToList().Select(c => new TestStruct { X = c.SerialNumber1 })
+					.Union(this.model.Students.ToList().Select(c => new TestStruct { X = c.SerialNumber1 }))
+					.ToList()
+					.OrderBy(c => c.X);
+
+				Assert.IsTrue(students1.SequenceEqual(students2));
+			}
+		}
 	}
 }

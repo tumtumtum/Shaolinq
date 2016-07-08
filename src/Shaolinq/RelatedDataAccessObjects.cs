@@ -153,7 +153,7 @@ namespace Shaolinq
 			var lambda = Expression.Lambda(body, parentObject, childObject);
 			var retval = (Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>)lambda.Compile();
 
-			var newCache = cache.Clone(key, retval);
+			var newCache = cache.Clone(key, retval, "InitializeRelatedMethod");
 
 			this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache = newCache;
 

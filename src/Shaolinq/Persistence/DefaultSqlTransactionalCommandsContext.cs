@@ -220,7 +220,7 @@ namespace Shaolinq.Persistence
 				
 				applicator = lambda.Compile();
 				
-				this.serverSideGeneratedPropertySettersByType = this.serverSideGeneratedPropertySettersByType.Clone(Type.GetTypeHandle(dataAccessObject), applicator);
+				this.serverSideGeneratedPropertySettersByType = this.serverSideGeneratedPropertySettersByType.Clone(Type.GetTypeHandle(dataAccessObject), applicator, "ServerSideGeneratedPropertySettersByType");
 			}
 
 			return applicator(dataAccessObject, reader);
@@ -753,7 +753,7 @@ namespace Shaolinq.Persistence
 
 		protected void CacheInsertCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			this.SqlDatabaseContext.formattedInsertSqlCache = this.SqlDatabaseContext.formattedInsertSqlCache.Clone(sqlCachedUpdateInsertFormatKey, sqlCachedUpdateInsertFormatValue);
+			this.SqlDatabaseContext.formattedInsertSqlCache = this.SqlDatabaseContext.formattedInsertSqlCache.Clone(sqlCachedUpdateInsertFormatKey, sqlCachedUpdateInsertFormatValue, "formattedInsertSqlCache");
 		}
 
 		protected bool TryGetInsertCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, out SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
@@ -763,7 +763,7 @@ namespace Shaolinq.Persistence
 
 		protected void CacheUpdateCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)
 		{
-			this.SqlDatabaseContext.formattedUpdateSqlCache = this.SqlDatabaseContext.formattedUpdateSqlCache.Clone(sqlCachedUpdateInsertFormatKey, sqlCachedUpdateInsertFormatValue);
+			this.SqlDatabaseContext.formattedUpdateSqlCache = this.SqlDatabaseContext.formattedUpdateSqlCache.Clone(sqlCachedUpdateInsertFormatKey, sqlCachedUpdateInsertFormatValue, "formattedUpdateSqlCache");
 		}
 
 		protected bool TryGetUpdateCommand(SqlCachedUpdateInsertFormatKey sqlCachedUpdateInsertFormatKey, out SqlCachedUpdateInsertFormatValue sqlCachedUpdateInsertFormatValue)

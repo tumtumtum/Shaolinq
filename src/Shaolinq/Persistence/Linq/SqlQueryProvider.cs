@@ -50,7 +50,7 @@ namespace Shaolinq.Persistence.Linq
 					expressionParam
 				), providerParam, expressionParam).Compile();
 
-				createQueryCache = createQueryCache.Clone(elementType.TypeHandle, func);
+				createQueryCache = createQueryCache.Clone(elementType.TypeHandle, func, "createQueryCache");
 			}
 
 			return func(provider, expression);
@@ -237,26 +237,8 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				BuildProjector(projection, projectionExpression.Aggregator, out cacheInfo.projector, out cacheInfo.asyncProjector);
-
-				if (this.SqlDatabaseContext.projectionExpressionCache.Count >= ProjectorCacheMaxLimit)
-				{
-					ProjectionExpressionCacheLogger.Debug(() => $"ProjectionExpressionCache has been flushed because it overflowed with a size of {ProjectionExpressionCacheMaxLimit}\n\nProjectionExpression: {projectionExpression}\n\nAt: {new StackTrace()}");
-
-					var newCache = new Dictionary<ExpressionCacheKey, ProjectorExpressionCacheInfo>(ProjectorCacheMaxLimit, ExpressionCacheKeyEqualityComparer.Default);
-
-					foreach (var value in oldCache.Take(oldCache.Count / 3))
-					{
-						newCache[value.Key] = value.Value;
-					}
-
-					newCache[key] = cacheInfo;
-
-					this.SqlDatabaseContext.projectionExpressionCache = newCache;
-				}
-				else
-				{
-					this.SqlDatabaseContext.projectionExpressionCache = this.SqlDatabaseContext.projectionExpressionCache.Clone(key, cacheInfo);
-				}
+				
+				this.SqlDatabaseContext.projectionExpressionCache = this.SqlDatabaseContext.projectionExpressionCache.Clone(key, cacheInfo, "ProjectionExpression", ProjectorCacheMaxLimit, ProjectionCacheLogger, c => c.projectionExpression.ToString());
 
 				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult, this.GetParamName)}\n\nProjector:\n{cacheInfo.projector}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
@@ -409,7 +391,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo);
+					this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo, "projectorCache");
 				}
 
 				ProjectionCacheLogger.Info(() => $"Cached projector:\n{cacheInfo.projector}");

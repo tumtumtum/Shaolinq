@@ -39,7 +39,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					del = Expression.Lambda(resultWithValues.Result.Body, expression.Parameters.Concat(resultWithValues.Result.AdditionalParameters)).Compile();
 				}
 
-				delegatesByCachedCompileResult = delegatesByCachedCompileResult.Clone(resultWithValues.Result, del);
+				delegatesByCachedCompileResult = delegatesByCachedCompileResult.Clone(resultWithValues.Result, del, "delegatesByCachedCompileResult");
 			}
 
 			if (args.Length == 0)
@@ -78,17 +78,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			
 			if (!cachedSubstitutedExpressions.TryGetValue(expression, out result))
 			{
-				var comparer = new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstants);
-
-				if (cachedSubstitutedExpressions.Count >= 2)
-				{
-					var x = comparer.GetHashCode(expression);
-					var y = comparer.GetHashCode(cachedSubstitutedExpressions.Skip(1).First().Key);
-					var z = comparer.Equals(expression, cachedSubstitutedExpressions.Skip(1).First().Key);
-
-					Console.WriteLine();
-				}
-
 				var values = new List<object>();
 				var parameters = new List<ParameterExpression>();
 
@@ -113,7 +102,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 				result = new SubstituteConstantsResult(replacement, parametersArray);
 
-				cachedSubstitutedExpressions = cachedSubstitutedExpressions.Clone(expression, result);
+				cachedSubstitutedExpressions = cachedSubstitutedExpressions.Clone(expression, result, "cachedSubstitutedExpressions");
 			}
 
 			if (args == null)

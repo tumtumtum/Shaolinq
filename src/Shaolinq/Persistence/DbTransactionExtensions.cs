@@ -113,7 +113,7 @@ namespace Shaolinq.Persistence
 					).Compile();
 				}
 
-				commitAsyncFuncsByType = commitAsyncFuncsByType.Clone(typeHandle, func);
+				commitAsyncFuncsByType = commitAsyncFuncsByType.Clone(typeHandle, func, "CommitAsyncFuncs");
 			}
 
 			return func(transaction, cancellationToken);

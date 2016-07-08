@@ -93,7 +93,7 @@ namespace Shaolinq.TypeBuilding
 
 				constructor = Expression.Lambda<Func<DataAccessModel, bool, DataAccessObject>>(Expression.Convert(Expression.New(constructorInfo, dataAccessModelParam, isNewParam), dataAccessObjectType), dataAccessModelParam, isNewParam).Compile();
 
-				this.dataAccessObjectConstructors = this.dataAccessObjectConstructors.Clone(dataAccessObjectType, constructor);
+				this.dataAccessObjectConstructors = this.dataAccessObjectConstructors.Clone(dataAccessObjectType, constructor, "dataAccessObjectConstructors");
 			}
 
 			return constructor;

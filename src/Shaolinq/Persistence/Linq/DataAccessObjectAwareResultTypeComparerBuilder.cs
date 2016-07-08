@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				func = Expression.Lambda<Func<bool>>(Expression.Call(needsComparerMethod.MakeGenericMethod(type))).Compile();
 
-				needsComparerFuncs = needsComparerFuncs.Clone(type.TypeHandle, func);
+				needsComparerFuncs = needsComparerFuncs.Clone(type.TypeHandle, func, "needsComparerFuncs");
 			}
 
 			return func();
@@ -151,12 +151,19 @@ namespace Shaolinq.Persistence.Linq
 				return body;
 			}
 
-			body = Expression.Equal(left, right);
+			if (originalType.IsValueType)
+			{
+				body = Expression.Constant(true);
+			}
+			else
+			{
+				body = Expression.Equal(left, right);
+			}
 
 			Expression propertiesExpressions = null;
 
 			if (type.IsArray && type.GetArrayRank() == 1 && type.GetElementType().IsDataAccessObjectType())
-			{
+			{  
 				foundDataAccessObject = true;
 
 				var elementType = type.GetElementType();

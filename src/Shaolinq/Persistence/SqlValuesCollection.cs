@@ -47,7 +47,7 @@ namespace Shaolinq.Persistence
 
 					counter = (Func<object, int>)Expression.Lambda(body, param).Compile();
 
-					getCountFuncs = getCountFuncs.Clone(type, counter);
+					getCountFuncs = getCountFuncs.Clone(type, counter, "getCountFuncs");
 				}
 
 				var count = counter?.Invoke(value);

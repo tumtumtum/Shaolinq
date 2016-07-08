@@ -149,7 +149,7 @@
     <Compile Include="DefaultIfEmptyCoalesceSpecifiedValueEnumerator.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
-    <Compile Include="DictionaryExtensions.cs" />
+    <Compile Include="DictionaryStaticCacheExtensions.cs" />
     <Compile Include="EmptyIfFirstIsNullEnumerator.cs" />
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="GeneratedAsync.cs" />
