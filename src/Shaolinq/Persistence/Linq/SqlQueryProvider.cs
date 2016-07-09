@@ -33,7 +33,6 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>> createQueryCache = new Dictionary<RuntimeTypeHandle, Func<SqlQueryProvider, Expression, IQueryable>>();
 		
-
 		public static IQueryable CreateQuery(Type elementType, SqlQueryProvider provider, Expression expression)
 		{
 			Func<SqlQueryProvider, Expression, IQueryable> func;

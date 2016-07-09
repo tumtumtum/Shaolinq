@@ -18,6 +18,8 @@ namespace Shaolinq.Persistence
 				return self;
 			}
 
+			(logger ?? staticCacheLogger).Debug(() => $"{cacheName ?? "CacheName"} caching: {valueToString?.Invoke(value) ?? key.ToString()}");
+
 			return new Dictionary<K, V>(self, self.Comparer) { [key] = value };
 		}
 	}
