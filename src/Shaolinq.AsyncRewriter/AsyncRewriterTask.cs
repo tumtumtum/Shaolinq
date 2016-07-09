@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.Build.Framework;
 
-namespace Shaolinq.Rewriter
+namespace Shaolinq.AsyncRewriter
 {
 	public class AsyncRewriterTask : Microsoft.Build.Utilities.Task
 	{
@@ -23,9 +23,9 @@ namespace Shaolinq.Rewriter
 
 		public override bool Execute()
 		{
-			var asyncCode = this.rewriter.RewriteAndMerge(InputFiles.Select(f => f.ItemSpec).ToArray(), Assemblies?.Select(c => c.ItemSpec).ToArray());
+			var asyncCode = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
 
-			File.WriteAllText(OutputFile.ItemSpec, asyncCode);
+			File.WriteAllText(this.OutputFile.ItemSpec, asyncCode);
 
 			return true;
 		}

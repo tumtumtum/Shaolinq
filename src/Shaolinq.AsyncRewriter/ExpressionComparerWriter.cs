@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Shaolinq.Rewriter
+namespace Shaolinq.AsyncRewriter
 {
 	public class ExpressionComparerWriter
 	{
@@ -22,7 +19,7 @@ namespace Shaolinq.Rewriter
 		
 		private IEnumerable<IPropertySymbol> GetProperties(INamedTypeSymbol type,bool inherited = true)
 		{
-			return GetProperties(type, new HashSet<string>(), inherited);
+			return this.GetProperties(type, new HashSet<string>(), inherited);
 		}
 
 		private IEnumerable<IPropertySymbol> GetProperties(INamedTypeSymbol type, HashSet<string> alreadyAdded, bool inherited = true)
@@ -42,7 +39,7 @@ namespace Shaolinq.Rewriter
 
 			if (type.BaseType != null && inherited)
 			{
-				foreach (var member in GetProperties(type.BaseType, alreadyAdded))
+				foreach (var member in this.GetProperties(type.BaseType, alreadyAdded))
 				{
 					yield return member;
 				}
@@ -68,7 +65,7 @@ namespace Shaolinq.Rewriter
 
 			if (type.BaseType != null && inherited)
 			{
-				foreach (var member in GetVisitMethods(type.BaseType))
+				foreach (var member in this.GetVisitMethods(type.BaseType))
 				{
 					yield return member;
 				}
@@ -92,7 +89,7 @@ namespace Shaolinq.Rewriter
 
 			if (type.BaseType != null)
 			{
-				return IsOfType(type.BaseType, typeName);
+				return this.IsOfType(type.BaseType, typeName);
 			}
 
 			return false;
@@ -103,7 +100,7 @@ namespace Shaolinq.Rewriter
 			var currentDeclarator = SyntaxFactory.VariableDeclarator("current");
 			var variableCurrent = SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName(methodSymbol.Parameters.First().Type.Name), new SeparatedSyntaxList<VariableDeclaratorSyntax>().Add(currentDeclarator));
 
-			var allVisitMethods = GetVisitMethods(typeSymbol, true).ToList();
+			var allVisitMethods = this.GetVisitMethods(typeSymbol, true).ToList();
 
 			var thisKeyword = SyntaxFactory.Token(SyntaxKind.ThisKeyword);
 			var expressionParam = SyntaxFactory.IdentifierName("expression");
@@ -112,18 +109,18 @@ namespace Shaolinq.Rewriter
 			var ifTryGetValue = SyntaxFactory
 				.IfStatement(SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, tryGetValue), SyntaxFactory.Block(SyntaxFactory.ReturnStatement(expressionParam)));
 
-			var properties = GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).Where(c => c.Name != "CanReduce").ToList();
+			var properties = this.GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).Where(c => c.Name != "CanReduce").ToList();
 
 			var simpleProperties = properties
-				.Where(c => !IsOfType(c.Type, "Expression") && !IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.All(d => d.Parameters[0].Type.Name != c.Type.Name))
+				.Where(c => !this.IsOfType(c.Type, "Expression") && !this.IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.All(d => d.Parameters[0].Type.Name != c.Type.Name))
 				.ToList();
 
 			var expressionProperties = properties
-				.Where(c => IsOfType(c.Type, "Expression") || (!IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.Any(d => d.Parameters[0].Type.Name == c.Type.Name)))
+				.Where(c => this.IsOfType(c.Type, "Expression") || (!this.IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.Any(d => d.Parameters[0].Type.Name == c.Type.Name)))
 				.ToList();
 
 			var collectionProperties = properties
-				.Where(c => IsOfType(c.Type, "IReadOnlyList"))
+				.Where(c => this.IsOfType(c.Type, "IReadOnlyList"))
 				.ToList();
 
 			var result = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("this"), SyntaxFactory.IdentifierName("result"));
@@ -180,7 +177,7 @@ namespace Shaolinq.Rewriter
 
 				if (visitMethodToCall == null)
 				{
-					if (IsOfType(type, "Expression"))
+					if (this.IsOfType(type, "Expression"))
 					{
 						visitMethodToCall = allVisitMethods.FirstOrDefault(d => d.Parameters[0].Type.AllInterfaces.Concat(new[] { d.Parameters[0].Type as INamedTypeSymbol }).Any(e => e.Name == "IReadOnlyList" && e.TypeArguments[0].Name == nameof(Expression)));
 					}
@@ -215,7 +212,7 @@ namespace Shaolinq.Rewriter
 
 		private string Write()
 		{
-			var syntaxTrees = paths.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p))).ToList();
+			var syntaxTrees = this.paths.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p))).ToList();
 			var compilation = CSharpCompilation.Create("Temp", syntaxTrees, null, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 				.AddReferences
 				(
@@ -231,8 +228,8 @@ namespace Shaolinq.Rewriter
 
 			var symbol = model.GetDeclaredSymbol(expressionComparerType);
 
-			var visitMethods = GetVisitMethods(symbol).Where(c => c.Parameters.Single().Type.AllInterfaces.Concat(new[] { c.Parameters.Single().Type }).All(d => d.Name != "IReadOnlyList") && c.Parameters.Single().Type.Name != typeof(Expression).Name).ToList();
-			var visitMethodsToIgnore = GetVisitMethods(symbol, false).ToList();
+			var visitMethods = this.GetVisitMethods(symbol).Where(c => c.Parameters.Single().Type.AllInterfaces.Concat(new[] { c.Parameters.Single().Type }).All(d => d.Name != "IReadOnlyList") && c.Parameters.Single().Type.Name != typeof(Expression).Name).ToList();
+			var visitMethodsToIgnore = this.GetVisitMethods(symbol, false).ToList();
 
 			visitMethods.RemoveAll(c => visitMethodsToIgnore.Any(d => d.Name == c.Name && d.Parameters.SequenceEqual(c.Parameters, (x, y) => x.Type.Name == y.Type.Name)));
 
@@ -246,7 +243,7 @@ namespace Shaolinq.Rewriter
 				SyntaxFactory.MethodDeclaration(SyntaxFactory.IdentifierName(c.ReturnType.Name), c.Name)
 					.WithModifiers(SyntaxTokenList.Create(SyntaxFactory.Token(c.DeclaredAccessibility == Accessibility.Public ? SyntaxKind.PublicKeyword : SyntaxKind.ProtectedKeyword)).Add(SyntaxFactory.Token(SyntaxKind.OverrideKeyword)))
 					.WithParameterList(SyntaxFactory.ParameterList(new SeparatedSyntaxList<ParameterSyntax>().AddRange(c.Parameters.Select(d => SyntaxFactory.Parameter(SyntaxFactory.Identifier("expression")).WithType(SyntaxFactory.IdentifierName(d.Type.Name))))))
-					.WithBody(CreateMethodBody(model, symbol, c))
+					.WithBody(this.CreateMethodBody(model, symbol, c))
 				);
 
 			var namespaces = SyntaxFactory.List<MemberDeclarationSyntax>

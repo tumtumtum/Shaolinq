@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Shaolinq.Rewriter
+namespace Shaolinq.AsyncRewriter
 {
 	public class ExpressionHasherWriter
 	{
@@ -19,7 +19,7 @@ namespace Shaolinq.Rewriter
 		
 		private IEnumerable<IPropertySymbol> GetProperties(INamedTypeSymbol type,bool inherited = true)
 		{
-			return GetProperties(type, new HashSet<string>(), inherited);
+			return this.GetProperties(type, new HashSet<string>(), inherited);
 		}
 
 		private IEnumerable<IPropertySymbol> GetProperties(INamedTypeSymbol type, HashSet<string> alreadyAdded, bool inherited = true)
@@ -39,7 +39,7 @@ namespace Shaolinq.Rewriter
 
 			if (type.BaseType != null && inherited)
 			{
-				foreach (var member in GetProperties(type.BaseType, alreadyAdded))
+				foreach (var member in this.GetProperties(type.BaseType, alreadyAdded))
 				{
 					yield return member;
 				}
@@ -63,7 +63,7 @@ namespace Shaolinq.Rewriter
 
 			if (type.BaseType != null && inherited)
 			{
-				foreach (var member in GetVisitMethods(type.BaseType))
+				foreach (var member in this.GetVisitMethods(type.BaseType))
 				{
 					yield return member;
 				}
@@ -87,7 +87,7 @@ namespace Shaolinq.Rewriter
 
 			if (type.BaseType != null)
 			{
-				return IsOfType(type.BaseType, typeName);
+				return this.IsOfType(type.BaseType, typeName);
 			}
 
 			return false;
@@ -95,12 +95,12 @@ namespace Shaolinq.Rewriter
 
 		private BlockSyntax CreateMethodBody(SemanticModel model, INamedTypeSymbol typeSymbol, IMethodSymbol methodSymbol)
 		{
-			var allVisitMethods = GetVisitMethods(typeSymbol).ToList();
+			var allVisitMethods = this.GetVisitMethods(typeSymbol).ToList();
 			var expressionParam = SyntaxFactory.IdentifierName("expression");
-			var properties = GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).Where(c => c.Name != "CanReduce" && c.Name != "Type" && c.Name != "NodeType").ToList();
+			var properties = this.GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).Where(c => c.Name != "CanReduce" && c.Name != "Type" && c.Name != "NodeType").ToList();
 
 			var simpleProperties = properties
-				.Where(c => !IsOfType(c.Type, "Expression") && !IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.All(d => d.Parameters[0].Type.Name != c.Type.Name))
+				.Where(c => !this.IsOfType(c.Type, "Expression") && !this.IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.All(d => d.Parameters[0].Type.Name != c.Type.Name))
 				.ToList();
 
 			if (simpleProperties.Count == 0)
@@ -140,7 +140,7 @@ namespace Shaolinq.Rewriter
 
 		private string Write()
 		{
-			var syntaxTrees = paths.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p))).ToList();
+			var syntaxTrees = this.paths.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p))).ToList();
 			var compilation = CSharpCompilation.Create("Temp", syntaxTrees, null, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 				.AddReferences
 				(
@@ -156,8 +156,8 @@ namespace Shaolinq.Rewriter
 
 			var symbol = model.GetDeclaredSymbol(expressionComparerType);
 
-			var visitMethods = GetVisitMethods(symbol).Where(c => c.Parameters.Single().Type.AllInterfaces.Concat(new[] { c.Parameters.Single().Type }).All(d => d.Name != "IReadOnlyList") && c.Parameters.Single().Type.Name != typeof(Expression).Name).ToList();
-			var visitMethodsToIgnore = GetVisitMethods(symbol, false).ToList();
+			var visitMethods = this.GetVisitMethods(symbol).Where(c => c.Parameters.Single().Type.AllInterfaces.Concat(new[] { c.Parameters.Single().Type }).All(d => d.Name != "IReadOnlyList") && c.Parameters.Single().Type.Name != typeof(Expression).Name).ToList();
+			var visitMethodsToIgnore = this.GetVisitMethods(symbol, false).ToList();
 
 			visitMethods.RemoveAll(c => visitMethodsToIgnore.Any(d => d.Name == c.Name && d.Parameters.SequenceEqual(c.Parameters, (x, y) => x.Type.Name == y.Type.Name)));
 			
@@ -169,7 +169,7 @@ namespace Shaolinq.Rewriter
 
 			var methods = visitMethods.Select(c =>
 			{
-				var body = CreateMethodBody(model, symbol, c);
+				var body = this.CreateMethodBody(model, symbol, c);
 
 				if (body == null)
 				{

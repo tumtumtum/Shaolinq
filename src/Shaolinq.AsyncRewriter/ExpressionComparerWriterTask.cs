@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.Build.Framework;
 
-namespace Shaolinq.Rewriter
+namespace Shaolinq.AsyncRewriter
 {
 	public class ExpressionComparerWriterTask : Microsoft.Build.Utilities.Task
 	{
@@ -14,9 +14,9 @@ namespace Shaolinq.Rewriter
 
 		public override bool Execute()
 		{
-			var result = ExpressionComparerWriter.Write(InputFiles.Select(c => c.ItemSpec).ToArray());
+			var result = ExpressionComparerWriter.Write(this.InputFiles.Select(c => c.ItemSpec).ToArray());
 
-			File.WriteAllText(OutputFile.ItemSpec, result);
+			File.WriteAllText(this.OutputFile.ItemSpec, result);
 
 			return true;
 		}

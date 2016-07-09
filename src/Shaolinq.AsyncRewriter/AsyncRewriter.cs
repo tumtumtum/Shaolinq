@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Shaolinq.Rewriter
+namespace Shaolinq.AsyncRewriter
 {
 	public class Rewriter
 	{
@@ -72,7 +72,7 @@ namespace Shaolinq.Rewriter
 				}).Where(c => c != null));
 			}
 
-			return RewriteAndMerge(syntaxTrees, compilation, excludeTypes).ToString();
+			return this.RewriteAndMerge(syntaxTrees, compilation, excludeTypes).ToString();
 		}
 
 		private class UsingsComparer
@@ -97,7 +97,7 @@ namespace Shaolinq.Rewriter
 
 		public SyntaxTree RewriteAndMerge(SyntaxTree[] syntaxTrees, CSharpCompilation compilation, string[] excludeTypes = null)
 		{
-			var rewrittenTrees = Rewrite(syntaxTrees, compilation, excludeTypes).ToArray();
+			var rewrittenTrees = this.Rewrite(syntaxTrees, compilation, excludeTypes).ToArray();
 
 			return SyntaxFactory.SyntaxTree
 			(
@@ -173,7 +173,7 @@ namespace Shaolinq.Rewriter
 							SyntaxFactory.ClassDeclaration(clsGrp.Key.Identifier)
 								.WithModifiers(clsGrp.Key.Modifiers)
 								.WithTypeParameterList(clsGrp.Key.TypeParameterList)
-								.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(clsGrp.SelectMany(m => RewriteMethods(m, semanticModel))))
+								.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(clsGrp.SelectMany(m => this.RewriteMethods(m, semanticModel))))
 						)))
 					)
 				);
@@ -191,8 +191,8 @@ namespace Shaolinq.Rewriter
 
 		IEnumerable<MethodDeclarationSyntax> RewriteMethods(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
 		{
-			yield return RewriteMethodAsync(inMethodSyntax, semanticModel);
-			yield return RewriteMethodAsyncWithCancellationToken(inMethodSyntax, semanticModel);
+			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel);
+			yield return this.RewriteMethodAsyncWithCancellationToken(inMethodSyntax, semanticModel);
 		}
 
 		MethodDeclarationSyntax RewriteMethodAsync(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
@@ -223,8 +223,8 @@ namespace Shaolinq.Rewriter
 				.WithAttributeLists(new SyntaxList<AttributeListSyntax>())
 				.WithReturnType(SyntaxFactory.ParseTypeName(returnType == "void" ? "Task" : $"Task<{returnType}>"));
 
-			var parentContainsAsyncMethod = GetAllMembers(inMethodSymbol.ReceiverType.BaseType).Any(c => c.Name == outMethodName);
-			var parentContainsMethodWithRewriteAsync = GetAllMembers(inMethodSymbol.ReceiverType.BaseType)
+			var parentContainsAsyncMethod = this.GetAllMembers(inMethodSymbol.ReceiverType.BaseType).Any(c => c.Name == outMethodName);
+			var parentContainsMethodWithRewriteAsync = this.GetAllMembers(inMethodSymbol.ReceiverType.BaseType)
 				.Where(c => c.Name == inMethodSyntax.Identifier.Text)
 				.Any(m => m.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync")));
 
@@ -312,8 +312,8 @@ namespace Shaolinq.Rewriter
 
 			outMethod = outMethod.WithReturnType(SyntaxFactory.ParseTypeName(returnType == "void" ? "Task" : $"Task<{returnType}>"));
 
-			var parentContainsAsyncMethod = GetAllMembers(inMethodSymbol.ReceiverType.BaseType).Any(c => c.Name == outMethodName);
-			var parentContainsMethodWithRewriteAsync = GetAllMembers(inMethodSymbol.ReceiverType.BaseType)
+			var parentContainsAsyncMethod = this.GetAllMembers(inMethodSymbol.ReceiverType.BaseType).Any(c => c.Name == outMethodName);
+			var parentContainsMethodWithRewriteAsync = this.GetAllMembers(inMethodSymbol.ReceiverType.BaseType)
 				.Where(c => c.Name == inMethodSyntax.Identifier.Text)
 				.Any(m => m.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync")));
 
@@ -459,7 +459,7 @@ namespace Shaolinq.Rewriter
 				}
 			}
 
-			var rewritten = RewriteExpression(node, cancellationTokenPos);
+			var rewritten = this.RewriteExpression(node, cancellationTokenPos);
 
 			if (!(node.Parent is StatementSyntax))
 			{
@@ -486,7 +486,7 @@ namespace Shaolinq.Rewriter
 
 				if (nestedInvocation != null)
 				{
-					memberAccessExp = memberAccessExp.WithExpression((ExpressionSyntax)VisitInvocationExpression(nestedInvocation));
+					memberAccessExp = memberAccessExp.WithExpression((ExpressionSyntax)this.VisitInvocationExpression(nestedInvocation));
 				}
 
 				rewrittenInvocation = node.WithExpression(memberAccessExp.WithName(memberAccessExp.Name.WithIdentifier(SyntaxFactory.Identifier(memberAccessExp.Name.Identifier.Text + "Async"))));
