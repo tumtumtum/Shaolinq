@@ -149,7 +149,6 @@
     <Compile Include="DefaultIfEmptyCoalesceSpecifiedValueEnumerator.cs" />
     <Compile Include="DeletedDataAccessObjectException.cs" />
     <Compile Include="DependsOnPropertyAttribute.cs" />
-    <Compile Include="DictionaryStaticCacheExtensions.cs" />
     <Compile Include="EmptyIfFirstIsNullEnumerator.cs" />
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="GeneratedAsync.cs" />
@@ -185,6 +184,7 @@
     <Compile Include="Persistence\Computed\ReferencedPropertiesGatherer.cs" />
     <Compile Include="Persistence\DbConnectionWrapper.cs" />
     <Compile Include="Persistence\DefaultSqlQueryFormatterManager.cs" />
+    <Compile Include="Persistence\DictionaryStaticCacheExtensions.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
     <Compile Include="Persistence\ExpressionCacheKey.cs" />

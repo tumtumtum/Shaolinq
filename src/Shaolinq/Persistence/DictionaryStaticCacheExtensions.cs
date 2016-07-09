@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Shaolinq.Logging;
 
-namespace Shaolinq
+namespace Shaolinq.Persistence
 {
-	public static class DictionaryStaticCacheExtensions
+	internal static class DictionaryStaticCacheExtensions
 	{
 		private static readonly ILog staticCacheLogger = LogProvider.GetLogger("Shaolinq.StaticCacheLogger");
 
