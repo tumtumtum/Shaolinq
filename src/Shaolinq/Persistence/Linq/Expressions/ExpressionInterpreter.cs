@@ -199,6 +199,49 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			switch (expression.NodeType)
 			{
+			case ExpressionType.OrElse:
+			{
+				var left = this.Visit(expression.Left);
+
+				if ((bool)left)
+				{
+					return true;
+				}
+
+				return (bool)this.Visit(expression.Right);
+			}
+			case ExpressionType.AndAlso:
+			{
+				var left = this.Visit(expression.Left);
+
+				if (!(bool)left)
+				{
+					return false;
+				}
+
+				return (bool)this.Visit(expression.Right);
+			}
+			case ExpressionType.Or:
+			{
+				var left = (long)Convert.ChangeType(this.Visit(expression.Left), typeof(long));
+				var right = (long)Convert.ChangeType(this.Visit(expression.Right), typeof(long));
+
+				return Convert.ChangeType(left | right, expression.Type);
+			}
+			case ExpressionType.And:
+			{
+				var left = (long)Convert.ChangeType(this.Visit(expression.Left), typeof(long));
+				var right = (long)Convert.ChangeType(this.Visit(expression.Right), typeof(long));
+
+				return Convert.ChangeType(left & right, expression.Type);
+			}
+			case ExpressionType.ExclusiveOr:
+			{
+				var left = (long)Convert.ChangeType(this.Visit(expression.Left), typeof(long));
+				var right = (long)Convert.ChangeType(this.Visit(expression.Right), typeof(long));
+
+				return Convert.ChangeType(left ^ right, expression.Type);
+			}
 			case ExpressionType.Equal:
 			case ExpressionType.NotEqual:
 			{
