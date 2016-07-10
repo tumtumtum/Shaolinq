@@ -477,8 +477,8 @@
     <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
   </ItemGroup>
   <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
-  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
-  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
+  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
+  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
   <Target Name="GenerateSource">
     <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
     <ExpressionComparerWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionComparer.cs" />

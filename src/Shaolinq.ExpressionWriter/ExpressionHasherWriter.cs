@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Shaolinq.AsyncRewriter
+namespace Shaolinq.ExpressionWriter
 {
 	public class ExpressionHasherWriter
 	{
@@ -145,7 +145,6 @@ namespace Shaolinq.AsyncRewriter
 				.AddReferences
 				(
 					MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-					MetadataReference.CreateFromFile(typeof(Platform.Linq.ExpressionVisitor).Assembly.Location),
 					MetadataReference.CreateFromFile(typeof(Stream).Assembly.Location),
 					MetadataReference.CreateFromFile(typeof(ExpressionType).Assembly.Location)
 				);

@@ -13,15 +13,15 @@ namespace Shaolinq.AsyncRewriter
 {
 	public class Rewriter
 	{
-		private HashSet<ITypeSymbol> excludedTypes;
-		private ITypeSymbol cancellationTokenSymbol;
-
-		private static readonly string[] alwaysExcludedTypes =
+		private static readonly string[] alwaysExcludedTypeNames =
 		{
 			"System.IO.TextWriter",
 			"System.IO.StringWriter",
 			"System.IO.MemoryStream"
 		};
+
+		private HashSet<ITypeSymbol> excludedTypes;
+		private ITypeSymbol cancellationTokenSymbol;
 
 		private static readonly UsingDirectiveSyntax[] extraUsingDirectives =
 		{
@@ -40,7 +40,8 @@ namespace Shaolinq.AsyncRewriter
 		{
 			var syntaxTrees = paths.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p))).ToArray();
 
-			var compilation = CSharpCompilation.Create("Temp", syntaxTrees, null, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+			var compilation = CSharpCompilation
+				.Create("Temp", syntaxTrees, null, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 				.AddReferences
 				(
 					MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
@@ -139,7 +140,7 @@ namespace Shaolinq.AsyncRewriter
 				this.excludedTypes.UnionWith(excludedTypeSymbols);
 			}
 
-			this.excludedTypes.UnionWith(alwaysExcludedTypes.Select(compilation.GetTypeByMetadataName).Where(sym => sym != null));
+			this.excludedTypes.UnionWith(alwaysExcludedTypeNames.Select(compilation.GetTypeByMetadataName).Where(sym => sym != null));
 
 			foreach (var syntaxTree in syntaxTrees)
 			{
@@ -194,7 +195,7 @@ namespace Shaolinq.AsyncRewriter
 			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel);
 			yield return this.RewriteMethodAsyncWithCancellationToken(inMethodSyntax, semanticModel);
 		}
-
+		
 		MethodDeclarationSyntax RewriteMethodAsync(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
 		{
 			var inMethodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, inMethodSyntax);
@@ -216,9 +217,9 @@ namespace Shaolinq.AsyncRewriter
 			var callAsyncWithCancellationToken = methodInvocation;
 
 			var returnType = inMethodSyntax.ReturnType.ToString();
-			var outMethod = inMethodSyntax.WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(callAsyncWithCancellationToken)));
+			var method = inMethodSyntax.WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(callAsyncWithCancellationToken)));
 			
-			outMethod = outMethod
+			method = method
 				.WithIdentifier(SyntaxFactory.Identifier(outMethodName))
 				.WithAttributeLists(new SyntaxList<AttributeListSyntax>())
 				.WithReturnType(SyntaxFactory.ParseTypeName(returnType == "void" ? "Task" : $"Task<{returnType}>"));
@@ -230,40 +231,22 @@ namespace Shaolinq.AsyncRewriter
 
 			if (!(parentContainsAsyncMethod || parentContainsMethodWithRewriteAsync))
 			{
-				for (var i = 0; i < outMethod.Modifiers.Count;)
-				{
-					var kind = outMethod.Modifiers[i].Kind();
-
-					if (kind == SyntaxKind.OverrideKeyword ||  kind == SyntaxKind.NewKeyword)
-					{
-						outMethod = outMethod.WithModifiers(outMethod.Modifiers.RemoveAt(i));
-						continue;
-					}
-					i++;
-				}
+				method = method.WithModifiers(new SyntaxTokenList().AddRange(method.Modifiers.Where(c => c.Kind() != SyntaxKind.OverrideKeyword && c.Kind() != SyntaxKind.NewKeyword)));
 			}
 
-			var attr = inMethodSymbol.GetAttributes().Single(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
+			var attribute = inMethodSymbol.GetAttributes().Single(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
 
-			if (attr.ConstructorArguments.Length > 0 && (bool)attr.ConstructorArguments[0].Value)
+			if (attribute.ConstructorArguments.Any())
 			{
-				for (var i = 0; i < outMethod.Modifiers.Count;)
+				if (attribute.ConstructorArguments.First().Type.Name == "MethodAttributes")
 				{
-					var kind = outMethod.Modifiers[i].Kind();
+					var methodAttributes = (MethodAttributes)Enum.ToObject(typeof(MethodAttributes), Convert.ToInt32(attribute.ConstructorArguments.First().Value));
 
-					if (kind == SyntaxKind.PublicKeyword || kind == SyntaxKind.ProtectedKeyword || kind == SyntaxKind.PrivateKeyword)
-					{
-						outMethod = outMethod.WithModifiers(outMethod.Modifiers.RemoveAt(i));
-						continue;
-					}
-
-					i++;
+					method = method.WithAccessModifiers(methodAttributes);
 				}
-
-				outMethod = outMethod.WithModifiers(outMethod.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
 			}
 
-			return outMethod;
+			return method;
 		}
 
 		private IEnumerable<ISymbol> GetAllMembers(ITypeSymbol symbol)
@@ -289,9 +272,9 @@ namespace Shaolinq.AsyncRewriter
 			var outMethodName = inMethodSyntax.Identifier.Text + "Async";
 
 			var rewriter = new MethodInvocationRewriter(this.log, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
-			var outMethod = (MethodDeclarationSyntax)rewriter.Visit(inMethodSyntax);
+			var method = (MethodDeclarationSyntax)rewriter.Visit(inMethodSyntax);
 			
-			outMethod = outMethod
+			method = method
 				.WithIdentifier(SyntaxFactory.Identifier(outMethodName))
 				.WithAttributeLists(new SyntaxList<AttributeListSyntax>())
 				.WithModifiers(inMethodSyntax.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)))
@@ -310,7 +293,7 @@ namespace Shaolinq.AsyncRewriter
 			
 			var returnType = inMethodSyntax.ReturnType.ToString();
 
-			outMethod = outMethod.WithReturnType(SyntaxFactory.ParseTypeName(returnType == "void" ? "Task" : $"Task<{returnType}>"));
+			method = method.WithReturnType(SyntaxFactory.ParseTypeName(returnType == "void" ? "Task" : $"Task<{returnType}>"));
 
 			var parentContainsAsyncMethod = this.GetAllMembers(inMethodSymbol.ReceiverType.BaseType).Any(c => c.Name == outMethodName);
 			var parentContainsMethodWithRewriteAsync = this.GetAllMembers(inMethodSymbol.ReceiverType.BaseType)
@@ -319,46 +302,29 @@ namespace Shaolinq.AsyncRewriter
 
 			if (!(parentContainsAsyncMethod || parentContainsMethodWithRewriteAsync))
 			{
-				for (var i = 0; i < outMethod.Modifiers.Count;)
-				{
-					var kind = outMethod.Modifiers[i].Kind();
-
-					if (kind == SyntaxKind.OverrideKeyword || kind == SyntaxKind.NewKeyword)
-					{
-						outMethod = outMethod.WithModifiers(outMethod.Modifiers.RemoveAt(i));
-						continue;
-					}
-					i++;
-				}
+				method = method.WithModifiers(new SyntaxTokenList().AddRange(method.Modifiers.Where(c => c.Kind() != SyntaxKind.OverrideKeyword && c.Kind() != SyntaxKind.NewKeyword)));
 			}
 
-			var attr = inMethodSymbol.GetAttributes().Single(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
+			var attribute = inMethodSymbol.GetAttributes().Single(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
 
-			if (attr.ConstructorArguments.Length > 0 && (bool)attr.ConstructorArguments[0].Value)
+			if (attribute.ConstructorArguments.Length > 0)
 			{
-				for (var i = 0; i < outMethod.Modifiers.Count;)
+				if (attribute.ConstructorArguments[0].Type.Name == "MethodAttributes")
 				{
-					var kind = outMethod.Modifiers[i].Kind();
+					var methodAttributes = (MethodAttributes)Enum.ToObject(typeof(MethodAttributes), Convert.ToInt32(attribute.ConstructorArguments[0].Value));
 
-					if (kind == SyntaxKind.PublicKeyword || kind == SyntaxKind.ProtectedKeyword || kind == SyntaxKind.PrivateKeyword)
-					{
-						outMethod = outMethod.WithModifiers(outMethod.Modifiers.RemoveAt(i));
-
-						continue;
-					}
-
-					i++;
+					method = method.WithAccessModifiers(methodAttributes);
 				}
-
-				outMethod = outMethod.WithModifiers(outMethod.Modifiers.Insert(0, SyntaxFactory.Token(SyntaxKind.PublicKeyword)));
 			}
 
-			return outMethod;
+			return method;
 		}
 	}
 	
 	internal class ParameterComparer : IEqualityComparer<IParameterSymbol>
 	{
+		public static readonly ParameterComparer Default = new ParameterComparer();
+
 		public bool Equals(IParameterSymbol x, IParameterSymbol y)
 		{
 			return x.Name.Equals(y.Name) && x.Type.Equals(y.Type);
@@ -376,7 +342,6 @@ namespace Shaolinq.AsyncRewriter
 		private readonly SemanticModel model;
 		private readonly HashSet<ITypeSymbol> excludeTypes;
 		private readonly ITypeSymbol cancellationTokenSymbol;
-		private readonly ParameterComparer paramComparer;
 		
 		public MethodInvocationRewriter(ILogger log, SemanticModel model, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol)
 		{
@@ -384,7 +349,6 @@ namespace Shaolinq.AsyncRewriter
 			this.model = model;
 			this.cancellationTokenSymbol = cancellationTokenSymbol;
 			this.excludeTypes = excludeTypes;
-			this.paramComparer = new ParameterComparer();
 		}
 
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
@@ -437,7 +401,7 @@ namespace Shaolinq.AsyncRewriter
 						parameters = parameters.RemoveAt(pos);
 					}
 
-					if (!parameters.SequenceEqual(syncSymbol.Parameters, this.paramComparer))
+					if (!parameters.SequenceEqual(syncSymbol.Parameters, ParameterComparer.Default))
 					{
 						continue;
 					}
@@ -448,7 +412,7 @@ namespace Shaolinq.AsyncRewriter
 				if (cancellationTokenPos == -1)
 				{
 					if (asyncCandidates.Any(ms => ms.Parameters.Length == (syncSymbol.IsExtensionMethod ? syncSymbol.Parameters.Length + 1 : syncSymbol.Parameters.Length) &&
-							(syncSymbol.IsExtensionMethod ? ms.Parameters.Skip(1) : ms.Parameters).SequenceEqual(syncSymbol.Parameters, this.paramComparer)))
+							(syncSymbol.IsExtensionMethod ? ms.Parameters.Skip(1) : ms.Parameters).SequenceEqual(syncSymbol.Parameters, ParameterComparer.Default)))
 					{
 						cancellationTokenPos = -1;
 					}

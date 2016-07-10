@@ -1,18 +1,16 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Reflection;
 
-namespace Shaolinq
+namespace Shaolinq.Persistence
 {
-	namespace Persistence
+	[AttributeUsage(AttributeTargets.Method)]
+	public class RewriteAsyncAttribute
+		: Attribute
 	{
-		[AttributeUsage(AttributeTargets.Method)]
-		public class RewriteAsyncAttribute
-			: Attribute
+		public RewriteAsyncAttribute(MethodAttributes methodAttributes = new MethodAttributes())
 		{
-			public RewriteAsyncAttribute(bool promoteToPublic = false)
-			{
-			}
 		}
 	}
 }

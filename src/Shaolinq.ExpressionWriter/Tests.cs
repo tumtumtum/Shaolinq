@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 
-namespace Shaolinq.AsyncRewriter
+namespace Shaolinq.ExpressionWriter
 {
 	[TestFixture]
 	public class Tests
