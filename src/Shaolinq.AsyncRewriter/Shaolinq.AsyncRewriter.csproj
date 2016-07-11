@@ -46,9 +46,6 @@
       <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.1.1.1\lib\net45\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="Platform, Version=1.2.1.279, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Platform.NET.1.2.1.279\lib\net452\Platform.dll</HintPath>
       <Private>True</Private>
