@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
-  </ItemGroup>
   <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="$(MSBuildThisFileDirectory)..\lib\net452\Shaolinq.AsyncRewriter.dll" />
 </Project>

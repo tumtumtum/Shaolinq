@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
+  </ItemGroup>
   <Target Name="GenerateAsyncSource">
     <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
   </Target>

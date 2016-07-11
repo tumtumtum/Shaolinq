@@ -51,11 +51,21 @@ namespace Shaolinq.AsyncRewriter
 
 			if (path != "")
 			{
-				var pathsByFileName = GetDlls(path).ToDictionary(Path.GetFileName, c => c);
+				var pathsByFileName = new Dictionary<string, string>();
+
+				foreach (var value in GetDlls(path))
+				{
+					var fileName = Path.GetFileName(value);
+
+					if (fileName != null)
+					{
+						pathsByFileName[fileName] = value;
+					}
+				}
 
 				AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
 				{
-					var fileName = e.Name.Split(',')[0];
+					var fileName = e.Name.Split(',')[0] + ".dll";
 
 					if (pathsByFileName.TryGetValue(fileName, out path))
 					{
