@@ -9,7 +9,7 @@ namespace $rootnamespace$
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{
-		private MethodAttributes MethodAttributes { get; private set; }
+		public MethodAttributes MethodAttributes { get; private set; }
 
 		public RewriteAsyncAttribute(MethodAttributes methodAttributes = default(MethodAttributes))
 		{
