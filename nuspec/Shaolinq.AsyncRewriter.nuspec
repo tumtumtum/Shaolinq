@@ -18,6 +18,9 @@ AsyncRewriter is used extensively by the Shaolinq ORM/LINQ project.
     <copyright>Copyright (c) 2016 Thong Nguyen (tumtumtum@gmail.com)</copyright>
     <tags>shaolinq async await codegen roslyn</tags>
     <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.Analyzers"/>
+      <dependency id="Microsoft.CodeAnalysis.Common"/>
+      <dependency id="Microsoft.CodeAnalysis.CSharp"/>
     </dependencies>
   </metadata>
 </package>

@@ -3,5 +3,5 @@
   <ItemGroup>
     <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
   </ItemGroup>
-  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="$(MSBuildThisFileDirectory)/Shaolinq.AsyncRewriter.dll" />
+  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="$(MSBuildThisFileDirectory)..\lib\net452\Shaolinq.AsyncRewriter.dll" />
 </Project>
