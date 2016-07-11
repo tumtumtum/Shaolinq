@@ -484,7 +484,7 @@
     <ExpressionComparerWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionComparer.cs" />
     <ExpressionHasherWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionHasher.cs" />
   </Target>
-  <Target Name="BeforeBuild">
+  <Target Name="GenerateSourceBeforeBuild" BeforeTargets="Build">
     <NugetContentRestoreTask SolutionDir="$(SolutionDir)" ProjectDir="$(ProjectDir)" />
     <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateSource" WorkingDirectory="." />
   </Target>

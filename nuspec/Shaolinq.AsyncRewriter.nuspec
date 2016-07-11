@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Shaolinq.AsyncRewriter</id>
+    <version>$version$</version>
+    <title>Shaolinq AsyncRewriter</title>
+    <summary>Automatically generates async versions of your methods</summary>
+    <authors>Thong Nguyen</authors>
+    <owners>Thong Nguyen</owners>
+    <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
+    <projectUrl>https://github.com/tumtumtum/Shaolinq</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+Stop copying and pasting code in order to support Async/Await! Shaolinq.AsyncRewriter generates async methods from your sync methods using Roslyn.
+AsyncRewriter is used extensively by the Shaolinq ORM/LINQ project.
+    </description>
+    <releaseNotes>$releasenotes$</releaseNotes>
+    <copyright>Copyright (c) 2016 Thong Nguyen (tumtumtum@gmail.com)</copyright>
+    <tags>shaolinq async await codegen roslyn</tags>
+    <dependencies>
+    </dependencies>
+  </metadata>
+</package>

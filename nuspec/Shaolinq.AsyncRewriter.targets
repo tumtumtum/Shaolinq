@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="GenerateAsyncSource">
+    <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
+  </Target>
+  <Target Name="GenerateAsyncSourceBeforeBuild" BeforeTargets="Build">
+    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateAsyncSource" WorkingDirectory="." />
+  </Target>
+</Project>
