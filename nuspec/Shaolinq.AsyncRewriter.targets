@@ -3,8 +3,8 @@
   <ItemGroup>
     <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
   </ItemGroup>
-  <Target Name="GenerateAsyncSource">
-    <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
+  <Target Name="GenerateAsyncSource" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
+    <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
   </Target>
   <Target Name="GenerateAsyncSourceBeforeBuild" BeforeTargets="Build">
     <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:2 /target:GenerateAsyncSource" WorkingDirectory="." />
