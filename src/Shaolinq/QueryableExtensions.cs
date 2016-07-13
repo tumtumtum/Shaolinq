@@ -448,6 +448,22 @@ namespace Shaolinq
 			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
 		}
 
+		[RewriteAsync(MethodAttributes.Public)]
+		private static decimal Sum<T>(this IQueryable<T> source, Expression<Func<T, decimal>> selector)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(double))), source.Expression, Expression.Quote(selector));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<decimal>(expression);
+		}
+
+		[RewriteAsync(MethodAttributes.Public)]
+		private static decimal? Sum<T>(this IQueryable<decimal?> source, Expression<Func<T, decimal?>> selector)
+		{
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(decimal?))), source.Expression, Expression.Quote(selector));
+
+			return ((IQueryProvider)source.Provider).ExecuteEx<decimal?>(expression);
+		}
+
 		//
 
 		[RewriteAsync(MethodAttributes.Public)]
