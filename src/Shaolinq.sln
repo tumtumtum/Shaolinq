@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq", "Shaolinq\Shaolinq.csproj", "{0C8321D6-4DF6-4B90-AF5A-92537D4A7E54}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BC3ECC35-58F4-45ED-A801-95F2D5C4CDFD} = {BC3ECC35-58F4-45ED-A801-95F2D5C4CDFD}
+		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302} = {318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Tests", "..\tests\Shaolinq.Tests\Shaolinq.Tests.csproj", "{F5BEB79B-3BCA-46AE-A08E-1B86CDD03616}"
