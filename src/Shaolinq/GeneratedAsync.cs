@@ -1966,7 +1966,7 @@ namespace Shaolinq.Persistence.Linq
             if (await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false))
             {
                 T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
-                if (this.objectProjector.ProcessMoveNext(value, ref this.context, out result))
+                if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
                 {
                     this.Current = result;
                     return true;
@@ -1976,7 +1976,7 @@ namespace Shaolinq.Persistence.Linq
             }
 
             this.state = 9;
-            if (this.objectProjector.ProcessLastMoveNext(ref this.context, out result))
+            if (this.objectProjector.ProcessLastMoveNext(this.dataReader, ref this.context, out result))
             {
                 this.Current = result;
                 return true;

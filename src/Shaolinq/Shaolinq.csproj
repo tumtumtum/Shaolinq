@@ -190,7 +190,6 @@
     <Compile Include="Persistence\ExpressionCacheKey.cs" />
     <Compile Include="Persistence\ExpressionCacheKeyEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\AlwaysReadFirstObjectProjector.cs" />
-    <Compile Include="Persistence\Linq\DataAccessObjectAwareResultTypeComparerBuilder.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectContainerProjector.cs" />
     <Compile Include="Persistence\Linq\Expressions\BinaryOperations.cs" />
     <Compile Include="Persistence\Linq\Expressions\ISqlExposesAliases.cs" />
@@ -236,6 +235,7 @@
     <Compile Include="Persistence\Linq\ProjectorCacheInfo.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheKey.cs" />
     <Compile Include="Persistence\Linq\RelatedPropertiesJoinExpanderResults.cs" />
+    <Compile Include="Persistence\Linq\RootDataAccessObjectPrimaryKeysProjectorBuilder.cs" />
     <Compile Include="Persistence\Linq\SqlConstantPlaceholderMaxIndexFinder.cs" />
     <Compile Include="Persistence\MarsDataReader.cs" />
     <Compile Include="Persistence\MarsDbCommand.cs" />
@@ -473,18 +473,24 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <PropertyGroup>
+    <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
+    <WithoutGeneratedExcludePattern>**\Generated*.cs</WithoutGeneratedExcludePattern>
+  </PropertyGroup>
   <ItemGroup>
-    <CompileExGenerate Include="@(Compile)" Exclude="**\Generated*.cs" />
+    <SourceWithoutGenerated Include="$(WithoutGeneratedIncludePattern)" Exclude="$(WithoutGeneratedExcludePattern)">
+        <InProject>False</InProject>
+    </SourceWithoutGenerated>
   </ItemGroup>
   <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
   <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
   <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
   <Target Name="GenerateSource">
-    <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(CompileExGenerate)" OutputFile="GeneratedAsync.cs" />
-    <ExpressionComparerWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionComparer.cs" />
-    <ExpressionHasherWriterTask InputFiles="@(CompileExGenerate)" OutputFile="GeneratedSqlExpressionHasher.cs" />
+    <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
+    <ExpressionComparerWriterTask InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedSqlExpressionComparer.cs" />
+    <ExpressionHasherWriterTask InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedSqlExpressionHasher.cs" />
   </Target>
-  <Target Name="GenerateSourceBeforeBuild" BeforeTargets="Build">
+  <Target Name="BeforeBuild">
     <NugetContentRestoreTask SolutionDir="$(SolutionDir)" ProjectDir="$(ProjectDir)" />
     <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateSource" WorkingDirectory="." />
   </Target>

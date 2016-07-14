@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence.Linq
 			return new Tuple<IDataReader, int>(dataReader, executionVersion);
 		}
 
-		protected internal override bool ProcessLastMoveNext(ref object context, out T result)
+		protected internal override bool ProcessLastMoveNext(IDataReader dataReader, ref object context, out T result)
 		{
 			var contextInfo = (Tuple<IDataReader, int>)context;
 

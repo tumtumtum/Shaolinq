@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence.Linq
 			return new Optional();
 		}
 
-		protected internal override bool ProcessLastMoveNext(ref object context, out T lastValue)
+		protected internal override bool ProcessLastMoveNext(IDataReader dataReader, ref object context, out T lastValue)
 		{
 			var optional = (Optional)context;
 
@@ -43,7 +43,7 @@ namespace Shaolinq.Persistence.Linq
 			return false;
 		}
 
-		protected internal override bool ProcessMoveNext(T value, ref object context, out T result)
+		protected internal override bool ProcessMoveNext(IDataReader reader, T value, ref object context, out T result)
 		{
 			var optional = (Optional)context;
 
@@ -56,7 +56,6 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			result = optional.Value;
-			result.ToObjectInternal().ResetModified();
 			optional.Value = value;
 
 			return true;

@@ -27,6 +27,8 @@ namespace Shaolinq.Persistence.Linq
 		private readonly SqlQueryProvider queryProvider;
 		private readonly ParameterExpression versionParameter;
 		private readonly ParameterExpression filterParameter;
+
+		private bool atRootLevel = true;
 		
 		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, ProjectionBuilderScope scope)
 		{
@@ -43,11 +45,20 @@ namespace Shaolinq.Persistence.Linq
 			this.filterParameter = Expression.Parameter(typeof(Func<DataAccessObject, DataAccessObject>), "filter");
 		}
 
-		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, ProjectionBuilderScope scope)
+		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, ProjectionBuilderScope scope, out Expression<Func<IDataReader, object[]>> rootKeys)
 		{
 			var projectionBuilder = new ProjectionBuilder(dataAccessModel, sqlDatabaseContext, queryProvider, scope);
 
 			var body = projectionBuilder.Visit(expression);
+
+			if (projectionBuilder.scope.rootPrimaryKeys.Count > 0)
+			{
+				rootKeys = Expression.Lambda<Func<IDataReader, object[]>>(Expression.NewArrayInit(typeof(object), projectionBuilder.scope.rootPrimaryKeys), projectionBuilder.dataReader);
+			}
+			else
+			{
+				rootKeys = null;
+			}
 
 			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.versionParameter, projectionBuilder.dynamicParameters, projectionBuilder.filterParameter);
 		}
@@ -74,14 +85,31 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
+			Expression nullCheck = null;
+
+			if (atRootLevel)
+			{
+				atRootLevel = false;
+
+				if (typeof(DataAccessObject).IsAssignableFrom(expression.NewExpression.Type))
+				{
+					foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
+					{
+						var visited = this.Visit(value);
+
+						this.scope.rootPrimaryKeys.Add(visited.Type.IsValueType ? Expression.Convert(visited, typeof(object)) : visited);
+					}
+				}
+
+				atRootLevel = true;
+			}
+
 			var previousCurrentNewExpressionTypeDescriptor = this.currentNewExpressionTypeDescriptor;
 
 			this.currentNewExpressionTypeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(expression.NewExpression.Type);
 
 			if (typeof(DataAccessObject).IsAssignableFrom(expression.NewExpression.Type))
 			{
-				Expression nullCheck = null;
-
 				foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
 				{
 					Expression current;
@@ -253,8 +281,27 @@ namespace Shaolinq.Persistence.Linq
 				return this.versionParameter;
 			}
 
-			var retval = base.VisitMethodCall(methodCallExpression);
+			Expression retval;
 
+			if (methodCallExpression.Method.IsGenericMethod
+				&& methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
+			{
+				var instance = this.Visit(methodCallExpression.Object);
+
+				var savedAtRootLevel = this.atRootLevel;
+				this.atRootLevel = true;
+				var firstArg = this.Visit(methodCallExpression.Arguments[0]);
+				this.atRootLevel = savedAtRootLevel;
+
+				var arguments = (IEnumerable<Expression>)this.VisitExpressionList((IReadOnlyList<Expression>)methodCallExpression.Arguments.Skip(1).ToArray());
+
+				retval = Expression.Call(instance, methodCallExpression.Method, arguments.Prepend(firstArg));
+			}
+			else
+			{
+				retval = base.VisitMethodCall(methodCallExpression);
+			}
+			
 			var type = retval.Type;
 
 			if (!type.IsDataAccessObjectType())
@@ -374,11 +421,23 @@ namespace Shaolinq.Persistence.Linq
 				var savedScope = this.scope;
 				this.scope = new ProjectionBuilderScope(newColumnIndexes);
 				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, versionParameter, dynamicParameters, filterParameter);
+
+				Expression rootKeys;
+
+				if (this.scope.rootPrimaryKeys.Count > 0)
+				{
+					rootKeys = Expression.Quote(Expression.Lambda<Func<IDataReader, object[]>>(Expression.NewArrayInit(typeof(object), this.scope.rootPrimaryKeys), this.dataReader));
+				}
+				else
+				{
+					rootKeys = Expression.Constant(null, typeof(Expression<Func<IDataReader, object[]>>));
+				}
+
 				this.scope = savedScope;
 
 				var values = replacedExpressions.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
 
-				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[])));
+				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[]), default(Expression<Func<IDataReader, object[]>>)));
 
 				MethodInfo evaluate;
 
@@ -391,7 +450,7 @@ namespace Shaolinq.Persistence.Linq
 					evaluate = MethodInfoFastRef.ExecutionBuildResultEvaluateMethod.MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
 				}
 				
-				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression), projectionProjector, Expression.NewArrayInit(typeof(object), values)), evaluate);
+				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression), projectionProjector, Expression.NewArrayInit(typeof(object), values), rootKeys), evaluate);
 			}
 		}
 	}

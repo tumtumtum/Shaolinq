@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -176,7 +177,7 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
-		internal ExecutionBuildResult BuildExecution(Expression expression, LambdaExpression projection = null, object[] placeholderValues = null)
+		internal ExecutionBuildResult BuildExecution(Expression expression, LambdaExpression projection = null, object[] placeholderValues = null, Expression<Func<IDataReader, object[]>> rootKeys = null)
 		{
 			ProjectorExpressionCacheInfo cacheInfo;
 			var skipFormatResultSubstitution = false;
@@ -194,7 +195,6 @@ namespace Shaolinq.Persistence.Linq
 					skipFormatResultSubstitution = true;
 				}
 
-				var oldCache = this.SqlDatabaseContext.projectionExpressionCache;
 				var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
 				SqlQueryFormatResult formatResultForCache = null;
@@ -228,14 +228,14 @@ namespace Shaolinq.Persistence.Linq
 				
 				cacheInfo = new ProjectorExpressionCacheInfo(projectionExpression, formatResultForCache);
 
+				var columns = projectionExpression.Select.Columns.Select(c => c.Name).ToArray();
+
 				if (projection == null)
 				{
-					var columns = projectionExpression.Select.Columns.Select(c => c.Name);
-
-					projection = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns.ToArray()));
+					projection = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns), out rootKeys);
 				}
-
-				BuildProjector(projection, projectionExpression.Aggregator, out cacheInfo.projector, out cacheInfo.asyncProjector);
+				
+				BuildProjector(projection, projectionExpression.Aggregator, rootKeys, out cacheInfo.projector, out cacheInfo.asyncProjector);
 				
 				this.SqlDatabaseContext.projectionExpressionCache = this.SqlDatabaseContext.projectionExpressionCache.Clone(key, cacheInfo, "ProjectionExpression", ProjectionExpressionCacheMaxLimit, ProjectionCacheLogger, c => c.projectionExpression.ToString());
 
@@ -284,7 +284,7 @@ namespace Shaolinq.Persistence.Linq
 			return new ExecutionBuildResult(this, cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
 		}
 
-		private void BuildProjector(LambdaExpression projectionLambda, LambdaExpression aggregator, out Delegate projector, out Delegate asyncProjector)
+		private void BuildProjector(LambdaExpression projectionLambda, LambdaExpression aggregator, Expression<Func<IDataReader, object[]>> keyBuilder, out Delegate projector, out Delegate asyncProjector)
 		{
 			var sqlQueryProviderParam = Expression.Parameter(typeof(SqlQueryProvider));
 			var formatResultsParam = Expression.Parameter(typeof(SqlQueryFormatResult));
@@ -298,7 +298,9 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
 
-				var constructor = typeof(DataAccessObjectProjector<,>).MakeGenericType(elementType, concreteElementType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+				var constructor = typeof(DataAccessObjectProjector<,>)
+					.MakeGenericType(elementType, concreteElementType)
+					.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
 				executor = Expression.New
 				(
@@ -330,20 +332,43 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					var projectorType = !DataAccessObjectAwareResultTypeComparerBuilder.NeedsComparer(projectionLambda.ReturnType) ? typeof(ObjectProjector<,>) : typeof(DataAccessObjectContainerProjector<,>);
+					if (keyBuilder == null)
+					{
+						var constructor = typeof(ObjectProjector<,>)
+							.MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType)
+							.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+							.Single();
 
-					var constructor = projectorType.MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+						executor = Expression.New
+						(
+							constructor,
+							sqlQueryProviderParam,
+							Expression.Constant(this.DataAccessModel),
+							Expression.Constant(this.SqlDatabaseContext),
+							formatResultsParam,
+							placeholderValuesParam,
+							projectionLambda
+						);
+					}
+					else
+					{
+						var constructor = typeof(DataAccessObjectContainerProjector<,>)
+							.MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType)
+							.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+							.Single();
 
-					executor = Expression.New
-					(
-						constructor,
-						sqlQueryProviderParam,
-						Expression.Constant(this.DataAccessModel),
-						Expression.Constant(this.SqlDatabaseContext),
-						formatResultsParam,
-						placeholderValuesParam,
-						projectionLambda
-					);
+						executor = Expression.New
+						(
+							constructor,
+							sqlQueryProviderParam,
+							Expression.Constant(this.DataAccessModel),
+							Expression.Constant(this.SqlDatabaseContext),
+							formatResultsParam,
+							placeholderValuesParam,
+							projectionLambda,
+							keyBuilder
+						);
+					}
 				}
 			}
 

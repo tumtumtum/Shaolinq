@@ -57,11 +57,11 @@ namespace Shaolinq.Persistence
 			{
 				if (propertyDescriptor != null && (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0))
 				{
-					return "VARCHAR(" + this.constraintDefaultsConfiguration.IndexedStringMaximumLength + ")";
+					return this.CreateVariableName(this.constraintDefaultsConfiguration.IndexedStringMaximumLength);
 				}
 				else
 				{
-					return "VARCHAR(" + this.constraintDefaultsConfiguration.StringMaximumLength + ")";
+					return this.CreateVariableName(this.constraintDefaultsConfiguration.StringMaximumLength);
 				}
 			}
 		}

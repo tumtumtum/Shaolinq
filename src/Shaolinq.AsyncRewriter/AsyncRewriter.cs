@@ -235,9 +235,9 @@ namespace Shaolinq.AsyncRewriter
 				method = method.WithModifiers(new SyntaxTokenList().AddRange(method.Modifiers.Where(c => c.Kind() != SyntaxKind.OverrideKeyword && c.Kind() != SyntaxKind.NewKeyword)));
 			}
 
-			var attribute = inMethodSymbol.GetAttributes().Single(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
+			var attribute = inMethodSymbol.GetAttributes().SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
 
-			if (attribute.ConstructorArguments.Any())
+			if (attribute?.ConstructorArguments.Any() == true)
 			{
 				if (attribute.ConstructorArguments.First().Type.Name == "MethodAttributes")
 				{
@@ -306,9 +306,9 @@ namespace Shaolinq.AsyncRewriter
 				method = method.WithModifiers(new SyntaxTokenList().AddRange(method.Modifiers.Where(c => c.Kind() != SyntaxKind.OverrideKeyword && c.Kind() != SyntaxKind.NewKeyword)));
 			}
 
-			var attribute = inMethodSymbol.GetAttributes().Single(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
+			var attribute = inMethodSymbol.GetAttributes().SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
 
-			if (attribute.ConstructorArguments.Length > 0)
+			if (attribute?.ConstructorArguments.Length > 0)
 			{
 				if (attribute.ConstructorArguments[0].Type.Name == "MethodAttributes")
 				{

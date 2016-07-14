@@ -9,10 +9,9 @@ namespace Shaolinq.Persistence.Linq
 {
 	public class ObjectProjector
 	{
+		public SqlQueryProvider QueryProvider { get; }
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-
-		public SqlQueryProvider QueryProvider { get; }
 		protected internal readonly SqlQueryFormatResult formatResult;
 
 		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult)
@@ -38,14 +37,14 @@ namespace Shaolinq.Persistence.Linq
 			this.objectReader = objectReader;
 		}
 
-		protected internal virtual bool ProcessLastMoveNext(ref object context, out T result)
+		protected internal virtual bool ProcessLastMoveNext(IDataReader dataReader, ref object context, out T result)
 		{
 			result = default(T);
 
 			return false;
 		}
 
-		protected internal virtual bool ProcessMoveNext(T value, ref object context, out T result)
+		protected internal virtual bool ProcessMoveNext(IDataReader dataReader, T value, ref object context, out T result)
 		{
 			result = value;
 
