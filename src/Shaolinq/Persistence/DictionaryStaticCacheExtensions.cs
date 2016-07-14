@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Shaolinq.Logging;
@@ -13,14 +15,19 @@ namespace Shaolinq.Persistence
 		{
 			if (self.Count >= limit)
 			{
-				(logger ?? staticCacheLogger).Debug(() => $"Sealing {cacheName ?? "CacheName"} because it overflowed with a size of {limit}\n\nValue: {valueToString?.Invoke(value) ?? key.ToString()}\n\nAt: {new StackTrace()}");
+				(logger ?? staticCacheLogger).Debug(() => $"Sealing {cacheName ?? "CacheName"} because it overflowed with a size of {limit}\n\nValue: {valueToString?.Invoke(value) ?? value.ToString()}\n\nAt: {new StackTrace()}");
 
 				return self;
 			}
 
-			(logger ?? staticCacheLogger).Debug(() => $"{cacheName ?? "CacheName"} caching: {valueToString?.Invoke(value) ?? key.ToString()}");
+			var retval = new Dictionary<K, V>(self, self.Comparer) { [key] = value };
 
-			return new Dictionary<K, V>(self, self.Comparer) { [key] = value };
+			if (!retval.ContainsKey(key))
+			{
+				(logger ?? staticCacheLogger).Error(() => $"Cache {cacheName ?? "CacheName"} has key that will never match.\n\nKey: {key}\n\nValue: {valueToString?.Invoke(value) ?? value.ToString()}\n\nAt: {new StackTrace()}");
+			}
+
+			return retval;
 		}
 	}
 }

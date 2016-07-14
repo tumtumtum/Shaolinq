@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,14 +13,36 @@ namespace Shaolinq.Persistence.Linq
 {
 	internal class DataAccessObjectAwareResultTypeComparerBuilder
 	{
-		private static readonly MethodInfo needsComparerMethod = TypeUtils.GetMethod(() => NeedsComparer<object>()).GetGenericMethodDefinition();
-		private static readonly MethodInfo createComparerMethod = TypeUtils.GetMethod(() => CreateComparer<object>()).GetGenericMethodDefinition();
-
 		private static class ComparerContainer<T>
 		{
 			public static bool needed;
 			public static bool created;
 			public static volatile Func<T, T, bool> comparer;
+		}
+
+		private static Dictionary<RuntimeTypeHandle, Func<bool>> needsComparerFuncs = new Dictionary<RuntimeTypeHandle, Func<bool>>();
+		private static Dictionary<RuntimeTypeHandle, Func<bool>> comparerCreatedFuncs = new Dictionary<RuntimeTypeHandle, Func<bool>>();
+		private static readonly MethodInfo needsComparerMethod = TypeUtils.GetMethod(() => NeedsComparer<object>()).GetGenericMethodDefinition();
+		private static readonly MethodInfo createComparerMethod = TypeUtils.GetMethod(() => CreateComparer<object>()).GetGenericMethodDefinition();
+		private static readonly MethodInfo comparerCreatedMethod = TypeUtils.GetMethod(() => ComparerCreated<object>()).GetGenericMethodDefinition();
+		
+		private static bool ComparerCreated<T>()
+		{
+			return ComparerContainer<T>.created;
+		}
+
+		public static bool ComparerCreated(Type type)
+		{
+			Func<bool> func;
+
+			if (!comparerCreatedFuncs.TryGetValue(type.TypeHandle, out func))
+			{
+				func = Expression.Lambda<Func<bool>>(Expression.Call(comparerCreatedMethod.MakeGenericMethod(type))).Compile();
+
+				comparerCreatedFuncs = comparerCreatedFuncs.Clone(type.TypeHandle, func, "comparerCreatedFuncs");
+			}
+
+			return func();
 		}
 
 		public static Func<T, T, bool> CreateComparer<T>()
@@ -35,8 +59,6 @@ namespace Shaolinq.Persistence.Linq
 			return ComparerContainer<T>.comparer;
 		}
 
-		private static Dictionary<RuntimeTypeHandle, Func<bool>> needsComparerFuncs = new Dictionary<RuntimeTypeHandle, Func<bool>>();
-
 		public static bool NeedsComparer(Type type)
 		{
 			Func<bool> func;
@@ -51,12 +73,13 @@ namespace Shaolinq.Persistence.Linq
 			return func();
 		}
 		
-		public static bool NeedsComparer<T>()
+		private static bool NeedsComparer<T>()
 		{
 			if (IsConsideredSimpleType(typeof(T)))
 			{
 				return false;
 			}
+
 			var type = typeof(T);
 
 			if (typeof(T).Assembly == typeof(DataAccessObject).Assembly && !(typeof(T).IsArray || (type.GetInterfaces().Any(c => c.GetGenericTypeDefinitionOrNull() == typeof(IEnumerable<>) && c.GetGenericArguments()[0].IsDataAccessObjectType()))))
@@ -74,19 +97,22 @@ namespace Shaolinq.Persistence.Linq
 
 		public static Expression<Func<T, T, bool>> CreateComparerLambdaExpression<T>()
 		{
-			var foundDataAccessObject = false;
-
-			return (Expression<Func<T, T, bool>>)CreateComparerLambdaExpression(typeof(T), ref foundDataAccessObject);
+			return CreateComparerLambdaExpression<T>(new HashSet<Type>());
 		}
 
-		private static readonly HashSet<Type> currentlyBuildingTypes = new HashSet<Type>();
+		public static Expression<Func<T, T, bool>> CreateComparerLambdaExpression<T>(HashSet<Type> currentlyBuildingTypes)
+		{
+			var foundDataAccessObject = false;
 
-		public static LambdaExpression CreateComparerLambdaExpression(Type type, ref bool foundDataAccessObject)
+			return (Expression<Func<T, T, bool>>)CreateComparerLambdaExpression(currentlyBuildingTypes, typeof(T), ref foundDataAccessObject);
+		}
+
+		public static LambdaExpression CreateComparerLambdaExpression(HashSet<Type> currentlyBuildingTypes, Type type, ref bool foundDataAccessObject)
 		{
 			var leftParam = Expression.Parameter(type);
 			var rightParam = Expression.Parameter(type);
 
-			if (currentlyBuildingTypes.Contains(type))
+			if (currentlyBuildingTypes.Contains(type) || ComparerCreated(type))
 			{
 				return Expression.Lambda(Expression.Invoke(Expression.Call(createComparerMethod.MakeGenericMethod(type)), leftParam, rightParam), leftParam, rightParam);
 			}
@@ -95,7 +121,7 @@ namespace Shaolinq.Persistence.Linq
 
 			try
 			{
-				var body = CreateComparerExpression(type, leftParam, rightParam, ref foundDataAccessObject);
+				var body = CreateComparerExpression(currentlyBuildingTypes, type, leftParam, rightParam, ref foundDataAccessObject);
 
 				if (!foundDataAccessObject)
 				{
@@ -131,7 +157,7 @@ namespace Shaolinq.Persistence.Linq
 				|| ((type.Assembly == typeof(object).Assembly) && !(type.Name.StartsWith("Tuple") || type.Name.StartsWith("KeyValuePair")));
 		}
 
-		public static Expression CreateComparerExpression(Type type, Expression left, Expression right, ref bool foundDataAccessObject)
+		public static Expression CreateComparerExpression(HashSet<Type> currentlyBuildingTypes, Type type, Expression left, Expression right, ref bool foundDataAccessObject)
 		{
 			var originalType = type;
 			type = type.GetUnwrappedNullableType();
@@ -146,7 +172,7 @@ namespace Shaolinq.Persistence.Linq
 			if (originalType.IsNullableType())
 			{
 				body = Expression.AndAlso(Expression.Equal(left, Expression.Constant(null, originalType)), Expression.Equal(right, Expression.Constant(null, originalType)));
-				body = Expression.Or(body, CreateComparerExpression(type, Expression.Convert(left, type), Expression.Convert(right, type), ref foundDataAccessObject));
+				body = Expression.Or(body, CreateComparerExpression(currentlyBuildingTypes, type, Expression.Convert(left, type), Expression.Convert(right, type), ref foundDataAccessObject));
 
 				return body;
 			}
@@ -197,11 +223,11 @@ namespace Shaolinq.Persistence.Linq
 
 					if (ConsideredTypeForBasicComparison(member.GetMemberReturnType()))
 					{
-						currentPropertyExpression = CreateComparerExpression(member.GetMemberReturnType(), currentLeft, currentRight, ref foundDataAccessObject);
+						currentPropertyExpression = CreateComparerExpression(currentlyBuildingTypes, member.GetMemberReturnType(), currentLeft, currentRight, ref foundDataAccessObject);
 					}
 					else
 					{
-						currentPropertyExpression = Expression.Invoke(CreateComparerLambdaExpression(member.GetMemberReturnType(), ref foundDataAccessObject), currentLeft, currentRight);
+						currentPropertyExpression = Expression.Invoke(CreateComparerLambdaExpression(currentlyBuildingTypes, member.GetMemberReturnType(), ref foundDataAccessObject), currentLeft, currentRight);
 					}
 
 					propertiesExpressions = propertiesExpressions == null ? currentPropertyExpression : Expression.AndAlso(propertiesExpressions, currentPropertyExpression);

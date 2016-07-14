@@ -78,37 +78,40 @@ namespace Shaolinq.Persistence.Linq
 
 			this.currentNewExpressionTypeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(expression.NewExpression.Type);
 
-			Expression nullCheck = null;
-			
-			foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
+			if (typeof(DataAccessObject).IsAssignableFrom(expression.NewExpression.Type))
 			{
-				Expression current;
+				Expression nullCheck = null;
 
-				if (value.NodeType == (ExpressionType)SqlExpressionType.Column)
+				foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
 				{
-					current = this.ConvertColumnToIsNull((SqlColumnExpression)value);
-				}
-				else
-				{
-					var visited = this.Visit(value);
+					Expression current;
 
-					if (visited.Type.IsClass || visited.Type.IsNullableType())
+					if (value.NodeType == (ExpressionType)SqlExpressionType.Column)
 					{
-						current = Expression.Equal(Expression.Convert(visited, visited.Type), Expression.Constant(null, visited.Type));
+						current = this.ConvertColumnToIsNull((SqlColumnExpression)value);
 					}
 					else
 					{
-						current = Expression.Equal(Expression.Convert(visited, visited.Type.MakeNullable()), Expression.Constant(null, visited.Type.MakeNullable()));
-					}
-				}
+						var visited = this.Visit(value);
 
-				if (nullCheck == null)
-				{
-					nullCheck = current;
-				}
-				else
-				{
-					nullCheck = Expression.Or(nullCheck, current);
+						if (visited.Type.IsClass || visited.Type.IsNullableType())
+						{
+							current = Expression.Equal(Expression.Convert(visited, visited.Type), Expression.Constant(null, visited.Type));
+						}
+						else
+						{
+							current = Expression.Equal(Expression.Convert(visited, visited.Type.MakeNullable()), Expression.Constant(null, visited.Type.MakeNullable()));
+						}
+					}
+
+					if (nullCheck == null)
+					{
+						nullCheck = current;
+					}
+					else
+					{
+						nullCheck = Expression.Or(nullCheck, current);
+					}
 				}
 			}
 
