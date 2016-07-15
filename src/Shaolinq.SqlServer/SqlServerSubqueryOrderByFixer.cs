@@ -32,12 +32,14 @@ namespace Shaolinq.SqlServer
 			{
 				this.isOuterMostSelect = false;
 
+				selectExpression = (SqlSelectExpression)base.VisitSelect(selectExpression);
+
 				if (!saveIsOuterMostSelect && selectExpression.OrderBy != null && selectExpression.Take == null)
 				{
 					return selectExpression.ChangeSkipTake(selectExpression.Skip, new SqlTakeAllValueExpression());
 				}
 
-				return base.VisitSelect(selectExpression);
+				return selectExpression;
 			}
 			finally
 			{

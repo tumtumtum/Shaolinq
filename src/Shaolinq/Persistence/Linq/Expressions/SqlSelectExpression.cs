@@ -17,22 +17,22 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public Expression Skip { get; }
 		public bool ForUpdate { get; }
 		public bool Reverse { get; set; }
-		public IReadOnlyList<Expression> OrderBy { get; }
+		public IReadOnlyList<SqlOrderByExpression> OrderBy { get; }
 		public IReadOnlyList<Expression> GroupBy { get; }
 		public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Select;
 
-		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, bool forUpdate = false, bool reverse = false)
+		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<SqlOrderByExpression> orderBy, bool forUpdate = false, bool reverse = false)
 			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), null, false, null, null, forUpdate, reverse)
 		{
 		}
 
-		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<Expression> orderBy, IEnumerable<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate = false, bool reverse = false)
+		public SqlSelectExpression(Type type, string alias, IEnumerable<SqlColumnDeclaration> columns, Expression from, Expression where, IEnumerable<SqlOrderByExpression> orderBy, IEnumerable<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate = false, bool reverse = false)
 			: this(type, alias, columns.ToReadOnlyCollection(), from, where, orderBy.ToReadOnlyCollection(), groupBy.ToReadOnlyCollection(), distinct, skip, take, forUpdate, reverse)
 		{	
 		}
 
-		public SqlSelectExpression(Type type, string alias, IReadOnlyList<SqlColumnDeclaration> columns, Expression from, Expression where, IReadOnlyList<Expression> orderBy, IReadOnlyList<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate = false, bool reverse = false)
+		public SqlSelectExpression(Type type, string alias, IReadOnlyList<SqlColumnDeclaration> columns, Expression from, Expression where, IReadOnlyList<SqlOrderByExpression> orderBy, IReadOnlyList<Expression> groupBy, bool distinct, Expression skip, Expression take, bool forUpdate = false, bool reverse = false)
 			: base(type, alias)
 		{
 			this.Distinct = distinct;
@@ -79,7 +79,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, this.Where, this.OrderBy, this.GroupBy, this.Distinct, skip, take, this.ForUpdate, this.Reverse);
 		}
 
-		public SqlSelectExpression ChangeOrderBy(IEnumerable<Expression> orderBy)
+		public SqlSelectExpression ChangeOrderBy(IEnumerable<SqlOrderByExpression> orderBy)
 		{
 			return new SqlSelectExpression(this.Type, this.Alias, this.Columns, this.From, this.Where, orderBy, this.GroupBy, this.Distinct, this.Skip, this.Take, this.ForUpdate, this.Reverse);
 		}

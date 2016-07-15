@@ -450,15 +450,21 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var results = from student in this.model.Students
+				var results1 = from student in this.model.Students
 							  group student by new { student.Firstname, student.Birthdate}
 								  into g
 								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
 
-				var resultsArray = results.OrderBy(c => c.Key.Firstname).ToArray();
 
-				//Assert.AreEqual("Chuck", resultsArray[0].Name);
-				//Assert.AreEqual(2, resultsArray[0].Count);
+				var results2 = from student in this.model.Students.ToList()
+							  group student by new { student.Firstname, student.Birthdate }
+												  into g
+							  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
+
+				var resultsArray1 = results1.OrderBy(c => c.Key.Firstname).ToArray();
+				var resultsArray2 = results2.OrderBy(c => c.Key.Firstname).ToArray();
+
+				Assert.IsTrue(resultsArray1.SequenceEqual(resultsArray2));
 
 				scope.Complete();
 			}
@@ -469,34 +475,44 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var results = from student in this.model.Students
+				var results1 = from student in this.model.Students
 							  group student by new Tuple<string, DateTime?>(student.Firstname, student.Birthdate)
 								  into g
 								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Item1 };
 
-				var resultsArray = results.OrderBy(c => c.Key.Item1).ToArray();
+				var results2 = from student in this.model.Students.ToList()
+							  group student by new Tuple<string, DateTime?>(student.Firstname, student.Birthdate)
+								  into g
+							  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Item1 };
 
-				//Assert.AreEqual("Chuck", resultsArray[0].Name);
-				//Assert.AreEqual(2, resultsArray[0].Count);
+				var resultsArray1 = results1.OrderBy(c => c.Key.Item1).ToArray();
+				var resultsArray2 = results2.OrderBy(c => c.Key.Item1).ToArray();
+
+				Assert.IsTrue(resultsArray1.SequenceEqual(resultsArray2));
 
 				scope.Complete();
 			}
 		}
-
+		
 		[Test]
 		public virtual void Test_Query_GroupBy_Complex_And_OrderBy_Key2()
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var results = from student in this.model.Students
+				var results1 = from student in this.model.Students
 							  group student by new { student.Firstname, student.Birthdate }
 								  into g
 								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
 
-				var resultsArray = results.OrderBy(c => c.Key).ToArray();
+				var results2 = from student in this.model.Students.ToList()
+							   group student by new { student.Firstname, student.Birthdate }
+								  into g
+							   select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
 
-				//Assert.AreEqual("Chuck", resultsArray[0].Name);
-				//Assert.AreEqual(2, resultsArray[0].Count);
+				var resultsArray1 = results1.OrderBy(c => c.Key).ToArray();
+				var resultsArray2 = results2.OrderBy(c => c.Key.Firstname + "," + c.Key.Birthdate?.Ticks).ToArray();
+
+				Assert.IsTrue(resultsArray1.SequenceEqual(resultsArray2));
 
 				scope.Complete();
 			}
@@ -2610,14 +2626,7 @@ namespace Shaolinq.Tests
 				var list = results.ToList();
 				var list2 = this.model.Students.ToList().GroupBy(c => c.Address?.Id, c => c.Id).OrderBy(c => c.Key).ToList();
 
-				var i = 0;
-				foreach (var item in list)
-				{
-					foreach (var v in item)
-					{
-						i++;
-					}
-				}
+				var i = list.SelectMany(c => c).Count();
 
 				Assert.That(i != 0);
 
@@ -2963,6 +2972,33 @@ namespace Shaolinq.Tests
 				var result2 = this.model.Students.ToList().Select(c => c.Nickname).OrderBy(c => c).Distinct().Skip(1).ToList();
 
 				Assert.IsTrue(result.SequenceEqual(result2));
+			}
+		}
+
+		[Test]
+		public void Test_Select_Multiple_Nested_OrderBySkipDistinct()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var s1 = this.model.Students
+					.Select(c => c.Nickname)
+					.OrderBy(c => c)
+					.Distinct()
+					.Skip(1)
+					.Distinct()
+					.Skip(2)
+					.ToList();
+
+				var s2 = this.model.Students.ToList()
+					.Select(c => c.Nickname)
+					.OrderBy(c => c)
+					.Distinct()
+					.Skip(1)
+					.Distinct()
+					.Skip(2)
+					.ToList();
+
+				Assert.IsTrue(s1.SequenceEqual(s2));
 			}
 		}
 

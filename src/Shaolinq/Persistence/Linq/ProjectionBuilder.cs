@@ -29,7 +29,8 @@ namespace Shaolinq.Persistence.Linq
 		private readonly ParameterExpression filterParameter;
 
 		private bool atRootLevel = true;
-		
+		private bool treatColumnsAsNullable;
+
 		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, ProjectionBuilderScope scope)
 		{
 			this.dataAccessModel = dataAccessModel;
@@ -86,83 +87,91 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
 			Expression nullCheck = null;
-
-			if (atRootLevel)
+			var savedRootLevel = this.atRootLevel;
+			
+			try
 			{
-				atRootLevel = false;
+				if (atRootLevel)
+				{
+					atRootLevel = false;
+
+					if (typeof(DataAccessObject).IsAssignableFrom(expression.NewExpression.Type))
+					{
+						foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
+						{
+							this.treatColumnsAsNullable = true;
+							var visited = this.Visit(value);
+							this.treatColumnsAsNullable = false;
+
+							this.scope.rootPrimaryKeys.Add(visited.Type.IsValueType ? Expression.Convert(visited, typeof(object)) : visited);
+						}
+					}
+				}
+
+				var previousCurrentNewExpressionTypeDescriptor = this.currentNewExpressionTypeDescriptor;
+
+				this.currentNewExpressionTypeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(expression.NewExpression.Type);
 
 				if (typeof(DataAccessObject).IsAssignableFrom(expression.NewExpression.Type))
 				{
 					foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
 					{
-						var visited = this.Visit(value);
+						Expression current;
 
-						this.scope.rootPrimaryKeys.Add(visited.Type.IsValueType ? Expression.Convert(visited, typeof(object)) : visited);
-					}
-				}
-
-				atRootLevel = true;
-			}
-
-			var previousCurrentNewExpressionTypeDescriptor = this.currentNewExpressionTypeDescriptor;
-
-			this.currentNewExpressionTypeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(expression.NewExpression.Type);
-
-			if (typeof(DataAccessObject).IsAssignableFrom(expression.NewExpression.Type))
-			{
-				foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
-				{
-					Expression current;
-
-					if (value.NodeType == (ExpressionType)SqlExpressionType.Column)
-					{
-						current = this.ConvertColumnToIsNull((SqlColumnExpression)value);
-					}
-					else
-					{
-						var visited = this.Visit(value);
-
-						if (visited.Type.IsClass || visited.Type.IsNullableType())
+						if (value.NodeType == (ExpressionType)SqlExpressionType.Column)
 						{
-							current = Expression.Equal(Expression.Convert(visited, visited.Type), Expression.Constant(null, visited.Type));
+							current = this.ConvertColumnToIsNull((SqlColumnExpression)value);
 						}
 						else
 						{
-							current = Expression.Equal(Expression.Convert(visited, visited.Type.MakeNullable()), Expression.Constant(null, visited.Type.MakeNullable()));
+							var visited = this.Visit(value);
+
+							if (visited.Type.IsClass || visited.Type.IsNullableType())
+							{
+								current = Expression.Equal(Expression.Convert(visited, visited.Type), Expression.Constant(null, visited.Type));
+							}
+							else
+							{
+								current = Expression.Equal(Expression.Convert(visited, visited.Type.MakeNullable()), Expression.Constant(null, visited.Type.MakeNullable()));
+							}
+						}
+
+						if (nullCheck == null)
+						{
+							nullCheck = current;
+						}
+						else
+						{
+							nullCheck = Expression.Or(nullCheck, current);
 						}
 					}
+				}
 
-					if (nullCheck == null)
-					{
-						nullCheck = current;
-					}
-					else
-					{
-						nullCheck = Expression.Or(nullCheck, current);
-					}
+				var retval = base.VisitMemberInit(expression);
+
+				this.currentNewExpressionTypeDescriptor = previousCurrentNewExpressionTypeDescriptor;
+
+				if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
+				{
+					var submitToCacheMethod = typeof(IDataAccessObjectInternal).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+					var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+					var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+
+					retval = Expression.Convert(Expression.Invoke(filterParameter, Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), typeof(DataAccessObject))), retval.Type);
+				}
+
+				if (nullCheck != null)
+				{
+					return Expression.Condition(nullCheck, Expression.Convert(Expression.Invoke(filterParameter, Expression.Constant(null, retval.Type)), retval.Type), retval);
+				}
+				else
+				{
+					return retval;
 				}
 			}
-
-			var retval = base.VisitMemberInit(expression);
-
-			this.currentNewExpressionTypeDescriptor = previousCurrentNewExpressionTypeDescriptor;
-
-			if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
+			finally
 			{
-				var submitToCacheMethod = typeof(IDataAccessObjectInternal).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-				var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-				var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-
-				retval = Expression.Convert(Expression.Invoke(filterParameter, Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), typeof(DataAccessObject))), retval.Type);
-			}
-
-			if (nullCheck != null)
-			{
-				return Expression.Condition(nullCheck, Expression.Convert(Expression.Invoke(filterParameter,  Expression.Constant(null, retval.Type)), retval.Type), retval);
-			}
-			else
-			{
-				return retval;
+				this.atRootLevel = savedRootLevel;
 			}
 		}
 
@@ -271,7 +280,14 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
-			return this.ConvertColumnToDataReaderRead(column, column.Type);
+			if (treatColumnsAsNullable && column.Type.IsValueType && !column.Type.IsNullableType())
+			{
+				return this.ConvertColumnToDataReaderRead(column, column.Type.MakeNullable());
+			}
+			else
+			{
+				return this.ConvertColumnToDataReaderRead(column, column.Type);
+			}
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
@@ -287,14 +303,13 @@ namespace Shaolinq.Persistence.Linq
 				&& methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
 			{
 				var instance = this.Visit(methodCallExpression.Object);
+				var firstArg = this.Visit(methodCallExpression.Arguments[0]);
 
 				var savedAtRootLevel = this.atRootLevel;
-				this.atRootLevel = true;
-				var firstArg = this.Visit(methodCallExpression.Arguments[0]);
+				this.atRootLevel = false;
+				var arguments = (IEnumerable<Expression>)this.VisitExpressionList(methodCallExpression.Arguments.Skip(1).ToArray());
 				this.atRootLevel = savedAtRootLevel;
-
-				var arguments = (IEnumerable<Expression>)this.VisitExpressionList((IReadOnlyList<Expression>)methodCallExpression.Arguments.Skip(1).ToArray());
-
+				
 				retval = Expression.Call(instance, methodCallExpression.Method, arguments.Prepend(firstArg));
 			}
 			else
@@ -450,7 +465,7 @@ namespace Shaolinq.Persistence.Linq
 					evaluate = MethodInfoFastRef.ExecutionBuildResultEvaluateMethod.MakeGenericMethod(typeof(IEnumerable<>).MakeGenericType(projectionExpression.Type.GetSequenceElementType()));
 				}
 				
-				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(projectionExpression), projectionProjector, Expression.NewArrayInit(typeof(object), values), rootKeys), evaluate);
+				return Expression.Call(Expression.Call(Expression.Property(this.objectProjector, "QueryProvider"), method, Expression.Constant(SqlAggregateProjectionNormalizer.Normalize(projectionExpression)), projectionProjector, Expression.NewArrayInit(typeof(object), values), rootKeys), evaluate);
 			}
 		}
 	}

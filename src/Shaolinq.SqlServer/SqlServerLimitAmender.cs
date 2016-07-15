@@ -30,7 +30,7 @@ namespace Shaolinq.SqlServer
 				var innerSelectWithRowAlias = selectExpression.Alias + "_ROW";
 
 				var cols = selectExpression.Columns.Select(c => new SqlColumnDeclaration(c.Name, new SqlColumnExpression(c.Expression.Type, selectExpression.Alias, c.Name))).ToList();
-				var over = new SqlOverExpression(rowNumber, selectExpression.OrderBy?.Cast<SqlOrderByExpression>().ToReadOnlyCollection() ?? cols.Select(c => new SqlOrderByExpression(OrderType.Ascending, c.Expression)).ToReadOnlyCollection());
+				var over = new SqlOverExpression(rowNumber, selectExpression.OrderBy?.ToReadOnlyCollection() ?? cols.Select(c => new SqlOrderByExpression(OrderType.Ascending, c.Expression)).ToReadOnlyCollection());
 
 				if (oldAliases != null)
 				{
@@ -42,7 +42,7 @@ namespace Shaolinq.SqlServer
 				cols.Add(rowColumn);
 
 				var innerSelectWithRowColumns = cols.ToReadOnlyCollection();
-				var innerSelectWithRow = new SqlSelectExpression(selectExpression.Type, innerSelectWithRowAlias, innerSelectWithRowColumns, selectExpression.ChangeOrderBy(null).ChangeSkipTake(null, null), null, null, null, false, null, null, false);
+				var innerSelectWithRow = new SqlSelectExpression(selectExpression.Type, innerSelectWithRowAlias, innerSelectWithRowColumns, this.Visit(selectExpression.ChangeOrderBy(null).ChangeSkipTake(null, null)), null, null, null, false, null, null, false);
 				var outerColumns = selectExpression.Columns.Select(c => new SqlColumnDeclaration(c.Name, new SqlColumnExpression(c.Expression.Type, innerSelectWithRowAlias, c.Name)));
 
 				Expression rowPredicate = Expression.GreaterThan(new SqlColumnExpression(typeof(int), innerSelectWithRowAlias, rowColumn.Name), selectExpression.Skip);
@@ -56,13 +56,7 @@ namespace Shaolinq.SqlServer
 					);
 				}
 
-				var newOrderBy = selectExpression
-					.OrderBy?
-					.Select(c => oldAliases == null ? c : AliasReferenceReplacer.Replace(c, oldAliases.Contains, innerSelectWithRowAlias))
-					.Concat(new SqlOrderByExpression(OrderType.Ascending, new SqlColumnExpression(typeof(int), innerSelectWithRowAlias, rowColumn.Name)))
-					.ToReadOnlyCollection();
-
-				var retval = new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, outerColumns, innerSelectWithRow, rowPredicate, newOrderBy, selectExpression.ForUpdate);
+				var retval = new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, outerColumns, innerSelectWithRow, rowPredicate, null, selectExpression.ForUpdate);
 
 				return retval;
 			}

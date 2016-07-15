@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		public readonly List<Expression> rootPrimaryKeys = new List<Expression>();
 
 		public ProjectionBuilderScope(string[] columnNames)
-			: this((Dictionary<string, int>)columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
+			: this(columnNames.Select((c, i) => new { c, i }).ToDictionary(c => c.c, c => c.i))
 		{	
 		}
 

@@ -6,10 +6,17 @@ using System.Linq.Expressions;
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlExpressionEqualityComparer
-		: IEqualityComparer<Expression>
 	{
-		public static readonly SqlExpressionEqualityComparer Default = new SqlExpressionEqualityComparer();
-		public static readonly SqlExpressionEqualityComparer IgnoreConstants = new SqlExpressionEqualityComparer(SqlExpressionComparerOptions.IgnoreConstants);
+		public static readonly SqlExpressionEqualityComparer<Expression> Default = SqlExpressionEqualityComparer<Expression>.Default;
+		public static readonly SqlExpressionEqualityComparer<Expression> IgnoreConstants = SqlExpressionEqualityComparer<Expression>.IgnoreConstants;
+	}
+
+	public class SqlExpressionEqualityComparer<T>
+		: IEqualityComparer<T>
+		where T : Expression
+	{
+		public static readonly SqlExpressionEqualityComparer<T> Default = new SqlExpressionEqualityComparer<T>();
+		public static readonly SqlExpressionEqualityComparer<T> IgnoreConstants = new SqlExpressionEqualityComparer<T>(SqlExpressionComparerOptions.IgnoreConstants);
 
 		private readonly SqlExpressionComparerOptions options;
 		
@@ -23,12 +30,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.options = options;
 		}
 
-		public bool Equals(Expression x, Expression y)
+		public bool Equals(T x, T y)
 		{
 			return SqlExpressionComparer.Equals(x, y, options);
 		}
 
-		public int GetHashCode(Expression obj)
+		public int GetHashCode(T obj)
 		{
 			return SqlExpressionHasher.Hash(obj, options);
 		}

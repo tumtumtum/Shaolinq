@@ -61,6 +61,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private class SubqueryMerger
 			: SqlExpressionVisitor
 		{
+			private bool isTopLevel;
+
 			private SubqueryMerger()
 			{
 			}
@@ -72,6 +74,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			protected override Expression VisitSelect(SqlSelectExpression select)
 			{
+				var savedIsTopLevel = this.isTopLevel;
+
+				this.isTopLevel = false;
+				
 				select = (SqlSelectExpression)base.VisitSelect(select);
 
 				// Attempt to merge subqueries that would have been removed by the above
@@ -80,6 +86,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				while (CanMergeWithFrom(select))
 				{
 					var fromSelect = select.From.GetLeftMostSelect();
+
+					CanMergeWithFrom(select);
 
 					// remove the redundant subquery
 					select = SubqueryRemover.Remove(select, fromSelect);
@@ -103,13 +111,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					var groupBy = select.GroupBy != null && select.GroupBy.Count > 0 ? select.GroupBy : fromSelect.GroupBy;
 					var skip = select.Skip ?? fromSelect.Skip;
 					var take = select.Take ?? fromSelect.Take;
-					var isDistinct = select.Distinct | fromSelect.Distinct;
+					var isDistinct = select.Distinct || fromSelect.Distinct;
 
 					if (where != select.Where || orderBy != select.OrderBy || groupBy != select.GroupBy || isDistinct != select.Distinct || skip != select.Skip || take != select.Take)
 					{
 						select = new SqlSelectExpression(select.Type, select.Alias, select.Columns, select.From, where, orderBy, groupBy, isDistinct, skip, take, select.ForUpdate);
 					}
 				}
+
+				this.isTopLevel = savedIsTopLevel;
 
 				return select;
 			}
@@ -131,7 +141,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return true;
 			}
 
-			private static bool CanMergeWithFrom(SqlSelectExpression select)
+			private bool CanMergeWithFrom(SqlSelectExpression select)
 			{
 				var fromSelect = select.From.GetLeftMostSelect();
 
@@ -156,8 +166,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var selHasOrderBy = select.OrderBy != null && select.OrderBy.Count > 0;
 				var selHasGroupBy = select.GroupBy != null && select.GroupBy.Count > 0;
 				var selHasAggregates = SqlAggregateChecker.HasAggregates(select);
+				var selHasJoin = select.From is SqlJoinExpression;
 				var frmHasOrderBy = fromSelect.OrderBy != null && fromSelect.OrderBy.Count > 0;
 				var frmHasGroupBy = fromSelect.GroupBy != null && fromSelect.GroupBy.Count > 0;
+				var frmHasAggregates = SqlAggregateChecker.HasAggregates(fromSelect);
 
 				// Both cannot have OrderBy
 				if (selHasOrderBy && frmHasOrderBy)
@@ -184,19 +196,30 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 
 				// Cannot move forward a take if outer has take or skip or distinct
-				if (fromSelect.Take != null && (select.Take != null || selHasSkip  || select.Distinct || selHasAggregates || selHasGroupBy))
+				if (fromSelect.Take != null && (select.Take != null || selHasSkip  || select.Distinct || selHasAggregates || selHasGroupBy || selHasJoin))
 				{
 					return false;
 				}
 
 				// Cannot move forward a skip if outer has skip or distinct or aggregates with accompanying groupby or where
-				if (fromSelect.Skip != null && ((selHasWhere || selHasGroupBy) && (select.Skip != null || select.Distinct || selHasAggregates)))
+				if (fromSelect.Skip != null && (select.Skip != null || select.Distinct || selHasAggregates || selHasGroupBy || selHasJoin))
 				{
 					return false;
 				}
 
 				// Cannot merge a distinct if the outer has a distinct or aggregates with accompanying groupby or where
 				if (fromSelect.Distinct && (!selHasNameMapProjection || (((selHasWhere || selHasGroupBy) && (selHasAggregates || selHasOrderBy)))))
+				{
+					return false;
+				}
+
+				// cannot move forward a distinct if outer has take, skip, groupby or a different projection
+				if (fromSelect.Distinct && (select.Take != null || select.Skip != null || !selHasNameMapProjection || selHasGroupBy || selHasAggregates || (selHasOrderBy && !isTopLevel) || selHasJoin))
+				{
+					return false;
+				}
+
+				if (frmHasAggregates && (select.Take != null || select.Skip != null || select.Distinct || selHasAggregates || selHasGroupBy || selHasJoin))
 				{
 					return false;
 				}

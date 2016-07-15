@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -13,12 +14,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class SqlOrderByRewriter
 		: SqlExpressionVisitor
 	{
-		private bool isOuterMostSelect;
+		private bool outerCanReceiveOrderings;
 		private IEnumerable<SqlOrderByExpression> gatheredOrderings;
 
 		private SqlOrderByRewriter()
 		{
-			this.isOuterMostSelect = true;
+			this.outerCanReceiveOrderings = true;
 		}
 
 		public static Expression Rewrite(Expression expression)
@@ -30,61 +31,51 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
-			var saveIsOuterMostSelect = this.isOuterMostSelect;
+			var canHaveOrderBy = select.Take != null || select.Skip != null;
+			var hasGroupBy = select.GroupBy?.Count > 0;
+			var canReceiveOrderings = canHaveOrderBy && !hasGroupBy && !select.Distinct && !SqlAggregateChecker.HasAggregates(select);
 
-			try
-			{
-				this.isOuterMostSelect = false;
+			this.outerCanReceiveOrderings &= canReceiveOrderings;
 
-				select = (SqlSelectExpression)base.VisitSelect(select);
+			select = (SqlSelectExpression)base.VisitSelect(select);
 
-				var hasOrderBy = select.OrderBy != null && select.OrderBy.Count > 0;
-
-				if (hasOrderBy)
-				{
-					this.PrependOrderings(select.OrderBy.Select(c => (SqlOrderByExpression)c));
-				}
-
-				var canHaveOrderBy = saveIsOuterMostSelect && !SqlExpressionFinder.FindExists(select, c => c.NodeType == (ExpressionType)SqlExpressionType.Aggregate || c.NodeType == (ExpressionType)SqlExpressionType.AggregateSubquery);
-				var canPassOnOrderings = !saveIsOuterMostSelect;
-
-				var columns = select.Columns;
-				IEnumerable<Expression> orderings = (canHaveOrderBy) ? this.gatheredOrderings : null;
+			var hasOrderBy = select.OrderBy?.Count > 0;
 				
-				if (this.gatheredOrderings != null)
-				{
-					if (canPassOnOrderings)
-					{
-						var producedAliases = AliasesProduced.Gather(select.From);
-						var project = this.RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
-
-						this.gatheredOrderings = project.Orderings;
-
-						columns = project.Columns;
-					}
-					else
-					{
-						this.gatheredOrderings = null;
-					}
-				}
-
-				if (orderings != select.OrderBy || columns != select.Columns)
-				{
-					select = new SqlSelectExpression(select.Type, select.Alias, columns, select.From, select.Where, orderings, select.GroupBy, select.Distinct, select.Skip, select.Take, select.ForUpdate);
-				}
-
-				return select;
-			}
-			finally
+			if (hasOrderBy)
 			{
-				this.isOuterMostSelect = saveIsOuterMostSelect;
+				this.PrependOrderings(select.OrderBy);
 			}
-		}
+				
+			var columns = select.Columns;
+			var orderings = canReceiveOrderings ? this.gatheredOrderings : select.OrderBy;
+			var canPassOnOrderings = this.outerCanReceiveOrderings && !hasGroupBy && !select.Distinct;
 
-		/// <summary>
-		/// Add a sequence of order expressions to an accumulated list, prepending so as
-		/// to give precedence to the new expressions over any previous expressions
-		/// </summary>
+			if (this.gatheredOrderings != null)
+			{
+				if (canPassOnOrderings)
+				{
+					var producedAliases = SqlAliasesProduced.Gather(select.From);
+					var project = this.RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
+
+					this.gatheredOrderings = null;
+					this.PrependOrderings(project.Orderings);
+
+					columns = project.Columns;
+				}
+				else
+				{
+					this.gatheredOrderings = null;
+				}
+			}
+
+			if (orderings != select.OrderBy || columns != select.Columns)
+			{
+				select = new SqlSelectExpression(select.Type, select.Alias, columns, select.From, select.Where, orderings, select.GroupBy, select.Distinct, select.Skip, select.Take, select.ForUpdate);
+			}
+
+			return select;
+		}
+		
 		private void PrependOrderings(IEnumerable<SqlOrderByExpression> newOrderings)
 		{
 			if (newOrderings != null)
@@ -109,7 +100,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		protected class BindResult
 		{
 			public IReadOnlyList<SqlColumnDeclaration> Columns { get; }
-
 			public IReadOnlyList<SqlOrderByExpression> Orderings { get; }
 
 			public BindResult(IEnumerable<SqlColumnDeclaration> columns, IEnumerable<SqlOrderByExpression> orderings)
@@ -118,11 +108,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				this.Orderings = orderings.ToReadOnlyCollection();
 			}
 		}
-
-		/// <summary>
-		/// Rebind order expressions to reference a new alias and add to column declarations if necessary
-		/// </summary>
-		protected virtual BindResult RebindOrderings(IEnumerable<SqlOrderByExpression> orderings, string alias, HashSet<string> existingAliases, IEnumerable<SqlColumnDeclaration> existingColumns)
+		
+		protected virtual BindResult RebindOrderings(IEnumerable<SqlOrderByExpression> orderings, string alias, HashSet<string> existingAliases, IReadOnlyList<SqlColumnDeclaration> existingColumns)
 		{
 			List<SqlColumnDeclaration> newColumns = null;
 			
@@ -134,9 +121,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var column = expr as SqlColumnExpression;
 
 				if (column == null || (existingAliases != null && existingAliases.Contains(column.SelectAlias)))
-				{
-					// Check to see if a declared column already contains a similar expression
+				{	
 					var ordinal = 0;
+
+					// If a declared column already contains a similar expression then make a reference to that column
 
 					foreach (var decl in existingColumns)
 					{
@@ -145,7 +133,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						if ((column != null && decl.Expression == ordering.Expression) ||
 							(column != null && declColumn != null && column.SelectAlias == declColumn.SelectAlias && column.Name == declColumn.Name))
 						{
-							// Found it, so make a reference to this column
 							expr = new SqlColumnExpression(column.Type, alias, decl.Name);
 
 							break;
@@ -153,8 +140,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 						ordinal++;
 					}
-
-					// If not already projected, add a new column declaration for it
+					
 					if (expr == ordering.Expression)
 					{
 						if (newColumns == null)
@@ -177,22 +163,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return new BindResult(existingColumns, newOrderings);
 		}
 
-		/// <summary>
-		///  Returns the set of all aliases produced by a query source
-		/// </summary>
-		private class AliasesProduced
+		private class SqlAliasesProduced
 			: SqlExpressionVisitor
 		{
 			private readonly HashSet<string> aliases;
 
-			private AliasesProduced()
+			private SqlAliasesProduced()
 			{
 				this.aliases = new HashSet<string>();
 			}
 
 			public static HashSet<string> Gather(Expression source)
 			{
-				var aliasesProduced = new AliasesProduced();
+				var aliasesProduced = new SqlAliasesProduced();
 
 				aliasesProduced.Visit(source);
 

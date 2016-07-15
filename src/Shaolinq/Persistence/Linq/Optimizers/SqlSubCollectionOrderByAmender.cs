@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			var aliasesAndTypes = SqlAliasTypeCollector.Collect(selectExpression)
 				.ToDictionary(c => c.Item1, c => typeDescriptorProvider.GetTypeDescriptor(c.Item2.GetSequenceElementType() ?? c.Item2));
 
-			List<Expression> orderBys = null;
+			List<SqlOrderByExpression> orderBys = null;
 			var includeJoins = selectExpression.From.GetIncludeJoins().ToList();
 			List<SqlColumnExpression> leftMostColumns = null;
 
@@ -75,7 +75,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					if (orderBys == null)
 					{
-						orderBys = new List<Expression>();
+						orderBys = new List<SqlOrderByExpression>();
 
 						if (selectExpression.OrderBy?.Count > 0)
 						{
@@ -89,7 +89,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 			}
 
-			return selectExpression.ChangeOrderBy(orderBys?.Distinct(SqlExpressionEqualityComparer.Default) ?? selectExpression.OrderBy);
+			return selectExpression.ChangeOrderBy(orderBys?.Distinct(SqlExpressionEqualityComparer<SqlOrderByExpression>.Default) ?? selectExpression.OrderBy);
 		}
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
