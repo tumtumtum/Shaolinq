@@ -6,7 +6,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Platform;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
@@ -203,16 +202,12 @@ namespace Shaolinq.Persistence
 				};
 				
 				var index = 0;
-				var properties = dataAccessObject.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
+				
 				foreach (var property in propertiesGeneratedOnServerSide)
 				{
 					var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(property.PropertyType);
 					var valueExpression = sqlDataType.GetReadExpression(readerParameter, index++);
-
-					var member =
-						properties.FirstOrDefault(c => c.Name == property.PropertyName && c.CanRead && c.CanWrite) ??
-						properties.Single(c => c.Name == property.PropertyName && c.CanRead && c.CanWrite);
+					var member = dataAccessObject.GetType().GetMostDerivedProperty(property.PropertyName);
 
 					statements.Add(Expression.Assign(Expression.MakeMemberAccess(local, member), valueExpression));
 				}
