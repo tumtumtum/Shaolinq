@@ -498,7 +498,7 @@ namespace Shaolinq
 						c => MemberAccessReplacer.Replace
 						(
 							c.ComputedMemberAssignmentValue, c.PropertyInfo,
-							Expression.Property(typedParameter, c.PropertyName)
+							Expression.Property(typedParameter, typedParameter.Type.GetMostDerivedProperty(c.PropertyName))
 						)
 					);
 				}
