@@ -2073,7 +2073,7 @@ namespace Shaolinq.Persistence.Linq
 						}
 					}
 
-					var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyName);
+					var propertyAccess = Expression.Property(parentExpression, value.DefinitionProperty.PropertyInfo);
 
 					bindings.Add(Expression.Bind(value.DefinitionProperty, propertyAccess));
 				}
