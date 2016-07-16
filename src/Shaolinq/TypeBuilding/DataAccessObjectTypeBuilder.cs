@@ -2375,7 +2375,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldloc, currentObject);
 						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
 
-						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(this.baseType, visited.PropertyType));
+						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(visited.PropertyInfo.ReflectedType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);
 
 						if (predicatedIndex > 0)
@@ -2419,7 +2419,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldloc, currentObject);
 						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
 
-						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(this.baseType, visited.PropertyType));
+						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(visited.PropertyInfo.ReflectedType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);
 
 						if (predicatedIndex > 0)
@@ -2891,12 +2891,20 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
 				generator.Emit(OpCodes.Brfalse, innerLabel2);
 
-				// if (this.PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys) { retval |= ReferencesNewObjectWithServerSideProperties; break }
+				// if (this.PropertyValue.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys && ((this.PropertyValue.ObjectState & DeflatedPredicated) != 0)) { retval |= ReferencesNewObjectWithServerSideProperties; break }
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, fieldInfo);
 				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectInternaIsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys.GetGetMethod());
 				generator.Emit(OpCodes.Brfalse, innerLabel1);
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				generator.Emit(OpCodes.Ldfld, fieldInfo);
+				generator.Emit(OpCodes.Callvirt, PropertyInfoFastRef.DataAccessObjectObjectState.GetGetMethod());
+				generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.DeflatedPredicated);
+				generator.Emit(OpCodes.And);
+				generator.Emit(OpCodes.Brtrue, innerLabel1);
 
 				generator.Emit(OpCodes.Ldloc, local);
 				generator.Emit(OpCodes.Ldc_I4, propertyDescriptor.IsPrimaryKey ? (int)DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties : (int)DataAccessObjectState.ReferencesNewObjectWithServerSideProperties);

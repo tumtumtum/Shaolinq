@@ -900,8 +900,6 @@ namespace Shaolinq.Tests
 		public void Test_SetProperty_OnNew_Using_DeflatedPredicate()
 		{
 			long schoolId;
-			Guid studentId1, studentId2;
-			string studentName1, studentName2;
 
 			using (var scope = new TransactionScope())
 			{
@@ -913,13 +911,64 @@ namespace Shaolinq.Tests
 				student1.Firstname = MethodBase.GetCurrentMethod().Name + "_A";
 				student2.Firstname = MethodBase.GetCurrentMethod().Name + "_B";
 
+				var address = this.model.Address.Create();
+				address.Country = "US";
+
+				var fraternity = this.model.Fraternities.Create();
+				fraternity.Id = "Pi";
+
+				scope.Flush();
+				
+				schoolId = school.Id;
+				
+				scope.Complete();
+			}
+
+			var count = this.model.QueryAnalytics.QueryCount;
+
+			Guid student3Id;
+
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.GetReference(schoolId);
+				var student3 = school.Students.Create();
+				
+				student3.Fraternity = this.model.Fraternities.GetReference(c => c.Id == "Pi");
+
 				scope.Flush();
 
+				student3Id = student3.Id;
+
+				Assert.AreEqual(count + 1, this.model.QueryAnalytics.QueryCount);
+
+				scope.Complete();
+			}
+
+			var s3 = this.model.Schools.GetReference(schoolId).Students.GetByPrimaryKey(student3Id);
+			Assert.IsNotNull(s3.Fraternity);
+		}
+
+		[Test]
+		public void Test_SetPropertyWithServerSidePrimaryKey_OnNew_Using_DeflatedPredicate()
+		{
+			long schoolId;
+			
+			using (var scope = new TransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				var student1 = school.Students.Create();
+				var student2 = school.Students.Create();
+
+				student1.Firstname = MethodBase.GetCurrentMethod().Name + "_A";
+				student2.Firstname = MethodBase.GetCurrentMethod().Name + "_B";
+
+				var address = this.model.Address.Create();
+				address.Country = "US";
+
+				scope.Flush();
+				
 				schoolId = school.Id;
-				studentId1 = student1.Id;
-				studentId2 = student2.Id;
-				studentName1 = student1.Firstname;
-				studentName2 = student2.Firstname;
 
 				scope.Complete();
 			}
@@ -932,9 +981,9 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.GetReference(schoolId);
 				var student3 = school.Students.Create();
-				var student2 = this.model.Students.GetReference(c => c.Firstname == studentName2);
+				var address = this.model.Address.GetReference(c => c.Country == "US");
 
-				student3.BestFriend = student2;
+				student3.Address = address;
 
 				scope.Flush();
 
@@ -946,7 +995,7 @@ namespace Shaolinq.Tests
 			}
 
 			var s3 = this.model.Schools.GetReference(schoolId).Students.GetByPrimaryKey(student3Id);
-			Assert.IsNotNull(s3.BestFriend);
+			Assert.IsNotNull(s3.Address);
 		}
 
 		[Test]
