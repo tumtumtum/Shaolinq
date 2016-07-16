@@ -87,7 +87,12 @@ namespace Shaolinq
 		{
 			var pathComponents = propertyPath.Split('.');
 			var parameter = Expression.Parameter(typeof(T));
-			var propertyExpression = pathComponents.Aggregate<string, Expression>(parameter, Expression.Property);
+
+			var propertyExpression = pathComponents.Aggregate<string, Expression>
+			(
+				parameter,
+				(instance, name) => Expression.Property(instance, instance.Type.GetMostDerivedProperty(name))
+			);
 
 			var expression = obj.dataAccessModel.GetDataAccessObjects<T>()
 				.Where((Expression<Func<T, bool>>)obj.ToObjectInternal().DeflatedPredicate)

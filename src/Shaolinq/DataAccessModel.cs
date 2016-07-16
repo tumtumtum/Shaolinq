@@ -489,7 +489,7 @@ namespace Shaolinq
 				{
 					var properties = typeDescriptor
 						.PrimaryKeyDerivableProperties
-						.Where(c => idType.GetProperty(c.PropertyName, BindingFlags.Instance | BindingFlags.Public) != null)
+						.Where(c => idType.GetMostDerivedProperty(c.PropertyName) != null)
 						.ToList();
 
 					replacementPrimaryKeyValues = properties.ToDictionary
@@ -517,7 +517,7 @@ namespace Shaolinq
 					{
 						if (!replacementPrimaryKeyValues.TryGetValue(property.PropertyName, out valueExpression))
 						{
-							valueExpression = Expression.PropertyOrField(typedParameter, property.PropertyName);
+							valueExpression = Expression.Property(typedParameter, typedParameter.Type.GetMostDerivedProperty(property.PropertyName));
 						}
 					}
 
