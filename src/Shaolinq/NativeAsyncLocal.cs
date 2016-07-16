@@ -14,9 +14,14 @@ namespace Shaolinq
 		private static readonly Action<object, T> setValueFunc;
 		private static readonly Func<object> createAsyncLocalFunc;
 		
+		internal static bool IsRunningMono()
+		{
+			return Type.GetType("Mono.Runtime") != null;
+		}
+
 		static NativeAsyncLocal()
 		{
-			NativeAsyncLocalType = Type.GetType("System.Threading.AsyncLocal`1")?.MakeGenericType(typeof(T));
+			NativeAsyncLocalType = IsRunningMono() ? null : Type.GetType("System.Threading.AsyncLocal`1")?.MakeGenericType(typeof(T));
 
 			if (NativeAsyncLocalType != null)
 			{
