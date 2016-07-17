@@ -457,24 +457,36 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(MissingPropertyValueException))]
+		[Test]
 		public void Test_Create_Object_Without_Related_Parent()
 		{
 			try
 			{
-				using (var scope = new TransactionScope())
+				try
 				{
-					var student = this.model.Students.Create();
+					using (var scope = new TransactionScope())
+					{
+						var student = this.model.Students.Create();
 
-					student.Firstname = "Bruce";
-					student.Lastname = "Lee";
+						student.Firstname = "Bruce";
+						student.Lastname = "Lee";
 
-					scope.Complete();
+						scope.Complete();
+					}
+				}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
 				}
 			}
-			catch (TransactionAbortedException e)
+			catch (Exception e)
 			{
-				throw e.InnerException;
+				if (!(e is MissingPropertyValueException || e is MissingRelatedDataAccessObjectException))
+				{
+					Console.WriteLine(e.InnerException);
+
+					Assert.Fail($"Expected {nameof(MissingPropertyValueException)} or {nameof(MissingPropertyValueException)}");
+				}
 			}
 		}
 

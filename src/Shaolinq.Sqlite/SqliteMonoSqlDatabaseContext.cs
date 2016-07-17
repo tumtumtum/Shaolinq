@@ -60,11 +60,11 @@ namespace Shaolinq.Sqlite
 
 			if (sqliteException.ErrorCode == SQLiteErrorCode.Constraint)
 			{
-				if (sqliteException.Message.IndexOf("FOREIGN KEY", StringComparison.Ordinal) >= 0)
+				if (sqliteException.Message.IndexOf("FOREIGN KEY", StringComparison.InvariantCultureIgnoreCase) >= 0)
 				{
 					return new MissingRelatedDataAccessObjectException(null, dataAccessObject, sqliteException, relatedQuery);
 				}
-				else if (sqliteException.Message.IndexOf("NOT NULL", StringComparison.Ordinal) >= 0)
+				else if (sqliteException.Message.IndexOf("NOT NULL", StringComparison.InvariantCultureIgnoreCase) >= 0)
 				{
 					return new MissingPropertyValueException(dataAccessObject, sqliteException, relatedQuery);
 				}

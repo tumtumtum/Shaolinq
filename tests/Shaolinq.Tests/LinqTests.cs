@@ -2968,8 +2968,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var result = this.model.Students.Select(c => c.Nickname).OrderBy(c => c).Distinct().Skip(1).ToList();
-				var result2 = this.model.Students.ToList().Select(c => c.Nickname).OrderBy(c => c).Distinct().Skip(1).ToList();
+				var result = this.model.Students.Select(c => c.Nickname).Distinct().OrderBy(c => c).Skip(1).ToList();
+				var result2 = this.model.Students.ToList().Select(c => c.Nickname).Distinct().OrderBy(c => c).Skip(1).ToList();
 
 				Assert.IsTrue(result.SequenceEqual(result2));
 			}
