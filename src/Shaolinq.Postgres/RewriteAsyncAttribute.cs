@@ -9,13 +9,12 @@ namespace Shaolinq.Postgres
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{
-		public bool ContinueOnCapturedContext { get; private set; }
-		public MethodAttributes MethodAttributes { get; private set; }
+		public bool ContinueOnCapturedContext { get; set; }
+		public MethodAttributes MethodAttributes { get; set; }
 
-		public RewriteAsyncAttribute(MethodAttributes methodAttributes = default(MethodAttributes), bool continueOnCapturedContext = false)
+		public RewriteAsyncAttribute(MethodAttributes methodAttributes = default(MethodAttributes))
 		{
 			this.MethodAttributes = methodAttributes;
-			this.ContinueOnCapturedContext = continueOnCapturedContext;
 		}
 	}
 }

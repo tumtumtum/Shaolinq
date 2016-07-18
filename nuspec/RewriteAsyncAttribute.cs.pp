@@ -9,13 +9,17 @@ namespace $rootnamespace$
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{
-    public bool ContinueOnCapturedContext { get; private set; }
-		public MethodAttributes MethodAttributes { get; private set; }
+    public bool ContinueOnCapturedContext { get; }
+		public MethodAttributes MethodAttributes { get; }
 
-		public RewriteAsyncAttribute(bool continueOnCapturedContext = false, MethodAttributes methodAttributes = default(MethodAttributes))
+    public RewriteAsyncAttribute()
+      : this(default(MethodAttributes))
+    {
+    }
+    
+		public RewriteAsyncAttribute(MethodAttributes methodAttributes = default(MethodAttributes))
 		{
 			this.MethodAttributes = methodAttributes;
-			this.ContinueOnCapturedContext = continueOnCapturedContext;
 		}
 	}
 }
