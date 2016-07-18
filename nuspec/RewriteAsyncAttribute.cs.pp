@@ -9,15 +9,15 @@ namespace $rootnamespace$
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{
-    public bool ContinueOnCapturedContext { get; }
-		public MethodAttributes MethodAttributes { get; }
+		public bool ContinueOnCapturedContext { get; set; }
+		public MethodAttributes MethodAttributes { get; set; }
 
-    public RewriteAsyncAttribute()
-      : this(default(MethodAttributes))
-    {
-    }
-    
-		public RewriteAsyncAttribute(MethodAttributes methodAttributes = default(MethodAttributes))
+		public RewriteAsyncAttribute()
+		  : this(default(MethodAttributes))
+		{
+		}
+	
+		public RewriteAsyncAttribute(MethodAttributes methodAttributes)
 		{
 			this.MethodAttributes = methodAttributes;
 		}
