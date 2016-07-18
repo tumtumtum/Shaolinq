@@ -9,7 +9,7 @@ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
-	public abstract class SqlDatabaseContext
+	public abstract partial class SqlDatabaseContext
 		: IDisposable
 	{
 		public TimeSpan? CommandTimeout { get; protected set; }
@@ -41,6 +41,7 @@ namespace Shaolinq.Persistence
 			return new DefaultSqlTransactionalCommandsContext(this, transaction);
 		}
 
+		[RewriteAsync]
 		public virtual IDbConnection OpenConnection()
 		{
 			if (this.dbProviderFactory == null)
@@ -56,6 +57,7 @@ namespace Shaolinq.Persistence
 			return retval;
 		}
 
+		[RewriteAsync]
 		public virtual IDbConnection OpenServerConnection()
 		{
 			if (this.dbProviderFactory == null)

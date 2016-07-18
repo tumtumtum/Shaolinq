@@ -30,6 +30,9 @@ namespace Shaolinq.MySql
 		[XmlAttribute]
 		public bool AllowConvertZeroDateTime { get; set; }
 
+		[XmlAttribute]
+		public string SqlMode { get; set; }
+
 		public MySqlSqlDatabaseContextInfo()
 		{
 			this.PoolConnections = true;

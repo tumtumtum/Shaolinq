@@ -477,22 +477,21 @@
     <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
     <WithoutGeneratedExcludePattern>**\Generated*.cs</WithoutGeneratedExcludePattern>
   </PropertyGroup>
+  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
+  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
+  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
   <ItemGroup>
     <SourceWithoutGenerated Include="$(WithoutGeneratedIncludePattern)" Exclude="$(WithoutGeneratedExcludePattern)">
       <InProject>False</InProject>
     </SourceWithoutGenerated>
   </ItemGroup>
-  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
-  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
-  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
-  <Target Name="GenerateSource">
-    <AsyncRewriterTask Assemblies="System.Data.dll" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
+  <Target Name="GenerateAsyncSource" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
+    <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
     <ExpressionComparerWriterTask InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedSqlExpressionComparer.cs" />
     <ExpressionHasherWriterTask InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedSqlExpressionHasher.cs" />
   </Target>
-  <Target Name="BeforeBuild">
-    <NugetContentRestoreTask SolutionDir="$(SolutionDir)" ProjectDir="$(ProjectDir)" />
-    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) $(ProjectName).csproj /v:m /m:2 /target:GenerateSource" WorkingDirectory="." />
+  <Target Name="GenerateAsyncSourceBeforeBuild" BeforeTargets="BeforeBuild">
+    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:2 /target:GenerateAsyncSource" WorkingDirectory="." />
   </Target>
   <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

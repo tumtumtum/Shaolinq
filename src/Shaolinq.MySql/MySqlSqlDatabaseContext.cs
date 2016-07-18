@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Data;
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using MySql.Data.MySqlClient;
@@ -8,13 +9,14 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.MySql
 {
-	public class MySqlSqlDatabaseContext
+	public partial class MySqlSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		public string Username { get; }
 		public string Password { get; }
 		public string ServerName { get; }
-		
+		public string SqlMode { get; }
+
 		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
@@ -27,6 +29,7 @@ namespace Shaolinq.MySql
 		private MySqlSqlDatabaseContext(DataAccessModel model, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, MySqlSqlDatabaseContextInfo contextInfo)
 			: base(model, new MySqlSqlDialect(), sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
+			this.SqlMode = contextInfo.SqlMode;
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
@@ -35,6 +38,28 @@ namespace Shaolinq.MySql
 			this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;$]+[;$]", "");
 
 			this.SchemaManager = new MySqlSqlDatabaseSchemaManager(this);
+		}
+
+		[RewriteAsync]
+		public override IDbConnection OpenConnection()
+		{
+			var retval = base.OpenConnection();
+			
+			using (var command = retval.CreateCommand())
+			{
+				var prefix = this.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
+				var parameter = command.CreateParameter();
+
+				parameter.DbType = DbType.String;
+				parameter.ParameterName = $"{prefix}param";
+				parameter.Value = this.SqlMode ?? "STRICT_ALL_TABLES";
+
+				command.CommandText = $"SET SESSION sql_mode = {prefix}param;";
+				command.Parameters.Add(parameter);
+				command.ExecuteNonQueryEx(this.DataAccessModel, true);
+			}
+
+			return retval;
 		}
 
 		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)

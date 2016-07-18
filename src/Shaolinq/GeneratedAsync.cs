@@ -1477,48 +1477,64 @@ namespace Shaolinq.Persistence
 {
     public static partial class DbCommandExtensions
     {
-        public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel)
+        public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
         {
             return ExecuteReaderExAsync(command, dataAccessModel, CancellationToken.None);
         }
 
-        public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
         {
             var marsDbCommand = command as MarsDbCommand;
             if (marsDbCommand != null)
             {
-                dataAccessModel.queryAnalytics.IncrementQueryCount();
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
                 return await marsDbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             }
 
             var dbCommand = command as DbCommand;
             if (dbCommand != null)
             {
-                dataAccessModel.queryAnalytics.IncrementQueryCount();
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
                 return await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return command.ExecuteReader();
         }
 
-        public static Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel)
+        public static Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
         {
             return ExecuteNonQueryExAsync(command, dataAccessModel, CancellationToken.None);
         }
 
-        public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+        public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
         {
             var marsDbCommand = command as MarsDbCommand;
             if (marsDbCommand != null)
             {
-                dataAccessModel.queryAnalytics.IncrementQueryCount();
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
                 return await marsDbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
 
             var dbCommand = command as DbCommand;
             if (dbCommand != null)
             {
-                dataAccessModel.queryAnalytics.IncrementQueryCount();
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
                 return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -1796,7 +1812,7 @@ namespace Shaolinq.Persistence
             expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
             expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
             var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
-            ((ISqlQueryProvider)provider).ExecuteEx<int>(expression);
+            await ((ISqlQueryProvider)provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -1932,6 +1948,45 @@ namespace Shaolinq.Persistence
             {
                 this.CloseConnection();
             }
+        }
+    }
+
+    public abstract partial class SqlDatabaseContext
+    {
+        public virtual Task<IDbConnection> OpenConnectionAsync()
+        {
+            return OpenConnectionAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+        {
+            if (this.dbProviderFactory == null)
+            {
+                this.dbProviderFactory = this.CreateDbProviderFactory();
+            }
+
+            var retval = this.dbProviderFactory.CreateConnection();
+            retval.ConnectionString = this.ConnectionString;
+            await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return retval;
+        }
+
+        public virtual Task<IDbConnection> OpenServerConnectionAsync()
+        {
+            return OpenServerConnectionAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<IDbConnection> OpenServerConnectionAsync(CancellationToken cancellationToken)
+        {
+            if (this.dbProviderFactory == null)
+            {
+                this.dbProviderFactory = this.CreateDbProviderFactory();
+            }
+
+            var retval = this.dbProviderFactory.CreateConnection();
+            retval.ConnectionString = this.ServerConnectionString;
+            await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return retval;
         }
     }
 }

@@ -3,7 +3,7 @@
 using System;
 using System.Reflection;
 
-namespace Shaolinq.Persistence
+namespace Shaolinq.MySql
 {
 	[AttributeUsage(AttributeTargets.Method)]
 	internal class RewriteAsyncAttribute
