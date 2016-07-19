@@ -12,15 +12,15 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("MySql")]
-	[TestFixture("Postgres")]
-	[TestFixture("Postgres.DotConnect")]
-	[TestFixture("Postgres.DotConnect.Unprepared")]
+	[TestFixture("MySql:DataAccessScope")]
+	[TestFixture("Postgres:DataAccessScope")]
+	[TestFixture("Postgres.DotConnect:DataAccessScope")]
+	[TestFixture("Postgres.DotConnect.Unprepared:DataAccessScope")]
 	[TestFixture("Sqlite")]
 	[TestFixture("Sqlite:DataAccessScope")]
 	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
-	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("SqliteInMemory:DataAccessScope")]
+	[TestFixture("SqliteClassicInMemory:DataAccessScope")]
 	public class LinqTests
 		: BaseTests<TestDataAccessModel>
 	{
