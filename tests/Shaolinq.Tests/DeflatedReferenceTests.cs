@@ -10,14 +10,14 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("MySql")]
-	[TestFixture("Postgres")]
-	[TestFixture("Postgres.DotConnect")]
-	[TestFixture("Postgres.DotConnect.Unprepared")]
-	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
-	[TestFixture("Sqlite")]
-	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("MySql:DataAccessScope")]
+	[TestFixture("Postgres:DataAccessScope")]
+	[TestFixture("Postgres.DotConnect:DataAccessScope")]
+	[TestFixture("Postgres.DotConnect.Unprepared:DataAccessScope")]
+	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
+	[TestFixture("Sqlite:DataAccessScope")]
+	[TestFixture("SqliteInMemory:DataAccessScope")]
+	[TestFixture("SqliteClassicInMemory:DataAccessScope")]
 	public class DeflatedReferenceTests
 		: BaseTests<TestDataAccessModel>
 	{

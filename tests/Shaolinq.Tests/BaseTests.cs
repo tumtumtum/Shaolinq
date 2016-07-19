@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Transactions;
 using log4net.Config;
 using NUnit.Framework;
-using Platform.Reflection;
 using Shaolinq.MySql;
 using Shaolinq.Postgres;
 using Shaolinq.Postgres.DotConnect;
@@ -34,7 +33,7 @@ namespace Shaolinq.Tests
 			}
 			else
 			{
-				return new TransactionScopeAdapter(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+				return new TransactionScopeAdapter(new TransactionScope());
 			}
 		}
 
