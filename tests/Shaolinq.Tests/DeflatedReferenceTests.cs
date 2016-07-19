@@ -27,15 +27,17 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[ExpectedException(typeof(MissingDataAccessObjectException))]
 		public void Test_Inflate_Nonexistent_Object()
 		{
-			using (var scope = new TransactionScope())
+			Assert.Catch<MissingDataAccessObjectException>(() =>
 			{
-				var foo = this.model.Schools.GetReference(999);
+				using (var scope = new TransactionScope())
+				{
+					var foo = this.model.Schools.GetReference(999);
 
-				foo.Inflate();
-			}
+					foo.Inflate();
+				}
+			});
 		}
 
 		[Test]
@@ -144,63 +146,69 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(MissingRelatedDataAccessObjectException))]
+		[Test]
 		public void Test_Set_Related_Parent_Using_Invalid_Deflated_Reference()
 		{
-			try
+			Assert.Catch<MissingRelatedDataAccessObjectException>(() =>
 			{
-				using (var scope = new TransactionScope())
+				try
 				{
-					var student = this.model.Students.Create();
+					using (var scope = new TransactionScope())
+					{
+						var student = this.model.Students.Create();
 
-					student.School = this.model.Schools.GetReference(8972394);
-					scope.Complete();
+						student.School = this.model.Schools.GetReference(8972394);
+						scope.Complete();
+					}
 				}
-			}
-			catch (TransactionAbortedException e)
-			{
-				throw e.InnerException;
-			}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 
-		[Test, ExpectedException(typeof(MissingDataAccessObjectException))]
+		[Test]
 		public void Test_Use_Deflated_Reference_To_Update_Object_That_Was_Deleted1()
 		{
-			long schoolId;
-
-			using (var scope = new TransactionScope())
+			Assert.Catch<MissingDataAccessObjectException>(() =>
 			{
-				var school = this.model.Schools.Create();
+				long schoolId;
 
-				scope.Flush();
-
-				schoolId = school.Id;
-
-				scope.Complete();
-			}
-
-			using (var scope = new TransactionScope())
-			{
-				this.model.Schools.Where(c => c.Id == schoolId).Delete();
-
-				scope.Complete();
-			}
-
-			try
-			{
 				using (var scope = new TransactionScope())
 				{
-					var school = this.model.Schools.GetReference(schoolId);
+					var school = this.model.Schools.Create();
 
-					school.Name = "The Temple";
+					scope.Flush();
+
+					schoolId = school.Id;
 
 					scope.Complete();
 				}
-			}
-			catch (TransactionAbortedException e)
-			{
-				throw e.InnerException;
-			}
+
+				using (var scope = new TransactionScope())
+				{
+					this.model.Schools.Where(c => c.Id == schoolId).Delete();
+
+					scope.Complete();
+				}
+
+				try
+				{
+					using (var scope = new TransactionScope())
+					{
+						var school = this.model.Schools.GetReference(schoolId);
+
+						school.Name = "The Temple";
+
+						scope.Complete();
+					}
+				}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 
 		[Test]
@@ -260,24 +268,27 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(MissingDataAccessObjectException))]
+		[Test]
 		public void Test_Use_Deflated_Reference_To_Update_Non_Existant_Object_Without_First_Reading()
 		{
-			try
+			Assert.Catch<MissingDataAccessObjectException>(() =>
 			{
-				using (var scope = new TransactionScope())
+				try
 				{
-					var school = this.model.Schools.GetReference(89327493);
+					using (var scope = new TransactionScope())
+					{
+						var school = this.model.Schools.GetReference(89327493);
 
-					school.Name = "The Temple";
+						school.Name = "The Temple";
 
-					scope.Complete();
+						scope.Complete();
+					}
 				}
-			}
-			catch (TransactionAbortedException e)
-			{
-				throw e.InnerException;
-			}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 
 		[Test]

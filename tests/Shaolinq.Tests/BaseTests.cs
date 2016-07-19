@@ -34,7 +34,7 @@ namespace Shaolinq.Tests
 			}
 			else
 			{
-				return new TransactionScopeAdapter(new TransactionScope());
+				return new TransactionScopeAdapter(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 			}
 		}
 
@@ -154,7 +154,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[TestFixtureTearDown]
+		[OneTimeTearDown]
 		public virtual void Dispose()
 		{
 			this.model.Dispose();

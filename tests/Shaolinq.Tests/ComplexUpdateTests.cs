@@ -97,33 +97,36 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(MissingOrInvalidPrimaryKeyException))]
+		[Test]
 		public void Test_Create_Object_With_Incomplete_Complex_Primary_Key()
 		{
-			try
+			Assert.Catch<MissingOrInvalidPrimaryKeyException>(() =>
 			{
-				using (var scope = NewTransactionScope())
+				try
 				{
-					var address = this.model.Addresses.Create();
-					
-					address.Region = this.model.Regions.Create();
-					address.Region2 = address.Region;
-					address.Region2 = null;
+					using (var scope = NewTransactionScope())
+					{
+						var address = this.model.Addresses.Create();
 
-					var changedProperties = address.GetChangedProperties();
-					var changedPropesrtiesFlattened = address.GetAdvanced().GetChangedPropertiesFlattened();
-					
-					Assert.IsTrue(address.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys);
-					Assert.IsFalse(address.GetAdvanced().PrimaryKeyIsCommitReady);
-					Assert.AreEqual(changedProperties.Count, address.GetAllProperties().Length);
-					
-					scope.Complete();
+						address.Region = this.model.Regions.Create();
+						address.Region2 = address.Region;
+						address.Region2 = null;
+
+						var changedProperties = address.GetChangedProperties();
+						var changedPropesrtiesFlattened = address.GetAdvanced().GetChangedPropertiesFlattened();
+
+						Assert.IsTrue(address.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys);
+						Assert.IsFalse(address.GetAdvanced().PrimaryKeyIsCommitReady);
+						Assert.AreEqual(changedProperties.Count, address.GetAllProperties().Length);
+
+						scope.Complete();
+					}
 				}
-			}
-			catch (TransactionAbortedException e)
-			{
-				throw e.InnerException;
-			}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 
 		[Test]

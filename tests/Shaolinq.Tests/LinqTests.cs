@@ -29,7 +29,7 @@ namespace Shaolinq.Tests
 		{
 		}
 
-		[TestFixtureSetUp]
+		[OneTimeSetUp]
 		public void SetupFixture()
 		{
 			this.CreateObjects();	
@@ -1434,7 +1434,7 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, Ignore]
+		[Test]
 		public void Test_Query_Related_Objects3()
 		{
 			Func<Task> func = async () =>
@@ -1443,7 +1443,7 @@ namespace Shaolinq.Tests
 				{
 					var studentCountBySchoolId = this.model.Schools.ToList().ToDictionary(c => c.Id, c => c.Students.Count());
 
-					foreach (var school in this.model.Schools.ToList() /* MySql ADO provider doesn't allow nested Count below */)
+					foreach (var school in this.model.Schools)
 					{
 						var expected = studentCountBySchoolId[school.Id];
 
@@ -1459,7 +1459,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_First1()
 		{
-			var student = this.model.Students.First();
+			Assert.IsNotNull(this.model.Students.First());
 		}
 
 		[Test]
@@ -1522,15 +1522,17 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[ExpectedException(typeof(InvalidOperationException))]
 		public void Test_Query_First3()
 		{
-			using (var scope = NewTransactionScope())
+			Assert.Catch<InvalidOperationException>(() =>
 			{
-				var student1 = this.model.Students.First(c => c.Firstname == "iewiorueo");
+				using (var scope = NewTransactionScope())
+				{
+					var student1 = this.model.Students.First(c => c.Firstname == "iewiorueo");
 
-				scope.Complete();
-			}
+					scope.Complete();
+				}
+			});
 		}
 
 		[Test]

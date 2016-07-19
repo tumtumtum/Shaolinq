@@ -26,7 +26,7 @@ namespace Shaolinq.Tests
 		{
 		}
 
-		[TestFixtureSetUp]
+		[OneTimeSetUp]
 		public void SetUpFixture()
 		{
 			using (var scope = NewTransactionScope())

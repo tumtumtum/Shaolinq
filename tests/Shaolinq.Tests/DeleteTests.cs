@@ -255,48 +255,51 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(MissingDataAccessObjectException))]
+		[Test]
 		public void Test_Query_Access_Deleted_Object_Via_DeflatedReference()
 		{
-			long schoolId;
-
-			using (var scope = new TransactionScope())
+			Assert.Catch<MissingDataAccessObjectException>(() =>
 			{
-				var school = this.model.Schools.Create();
+				long schoolId;
 
-				school.Name = "Yoga Decorum";
-
-				scope.Flush();
-
-				schoolId = school.Id;
-
-				scope.Complete();
-			}
-
-			using (var scope = new TransactionScope())
-			{
-				this.model.Schools.Where(c => c.Id == schoolId).Delete();
-
-				scope.Complete();
-			}
-
-			Assert.AreEqual(0, this.model.Schools.Count(c => c.Id == schoolId));
-
-			try
-			{
 				using (var scope = new TransactionScope())
 				{
-					var school = this.model.Schools.GetReference(schoolId);
+					var school = this.model.Schools.Create();
 
-					school.Name = "Yoga Decorum!!!";
+					school.Name = "Yoga Decorum";
+
+					scope.Flush();
+
+					schoolId = school.Id;
 
 					scope.Complete();
 				}
-			}
-			catch (TransactionAbortedException e)
-			{
-				throw e.InnerException;
-			}
+
+				using (var scope = new TransactionScope())
+				{
+					this.model.Schools.Where(c => c.Id == schoolId).Delete();
+
+					scope.Complete();
+				}
+
+				Assert.AreEqual(0, this.model.Schools.Count(c => c.Id == schoolId));
+
+				try
+				{
+					using (var scope = new TransactionScope())
+					{
+						var school = this.model.Schools.GetReference(schoolId);
+
+						school.Name = "Yoga Decorum!!!";
+
+						scope.Complete();
+					}
+				}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 	}
 }

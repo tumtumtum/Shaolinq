@@ -116,48 +116,54 @@ namespace Shaolinq.Tests
 			}
 		}
 
-		[Test, ExpectedException(typeof(ObjectAlreadyExistsException))]
+		[Test]
 		public void Test_Create_Objects_With_Guid_Non_AutoIncrement_PrimaryKey_And_Set_Same_Primary_Keys_With_Assign()
 		{
-			try
+			Assert.Catch<ObjectAlreadyExistsException>(() =>
 			{
-				using (var scope = NewTransactionScope())
+				try
 				{
-					var id = Guid.NewGuid();
+					using (var scope = NewTransactionScope())
+					{
+						var id = Guid.NewGuid();
 
-					var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
-					var obj2 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
+						var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+						var obj2 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create();
 
-					obj2.Id = id;
+						obj2.Id = id;
 
-					scope.Complete();
+						scope.Complete();
+					}
 				}
-			}
-			catch (TransactionAbortedException e)
-			{
-				throw e.InnerException;
-			}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 
-		[Test, ExpectedException(typeof(ObjectAlreadyExistsException))]
+		[Test]
 		public void Test_Create_Objects_With_Guid_Non_AutoIncrement_PrimaryKey_And_Set_Same_Primary_Keys_With_Create()
 		{
-			try
+			Assert.Catch<ObjectAlreadyExistsException>(() =>
 			{
-				using (var scope = NewTransactionScope())
+				try
 				{
-					var id = Guid.NewGuid();
+					using (var scope = NewTransactionScope())
+					{
+						var id = Guid.NewGuid();
 
-					var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
-					var obj2 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
-					
-					scope.Complete();
+						var obj1 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+						var obj2 = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
+
+						scope.Complete();
+					}
 				}
-			}
-			catch (TransactionAbortedException e)
-			{
-				throw e.InnerException;
-			}
+				catch (TransactionAbortedException e)
+				{
+					throw e.InnerException;
+				}
+			});
 		}
 		
 		[Test]

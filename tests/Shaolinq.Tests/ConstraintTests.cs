@@ -22,21 +22,24 @@ namespace Shaolinq.Tests
 		{
 		}
 
-		[Test, ExpectedException(typeof(UniqueConstraintException))]
+		[Test]
 		public void Test_Unique_Non_PrimaryKey_Constraint()
 		{
-			using (var scope = new TransactionScope())
+			Assert.Catch<UniqueConstraintException>(() =>
 			{
-				var obj1 = this.model.ObjectWithUniqueConstraints.Create();
-				obj1.Name = "a";
+				using (var scope = new TransactionScope())
+				{
+					var obj1 = this.model.ObjectWithUniqueConstraints.Create();
+					obj1.Name = "a";
 
-				var obj2 = this.model.ObjectWithUniqueConstraints.Create();
-				obj2.Name = "a";
+					var obj2 = this.model.ObjectWithUniqueConstraints.Create();
+					obj2.Name = "a";
 
-				scope.Flush();
+					scope.Flush();
 
-				scope.Complete();
-			}
+					scope.Complete();
+				}
+			});
 		}
 	}
 }
