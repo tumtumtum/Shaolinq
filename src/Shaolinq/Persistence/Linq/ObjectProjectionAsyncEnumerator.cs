@@ -6,19 +6,20 @@ using System.Data;
 
 namespace Shaolinq.Persistence.Linq
 {
-	internal partial class ObjectProjectionAsyncEnumerator<T, U>
+	internal partial class ObjectProjectionAsyncEnumerator<T, U, C>
 		: IAsyncEnumerator<T>
 		where U : T
+		where C : class
 	{
 		private int state;
 		private bool disposed;
-		private object context;
+		private C context;
 		private IDataReader dataReader;
-		private readonly ObjectProjector<T, U> objectProjector;
+		private readonly ObjectProjector<T, U, C> objectProjector;
 		private readonly DatabaseTransactionContextAcquisition acquisition;
 		private readonly TransactionContext.TransactionContextExecutionVersionContext versionContext;
 
-		public ObjectProjectionAsyncEnumerator(ObjectProjector<T, U> objectProjector)
+		public ObjectProjectionAsyncEnumerator(ObjectProjector<T, U, C> objectProjector)
 		{
 			this.objectProjector = objectProjector;
 
@@ -46,7 +47,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (disposed)
 			{
-				throw new ObjectDisposedException(nameof(ObjectProjectionAsyncEnumerator<T, U>));
+				throw new ObjectDisposedException(nameof(ObjectProjectionAsyncEnumerator<T, U, C>));
 			}
 
 			disposed = true;

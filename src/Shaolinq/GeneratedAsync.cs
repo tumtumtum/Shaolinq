@@ -948,7 +948,7 @@ namespace Shaolinq.Persistence.Linq
 	using Shaolinq.Persistence;
 	using Shaolinq.Persistence.Linq;
 
-	internal partial class ObjectProjectionAsyncEnumerator<T, U>
+	internal partial class ObjectProjectionAsyncEnumerator<T, U, C>
 	{
 		public virtual Task<bool> MoveNextAsync()
 		{

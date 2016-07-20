@@ -190,7 +190,7 @@
     <Compile Include="Persistence\ExpressionCacheKey.cs" />
     <Compile Include="Persistence\ExpressionCacheKeyEqualityComparer.cs" />
     <Compile Include="Persistence\Linq\AlwaysReadFirstObjectProjector.cs" />
-    <Compile Include="Persistence\Linq\DataAccessObjectContainerProjector.cs" />
+    <Compile Include="Persistence\Linq\ComplexDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\Expressions\BinaryOperations.cs" />
     <Compile Include="Persistence\Linq\Expressions\ISqlExposesAliases.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUnionExpression.cs" />

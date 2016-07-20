@@ -351,7 +351,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 					else
 					{
-						var constructor = typeof(DataAccessObjectContainerProjector<,>)
+						var constructor = typeof(ComplexDataAccessObjectProjector<,>)
 							.MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType)
 							.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
 							.Single();
