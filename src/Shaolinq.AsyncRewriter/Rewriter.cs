@@ -307,7 +307,7 @@ namespace Shaolinq.AsyncRewriter
 				{
 					typesAlreadyWarnedAbout.Add(name);
 
-					Console.WriteLine($"Type '{name}' needs to be marked as partial");
+					Console.Error.WriteLine($"Type '{name}' needs to be marked as partial");
 				}
 			}
 
