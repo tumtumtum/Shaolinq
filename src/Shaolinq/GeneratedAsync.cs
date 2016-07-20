@@ -848,7 +848,7 @@ namespace Shaolinq
 
         public static async Task<decimal> SumAsync(this IQueryable<decimal> source, CancellationToken cancellationToken)
         {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double>))), source.Expression);
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<decimal>))), source.Expression);
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal>(expression, cancellationToken).ConfigureAwait(false);
         }
 
@@ -859,7 +859,7 @@ namespace Shaolinq
 
         public static async Task<decimal ? > SumAsync(this IQueryable<decimal ? > source, CancellationToken cancellationToken)
         {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double ? >))), source.Expression);
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<decimal ? >))), source.Expression);
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal ? >(expression, cancellationToken).ConfigureAwait(false);
         }
 
@@ -958,7 +958,7 @@ namespace Shaolinq
 
         public static async Task<decimal> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken)
         {
-            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (double))), source.Expression, Expression.Quote(selector));
+            Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (decimal))), source.Expression, Expression.Quote(selector));
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal>(expression, cancellationToken).ConfigureAwait(false);
         }
 

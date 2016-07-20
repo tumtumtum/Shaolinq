@@ -1,5 +1,9 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using Platform;
+using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq;
+using Shaolinq.TypeBuilding;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,10 +12,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Platform;
-using Shaolinq.Persistence;
-using Shaolinq.Persistence.Linq;
-using Shaolinq.TypeBuilding;
 
 // ReSharper disable InvokeAsExtensionMethod
 
@@ -369,7 +369,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static decimal Sum(this IQueryable<decimal> source)
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double>))), source.Expression);
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<decimal>))), source.Expression);
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<decimal>(expression);
 		}
@@ -377,7 +377,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static decimal? Sum(this IQueryable<decimal?> source)
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double?>))), source.Expression);
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<decimal?>))), source.Expression);
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<decimal?>(expression);
 		}
@@ -451,7 +451,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static decimal Sum<T>(this IQueryable<T> source, Expression<Func<T, decimal>> selector)
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(double))), source.Expression, Expression.Quote(selector));
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(decimal))), source.Expression, Expression.Quote(selector));
 
 			return ((IQueryProvider)source.Provider).ExecuteEx<decimal>(expression);
 		}
