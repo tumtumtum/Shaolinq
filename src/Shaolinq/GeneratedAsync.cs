@@ -687,7 +687,7 @@ namespace Shaolinq.Persistence
             return ExecuteReaderAsync(sql, parameters, CancellationToken.None);
         }
 
-        public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, System.Threading.CancellationToken cancellationToken)
+        public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
         {
             using (var command = this.CreateCommand())
             {
@@ -720,7 +720,7 @@ namespace Shaolinq.Persistence
             return UpdateAsync(type, dataAccessObjects, CancellationToken.None);
         }
 
-        public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, System.Threading.CancellationToken cancellationToken)
+        public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
         {
             await UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
         }
@@ -784,7 +784,7 @@ namespace Shaolinq.Persistence
             return InsertAsync(type, dataAccessObjects, CancellationToken.None);
         }
 
-        public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, System.Threading.CancellationToken cancellationToken)
+        public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
         {
             var listToFixup = new List<DataAccessObject>();
             var listToRetry = new List<DataAccessObject>();
@@ -869,7 +869,7 @@ namespace Shaolinq.Persistence
             return DeleteAsync(deleteExpression, CancellationToken.None);
         }
 
-        public override async Task DeleteAsync(SqlDeleteExpression deleteExpression, System.Threading.CancellationToken cancellationToken)
+        public override async Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
         {
             var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
             using (var command = this.CreateCommand())
@@ -903,7 +903,7 @@ namespace Shaolinq.Persistence
             return DeleteAsync(type, dataAccessObjects, CancellationToken.None);
         }
 
-        public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, System.Threading.CancellationToken cancellationToken)
+        public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
         {
             var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
             var parameter = Expression.Parameter(typeDescriptor.Type, "value");

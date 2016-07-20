@@ -25,6 +25,7 @@ namespace Shaolinq.AsyncRewriter
 		private HashSet<ITypeSymbol> excludedTypes;
 		private ITypeSymbol methodAttributesSymbol;
 		private ITypeSymbol cancellationTokenSymbol;
+		private readonly HashSet<string> typesAlreadyWarnedAbout = new HashSet<string>();
 
 		private static readonly UsingDirectiveSyntax[] extraUsingDirectives =
 		{
@@ -34,7 +35,6 @@ namespace Shaolinq.AsyncRewriter
 
 		private readonly ILogger log;
 		
-
 		public Rewriter(ILogger log = null)
 		{
 			this.log = log;
@@ -112,27 +112,6 @@ namespace Shaolinq.AsyncRewriter
 
 			return this.RewriteAndMerge(syntaxTrees, compilation, excludeTypes).ToString();
 		}
-
-		private static UsingDirectiveSyntax CreateUsingDirective(string usingName)
-		{
-			NameSyntax qualifiedName = null;
-
-			foreach (var identifier in usingName.Split('.'))
-			{
-				var name = SyntaxFactory.IdentifierName(identifier);
-
-				if (qualifiedName != null)
-				{
-					qualifiedName = SyntaxFactory.QualifiedName(qualifiedName, name);
-				}
-				else
-				{
-					qualifiedName = name;
-				}
-			}
-
-			return SyntaxFactory.UsingDirective(qualifiedName);
-		}
 		
 		private static NamespaceDeclarationSyntax AmendUsings(NamespaceDeclarationSyntax nameSpace, SyntaxList<UsingDirectiveSyntax> usings)
 		{
@@ -205,7 +184,8 @@ namespace Shaolinq.AsyncRewriter
 					throw new ArgumentException("A provided syntax tree was compiled into the provided compilation");
 				}
 
-				if (!syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Any(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().Contains("RewriteAsync"))))
+				if (!syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
+					.Any(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync"))))
 				{
 					continue;
 				}
@@ -215,17 +195,30 @@ namespace Shaolinq.AsyncRewriter
 					syntaxTree.GetRoot()
 					.DescendantNodes()
 					.OfType<MethodDeclarationSyntax>()
-					.Where(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().Contains("RewriteAsync")))
-					.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>())
+					.Where(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
+					.Where(c => (c.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? c.FirstAncestorOrSelf<InterfaceDeclarationSyntax>() as TypeDeclarationSyntax) != null)
+					.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? m.FirstAncestorOrSelf<InterfaceDeclarationSyntax>())
 					.GroupBy(g => g.Key.FirstAncestorOrSelf<NamespaceDeclarationSyntax>())
-					.Select(nsGrp =>
-						SyntaxFactory.NamespaceDeclaration(nsGrp.Key.Name)
-						.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(nsGrp.Select(clsGrp =>
-							SyntaxFactory.ClassDeclaration(clsGrp.Key.Identifier)
-								.WithModifiers(clsGrp.Key.Modifiers)
-								.WithTypeParameterList(clsGrp.Key.TypeParameterList)
-								.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(clsGrp.SelectMany(m => this.RewriteMethods(m, semanticModel))))
-						)))
+					.Select(namespaceGrouping =>
+						SyntaxFactory.NamespaceDeclaration(namespaceGrouping.Key.Name)
+						.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>
+						(
+							namespaceGrouping.Select
+							(
+								typeGrouping => 
+								typeGrouping.Key is ClassDeclarationSyntax
+								?
+									SyntaxFactory.ClassDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
+									.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
+									.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+									as TypeDeclarationSyntax
+								:
+									SyntaxFactory.InterfaceDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
+									.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
+									.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+									as TypeDeclarationSyntax
+							)
+						))
 					)
 				);
 
@@ -240,73 +233,10 @@ namespace Shaolinq.AsyncRewriter
 
 		IEnumerable<MethodDeclarationSyntax> RewriteMethods(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
 		{
-			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel);
-			yield return this.RewriteMethodAsyncWithCancellationToken(inMethodSyntax, semanticModel);
+			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel, false);
+			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel, true);
 		}
-		
-		MethodDeclarationSyntax RewriteMethodAsync(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
-		{
-			var inMethodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, inMethodSyntax);
-			var outMethodName = inMethodSyntax.Identifier.Text + "Async";
 
-			var methodInvocation = SyntaxFactory.InvocationExpression
-			(
-				SyntaxFactory.IdentifierName(outMethodName),
-				SyntaxFactory.ArgumentList
-				(
-					new SeparatedSyntaxList<ArgumentSyntax>()
-					.AddRange(inMethodSymbol.Parameters.TakeWhile(c => !c.HasExplicitDefaultValue).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
-					.Add(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("CancellationToken"), SyntaxFactory.IdentifierName("None"))))
-					.AddRange(inMethodSymbol.Parameters.SkipWhile(c => !c.HasExplicitDefaultValue).Skip(1).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
-				)
-			);
-			
-			var callAsyncWithCancellationToken = methodInvocation;
-
-			var returnType = inMethodSyntax.ReturnType.ToString();
-			var method = inMethodSyntax.WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(callAsyncWithCancellationToken)));
-			
-			method = method
-				.WithIdentifier(SyntaxFactory.Identifier(outMethodName))
-				.WithAttributeLists(new SyntaxList<AttributeListSyntax>())
-				.WithReturnType(SyntaxFactory.ParseTypeName(returnType == "void" ? "Task" : $"Task<{returnType}>"));
-
-			var parentContainsAsyncMethod = this
-				.GetMethods(semanticModel, inMethodSymbol.ReceiverType.BaseType, outMethodName, method)
-				.Any();
-				
-			var parentContainsMethodWithRewriteAsync = this
-				.GetMethods(semanticModel, inMethodSymbol.ReceiverType.BaseType, inMethodSyntax.Identifier.Text, inMethodSyntax)
-				.Any(m => m.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync")));
-			
-			if (!(parentContainsAsyncMethod || parentContainsMethodWithRewriteAsync))
-			{
-				var hadOverride = method.Modifiers.Any(c => c.Kind() == SyntaxKind.OverrideKeyword);
-
-				method = method.WithModifiers(new SyntaxTokenList().AddRange(method.Modifiers.Where(c => c.Kind() != SyntaxKind.OverrideKeyword && c.Kind() != SyntaxKind.NewKeyword)));
-
-				if (hadOverride)
-				{
-					method = method.WithModifiers(method.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword)));
-				}
-			}
-
-			var attribute = inMethodSymbol
-				.GetAttributes()
-				.SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
-
-			if (attribute?.ConstructorArguments.Any() == true)
-			{
-				if (attribute.ConstructorArguments.First().Type == methodAttributesSymbol)
-				{
-					var methodAttributes = (MethodAttributes)Enum.ToObject(typeof(MethodAttributes), Convert.ToInt32(attribute.ConstructorArguments.First().Value));
-
-					method = method.WithAccessModifiers(methodAttributes);
-				}
-			}
-
-			return method;
-		}
 
 		private IEnumerable<IMethodSymbol> GetMethods(SemanticModel semanticModel, ITypeSymbol symbol, string name, MethodDeclarationSyntax method)
 		{
@@ -316,7 +246,24 @@ namespace Shaolinq.AsyncRewriter
 				.GetAllMembers(symbol)
 				.Where(c => c.Name == name)
 				.OfType<IMethodSymbol>()
-				.Where(c => c.Parameters.Select(d => d.Type).SequenceEqual(parameters.Select(d => GetSymbol(semanticModel, method, d.Type))));
+				.Where(c => c.Parameters.Select(d => GetObj(d.Type)).SequenceEqual(parameters.Select(d => GetObj(GetSymbol(semanticModel, method, d.Type), method, d.Type))));
+		}
+
+		private object GetObj(ITypeSymbol symbol, MethodDeclarationSyntax method = null, TypeSyntax typeSyntax = null)
+		{
+			var typedParameterSymbol = symbol as ITypeParameterSymbol;
+
+			if (typedParameterSymbol != null)
+			{
+				return typedParameterSymbol.Ordinal;
+			}
+
+			if (symbol != null)
+			{
+				return symbol;
+			}
+
+			return method.TypeParameterList.Parameters.IndexOf(c => c.ToString() == typeSyntax.ToString());
 		}
 
 		private INamedTypeSymbol GetSymbol(SemanticModel semanticModel, MethodDeclarationSyntax method, TypeSyntax typeSyntax)
@@ -324,11 +271,6 @@ namespace Shaolinq.AsyncRewriter
 			var position = method.SpanStart;
 			
 			var retval = semanticModel.GetSpeculativeSymbolInfo(position, typeSyntax, SpeculativeBindingOption.BindAsExpression).Symbol as INamedTypeSymbol;
-			
-			if (retval == null)
-			{
-				Console.WriteLine($"Unable to find symbol for {typeSyntax}");
-			}
 
 			return retval;
 		}
@@ -348,69 +290,159 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 		}
-
-		private MethodDeclarationSyntax RewriteMethodAsyncWithCancellationToken(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
+		
+		private MethodDeclarationSyntax RewriteMethodAsync(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel, bool cancellationVersion)
 		{
-			var inMethodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, inMethodSyntax);
-			var outMethodName = inMethodSyntax.Identifier.Text + "Async";
+			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
+			var asyncMethodName = methodSymbol.Name + "Async";
+			var isInterfaceMethod = methodSymbol.ContainingType.TypeKind == TypeKind.Interface;
+
+			if (((methodSyntax.Parent as TypeDeclarationSyntax)?.Modifiers)?.Any(c => c.Kind() == SyntaxKind.PartialKeyword) != true)
+			{
+				var name = ((TypeDeclarationSyntax)methodSyntax.Parent).Identifier.ToString();
+
+				if (!typesAlreadyWarnedAbout.Contains(name))
+				{
+					typesAlreadyWarnedAbout.Add(name);
+
+					Console.WriteLine($"Type '{name}' needs to be marked as partial");
+				}
+			}
 
 			var rewriter = new MethodInvocationRewriter(this.log, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
-			var method = (MethodDeclarationSyntax)rewriter.Visit(inMethodSyntax);
-			
-			method = method
-				.WithIdentifier(SyntaxFactory.Identifier(outMethodName))
+			var newAsyncMethod = (MethodDeclarationSyntax)rewriter.Visit(methodSyntax);
+			var returnTypeName = methodSyntax.ReturnType.ToString();
+
+			newAsyncMethod = newAsyncMethod
+				.WithIdentifier(SyntaxFactory.Identifier(asyncMethodName))
 				.WithAttributeLists(new SyntaxList<AttributeListSyntax>())
-				.WithModifiers(inMethodSyntax.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)))
-				.WithParameterList(SyntaxFactory.ParameterList(inMethodSyntax.ParameterList.Parameters.Insert
+				.WithReturnType(SyntaxFactory.ParseTypeName(returnTypeName == "void" ? "Task" : $"Task<{returnTypeName}>"));
+
+			if (cancellationVersion)
+			{
+				newAsyncMethod = newAsyncMethod.WithParameterList(SyntaxFactory.ParameterList(methodSyntax.ParameterList.Parameters.Insert
 				(
-					inMethodSyntax.ParameterList.Parameters.TakeWhile(p => p.Default == null && !p.Modifiers.Any(m => m.IsKind(SyntaxKind.ParamsKeyword))).Count(),
+					methodSyntax.ParameterList.Parameters.TakeWhile(p => p.Default == null && !p.Modifiers.Any(m => m.IsKind(SyntaxKind.ParamsKeyword))).Count(),
 					SyntaxFactory.Parameter
 					(
 						SyntaxFactory.List<AttributeListSyntax>(),
 						SyntaxFactory.TokenList(),
-						SyntaxFactory.ParseTypeName(this.cancellationTokenSymbol.ToMinimalDisplayString(semanticModel, method.SpanStart)),
+						SyntaxFactory.ParseTypeName(this.cancellationTokenSymbol.ToMinimalDisplayString(semanticModel, newAsyncMethod.SpanStart)),
 						SyntaxFactory.Identifier("cancellationToken"),
 						null
 					)
 				)));
 
-			var returnType = inMethodSyntax.ReturnType.ToString();
-
-			method = method.WithReturnType(SyntaxFactory.ParseTypeName(returnType == "void" ? "Task" : $"Task<{returnType}>"));
-
-			var parentContainsAsyncMethod = this
-				.GetMethods(semanticModel, inMethodSymbol.ReceiverType.BaseType, outMethodName, method)
-				.Any();
-				
-			var parentContainsMethodWithRewriteAsync = this
-				.GetMethods(semanticModel, inMethodSymbol.ReceiverType.BaseType, inMethodSyntax.Identifier.Text, inMethodSyntax)
-				.Any(m => m.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync")));
-			
-			if (!(parentContainsAsyncMethod || parentContainsMethodWithRewriteAsync))
-			{
-				var hadOverride = method.Modifiers.Any(c => c.Kind() == SyntaxKind.OverrideKeyword);
-
-				method = method.WithModifiers(new SyntaxTokenList().AddRange(method.Modifiers.Where(c => c.Kind() != SyntaxKind.OverrideKeyword && c.Kind() != SyntaxKind.NewKeyword)));
-
-				if (hadOverride)
+				if (!isInterfaceMethod)
 				{
-					method = method.WithModifiers(method.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword)));
+					newAsyncMethod = newAsyncMethod.WithModifiers(methodSyntax.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)));
+				}
+			}
+			else
+			{
+				var callAsyncWithCancellationToken = SyntaxFactory.InvocationExpression
+				(
+					SyntaxFactory.IdentifierName(asyncMethodName),
+					SyntaxFactory.ArgumentList
+					(
+						new SeparatedSyntaxList<ArgumentSyntax>()
+						.AddRange(methodSymbol.Parameters.TakeWhile(c => !c.HasExplicitDefaultValue).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
+						.Add(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseName("CancellationToken"), SyntaxFactory.IdentifierName("None"))))
+						.AddRange(methodSymbol.Parameters.SkipWhile(c => !c.HasExplicitDefaultValue).Skip(1).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
+					)
+				);
+
+				if (!isInterfaceMethod)
+				{
+					newAsyncMethod = newAsyncMethod.WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(callAsyncWithCancellationToken)));
 				}
 			}
 
-			var attribute = inMethodSymbol.GetAttributes().SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
+			if (!isInterfaceMethod)
+			{
+				var baseAsyncMethod = this
+					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name + "Async", newAsyncMethod)
+					.FirstOrDefault();
+
+				var baseMethod = this
+					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name, methodSyntax)
+					.FirstOrDefault();
+
+				var parentContainsAsyncMethod = baseAsyncMethod != null;
+				var parentContainsMethodWithRewriteAsync = baseMethod?.GetAttributes().Any(c => c.AttributeClass.Name.StartsWith("RewriteAsync")) == true;
+				var hadNew = newAsyncMethod.Modifiers.Any(c => c.Kind() == SyntaxKind.NewKeyword);
+				var hadOverride = newAsyncMethod.Modifiers.Any(c => c.Kind() == SyntaxKind.OverrideKeyword);
+
+				if (!parentContainsAsyncMethod && hadNew)
+				{
+					newAsyncMethod = newAsyncMethod.WithModifiers(new SyntaxTokenList().AddRange(newAsyncMethod.Modifiers.Where(c => c.Kind() != SyntaxKind.NewKeyword)));
+				}
+
+				if (!(parentContainsAsyncMethod || parentContainsMethodWithRewriteAsync))
+				{
+					newAsyncMethod = newAsyncMethod.WithModifiers(new SyntaxTokenList().AddRange(newAsyncMethod.Modifiers.Where(c => c.Kind() != SyntaxKind.OverrideKeyword)));
+
+					if (hadOverride)
+					{
+						newAsyncMethod = newAsyncMethod.WithModifiers(newAsyncMethod.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.VirtualKeyword)));
+					}
+				}
+
+				var baseMatchedMethod = baseMethod ?? baseAsyncMethod;
+
+				if (methodSyntax.ConstraintClauses.Any())
+				{
+					newAsyncMethod = newAsyncMethod.WithConstraintClauses(methodSyntax.ConstraintClauses);
+				}
+				else if (!hadOverride && baseMatchedMethod != null)
+				{
+					var constraintClauses = new List<TypeParameterConstraintClauseSyntax>();
+
+					foreach (var typeParameter in baseMatchedMethod.TypeParameters)
+					{
+						var constraintClause = SyntaxFactory.TypeParameterConstraintClause(typeParameter.Name);
+						var constraints = new List<TypeParameterConstraintSyntax>();
+
+						if (typeParameter.HasReferenceTypeConstraint)
+						{
+							constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+						}
+
+						if (typeParameter.HasValueTypeConstraint)
+						{
+							constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));
+						}
+
+						if (typeParameter.HasConstructorConstraint)
+						{
+							constraints.Add(SyntaxFactory.ConstructorConstraint());
+						}
+
+						constraints.AddRange(typeParameter.ConstraintTypes.Select(c => SyntaxFactory.TypeConstraint(SyntaxFactory.ParseName(c.ToMinimalDisplayString(semanticModel, methodSyntax.SpanStart)))));
+
+						constraintClause = constraintClause.WithConstraints(SyntaxFactory.SeparatedList(constraints));
+						constraintClauses.Add(constraintClause);
+					}
+
+					newAsyncMethod = newAsyncMethod.WithConstraintClauses(SyntaxFactory.List(constraintClauses)).NormalizeWhitespace();
+				}
+			}
+			
+			var attribute = methodSymbol.GetAttributes().SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
 
 			if (attribute?.ConstructorArguments.Length > 0)
 			{
-				if (attribute.ConstructorArguments[0].Type == this.methodAttributesSymbol)
-				{
-					var methodAttributes = (MethodAttributes)Enum.ToObject(typeof(MethodAttributes), Convert.ToInt32(attribute.ConstructorArguments[0].Value));
+				var first = attribute.ConstructorArguments.First();
 
-					method = method.WithAccessModifiers(methodAttributes);
+				if (first.Type.Equals(this.methodAttributesSymbol))
+				{
+					var methodAttributes = (MethodAttributes)Enum.ToObject(typeof(MethodAttributes), Convert.ToInt32(first.Value));
+
+					newAsyncMethod = newAsyncMethod.WithAccessModifiers(methodAttributes);
 				}
 			}
 
-			return method;
+			return newAsyncMethod;
 		}
 	}
 }

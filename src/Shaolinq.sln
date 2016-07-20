@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq", "Shaolinq\Shaolinq.csproj", "{0C8321D6-4DF6-4B90-AF5A-92537D4A7E54}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -26,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.ExpressionWriter", "Shaolinq.ExpressionWriter\Shaolinq.ExpressionWriter.csproj", "{BC3ECC35-58F4-45ED-A801-95F2D5C4CDFD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.AsyncRewriter", "Shaolinq.AsyncRewriter\Shaolinq.AsyncRewriter.csproj", "{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.AsyncRewriter.Tests", "..\tests\Shaolinq.AsyncRewriter.Tests\Shaolinq.AsyncRewriter.Tests.csproj", "{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -73,6 +75,10 @@ Global
 		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

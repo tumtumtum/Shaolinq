@@ -33,17 +33,5 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 			Console.WriteLine(result);
 		}
-
-		[Test]
-		public void TestWithInterfaces()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "ICommand.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
-		}
 	}
 }

@@ -1,15 +1,17 @@
-#pragma warning disable
-using System;
-using System.Data;
-using Shaolinq.Persistence;
-using Npgsql;
-using NpgsqlTypes;
-using Platform;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace Shaolinq.Postgres
 {
+#pragma warning disable
+    using System;
+    using System.Data;
+    using Shaolinq.Persistence;
+    using Npgsql;
+    using NpgsqlTypes;
+    using Platform;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Postgres;
+
     public partial class PostgresSqlTransactionalCommandsContext
     {
         public override Task CommitAsync()

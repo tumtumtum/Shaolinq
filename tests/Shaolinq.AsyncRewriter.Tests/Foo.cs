@@ -21,5 +21,10 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			return null;
 		}
+
+		public virtual void Method3<T>()
+			where T : class
+		{	
+		}
 	}
 }

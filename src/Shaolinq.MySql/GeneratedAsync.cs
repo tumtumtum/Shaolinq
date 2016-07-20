@@ -1,15 +1,17 @@
-#pragma warning disable
-using System;
-using System.Data;
-using System.Data.Common;
-using System.Text.RegularExpressions;
-using MySql.Data.MySqlClient;
-using Shaolinq.Persistence;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace Shaolinq.MySql
 {
+#pragma warning disable
+    using System;
+    using System.Data;
+    using System.Data.Common;
+    using System.Text.RegularExpressions;
+    using Shaolinq.Persistence;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.MySql;
+    using global::MySql.Data.MySqlClient;
+
     public partial class MySqlSqlDatabaseContext
     {
         public override Task<IDbConnection> OpenConnectionAsync()

@@ -19,5 +19,10 @@ namespace Shaolinq.AsyncRewriter.Tests.NS1
 		public override void Method2(string text, System.Collections.Generic.IReadOnlyList<Platform.Pair<string>> names)
 		{	
 		}
+
+		[RewriteAsync]
+		public override void Method3<T>()
+		{
+		}
 	}
 }
