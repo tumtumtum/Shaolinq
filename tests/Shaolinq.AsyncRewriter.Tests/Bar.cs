@@ -13,6 +13,12 @@ namespace Shaolinq.AsyncRewriter.Tests.NS1
 		[RewriteAsync]
 		public override void Method1()
 		{
+			// HelloWorld!
+
+			if (true)
+			{
+				Console.WriteLine("HI");
+			}
 		}
 
 		[RewriteAsync]

@@ -63,7 +63,8 @@ namespace Shaolinq.AsyncRewriter
 			
 			usings = usings
 				.AddRange(extraUsingDirectives)
-				.AddRange(namespaces.SelectMany(c => GetNamespacesAndParents(c.Name.ToString()).Select(d => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(d)))));
+				.AddRange(namespaces.SelectMany(c => GetNamespacesAndParents(c.Name.ToString()).Select(d => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(d)))))
+				.Sort();
 
 			usings = usings.Replace(usings[0], usings[0].WithLeadingTrivia(SyntaxFactory.Trivia(SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword), true))));
 			
@@ -74,7 +75,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			var syntaxTrees = paths
 				.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p)))
-				.Select(c => c.WithRootAndOptions(UpdateUsings(c.GetCompilationUnitRoot()).NormalizeWhitespace(), c.Options))
+				.Select(c => c.WithRootAndOptions(UpdateUsings(c.GetCompilationUnitRoot()), c.Options))
 				.ToArray();
 			
 			var compilation = CSharpCompilation
@@ -148,8 +149,7 @@ namespace Shaolinq.AsyncRewriter
 							c => c.GetCompilationUnitRoot().Members
 						)
 					)
-				)
-				.NormalizeWhitespace()
+				).NormalizeWhitespace("\t", "\r\n", false)
 			);
 		}
 
@@ -428,7 +428,7 @@ namespace Shaolinq.AsyncRewriter
 						constraintClauses.Add(constraintClause);
 					}
 
-					newAsyncMethod = newAsyncMethod.WithConstraintClauses(SyntaxFactory.List(constraintClauses)).NormalizeWhitespace();
+					newAsyncMethod = newAsyncMethod.WithConstraintClauses(SyntaxFactory.List(constraintClauses));
 				}
 			}
 

@@ -20,7 +20,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			return default(T);
 		}
-
+		
 		public virtual Task<T> GetByIdAsync<I>(I id)
 			where I : class
 		{
