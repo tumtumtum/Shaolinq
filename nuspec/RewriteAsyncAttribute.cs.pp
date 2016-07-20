@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace $rootnamespace$
 {
-	[AttributeUsage(AttributeTargets.Method)]
+	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Interface)]
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{

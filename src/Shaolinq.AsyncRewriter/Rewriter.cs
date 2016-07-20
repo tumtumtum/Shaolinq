@@ -184,8 +184,10 @@ namespace Shaolinq.AsyncRewriter
 					throw new ArgumentException("A provided syntax tree was compiled into the provided compilation");
 				}
 
-				if (!syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
-					.Any(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync"))))
+				if (!(syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
+					.Any(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
+					|| syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>()
+					.Any(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))))
 				{
 					continue;
 				}
@@ -195,7 +197,7 @@ namespace Shaolinq.AsyncRewriter
 					syntaxTree.GetRoot()
 					.DescendantNodes()
 					.OfType<MethodDeclarationSyntax>()
-					.Where(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
+					.Where(m => (m.Parent as TypeDeclarationSyntax)?.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync"))  == true || m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
 					.Where(c => (c.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? c.FirstAncestorOrSelf<InterfaceDeclarationSyntax>() as TypeDeclarationSyntax) != null)
 					.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? m.FirstAncestorOrSelf<InterfaceDeclarationSyntax>())
 					.GroupBy(g => g.Key.FirstAncestorOrSelf<NamespaceDeclarationSyntax>())
@@ -369,7 +371,9 @@ namespace Shaolinq.AsyncRewriter
 					.FirstOrDefault();
 
 				var parentContainsAsyncMethod = baseAsyncMethod != null;
-				var parentContainsMethodWithRewriteAsync = baseMethod?.GetAttributes().Any(c => c.AttributeClass.Name.StartsWith("RewriteAsync")) == true;
+				var parentContainsMethodWithRewriteAsync = 
+					baseMethod?.GetAttributes().Any(c => c.AttributeClass.Name.StartsWith("RewriteAsync")) == true
+					|| baseMethod?.ContainingType.GetAttributes().Any(c => c.AttributeClass.Name.StartsWith("RewriteAsync")) == true;
 				var hadNew = newAsyncMethod.Modifiers.Any(c => c.Kind() == SyntaxKind.NewKeyword);
 				var hadOverride = newAsyncMethod.Modifiers.Any(c => c.Kind() == SyntaxKind.OverrideKeyword);
 
@@ -427,8 +431,9 @@ namespace Shaolinq.AsyncRewriter
 					newAsyncMethod = newAsyncMethod.WithConstraintClauses(SyntaxFactory.List(constraintClauses)).NormalizeWhitespace();
 				}
 			}
-			
-			var attribute = methodSymbol.GetAttributes().SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
+
+			var attribute = methodSymbol.GetAttributes().SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"))
+							?? methodSymbol.ContainingType.GetAttributes().SingleOrDefault(a => a.AttributeClass.Name.EndsWith("RewriteAsyncAttribute"));
 
 			if (attribute?.ConstructorArguments.Length > 0)
 			{

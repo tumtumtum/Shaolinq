@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
-	[AttributeUsage(AttributeTargets.Method)]
+	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Interface)]
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{

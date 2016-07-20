@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
+	[RewriteAsync]
 	public interface ICommand
 	{
-		[RewriteAsync]
 		void Test();
 	}
 }

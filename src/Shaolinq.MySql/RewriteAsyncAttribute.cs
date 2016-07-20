@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Shaolinq.MySql
 {
-	[AttributeUsage(AttributeTargets.Method)]
+	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Interface)]
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{

@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Shaolinq.Postgres
 {
-	[AttributeUsage(AttributeTargets.Method)]
+	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Interface)]
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{
