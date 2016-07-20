@@ -2793,7 +2793,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var result = this.model.Students.OrderBy(c => c.Nickname).Count();
+				var result = this.model.Students.OrderBy(c => (string)(object)c.Nickname).Count();
 			}
 		}
 

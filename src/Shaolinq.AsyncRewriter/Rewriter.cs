@@ -348,9 +348,9 @@ namespace Shaolinq.AsyncRewriter
 					SyntaxFactory.ArgumentList
 					(
 						new SeparatedSyntaxList<ArgumentSyntax>()
-						.AddRange(methodSymbol.Parameters.TakeWhile(c => !c.HasExplicitDefaultValue).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
+						.AddRange(methodSymbol.Parameters.TakeWhile(c => !(c.HasExplicitDefaultValue || c.IsParams)).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
 						.Add(SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.ParseName("CancellationToken"), SyntaxFactory.IdentifierName("None"))))
-						.AddRange(methodSymbol.Parameters.SkipWhile(c => !c.HasExplicitDefaultValue).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
+						.AddRange(methodSymbol.Parameters.SkipWhile(c => !(c.HasExplicitDefaultValue || c.IsParams)).Select(c => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(c.Name))))
 					)
 				);
 
