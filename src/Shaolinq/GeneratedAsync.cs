@@ -351,8 +351,6 @@ namespace Shaolinq
 	using System;
 	using System.Linq;
 	using System.Threading;
-	using System.Threading;
-	using System.Threading.Tasks;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
@@ -1094,8 +1092,6 @@ namespace Shaolinq.Persistence
 	using System;
 	using System.Data;
 	using System.Threading;
-	using System.Threading;
-	using System.Threading.Tasks;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;
 	using Shaolinq;
@@ -1165,9 +1161,7 @@ namespace Shaolinq
 	using System;
 	using System.Linq;
 	using System.Threading;
-	using System.Threading;
 	using System.Reflection;
-	using System.Threading.Tasks;
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;
 	using System.Collections.Generic;
@@ -2083,11 +2077,9 @@ namespace Shaolinq
 	using System;
 	using System.Linq;
 	using System.Threading;
-	using System.Threading;
 	using System.Reflection;
 	using System.Diagnostics;
 	using System.Configuration;
-	using System.Threading.Tasks;
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;
 	using System.Collections.Generic;
