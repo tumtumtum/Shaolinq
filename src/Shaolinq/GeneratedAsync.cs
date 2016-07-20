@@ -570,7 +570,7 @@ namespace Shaolinq.Persistence
 	{
 		public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
 		{
-			return ExecuteReaderExAsync(command, dataAccessModel, CancellationToken.None);
+			return ExecuteReaderExAsync(command, dataAccessModel, CancellationToken.None, suppressAnalytics);
 		}
 
 		public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
@@ -602,7 +602,7 @@ namespace Shaolinq.Persistence
 
 		public static Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
 		{
-			return ExecuteNonQueryExAsync(command, dataAccessModel, CancellationToken.None);
+			return ExecuteNonQueryExAsync(command, dataAccessModel, CancellationToken.None, suppressAnalytics);
 		}
 
 		public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
