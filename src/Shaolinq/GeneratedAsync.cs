@@ -1,32 +1,13 @@
-#pragma warning disable
-using System;
-using Shaolinq.Persistence;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using System.Transactions;
-using Platform;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
-#pragma warning disable
-using System.Data;
-using System.Data.Common;
-using System.Linq.Expressions;
-using Shaolinq.Logging;
-using Shaolinq.Persistence.Linq;
-using Shaolinq.Persistence.Linq.Expressions;
-using Shaolinq.TypeBuilding;
-using System.Reflection;
-using System.Configuration;
-using System.Diagnostics;
-using Shaolinq.Analytics;
-using Shaolinq.Persistence.Linq.Optimizers;
-using System.Collections.Concurrent;
-
 namespace Shaolinq
 {
+#pragma warning disable
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq;
+
     public partial class DataAccessScope
     {
         public Task FlushAsync()
@@ -129,6 +110,21 @@ namespace Shaolinq
             }
         }
     }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Transactions;
+    using Platform;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq;
 
     public partial class DataAccessTransaction
     {
@@ -168,6 +164,18 @@ namespace Shaolinq
             }
         }
     }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq;
 
     internal partial class DefaultIfEmptyEnumerator<T>
     {
@@ -272,6 +280,18 @@ namespace Shaolinq
                 return false;
         }
     }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq;
 
     internal partial class EmptyIfFirstIsNullEnumerator<T>
     {
@@ -323,6 +343,23 @@ namespace Shaolinq
                 return false;
         }
     }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq;
 
     public static partial class EnumerableExtensions
     {
@@ -517,6 +554,632 @@ namespace Shaolinq
             }
         }
     }
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+    using System.Data;
+    using System.Data.Common;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Persistence;
+
+    public static partial class DbCommandExtensions
+    {
+        public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
+        {
+            return ExecuteReaderExAsync(command, dataAccessModel, CancellationToken.None);
+        }
+
+        public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
+        {
+            var marsDbCommand = command as MarsDbCommand;
+            if (marsDbCommand != null)
+            {
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
+                return await marsDbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            var dbCommand = command as DbCommand;
+            if (dbCommand != null)
+            {
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
+                return await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return command.ExecuteReader();
+        }
+
+        public static Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
+        {
+            return ExecuteNonQueryExAsync(command, dataAccessModel, CancellationToken.None);
+        }
+
+        public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
+        {
+            var marsDbCommand = command as MarsDbCommand;
+            if (marsDbCommand != null)
+            {
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
+                return await marsDbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            var dbCommand = command as DbCommand;
+            if (dbCommand != null)
+            {
+                if (!suppressAnalytics)
+                {
+                    dataAccessModel.queryAnalytics.IncrementQueryCount();
+                }
+
+                return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return command.ExecuteNonQuery();
+        }
+    }
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+    using System.Data;
+    using System.Data.Common;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Persistence;
+
+    public static partial class DataReaderExtensions
+    {
+        public static Task<bool> ReadExAsync(this IDataReader reader)
+        {
+            return ReadExAsync(reader, CancellationToken.None);
+        }
+
+        public static async Task<bool> ReadExAsync(this IDataReader reader, CancellationToken cancellationToken)
+        {
+            var dbDataReader = reader as DbDataReader;
+            if (dbDataReader != null)
+            {
+                return await dbDataReader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return reader.Read();
+        }
+    }
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Linq.Expressions;
+    using Shaolinq.Logging;
+    using Shaolinq.Persistence.Linq;
+    using Shaolinq.Persistence.Linq.Expressions;
+    using Shaolinq.TypeBuilding;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Persistence;
+
+    public partial class DefaultSqlTransactionalCommandsContext
+    {
+        public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters)
+        {
+            return ExecuteReaderAsync(sql, parameters, CancellationToken.None);
+        }
+
+        public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, System.Threading.CancellationToken cancellationToken)
+        {
+            using (var command = this.CreateCommand())
+            {
+                foreach (var value in parameters)
+                {
+                    this.AddParameter(command, value.Type, value.Value);
+                }
+
+                command.CommandText = sql;
+                Logger.Info(() => this.FormatCommand(command));
+                try
+                {
+                    return await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    var decoratedException = LogAndDecorateException(e, command);
+                    if (decoratedException != null)
+                    {
+                        throw decoratedException;
+                    }
+
+                    throw;
+                }
+            }
+        }
+
+        public override Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+        {
+            return UpdateAsync(type, dataAccessObjects, CancellationToken.None);
+        }
+
+        public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, System.Threading.CancellationToken cancellationToken)
+        {
+            await UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
+        }
+
+        private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
+        {
+            return UpdateAsync(type, dataAccessObjects, resetModified, CancellationToken.None);
+        }
+
+        private async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified, CancellationToken cancellationToken)
+        {
+            var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
+            foreach (var dataAccessObject in dataAccessObjects)
+            {
+                var objectState = dataAccessObject.GetAdvanced().ObjectState;
+                if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
+                {
+                    continue;
+                }
+
+                using (var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject))
+                {
+                    if (command == null)
+                    {
+                        Logger.ErrorFormat("Object is reported as changed but GetChangedProperties returns an empty list ({0})", dataAccessObject);
+                        continue;
+                    }
+
+                    Logger.Info(() => this.FormatCommand(command));
+                    int result;
+                    try
+                    {
+                        result = (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
+                    }
+                    catch (Exception e)
+                    {
+                        var decoratedException = LogAndDecorateException(e, command);
+                        if (decoratedException != null)
+                        {
+                            throw decoratedException;
+                        }
+
+                        throw;
+                    }
+
+                    if (result == 0)
+                    {
+                        throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
+                    }
+
+                    if (resetModified)
+                    {
+                        dataAccessObject.ToObjectInternal().ResetModified();
+                    }
+                }
+            }
+        }
+
+        public override Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+        {
+            return InsertAsync(type, dataAccessObjects, CancellationToken.None);
+        }
+
+        public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, System.Threading.CancellationToken cancellationToken)
+        {
+            var listToFixup = new List<DataAccessObject>();
+            var listToRetry = new List<DataAccessObject>();
+            foreach (var dataAccessObject in dataAccessObjects)
+            {
+                var objectState = dataAccessObject.GetAdvanced().ObjectState;
+                switch (objectState & DataAccessObjectState.NewChanged)
+                {
+                    case DataAccessObjectState.Unchanged:
+                        continue;
+                    case DataAccessObjectState.New:
+                    case DataAccessObjectState.NewChanged:
+                        break;
+                    case DataAccessObjectState.Changed:
+                        throw new NotSupportedException("Changed state not supported");
+                }
+
+                var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;
+                var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability) || ((objectState & DataAccessObjectState.ReferencesNewObject) == 0));
+                var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
+                if (objectReadyToBeCommited)
+                {
+                    var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
+                    using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
+                    {
+                        Logger.Info(() => this.FormatCommand(command));
+                        try
+                        {
+                            var reader = (await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
+                            using (reader)
+                            {
+                                if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
+                                {
+                                    var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
+                                    var result = (await reader.ReadExAsync(cancellationToken).ConfigureAwait(false));
+                                    if (result)
+                                    {
+                                        this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
+                                        dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
+                                    }
+
+                                    reader.Close();
+                                    if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
+                                    {
+                                        await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, false, cancellationToken).ConfigureAwait(false);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            var decoratedException = LogAndDecorateException(e, command);
+                            if (decoratedException != null)
+                            {
+                                throw decoratedException;
+                            }
+
+                            throw;
+                        }
+
+                        if ((objectState & DataAccessObjectState.ReferencesNewObjectWithServerSideProperties) == DataAccessObjectState.ReferencesNewObjectWithServerSideProperties)
+                        {
+                            listToFixup.Add(dataAccessObject);
+                        }
+                        else
+                        {
+                            dataAccessObject.ToObjectInternal().ResetModified();
+                        }
+                    }
+                }
+                else
+                {
+                    listToRetry.Add(dataAccessObject);
+                }
+            }
+
+            return new InsertResults(listToFixup, listToRetry);
+        }
+
+        public override Task DeleteAsync(SqlDeleteExpression deleteExpression)
+        {
+            return DeleteAsync(deleteExpression, CancellationToken.None);
+        }
+
+        public override async Task DeleteAsync(SqlDeleteExpression deleteExpression, System.Threading.CancellationToken cancellationToken)
+        {
+            var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
+            using (var command = this.CreateCommand())
+            {
+                command.CommandText = formatResult.CommandText;
+                foreach (var value in formatResult.ParameterValues)
+                {
+                    this.AddParameter(command, value.Type, value.Value);
+                }
+
+                Logger.Info(() => this.FormatCommand(command));
+                try
+                {
+                    var count = (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
+                }
+                catch (Exception e)
+                {
+                    var decoratedException = LogAndDecorateException(e, command);
+                    if (decoratedException != null)
+                    {
+                        throw decoratedException;
+                    }
+
+                    throw;
+                }
+            }
+        }
+
+        public override Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+        {
+            return DeleteAsync(type, dataAccessObjects, CancellationToken.None);
+        }
+
+        public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, System.Threading.CancellationToken cancellationToken)
+        {
+            var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
+            var parameter = Expression.Parameter(typeDescriptor.Type, "value");
+            Expression body = null;
+            foreach (var dataAccessObject in dataAccessObjects)
+            {
+                var currentExpression = Expression.Equal(parameter, Expression.Constant(dataAccessObject));
+                if (body == null)
+                {
+                    body = currentExpression;
+                }
+                else
+                {
+                    body = Expression.OrElse(body, currentExpression);
+                }
+            }
+
+            if (body == null)
+            {
+                return;
+            }
+
+            var condition = Expression.Lambda(body, parameter);
+            var expression = (Expression)Expression.Call(Expression.Constant(this.DataAccessModel), MethodInfoFastRef.DataAccessModelGetDataAccessObjectsMethod.MakeGenericMethod(typeDescriptor.Type));
+            expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
+            expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
+            var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
+            await ((ISqlQueryProvider)provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+        }
+    }
+}
+
+namespace Shaolinq.Persistence.Linq
+{
+#pragma warning disable
+    using System;
+    using System.Collections;
+    using System.Data;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Persistence;
+    using Shaolinq.Persistence.Linq;
+
+    internal partial class ObjectProjectionAsyncEnumerator<T, U>
+    {
+        public virtual Task<bool> MoveNextAsync()
+        {
+            return MoveNextAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        {
+            switch (state)
+            {
+                case 0:
+                    goto state0;
+                case 1:
+                    goto state1;
+                case 9:
+                    goto state9;
+            }
+
+            state0:
+                this.state = 1;
+            this.dataReader = (await this.acquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+            this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.versionContext.Version);
+            state1:
+                T result;
+            if (await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false))
+            {
+                T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
+                if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
+                {
+                    this.Current = result;
+                    return true;
+                }
+
+                goto state1;
+            }
+
+            this.state = 9;
+            if (this.objectProjector.ProcessLastMoveNext(this.dataReader, ref this.context, out result))
+            {
+                this.Current = result;
+                return true;
+            }
+
+            state9:
+                return false;
+        }
+    }
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+    using System.Data;
+    using System.Data.Common;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Persistence;
+
+    public partial class MarsDbCommand
+    {
+        public virtual Task<int> ExecuteNonQueryAsync()
+        {
+            return ExecuteNonQueryAsync(CancellationToken.None);
+        }
+
+        public async virtual Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
+        {
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
+            {
+                return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return base.ExecuteNonQuery();
+            }
+        }
+
+        public virtual Task<object> ExecuteScalarAsync()
+        {
+            return ExecuteScalarAsync(CancellationToken.None);
+        }
+
+        public async virtual Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
+        {
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
+            {
+                return await dbCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return base.ExecuteScalar();
+            }
+        }
+
+        public virtual Task<IDataReader> ExecuteReaderAsync()
+        {
+            return ExecuteReaderAsync(CancellationToken.None);
+        }
+
+        public async virtual Task<IDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
+        {
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
+            {
+                return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)));
+            }
+            else
+            {
+                return new MarsDataReader(this, base.ExecuteReader());
+            }
+        }
+
+        public virtual Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior)
+        {
+            return ExecuteReaderAsync(behavior, CancellationToken.None);
+        }
+
+        public async virtual Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+        {
+            this.context.currentReader?.BufferAll();
+            var dbCommand = this.Inner as DbCommand;
+            if (dbCommand != null)
+            {
+                return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false)));
+            }
+            else
+            {
+                return new MarsDataReader(this, base.ExecuteReader(behavior));
+            }
+        }
+    }
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq.Persistence.Linq.Expressions;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Persistence;
+
+    public abstract partial class SqlTransactionalCommandsContext
+    {
+        public virtual Task CommitAsync()
+        {
+            return CommitAsync(CancellationToken.None);
+        }
+
+        public virtual async Task CommitAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (this.dbTransaction != null)
+                {
+                    await this.dbTransaction.CommitExAsync(cancellationToken).ConfigureAwait(false);
+                    this.dbTransaction = null;
+                }
+            }
+            catch (Exception e)
+            {
+                var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
+                var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
+                if (decoratedException != e)
+                {
+                    throw decoratedException;
+                }
+
+                throw;
+            }
+            finally
+            {
+                this.CloseConnection();
+            }
+        }
+
+        public virtual Task RollbackAsync()
+        {
+            return RollbackAsync(CancellationToken.None);
+        }
+
+        public virtual async Task RollbackAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (this.dbTransaction != null)
+                {
+                    await this.dbTransaction.RollbackExAsync(cancellationToken).ConfigureAwait(false);
+                    this.dbTransaction = null;
+                }
+            }
+            finally
+            {
+                this.CloseConnection();
+            }
+        }
+    }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Platform;
+    using Shaolinq.Persistence.Linq;
+    using Shaolinq.TypeBuilding;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq.Persistence.Linq;
+    using global::Shaolinq.TypeBuilding;
+    using global::Shaolinq;
 
     public static partial class QueryableExtensions
     {
@@ -1149,6 +1812,25 @@ namespace Shaolinq
             return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
         }
     }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using Platform;
+    using Shaolinq.Persistence.Linq.Expressions;
+    using Shaolinq.TypeBuilding;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq.Persistence.Linq.Expressions;
+    using global::Shaolinq.TypeBuilding;
+    using global::Shaolinq;
 
     /// <summary>
     /// Stores a cache of all objects that have been loaded or created within a context
@@ -1338,6 +2020,86 @@ namespace Shaolinq
             }
         }
     }
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Data.Common;
+    using System.Linq;
+    using Shaolinq.Persistence.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using Shaolinq.Persistence;
+
+    public abstract partial class SqlDatabaseContext
+    {
+        public virtual Task<IDbConnection> OpenConnectionAsync()
+        {
+            return OpenConnectionAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+        {
+            if (this.dbProviderFactory == null)
+            {
+                this.dbProviderFactory = this.CreateDbProviderFactory();
+            }
+
+            var retval = this.dbProviderFactory.CreateConnection();
+            retval.ConnectionString = this.ConnectionString;
+            await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return retval;
+        }
+
+        public virtual Task<IDbConnection> OpenServerConnectionAsync()
+        {
+            return OpenServerConnectionAsync(CancellationToken.None);
+        }
+
+        public virtual async Task<IDbConnection> OpenServerConnectionAsync(CancellationToken cancellationToken)
+        {
+            if (this.dbProviderFactory == null)
+            {
+                this.dbProviderFactory = this.CreateDbProviderFactory();
+            }
+
+            var retval = this.dbProviderFactory.CreateConnection();
+            retval.ConnectionString = this.ServerConnectionString;
+            await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return retval;
+        }
+    }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Generic;
+    using System.Configuration;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Linq.Expressions;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Platform;
+    using Shaolinq.Persistence;
+    using Shaolinq.Persistence.Linq.Optimizers;
+    using Shaolinq.TypeBuilding;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Analytics;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq.Persistence.Linq.Optimizers;
+    using global::Shaolinq.TypeBuilding;
+    using global::Shaolinq;
 
     public partial class DataAccessModel
     {
@@ -1355,6 +2117,21 @@ namespace Shaolinq
             }
         }
     }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Transactions;
+    using Platform;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq;
 
     public partial class TransactionContext
     {
@@ -1419,6 +2196,18 @@ namespace Shaolinq
             }
         }
     }
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+    using System.Transactions;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Shaolinq;
+    using global::Shaolinq.Persistence;
+    using global::Shaolinq;
 
     public static partial class TransactionScopeExtensions
     {
@@ -1469,576 +2258,6 @@ namespace Shaolinq
         public static async Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
         {
             await scope.SaveAsync(dataAccessModel, cancellationToken).ConfigureAwait(false);
-        }
-    }
-}
-
-namespace Shaolinq.Persistence
-{
-    public static partial class DbCommandExtensions
-    {
-        public static Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
-        {
-            return ExecuteReaderExAsync(command, dataAccessModel, CancellationToken.None);
-        }
-
-        public static async Task<IDataReader> ExecuteReaderExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
-        {
-            var marsDbCommand = command as MarsDbCommand;
-            if (marsDbCommand != null)
-            {
-                if (!suppressAnalytics)
-                {
-                    dataAccessModel.queryAnalytics.IncrementQueryCount();
-                }
-
-                return await marsDbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            var dbCommand = command as DbCommand;
-            if (dbCommand != null)
-            {
-                if (!suppressAnalytics)
-                {
-                    dataAccessModel.queryAnalytics.IncrementQueryCount();
-                }
-
-                return await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return command.ExecuteReader();
-        }
-
-        public static Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
-        {
-            return ExecuteNonQueryExAsync(command, dataAccessModel, CancellationToken.None);
-        }
-
-        public static async Task<int> ExecuteNonQueryExAsync(this IDbCommand command, DataAccessModel dataAccessModel, CancellationToken cancellationToken, bool suppressAnalytics = false)
-        {
-            var marsDbCommand = command as MarsDbCommand;
-            if (marsDbCommand != null)
-            {
-                if (!suppressAnalytics)
-                {
-                    dataAccessModel.queryAnalytics.IncrementQueryCount();
-                }
-
-                return await marsDbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            var dbCommand = command as DbCommand;
-            if (dbCommand != null)
-            {
-                if (!suppressAnalytics)
-                {
-                    dataAccessModel.queryAnalytics.IncrementQueryCount();
-                }
-
-                return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return command.ExecuteNonQuery();
-        }
-    }
-
-    public static partial class DataReaderExtensions
-    {
-        public static Task<bool> ReadExAsync(this IDataReader reader)
-        {
-            return ReadExAsync(reader, CancellationToken.None);
-        }
-
-        public static async Task<bool> ReadExAsync(this IDataReader reader, CancellationToken cancellationToken)
-        {
-            var dbDataReader = reader as DbDataReader;
-            if (dbDataReader != null)
-            {
-                return await dbDataReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return reader.Read();
-        }
-    }
-
-    public partial class DefaultSqlTransactionalCommandsContext
-    {
-        public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters)
-        {
-            return ExecuteReaderAsync(sql, parameters, CancellationToken.None);
-        }
-
-        public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
-        {
-            using (var command = this.CreateCommand())
-            {
-                foreach (var value in parameters)
-                {
-                    this.AddParameter(command, value.Type, value.Value);
-                }
-
-                command.CommandText = sql;
-                Logger.Info(() => this.FormatCommand(command));
-                try
-                {
-                    return await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    var decoratedException = LogAndDecorateException(e, command);
-                    if (decoratedException != null)
-                    {
-                        throw decoratedException;
-                    }
-
-                    throw;
-                }
-            }
-        }
-
-        public override Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-        {
-            return UpdateAsync(type, dataAccessObjects, CancellationToken.None);
-        }
-
-        public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-        {
-            await UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
-        }
-
-        private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
-        {
-            return UpdateAsync(type, dataAccessObjects, resetModified, CancellationToken.None);
-        }
-
-        private async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified, CancellationToken cancellationToken)
-        {
-            var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-            foreach (var dataAccessObject in dataAccessObjects)
-            {
-                var objectState = dataAccessObject.GetAdvanced().ObjectState;
-                if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
-                {
-                    continue;
-                }
-
-                using (var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject))
-                {
-                    if (command == null)
-                    {
-                        Logger.ErrorFormat("Object is reported as changed but GetChangedProperties returns an empty list ({0})", dataAccessObject);
-                        continue;
-                    }
-
-                    Logger.Info(() => this.FormatCommand(command));
-                    int result;
-                    try
-                    {
-                        result = (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
-                    }
-                    catch (Exception e)
-                    {
-                        var decoratedException = LogAndDecorateException(e, command);
-                        if (decoratedException != null)
-                        {
-                            throw decoratedException;
-                        }
-
-                        throw;
-                    }
-
-                    if (result == 0)
-                    {
-                        throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
-                    }
-
-                    if (resetModified)
-                    {
-                        dataAccessObject.ToObjectInternal().ResetModified();
-                    }
-                }
-            }
-        }
-
-        public override Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-        {
-            return InsertAsync(type, dataAccessObjects, CancellationToken.None);
-        }
-
-        public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-        {
-            var listToFixup = new List<DataAccessObject>();
-            var listToRetry = new List<DataAccessObject>();
-            foreach (var dataAccessObject in dataAccessObjects)
-            {
-                var objectState = dataAccessObject.GetAdvanced().ObjectState;
-                switch (objectState & DataAccessObjectState.NewChanged)
-                {
-                    case DataAccessObjectState.Unchanged:
-                        continue;
-                    case DataAccessObjectState.New:
-                    case DataAccessObjectState.NewChanged:
-                        break;
-                    case DataAccessObjectState.Changed:
-                        throw new NotSupportedException("Changed state not supported");
-                }
-
-                var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;
-                var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability) || ((objectState & DataAccessObjectState.ReferencesNewObject) == 0));
-                var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
-                if (objectReadyToBeCommited)
-                {
-                    var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-                    using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
-                    {
-                        Logger.Info(() => this.FormatCommand(command));
-                        try
-                        {
-                            var reader = (await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
-                            using (reader)
-                            {
-                                if (dataAccessObject.GetAdvanced().DefinesAnyDirectPropertiesGeneratedOnTheServerSide)
-                                {
-                                    var dataAccessObjectInternal = dataAccessObject.ToObjectInternal();
-                                    var result = (await reader.ReadExAsync(cancellationToken).ConfigureAwait(false));
-                                    if (result)
-                                    {
-                                        this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
-                                        dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
-                                    }
-
-                                    reader.Close();
-                                    if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
-                                    {
-                                        await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, false, cancellationToken).ConfigureAwait(false);
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            var decoratedException = LogAndDecorateException(e, command);
-                            if (decoratedException != null)
-                            {
-                                throw decoratedException;
-                            }
-
-                            throw;
-                        }
-
-                        if ((objectState & DataAccessObjectState.ReferencesNewObjectWithServerSideProperties) == DataAccessObjectState.ReferencesNewObjectWithServerSideProperties)
-                        {
-                            listToFixup.Add(dataAccessObject);
-                        }
-                        else
-                        {
-                            dataAccessObject.ToObjectInternal().ResetModified();
-                        }
-                    }
-                }
-                else
-                {
-                    listToRetry.Add(dataAccessObject);
-                }
-            }
-
-            return new InsertResults(listToFixup, listToRetry);
-        }
-
-        public override Task DeleteAsync(SqlDeleteExpression deleteExpression)
-        {
-            return DeleteAsync(deleteExpression, CancellationToken.None);
-        }
-
-        public override async Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
-        {
-            var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
-            using (var command = this.CreateCommand())
-            {
-                command.CommandText = formatResult.CommandText;
-                foreach (var value in formatResult.ParameterValues)
-                {
-                    this.AddParameter(command, value.Type, value.Value);
-                }
-
-                Logger.Info(() => this.FormatCommand(command));
-                try
-                {
-                    var count = (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
-                }
-                catch (Exception e)
-                {
-                    var decoratedException = LogAndDecorateException(e, command);
-                    if (decoratedException != null)
-                    {
-                        throw decoratedException;
-                    }
-
-                    throw;
-                }
-            }
-        }
-
-        public override Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
-        {
-            return DeleteAsync(type, dataAccessObjects, CancellationToken.None);
-        }
-
-        public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
-        {
-            var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-            var parameter = Expression.Parameter(typeDescriptor.Type, "value");
-            Expression body = null;
-            foreach (var dataAccessObject in dataAccessObjects)
-            {
-                var currentExpression = Expression.Equal(parameter, Expression.Constant(dataAccessObject));
-                if (body == null)
-                {
-                    body = currentExpression;
-                }
-                else
-                {
-                    body = Expression.OrElse(body, currentExpression);
-                }
-            }
-
-            if (body == null)
-            {
-                return;
-            }
-
-            var condition = Expression.Lambda(body, parameter);
-            var expression = (Expression)Expression.Call(Expression.Constant(this.DataAccessModel), MethodInfoFastRef.DataAccessModelGetDataAccessObjectsMethod.MakeGenericMethod(typeDescriptor.Type));
-            expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
-            expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
-            var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
-            await ((ISqlQueryProvider)provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    public partial class MarsDbCommand
-    {
-        public Task<int> ExecuteNonQueryAsync()
-        {
-            return ExecuteNonQueryAsync(CancellationToken.None);
-        }
-
-        public async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
-        {
-            this.context.currentReader?.BufferAll();
-            var dbCommand = this.Inner as DbCommand;
-            if (dbCommand != null)
-            {
-                return await dbCommand.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return base.ExecuteNonQuery();
-            }
-        }
-
-        public Task<object> ExecuteScalarAsync()
-        {
-            return ExecuteScalarAsync(CancellationToken.None);
-        }
-
-        public async Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
-        {
-            this.context.currentReader?.BufferAll();
-            var dbCommand = this.Inner as DbCommand;
-            if (dbCommand != null)
-            {
-                return await dbCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return base.ExecuteScalar();
-            }
-        }
-
-        public Task<IDataReader> ExecuteReaderAsync()
-        {
-            return ExecuteReaderAsync(CancellationToken.None);
-        }
-
-        public async Task<IDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
-        {
-            this.context.currentReader?.BufferAll();
-            var dbCommand = this.Inner as DbCommand;
-            if (dbCommand != null)
-            {
-                return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)));
-            }
-            else
-            {
-                return new MarsDataReader(this, base.ExecuteReader());
-            }
-        }
-
-        public Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior)
-        {
-            return ExecuteReaderAsync(behavior, CancellationToken.None);
-        }
-
-        public async Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
-        {
-            this.context.currentReader?.BufferAll();
-            var dbCommand = this.Inner as DbCommand;
-            if (dbCommand != null)
-            {
-                return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false)));
-            }
-            else
-            {
-                return new MarsDataReader(this, base.ExecuteReader(behavior));
-            }
-        }
-    }
-
-    public abstract partial class SqlTransactionalCommandsContext
-    {
-        public virtual Task CommitAsync()
-        {
-            return CommitAsync(CancellationToken.None);
-        }
-
-        public virtual async Task CommitAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (this.dbTransaction != null)
-                {
-                    await this.dbTransaction.CommitExAsync(cancellationToken).ConfigureAwait(false);
-                    this.dbTransaction = null;
-                }
-            }
-            catch (Exception e)
-            {
-                var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
-                var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
-                if (decoratedException != e)
-                {
-                    throw decoratedException;
-                }
-
-                throw;
-            }
-            finally
-            {
-                this.CloseConnection();
-            }
-        }
-
-        public virtual Task RollbackAsync()
-        {
-            return RollbackAsync(CancellationToken.None);
-        }
-
-        public virtual async Task RollbackAsync(CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (this.dbTransaction != null)
-                {
-                    await this.dbTransaction.RollbackExAsync(cancellationToken).ConfigureAwait(false);
-                    this.dbTransaction = null;
-                }
-            }
-            finally
-            {
-                this.CloseConnection();
-            }
-        }
-    }
-
-    public abstract partial class SqlDatabaseContext
-    {
-        public virtual Task<IDbConnection> OpenConnectionAsync()
-        {
-            return OpenConnectionAsync(CancellationToken.None);
-        }
-
-        public virtual async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
-        {
-            if (this.dbProviderFactory == null)
-            {
-                this.dbProviderFactory = this.CreateDbProviderFactory();
-            }
-
-            var retval = this.dbProviderFactory.CreateConnection();
-            retval.ConnectionString = this.ConnectionString;
-            await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
-            return retval;
-        }
-
-        public virtual Task<IDbConnection> OpenServerConnectionAsync()
-        {
-            return OpenServerConnectionAsync(CancellationToken.None);
-        }
-
-        public virtual async Task<IDbConnection> OpenServerConnectionAsync(CancellationToken cancellationToken)
-        {
-            if (this.dbProviderFactory == null)
-            {
-                this.dbProviderFactory = this.CreateDbProviderFactory();
-            }
-
-            var retval = this.dbProviderFactory.CreateConnection();
-            retval.ConnectionString = this.ServerConnectionString;
-            await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
-            return retval;
-        }
-    }
-}
-
-namespace Shaolinq.Persistence.Linq
-{
-    internal partial class ObjectProjectionAsyncEnumerator<T, U>
-    {
-        public virtual Task<bool> MoveNextAsync()
-        {
-            return MoveNextAsync(CancellationToken.None);
-        }
-
-        public virtual async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
-        {
-            switch (state)
-            {
-                case 0:
-                    goto state0;
-                case 1:
-                    goto state1;
-                case 9:
-                    goto state9;
-            }
-
-            state0:
-                this.state = 1;
-            this.dataReader = (await this.acquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
-            this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.versionContext.Version);
-            state1:
-                T result;
-            if (await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false))
-            {
-                T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
-                if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
-                {
-                    this.Current = result;
-                    return true;
-                }
-
-                goto state1;
-            }
-
-            this.state = 9;
-            if (this.objectProjector.ProcessLastMoveNext(this.dataReader, ref this.context, out result))
-            {
-                this.Current = result;
-                return true;
-            }
-
-            state9:
-                return false;
         }
     }
 }

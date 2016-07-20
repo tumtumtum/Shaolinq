@@ -70,10 +70,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsyncRewriter.cs" />
+    <Compile Include="MethodInvocationRewriter.cs" />
+    <Compile Include="ParameterComparer.cs" />
+    <Compile Include="Rewriter.cs" />
     <Compile Include="AsyncRewriterTask.cs" />
     <Compile Include="MethodDeclarationSyntaxExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UsingsComparer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
