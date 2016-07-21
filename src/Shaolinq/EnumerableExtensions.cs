@@ -42,21 +42,17 @@ namespace Shaolinq
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken) 
 			=> new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
-
+		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static IEnumerator<T> GetEnumeratorEx<T>(this IEnumerable<T> source) 
-			=> source.GetEnumerator();
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static Task<IAsyncEnumerator<T>> GetEnumeratorExAsync<T>(this IEnumerable<T> source) 
+		internal static Task<IAsyncEnumerator<T>> GetEnumeratorAsync<T>(this IEnumerable<T> source)
 			=> Task.FromResult(source.GetAsyncEnumerator());
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static bool MoveNextEx<T>(this IEnumerator<T> enumerator)
-			=> enumerator.MoveNext();
+		internal static Task<bool> MoveNextAsync<T>(this IAsyncEnumerator<T> enumerator)
+			=> enumerator.MoveNextAsync(CancellationToken.None);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static Task<bool> MoveNextExAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
+		internal static Task<bool> MoveNextAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
 			=> enumerator.MoveNextAsync(cancellationToken);
 		
 		internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> source)
@@ -102,9 +98,9 @@ namespace Shaolinq
 
 			var retval = 0;
 
-			using (var enumerator = source.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumerator())
 			{
-				while (enumerator.MoveNextEx())
+				while (enumerator.MoveNext())
 				{
 					retval++;
 				}
@@ -125,9 +121,9 @@ namespace Shaolinq
 
 			var retval = 0L;
 
-			using (var enumerator = source.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumerator())
 			{
-				while (enumerator.MoveNextEx())
+				while (enumerator.MoveNext())
 				{
 					retval++;
 				}
@@ -139,16 +135,16 @@ namespace Shaolinq
 		[RewriteAsync]
 		internal static T SingleOrSpecifiedValueIfFirstIsDefaultValue<T>(this IEnumerable<T> source, T specifiedValue)
 		{
-			using (var enumerator = source.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumerator())
 			{
-				if (!enumerator.MoveNextEx())
+				if (!enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(Enumerable.Empty<T>());
 				}
 
 				var result = enumerator.Current;
 
-				if (enumerator.MoveNextEx())
+				if (enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(new T[2]);
 				}
@@ -165,16 +161,16 @@ namespace Shaolinq
 		[RewriteAsync]
 		private static T Single<T>(this IEnumerable<T> source)
 		{
-			using (var enumerator = source.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumerator())
 			{
-				if (!enumerator.MoveNextEx())
+				if (!enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(Enumerable.Empty<T>());
 				}
 
 				var result = enumerator.Current;
 
-				if (enumerator.MoveNextEx())
+				if (enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(new T[2]);
 				}
@@ -186,16 +182,16 @@ namespace Shaolinq
 		[RewriteAsync()]
 		private static T SingleOrDefault<T>(this IEnumerable<T> source)
 		{
-			using (var enumerator = source.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumerator())
 			{
-				if (!enumerator.MoveNextEx())
+				if (!enumerator.MoveNext())
 				{
 					return default(T);
 				}
 
 				var result = enumerator.Current;
 
-				if (enumerator.MoveNextEx())
+				if (enumerator.MoveNext())
 				{
 					return Enumerable.Single(new T[2]);
 				}
@@ -207,9 +203,9 @@ namespace Shaolinq
 		[RewriteAsync]
 		private static T First<T>(this IEnumerable<T> enumerable)
 		{
-			using (var enumerator = enumerable.GetEnumeratorEx())
+			using (var enumerator = enumerable.GetEnumerator())
 			{
-				if (!enumerator.MoveNextEx())
+				if (!enumerator.MoveNext())
 				{
 					return Enumerable.First(Enumerable.Empty<T>());
 				}
@@ -221,9 +217,9 @@ namespace Shaolinq
 		[RewriteAsync]
 		private static T FirstOrDefault<T>(this IEnumerable<T> source)
 		{
-			using (var enumerator = source.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumerator())
 			{
-				if (!enumerator.MoveNextEx())
+				if (!enumerator.MoveNext())
 				{
 					return default(T);
 				}
@@ -236,9 +232,9 @@ namespace Shaolinq
 		internal static T SingleOrExceptionIfFirstIsNull<T>(this IEnumerable<T?> source)
 			where T : struct
 		{
-			using (var enumerator = source.GetEnumeratorEx())
+			using (var enumerator = source.GetEnumerator())
 			{
-				if (!enumerator.MoveNextEx() || enumerator.Current == null)
+				if (!enumerator.MoveNext() || enumerator.Current == null)
 				{
 					throw new InvalidOperationException("Sequence contains no elements");
 				}
@@ -251,7 +247,7 @@ namespace Shaolinq
 		{
 			using (var enumerator = source.GetEnumerator())
 			{
-				while (enumerator.MoveNextEx())
+				while (enumerator.MoveNext())
 				{
 					value(enumerator.Current);
 				}
@@ -262,7 +258,7 @@ namespace Shaolinq
 		{
 			using (var enumerator = source.GetEnumerator())
 			{
-				while (enumerator.MoveNextEx())
+				while (enumerator.MoveNext())
 				{
 					if (!value(enumerator.Current))
 					{
@@ -403,7 +399,7 @@ namespace Shaolinq
 
 		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
 		{
-			using (var enumerator = await source.GetEnumeratorExAsync())
+			using (var enumerator = await source.GetEnumeratorAsync())
 			{
 				while (await enumerator.MoveNextAsync(cancellationToken))
 				{
@@ -419,7 +415,7 @@ namespace Shaolinq
 
 		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
 		{
-			using (var enumerator = await source.GetEnumeratorExAsync())
+			using (var enumerator = await source.GetEnumeratorAsync())
 			{
 				while (await enumerator.MoveNextAsync(cancellationToken))
 				{

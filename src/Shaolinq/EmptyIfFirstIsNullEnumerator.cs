@@ -44,7 +44,7 @@ namespace Shaolinq
 			}
 
 state0:
-			var result = this.enumerator.MoveNextEx();
+			var result = this.enumerator.MoveNext();
 
 			if (!result || this.enumerator.Current == null)
 			{
@@ -63,7 +63,7 @@ state0:
 
 state1:
 
-			result = this.enumerator.MoveNextEx();
+			result = this.enumerator.MoveNext();
 
 			if (result)
 			{

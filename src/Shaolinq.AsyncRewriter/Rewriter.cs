@@ -25,8 +25,9 @@ namespace Shaolinq.AsyncRewriter
 		private HashSet<ITypeSymbol> excludedTypes;
 		private ITypeSymbol methodAttributesSymbol;
 		private ITypeSymbol cancellationTokenSymbol;
+		private CSharpCompilation compilation;
 		private readonly HashSet<string> typesAlreadyWarnedAbout = new HashSet<string>();
-
+		
 		private static readonly UsingDirectiveSyntax[] extraUsingDirectives =
 		{
 			SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Threading")),
@@ -35,6 +36,7 @@ namespace Shaolinq.AsyncRewriter
 
 		private readonly ILogger log;
 		
+
 		public Rewriter(ILogger log = null)
 		{
 			this.log = log;
@@ -74,18 +76,18 @@ namespace Shaolinq.AsyncRewriter
 		public string RewriteAndMerge(string[] paths, string[] additionalAssemblyNames = null, string[] excludeTypes = null)
 		{
 			var syntaxTrees = paths
-				.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p)))
+				.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p)).WithFilePath(p))
 				.Select(c => c.WithRootAndOptions(UpdateUsings(c.GetCompilationUnitRoot()), c.Options))
 				.ToArray();
 			
-			var compilation = CSharpCompilation
+			this.compilation = CSharpCompilation
 				.Create("Temp", syntaxTrees)
 				.AddReferences
 				(
 					MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
 					MetadataReference.CreateFromFile(typeof(Stream).GetTypeInfo().Assembly.Location)
 				);
-
+			
 			if (additionalAssemblyNames != null)
 			{
 				var assemblyPath = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
@@ -149,7 +151,7 @@ namespace Shaolinq.AsyncRewriter
 							c => c.GetCompilationUnitRoot().Members
 						)
 					)
-				).NormalizeWhitespace("\t", "\r\n", false)
+				).NormalizeWhitespace("\t")
 			);
 		}
 
@@ -298,7 +300,7 @@ namespace Shaolinq.AsyncRewriter
 			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
 			var asyncMethodName = methodSymbol.Name + "Async";
 			var isInterfaceMethod = methodSymbol.ContainingType.TypeKind == TypeKind.Interface;
-			
+
 			if (((methodSyntax.Parent as TypeDeclarationSyntax)?.Modifiers)?.Any(c => c.Kind() == SyntaxKind.PartialKeyword) != true)
 			{
 				var name = ((TypeDeclarationSyntax)methodSyntax.Parent).Identifier.ToString();
@@ -311,7 +313,7 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 
-			var rewriter = new MethodInvocationRewriter(this.log, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
+			var rewriter = new MethodInvocationRewriter(this.log, new CompilationLookup(this.compilation), semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
 			var newAsyncMethod = (MethodDeclarationSyntax)rewriter.Visit(methodSyntax);
 			var returnTypeName = methodSyntax.ReturnType.ToString();
 

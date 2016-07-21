@@ -125,7 +125,7 @@ namespace Shaolinq.Persistence
 			{
 				if (this.dbTransaction != null)
 				{
-					this.dbTransaction.CommitEx();
+					this.dbTransaction.Commit();
 
 					this.dbTransaction = null;
 				}
@@ -155,7 +155,7 @@ namespace Shaolinq.Persistence
 			{
 				if (this.dbTransaction != null)
 				{
-					this.dbTransaction.RollbackEx();
+					this.dbTransaction.Rollback();
 
 					this.dbTransaction = null;
 				}

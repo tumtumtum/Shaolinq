@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
@@ -12,91 +13,90 @@ namespace Shaolinq.AsyncRewriter
 	internal class MethodInvocationRewriter : CSharpSyntaxRewriter
 	{
 		private readonly ILogger log;
-		private readonly SemanticModel model;
+		private readonly SemanticModel semanticModel;
 		private readonly HashSet<ITypeSymbol> excludeTypes;
 		private readonly ITypeSymbol cancellationTokenSymbol;
-		
-		public MethodInvocationRewriter(ILogger log, SemanticModel model, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol)
+		private readonly CompilationLookup extensionMethodLookup;
+
+		public MethodInvocationRewriter(ILogger log, CompilationLookup extensionMethodLookup,  SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol)
 		{
 			this.log = log;
-			this.model = model;
+			this.extensionMethodLookup = extensionMethodLookup;
+			this.semanticModel = semanticModel;
 			this.cancellationTokenSymbol = cancellationTokenSymbol;
 			this.excludeTypes = excludeTypes;
 		}
 
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
 		{
-			var syncSymbol = (IMethodSymbol)ModelExtensions.GetSymbolInfo(this.model, node).Symbol;
-
-			if (syncSymbol == null)
+			ITypeSymbol typeForExplicitExtensionMethodCall = null;
+			var methodSymbol = (IMethodSymbol)this.semanticModel.GetSymbolInfo(node).Symbol ?? (IMethodSymbol)this.extensionMethodLookup.GetSymbol(node);
+			
+			if (methodSymbol == null)
 			{
 				return node;
 			}
-
-			var cancellationTokenPos = -1;
 			
-			if (syncSymbol.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync")))
+			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
+			
+			int cancellationTokenPos;
+			
+			if (methodSymbol.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync"))
+				|| methodSymbol.ContainingType.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync")))
 			{
-				cancellationTokenPos = syncSymbol.Parameters.TakeWhile(p => !p.IsOptional && !p.IsParams).Count();
+				cancellationTokenPos = methodParameters.TakeWhile(p => !p.IsOptional && !p.IsParams).Count();
 			}
 			else
 			{
-				if (this.excludeTypes.Contains(syncSymbol.ContainingType))
+				if (this.excludeTypes.Contains(methodSymbol.ContainingType))
 				{
 					return node;
 				}
-
-				var asyncCandidates = syncSymbol
+				
+				var expectedParameterTypes = new List<ITypeSymbol>();
+				
+				expectedParameterTypes.AddRange(methodParameters.TakeWhile(c => !(c.HasExplicitDefaultValue || c.IsParams)).Select(c => c.Type));
+				expectedParameterTypes.Add(this.cancellationTokenSymbol);
+				expectedParameterTypes.AddRange(methodParameters.SkipWhile(c => !(c.HasExplicitDefaultValue || c.IsParams)).Select(c => c.Type));
+				
+				var asyncCandidates1 = methodSymbol
 					.ContainingType
 					.GetMembers()
-					.Where(c => Regex.IsMatch(c.Name, syncSymbol.Name + "Async" + @"(`[0-9])?"))
+					.Where(c => Regex.IsMatch(c.Name, methodSymbol.Name + "Async" + @"(`[0-9])?"))
 					.OfType<IMethodSymbol>()
 					.ToList();
+
+				var candidate = asyncCandidates1.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes))
+								?? asyncCandidates1.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type)));
 				
-				foreach (var candidate in asyncCandidates.Where(c => c.Parameters.Length == (syncSymbol.IsExtensionMethod ? syncSymbol.Parameters.Length + 2 : syncSymbol.Parameters.Length + 1)))
+				if (candidate == null)
 				{
-					var pos = candidate.Parameters.TakeWhile(p => p.Type != this.cancellationTokenSymbol).Count();
+					var asyncCandidates2 = extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", GetInvocationTargetType(node, methodSymbol)).ToList();
 
-					if (pos == candidate.Parameters.Length)
+					candidate = asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes))
+						?? asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type)));
+
+					if (candidate != null)
 					{
-						continue;
-					}
-
-					var parameters = candidate.Parameters;
-
-					if (syncSymbol.IsExtensionMethod)
-					{
-						parameters = parameters.RemoveAt(pos).RemoveAt(0);
-						pos--;
-					}
-					else
-					{
-						parameters = parameters.RemoveAt(pos);
-					}
-
-					if (!parameters.SequenceEqual(syncSymbol.Parameters, ParameterComparer.Default))
-					{
-						continue;
-					}
-
-					cancellationTokenPos = pos;
-				}
-
-				if (cancellationTokenPos == -1)
-				{
-					if (asyncCandidates.Any(ms => ms.Parameters.Length == (syncSymbol.IsExtensionMethod ? syncSymbol.Parameters.Length + 1 : syncSymbol.Parameters.Length) &&
-												  (syncSymbol.IsExtensionMethod ? ms.Parameters.Skip(1) : ms.Parameters).SequenceEqual(syncSymbol.Parameters, ParameterComparer.Default)))
-					{
-						cancellationTokenPos = -1;
+						typeForExplicitExtensionMethodCall = candidate.ContainingType;
 					}
 					else
 					{
 						return node;
 					}
 				}
+
+				if (candidate.ExtensionMethodNormalizingParameters().Any(c => c.Type == this.cancellationTokenSymbol))
+				{
+					cancellationTokenPos = candidate.ExtensionMethodNormalizingParameters().Count(c => c.Type != this.cancellationTokenSymbol);
+				}
+				else
+				{
+					cancellationTokenPos = -1;
+				}
 			}
 
-			var rewritten = this.RewriteExpression(node, cancellationTokenPos);
+			var rewritten = this.RewriteExpression(node, cancellationTokenPos, typeForExplicitExtensionMethodCall);
 
 			if (!(node.Parent is StatementSyntax))
 			{
@@ -106,14 +106,73 @@ namespace Shaolinq.AsyncRewriter
 			return rewritten;
 		}
 
-		ExpressionSyntax RewriteExpression(InvocationExpressionSyntax node, int cancellationTokenPos)
+		public override SyntaxNode VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
+		{
+			var result = base.VisitConditionalAccessExpression(node);
+
+			if (result != node && ((result as ConditionalAccessExpressionSyntax)?.WhenNotNull as ParenthesizedExpressionSyntax)?.Expression.Kind() == SyntaxKind.AwaitExpression)
+			{
+				var conditionalAccess = result as ConditionalAccessExpressionSyntax;
+				var awaitExpression = (AwaitExpressionSyntax)(conditionalAccess.WhenNotNull as ParenthesizedExpressionSyntax)?.Expression;
+				var awaitExpressionExpression = awaitExpression.Expression;
+
+				return SyntaxFactory.AwaitExpression(conditionalAccess.WithWhenNotNull(awaitExpressionExpression));
+			}
+
+			return result;
+		}
+
+		private INamedTypeSymbol GetInvocationTargetType(InvocationExpressionSyntax node, IMethodSymbol methodSymbol)
+		{
+			var notError = false;
+			INamedTypeSymbol retval;
+
+			if (node.Expression is MemberAccessExpressionSyntax)
+			{
+				retval = (INamedTypeSymbol)this.semanticModel.GetTypeInfo(((MemberAccessExpressionSyntax)node.Expression).Expression).Type;
+			}
+			else if (node.Expression is IdentifierNameSyntax)
+			{
+				notError = true;
+				retval = null;
+			}
+			else if (node.Expression is MemberBindingExpressionSyntax)
+			{
+				if (node.Parent is ConditionalAccessExpressionSyntax)
+				{
+					retval = (INamedTypeSymbol)this.semanticModel.GetTypeInfo(((ConditionalAccessExpressionSyntax)node.Parent).Expression).Type;
+				}
+				else
+				{
+					retval = null;
+				}
+			}
+			else
+			{
+				retval = null;
+			}
+
+			if (retval == null)
+			{
+				retval = (INamedTypeSymbol)methodSymbol.ExtensionMethodNormalizingReceiverType();
+
+				if (!notError)
+				{
+					Console.WriteLine($"Unable to determine type of {node.Expression} in {node.SyntaxTree.FilePath} {node.Expression.GetType()}");
+				}
+			}
+
+			return retval;
+		}
+
+		ExpressionSyntax RewriteExpression(InvocationExpressionSyntax node, int cancellationTokenPos, ITypeSymbol typeForExplicitExtensionMethodCall)
 		{
 			InvocationExpressionSyntax rewrittenInvocation;
 
 			if (node.Expression is IdentifierNameSyntax)
 			{
 				var identifierName = (IdentifierNameSyntax)node.Expression;
-
+				
 				rewrittenInvocation = node.WithExpression(identifierName.WithIdentifier(SyntaxFactory.Identifier(identifierName.Identifier.Text + "Async")));
 			}
 			else if (node.Expression is MemberAccessExpressionSyntax)
@@ -126,13 +185,33 @@ namespace Shaolinq.AsyncRewriter
 					memberAccessExp = memberAccessExp.WithExpression((ExpressionSyntax)this.VisitInvocationExpression(nestedInvocation));
 				}
 
-				rewrittenInvocation = node.WithExpression(memberAccessExp.WithName(memberAccessExp.Name.WithIdentifier(SyntaxFactory.Identifier(memberAccessExp.Name.Identifier.Text + "Async"))));
+				if (typeForExplicitExtensionMethodCall != null)
+				{
+					rewrittenInvocation = node.WithExpression
+					(
+						memberAccessExp
+							.WithExpression(SyntaxFactory.IdentifierName(typeForExplicitExtensionMethodCall.ToMinimalDisplayString(this.semanticModel, node.SpanStart)))
+							.WithName(memberAccessExp.Name.WithIdentifier(SyntaxFactory.Identifier(memberAccessExp.Name.Identifier.Text + "Async")))
+					);
+
+					rewrittenInvocation = rewrittenInvocation.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList<ArgumentSyntax>().Add(SyntaxFactory.Argument(memberAccessExp.Expression.WithoutTrivia())).AddRange(node.ArgumentList.Arguments)));
+				}
+				else
+				{
+					rewrittenInvocation = node.WithExpression(memberAccessExp.WithName(memberAccessExp.Name.WithIdentifier(SyntaxFactory.Identifier(memberAccessExp.Name.Identifier.Text + "Async"))));
+				}
 			}
 			else if (node.Expression is GenericNameSyntax)
 			{
 				var genericNameExp = (GenericNameSyntax)node.Expression;
 
 				rewrittenInvocation = node.WithExpression(genericNameExp.WithIdentifier(SyntaxFactory.Identifier(genericNameExp.Identifier.Text + "Async")));
+			}
+			else if (node.Expression is MemberBindingExpressionSyntax && node.Parent is ConditionalAccessExpressionSyntax)
+			{
+				var memberBindingExpression = (MemberBindingExpressionSyntax)node.Expression;
+
+				rewrittenInvocation = node.WithExpression(memberBindingExpression.WithName(memberBindingExpression.Name.WithIdentifier(SyntaxFactory.Identifier(memberBindingExpression.Name.Identifier.Text + "Async"))));
 			}
 			else
 			{
@@ -143,6 +222,11 @@ namespace Shaolinq.AsyncRewriter
 			{
 				var cancellationTokenArg = SyntaxFactory.Argument(SyntaxFactory.IdentifierName("cancellationToken"));
 
+				if (typeForExplicitExtensionMethodCall != null)
+				{
+					cancellationTokenPos++;
+				}
+				
 				if (cancellationTokenPos == rewrittenInvocation.ArgumentList.Arguments.Count)
 				{
 					rewrittenInvocation = rewrittenInvocation.WithArgumentList(rewrittenInvocation.ArgumentList.AddArguments(cancellationTokenArg));
@@ -154,12 +238,13 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			var methodInvocation = SyntaxFactory.InvocationExpression
-				(
-					SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, rewrittenInvocation, SyntaxFactory.IdentifierName("ConfigureAwait")),
-					SyntaxFactory.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SyntaxFactory.Argument(SyntaxFactory.ParseExpression("false"))))
-				);
-
+			(
+				SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, rewrittenInvocation, SyntaxFactory.IdentifierName("ConfigureAwait")),
+				SyntaxFactory.ArgumentList(new SeparatedSyntaxList<ArgumentSyntax>().Add(SyntaxFactory.Argument(SyntaxFactory.ParseExpression("false"))))
+			);
+			
 			return SyntaxFactory.AwaitExpression(methodInvocation);
 		}
 	}
 }
+ 

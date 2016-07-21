@@ -50,9 +50,12 @@
     <EmbeddedResource Include="Bar.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Foo.cs">
+    <Compile Include="Foo.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    </Compile>
+    <Compile Include="ExtensionMethods.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="ICommand.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>

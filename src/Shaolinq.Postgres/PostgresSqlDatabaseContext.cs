@@ -46,7 +46,10 @@ namespace Shaolinq.Postgres
 				Pooling = contextInfo.Pooling,
 				Enlist = false,
 				MinPoolSize = contextInfo.MinPoolSize,
-				MaxPoolSize = contextInfo.MaxPoolSize
+				MaxPoolSize = contextInfo.MaxPoolSize,
+				KeepAlive = contextInfo.KeepAlive,
+				ConnectionIdleLifetime = contextInfo.ConnectionIdleLifetime,
+				ConvertInfinityDateTime = contextInfo.ConvertInfinityDateTime
 			};
 
 			if (contextInfo.ConnectionTimeout.HasValue)

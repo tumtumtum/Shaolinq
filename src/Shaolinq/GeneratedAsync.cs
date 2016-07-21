@@ -197,7 +197,7 @@ namespace Shaolinq
 			}
 
 			state0:
-				var result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+				var result = (await EnumerableExtensions.MoveNextAsync(this.enumerator, cancellationToken).ConfigureAwait(false));
 			if (!result)
 			{
 				this.Current = this.specifiedValue;
@@ -212,7 +212,7 @@ namespace Shaolinq
 			}
 
 			state1:
-				result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+				result = (await EnumerableExtensions.MoveNextAsync(this.enumerator, cancellationToken).ConfigureAwait(false));
 			if (result)
 			{
 				this.Current = this.enumerator.Current;
@@ -249,7 +249,7 @@ namespace Shaolinq
 			}
 
 			state0:
-				var result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+				var result = (await EnumerableExtensions.MoveNextAsync(this.enumerator, cancellationToken).ConfigureAwait(false));
 			if (!result)
 			{
 				this.Current = this.specifiedValue ?? default (T);
@@ -264,7 +264,7 @@ namespace Shaolinq
 			}
 
 			state1:
-				result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+				result = (await EnumerableExtensions.MoveNextAsync(this.enumerator, cancellationToken).ConfigureAwait(false));
 			if (result)
 			{
 				this.Current = this.enumerator.Current;
@@ -313,7 +313,7 @@ namespace Shaolinq
 			}
 
 			state0:
-				var result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+				var result = (await EnumerableExtensions.MoveNextAsync(this.enumerator, cancellationToken).ConfigureAwait(false));
 			if (!result || this.enumerator.Current == null)
 			{
 				this.state = 9;
@@ -327,7 +327,7 @@ namespace Shaolinq
 			}
 
 			state1:
-				result = (await this.enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false));
+				result = (await EnumerableExtensions.MoveNextAsync(this.enumerator, cancellationToken).ConfigureAwait(false));
 			if (result)
 			{
 				this.Current = this.enumerator.Current;
@@ -385,9 +385,9 @@ namespace Shaolinq
 			}
 
 			var retval = 0;
-			using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
-				while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+				while (enumerator.MoveNext())
 				{
 					retval++;
 				}
@@ -410,9 +410,9 @@ namespace Shaolinq
 			}
 
 			var retval = 0L;
-			using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
-				while (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+				while (enumerator.MoveNext())
 				{
 					retval++;
 				}
@@ -428,15 +428,15 @@ namespace Shaolinq
 
 		internal static async Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> source, T specifiedValue, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
-				if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+				if (!enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(Enumerable.Empty<T>());
 				}
 
 				var result = enumerator.Current;
-				if (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+				if (enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(new T[2]);
 				}
@@ -457,15 +457,15 @@ namespace Shaolinq
 
 		private static async Task<T> SingleAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
-				if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+				if (!enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(Enumerable.Empty<T>());
 				}
 
 				var result = enumerator.Current;
-				if (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+				if (enumerator.MoveNext())
 				{
 					return Enumerable.Single<T>(new T[2]);
 				}
@@ -481,15 +481,15 @@ namespace Shaolinq
 
 		private static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
-				if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+				if (!enumerator.MoveNext())
 				{
 					return default (T);
 				}
 
 				var result = enumerator.Current;
-				if (await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false))
+				if (enumerator.MoveNext())
 				{
 					return Enumerable.Single(new T[2]);
 				}
@@ -505,9 +505,9 @@ namespace Shaolinq
 
 		private static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await enumerable.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(enumerable).ConfigureAwait(false)))
 			{
-				if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+				if (!enumerator.MoveNext())
 				{
 					return Enumerable.First(Enumerable.Empty<T>());
 				}
@@ -523,9 +523,9 @@ namespace Shaolinq
 
 		private static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
-				if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)))
+				if (!enumerator.MoveNext())
 				{
 					return default (T);
 				}
@@ -541,9 +541,9 @@ namespace Shaolinq
 
 		internal static async Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > source, CancellationToken cancellationToken)where T : struct
 		{
-			using (var enumerator = (await source.GetEnumeratorExAsync().ConfigureAwait(false)))
+			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
-				if (!(await enumerator.MoveNextExAsync(cancellationToken).ConfigureAwait(false)) || enumerator.Current == null)
+				if (!enumerator.MoveNext() || enumerator.Current == null)
 				{
 					throw new InvalidOperationException("Sequence contains no elements");
 				}
@@ -637,6 +637,7 @@ namespace Shaolinq.Persistence
 #pragma warning disable
 	using System.Data;
 	using System.Threading;
+	using System.Reflection;
 	using System.Data.Common;
 	using System.Threading.Tasks;
 	using Shaolinq;
@@ -929,7 +930,7 @@ namespace Shaolinq.Persistence
 			expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
 			expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
 			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
-			await ((ISqlQueryProvider)provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			await SqlQueryProviderExtensions.ExecuteAsync<int>(((ISqlQueryProvider)provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
@@ -1111,7 +1112,7 @@ namespace Shaolinq.Persistence
 			{
 				if (this.dbTransaction != null)
 				{
-					await this.dbTransaction.CommitExAsync(cancellationToken).ConfigureAwait(false);
+					await DbTransactionExtensions.CommitAsync(this.dbTransaction, cancellationToken).ConfigureAwait(false);
 					this.dbTransaction = null;
 				}
 			}
@@ -1143,7 +1144,7 @@ namespace Shaolinq.Persistence
 			{
 				if (this.dbTransaction != null)
 				{
-					await this.dbTransaction.RollbackExAsync(cancellationToken).ConfigureAwait(false);
+					await DbTransactionExtensions.RollbackAsync(this.dbTransaction, cancellationToken).ConfigureAwait(false);
 					this.dbTransaction = null;
 				}
 			}
@@ -1186,7 +1187,7 @@ namespace Shaolinq
 		public static async Task<bool> AnyAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Any<T>(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<bool>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<bool>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<bool> AnyAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1197,7 +1198,7 @@ namespace Shaolinq
 		public static async Task<bool> AnyAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Any<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<bool>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<bool>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<bool> AllAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1208,7 +1209,7 @@ namespace Shaolinq
 		public static async Task<bool> AllAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.All<T>(default (IQueryable<T>), default (Expression<Func<T, bool>>))), source.Expression, Expression.Quote(predicate));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<bool>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<bool>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> FirstAsync<T>(this IQueryable<T> source)
@@ -1219,7 +1220,7 @@ namespace Shaolinq
 		public static async Task<T> FirstAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.First<T>(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> FirstAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1230,7 +1231,7 @@ namespace Shaolinq
 		public static async Task<T> FirstAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.First<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source)
@@ -1241,7 +1242,7 @@ namespace Shaolinq
 		public static async Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.FirstOrDefault<T>(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1252,7 +1253,7 @@ namespace Shaolinq
 		public static async Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.FirstOrDefault<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> SingleAsync<T>(this IQueryable<T> source)
@@ -1263,7 +1264,7 @@ namespace Shaolinq
 		public static async Task<T> SingleAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Single<T>(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> SingleAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1274,7 +1275,7 @@ namespace Shaolinq
 		public static async Task<T> SingleAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Single<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source)
@@ -1285,7 +1286,7 @@ namespace Shaolinq
 		public static async Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.SingleOrDefault<T>(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1296,7 +1297,7 @@ namespace Shaolinq
 		public static async Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.SingleOrDefault<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> DeleteAsync<T>(this IQueryable<T> source)where T : DataAccessObject
@@ -1308,7 +1309,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), source.Expression);
 			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)where T : DataAccessObject
@@ -1320,7 +1321,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
 			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> CountAsync<T>(this IQueryable<T> source)
@@ -1331,7 +1332,7 @@ namespace Shaolinq
 		public static async Task<int> CountAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> CountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1342,7 +1343,7 @@ namespace Shaolinq
 		public static async Task<int> CountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long> LongCountAsync<T>(this IQueryable<T> source)
@@ -1353,7 +1354,7 @@ namespace Shaolinq
 		public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.LongCount(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long> LongCountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
@@ -1364,7 +1365,7 @@ namespace Shaolinq
 		public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.LongCount<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> MinAsync<T>(this IQueryable<T> source)
@@ -1375,7 +1376,7 @@ namespace Shaolinq
 		public static async Task<T> MinAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<T> MaxAsync<T>(this IQueryable<T> source)
@@ -1386,7 +1387,7 @@ namespace Shaolinq
 		public static async Task<T> MaxAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Max(default (IQueryable<T>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<T>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<T>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<U> MinAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
@@ -1397,7 +1398,7 @@ namespace Shaolinq
 		public static async Task<U> MinAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default (IQueryable<T>), c => default (U))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<U>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<U>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<U> MaxAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
@@ -1408,7 +1409,7 @@ namespace Shaolinq
 		public static async Task<U> MaxAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Max(default (IQueryable<T>), c => default (U))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<U>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<U>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> SumAsync(this IQueryable<int> source)
@@ -1419,7 +1420,7 @@ namespace Shaolinq
 		public static async Task<int> SumAsync(this IQueryable<int> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<int>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int ? > SumAsync(this IQueryable<int ? > source)
@@ -1430,7 +1431,7 @@ namespace Shaolinq
 		public static async Task<int ? > SumAsync(this IQueryable<int ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<int ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long> SumAsync(this IQueryable<long> source)
@@ -1441,7 +1442,7 @@ namespace Shaolinq
 		public static async Task<long> SumAsync(this IQueryable<long> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<long>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long ? > SumAsync(this IQueryable<long ? > source)
@@ -1452,7 +1453,7 @@ namespace Shaolinq
 		public static async Task<long ? > SumAsync(this IQueryable<long ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<long ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float> SumAsync(this IQueryable<float> source)
@@ -1463,7 +1464,7 @@ namespace Shaolinq
 		public static async Task<float> SumAsync(this IQueryable<float> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<float>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float ? > SumAsync(this IQueryable<float ? > source)
@@ -1474,7 +1475,7 @@ namespace Shaolinq
 		public static async Task<float ? > SumAsync(this IQueryable<float ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<float ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double> SumAsync(this IQueryable<double> source)
@@ -1485,7 +1486,7 @@ namespace Shaolinq
 		public static async Task<double> SumAsync(this IQueryable<double> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double ? > SumAsync(this IQueryable<double ? > source)
@@ -1496,7 +1497,7 @@ namespace Shaolinq
 		public static async Task<double ? > SumAsync(this IQueryable<double ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<double ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<decimal> SumAsync(this IQueryable<decimal> source)
@@ -1507,7 +1508,7 @@ namespace Shaolinq
 		public static async Task<decimal> SumAsync(this IQueryable<decimal> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<decimal>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<decimal>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<decimal ? > SumAsync(this IQueryable<decimal ? > source)
@@ -1518,7 +1519,7 @@ namespace Shaolinq
 		public static async Task<decimal ? > SumAsync(this IQueryable<decimal ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<decimal ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<decimal ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector)
@@ -1529,7 +1530,7 @@ namespace Shaolinq
 		public static async Task<int> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (int))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector)
@@ -1540,7 +1541,7 @@ namespace Shaolinq
 		public static async Task<int ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (int ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector)
@@ -1551,7 +1552,7 @@ namespace Shaolinq
 		public static async Task<long> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (long))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector)
@@ -1562,7 +1563,7 @@ namespace Shaolinq
 		public static async Task<long ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (long ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector)
@@ -1573,7 +1574,7 @@ namespace Shaolinq
 		public static async Task<float> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (float))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector)
@@ -1584,7 +1585,7 @@ namespace Shaolinq
 		public static async Task<float ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (float ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector)
@@ -1595,7 +1596,7 @@ namespace Shaolinq
 		public static async Task<double> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (double))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double ? > SumAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector)
@@ -1606,7 +1607,7 @@ namespace Shaolinq
 		public static async Task<double ? > SumAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (double ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<decimal> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, decimal>> selector)
@@ -1617,7 +1618,7 @@ namespace Shaolinq
 		public static async Task<decimal> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (decimal))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<decimal>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<decimal ? > SumAsync<T>(this IQueryable<decimal ? > source, Expression<Func<T, decimal ? >> selector)
@@ -1628,7 +1629,7 @@ namespace Shaolinq
 		public static async Task<decimal ? > SumAsync<T>(this IQueryable<decimal ? > source, Expression<Func<T, decimal ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default (IQueryable<T>), c => default (decimal ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<decimal ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<decimal ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> AverageAsync(this IQueryable<int> source)
@@ -1639,7 +1640,7 @@ namespace Shaolinq
 		public static async Task<int> AverageAsync(this IQueryable<int> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<int>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int ? > AverageAsync(this IQueryable<int ? > source)
@@ -1650,7 +1651,7 @@ namespace Shaolinq
 		public static async Task<int ? > AverageAsync(this IQueryable<int ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<int ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long> AverageAsync(this IQueryable<long> source)
@@ -1661,7 +1662,7 @@ namespace Shaolinq
 		public static async Task<long> AverageAsync(this IQueryable<long> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<long>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long ? > AverageAsync(this IQueryable<long ? > source)
@@ -1672,7 +1673,7 @@ namespace Shaolinq
 		public static async Task<long ? > AverageAsync(this IQueryable<long ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<long ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float> AverageAsync(this IQueryable<float> source)
@@ -1683,7 +1684,7 @@ namespace Shaolinq
 		public static async Task<float> AverageAsync(this IQueryable<float> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<float>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float ? > AverageAsync(this IQueryable<float ? > source)
@@ -1694,7 +1695,7 @@ namespace Shaolinq
 		public static async Task<float ? > AverageAsync(this IQueryable<float ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<float ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double> AverageAsync(this IQueryable<double> source)
@@ -1705,7 +1706,7 @@ namespace Shaolinq
 		public static async Task<double> AverageAsync(this IQueryable<double> source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<double>))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double ? > AverageAsync(this IQueryable<double ? > source)
@@ -1716,7 +1717,7 @@ namespace Shaolinq
 		public static async Task<double ? > AverageAsync(this IQueryable<double ? > source, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<double ? >))), source.Expression);
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector)
@@ -1727,7 +1728,7 @@ namespace Shaolinq
 		public static async Task<int> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (int))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<int ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector)
@@ -1738,7 +1739,7 @@ namespace Shaolinq
 		public static async Task<int ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (int ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<int ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<int ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector)
@@ -1749,7 +1750,7 @@ namespace Shaolinq
 		public static async Task<long> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (long))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<long ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector)
@@ -1760,7 +1761,7 @@ namespace Shaolinq
 		public static async Task<long ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (long ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<long ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<long ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector)
@@ -1771,7 +1772,7 @@ namespace Shaolinq
 		public static async Task<float> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (float))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<float ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector)
@@ -1782,7 +1783,7 @@ namespace Shaolinq
 		public static async Task<float ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (float ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<float ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<float ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector)
@@ -1793,7 +1794,7 @@ namespace Shaolinq
 		public static async Task<double> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (double))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double>(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task<double ? > AverageAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector)
@@ -1804,7 +1805,7 @@ namespace Shaolinq
 		public static async Task<double ? > AverageAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector, CancellationToken cancellationToken)
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default (IQueryable<T>), c => default (double ? ))), source.Expression, Expression.Quote(selector));
-			return await ((IQueryProvider)source.Provider).ExecuteExAsync<double ? >(expression, cancellationToken).ConfigureAwait(false);
+			return await SqlQueryProviderExtensions.ExecuteAsync<double ? >(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

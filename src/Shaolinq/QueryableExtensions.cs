@@ -78,7 +78,7 @@ namespace Shaolinq
 				source.Expression
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<bool>(expression);
+			return ((IQueryProvider)source.Provider).Execute<bool>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -90,7 +90,7 @@ namespace Shaolinq
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<bool>(expression);
+			return ((IQueryProvider)source.Provider).Execute<bool>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -103,7 +103,7 @@ namespace Shaolinq
 				Expression.Quote(predicate)
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<bool>(expression);
+			return ((IQueryProvider)source.Provider).Execute<bool>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -115,7 +115,7 @@ namespace Shaolinq
 				source.Expression
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -127,7 +127,7 @@ namespace Shaolinq
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -139,7 +139,7 @@ namespace Shaolinq
 				source.Expression
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -151,7 +151,7 @@ namespace Shaolinq
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -163,7 +163,7 @@ namespace Shaolinq
 				source.Expression
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -175,7 +175,7 @@ namespace Shaolinq
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -187,7 +187,7 @@ namespace Shaolinq
 				source.Expression
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -199,7 +199,7 @@ namespace Shaolinq
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync]
@@ -210,7 +210,7 @@ namespace Shaolinq
 
 			((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 
 		[RewriteAsync]
@@ -225,7 +225,7 @@ namespace Shaolinq
 
 			((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -233,7 +233,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Count(default(IQueryable<T>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 		
 		[RewriteAsync(MethodAttributes.Public)]
@@ -245,7 +245,7 @@ namespace Shaolinq
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -253,7 +253,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.LongCount(default(IQueryable<T>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -265,7 +265,7 @@ namespace Shaolinq
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -273,7 +273,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default(IQueryable<T>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -281,7 +281,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Max(default(IQueryable<T>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<T>(expression);
+			return ((IQueryProvider)source.Provider).Execute<T>(expression);
 		}
 
 		//
@@ -291,7 +291,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Min(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<U>(expression);
+			return ((IQueryProvider)source.Provider).Execute<U>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -299,7 +299,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Max(default(IQueryable<T>), c => default(U))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<U>(expression);
+			return ((IQueryProvider)source.Provider).Execute<U>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -307,7 +307,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<int>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -315,7 +315,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<int?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int?>(expression);
 		}
 		
 		[RewriteAsync(MethodAttributes.Public)]
@@ -323,7 +323,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<long>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -331,7 +331,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<long?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -339,7 +339,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<float>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -347,7 +347,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<float?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -355,7 +355,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -363,7 +363,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<double?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -371,7 +371,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<decimal>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<decimal>(expression);
+			return ((IQueryProvider)source.Provider).Execute<decimal>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -379,7 +379,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<decimal?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<decimal?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<decimal?>(expression);
 		}
 
 		//
@@ -389,7 +389,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(int))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -397,7 +397,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(int?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -405,7 +405,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(long))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -413,7 +413,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(long?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -421,7 +421,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(float))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -429,7 +429,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(float?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -437,7 +437,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(double))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -445,7 +445,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(double?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -453,7 +453,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(decimal))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<decimal>(expression);
+			return ((IQueryProvider)source.Provider).Execute<decimal>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -461,7 +461,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Sum(default(IQueryable<T>), c => default(decimal?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<decimal?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<decimal?>(expression);
 		}
 
 		//
@@ -471,7 +471,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<int>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -479,7 +479,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<int?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -487,7 +487,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<long>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -495,7 +495,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<long?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -503,7 +503,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<float>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -511,7 +511,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<float?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -519,7 +519,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<double>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -527,7 +527,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<double?>))), source.Expression);
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double?>(expression);
 		}
 
 		//
@@ -537,7 +537,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(int))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -545,7 +545,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(int?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<int?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<int?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -553,7 +553,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(long))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -561,7 +561,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(long?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<long?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<long?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -569,7 +569,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(float))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -577,7 +577,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(float?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<float?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<float?>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -585,7 +585,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(double))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double>(expression);
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -593,7 +593,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Queryable.Average(default(IQueryable<T>), c => default(double?))), source.Expression, Expression.Quote(selector));
 
-			return ((IQueryProvider)source.Provider).ExecuteEx<double?>(expression);
+			return ((IQueryProvider)source.Provider).Execute<double?>(expression);
 		}
 
 		public static IQueryable<T> ForUpdate<T>(this IQueryable<T> source)
@@ -606,7 +606,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
 
-			return source.Provider.ExecuteEx<T>(expression);
+			return source.Provider.Execute<T>(expression);
 		}
 
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)

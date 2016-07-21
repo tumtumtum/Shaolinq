@@ -7,15 +7,26 @@ using System.Threading.Tasks;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
+	namespace Fab
+	{
+		public static class F
+		{
+			public static Task<int> FooAsync<T>(this List<T> foo, string s, CancellationToken cancellationToken)
+			{
+				return Task.FromResult(0);
+			}
+		}
+	}
+
 	public abstract class Foo
 	{
 		public virtual void Method1()
 		{	
 		}
 
-		public abstract void Method2(string text, System.Collections.Generic.IReadOnlyList<Platform.Pair<string>> names);
-		public abstract Task Method2Async(string text, System.Collections.Generic.IReadOnlyList<Platform.Pair<string>> names);
-		public abstract Task Method2Async(string text, System.Collections.Generic.IReadOnlyList<Platform.Pair<string>> names, CancellationToken cancellationToken);
+		public abstract void Method2(string text, System.Collections.Generic.IReadOnlyList<string> names);
+		public abstract Task Method2Async(string text, System.Collections.Generic.IReadOnlyList<string> names);
+		public abstract Task Method2Async(string text, System.Collections.Generic.IReadOnlyList<string> names, CancellationToken cancellationToken);
 		
 		public virtual Task Method1Async()
 		{

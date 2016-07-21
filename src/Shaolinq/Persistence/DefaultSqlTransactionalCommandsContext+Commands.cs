@@ -281,7 +281,7 @@ namespace Shaolinq.Persistence
 
 			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
 
-			((ISqlQueryProvider)provider).ExecuteEx<int>(expression);
+			((ISqlQueryProvider)provider).Execute<int>(expression);
 		}
 
 		#endregion

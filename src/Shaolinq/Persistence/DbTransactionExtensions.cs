@@ -15,17 +15,12 @@ namespace Shaolinq.Persistence
 		private static Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>> commitAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>>();
 		private static Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>> rollbackAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<IDbTransaction, CancellationToken, Task>>();
 
-		public static void RollbackEx(this IDbTransaction transaction)
+		public static Task RollbackAsync(this IDbTransaction transaction)
 		{
-			transaction.Rollback();
+			return transaction.RollbackAsync(CancellationToken.None);
 		}
 
-		public static Task RollbackExAsync(this IDbTransaction transaction)
-		{
-			return transaction.RollbackExAsync(CancellationToken.None);
-		}
-
-		public static Task RollbackExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
+		public static Task RollbackAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
 			Func<IDbTransaction, CancellationToken, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);
@@ -66,18 +61,13 @@ namespace Shaolinq.Persistence
 
 			return func(transaction, cancellationToken);
 		}
-		
-		public static void CommitEx(this IDbTransaction transaction)
+
+		public static Task CommitAsync(this IDbTransaction transaction)
 		{
-			transaction.Commit();
+			return transaction.CommitAsync(CancellationToken.None);
 		}
 
-		public static Task CommitExAsync(this IDbTransaction transaction)
-		{
-			return transaction.CommitExAsync(CancellationToken.None);
-		}
-
-		public static Task CommitExAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
+		public static Task CommitAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
 			Func<IDbTransaction, CancellationToken, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);

@@ -6,10 +6,16 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
 {
+	/// <summary>
+	/// See http://www.npgsql.org/doc/connection-string-parameters.html
+	/// </summary>
 	[XmlElement]
 	public class PostgresSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
+		public const bool DefaultPooling = true;
+		public const int DefaultPostgresPort = 5432;
+
 		[XmlAttribute]
 		public string DatabaseName { get; set; }
 
@@ -20,47 +26,44 @@ namespace Shaolinq.Postgres
 		public string UserId { get; set; }
 
 		[XmlAttribute]
-		public int Port { get; set; }
+		public int Port { get; set; } = DefaultPostgresPort;
 
 		[XmlAttribute]
-		public bool Pooling { get; set; }
+		public bool Pooling { get; set; } = DefaultPooling;
 
 		[XmlAttribute]
 		public int MinPoolSize { get; set; }
 
 		[XmlAttribute]
-		public int MaxPoolSize { get; set; }
+		public int MaxPoolSize { get; set; } = 20;
 
 		[XmlAttribute]
 		public string Password { get; set; }
 
 		[XmlAttribute]
-		public bool NativeUuids { get; set; }
+		public bool NativeUuids { get; set; } = true;
 
 		[XmlAttribute]
-		public bool NativeEnums { get; set; }
+		public bool NativeEnums { get; set; } = false;
 
 		[Obsolete]
 		[XmlAttribute]
 		public bool BackendTimeouts { get; set; } = true;
+		
+		[XmlAttribute]
+		public int KeepAlive { get; set; } = 3;
 
 		[XmlAttribute]
-		public bool EnablePreparedTransactions { get; set; }
+		public int ConnectionIdleLifetime { get; set; } = 3;
 
-		public const int DefaultPostgresPort = 5432;
-		public const bool DefaultPooling = true;
-		public const int DefaultMaxPoolSize = 50;
-		public const bool DefaultNativeUuids = true;
-		public const bool DefaultNativeEnums = false;
+		[XmlAttribute]
+		public int ConnectionPruningInterval { get; set; } = 3;
+		
+		[XmlAttribute]
+		public bool EnablePreparedTransactions { get; set; } = false;
 
-		public PostgresSqlDatabaseContextInfo()
-		{
-			this.Port = DefaultPostgresPort;
-			this.Pooling = DefaultPooling;
-			this.MaxPoolSize = DefaultMaxPoolSize;
-			this.NativeUuids = DefaultNativeUuids;
-			this.NativeEnums = DefaultNativeEnums;
-		}
+		[XmlAttribute]
+		public bool ConvertInfinityDateTime { get; set; } = false;
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{

@@ -10,12 +10,7 @@ namespace Shaolinq
 {
 	internal static class SqlQueryProviderExtensions
 	{
-		public static T ExecuteEx<T>(this IQueryProvider queryProvider, Expression expression)
-		{
-			return queryProvider.Execute<T>(expression);
-		}
-
-		public static Task<T> ExecuteExAsync<T>(this IQueryProvider queryProvider, Expression expression, CancellationToken cancellationToken)
+		public static Task<T> ExecuteAsync<T>(this IQueryProvider queryProvider, Expression expression, CancellationToken cancellationToken)
 		{
 			var sqlQueryProvider = queryProvider as ISqlQueryProvider;
 

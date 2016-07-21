@@ -9,7 +9,9 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
-		public const bool DefaultUnpreparedExecute = false;
+		public const bool DefaultPooling = true;
+		public const int DefaultPostgresPort = 5432;
+		public const bool DefaultUnpreparedExecute = true;
 
 		[XmlAttribute]
 		public string DatabaseName { get; set; }
@@ -21,45 +23,31 @@ namespace Shaolinq.Postgres.DotConnect
 		public string UserId { get; set; }
 
 		[XmlAttribute]
-		public int Port { get; set; }
+		public int Port { get; set; } = DefaultPostgresPort;
 
 		[XmlAttribute]
-		public bool Pooling { get; set; }
+		public bool Pooling { get; set; } = DefaultPooling;
 
 		[XmlAttribute]
 		public int MinPoolSize { get; set; }
 
 		[XmlAttribute]
-		public int MaxPoolSize { get; set; }
+		public int MaxPoolSize { get; set; } = 50;
 
 		[XmlAttribute]
 		public string Password { get; set; }
 
 		[XmlAttribute]
-		public bool NativeUuids { get; set; }
+		public bool NativeUuids { get; set; } = true;
 
 		[XmlAttribute]
-		public bool NativeEnums { get; set; }
+		public bool NativeEnums { get; set; } = false;
 
 		[XmlAttribute]
-		public bool UnpreparedExecute { get; set; }
+		public bool UnpreparedExecute { get; set; } = false;
 
-		public const int DefaultPostgresPort = 5432;
-		public const bool DefaultPooling = true;
-		public const int DefaultMaxPoolSize = 50;
-		public const bool DefaultNativeUuids = true;
-		public const bool DefaultNativeEnums = false;
-
-		public PostgresDotConnectSqlDatabaseContextInfo()
-		{
-			this.Port = DefaultPostgresPort;
-			this.Pooling = DefaultPooling;
-			this.MaxPoolSize = DefaultMaxPoolSize;
-			this.NativeUuids = DefaultNativeUuids;
-			this.NativeEnums = DefaultNativeEnums;
-
-			this.UnpreparedExecute = DefaultUnpreparedExecute;
-		}
+		[XmlAttribute]
+		public int KeepAlive { get; set; } = 3;
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
