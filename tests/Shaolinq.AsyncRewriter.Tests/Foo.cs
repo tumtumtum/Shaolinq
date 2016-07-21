@@ -26,5 +26,8 @@ namespace Shaolinq.AsyncRewriter.Tests
 			where T : class
 		{	
 		}
+
+		[RewriteAsync]
+		public abstract void AbstractMethod1();
 	}
 }

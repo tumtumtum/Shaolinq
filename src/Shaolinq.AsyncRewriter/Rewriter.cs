@@ -298,7 +298,7 @@ namespace Shaolinq.AsyncRewriter
 			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
 			var asyncMethodName = methodSymbol.Name + "Async";
 			var isInterfaceMethod = methodSymbol.ContainingType.TypeKind == TypeKind.Interface;
-
+			
 			if (((methodSyntax.Parent as TypeDeclarationSyntax)?.Modifiers)?.Any(c => c.Kind() == SyntaxKind.PartialKeyword) != true)
 			{
 				var name = ((TypeDeclarationSyntax)methodSyntax.Parent).Identifier.ToString();
@@ -335,7 +335,7 @@ namespace Shaolinq.AsyncRewriter
 					)
 				)));
 
-				if (!isInterfaceMethod)
+				if (!(isInterfaceMethod || methodSymbol.IsAbstract))
 				{
 					newAsyncMethod = newAsyncMethod.WithModifiers(methodSyntax.Modifiers.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)));
 				}
@@ -354,13 +354,13 @@ namespace Shaolinq.AsyncRewriter
 					)
 				);
 
-				if (!isInterfaceMethod)
+				if (!(isInterfaceMethod || methodSymbol.IsAbstract))
 				{
 					newAsyncMethod = newAsyncMethod.WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(callAsyncWithCancellationToken)));
 				}
 			}
 
-			if (!isInterfaceMethod)
+			if (!(isInterfaceMethod || methodSymbol.IsAbstract))
 			{
 				var baseAsyncMethod = this
 					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name + "Async", newAsyncMethod)
