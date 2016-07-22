@@ -351,6 +351,7 @@ namespace Shaolinq
 	using System;
 	using System.Linq;
 	using System.Threading;
+	using System.Reflection;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;
 	using System.Collections.ObjectModel;
@@ -371,12 +372,12 @@ namespace Shaolinq
 			return await source.FirstAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		private static Task<int> CountAsync<T>(this IEnumerable<T> source)
+		public static Task<int> CountAsync<T>(this IEnumerable<T> source)
 		{
 			return CountAsync(source, CancellationToken.None);
 		}
 
-		private static async Task<int> CountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		public static async Task<int> CountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			var list = source as ICollection<T>;
 			if (list != null)
@@ -396,12 +397,12 @@ namespace Shaolinq
 			return retval;
 		}
 
-		private static Task<long> LongCountAsync<T>(this IEnumerable<T> source)
+		public static Task<long> LongCountAsync<T>(this IEnumerable<T> source)
 		{
 			return LongCountAsync(source, CancellationToken.None);
 		}
 
-		private static async Task<long> LongCountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		public static async Task<long> LongCountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			var list = source as ICollection<T>;
 			if (list != null)
@@ -450,12 +451,12 @@ namespace Shaolinq
 			}
 		}
 
-		private static Task<T> SingleAsync<T>(this IEnumerable<T> source)
+		public static Task<T> SingleAsync<T>(this IEnumerable<T> source)
 		{
 			return SingleAsync(source, CancellationToken.None);
 		}
 
-		private static async Task<T> SingleAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		public static async Task<T> SingleAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
@@ -474,12 +475,12 @@ namespace Shaolinq
 			}
 		}
 
-		private static Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source)
+		public static Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source)
 		{
 			return SingleOrDefaultAsync(source, CancellationToken.None);
 		}
 
-		private static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		public static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{
@@ -498,12 +499,12 @@ namespace Shaolinq
 			}
 		}
 
-		private static Task<T> FirstAsync<T>(this IEnumerable<T> enumerable)
+		public static Task<T> FirstAsync<T>(this IEnumerable<T> enumerable)
 		{
 			return FirstAsync(enumerable, CancellationToken.None);
 		}
 
-		private static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
+		public static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
 		{
 			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(enumerable).ConfigureAwait(false)))
 			{
@@ -516,12 +517,12 @@ namespace Shaolinq
 			}
 		}
 
-		private static Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source)
+		public static Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source)
 		{
 			return FirstOrDefaultAsync(source, CancellationToken.None);
 		}
 
-		private static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		public static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
 			{

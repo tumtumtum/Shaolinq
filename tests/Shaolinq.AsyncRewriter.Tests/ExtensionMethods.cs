@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Shaolinq;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
@@ -50,14 +49,44 @@ namespace Shaolinq.AsyncRewriter.Tests
 		}
 	}
 
+	public static class QueryableExtensions
+	{
+		public static Task<bool> FirstOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
+		{
+			return null;
+		}
+	}
+
+	public class QQQ<T> : IQueryable<T>
+	{
+		public Type ElementType { get; }
+		public Expression Expression { get; }
+		public IQueryProvider Provider { get; }
+		IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+		public QQQ(Expression expression, IQueryProvider provider, Type elementType)
+		{
+			this.Expression = expression;
+			this.Provider = provider;
+			this.ElementType = elementType;
+		}
+
+		public IEnumerator<T> GetEnumerator()
+		{
+			throw new NotImplementedException();
+		}
+	}
+
 	public class ExtensionMethods
 	{
 		[RewriteAsync]
-		public async void Test()
+		public void Test()
 		{
-			var y = new { x = default(List<Animal>) };
+			var x = default(QQQ<string>);
 
-			var enumerator= default(IAsyncEnumerator<string>);
+			var z = x.FirstOrDefault(c => true);
+			
+			var y = new { x = default(List<Animal>) };
 
 			var ey = new { enumerator = default(IAsyncEnumerator<string>) };
 

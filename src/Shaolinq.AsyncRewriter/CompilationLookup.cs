@@ -32,6 +32,46 @@ namespace Shaolinq.AsyncRewriter
 				self = self.BaseType;
 			}
 		}
+
+		public class EqualsToIgnoreGenericParametersEqualityComparer : IEqualityComparer<INamedTypeSymbol>
+		{
+			public static readonly EqualsToIgnoreGenericParametersEqualityComparer Default = new EqualsToIgnoreGenericParametersEqualityComparer();
+
+			public bool Equals(INamedTypeSymbol x, INamedTypeSymbol y)
+			{
+				if (x.IsGenericType && y.IsGenericType)
+				{
+					return true;
+				}
+
+				return x.EqualsToIgnoreGenericParameters(y);
+			}
+
+			public int GetHashCode(INamedTypeSymbol obj)
+			{
+				return obj.MetadataName.GetHashCode();
+			}
+		}
+
+		public static bool EqualsToIgnoreGenericParameters(this INamedTypeSymbol self, INamedTypeSymbol other)
+		{
+			if (self == other)
+			{
+				return true;
+			}
+
+			if (self.MetadataName != other.MetadataName)
+			{
+				return false;
+			}
+
+			if (!self.TypeArguments.Cast<INamedTypeSymbol>().SequenceEqual(other.TypeParameters.Cast<INamedTypeSymbol>(), EqualsToIgnoreGenericParametersEqualityComparer.Default))
+			{
+				return false;
+			}
+
+			return true;
+		}
 		
 		public static int IsAssignableFrom(this INamedTypeSymbol self, INamedTypeSymbol other, int depth)
 		{
@@ -81,11 +121,21 @@ namespace Shaolinq.AsyncRewriter
 			Visit(compilation.GlobalNamespace);
 		}
 
-		private static SymbolInfo? GetSymbolInfoOrNull(SemanticModel model, SyntaxNode syntaxNode)
+		private SymbolInfo? GetSymbolInfoOrNull(SemanticModel model, SyntaxNode syntaxNode)
 		{
 			try
 			{
-				return model.GetSymbolInfo(syntaxNode);
+				var retval = model.GetSymbolInfo(syntaxNode);
+				
+				if (retval.Symbol == null)
+				{
+					//this.compilation.GetSymbolsWithName(c => c == "");
+					var y = model.GetSpeculativeSymbolInfo(syntaxNode.Parent.Parent.Parent.SpanStart, syntaxNode, SpeculativeBindingOption.BindAsExpression);
+
+					var z = model.GetSpeculativeSymbolInfo(syntaxNode.Parent.Parent.SpanStart, syntaxNode, SpeculativeBindingOption.BindAsExpression);
+				}
+
+				return retval;
 			}
 			catch (Exception)
 			{
@@ -97,7 +147,16 @@ namespace Shaolinq.AsyncRewriter
 
 		public ISymbol GetSymbol(SyntaxNode syntaxNode)
 		{
-			return compilation.SyntaxTrees.Select(c => GetSymbolInfoOrNull(this.compilation.GetSemanticModel(c, true), syntaxNode)).FirstOrDefault()?.Symbol;
+			var retval = compilation.SyntaxTrees.Select(c => GetSymbolInfoOrNull(this.compilation.GetSemanticModel(c, true), syntaxNode)).FirstOrDefault()?.Symbol;
+
+			var y = compilation.SyntaxTrees.Select(c => GetSymbolInfoOrNull(this.compilation.GetSemanticModel(c, true), syntaxNode)).FirstOrDefault()?.Symbol;
+
+			if (retval != null)
+			{
+				return retval;
+			}
+
+			return null;
 		}
 
 		public List<IMethodSymbol> GetExtensionMethods(string name, INamedTypeSymbol type)

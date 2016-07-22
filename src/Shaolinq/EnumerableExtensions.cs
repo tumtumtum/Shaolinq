@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,7 +87,7 @@ namespace Shaolinq
 			return asyncEnumerable.GetAsyncEnumerator();
 		}
 
-		[RewriteAsync]
+		[RewriteAsync(MethodAttributes.Public)]
 		private static int Count<T>(this IEnumerable<T> source)
 		{
 			var list = source as ICollection<T>;
@@ -109,7 +110,7 @@ namespace Shaolinq
 			return retval;
 		}
 
-		[RewriteAsync]
+		[RewriteAsync(MethodAttributes.Public)]
 		private static long LongCount<T>(this IEnumerable<T> source)
 		{
 			var list = source as ICollection<T>;
@@ -158,7 +159,7 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync]
+		[RewriteAsync(MethodAttributes.Public)]
 		private static T Single<T>(this IEnumerable<T> source)
 		{
 			using (var enumerator = source.GetEnumerator())
@@ -179,7 +180,7 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync()]
+		[RewriteAsync(MethodAttributes.Public)]
 		private static T SingleOrDefault<T>(this IEnumerable<T> source)
 		{
 			using (var enumerator = source.GetEnumerator())
@@ -200,7 +201,7 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync]
+		[RewriteAsync(MethodAttributes.Public)]
 		private static T First<T>(this IEnumerable<T> enumerable)
 		{
 			using (var enumerator = enumerable.GetEnumerator())
@@ -214,7 +215,7 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync]
+		[RewriteAsync(MethodAttributes.Public)]
 		private static T FirstOrDefault<T>(this IEnumerable<T> source)
 		{
 			using (var enumerator = source.GetEnumerator())

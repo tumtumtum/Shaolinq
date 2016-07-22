@@ -67,14 +67,14 @@ namespace Shaolinq.AsyncRewriter
 					.ToList();
 
 				var candidate = asyncCandidates1.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes))
-								?? asyncCandidates1.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type)));
-				
+					?? asyncCandidates1.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type as INamedTypeSymbol).SequenceEqual(methodParameters.Select(e => e.Type as INamedTypeSymbol), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
+
 				if (candidate == null)
 				{
 					var asyncCandidates2 = extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", GetInvocationTargetType(node, methodSymbol)).ToList();
 
 					candidate = asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes))
-						?? asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type)));
+						?? asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type as INamedTypeSymbol).SequenceEqual(methodParameters.Select(e => e.Type as INamedTypeSymbol), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
 
 					if (candidate != null)
 					{

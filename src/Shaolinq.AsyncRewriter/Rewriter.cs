@@ -85,7 +85,8 @@ namespace Shaolinq.AsyncRewriter
 				.AddReferences
 				(
 					MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
-					MetadataReference.CreateFromFile(typeof(Stream).GetTypeInfo().Assembly.Location)
+					MetadataReference.CreateFromFile(typeof(Stream).GetTypeInfo().Assembly.Location),
+					MetadataReference.CreateFromFile(typeof(Queryable).GetTypeInfo().Assembly.Location)
 				);
 			
 			if (additionalAssemblyNames != null)
