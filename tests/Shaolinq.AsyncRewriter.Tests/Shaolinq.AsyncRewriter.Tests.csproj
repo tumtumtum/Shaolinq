@@ -53,7 +53,7 @@
     <Compile Include="Foo.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="ExtensionMethods.cs">
+    <Compile Include="ExtensionMethodTests.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
     <Compile Include="ICommand.cs">

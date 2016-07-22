@@ -33,31 +33,36 @@ namespace Shaolinq.AsyncRewriter
 			}
 		}
 
-		public class EqualsToIgnoreGenericParametersEqualityComparer : IEqualityComparer<INamedTypeSymbol>
+		public class EqualsToIgnoreGenericParametersEqualityComparer : IEqualityComparer<ITypeSymbol>
 		{
 			public static readonly EqualsToIgnoreGenericParametersEqualityComparer Default = new EqualsToIgnoreGenericParametersEqualityComparer();
 
-			public bool Equals(INamedTypeSymbol x, INamedTypeSymbol y)
+			public bool Equals(ITypeSymbol x, ITypeSymbol y)
 			{
-				if (x.IsGenericType && y.IsGenericType)
-				{
-					return true;
-				}
-
 				return x.EqualsToIgnoreGenericParameters(y);
 			}
 
-			public int GetHashCode(INamedTypeSymbol obj)
+			public int GetHashCode(ITypeSymbol obj)
 			{
 				return obj.MetadataName.GetHashCode();
 			}
 		}
 
-		public static bool EqualsToIgnoreGenericParameters(this INamedTypeSymbol self, INamedTypeSymbol other)
+		public static bool EqualsToIgnoreGenericParameters(this ITypeSymbol self, ITypeSymbol other)
 		{
 			if (self == other)
 			{
 				return true;
+			}
+
+			if (self.TypeKind == TypeKind.TypeParameter && other.TypeKind == TypeKind.TypeParameter)
+			{
+				var left = (ITypeParameterSymbol)self;
+				var right = (ITypeParameterSymbol)other;
+
+				return left.HasReferenceTypeConstraint == right.HasReferenceTypeConstraint
+						&& left.HasValueTypeConstraint == right.HasValueTypeConstraint
+						&& left.HasConstructorConstraint == right.HasConstructorConstraint;
 			}
 
 			if (self.MetadataName != other.MetadataName)
@@ -65,9 +70,18 @@ namespace Shaolinq.AsyncRewriter
 				return false;
 			}
 
-			if (!self.TypeArguments.Cast<INamedTypeSymbol>().SequenceEqual(other.TypeParameters.Cast<INamedTypeSymbol>(), EqualsToIgnoreGenericParametersEqualityComparer.Default))
+			if (self is INamedTypeSymbol && other is INamedTypeSymbol)
 			{
-				return false;
+				if (!((INamedTypeSymbol)self)
+					.TypeArguments
+					.OrderBy(c => c.TypeKind)
+					.ThenBy(c => c.MetadataName)
+					.SequenceEqual(((INamedTypeSymbol)other).TypeArguments
+					.OrderBy(c => c.TypeKind)
+					.ThenBy(c => c.MetadataName), EqualsToIgnoreGenericParametersEqualityComparer.Default))
+				{
+					return false;
+				}
 			}
 
 			return true;

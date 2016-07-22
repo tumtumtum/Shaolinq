@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
-	public static class E
+	public class Animal
+	{
+	}
+
+	public static class EnumerableExtensions
 	{
 		public static Task<int> FooAsync<T>(this IEnumerable<T> foo, string s)
 		{
@@ -15,23 +19,27 @@ namespace Shaolinq.AsyncRewriter.Tests
 		}
 	}
 
-	public class Animal
+	public static class QueryableExtensions
 	{
+		public static Task<bool> FirstOrDefaultAsync<U>(this IQueryable<U> s, Expression<Func<U, bool>> predicate)
+		{
+			return null;
+		}
 	}
 
-	public static class D
+	public static class AnimalFarm
 	{
-		public static int Foo(this List<Animal> foo, string s)
+		public static int Count(this List<Animal> foo, string s)
 		{
 			return 0;
 		}
 
-		public static int Foo(this IEnumerable<Animal> foo, string s)
+		public static int Count(this IEnumerable<Animal> foo, string s)
 		{
 			return 0;
 		}
 
-		public static Task<int> FooAsync(this List<Animal> foo, string s)
+		public static Task<int> CountAsync(this List<Animal> foo, string s)
 		{
 			return null;
 		}
@@ -46,14 +54,6 @@ namespace Shaolinq.AsyncRewriter.Tests
 		public static Task<bool> MoveNextAsync<T>(this IAsyncEnumerator<T> enumerable)
 		{
 			return null;	
-		}
-	}
-
-	public static class QueryableExtensions
-	{
-		public static Task<bool> FirstOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
-		{
-			return null;
 		}
 	}
 
@@ -77,7 +77,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		}
 	}
 
-	public class ExtensionMethods
+	public class ExtensionMethodTests
 	{
 		[RewriteAsync]
 		public void Test()
@@ -92,8 +92,8 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 			ey.enumerator?.MoveNext();
 			
-			D.Foo(y.x, "");
-			y.x.Foo("");
+			AnimalFarm.Count(y.x, "");
+			y.x.Count("");
 		}
 	}
 }
