@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Shaolinq.AsyncRewriter
 {
-	public static class TypeSymbolExtensions
+	internal static class TypeSymbolExtensions
 	{
 		private static IEnumerable<ITypeSymbol> ParentTypes(this ITypeSymbol self)
 		{
@@ -23,17 +20,7 @@ namespace Shaolinq.AsyncRewriter
 			}
 		}
 
-		private static IEnumerable<ITypeSymbol> SelfAndParentTypes(this ITypeSymbol self)
-		{
-			while (self != null)
-			{
-				yield return self;
-
-				self = self.BaseType;
-			}
-		}
-
-		public class EqualsToIgnoreGenericParametersEqualityComparer : IEqualityComparer<ITypeSymbol>
+		internal class EqualsToIgnoreGenericParametersEqualityComparer : IEqualityComparer<ITypeSymbol>
 		{
 			public static readonly EqualsToIgnoreGenericParametersEqualityComparer Default = new EqualsToIgnoreGenericParametersEqualityComparer();
 
@@ -48,7 +35,7 @@ namespace Shaolinq.AsyncRewriter
 			}
 		}
 
-		public static bool EqualsToIgnoreGenericParameters(this ITypeSymbol self, ITypeSymbol other)
+		internal static bool EqualsToIgnoreGenericParameters(this ITypeSymbol self, ITypeSymbol other)
 		{
 			if (self == other)
 			{
@@ -139,17 +126,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			try
 			{
-				var retval = model.GetSymbolInfo(syntaxNode);
-				
-				if (retval.Symbol == null)
-				{
-					//this.compilation.GetSymbolsWithName(c => c == "");
-					var y = model.GetSpeculativeSymbolInfo(syntaxNode.Parent.Parent.Parent.SpanStart, syntaxNode, SpeculativeBindingOption.BindAsExpression);
-
-					var z = model.GetSpeculativeSymbolInfo(syntaxNode.Parent.Parent.SpanStart, syntaxNode, SpeculativeBindingOption.BindAsExpression);
-				}
-
-				return retval;
+				return model.GetSymbolInfo(syntaxNode);
 			}
 			catch (Exception)
 			{
@@ -223,12 +200,29 @@ namespace Shaolinq.AsyncRewriter
 			}
 		}
 
+		private bool MethodIsPublicOrAccessibleFromCompilation(IMethodSymbol method)
+		{
+			if (method.DeclaredAccessibility == Accessibility.Public)
+			{
+				return true;
+			}
+
+			if ((method.DeclaredAccessibility == Accessibility.Internal
+				|| method.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
+				&& Equals(method.ContainingAssembly, this.compilation.Assembly))
+			{
+				return true;
+			}
+
+			return false;
+		}
+
 		private void Visit(IMethodSymbol method)
 		{
 			if (method.Name.EndsWith("Async") 
 				&& method.ReturnType.Name == "Task"
-				&& method.IsExtensionMethod)
-				//&& method.DeclaredAccessibility == Accessibility.Public)
+				&& method.IsExtensionMethod
+				&& MethodIsPublicOrAccessibleFromCompilation(method))
 			{
 				List<IMethodSymbol> methods;
 
