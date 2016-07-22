@@ -50,7 +50,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			var rewriter = new Rewriter();
 			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "ExtensionMethods.cs", "Foo.cs" };
+			var paths = new List<string> { "ExtensionMethodTests.cs", "Foo.cs" };
 
 			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
 
