@@ -9,7 +9,6 @@ using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Platform;
 
 namespace Shaolinq.AsyncRewriter
 {
