@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,6 +20,8 @@ namespace Shaolinq.AsyncRewriter
 			"System.IO.MemoryStream"
 		};
 
+		private CompilationLookup lookup;
+		private readonly IAsyncRewriterLogger log;
 		private HashSet<ITypeSymbol> excludedTypes;
 		private ITypeSymbol methodAttributesSymbol;
 		private ITypeSymbol cancellationTokenSymbol;
@@ -29,16 +30,14 @@ namespace Shaolinq.AsyncRewriter
 		
 		private static readonly UsingDirectiveSyntax[] extraUsingDirectives =
 		{
+			SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
 			SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Threading")),
 			SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Threading.Tasks"))
 		};
 
-		private readonly ILogger log;
-		
-
-		public Rewriter(ILogger log = null)
+		public Rewriter(IAsyncRewriterLogger log = null)
 		{
-			this.log = log;
+			this.log = log ?? TextAsyncRewriterLogger.ConsoleLogger;
 		}
 
 		private static IEnumerable<string> GetNamespacesAndParents(string nameSpace)
@@ -78,44 +77,97 @@ namespace Shaolinq.AsyncRewriter
 				.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p)).WithFilePath(p))
 				.Select(c => c.WithRootAndOptions(UpdateUsings(c.GetCompilationUnitRoot()), c.Options))
 				.ToArray();
-			
-			this.compilation = CSharpCompilation
-				.Create("Temp", syntaxTrees)
-				.AddReferences
-				(
-					MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
-					MetadataReference.CreateFromFile(typeof(Stream).GetTypeInfo().Assembly.Location),
-					MetadataReference.CreateFromFile(typeof(Queryable).GetTypeInfo().Assembly.Location)
-				);
+
+			var references = new List<MetadataReference>()
+			{
+				MetadataReference.CreateFromFile(typeof(object).GetTypeInfo().Assembly.Location),
+				MetadataReference.CreateFromFile(typeof(Queryable).GetTypeInfo().Assembly.Location)
+			};
 			
 			if (additionalAssemblyNames != null)
 			{
 				var assemblyPath = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
+
+				log.LogMessage("FrameworkPath: " + assemblyPath);
 
 				if (assemblyPath == null)
 				{
 					throw new InvalidOperationException();
 				}
 
-				compilation = compilation.AddReferences(additionalAssemblyNames.Select(n =>
+				var facadesLoaded = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+
+				references.AddRange(additionalAssemblyNames.SelectMany(n =>
 				{
+					var results = new List<MetadataReference>();
+					
 					if (File.Exists(n))
 					{
-						return MetadataReference.CreateFromFile(n);
+						var facadesPath = Path.Combine(Path.GetDirectoryName(n) ?? "", "Facades");
+
+						results.Add(MetadataReference.CreateFromFile(n));
+
+						if (Directory.Exists(facadesPath) && !facadesLoaded.Contains(facadesPath))
+						{
+							facadesLoaded.Add(facadesPath);
+
+							foreach (var facadeDll in Directory.GetFiles(facadesPath))
+							{
+								results.Add(MetadataReference.CreateFromFile(facadeDll));
+							}
+						}
+
+						return results;
 					}
 
 					if (File.Exists(Path.Combine(assemblyPath, n)))
 					{
-						return MetadataReference.CreateFromFile(Path.Combine(assemblyPath, n));
+						results.Add(MetadataReference.CreateFromFile(Path.Combine(assemblyPath, n)));
+
+						return results;
 					}
 
-					return null;
+					log.LogError($"Could find ResolveProjectReferencesResolveProjectReferencesreferenced assembly: {n}");
+
+					return results;
 				}).Where(c => c != null));
 			}
 
-			return this.RewriteAndMerge(syntaxTrees, compilation, excludeTypes).ToString();
+			var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
+
+			this.compilation = CSharpCompilation
+				.Create("Temp", syntaxTrees, references, options);
+
+			this.lookup = new CompilationLookup(this.compilation);
+
+			var retval = this.RewriteAndMerge(syntaxTrees, compilation, excludeTypes).ToString();
+
+#if OUTPUT_COMPILER_ERRORS
+			var emitResult = this.compilation.Emit(Stream.Null);
+
+			if (emitResult.Diagnostics.Any())
+			{
+				log.LogMessage("Compiler errors:");
+			
+				foreach (var diagnostic in emitResult.Diagnostics)
+				{
+					var message = diagnostic.GetMessage();
+
+					if (diagnostic.Severity == DiagnosticSeverity.Info)
+					{
+						log.LogError(message);
+					}
+					else
+					{
+						log.LogMessage(message);
+					}
+				}
+			}
+#endif
+
+			return retval;
 		}
-		
+
 		private static NamespaceDeclarationSyntax AmendUsings(NamespaceDeclarationSyntax nameSpace, SyntaxList<UsingDirectiveSyntax> usings)
 		{
 			var last = nameSpace.Name.ToString().Right(c => c != '.');
@@ -135,9 +187,9 @@ namespace Shaolinq.AsyncRewriter
 			return nameSpace.WithUsings(usings);
 		}
 
-		private SyntaxTree RewriteAndMerge(SyntaxTree[] syntaxTrees, CSharpCompilation compilation, string[] excludeTypes = null)
+		private SyntaxTree RewriteAndMerge(SyntaxTree[] syntaxTrees, CSharpCompilation compilationNode, string[] excludeTypes = null)
 		{
-			var rewrittenTrees = this.Rewrite(syntaxTrees, compilation, excludeTypes).ToArray();
+			var rewrittenTrees = this.Rewrite(syntaxTrees, compilationNode, excludeTypes).ToArray();
 			
 			return SyntaxFactory.SyntaxTree
 			(
@@ -155,16 +207,16 @@ namespace Shaolinq.AsyncRewriter
 			);
 		}
 
-		public IEnumerable<SyntaxTree> Rewrite(SyntaxTree[] syntaxTrees, CSharpCompilation compilation, string[] excludeTypes = null)
+		public IEnumerable<SyntaxTree> Rewrite(SyntaxTree[] syntaxTrees, CSharpCompilation compilationNode, string[] excludeTypes = null)
 		{
-			this.methodAttributesSymbol = compilation.GetTypeByMetadataName(typeof(MethodAttributes).FullName);
-			this.cancellationTokenSymbol = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
+			this.methodAttributesSymbol = compilationNode.GetTypeByMetadataName(typeof(MethodAttributes).FullName);
+			this.cancellationTokenSymbol = compilationNode.GetTypeByMetadataName(typeof(CancellationToken).FullName);
 			
 			this.excludedTypes = new HashSet<ITypeSymbol>();
 
 			if (excludeTypes != null)
 			{
-				var excludedTypeSymbols = excludeTypes.Select(compilation.GetTypeByMetadataName).ToList();
+				var excludedTypeSymbols = excludeTypes.Select(compilationNode.GetTypeByMetadataName).ToList();
 				var notFound = excludedTypeSymbols.IndexOf(null);
 
 				if (notFound != -1)
@@ -175,21 +227,18 @@ namespace Shaolinq.AsyncRewriter
 				this.excludedTypes.UnionWith(excludedTypeSymbols);
 			}
 
-			this.excludedTypes.UnionWith(alwaysExcludedTypeNames.Select(compilation.GetTypeByMetadataName).Where(sym => sym != null));
+			this.excludedTypes.UnionWith(alwaysExcludedTypeNames.Select(compilationNode.GetTypeByMetadataName).Where(sym => sym != null));
 
 			foreach (var syntaxTree in syntaxTrees)
 			{
-				var semanticModel = compilation.GetSemanticModel(syntaxTree, true);
+				var semanticModel = compilationNode.GetSemanticModel(syntaxTree, true);
 
 				if (semanticModel == null)
 				{
 					throw new ArgumentException("A provided syntax tree was compiled into the provided compilation");
 				}
 
-				if (!(syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>()
-					.Any(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
-					|| syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>()
-					.Any(m => m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))))
+				if (syntaxTree.GetRoot().DescendantNodes().All(m => ((m as MethodDeclarationSyntax)?.AttributeLists ?? (m as TypeDeclarationSyntax)?.AttributeLists)?.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")) == null))
 				{
 					continue;
 				}
@@ -240,9 +289,8 @@ namespace Shaolinq.AsyncRewriter
 			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel, false);
 			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel, true);
 		}
-
-
-		private IEnumerable<IMethodSymbol> GetMethods(SemanticModel semanticModel, ITypeSymbol symbol, string name, MethodDeclarationSyntax method)
+		
+		private IEnumerable<IMethodSymbol> GetMethods(SemanticModel semanticModel, ITypeSymbol symbol, string name, MethodDeclarationSyntax method, MethodDeclarationSyntax originalMethod)
 		{
 			var parameters = method.ParameterList.Parameters;
 
@@ -250,10 +298,10 @@ namespace Shaolinq.AsyncRewriter
 				.GetAllMembers(symbol)
 				.Where(c => c.Name == name)
 				.OfType<IMethodSymbol>()
-				.Where(c => c.Parameters.Select(d => GetObj(d.Type)).SequenceEqual(parameters.Select(d => GetObj(GetSymbol(semanticModel, method, d.Type), method, d.Type))));
+				.Where(c => c.Parameters.Select(d => this.GetParameterTypeComparisonKey(d.Type)).SequenceEqual(parameters.Select(d => this.GetParameterTypeComparisonKey((ITypeSymbol)semanticModel.GetSpeculativeSymbolInfo(originalMethod.ParameterList.Parameters.Span.Start, d.Type, SpeculativeBindingOption.BindAsExpression).Symbol, method, d.Type))));
 		}
 
-		private object GetObj(ITypeSymbol symbol, MethodDeclarationSyntax method = null, TypeSyntax typeSyntax = null)
+		private object GetParameterTypeComparisonKey(ITypeSymbol symbol, MethodDeclarationSyntax method = null, TypeSyntax typeSyntax = null)
 		{
 			var typedParameterSymbol = symbol as ITypeParameterSymbol;
 
@@ -267,16 +315,7 @@ namespace Shaolinq.AsyncRewriter
 				return symbol;
 			}
 
-			return method.TypeParameterList.Parameters.IndexOf(c => c.ToString() == typeSyntax.ToString());
-		}
-
-		private INamedTypeSymbol GetSymbol(SemanticModel semanticModel, MethodDeclarationSyntax method, TypeSyntax typeSyntax)
-		{
-			var position = method.SpanStart;
-			
-			var retval = semanticModel.GetSpeculativeSymbolInfo(position, typeSyntax, SpeculativeBindingOption.BindAsExpression).Symbol as INamedTypeSymbol;
-
-			return retval;
+			return method.TypeParameterList.Parameters.IndexOf(c => c.Identifier.Text == typeSyntax.ToString());
 		}
 
 		private IEnumerable<ISymbol> GetAllMembers(ITypeSymbol symbol, bool includeParents = true)
@@ -309,11 +348,11 @@ namespace Shaolinq.AsyncRewriter
 				{
 					typesAlreadyWarnedAbout.Add(name);
 
-					Console.Error.WriteLine($"Type '{name}' needs to be marked as partial");
+					log.LogError($"Type '{name}' needs to be marked as partial");
 				}
 			}
 
-			var rewriter = new MethodInvocationRewriter(this.log, new CompilationLookup(this.compilation), semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
+			var rewriter = new MethodInvocationRewriter(this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
 			var newAsyncMethod = (MethodDeclarationSyntax)rewriter.Visit(methodSyntax);
 			var returnTypeName = methodSyntax.ReturnType.ToString();
 
@@ -365,11 +404,11 @@ namespace Shaolinq.AsyncRewriter
 			if (!(isInterfaceMethod || methodSymbol.IsAbstract))
 			{
 				var baseAsyncMethod = this
-					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name + "Async", newAsyncMethod)
+					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name + "Async", newAsyncMethod, methodSyntax)
 					.FirstOrDefault();
 
 				var baseMethod = this
-					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name, methodSyntax)
+					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name, methodSyntax, methodSyntax)
 					.FirstOrDefault();
 
 				var parentContainsAsyncMethod = baseAsyncMethod != null;

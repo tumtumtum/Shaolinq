@@ -84,9 +84,10 @@ namespace Shaolinq.AsyncRewriter
 
 		public override bool Execute()
 		{
-			var asyncCode = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
+			var code = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
+			var filename = this.OutputFile.ItemSpec;
 
-			File.WriteAllText(this.OutputFile.ItemSpec, asyncCode);
+			File.WriteAllText(filename, code);
 
 			return true;
 		}

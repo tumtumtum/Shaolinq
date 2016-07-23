@@ -57,7 +57,13 @@ namespace Shaolinq.AsyncRewriter.Tests
 		}
 	}
 
-	public class QQQ<T> : IQueryable<T>
+	public interface IQQQ<T, U, V> : IQueryable<T>
+	{
+
+	}
+
+
+	public class QQQ<T> : IQQQ<T, string, string>
 	{
 		public Type ElementType { get; }
 		public Expression Expression { get; }
@@ -80,9 +86,16 @@ namespace Shaolinq.AsyncRewriter.Tests
 	public class ExtensionMethodTests
 	{
 		[RewriteAsync]
-		public void Test()
+		public void Test<T>()
 		{
-			var x = default(QQQ<string>);
+			var w = default(IQueryable<Foo>);
+
+			var predicate = default(Expression<Func<Foo, bool>>);
+
+			w.Where(predicate);
+
+			var x = default(IQQQ<int, string, string>);
+
 
 			var z = x.FirstOrDefault(c => true);
 			

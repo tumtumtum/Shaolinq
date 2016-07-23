@@ -6,6 +6,12 @@ namespace Shaolinq.AsyncRewriter
 {
 	public static class MethodSymbolExtensions
 	{
+		public static bool HasRewriteAsyncApplied(this IMethodSymbol self)
+		{
+			return self.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync"))
+					|| self.ContainingType.GetAttributes().Any(a => a.AttributeClass.Name.Contains("RewriteAsync"));
+		}
+
 		public static ITypeSymbol ExtensionMethodNormalizingReceiverType(this IMethodSymbol self)
 		{
 			return self.IsExtensionMethod && self.ReducedFrom == null ? self.Parameters[0].Type : self.ReceiverType;
