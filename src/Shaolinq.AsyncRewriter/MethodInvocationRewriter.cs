@@ -122,14 +122,14 @@ namespace Shaolinq.AsyncRewriter
 			return result;
 		}
 
-		private INamedTypeSymbol GetInvocationTargetType(InvocationExpressionSyntax node, IMethodSymbol methodSymbol)
+		private ITypeSymbol GetInvocationTargetType(InvocationExpressionSyntax node, IMethodSymbol methodSymbol)
 		{
+			ITypeSymbol retval;
 			var notError = false;
-			INamedTypeSymbol retval;
 
 			if (node.Expression is MemberAccessExpressionSyntax)
 			{
-				retval = (INamedTypeSymbol)this.semanticModel.GetTypeInfo(((MemberAccessExpressionSyntax)node.Expression).Expression).Type;
+				retval = this.semanticModel.GetTypeInfo(((MemberAccessExpressionSyntax)node.Expression).Expression).Type;
 			}
 			else if (node.Expression is IdentifierNameSyntax)
 			{
@@ -140,7 +140,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				if (node.Parent is ConditionalAccessExpressionSyntax)
 				{
-					retval = (INamedTypeSymbol)this.semanticModel.GetTypeInfo(((ConditionalAccessExpressionSyntax)node.Parent).Expression).Type;
+					retval = this.semanticModel.GetTypeInfo(((ConditionalAccessExpressionSyntax)node.Parent).Expression).Type;
 				}
 				else
 				{
@@ -154,7 +154,7 @@ namespace Shaolinq.AsyncRewriter
 
 			if (retval == null)
 			{
-				retval = (INamedTypeSymbol)methodSymbol.ExtensionMethodNormalizingReceiverType();
+				retval = methodSymbol.ExtensionMethodNormalizingReceiverType();
 
 				if (!notError)
 				{

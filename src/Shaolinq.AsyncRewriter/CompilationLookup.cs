@@ -57,7 +57,7 @@ namespace Shaolinq.AsyncRewriter
 				return false;
 			}
 
-			if (self is INamedTypeSymbol && other is INamedTypeSymbol)
+			if (self.Kind == SymbolKind.NamedType && other.Kind == SymbolKind.NamedType)
 			{
 				if (!((INamedTypeSymbol)self)
 					.TypeArguments
@@ -74,16 +74,29 @@ namespace Shaolinq.AsyncRewriter
 			return true;
 		}
 		
-		public static int IsAssignableFrom(this INamedTypeSymbol self, INamedTypeSymbol other, int depth)
+		public static int IsAssignableFrom(this ITypeSymbol self, ITypeSymbol other, int depth)
 		{
 			if (self == other)
 			{
 				return depth;
 			}
 
-			if (self.MetadataName == other.MetadataName)
+			if (self.TypeKind == TypeKind.TypeParameter && other.TypeKind == TypeKind.TypeParameter)
 			{
-				if (self.TypeParameters.SequenceEqual(other.TypeParameters))
+				var left = (ITypeParameterSymbol)self;
+				var right = (ITypeParameterSymbol)other;
+
+				if (left.HasReferenceTypeConstraint == right.HasReferenceTypeConstraint
+					&& left.HasValueTypeConstraint == right.HasValueTypeConstraint
+					&& left.HasConstructorConstraint == right.HasConstructorConstraint)
+				{
+					return depth;
+				}
+			}
+
+			if (self.Kind == SymbolKind.NamedType && other.Kind == SymbolKind.NamedType && self.MetadataName == other.MetadataName)
+			{
+				if (((INamedTypeSymbol)self).TypeParameters.SequenceEqual(((INamedTypeSymbol)other).TypeParameters))
 				{
 					return depth;
 				}
@@ -91,12 +104,12 @@ namespace Shaolinq.AsyncRewriter
 
 			int result;
 
-			if ((result = other.ParentTypes().Select(c => IsAssignableFrom(self, (INamedTypeSymbol)c, depth + 1)).FirstOrDefault()) > 0)
+			if ((result = other.ParentTypes().Select(c => IsAssignableFrom(self, c, depth + 1)).FirstOrDefault()) > 0)
 			{
 				return result;
 			}
 
-			if ((result = other.Interfaces.Select(c => IsAssignableFrom(self, (INamedTypeSymbol)c, depth + 1)).FirstOrDefault()) > 0)
+			if ((result = other.Interfaces.Select(c => IsAssignableFrom(self, c, depth + 1)).FirstOrDefault()) > 0)
 			{
 				return result;
 			}
@@ -150,7 +163,7 @@ namespace Shaolinq.AsyncRewriter
 			return null;
 		}
 
-		public List<IMethodSymbol> GetExtensionMethods(string name, INamedTypeSymbol type)
+		public List<IMethodSymbol> GetExtensionMethods(string name, ITypeSymbol type)
 		{
 			List<IMethodSymbol> methods;
 
@@ -168,7 +181,7 @@ namespace Shaolinq.AsyncRewriter
 
 			foreach (var method in methods)
 			{
-				var depth = (method.Parameters[0].Type as INamedTypeSymbol)?.IsAssignableFrom(type, 0);
+				var depth = method.Parameters[0].Type?.IsAssignableFrom(type, 0);
 
 				if (depth >= 0)
 				{
