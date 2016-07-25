@@ -43,6 +43,26 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			return null;
 		}
+
+		public static List<Animal> GetAnimals(List<Animal> a)
+		{
+			return new List<Animal>();
+		}
+
+		public static Task<List<Animal>> GetAnimalsAsync(List<Animal> a)
+		{
+			return null;
+		}
+
+		public static List<Animal> GetAnimals2()
+		{
+			return new List<Animal>();
+		}
+
+		public static Task<List<Animal>> GetAnimals2Async()
+		{
+			return null;
+		}
 	}
 
 	public interface IAsyncEnumerator<T>: IEnumerator<T>
@@ -111,6 +131,8 @@ namespace Shaolinq.AsyncRewriter.Tests
 		[RewriteAsync]
 		public void Test<T>()
 		{
+			AnimalFarm.Count(AnimalFarm.GetAnimals(AnimalFarm.GetAnimals2()), "");
+
 			var w = default(IQueryable<Foo>);
 
 			var predicate = default(Expression<Func<Foo, bool>>);

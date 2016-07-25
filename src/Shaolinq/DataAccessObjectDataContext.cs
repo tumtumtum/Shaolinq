@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
@@ -597,9 +598,13 @@ namespace Shaolinq
 				{
 					this.isCommiting = true;
 
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					this.CommitNew(acquisitions, transactionContext);
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					this.CommitUpdated(acquisitions, transactionContext);
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					this.CommitDeleted(acquisitions, transactionContext);
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 				}
 				finally
 				{

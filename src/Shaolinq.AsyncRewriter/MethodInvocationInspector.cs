@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -10,6 +11,7 @@ namespace Shaolinq.AsyncRewriter
 {
 	internal abstract class MethodInvocationInspector : CSharpSyntaxRewriter
 	{
+		private bool insideAnonymous;
 		protected readonly IAsyncRewriterLogger log;
 		protected readonly SemanticModel semanticModel;
 		protected readonly HashSet<ITypeSymbol> excludeTypes;
@@ -39,8 +41,49 @@ namespace Shaolinq.AsyncRewriter
 			return this.semanticModel.GetTypeInfo(syntax.Expression).Type;
 		}
 
+		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+		{
+			var oldInsideAnonymous = insideAnonymous;
+
+			insideAnonymous = true;
+
+			try
+			{
+				return base.VisitAnonymousMethodExpression(node);
+			}
+			catch (Exception)
+			{
+				insideAnonymous = oldInsideAnonymous;
+			}
+
+			return node;
+		}
+
+		public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+		{
+			var oldInsideAnonymous = insideAnonymous;
+
+			insideAnonymous = true;
+
+			try
+			{
+				return base.VisitSimpleLambdaExpression(node);
+			}
+			catch (Exception)
+			{
+				insideAnonymous = oldInsideAnonymous;
+			}
+
+			return node;
+		}
+
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
 		{
+			if (insideAnonymous)
+			{
+				return node;
+			}
+
 			var explicitExtensionMethodCall = false;
 			var result = this.semanticModel.GetSymbolInfo(node);
 
@@ -79,6 +122,8 @@ namespace Shaolinq.AsyncRewriter
 				return node;
 			}
 
+			var orignalNode = node;
+
 			var methodSymbol = (IMethodSymbol)result.Symbol;
 			
 			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
@@ -116,7 +161,7 @@ namespace Shaolinq.AsyncRewriter
 
 				if (candidate == null)
 				{
-					var asyncCandidates2 = extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", GetInvocationTargetType(node, methodSymbol)).ToList();
+					var asyncCandidates2 = extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", GetInvocationTargetType(orignalNode.SpanStart, node, methodSymbol)).ToList();
 
 					candidate = asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default))
 						?? asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
@@ -127,14 +172,6 @@ namespace Shaolinq.AsyncRewriter
 					}
 					else
 					{
-						if (result.Symbol.Name == "FirstOrDefault")
-						{
-							log.LogMessage($"Could not find async version of: {node}");
-							log.LogMessage($"InvocationTargetType: {GetInvocationTargetType(node, methodSymbol)}");
-							log.LogMessage($"File: {node.SyntaxTree.FilePath}");
-							log.LogMessage("Candidates: " + string.Join(";", asyncCandidates2.Select(c => c.ToString())));
-						}
-
 						return node;
 					}
 				}
@@ -149,17 +186,20 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 
+			node = node.WithExpression((ExpressionSyntax)base.Visit(node.Expression));
+			node = node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+
 			return this.InspectExpression(node, cancellationTokenPos, candidate, explicitExtensionMethodCall);
 		}
 
-		private ITypeSymbol GetInvocationTargetType(InvocationExpressionSyntax node, IMethodSymbol methodSymbol)
+		private ITypeSymbol GetInvocationTargetType(int pos, InvocationExpressionSyntax node, IMethodSymbol methodSymbol)
 		{
 			ITypeSymbol retval;
 			var notError = false;
 
 			if (node.Expression is MemberAccessExpressionSyntax)
 			{
-				retval = this.semanticModel.GetTypeInfo(((MemberAccessExpressionSyntax)node.Expression).Expression).Type;
+				retval = this.semanticModel.GetSpeculativeTypeInfo(pos, ((MemberAccessExpressionSyntax)node.Expression).Expression, SpeculativeBindingOption.BindAsExpression).Type;
 			}
 			else if (node.Expression is IdentifierNameSyntax)
 			{
@@ -170,7 +210,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				if (node.Parent is ConditionalAccessExpressionSyntax)
 				{
-					retval = this.semanticModel.GetTypeInfo(((ConditionalAccessExpressionSyntax)node.Parent).Expression).Type;
+					retval = this.semanticModel.GetSpeculativeTypeInfo(node.SpanStart, ((ConditionalAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
 				}
 				else
 				{

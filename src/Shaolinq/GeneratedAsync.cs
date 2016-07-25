@@ -1823,6 +1823,7 @@ namespace Shaolinq
 	using System;
 	using System.Linq;
 	using System.Threading;
+	using System.Diagnostics;
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;
 	using System.Collections.Generic;
@@ -1861,9 +1862,13 @@ namespace Shaolinq
 				try
 				{
 					this.isCommiting = true;
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					await this.CommitNewAsync(acquisitions, transactionContext, cancellationToken).ConfigureAwait(false);
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					await this.CommitUpdatedAsync(acquisitions, transactionContext, cancellationToken).ConfigureAwait(false);
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					await this.CommitDeletedAsync(acquisitions, transactionContext, cancellationToken).ConfigureAwait(false);
+					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 				}
 				finally
 				{
@@ -2128,7 +2133,6 @@ namespace Shaolinq
 	using System.Transactions;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;
-	using System.Collections.Concurrent;
 	using Platform;
 	using Shaolinq.Persistence;
 	using global::Shaolinq;

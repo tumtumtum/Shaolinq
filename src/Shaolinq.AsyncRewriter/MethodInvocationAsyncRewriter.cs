@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,9 +13,10 @@ namespace Shaolinq.AsyncRewriter
 			: base(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol)
 		{
 		}
-		
+
 		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall)
 		{
+
 			InvocationExpressionSyntax rewrittenInvocation;
 
 			if (node.Expression is IdentifierNameSyntax)
@@ -74,7 +76,7 @@ namespace Shaolinq.AsyncRewriter
 				{
 					cancellationTokenPos++;
 				}
-
+				
 				if (cancellationTokenPos == rewrittenInvocation.ArgumentList.Arguments.Count)
 				{
 					rewrittenInvocation = rewrittenInvocation.WithArgumentList(rewrittenInvocation.ArgumentList.AddArguments(cancellationTokenArg));
