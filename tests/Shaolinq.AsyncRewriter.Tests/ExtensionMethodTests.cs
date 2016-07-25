@@ -109,7 +109,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		Task SetAsync<T>(string collectionKey, string objKey, T obj, TimeSpan? expiry = null);
 	}
 
-	public class ExtensionMethodTests
+	public partial class ExtensionMethodTests
 	{
 		public async void AsyncMethod()
 		{
@@ -118,6 +118,31 @@ namespace Shaolinq.AsyncRewriter.Tests
 			await Task.Run(() => Console.WriteLine());
 
 			client.Set("", "", new List<Guid>());
+		}
+
+		public void WhenAll<T>(IQueryable<T> q, Func<T, T> tasker)
+		{
+		}
+
+		public Task WhenAllAsync<T>(IQueryable<T> q, Func<T, Task<T>> tasker)
+		{
+			return null;
+		}
+
+		private List<string> NewList()
+		{
+			return new List<string>();
+		}
+
+		private async Task<List<string>> NewListAsync()
+		{
+			return new List<string>();
+		}
+
+		[RewriteAsync]
+		public void WhenAllTest()
+		{
+			WhenAll(default(IQueryable<List<string>>), c => NewList());
 		}
 
 		[RewriteAsync]

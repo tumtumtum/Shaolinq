@@ -11,7 +11,6 @@ namespace Shaolinq.AsyncRewriter
 {
 	internal abstract class MethodInvocationInspector : CSharpSyntaxRewriter
 	{
-		private bool insideAnonymous;
 		protected readonly IAsyncRewriterLogger log;
 		protected readonly SemanticModel semanticModel;
 		protected readonly HashSet<ITypeSymbol> excludeTypes;
@@ -29,7 +28,7 @@ namespace Shaolinq.AsyncRewriter
 
 		private ITypeSymbol GetArgumentType(ArgumentSyntax syntax)
 		{
-			var symbol = this.semanticModel.GetSymbolInfo(syntax.Expression).Symbol;
+			var symbol = this.semanticModel.GetSpeculativeSymbolInfo(syntax.Expression.SpanStart, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Symbol;
 
 			var property = symbol?.GetType().GetProperty("Type");
 
@@ -41,51 +40,10 @@ namespace Shaolinq.AsyncRewriter
 			return this.semanticModel.GetTypeInfo(syntax.Expression).Type;
 		}
 
-		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-		{
-			var oldInsideAnonymous = insideAnonymous;
-
-			insideAnonymous = true;
-
-			try
-			{
-				return base.VisitAnonymousMethodExpression(node);
-			}
-			catch (Exception)
-			{
-				insideAnonymous = oldInsideAnonymous;
-			}
-
-			return node;
-		}
-
-		public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-		{
-			var oldInsideAnonymous = insideAnonymous;
-
-			insideAnonymous = true;
-
-			try
-			{
-				return base.VisitSimpleLambdaExpression(node);
-			}
-			catch (Exception)
-			{
-				insideAnonymous = oldInsideAnonymous;
-			}
-
-			return node;
-		}
-
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
 		{
-			if (insideAnonymous)
-			{
-				return node;
-			}
-
 			var explicitExtensionMethodCall = false;
-			var result = this.semanticModel.GetSymbolInfo(node);
+			var result = this.semanticModel.GetSpeculativeSymbolInfo(node.SpanStart, node, SpeculativeBindingOption.BindAsExpression);
 
 			if (result.Symbol == null)
 			{
@@ -112,20 +70,21 @@ namespace Shaolinq.AsyncRewriter
 				{
 					if (syncVersion.HasRewriteAsyncApplied())
 					{
-						return node;
+						return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 					}
 				}
 
 				log.LogMessage($"Could not find declaration of method '{node}' at {node.GetLocation().GetLineSpan()}");
 				log.LogMessage($"exp= {newNode}");
 
-				return node;
+				return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 			}
 
 			var orignalNode = node;
+			//node = node.WithExpression((ExpressionSyntax)base.Visit(node.Expression));
+			//node = node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 
 			var methodSymbol = (IMethodSymbol)result.Symbol;
-			
 			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
 
 			IMethodSymbol candidate;
@@ -140,7 +99,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				if (this.excludeTypes.Contains(methodSymbol.ContainingType))
 				{
-					return node;
+					return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 				}
 				
 				var expectedParameterTypes = new List<ITypeSymbol>();
@@ -172,7 +131,7 @@ namespace Shaolinq.AsyncRewriter
 					}
 					else
 					{
-						return node;
+						return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 					}
 				}
 

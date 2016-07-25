@@ -268,6 +268,36 @@ namespace Shaolinq
 				}
 			}
 		}
+
+		public static Task WhenAll<T>(this IEnumerable<T> source, Func<T, Task> tasker)
+		{
+			var tasks = new List<Task>();
+
+			using (var enumerator = source.GetEnumerator())
+			{
+				while (enumerator.MoveNext())
+				{
+					tasks.Add(tasker(enumerator.Current));
+				}
+			}
+
+			return Task.WhenAll(tasks.ToArray());
+		}
+
+		public static Task WhenAll<T>(this IEnumerable<T> source, Func<T, Task<T>> tasker)
+		{
+			var tasks = new List<Task>();
+
+			using (var enumerator = source.GetEnumerator())
+			{
+				while (enumerator.MoveNext())
+				{
+					tasks.Add(tasker(enumerator.Current));
+				}
+			}
+
+			return Task.WhenAll(tasks.ToArray());
+		}
 		
 		public static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this IEnumerable<T> source)
 		{

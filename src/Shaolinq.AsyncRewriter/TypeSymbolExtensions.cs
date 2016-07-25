@@ -49,6 +49,22 @@ namespace Shaolinq.AsyncRewriter
 						&& left.HasValueTypeConstraint == right.HasValueTypeConstraint
 						&& left.HasConstructorConstraint == right.HasConstructorConstraint;
 			}
+			else if (self.TypeKind == TypeKind.TypeParameter || other.TypeKind == TypeKind.TypeParameter)
+			{
+				var typeParameter = self as ITypeParameterSymbol ?? other as ITypeParameterSymbol;
+				
+				if (typeParameter.HasReferenceTypeConstraint && !other.IsReferenceType)
+				{
+					return false;
+				}
+
+				if (typeParameter.HasValueTypeConstraint && !other.IsValueType)
+				{
+					return false;
+				}
+
+				return typeParameter.ConstraintTypes.IsEmpty || typeParameter.ConstraintTypes.Any(c => EqualsToIgnoreGenericParameters(c, other));
+			}
 
 			if (self.MetadataName != other.MetadataName)
 			{
@@ -59,11 +75,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				if (!((INamedTypeSymbol)self)
 					.TypeArguments
-					.OrderBy(c => c.TypeKind)
-					.ThenBy(c => c.MetadataName)
-					.SequenceEqual(((INamedTypeSymbol)other).TypeArguments
-						.OrderBy(c => c.TypeKind)
-						.ThenBy(c => c.MetadataName), EqualsToIgnoreGenericParametersEqualityComparer.Default))
+					.SequenceEqual(((INamedTypeSymbol)other).TypeArguments, EqualsToIgnoreGenericParametersEqualityComparer.Default))
 				{
 					return false;
 				}

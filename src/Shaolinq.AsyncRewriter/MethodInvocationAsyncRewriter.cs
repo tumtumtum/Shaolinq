@@ -16,7 +16,6 @@ namespace Shaolinq.AsyncRewriter
 
 		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall)
 		{
-
 			InvocationExpressionSyntax rewrittenInvocation;
 
 			if (node.Expression is IdentifierNameSyntax)

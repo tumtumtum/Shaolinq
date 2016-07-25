@@ -159,7 +159,7 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
-					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
+					ActionUtils.IgnoreExceptions(() => (await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false)));
 				}
 			}
 		}
@@ -1314,7 +1314,7 @@ namespace Shaolinq
 
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), source.Expression);
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => (await QueryableExtensions.DeleteAsync<T>(cancellationToken, default (IQueryable<T>)).ConfigureAwait(false))), source.Expression);
 			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
@@ -1326,7 +1326,7 @@ namespace Shaolinq
 
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)where T : DataAccessObject
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => (await QueryableExtensions.DeleteAsync<T>(cancellationToken, default (IQueryable<T>)).ConfigureAwait(false))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
 			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
@@ -2192,7 +2192,7 @@ namespace Shaolinq
 			{
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
 				{
-					ActionUtils.IgnoreExceptions(() => commandsContext.Rollback());
+					ActionUtils.IgnoreExceptions(() => (await commandsContext.RollbackAsync(cancellationToken).ConfigureAwait(false)));
 				}
 			}
 			finally
