@@ -238,6 +238,17 @@ namespace Shaolinq.AsyncRewriter
 					throw new ArgumentException("A provided syntax tree was compiled into the provided compilation");
 				}
 
+				var asyncMethods = syntaxTree
+					.GetRoot()
+					.DescendantNodes()
+					.OfType<MethodDeclarationSyntax>()
+					.Where(m => m.Modifiers.Any(c => c.Kind() == SyntaxKind.AsyncKeyword));
+
+				foreach (var asyncMethod in asyncMethods)
+				{
+					ValidateAsyncMethod(asyncMethod, semanticModel);
+				}
+
 				if (syntaxTree.GetRoot().DescendantNodes().All(m => ((m as MethodDeclarationSyntax)?.AttributeLists ?? (m as TypeDeclarationSyntax)?.AttributeLists)?.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")) == null))
 				{
 					continue;
@@ -333,6 +344,24 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 		}
+
+		private void ValidateAsyncMethod(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel)
+		{
+			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
+			var results = AsyncMethodValidator.Validate(methodSyntax, log, this.lookup, semanticModel, excludedTypes, cancellationTokenSymbol);
+
+			if (results.Count > 0)
+			{
+				foreach (var result in results)
+				{
+					if (!result.ReplacementMethodSymbol.Equals(methodSymbol))
+					{
+						log.LogWarning($"Async method call possible in {result.Position.GetLineSpan()}");
+						log.LogWarning($"Replace {result.MethodInvocationSyntax.NormalizeWhitespace()} with {result.ReplacementExpressionSyntax.NormalizeWhitespace()}");
+					}
+				}
+			}
+		}
 		
 		private MethodDeclarationSyntax RewriteMethodAsync(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel, bool cancellationVersion)
 		{
@@ -352,7 +381,7 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 
-			var rewriter = new MethodInvocationRewriter(this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
+			var rewriter = new MethodInvocationAsyncRewriter(this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
 			var newAsyncMethod = (MethodDeclarationSyntax)rewriter.Visit(methodSyntax);
 			var returnTypeName = methodSyntax.ReturnType.ToString();
 

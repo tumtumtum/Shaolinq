@@ -83,8 +83,31 @@ namespace Shaolinq.AsyncRewriter.Tests
 		}
 	}
 
+	public interface ICacheClient
+	{
+		void Set<T>(string collectionKey, string objKey, T obj, TimeSpan? expiry = null);
+		Task SetAsync<T>(string collectionKey, string objKey, T obj, TimeSpan? expiry = null);
+	}
+
 	public class ExtensionMethodTests
 	{
+		public async void AsyncMethod()
+		{
+			ICacheClient client = null;
+
+			await Task.Run(() => Console.WriteLine());
+
+			client.Set("", "", new List<Guid>());
+		}
+
+		[RewriteAsync]
+		public void TestCacheClient()
+		{
+			ICacheClient client = null;
+
+			client.Set("", "", new List<Guid>());
+		}
+
 		[RewriteAsync]
 		public void Test<T>()
 		{

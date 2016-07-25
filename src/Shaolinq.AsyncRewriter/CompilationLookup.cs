@@ -15,12 +15,8 @@ namespace Shaolinq.AsyncRewriter
 		public CompilationLookup(CSharpCompilation compilation)
 		{
 			this.compilation = compilation;
-
-			var stopwatch = new Stopwatch();
-
-			stopwatch.Start();
+			
 			this.Visit(compilation);
-			Console.WriteLine(stopwatch.Elapsed);
 		}
 
 		private bool MethodIsPublicOrAccessibleFromCompilation(IMethodSymbol method)
