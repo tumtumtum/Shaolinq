@@ -154,8 +154,16 @@ namespace Shaolinq.AsyncRewriter.Tests
 		}
 
 		[RewriteAsync]
+		private List<Guid> NewIdList()
+		{
+			return new List<Guid>();
+		}
+		
+		[RewriteAsync]
 		public void Test<T>()
 		{
+			var providerList = Expression.Constant(NewIdList());
+
 			AnimalFarm.Count(AnimalFarm.GetAnimals(AnimalFarm.GetAnimals2()), "");
 
 			var w = default(IQueryable<Foo>);

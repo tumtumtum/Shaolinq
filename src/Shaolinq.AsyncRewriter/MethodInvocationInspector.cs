@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,6 +10,8 @@ namespace Shaolinq.AsyncRewriter
 {
 	internal abstract class MethodInvocationInspector : CSharpSyntaxRewriter
 	{
+		private readonly Stack<ExpressionSyntax> lambdaStack = new Stack<ExpressionSyntax>();
+
 		protected readonly IAsyncRewriterLogger log;
 		protected readonly SemanticModel semanticModel;
 		protected readonly HashSet<ITypeSymbol> excludeTypes;
@@ -28,7 +29,7 @@ namespace Shaolinq.AsyncRewriter
 
 		private ITypeSymbol GetArgumentType(ArgumentSyntax syntax)
 		{
-			var symbol = this.semanticModel.GetSpeculativeSymbolInfo(syntax.Expression.SpanStart, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Symbol;
+			var symbol = this.semanticModel.GetSymbolInfo(syntax.Expression).Symbol;
 
 			var property = symbol?.GetType().GetProperty("Type");
 
@@ -40,10 +41,63 @@ namespace Shaolinq.AsyncRewriter
 			return this.semanticModel.GetTypeInfo(syntax.Expression).Type;
 		}
 
+		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+		{
+			lambdaStack.Push(node);
+
+			try
+			{
+				return base.VisitAnonymousMethodExpression(node);
+			}
+			catch (Exception)
+			{
+				lambdaStack.Pop();
+			}
+
+			return node;
+		}
+
+		public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+		{
+			lambdaStack.Push(node);
+
+			try
+			{
+				return base.VisitParenthesizedLambdaExpression(node);
+			}
+			catch (Exception)
+			{
+				lambdaStack.Pop();
+			}
+
+			return node;
+		}
+
+		public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+		{
+			lambdaStack.Push(node);
+
+			try
+			{
+				return base.VisitSimpleLambdaExpression(node);
+			}
+			catch (Exception)
+			{
+				lambdaStack.Pop();
+			}
+
+			return node;
+		}
+
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
 		{
+			if (lambdaStack.Any())
+			{
+				return node;
+			}
+
 			var explicitExtensionMethodCall = false;
-			var result = this.semanticModel.GetSpeculativeSymbolInfo(node.SpanStart, node, SpeculativeBindingOption.BindAsExpression);
+			var result = this.semanticModel.GetSymbolInfo(node);
 
 			if (result.Symbol == null)
 			{
@@ -81,9 +135,6 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			var orignalNode = node;
-			//node = node.WithExpression((ExpressionSyntax)base.Visit(node.Expression));
-			//node = node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
-
 			var methodSymbol = (IMethodSymbol)result.Symbol;
 			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
 
