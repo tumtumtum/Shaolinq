@@ -49,12 +49,10 @@ namespace Shaolinq.AsyncRewriter
 			{
 				return base.VisitAnonymousMethodExpression(node);
 			}
-			catch (Exception)
+			finally
 			{
 				lambdaStack.Pop();
 			}
-
-			return node;
 		}
 
 		public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
@@ -65,12 +63,10 @@ namespace Shaolinq.AsyncRewriter
 			{
 				return base.VisitParenthesizedLambdaExpression(node);
 			}
-			catch (Exception)
+			finally
 			{
 				lambdaStack.Pop();
 			}
-
-			return node;
 		}
 
 		public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
@@ -81,12 +77,10 @@ namespace Shaolinq.AsyncRewriter
 			{
 				return base.VisitSimpleLambdaExpression(node);
 			}
-			catch (Exception)
+			finally
 			{
 				lambdaStack.Pop();
 			}
-
-			return node;
 		}
 
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)

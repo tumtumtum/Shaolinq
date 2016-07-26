@@ -117,7 +117,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 			await Task.Run(() => Console.WriteLine());
 
-			client.Set("", "", new List<Guid>());
+			client.Set<List<Guid>>("", "", new List<Guid>());
 		}
 
 		public void WhenAll<T>(IQueryable<T> q, Func<T, T> tasker)
