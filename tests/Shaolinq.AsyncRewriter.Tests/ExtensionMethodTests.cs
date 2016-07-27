@@ -82,7 +82,6 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 	}
 
-
 	public class QQQ<T> : IQQQ<T, string, string>
 	{
 		public Type ElementType { get; }

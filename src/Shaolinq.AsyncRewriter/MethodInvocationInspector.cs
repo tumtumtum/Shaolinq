@@ -89,7 +89,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				return node;
 			}
-
+			
 			var explicitExtensionMethodCall = false;
 			var result = this.semanticModel.GetSymbolInfo(node);
 
@@ -118,23 +118,27 @@ namespace Shaolinq.AsyncRewriter
 				{
 					if (syncVersion.HasRewriteAsyncApplied())
 					{
-						return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+						return node
+							.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
+							.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 					}
 				}
 
 				log.LogMessage($"Could not find declaration of method '{node}' at {node.GetLocation().GetLineSpan()}");
 				log.LogMessage($"exp= {newNode}");
 
-				return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+				node = node
+					.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
+					.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 			}
-
+			
 			var orignalNode = node;
 			var methodSymbol = (IMethodSymbol)result.Symbol;
 			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
 
 			IMethodSymbol candidate;
 			int cancellationTokenPos;
-			
+
 			if (methodSymbol.HasRewriteAsyncApplied())
 			{
 				candidate = methodSymbol;
@@ -144,7 +148,9 @@ namespace Shaolinq.AsyncRewriter
 			{
 				if (this.excludeTypes.Contains(methodSymbol.ContainingType))
 				{
-					return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+					return node
+						.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
+						.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 				}
 				
 				var expectedParameterTypes = new List<ITypeSymbol>();
@@ -176,7 +182,9 @@ namespace Shaolinq.AsyncRewriter
 					}
 					else
 					{
-						return node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+						return node
+							.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
+							.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 					}
 				}
 
@@ -190,8 +198,9 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 
-			node = node.WithExpression((ExpressionSyntax)base.Visit(node.Expression));
-			node = node.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+			node = node
+				.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
+				.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 
 			return this.InspectExpression(node, cancellationTokenPos, candidate, explicitExtensionMethodCall);
 		}
