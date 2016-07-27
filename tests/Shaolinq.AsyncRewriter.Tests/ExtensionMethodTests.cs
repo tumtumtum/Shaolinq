@@ -135,12 +135,16 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 		private async Task<List<string>> NewListAsync()
 		{
+			await WhenAllTestAsync();
+
 			return new List<string>();
 		}
 
 		[RewriteAsync]
 		public void WhenAllTest()
 		{
+			var x = nameof(ExtensionMethodTests);
+
 			WhenAll(default(IQueryable<List<string>>), c => NewList());
 		}
 

@@ -90,19 +90,37 @@ namespace Shaolinq.AsyncRewriter
 				return node;
 			}
 
+			if (node.Expression.Kind() == SyntaxKind.IdentifierName)
+			{
+				if ((node.Expression as IdentifierNameSyntax)?.Identifier.Text == "nameof")
+				{
+					return node;
+				}
+			}
+
 			var explicitExtensionMethodCall = false;
 			var result = this.semanticModel.GetSymbolInfo(node);
 
 			if (result.Symbol == null)
 			{
 				var newNode = node.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(node.ArgumentList.Arguments
-					.Where(c => GetArgumentType(c) != cancellationTokenSymbol))));
+						.Where(c => GetArgumentType(c) != cancellationTokenSymbol))));
 
-				var memberAccess = node.Expression as MemberAccessExpressionSyntax;
-
-				if (memberAccess != null)
+				var visited = this.Visit(node.Expression);
+				
+				if (visited is MemberAccessExpressionSyntax)
 				{
-					var newExp = memberAccess?.WithName(SyntaxFactory.IdentifierName(memberAccess.Name.Identifier.Text.Replace("Async", "")));
+					var memberAccess = (MemberAccessExpressionSyntax)visited;
+
+					var newExp = memberAccess.WithName(SyntaxFactory.IdentifierName(Regex.Replace(memberAccess.Name.Identifier.Text, "Async$", "")));
+
+					newNode = newExp == null ? null : newNode.WithExpression(newExp);
+				}
+				else if (visited is IdentifierNameSyntax)
+				{
+					var identifier = (IdentifierNameSyntax)visited;
+
+					var newExp = identifier.WithIdentifier(SyntaxFactory.Identifier(Regex.Replace(identifier.Identifier.Text, "Async$", "")));
 
 					newNode = newExp == null ? null : newNode.WithExpression(newExp);
 				}
@@ -119,7 +137,7 @@ namespace Shaolinq.AsyncRewriter
 					if (syncVersion.HasRewriteAsyncApplied())
 					{
 						return node
-							.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
+							.WithExpression((ExpressionSyntax)visited)
 							.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 					}
 				}
