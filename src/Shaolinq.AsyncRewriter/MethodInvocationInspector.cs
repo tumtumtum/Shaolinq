@@ -89,7 +89,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				return node;
 			}
-			
+
 			var explicitExtensionMethodCall = false;
 			var result = this.semanticModel.GetSymbolInfo(node);
 
@@ -127,18 +127,18 @@ namespace Shaolinq.AsyncRewriter
 				log.LogMessage($"Could not find declaration of method '{node}' at {node.GetLocation().GetLineSpan()}");
 				log.LogMessage($"exp= {newNode}");
 
-				node = node
+				return node
 					.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
 					.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
 			}
-			
+
 			var orignalNode = node;
 			var methodSymbol = (IMethodSymbol)result.Symbol;
 			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
 
 			IMethodSymbol candidate;
 			int cancellationTokenPos;
-
+			
 			if (methodSymbol.HasRewriteAsyncApplied())
 			{
 				candidate = methodSymbol;

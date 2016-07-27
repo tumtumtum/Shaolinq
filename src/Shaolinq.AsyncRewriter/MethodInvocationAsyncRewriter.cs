@@ -31,7 +31,7 @@ namespace Shaolinq.AsyncRewriter
 
 				if (nestedInvocation != null)
 				{
-					memberAccessExp = memberAccessExp.WithExpression((ExpressionSyntax)this.VisitInvocationExpression(nestedInvocation));
+					memberAccessExp = memberAccessExp.WithExpression(nestedInvocation);
 				}
 
 				if (explicitExtensionMethodCall)
