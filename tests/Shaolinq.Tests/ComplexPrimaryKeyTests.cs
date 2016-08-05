@@ -2305,10 +2305,8 @@ namespace Shaolinq.Tests
 				var malls = this.model
 					.Malls
 					.Include(c => c.SisterMall.Shops)
-					.Include(c => c.SisterMall2.Shops)
-					.Include(c => c.SisterMall.Shops2)
-					.Include(c => c.SisterMall.Shops3)
-					.Include(c => c.Address).ToList();
+					.Where(c => c.Name == "Seattle City")
+					.ToList();
 
 				var hashSet = new HashSet<Mall>(malls);
 
