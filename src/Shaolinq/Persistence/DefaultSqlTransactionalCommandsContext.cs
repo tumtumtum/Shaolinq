@@ -208,7 +208,7 @@ namespace Shaolinq.Persistence
 					var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(property.PropertyType);
 					var valueExpression = sqlDataType.GetReadExpression(readerParameter, index++);
 					var member = dataAccessObject.GetType().GetMostDerivedProperty(property.PropertyName);
-
+					
 					statements.Add(Expression.Assign(Expression.MakeMemberAccess(local, member), valueExpression));
 				}
 				

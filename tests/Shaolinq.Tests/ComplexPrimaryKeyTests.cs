@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -2303,7 +2304,15 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
+					.Include(c => c.SisterMall.Shops)
+					.Include(c => c.SisterMall2.Shops)
+					.Include(c => c.SisterMall.Shops2)
+					.Include(c => c.SisterMall.Shops3)
 					.Include(c => c.Address).ToList();
+
+				var hashSet = new HashSet<Mall>(malls);
+
+				Assert.AreEqual(malls.Count, hashSet.Count);
 			}
 		}
 		

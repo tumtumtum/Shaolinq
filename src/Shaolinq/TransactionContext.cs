@@ -28,7 +28,7 @@ namespace Shaolinq
 
 					this.context.dataAccessModel.AsyncLocalExecutionVersion = context.executionVersion;
 				}
-
+				
 				this.Version = context.executionVersion;
 
 				context.executionVersionNesting++;
@@ -175,7 +175,7 @@ namespace Shaolinq
 			{
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
-
+			
 			if (this.DataAccessTransaction == null)
 			{
 				this.dataAccessObjectDataContext = null;

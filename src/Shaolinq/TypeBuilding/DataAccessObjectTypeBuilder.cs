@@ -1074,9 +1074,6 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 						generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new InvalidPropertyAccessException(default(string))));
 						generator.Emit(OpCodes.Throw);
-						generator.Emit(OpCodes.Ret);
-						
-						generator.Emit(OpCodes.Ret);
 					}
 					else
 					{

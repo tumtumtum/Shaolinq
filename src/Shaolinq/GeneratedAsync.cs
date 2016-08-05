@@ -1006,7 +1006,6 @@ namespace Shaolinq.Persistence
 {
 #pragma warning disable
 	using System;
-	// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Data.Common;
@@ -1065,7 +1064,14 @@ namespace Shaolinq.Persistence
 			var dbCommand = this.Inner as DbCommand;
 			if (dbCommand != null)
 			{
-				return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)));
+				try
+				{
+					return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)));
+				}
+				catch (Exception)
+				{
+					throw;
+				}
 			}
 			else
 			{

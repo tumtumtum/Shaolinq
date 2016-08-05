@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Data;
 using System.Data.Common;
 
@@ -59,7 +60,14 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				return new MarsDataReader(this, dbCommand.ExecuteReader());
+				try
+				{
+					return new MarsDataReader(this, dbCommand.ExecuteReader());
+				}
+				catch (Exception)
+				{
+					throw;
+				}
 			}
 			else
 			{

@@ -143,6 +143,7 @@
     <Compile Include="GenericModel\ShaolinqIdentityUser.cs" />
     <Compile Include="GenericModel\ShaolinqIdentityUserStore.cs" />
     <Compile Include="IdentityModelTests.cs" />
+    <Compile Include="LoadTests.cs" />
     <Compile Include="NonPrimaryAutoIncrement.cs" />
     <Compile Include="TestModel\Address.cs" />
     <Compile Include="AutoIncrementTests.cs" />

@@ -16,6 +16,7 @@ namespace Shaolinq
 		public string SetExpression { get; set; }
 		public Type ReferencedType { get; set; }
 		public Type[] ReferencedTypes { get; set; }
+		public bool AllowExplicitSet { get; set; }
 		
 		public ComputedMemberAttribute(string getExpression, string setExpression = null)
 		{
