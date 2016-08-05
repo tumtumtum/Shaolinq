@@ -14,7 +14,7 @@ namespace Shaolinq.Tests
 	[TestFixture]
 	public class LoadTests
 	{
-		[Test]
+		[Test, Ignore]
 		public void StressTest()
 		{
 			NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Info, true, true);

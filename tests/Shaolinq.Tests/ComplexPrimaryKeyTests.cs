@@ -2312,7 +2312,7 @@ namespace Shaolinq.Tests
 
 				var hashSet = new HashSet<Mall>(malls);
 
-				Assert.AreEqual(malls.Count, hashSet.Count);
+				Assert.AreEqual(hashSet.Count, malls.Count);
 			}
 		}
 		
