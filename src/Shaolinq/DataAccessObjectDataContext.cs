@@ -436,7 +436,8 @@ namespace Shaolinq
 		#endregion
 		
 		private readonly Dictionary<RuntimeTypeHandle, IObjectsByIdCache> cachesByType = new Dictionary<RuntimeTypeHandle, IObjectsByIdCache>();
-
+		
+		private bool isCommiting;
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 
@@ -578,10 +579,7 @@ namespace Shaolinq
 
 			return cache.Cache(value, forImport);
 		}
-
-		private bool isCommiting;
 		
-
 		[RewriteAsync]
 		public virtual void Commit(TransactionContext transactionContext, bool forFlush)
 		{

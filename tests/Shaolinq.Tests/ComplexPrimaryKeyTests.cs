@@ -2300,18 +2300,17 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include1()
 		{
-			using (var scope = NewTransactionScope())
-			{
-				var malls = this.model
-					.Malls
-					.Include(c => c.SisterMall.Shops)
-					.Where(c => c.Name == "Seattle City")
-					.ToList();
+			var malls = this.model
+				.Malls
+				.Include(c => c.SisterMall.Shops)
+				.Include(c => c.SisterMall.Shops2)
+				.Include(c => c.SisterMall.Shops3)
+				.Where(c => c.Name == "Seattle City")
+				.ToList();
 
-				var hashSet = new HashSet<Mall>(malls);
+			var hashSet = new HashSet<Mall>(malls);
 
-				Assert.AreEqual(hashSet.Count, malls.Count);
-			}
+			Assert.AreEqual(hashSet.Count, malls.Count);
 		}
 		
 		[Test]

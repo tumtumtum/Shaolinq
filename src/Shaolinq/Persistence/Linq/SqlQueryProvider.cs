@@ -293,7 +293,7 @@ namespace Shaolinq.Persistence.Linq
 
 			Expression executor;
 
-			if (elementType.IsDataAccessObjectType() && false)
+			if (elementType.IsDataAccessObjectType())
 			{
 				var concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
 
