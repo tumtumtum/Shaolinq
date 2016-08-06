@@ -25,7 +25,7 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		public string CreateUrn(long longId)
 		{
-			using (var scope = new DataAccessScope())
+			using (var scope = new DataAccessScope(DataAccessIsolationLevel.ReadCommitted, DataAccessScopeOptions.RequiresNew, TimeSpan.FromSeconds(60)))
 			{
 				((ComplexPrimaryKeyDataAccessModel)this.dataAccessModel).Shops.ToList();
 

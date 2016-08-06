@@ -83,6 +83,11 @@ namespace Shaolinq
 		{
 		}
 
+		public DataAccessScope(DataAccessScopeOptions options)
+			: this(DataAccessIsolationLevel.Unspecified, options, TimeSpan.Zero)
+		{
+		}
+
 		public DataAccessScope(DataAccessIsolationLevel isolationLevel)
 			: this(isolationLevel, TimeSpan.Zero)
 		{
