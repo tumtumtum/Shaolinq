@@ -2038,6 +2038,13 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, this.isDeflatedReferenceField);
 				generator.Emit(OpCodes.Brtrue, label);
 			}
+			
+			// Don't emit computed properties while object is being deserialized
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldfld, this.finishedInitializingField);
+			generator.Emit(OpCodes.Brfalse, label);
 
 			foreach (var methodInfo in propertyNames.Select(name => this.setComputedValueMethods[name]))
 			{

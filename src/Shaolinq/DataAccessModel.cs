@@ -579,10 +579,8 @@ namespace Shaolinq
 		public virtual DataAccessObject CreateDataAccessObject(Type type)
 		{
 			var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, true);
-			var retvalInternal = retval.ToObjectInternal();
 
-			retvalInternal.FinishedInitializing();
-			retvalInternal.SubmitToCache();
+			retval.ToObjectInternal().FinishedInitializing().SubmitToCache();
 
 			return retval;
 		}

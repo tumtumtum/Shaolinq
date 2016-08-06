@@ -153,9 +153,9 @@ namespace Shaolinq.Persistence.Linq
 
 				if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
 				{
-					var submitToCacheMethod = typeof(IDataAccessObjectInternal).GetMethod("SubmitToCache", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-					var resetModifiedMethod = typeof(IDataAccessObjectInternal).GetMethod("ResetModified", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-					var finishedInitializingMethod = typeof(IDataAccessObjectInternal).GetMethod("FinishedInitializing", BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
+					var submitToCacheMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.SubmitToCache());
+					var resetModifiedMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.ResetModified());
+					var finishedInitializingMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.FinishedInitializing());
 
 					retval = Expression.Convert(Expression.Invoke(filterParameter, Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), typeof(DataAccessObject))), retval.Type);
 				}
