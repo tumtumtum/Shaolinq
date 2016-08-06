@@ -596,13 +596,9 @@ namespace Shaolinq
 				{
 					this.isCommiting = true;
 
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					this.CommitNew(acquisitions, transactionContext);
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					this.CommitUpdated(acquisitions, transactionContext);
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					this.CommitDeleted(acquisitions, transactionContext);
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 				}
 				finally
 				{

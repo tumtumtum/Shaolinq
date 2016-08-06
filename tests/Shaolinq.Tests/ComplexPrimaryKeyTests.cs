@@ -2311,6 +2311,18 @@ namespace Shaolinq.Tests
 			var hashSet = new HashSet<Mall>(malls);
 
 			Assert.AreEqual(hashSet.Count, malls.Count);
+
+			malls = this.model
+				.Malls
+				.Include(c => c.SisterMall.Shops)
+				.Include(c => c.SisterMall.Shops2)
+				.Include(c => c.SisterMall.Shops3)
+				.Where(c => c.Name == "Seattle City")
+				.ToList();
+
+			hashSet = new HashSet<Mall>(malls);
+
+			Assert.AreEqual(hashSet.Count, malls.Count);
 		}
 		
 		[Test]

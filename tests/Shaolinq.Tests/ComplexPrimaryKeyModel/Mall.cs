@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Linq;
+using Shaolinq.Tests.TestModel;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
@@ -13,6 +15,26 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public virtual string Name { get; set; }
 
+		[AutoIncrement]
+		[PersistedMember]
+		public virtual long LongId { get; set; }
+
+		[PersistedMember]
+		[ComputedMember("this.CreateUrn(this.LongId)")]
+		public virtual string Urn { get; set; }
+
+		public string CreateUrn(long longId)
+		{
+			using (var scope = new DataAccessScope())
+			{
+				((ComplexPrimaryKeyDataAccessModel)this.dataAccessModel).Shops.ToList();
+
+				scope.Complete();
+			}
+
+			return $"urn:mall:{longId}";
+		}
+		
 		[PersistedMember]
 		public virtual Address Address { get; set; }
 

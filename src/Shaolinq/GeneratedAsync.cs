@@ -1868,13 +1868,9 @@ namespace Shaolinq
 				try
 				{
 					this.isCommiting = true;
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					await this.CommitNewAsync(acquisitions, transactionContext, cancellationToken).ConfigureAwait(false);
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					await this.CommitUpdatedAsync(acquisitions, transactionContext, cancellationToken).ConfigureAwait(false);
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 					await this.CommitDeletedAsync(acquisitions, transactionContext, cancellationToken).ConfigureAwait(false);
-					Debug.Assert(this.DataAccessModel.GetCurrentContext(false) == transactionContext);
 				}
 				finally
 				{

@@ -28,7 +28,7 @@ namespace Shaolinq
 
 					this.context.dataAccessModel.AsyncLocalExecutionVersion = context.executionVersion;
 				}
-				
+
 				this.Version = context.executionVersion;
 
 				context.executionVersionNesting++;
@@ -42,7 +42,7 @@ namespace Shaolinq
 				{
 					this.context.VersionContextFinished(this);
 				}
-			} 
+			}
 		}
 
 		private int executionVersion;
@@ -78,7 +78,7 @@ namespace Shaolinq
 		{
 			TransactionContext context;
 			var dataAccessTransaction = DataAccessTransaction.Current;
-			
+
 			if (dataAccessTransaction == null && Transaction.Current != null)
 			{
 				dataAccessTransaction = DataAccessTransaction.Current = new DataAccessTransaction(DataAccessIsolationLevel.Unspecified);
@@ -100,6 +100,11 @@ namespace Shaolinq
 					dataAccessModel.AsyncLocalTransactionContext = context;
 				}
 
+				if (context.currentlyCommiting)
+				{
+					throw new InvalidOperationException("The context is currently committing");
+				}
+
 				return context;
 			}
 
@@ -111,7 +116,7 @@ namespace Shaolinq
 			var contexts = dataAccessTransaction.transactionContextsByDataAccessModel;
 
 			var skipTest = false;
-			
+
 			if (contexts == null)
 			{
 				skipTest = true;
@@ -122,9 +127,13 @@ namespace Shaolinq
 			{
 				context = new TransactionContext(dataAccessTransaction, dataAccessModel);
 				contexts[dataAccessModel] = context;
-				dataAccessModel.AsyncLocalTransactionContext = context;
 
 				dataAccessTransaction.AddTransactionContext(context);
+			}
+
+			if (context.currentlyCommiting)
+			{
+				throw new InvalidOperationException("The context is currently committing");
 			}
 
 			return context;
@@ -141,10 +150,10 @@ namespace Shaolinq
 			{
 				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext());
 			}
-			
+
 			return this.dataAccessObjectDataContext;
 		}
-		
+
 		public string[] DatabaseContextCategories
 		{
 			get
@@ -166,6 +175,7 @@ namespace Shaolinq
 			}
 		}
 		private string[] databaseContextCategories;
+		private bool currentlyCommiting;
 
 		public string DatabaseContextCategoriesKey { get; private set; }
 
@@ -175,7 +185,7 @@ namespace Shaolinq
 			{
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
-			
+
 			if (this.DataAccessTransaction == null)
 			{
 				this.dataAccessObjectDataContext = null;
@@ -228,7 +238,7 @@ namespace Shaolinq
 			if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out commandsContext))
 			{
 				commandsContext = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(this.DataAccessTransaction);
-				
+
 				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = commandsContext;
 			}
 
@@ -298,7 +308,6 @@ namespace Shaolinq
 			try
 			{
 				this.DataAccessTransaction?.RemoveTransactionContext(this);
-				this.dataAccessModel.AsyncLocalTransactionContext = null;
 				this.dataAccessObjectDataContext = null;
 			}
 			finally
@@ -322,6 +331,8 @@ namespace Shaolinq
 
 		public virtual void Commit(Enlistment enlistment)
 		{
+			currentlyCommiting = true;
+
 			if (this.disposed)
 			{
 				throw new ObjectDisposedException(nameof(TransactionContext));
@@ -378,7 +389,7 @@ namespace Shaolinq
 			try
 			{
 				this.dataAccessObjectDataContext?.Commit(this, false);
-				
+
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
 				{
 					commandsContext.Commit();
@@ -430,7 +441,7 @@ namespace Shaolinq
 				this.Dispose();
 			}
 		}
-		
+
 		public virtual void Prepare(PreparingEnlistment preparingEnlistment)
 		{
 			if (this.disposed)
