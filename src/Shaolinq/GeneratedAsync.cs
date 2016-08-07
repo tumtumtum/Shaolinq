@@ -2209,6 +2209,11 @@ namespace Shaolinq
 
 		public static async Task SaveAsync(this TransactionScope scope, CancellationToken cancellationToken)
 		{
+			if (DataAccessTransaction.Current == null)
+			{
+				return;
+			}
+
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
 			{
 				if (!dataAccessModel.IsDisposed)

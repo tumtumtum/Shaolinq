@@ -11,6 +11,11 @@ namespace Shaolinq
 		[RewriteAsync]
 		public static void Save(this TransactionScope scope)
 		{
+			if (DataAccessTransaction.Current == null)
+			{
+				return;
+			}
+
 			foreach (var dataAccessModel in DataAccessTransaction.Current.ParticipatingDataAccessModels)
 			{
 				if (!dataAccessModel.IsDisposed)

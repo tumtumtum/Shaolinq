@@ -53,6 +53,8 @@ namespace Shaolinq
 		internal Dictionary<DataAccessModel, TransactionContext> transactionContextsByDataAccessModel;
 		internal bool aborted;
 		private readonly DataAccessTransaction previousTransaction;
+		internal bool systemTransactionCompleted;
+		internal TransactionStatus systemTransactionStatus;
 
 		public DataAccessIsolationLevel IsolationLevel { get; private set; }
 		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.transactionContextsByDataAccessModel?.Keys ?? Enumerable.Empty<DataAccessModel>();
@@ -79,6 +81,9 @@ namespace Shaolinq
 
 				this.SystemTransaction.TransactionCompleted += (sender, eventArgs) =>
 				{
+					this.systemTransactionCompleted = true;
+					this.systemTransactionStatus = eventArgs.Transaction.TransactionInformation.Status;
+
 					this.Dispose();
 				};
 			}

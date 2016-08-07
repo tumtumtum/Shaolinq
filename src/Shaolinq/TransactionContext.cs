@@ -107,6 +107,11 @@ namespace Shaolinq
 
 				return context;
 			}
+			
+			if (dataAccessTransaction.systemTransactionCompleted && dataAccessTransaction.systemTransactionStatus == TransactionStatus.Aborted)
+			{
+				throw new TransactionAbortedException();
+			}
 
 			if (dataAccessTransaction.SystemTransaction?.TransactionInformation.Status == TransactionStatus.Aborted)
 			{
