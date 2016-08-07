@@ -91,13 +91,13 @@ namespace Shaolinq
 					throw new InvalidOperationException("Write operation must be performed inside a scope");
 				}
 
-				context = dataAccessModel.AsyncLocalTransactionContext;
+				context = dataAccessModel.AsyncLocalAmbientTransactionContext;
 
 				if (context == null || context.disposed)
 				{
 					context = new TransactionContext(null, dataAccessModel);
 
-					dataAccessModel.AsyncLocalTransactionContext = context;
+					dataAccessModel.AsyncLocalAmbientTransactionContext = context;
 				}
 
 				if (context.currentlyCommiting)
@@ -196,7 +196,7 @@ namespace Shaolinq
 				}
 
 				this.commandsContextsBySqlDatabaseContexts.Clear();
-				this.dataAccessModel.AsyncLocalTransactionContext = null;
+				this.dataAccessModel.AsyncLocalAmbientTransactionContext = null;
 				this.Dispose();
 			}
 		}

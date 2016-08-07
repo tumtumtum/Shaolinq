@@ -20,15 +20,20 @@ namespace Shaolinq
 			{
 				var value = current.Value;
 
-				if (value != null)
+				if (value == null)
 				{
-					if (!value.disposed && value.SystemTransaction == Transaction.Current)
+					return null;
+				}
+
+				if (!value.disposed)
+				{
+					if (value.SystemTransaction == Transaction.Current || (value.SystemTransaction != null && Transaction.Current == null))
 					{
 						return value;
 					}
-
-					current.Value = null;
 				}
+
+				current.Value = current.Value.previousTransaction;
 
 				return null;
 			}
@@ -47,6 +52,7 @@ namespace Shaolinq
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
 		internal Dictionary<DataAccessModel, TransactionContext> transactionContextsByDataAccessModel;
 		internal bool aborted;
+		private readonly DataAccessTransaction previousTransaction;
 
 		public DataAccessIsolationLevel IsolationLevel { get; private set; }
 		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.transactionContextsByDataAccessModel?.Keys ?? Enumerable.Empty<DataAccessModel>();
@@ -57,9 +63,8 @@ namespace Shaolinq
 		}
 
 		internal DataAccessTransaction(DataAccessIsolationLevel isolationLevel)
+			: this(isolationLevel, TimeSpan.Zero)
 		{
-			this.IsolationLevel = isolationLevel;
-			this.SystemTransaction = Transaction.Current;
 		}
 
 		internal DataAccessTransaction(DataAccessIsolationLevel isolationLevel, TimeSpan timeout)
@@ -67,6 +72,16 @@ namespace Shaolinq
 			this.timeout = timeout;
 			this.IsolationLevel = isolationLevel;
 			this.SystemTransaction = Transaction.Current;
+
+			if (this.SystemTransaction != null)
+			{
+				this.previousTransaction = DataAccessTransaction.Current;
+
+				this.SystemTransaction.TransactionCompleted += (sender, eventArgs) =>
+				{
+					this.Dispose();
+				};
+			}
 		}
 
 		public void AddTransactionContext(TransactionContext context)
@@ -121,6 +136,11 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
+			if (disposed)
+			{
+				return;
+			}
+
 			this.isfinishing = true;
 
 			if (this.transactionContextsByDataAccessModel != null)

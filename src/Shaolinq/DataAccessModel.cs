@@ -22,19 +22,19 @@ namespace Shaolinq
 	{
 		#region ContextData
 		
-		internal readonly AsyncLocal<ByValueContainer<int>> asyncExecutionVersion = new AsyncLocal<ByValueContainer<int>>();
-		internal readonly AsyncLocal<ByValueContainer<TransactionContext>> asyncTransactionContext = new AsyncLocal<ByValueContainer<TransactionContext>>();
+		internal readonly AsyncLocal<ByValueContainer<int>> asyncLocalExecutionVersion = new AsyncLocal<ByValueContainer<int>>();
+		internal readonly AsyncLocal<ByValueContainer<TransactionContext>> asyncLocalTransactionalAmbientTransactionContext = new AsyncLocal<ByValueContainer<TransactionContext>>();
 		
 		internal int AsyncLocalExecutionVersion
 		{
-			get { return asyncExecutionVersion.Value.value; }
-			set { asyncExecutionVersion.Value = new ByValueContainer<int>(value); }
+			get { return this.asyncLocalExecutionVersion.Value.value; }
+			set { this.asyncLocalExecutionVersion.Value = new ByValueContainer<int>(value); }
 		}
 
-		internal TransactionContext AsyncLocalTransactionContext
+		internal TransactionContext AsyncLocalAmbientTransactionContext
 		{
-			get { return asyncTransactionContext.Value.value; }
-			set { asyncTransactionContext.Value = new ByValueContainer<TransactionContext>(value); }
+			get { return this.asyncLocalTransactionalAmbientTransactionContext.Value.value; }
+			set { this.asyncLocalTransactionalAmbientTransactionContext.Value = new ByValueContainer<TransactionContext>(value); }
 		}
 
 		#endregion
@@ -151,9 +151,9 @@ namespace Shaolinq
 				return;
 			}
 
-			ActionUtils.IgnoreExceptions(() => this.AsyncLocalTransactionContext?.Dispose());
-			ActionUtils.IgnoreExceptions(() => this.asyncExecutionVersion.Dispose());
-			ActionUtils.IgnoreExceptions(() => this.asyncTransactionContext.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.AsyncLocalAmbientTransactionContext?.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.asyncLocalExecutionVersion.Dispose());
+			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionalAmbientTransactionContext.Dispose());
 
 			this.disposed = true;
 			this.DisposeAllSqlDatabaseContexts();
