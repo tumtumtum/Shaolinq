@@ -15,7 +15,9 @@ namespace Shaolinq.SqlServer
 		public string Password { get; }
 		public string ServerName { get; }
 		public string Instance { get; }
-		public bool DeleteDatabaseDropsTablesOnly { get; set; }
+		public bool DeleteDatabaseDropsTablesOnly { get; }
+		public bool AllowSnapshotIsolation { get; }
+		public bool ReadCommittedSnapshop { get; }
 
 		private static readonly Regex EnlistRegex = new Regex(@"Enlist\s*=[^;$]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private static readonly Regex DatabaseRegex= new Regex(@".*((Initial Catalog)|(Database))\s*\=([^;$]+)[;$]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -53,6 +55,8 @@ namespace Shaolinq.SqlServer
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
 			this.Instance = contextInfo.Instance;
+			this.AllowSnapshotIsolation = contextInfo.AllowSnapshotIsolation;
+			this.ReadCommittedSnapshop = contextInfo.ReadCommittedSnapshot;
 			this.DeleteDatabaseDropsTablesOnly = contextInfo.DeleteDatabaseDropsTablesOnly;
 
 			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
@@ -101,7 +105,8 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.DataSource = dataSource;
 				connectionStringBuilder.InitialCatalog = this.DatabaseName;
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
-
+				connectionStringBuilder.Pooling = contextInfo.Pooling;
+				
 				if (contextInfo.ConnectionTimeout != null)
 				{
 					connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout.Value;

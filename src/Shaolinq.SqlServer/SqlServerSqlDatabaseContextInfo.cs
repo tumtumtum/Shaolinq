@@ -30,11 +30,49 @@ namespace Shaolinq.SqlServer
 		[XmlAttribute]
 		public bool TrustedConnection { get; set; } = false;
 
+		/// <summary>
+		/// Determines whether deleting an existing database via <see cref="DataAccessModel.Create(DatabaseCreationOptions)"/>
+		/// should only drop the tables rather than the entire database.
+		/// </summary>
+		/// <remarks>
+		/// Only dropping tables rather than deleting the entire database is useful for database servers where you do
+		/// not have permission to delete or create new databases (Azure, Virtual Hosting, etc)
+		/// </remarks>
 		[XmlAttribute]
 		public bool DeleteDatabaseDropsTablesOnly { get; set; } = false;
 
+		/// <summary>
+		/// True if multiple active result sets per connection are allowed (default is true)
+		/// </summary>
+		/// <remarks>
+		/// Allowing multiple active result sets allows queries to be performed whilst still iterating
+		/// a result set without having to create a new connection/transaction.
+		/// </remarks>
 		[XmlAttribute]
 		public bool MultipleActiveResultSets { get; set; } = true;
+
+		/// <summary>
+		/// True if Pooling is enabled (default is true)
+		/// </summary>
+		[XmlAttribute]
+		public bool Pooling { get; set; } = true;
+		
+		/// <summary>
+		/// Enables <see cref="DataAccessIsolationLevel.Snapshot"/> isolation.
+		/// </summary>
+		/// <remarks>
+		/// This property only has an affect when the database is first created via
+		/// <see cref="DataAccessModel.Create(DatabaseCreationOptions)"/>
+		/// </remarks>
+		[XmlAttribute]
+		public bool AllowSnapshotIsolation { get; set; } = false;
+
+		/// <summary>
+		/// Makes the <see cref="DataAccessIsolationLevel.ReadCommitted"/> snapshop level act like
+		/// <see cref="DataAccessIsolationLevel.Snapshot"/>
+		/// </summary>
+		[XmlAttribute]
+		public bool ReadCommittedSnapshot { get; set; } = false;
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
