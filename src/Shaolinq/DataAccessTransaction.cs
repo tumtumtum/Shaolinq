@@ -27,9 +27,15 @@ namespace Shaolinq
 
 				if (!value.disposed)
 				{
-					if (value.SystemTransaction == Transaction.Current || (value.SystemTransaction != null && Transaction.Current == null))
+					try
 					{
-						return value;
+						if (value.SystemTransaction == Transaction.Current || (value.SystemTransaction != null && value.SystemTransaction.TransactionInformation.Status != TransactionStatus.Aborted && Transaction.Current == null))
+						{
+							return value;
+						}
+					}
+					catch (ObjectDisposedException)
+					{
 					}
 				}
 

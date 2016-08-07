@@ -290,7 +290,30 @@ namespace Shaolinq.Tests
 					scope.Complete();
 				}
 			});
-			
+
+			Assert.Throws(Is.InstanceOf<TransactionAbortedException>().Or.InstanceOf<DataAccessTransactionAbortedException>(), () =>
+			{
+				var methodName = MethodBase.GetCurrentMethod().Name;
+
+				using (var scope = new DataAccessScope())
+				{
+					var child = this.model.Children.Create();
+
+					scope.Flush();
+
+					using (var inner = new DataAccessScope())
+					{
+						child.Nickname = methodName;
+					}
+
+					scope.Flush();
+
+					Assert.AreEqual(child.Id, this.model.Children.Single(c => c.Nickname == methodName).Id);
+
+					scope.Complete();
+				}
+			});
+
 		}
 
 		[Test]
