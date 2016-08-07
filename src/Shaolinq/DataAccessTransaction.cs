@@ -43,7 +43,6 @@ namespace Shaolinq
 		private bool isfinishing;
 
 		internal TimeSpan timeout;
-		internal DataAccessScope scope;
 		internal Transaction SystemTransaction { get; set; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
 		internal Dictionary<DataAccessModel, TransactionContext> transactionContextsByDataAccessModel;
@@ -63,10 +62,9 @@ namespace Shaolinq
 			this.SystemTransaction = Transaction.Current;
 		}
 
-		internal DataAccessTransaction(DataAccessIsolationLevel isolationLevel, DataAccessScope scope, TimeSpan timeout)
+		internal DataAccessTransaction(DataAccessIsolationLevel isolationLevel, TimeSpan timeout)
 		{
 			this.timeout = timeout;
-			this.scope = scope;
 			this.IsolationLevel = isolationLevel;
 			this.SystemTransaction = Transaction.Current;
 		}

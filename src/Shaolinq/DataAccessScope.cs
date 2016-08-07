@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Transactions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -8,15 +9,15 @@ namespace Shaolinq
 	public partial class DataAccessScope
 		: IDisposable
 	{
-		public DataAccessIsolationLevel IsolationLevel { get; set; }
+		public DataAccessIsolationLevel IsolationLevel { get; }
 
 		private bool complete;
 		private bool disposed;
 		private readonly bool isRoot;
+		private readonly DataAccessTransaction outerTransaction;
+		private readonly TransactionScope nativeScope;
 		private readonly DataAccessScopeOptions options;
-		
 		private readonly DataAccessTransaction transaction;
-		private readonly DataAccessScope outerScope;
 
 		public static DataAccessScope CreateReadCommitted()
 		{
@@ -111,26 +112,33 @@ namespace Shaolinq
 				if (currentTransaction == null)
 				{
 					this.isRoot = true;
-					this.transaction = new DataAccessTransaction(isolationLevel, this, timeout);
+					this.transaction = new DataAccessTransaction(isolationLevel, timeout);
 					DataAccessTransaction.Current = this.transaction;
 				}
 				else
 				{
 					this.transaction = currentTransaction;
-					this.outerScope = currentTransaction.scope;
-					currentTransaction.scope = this;
+					this.outerTransaction = currentTransaction;
 				}
 				break;
 			case DataAccessScopeOptions.RequiresNew:
 				this.isRoot = true;
-				this.outerScope = currentTransaction?.scope;
-				this.transaction = new DataAccessTransaction(isolationLevel, this, timeout);
+				this.outerTransaction = currentTransaction;
+				if (Transaction.Current != null)
+				{
+					this.nativeScope = new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled);
+				}
+				this.transaction = new DataAccessTransaction(isolationLevel, timeout);
 				DataAccessTransaction.Current = this.transaction;
 				break;
 			case DataAccessScopeOptions.Suppress:
+				if (Transaction.Current != null)
+				{
+					this.nativeScope = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+				}
 				if (currentTransaction != null)
 				{
-					this.outerScope = currentTransaction.scope;
+					this.outerTransaction = currentTransaction;
 					DataAccessTransaction.Current = null;
 				}
 				break;
@@ -223,7 +231,7 @@ namespace Shaolinq
 		{
 			this.complete = true;
 
-			this.transaction.CheckAborted();
+			this.transaction?.CheckAborted();
 
 			if ((options & ScopeCompleteOptions.SuppressAutoFlush) != 0)
 			{
@@ -232,17 +240,15 @@ namespace Shaolinq
 
 			if (this.transaction == null)
 			{
-				if (this.options == DataAccessScopeOptions.Suppress)
-				{
-					DataAccessTransaction.Current = this.outerScope.transaction;
-					DataAccessTransaction.Current.scope = this.outerScope;
-				}
+				DataAccessTransaction.Current = this.outerTransaction;
 
 				return;
 			}
 
 			if (!this.isRoot)
 			{
+				DataAccessTransaction.Current = this.outerTransaction;
+
 				return;
 			}
 
@@ -251,28 +257,13 @@ namespace Shaolinq
 				return;
 			}
 
-			try
+			if (this.transaction != DataAccessTransaction.Current)
 			{
-				if (this.transaction != DataAccessTransaction.Current)
-				{
-					throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
-				}
-
-				this.transaction.Commit();
-				this.transaction.Dispose();
+				throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
 			}
-			finally
-			{
-				if (this.outerScope != null)
-				{
-					this.outerScope.transaction.scope = this.outerScope;
-					DataAccessTransaction.Current = this.outerScope.transaction;
-				}
-				else
-				{
-					DataAccessTransaction.Current = null;
-				}
-			}
+			
+			this.transaction.Commit();
+			this.transaction.Dispose();
 		}
 		
 		public void Dispose()
@@ -293,6 +284,10 @@ namespace Shaolinq
 			{
 				this.transaction?.Dispose();
 			}
+
+			DataAccessTransaction.Current = this.outerTransaction;
+
+			this.nativeScope?.Dispose();
 		}
 	}
 }

@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using Shaolinq.Tests.TestModel;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
@@ -25,11 +24,14 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		public string CreateUrn(long longId)
 		{
-			using (var scope = new DataAccessScope(DataAccessIsolationLevel.ReadCommitted, DataAccessScopeOptions.RequiresNew, TimeSpan.FromSeconds(60)))
+			if (!this.dataAccessModel.GetCurrentSqlDatabaseContext().GetType().Name.StartsWith("Sqlite"))
 			{
-				((ComplexPrimaryKeyDataAccessModel)this.dataAccessModel).Shops.ToList();
+				using (var scope = new DataAccessScope(DataAccessIsolationLevel.ReadUncommitted, DataAccessScopeOptions.RequiresNew, TimeSpan.Zero))
+				{
+					((ComplexPrimaryKeyDataAccessModel)this.dataAccessModel).Shops.ToList();
 
-				scope.Complete();
+					scope.Complete();
+				}
 			}
 
 			return $"urn:mall:{longId}";
