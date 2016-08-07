@@ -3,6 +3,7 @@ namespace Shaolinq
 #pragma warning disable
 	using System;
 	using System.Threading;
+	using System.Transactions;
 	using System.Threading.Tasks;
 	using Shaolinq.Persistence;
 	using global::Shaolinq;
@@ -59,7 +60,7 @@ namespace Shaolinq
 		public async Task CompleteAsync(ScopeCompleteOptions options, CancellationToken cancellationToken)
 		{
 			this.complete = true;
-			this.transaction.CheckAborted();
+			this.transaction?.CheckAborted();
 			if ((options & ScopeCompleteOptions.SuppressAutoFlush) != 0)
 			{
 				await this.FlushAsync(cancellationToken).ConfigureAwait(false);
@@ -67,17 +68,13 @@ namespace Shaolinq
 
 			if (this.transaction == null)
 			{
-				if (this.options == DataAccessScopeOptions.Suppress)
-				{
-					DataAccessTransaction.Current = this.outerScope.transaction;
-					DataAccessTransaction.Current.scope = this.outerScope;
-				}
-
+				DataAccessTransaction.Current = this.outerTransaction;
 				return;
 			}
 
 			if (!this.isRoot)
 			{
+				DataAccessTransaction.Current = this.outerTransaction;
 				return;
 			}
 
@@ -86,28 +83,13 @@ namespace Shaolinq
 				return;
 			}
 
-			try
+			if (this.transaction != DataAccessTransaction.Current)
 			{
-				if (this.transaction != DataAccessTransaction.Current)
-				{
-					throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
-				}
+				throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
+			}
 
-				await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-				this.transaction.Dispose();
-			}
-			finally
-			{
-				if (this.outerScope != null)
-				{
-					this.outerScope.transaction.scope = this.outerScope;
-					DataAccessTransaction.Current = this.outerScope.transaction;
-				}
-				else
-				{
-					DataAccessTransaction.Current = null;
-				}
-			}
+			await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+			this.transaction.Dispose();
 		}
 	}
 }

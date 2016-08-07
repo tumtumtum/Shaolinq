@@ -58,6 +58,8 @@ namespace Shaolinq.Persistence
 		{
 			switch (isolationLevel)
 			{
+			case DataAccessIsolationLevel.ReadUncommitted:
+				return IsolationLevel.ReadUncommitted;
 			case DataAccessIsolationLevel.Serializable:
 				return IsolationLevel.Serializable;
 			case DataAccessIsolationLevel.ReadCommitted:
