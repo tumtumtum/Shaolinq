@@ -33,6 +33,7 @@ namespace Shaolinq.TypeBuilding
 		private TypeBuilder typeBuilder;
 		private FieldInfo swappingField;
 		private FieldInfo dataObjectField;
+		private FieldInfo constructorFinishedField;
 		private FieldInfo predicateField;
 		private ILGenerator cctorGenerator;
 		private FieldInfo originalPrimaryKeyField;
@@ -105,10 +106,11 @@ namespace Shaolinq.TypeBuilding
 				this.typeBuilder.AddInterfaceImplementation(typeof(IDataAccessObjectAdvanced));
 				this.typeBuilder.AddInterfaceImplementation(typeof(IDataAccessObjectInternal));
 
-				this.originalPrimaryKeyField = this.typeBuilder.DefineField("originalPrimaryKeyFlattened", typeof(ObjectPropertyValue[]), FieldAttributes.Public);
-				this.finishedInitializingField = this.dataObjectTypeTypeBuilder.DefineField("finishedInitializing", typeof(bool), FieldAttributes.Public);
-				this.swappingField = this.dataObjectTypeTypeBuilder.DefineField("swappingField", typeof(bool), FieldAttributes.Public);
-
+				this.constructorFinishedField = this.typeBuilder.DefineField("$$constructorFinished", typeof(bool), FieldAttributes.Public);
+				this.originalPrimaryKeyField = this.typeBuilder.DefineField("$$originalPrimaryKeyFlattened", typeof(ObjectPropertyValue[]), FieldAttributes.Public);
+				this.finishedInitializingField = this.dataObjectTypeTypeBuilder.DefineField("$$finishedInitializing", typeof(bool), FieldAttributes.Public);
+				this.swappingField = this.dataObjectTypeTypeBuilder.DefineField("$$swappingField", typeof(bool), FieldAttributes.Public);
+				
 				// Static constructor
 
 				var staticConstructor = this.typeBuilder.DefineConstructor(MethodAttributes.Static, CallingConventions.Standard, Type.EmptyTypes);
@@ -121,6 +123,11 @@ namespace Shaolinq.TypeBuilding
 				var defaultConstructorGenerator = defaultConstructorBuilder.GetILGenerator();
 				defaultConstructorGenerator.Emit(OpCodes.Ldarg_0);
 				defaultConstructorGenerator.Emit(OpCodes.Call, typeBuilder.BaseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance, null, Type.EmptyTypes, null));
+
+				defaultConstructorGenerator.Emit(OpCodes.Ldarg_0);
+				defaultConstructorGenerator.Emit(OpCodes.Ldc_I4_1);
+				defaultConstructorGenerator.Emit(OpCodes.Stfld, this.constructorFinishedField);
+
 				defaultConstructorGenerator.Emit(OpCodes.Ret);
 
 				// Define constructor for data object type
@@ -342,6 +349,10 @@ namespace Shaolinq.TypeBuilding
 				}
 
 				constructorGenerator.MarkLabel(skipSetDefault);
+
+				constructorGenerator.Emit(OpCodes.Ldarg_0);
+				constructorGenerator.Emit(OpCodes.Ldc_I4_1);
+				constructorGenerator.Emit(OpCodes.Stfld, this.constructorFinishedField);
 				constructorGenerator.Emit(OpCodes.Ret);
 
 				this.dataObjectTypeTypeBuilder.CreateType();
@@ -2038,7 +2049,15 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldfld, this.isDeflatedReferenceField);
 				generator.Emit(OpCodes.Brtrue, label);
 			}
-			
+
+			var computeStartLabel = generator.DefineLabel();
+
+			// Do emit if object is in constructor (defaults need to be made)
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.constructorFinishedField);
+			generator.Emit(OpCodes.Brfalse, computeStartLabel);
+
 			// Don't emit computed properties while object is being deserialized
 
 			generator.Emit(OpCodes.Ldarg_0);
@@ -2046,6 +2065,8 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldfld, this.finishedInitializingField);
 			generator.Emit(OpCodes.Brfalse, label);
 
+			generator.MarkLabel(computeStartLabel);
+			
 			foreach (var methodInfo in propertyNames.Select(name => this.setComputedValueMethods[name]))
 			{
 				generator.Emit(OpCodes.Ldarg_0);
