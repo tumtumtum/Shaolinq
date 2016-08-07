@@ -9,17 +9,11 @@ namespace Shaolinq
 	public partial class DataAccessScope
 		: IDisposable
 	{
-		static DataAccessScope()
-		{
-			asyncFlowOptionSupported = Type.GetType("System.Transactions.TransactionScopeAsyncFlowOption") != null;
-		}
-
 		public DataAccessIsolationLevel IsolationLevel { get; }
 
 		private bool complete;
 		private bool disposed;
 		private readonly bool isRoot;
-		private static readonly bool asyncFlowOptionSupported;
 		private readonly DataAccessTransaction outerTransaction;
 		private readonly TransactionScope nativeScope;
 		private readonly DataAccessScopeOptions options;
@@ -132,7 +126,7 @@ namespace Shaolinq
 				this.outerTransaction = currentTransaction;
 				if (Transaction.Current != null)
 				{
-					this.nativeScope = !asyncFlowOptionSupported ? new TransactionScope(TransactionScopeOption.RequiresNew) : new TransactionScope(TransactionScopeOption.RequiresNew, TransactionScopeAsyncFlowOption.Enabled);
+					this.nativeScope = new TransactionScope(TransactionScopeOption.RequiresNew);
 				}
 				this.transaction = new DataAccessTransaction(isolationLevel, timeout);
 				DataAccessTransaction.Current = this.transaction;
@@ -140,7 +134,7 @@ namespace Shaolinq
 			case DataAccessScopeOptions.Suppress:
 				if (Transaction.Current != null)
 				{
-					this.nativeScope = !asyncFlowOptionSupported ? new TransactionScope(TransactionScopeOption.RequiresNew) : new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+					this.nativeScope = new TransactionScope(TransactionScopeOption.Suppress);
 				}
 				if (currentTransaction != null)
 				{
