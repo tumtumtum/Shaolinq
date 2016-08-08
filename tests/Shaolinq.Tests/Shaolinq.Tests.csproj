@@ -112,6 +112,7 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncLocalTests.cs" />
     <Compile Include="BaseTests.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Address.cs" />
     <Compile Include="ComplexPrimaryKeyModel\ShopType.cs" />

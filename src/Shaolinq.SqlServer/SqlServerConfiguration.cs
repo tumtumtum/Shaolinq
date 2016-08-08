@@ -39,7 +39,9 @@ namespace Shaolinq.SqlServer
 						Categories = categories,
 						ServerName = serverName,
 						UserName = userName,
-						Password = password
+						Password = password,
+						DeleteDatabaseDropsTablesOnly = deleteDatabaseDropsTablesOnly,
+						MultipleActiveResultSets = multipleActiveResultsets
 					},
 				}
 			};

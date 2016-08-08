@@ -29,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.AsyncRewriter", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.AsyncRewriter.Tests", "..\tests\Shaolinq.AsyncRewriter.Tests\Shaolinq.AsyncRewriter.Tests.csproj", "{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServer3.Shaolinq", "..\..\devodo\IdentityServer3.Shaolinq\IdentityServer3.Shaolinq\IdentityServer3.Shaolinq.csproj", "{DBE65453-A35F-4784-BAE0-830FCB14224C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServer3.Shaolinq.Tests", "..\..\devodo\IdentityServer3.Shaolinq\IdentityServer3.Shaolinq.Tests\IdentityServer3.Shaolinq.Tests.csproj", "{3378F59A-4B38-42E8-805F-2A19AE180772}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +83,14 @@ Global
 		{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F63CC9A-3D25-44A1-919C-9731F8ED11DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBE65453-A35F-4784-BAE0-830FCB14224C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBE65453-A35F-4784-BAE0-830FCB14224C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBE65453-A35F-4784-BAE0-830FCB14224C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBE65453-A35F-4784-BAE0-830FCB14224C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3378F59A-4B38-42E8-805F-2A19AE180772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3378F59A-4B38-42E8-805F-2A19AE180772}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3378F59A-4B38-42E8-805F-2A19AE180772}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3378F59A-4B38-42E8-805F-2A19AE180772}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

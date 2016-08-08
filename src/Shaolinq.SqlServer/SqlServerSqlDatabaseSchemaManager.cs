@@ -37,49 +37,48 @@ namespace Shaolinq.SqlServer
 
 					using (var command = (SqlCommand)connection.CreateCommand())
 					{
-						if (deleteDatabaseDropsTablesOnly)
+						if (options == DatabaseCreationOptions.DeleteExistingDatabase)
 						{
-							command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? SqlDatabaseContextInfo.DefaultCommandTimeout), 300);
-							command.CommandText =
-							@"
-								WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLE_CONSTRAINTS where CONSTRAINT_TYPE='FOREIGN KEY'))
-								BEGIN
-									DECLARE @sql nvarchar(2000)
-									SELECT TOP 1 @sql=('ALTER TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME + '] DROP CONSTRAINT [' + CONSTRAINT_NAME + ']')
-									FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'FOREIGN KEY'
-									EXEC (@sql)
-									PRINT @sql
-								END
-							";
+							if (deleteDatabaseDropsTablesOnly)
+							{
+								command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? SqlDatabaseContextInfo.DefaultCommandTimeout), 300);
+								command.CommandText =
+								@"
+									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLE_CONSTRAINTS where CONSTRAINT_TYPE='FOREIGN KEY'))
+									BEGIN
+										DECLARE @sql nvarchar(2000)
+										SELECT TOP 1 @sql=('ALTER TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME + '] DROP CONSTRAINT [' + CONSTRAINT_NAME + ']')
+										FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'FOREIGN KEY'
+										EXEC (@sql)
+										PRINT @sql
+									END
+								";
 
-							command.ExecuteNonQuery();
+								command.ExecuteNonQuery();
+								command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? 300), 300);
+								command.CommandText =
+								@"
+									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'))
+									BEGIN
+										declare @sql nvarchar(2000)
+										SELECT TOP 1 @sql=('DROP TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME + ']')
+										FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'
+										EXEC (@sql)
+										PRINT @sql
+									END
+								";
 
-							command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? 300), 300);
-							command.CommandText =
-							@"
-								WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'))
-								BEGIN
-									declare @sql nvarchar(2000)
-									SELECT TOP 1 @sql=('DROP TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME + ']')
-									FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'
-									EXEC (@sql)
-									PRINT @sql
-								END
-							";
-
-							command.ExecuteNonQuery();
-						}
-						else
-						{
-							if (options == DatabaseCreationOptions.DeleteExistingDatabase)
+								command.ExecuteNonQuery();
+							}
+							else
 							{
 								command.CommandText = $"IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = '{databaseName}') DROP DATABASE [{databaseName}];";
 								command.ExecuteNonQuery();
 							}
-
-							command.CommandText = $"CREATE DATABASE [{databaseName}];";
-							command.ExecuteNonQuery();
 						}
+
+						command.CommandText = $"CREATE DATABASE [{databaseName}];";
+						command.ExecuteNonQuery();
 
 						command.CommandText = $"ALTER DATABASE [{databaseName}] SET ALLOW_SNAPSHOT_ISOLATION {(context.AllowSnapshotIsolation ? "ON" : "OFF")};";
 						command.ExecuteNonQuery();
@@ -90,8 +89,10 @@ namespace Shaolinq.SqlServer
 						return true;
 					}
 				}
-				catch
+				catch (Exception e)
 				{
+					Logger.Log(Logging.LogLevel.Debug, () => "Exception creating database: " + e);
+
 					return false;
 				}
 			}
