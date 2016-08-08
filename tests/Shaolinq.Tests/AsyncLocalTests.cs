@@ -14,7 +14,7 @@ namespace Shaolinq.Tests
 		{
 		}
 
-		[Test, Ignore("Not yet")]
+		[Test]
 		public async Task Test()
 		{
 			var x = 0;

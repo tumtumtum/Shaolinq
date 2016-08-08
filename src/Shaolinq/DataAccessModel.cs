@@ -22,19 +22,19 @@ namespace Shaolinq
 	{
 		#region ContextData
 		
-		internal readonly AsyncLocal<ByValueContainer<int>> asyncLocalExecutionVersion = new AsyncLocal<ByValueContainer<int>>();
-		internal readonly AsyncLocal<ByValueContainer<TransactionContext>> asyncLocalTransactionalAmbientTransactionContext = new AsyncLocal<ByValueContainer<TransactionContext>>();
+		internal readonly AsyncLocal<int> asyncLocalExecutionVersion = new AsyncLocal<int>();
+		internal readonly AsyncLocal<TransactionContext> asyncLocalTransactionalAmbientTransactionContext = new AsyncLocal<TransactionContext>();
 		
 		internal int AsyncLocalExecutionVersion
 		{
-			get { return this.asyncLocalExecutionVersion.Value.value; }
-			set { this.asyncLocalExecutionVersion.Value = new ByValueContainer<int>(value); }
+			get { return this.asyncLocalExecutionVersion.Value; }
+			set { this.asyncLocalExecutionVersion.Value = value; }
 		}
 
 		internal TransactionContext AsyncLocalAmbientTransactionContext
 		{
-			get { return this.asyncLocalTransactionalAmbientTransactionContext.Value.value; }
-			set { this.asyncLocalTransactionalAmbientTransactionContext.Value = new ByValueContainer<TransactionContext>(value); }
+			get { return this.asyncLocalTransactionalAmbientTransactionContext.Value; }
+			set { this.asyncLocalTransactionalAmbientTransactionContext.Value = value; }
 		}
 
 		#endregion
@@ -114,7 +114,12 @@ namespace Shaolinq
 
 		public TransactionContext GetCurrentContext(bool forWrite)
 		{
-			return TransactionContext.GetCurrentContext(this, forWrite);
+			return TransactionContext.GetCurrentContext(this, forWrite, true);
+		}
+
+		private TransactionContext GetCurrentContext(bool forWrite, bool createIfNotExist)
+		{
+			return TransactionContext.GetCurrentContext(this, forWrite, createIfNotExist);
 		}
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
@@ -680,34 +685,43 @@ namespace Shaolinq
 		{
 			var forWrite = DataAccessTransaction.Current != null;
 
-			var transactionContext = this.GetCurrentContext(forWrite);
+			var transactionContext = this.GetCurrentContext(forWrite, true);
 
-			if (transactionContext.sqlDatabaseContext != null)
+			if (transactionContext?.sqlDatabaseContext != null)
 			{
 				return transactionContext.sqlDatabaseContext;
 			}
 
 			SqlDatabaseContextsInfo info;
 
-			if (!this.sqlDatabaseContextsByCategory.TryGetValue(transactionContext.DatabaseContextCategoriesKey, out info))
+			var categories = transactionContext?.DatabaseContextCategoriesKey ?? "*";
+
+			if (!this.sqlDatabaseContextsByCategory.TryGetValue(categories, out info))
 			{
 				var compositeInfo = SqlDatabaseContextsInfo.Create();
 
-				foreach (var category in transactionContext.DatabaseContextCategories)
+				if (transactionContext != null)
 				{
-					info = this.sqlDatabaseContextsByCategory[category];
+					foreach (var category in transactionContext.DatabaseContextCategories)
+					{
+						info = this.sqlDatabaseContextsByCategory[category];
 
-					compositeInfo.DatabaseContexts.AddRange(info.DatabaseContexts);
+						compositeInfo.DatabaseContexts.AddRange(info.DatabaseContexts);
+					}
 				}
 
-				info = this.sqlDatabaseContextsByCategory[transactionContext.DatabaseContextCategoriesKey] = compositeInfo;
+				info = this.sqlDatabaseContextsByCategory[categories] = compositeInfo;
 			}
 
 			var index = (int)(info.Count++ % info.DatabaseContexts.Count);
+			var retval = info.DatabaseContexts[index];
 
-			transactionContext.sqlDatabaseContext = info.DatabaseContexts[index];
+			if (transactionContext != null)
+			{
+				transactionContext.sqlDatabaseContext = retval;
+			}
 
-			return transactionContext.sqlDatabaseContext;
+			return retval;
 		}
 
 		public virtual void SetCurrentTransactionDatabaseCategories(params string[] categories)

@@ -2138,7 +2138,6 @@ namespace Shaolinq
 
 			try
 			{
-				// ReSharper disable once UseNullPropagation
 				if (this.dataAccessObjectDataContext != null)
 				{
 					await this.dataAccessObjectDataContext.CommitAsync(this, false, cancellationToken).ConfigureAwait(false);
@@ -2151,7 +2150,7 @@ namespace Shaolinq
 			}
 			catch (Exception e)
 			{
-				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
+				this.commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
 				throw new DataAccessTransactionAbortedException(e);
 			}
 			finally

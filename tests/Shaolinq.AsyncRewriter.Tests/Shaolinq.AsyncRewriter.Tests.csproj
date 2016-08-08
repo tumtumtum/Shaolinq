@@ -50,6 +50,9 @@
     <EmbeddedResource Include="Bar.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <Content Include="ConditionalAccess.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include="Foo.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>

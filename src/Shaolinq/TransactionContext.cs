@@ -14,11 +14,10 @@ namespace Shaolinq
 		public class TransactionContextExecutionVersionContext
 			: IDisposable
 		{
+			public int Version { get; }
 			private readonly TransactionContext context;
 
-			public int Version { get; }
-
-			public TransactionContextExecutionVersionContext(TransactionContext context)
+			internal TransactionContextExecutionVersionContext(TransactionContext context)
 			{
 				this.context = context;
 
@@ -48,6 +47,7 @@ namespace Shaolinq
 		private int executionVersion;
 		private int executionVersionNesting;
 		private volatile bool disposed;
+		private volatile bool currentlyCommiting;
 		internal SqlDatabaseContext sqlDatabaseContext;
 		internal readonly DataAccessModel dataAccessModel;
 		internal DataAccessTransaction DataAccessTransaction { get; }
@@ -74,10 +74,15 @@ namespace Shaolinq
 			return new TransactionContextExecutionVersionContext(this);
 		}
 
-		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite)
+		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite, bool createIfNotExist = true)
 		{
 			TransactionContext context;
 			var dataAccessTransaction = DataAccessTransaction.Current;
+
+			if (dataAccessTransaction == null && !createIfNotExist)
+			{
+				return null;
+			}
 
 			if (dataAccessTransaction == null && Transaction.Current != null)
 			{
@@ -124,12 +129,22 @@ namespace Shaolinq
 
 			if (contexts == null)
 			{
+				if (!createIfNotExist)
+				{
+					return null;
+				}
+
 				skipTest = true;
 				contexts = dataAccessTransaction.transactionContextsByDataAccessModel = new Dictionary<DataAccessModel, TransactionContext>();
 			}
 
 			if (skipTest || !contexts.TryGetValue(dataAccessModel, out context))
 			{
+				if (!createIfNotExist)
+				{
+					return null;
+				}
+
 				context = new TransactionContext(dataAccessTransaction, dataAccessModel);
 				contexts[dataAccessModel] = context;
 
@@ -151,9 +166,9 @@ namespace Shaolinq
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			if (dataAccessObjectDataContext == null)
+			if (this.dataAccessObjectDataContext == null)
 			{
-				dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext());
+				this.dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext());
 			}
 
 			return this.dataAccessObjectDataContext;
@@ -180,8 +195,7 @@ namespace Shaolinq
 			}
 		}
 		private string[] databaseContextCategories;
-		private bool currentlyCommiting;
-
+		
 		public string DatabaseContextCategoriesKey { get; private set; }
 
 		internal void VersionContextFinished(TransactionContextExecutionVersionContext executionVersionContext)
@@ -212,7 +226,6 @@ namespace Shaolinq
 			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = "*";
 			this.executionVersion = dataAccessModel.AsyncLocalExecutionVersion;
-
 			this.commandsContextsBySqlDatabaseContexts = new Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
 		}
 
@@ -327,7 +340,7 @@ namespace Shaolinq
 
 			if (this.DataAccessTransaction != null)
 			{
-				if (!DataAccessTransaction.HasSystemTransaction)
+				if (!this.DataAccessTransaction.HasSystemTransaction)
 				{
 					DataAccessTransaction.Current?.Dispose();
 				}
@@ -336,7 +349,7 @@ namespace Shaolinq
 
 		public virtual void Commit(Enlistment enlistment)
 		{
-			currentlyCommiting = true;
+			this.currentlyCommiting = true;
 
 			if (this.disposed)
 			{
@@ -404,7 +417,7 @@ namespace Shaolinq
 			}
 			catch (Exception e)
 			{
-				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
+				this.commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
 
 				singlePhaseEnlistment.Aborted(e);
 			}
@@ -424,11 +437,7 @@ namespace Shaolinq
 
 			try
 			{
-				// ReSharper disable once UseNullPropagation
-				if (this.dataAccessObjectDataContext != null)
-				{
-					this.dataAccessObjectDataContext.Commit(this, false);
-				}
+				this.dataAccessObjectDataContext?.Commit(this, false);
 
 				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
 				{
@@ -437,7 +446,7 @@ namespace Shaolinq
 			}
 			catch (Exception e)
 			{
-				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
+				this.commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
 
 				throw new DataAccessTransactionAbortedException(e);
 			}
@@ -478,7 +487,7 @@ namespace Shaolinq
 			}
 			catch (Exception e)
 			{
-				commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
+				this.commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
 
 				preparingEnlistment.ForceRollback(e);
 			}

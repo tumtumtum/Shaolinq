@@ -29,8 +29,6 @@ namespace Shaolinq.Tests
 
 			Console.WriteLine(dataModel.GetCurrentSqlDatabaseContext().ConnectionString);
 
-			Guid testStudentId;
-
 			using (var scope = new DataAccessScope())
 			{
 				var school = dataModel.Schools.Create();
@@ -39,8 +37,6 @@ namespace Shaolinq.Tests
 				student.School = school;
 				student.Firstname = "Tum";
 				student.Lastname = "Nguyen";
-
-				testStudentId = student.Id;
 
 				for (var i = 0; i < 10000; i++)
 				{
@@ -70,7 +66,7 @@ namespace Shaolinq.Tests
 					{
 						try
 						{
-							dataModel.Students.First(x => x.Firstname == "Student 100");
+							dataModel.Students.ToList();
 						}
 						catch (Exception ex)
 						{

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -101,7 +102,23 @@ namespace Shaolinq.AsyncRewriter
 
 			return rewritten;
 		}
-		
+
+		public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
+		{
+			var expression = this.Visit(node.Expression);
+
+			if (expression is IfStatementSyntax)
+			{
+				return expression;
+			}
+			else
+			{
+				var semicolonToken = this.VisitToken(node.SemicolonToken);
+
+				return node.Update((ExpressionSyntax)expression, semicolonToken);
+			}
+		}
+
 		public override SyntaxNode VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
 		{
 			var result = base.VisitConditionalAccessExpression(node);
@@ -110,9 +127,59 @@ namespace Shaolinq.AsyncRewriter
 			{
 				var conditionalAccess = result as ConditionalAccessExpressionSyntax;
 				var awaitExpression = (AwaitExpressionSyntax)(conditionalAccess.WhenNotNull as ParenthesizedExpressionSyntax)?.Expression;
-				var awaitExpressionExpression = awaitExpression.Expression;
+				var awaitExpressionExpression = awaitExpression?.Expression;
 
-				return SyntaxFactory.AwaitExpression(conditionalAccess.WithWhenNotNull(awaitExpressionExpression));
+				if (awaitExpressionExpression == null)
+				{
+					return result;
+				}
+
+				var stack = new Stack<ExpressionSyntax>();
+				var syntax = awaitExpressionExpression;
+				
+				while (true)
+				{
+					if (syntax is MemberAccessExpressionSyntax)
+					{
+						stack.Push(syntax);
+						syntax = ((MemberAccessExpressionSyntax)syntax).Expression;
+					}
+					else if (syntax is InvocationExpressionSyntax)
+					{
+						stack.Push(syntax);
+						syntax = ((InvocationExpressionSyntax)syntax).Expression;
+					}
+					else if (syntax is MemberBindingExpressionSyntax)
+					{
+						var name = ((MemberBindingExpressionSyntax)syntax).Name;
+
+						dynamic current = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, conditionalAccess.Expression, name);
+
+						while (stack.Count > 0)
+						{
+							dynamic next = stack.Pop();
+
+							current = next.WithExpression(current);
+						}
+
+						syntax = current;
+
+						break;
+					}
+					else
+					{
+						throw new InvalidOperationException("Unsupported expression " + syntax);
+					}
+				}
+
+				if (node.Parent is StatementSyntax)
+				{
+					return SyntaxFactory.IfStatement(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccess.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(SyntaxFactory.AwaitExpression(syntax))));
+				}
+				else
+				{
+					return SyntaxFactory.ConditionalExpression(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccess.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.AwaitExpression(syntax), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+				}
 			}
 
 			return result;
