@@ -685,7 +685,7 @@ namespace Shaolinq
 		{
 			var forWrite = DataAccessTransaction.Current != null;
 
-			var transactionContext = this.GetCurrentContext(forWrite, true);
+			var transactionContext = this.GetCurrentContext(forWrite, false);
 
 			if (transactionContext?.sqlDatabaseContext != null)
 			{
