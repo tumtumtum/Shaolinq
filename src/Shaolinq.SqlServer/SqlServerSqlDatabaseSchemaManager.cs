@@ -72,7 +72,7 @@ namespace Shaolinq.SqlServer
 							}
 							else
 							{
-								command.CommandText = $"DROP DATABASE IF EXISTS [{databaseName}];";
+								command.CommandText = $"IF EXISTS (SELECT * FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
 								command.ExecuteNonQuery();
 
 								command.CommandText = $"CREATE DATABASE [{databaseName}];";
@@ -81,6 +81,9 @@ namespace Shaolinq.SqlServer
 						}
 						else
 						{
+							command.CommandText = $"IF EXISTS (SELECT * FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}]";
+							command.ExecuteNonQuery();
+
 							command.CommandText = $"CREATE DATABASE [{databaseName}];";
 							command.ExecuteNonQuery();
 						}
