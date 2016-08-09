@@ -43,7 +43,7 @@ namespace Shaolinq.SqlServer
 							{
 								command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? SqlDatabaseContextInfo.DefaultCommandTimeout), 300);
 								command.CommandText =
-								@"
+									@"
 									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLE_CONSTRAINTS where CONSTRAINT_TYPE='FOREIGN KEY'))
 									BEGIN
 										DECLARE @sql nvarchar(2000)
@@ -57,7 +57,7 @@ namespace Shaolinq.SqlServer
 								command.ExecuteNonQuery();
 								command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? 300), 300);
 								command.CommandText =
-								@"
+									@"
 									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'))
 									BEGIN
 										declare @sql nvarchar(2000)
@@ -72,13 +72,18 @@ namespace Shaolinq.SqlServer
 							}
 							else
 							{
-								command.CommandText = $"IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE name = '{databaseName}') DROP DATABASE [{databaseName}];";
+								command.CommandText = $"DROP DATABASE IF EXISTS [{databaseName}];";
+								command.ExecuteNonQuery();
+
+								command.CommandText = $"CREATE DATABASE [{databaseName}];";
 								command.ExecuteNonQuery();
 							}
 						}
-
-						command.CommandText = $"CREATE DATABASE [{databaseName}];";
-						command.ExecuteNonQuery();
+						else
+						{
+							command.CommandText = $"CREATE DATABASE [{databaseName}];";
+							command.ExecuteNonQuery();
+						}
 
 						command.CommandText = $"ALTER DATABASE [{databaseName}] SET ALLOW_SNAPSHOT_ISOLATION {(context.AllowSnapshotIsolation ? "ON" : "OFF")};";
 						command.ExecuteNonQuery();
@@ -93,7 +98,7 @@ namespace Shaolinq.SqlServer
 				{
 					Logger.Log(Logging.LogLevel.Debug, () => "Exception creating database: " + e);
 
-					return false;
+					throw;
 				}
 			}
 		}

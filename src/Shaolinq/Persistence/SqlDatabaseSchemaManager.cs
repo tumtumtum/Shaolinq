@@ -24,12 +24,8 @@ namespace Shaolinq.Persistence
 		public virtual void CreateDatabaseAndSchema(DatabaseCreationOptions options)
 		{
 			var dataDefinitionExpressions = this.BuildDataDefinitonExpressions(options);
-			
-			if (!this.CreateDatabaseOnly(dataDefinitionExpressions, options))
-			{
-				return;
-			}
 
+			this.CreateDatabaseOnly(dataDefinitionExpressions, options);
 			this.CreateDatabaseSchema(dataDefinitionExpressions, options);
 		}
 
