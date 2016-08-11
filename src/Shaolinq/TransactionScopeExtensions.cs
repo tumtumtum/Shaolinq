@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Transactions;
 using Shaolinq.Persistence;
 using System.Collections.Generic;
@@ -54,7 +55,14 @@ namespace Shaolinq
 		public static T Import<T>(this TransactionScope scope, T dataAccessObject)
 			where T : DataAccessObject
 		{
-			dataAccessObject.GetDataAccessModel().GetCurrentDataContext(true).ImportObject(dataAccessObject);
+			var context = dataAccessObject.GetDataAccessModel().GetCurrentDataContext(true);
+
+		    if (context == null)
+		    {
+		        throw new InvalidOperationException("No Current DataAccessContext");
+		    }
+            
+			context.ImportObject(dataAccessObject);
 
 			return dataAccessObject;
 		}
@@ -62,9 +70,16 @@ namespace Shaolinq
 		public static void Import<T>(this TransactionScope scope, params T[] dataAccessObjects)
 			where T : DataAccessObject
 		{
-			foreach (var dataAccessObject in dataAccessObjects)
+            foreach (var dataAccessObject in dataAccessObjects)
 			{
-				dataAccessObject.GetDataAccessModel().GetCurrentDataContext(true).ImportObject(dataAccessObject);
+                var context = dataAccessObject.GetDataAccessModel().GetCurrentDataContext(true);
+
+                if (context == null)
+                {
+                    throw new InvalidOperationException("No Current DataAccessContext");
+                }
+                
+                context.ImportObject(dataAccessObject);
 			}
 		}
 
@@ -73,13 +88,26 @@ namespace Shaolinq
 		{
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				dataAccessObject.GetDataAccessModel().GetCurrentDataContext(true).ImportObject(dataAccessObject);
+                var context = dataAccessObject.GetDataAccessModel().GetCurrentDataContext(true);
+
+                if (context == null)
+                {
+                    throw new InvalidOperationException("No Current DataAccessContext");
+                }
+
+                dataAccessObject.GetDataAccessModel().GetCurrentDataContext(true).ImportObject(dataAccessObject);
 			}
 		}
 
-		public static SqlTransactionalCommandsContext GetCurrentSqlDataTransactionContext(this TransactionScope scope, DataAccessModel model)
+        /// <summary>
+        /// Retrieves the current <see cref="SqlTransactionalCommandsContext"/> for direct access to the database.
+        /// </summary>
+        /// <param name="scope">The current scope</param>
+        /// <param name="model">The dataaccess model</param>
+        /// <returns>The <see cref="SqlTransactionalCommandsContext"/></returns>
+		public static SqlTransactionalCommandsContext GetCurrentSqlTransactionalCommandsContext(this TransactionScope scope, DataAccessModel model)
 		{
-			return model.GetCurrentSqlDatabaseTransactionContext();
+			return model.GetCurrentTransactionalCommandsContext();
 		}
 	}
 }

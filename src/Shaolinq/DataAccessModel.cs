@@ -112,14 +112,9 @@ namespace Shaolinq
 			return this.CreateDataAccessObjects(type.TypeHandle);
 		}
 
-		public TransactionContext GetCurrentContext(bool forWrite)
+		private TransactionContext GetCurrentContext(bool forWrite)
 		{
-			return TransactionContext.GetCurrentContext(this, forWrite, true);
-		}
-
-		private TransactionContext GetCurrentContext(bool forWrite, bool createIfNotExist)
-		{
-			return TransactionContext.GetCurrentContext(this, forWrite, createIfNotExist);
+			return TransactionContext.GetCurrent(this, forWrite);
 		}
 		
 		protected virtual void OnDisposed(EventArgs eventArgs)
@@ -182,12 +177,19 @@ namespace Shaolinq
 
 		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
-			return TransactionContext.GetCurrentContext(this, forWrite).GetCurrentDataContext();
+			return TransactionContext.GetCurrent(this, forWrite)?.GetCurrentDataContext();
 		}
-
-		public SqlTransactionalCommandsContext GetCurrentSqlDatabaseTransactionContext()
+        
+		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext()
 		{
-			return TransactionContext.GetCurrentContext(this, true).GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
+			var transactionContext = TransactionContext.GetCurrent(this, true);
+
+		    if (transactionContext == null)
+		    {
+		        throw new InvalidOperationException("No Current DataAccessScope");
+		    }
+            
+            return transactionContext.GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
 		}
 
 		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
@@ -334,7 +336,7 @@ namespace Shaolinq
 
 			var objectPropertyAndValues = primaryKey;
 
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
+			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
 
 			if (existing != null)
 			{
@@ -364,7 +366,7 @@ namespace Shaolinq
 
 		protected internal virtual DataAccessObject GetReference(Type type, LambdaExpression predicate)
 		{
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(type), predicate);
+			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(type), predicate);
 
 			if (existing != null)
 			{
@@ -610,7 +612,7 @@ namespace Shaolinq
 				throw new MissingOrInvalidPrimaryKeyException();
 			}
 
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
+			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
 
 			if (existing != null)
 			{
@@ -659,7 +661,7 @@ namespace Shaolinq
 				throw new MissingOrInvalidPrimaryKeyException();
 			}
 
-			var existing = this.GetCurrentDataContext(false).GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), objectPropertyAndValues);
+			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), objectPropertyAndValues);
 
 			if (existing != null)
 			{
@@ -685,7 +687,7 @@ namespace Shaolinq
 		{
 			var forWrite = DataAccessTransaction.Current != null;
 
-			var transactionContext = this.GetCurrentContext(forWrite, false);
+			var transactionContext = this.GetCurrentContext(forWrite);
 
 			if (transactionContext?.sqlDatabaseContext != null)
 			{
@@ -727,6 +729,11 @@ namespace Shaolinq
 		public virtual void SetCurrentTransactionDatabaseCategories(params string[] categories)
 		{
 			var transactionContext = this.GetCurrentContext(false);
+
+			if (transactionContext == null)
+			{
+				throw new InvalidOperationException("No Current TransactionContext");
+			}
 			
 			if (transactionContext.DatabaseContextCategories == null)
 			{
@@ -767,11 +774,11 @@ namespace Shaolinq
 		[RewriteAsync]
 		public virtual void Flush()
 		{
-			var transactionContext = this.GetCurrentContext(true);
-
-			using (var context = transactionContext.AcquireVersionContext())
+			using (var acquisition = TransactionContext.Acquire(this, true))
 			{
-				this.GetCurrentDataContext(true).Commit(transactionContext, true);
+				var transactionContext = acquisition.TransactionContext;
+
+				transactionContext.GetCurrentDataContext().Commit(transactionContext, true);
 			}
 		}
 

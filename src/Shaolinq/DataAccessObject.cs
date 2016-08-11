@@ -50,7 +50,7 @@ namespace Shaolinq
 
 		public virtual void Delete()
 		{
-			this.dataAccessModel?.GetCurrentDataContext(true).Deleted(this);
+			this.dataAccessModel?.GetCurrentDataContext(true)?.Deleted(this);
 			this.ToObjectInternal()?.SetIsDeleted(true);
 		}
 

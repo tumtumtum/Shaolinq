@@ -1862,14 +1862,26 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
+			var label = generator.DefineLabel();
+			var local = generator.DeclareLocal(typeof(DataAccessObjectDataContext));
+
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Callvirt, this.baseType.GetMethod("GetDataAccessModel", BindingFlags.Public | BindingFlags.Instance));
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.GetCurrentDataContext(default(bool))));
+			generator.Emit(OpCodes.Stloc, local);
+			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Brtrue, label);
+			
+			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ret);
+
+			generator.MarkLabel(label);
+
+			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObjectDataContext>(c => c.CacheObject(default(DataAccessObject), default(bool))));
-
 			generator.Emit(OpCodes.Ret);
 		}
 

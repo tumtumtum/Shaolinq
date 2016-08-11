@@ -41,7 +41,7 @@ namespace Shaolinq
 
 				current.Value = current.Value.previousTransaction;
 
-				return null;
+				return current.Value;
 			}
 
 			internal set

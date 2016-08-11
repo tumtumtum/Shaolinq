@@ -15,17 +15,17 @@ namespace Shaolinq
 			: IDisposable
 		{
 			public int Version { get; }
-			private readonly TransactionContext context;
+			public TransactionContext TransactionContext { get; }
 
 			internal TransactionContextExecutionVersionContext(TransactionContext context)
 			{
-				this.context = context;
+				this.TransactionContext = context;
 
 				if (context.executionVersionNesting == 0)
 				{
 					context.executionVersion++;
 
-					this.context.dataAccessModel.AsyncLocalExecutionVersion = context.executionVersion;
+					this.TransactionContext.dataAccessModel.AsyncLocalExecutionVersion = context.executionVersion;
 				}
 
 				this.Version = context.executionVersion;
@@ -35,11 +35,11 @@ namespace Shaolinq
 
 			public void Dispose()
 			{
-				this.context.executionVersionNesting--;
+				this.TransactionContext.executionVersionNesting--;
 
-				if (this.context.executionVersionNesting == 0)
+				if (this.TransactionContext.executionVersionNesting == 0)
 				{
-					this.context.VersionContextFinished(this);
+					this.TransactionContext.VersionContextFinished(this);
 				}
 			}
 		}
@@ -64,25 +64,32 @@ namespace Shaolinq
 			return dataAccessModel.AsyncLocalExecutionVersion;
 		}
 
-		internal TransactionContextExecutionVersionContext AcquireVersionContext()
+		internal static TransactionContextExecutionVersionContext Acquire(DataAccessModel dataAccessModel, bool forWrite)
 		{
-			if (this.disposed)
+			var context = GetOrCreateCurrent(dataAccessModel, forWrite, true);
+
+			if (context == null)
+			{
+				throw new InvalidOperationException("No Current TransactionContext");
+			}
+
+			if (context.disposed)
 			{
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			return new TransactionContextExecutionVersionContext(this);
+			return new TransactionContextExecutionVersionContext(context);
 		}
 
-		public static TransactionContext GetCurrentContext(DataAccessModel dataAccessModel, bool forWrite, bool createIfNotExist = true)
+		public static TransactionContext GetCurrent(DataAccessModel dataAccessModel, bool forWrite)
+		{
+			return GetOrCreateCurrent(dataAccessModel, forWrite, false);
+		}
+
+		private static TransactionContext GetOrCreateCurrent(DataAccessModel dataAccessModel, bool forWrite, bool createIfNotExist)
 		{
 			TransactionContext context;
 			var dataAccessTransaction = DataAccessTransaction.Current;
-
-			if (dataAccessTransaction == null && !createIfNotExist)
-			{
-				return null;
-			}
 
 			if (dataAccessTransaction == null && Transaction.Current != null)
 			{
@@ -100,6 +107,11 @@ namespace Shaolinq
 
 				if (context == null || context.disposed)
 				{
+					if (!createIfNotExist)
+					{
+						return null;
+					}
+
 					context = new TransactionContext(null, dataAccessModel);
 
 					dataAccessModel.AsyncLocalAmbientTransactionContext = context;
@@ -129,22 +141,12 @@ namespace Shaolinq
 
 			if (contexts == null)
 			{
-				if (!createIfNotExist)
-				{
-					return null;
-				}
-
 				skipTest = true;
 				contexts = dataAccessTransaction.transactionContextsByDataAccessModel = new Dictionary<DataAccessModel, TransactionContext>();
 			}
 
 			if (skipTest || !contexts.TryGetValue(dataAccessModel, out context))
 			{
-				if (!createIfNotExist)
-				{
-					return null;
-				}
-
 				context = new TransactionContext(dataAccessTransaction, dataAccessModel);
 				contexts[dataAccessModel] = context;
 

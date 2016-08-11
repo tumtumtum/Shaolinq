@@ -16,19 +16,22 @@ namespace Shaolinq.Persistence.Linq
 		private C context;
 		private IDataReader dataReader;
 		private readonly ObjectProjector<T, U, C> objectProjector;
-		private readonly DatabaseTransactionContextAcquisition acquisition;
-		private readonly TransactionContext.TransactionContextExecutionVersionContext versionContext;
+		private readonly DatabaseTransactionContextAcquisition persistenceAcquisition;
+		private readonly TransactionContext.TransactionContextExecutionVersionContext transactionContextAcquisition;
 
 		public ObjectProjectionAsyncEnumerator(ObjectProjector<T, U, C> objectProjector)
 		{
 			this.objectProjector = objectProjector;
 
-			var transactionContext = this.objectProjector.DataAccessModel.GetCurrentContext(false);
-
 			try
 			{
-				this.versionContext = transactionContext.AcquireVersionContext();
-				this.acquisition = transactionContext.AcquirePersistenceTransactionContext(this.objectProjector.SqlDatabaseContext);
+				this.transactionContextAcquisition = TransactionContext
+					.Acquire(this.objectProjector.DataAccessModel, false);
+
+				this.persistenceAcquisition = this
+					.transactionContextAcquisition
+					.TransactionContext
+					.AcquirePersistenceTransactionContext(this.objectProjector.SqlDatabaseContext);
 			}
 			catch
 			{
@@ -54,8 +57,8 @@ namespace Shaolinq.Persistence.Linq
 
 			// ReSharper disable EmptyGeneralCatchClause
 			try { this.dataReader?.Dispose(); } catch { }
-			try { this.acquisition?.Dispose(); } catch { }
-			try { this.versionContext?.Dispose(); } catch { }
+			try { this.persistenceAcquisition?.Dispose(); } catch { }
+			try { this.transactionContextAcquisition?.Dispose(); } catch { }
 			// ReSharper restore EmptyGeneralCatchClause
 		}
 
@@ -82,15 +85,15 @@ namespace Shaolinq.Persistence.Linq
 state0:
 
 			this.state = 1;
-			this.dataReader = this.acquisition.SqlDatabaseCommandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
-			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.versionContext.Version);
+			this.dataReader = this.persistenceAcquisition.SqlDatabaseCommandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
+			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.transactionContextAcquisition.Version);
 
 state1:
 			T result;
 
 			if (this.dataReader.ReadEx())
 			{
-				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
+				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionContextAcquisition.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
 
 				if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
 				{

@@ -955,13 +955,13 @@ namespace Shaolinq.Persistence.Linq
 
 			state0:
 				this.state = 1;
-			this.dataReader = (await this.acquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
-			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.versionContext.Version);
+			this.dataReader = (await this.persistenceAcquisition.SqlDatabaseCommandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.transactionContextAcquisition.Version);
 			state1:
 				T result;
 			if (await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false))
 			{
-				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.versionContext.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
+				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionContextAcquisition.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
 				if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
 				{
 					this.Current = result;
@@ -2100,10 +2100,10 @@ namespace Shaolinq
 
 		public virtual async Task FlushAsync(CancellationToken cancellationToken)
 		{
-			var transactionContext = this.GetCurrentContext(true);
-			using (var context = transactionContext.AcquireVersionContext())
+			using (var acquisition = TransactionContext.Acquire(this, true))
 			{
-				await this.GetCurrentDataContext(true).CommitAsync(transactionContext, true, cancellationToken).ConfigureAwait(false);
+				var transactionContext = acquisition.TransactionContext;
+				await transactionContext.GetCurrentDataContext().CommitAsync(transactionContext, true, cancellationToken).ConfigureAwait(false);
 			}
 		}
 	}
@@ -2191,7 +2191,6 @@ namespace Shaolinq
 #pragma warning disable
 	using System;
 	using System.Threading;
-	// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Transactions;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;

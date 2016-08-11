@@ -39,7 +39,9 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
 		{
-			return SqlServerConfiguration.Create(databaseName, "localhost", multipleActiveResultsets: true);
+		    var host = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER") ?? ".\\SQLEXPRESS";
+
+            return SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
 		}
 
 		protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)

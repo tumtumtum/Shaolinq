@@ -27,7 +27,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new TransactionScope())
 			{
-				var transactionContext = scope.GetCurrentSqlDataTransactionContext(this.model);
+				var transactionContext = scope.GetCurrentSqlTransactionalCommandsContext(this.model);
 
 				using (var command = transactionContext.CreateCommand())
 				{
