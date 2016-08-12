@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Npgsql.Logging;
 using NUnit.Framework;
 using Shaolinq.Postgres;
@@ -11,9 +9,75 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture]
+	using System.Threading.Tasks;
+
+	[TestFixture("Postgres")]
 	public class LoadTests
+		: BaseTests<TestDataAccessModel>
 	{
+		public LoadTests(string providerName)
+			: base(providerName)
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				this.model.Cats.Create();
+
+				scope.Complete();
+			}
+		}
+		
+		[Test]
+		public void Test_Lots_Of_Threads_Async()
+		{
+			var threadCount = 1000;
+			var threads = new List<Thread>(threadCount);
+
+			for (var i = 0; i < threadCount; i++)
+			{
+				var thread = new Thread(() => GetCatsNoDataAccessScopeAsync(i).Wait());
+
+				thread.Start();
+				threads.Add(thread);
+			}
+
+			threads.ForEach(x => x.Join());
+		}
+
+		public async Task<List<dynamic>> GetCategoriesAsync(int iteration)
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				var result = await GetCatsNoDataAccessScopeAsync(iteration);
+
+				await scope.CompleteAsync();
+
+				return result;
+			}
+		}
+
+		public async Task<List<dynamic>> GetCatsNoDataAccessScopeAsync(int iteration)
+		{
+			var cats = await this.model.Cats.Select(x =>
+				new 
+				{
+					x.Id, x.Name
+				})
+				.AsEnumerable()
+				.Cast<dynamic>()
+				.ToListAsync();
+
+			var tasks = new List<Task>();
+
+			for (var i = 0; i < 1; i++)
+			{
+				tasks.Add(this.model.Cats.Skip(i).Take(1).FirstOrDefaultAsync());
+			}
+
+			await Task.WhenAll(tasks);
+
+			return cats;
+		}
+		
 		[Test, Ignore("Not yet")]
 		public void StressTest()
 		{

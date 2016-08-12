@@ -8,7 +8,9 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
 {
-	public class SqlServerSqlDatabaseContext
+    using System.Data;
+
+    public partial class SqlServerSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		public string Username { get; }
@@ -120,9 +122,9 @@ namespace Shaolinq.SqlServer
 			this.SchemaManager = new SqlServerSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-		{
-			return new SqlServerSqlTransactionsCommandContext(this, transaction);
+        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+        {
+			return new SqlServerSqlTransactionsCommandContext(this, connection, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()

@@ -91,12 +91,21 @@ namespace Shaolinq.Persistence
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		protected readonly string parameterIndicatorPrefix;
 		
-		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, DataAccessTransaction transaction)
-			: base(sqlDatabaseContext, sqlDatabaseContext.OpenConnection(), transaction)
+		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, DataAccessTransaction transaction)
+			: base(sqlDatabaseContext, connection, transaction)
 		{
-			this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
-			this.tableNamePrefix = sqlDatabaseContext.TableNamePrefix;
-			this.parameterIndicatorPrefix = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
+		    try
+		    {
+		        this.sqlDataTypeProvider = sqlDatabaseContext.SqlDataTypeProvider;
+		        this.tableNamePrefix = sqlDatabaseContext.TableNamePrefix;
+		        this.parameterIndicatorPrefix = sqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
+		    }
+		    catch
+		    {
+		        this.Dispose(true);
+
+		        throw;
+		    }
 		}
 
 		internal string FormatCommand(IDbCommand command)

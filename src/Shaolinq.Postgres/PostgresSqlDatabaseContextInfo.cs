@@ -53,7 +53,10 @@ namespace Shaolinq.Postgres
 		[XmlAttribute]
 		public int KeepAlive { get; set; } = 3;
 
-		[XmlAttribute]
+        [XmlAttribute]
+        public int? Timeout { get; set; } = null;
+
+        [XmlAttribute]
 		public int ConnectionIdleLifetime { get; set; } = 3;
 
 		[XmlAttribute]

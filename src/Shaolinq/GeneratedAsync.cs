@@ -1151,6 +1151,51 @@ namespace Shaolinq.Persistence
 	}
 }
 
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+	using System;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using System.Linq.Expressions;
+	using Shaolinq;
+	using Shaolinq.Logging;
+	using Shaolinq.Persistence;
+	using Shaolinq.Persistence.Linq;
+
+	public abstract partial class SqlDatabaseSchemaManager
+	{
+		protected virtual Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		{
+			return CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, CancellationToken.None);
+		}
+
+		protected virtual async Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
+		{
+			using (var scope = new DataAccessScope())
+			{
+				using (var dataTransactionContext = (await this.SqlDatabaseContext.CreateSqlTransactionalCommandsContextAsync(null, cancellationToken).ConfigureAwait(false)))
+				{
+					using (this.SqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
+					{
+						var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
+						using (var command = dataTransactionContext.CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
+						{
+							command.CommandText = result.CommandText;
+							Logger.Info(command.CommandText);
+							command.ExecuteNonQuery();
+						}
+					}
+
+					await dataTransactionContext.CommitAsync(cancellationToken).ConfigureAwait(false);
+				}
+
+				await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
+			}
+		}
+	}
+}
+
 namespace Shaolinq
 {
 #pragma warning disable
@@ -1893,7 +1938,7 @@ namespace Shaolinq
 
 		private static async Task CommitDeletedAsync(SqlDatabaseContext sqlDatabaseContext, IObjectsByIdCache cache, HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext, CancellationToken cancellationToken)
 		{
-			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+			var acquisition = (await transactionContext.AcquirePersistenceTransactionContextAsync(sqlDatabaseContext, cancellationToken).ConfigureAwait(false));
 			acquisitions.Add(acquisition);
 			await acquisition.SqlDatabaseCommandsContext.DeleteAsync(cache.Type, cache.GetDeletedObjects(), cancellationToken).ConfigureAwait(false);
 		}
@@ -1918,7 +1963,7 @@ namespace Shaolinq
 
 		private static async Task CommitUpdatedAsync(SqlDatabaseContext sqlDatabaseContext, IObjectsByIdCache cache, HashSet<DatabaseTransactionContextAcquisition> acquisitions, TransactionContext transactionContext, CancellationToken cancellationToken)
 		{
-			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+			var acquisition = (await transactionContext.AcquirePersistenceTransactionContextAsync(sqlDatabaseContext, cancellationToken).ConfigureAwait(false));
 			acquisitions.Add(acquisition);
 			await acquisition.SqlDatabaseCommandsContext.UpdateAsync(cache.Type, cache.GetObjectsById(), cancellationToken).ConfigureAwait(false);
 			await acquisition.SqlDatabaseCommandsContext.UpdateAsync(cache.Type, cache.GetObjectsByPredicate(), cancellationToken).ConfigureAwait(false);
@@ -1944,7 +1989,7 @@ namespace Shaolinq
 
 		private static async Task CommitNewPhase1Async(SqlDatabaseContext sqlDatabaseContext, HashSet<DatabaseTransactionContextAcquisition> acquisitions, IObjectsByIdCache cache, TransactionContext transactionContext, Dictionary<TypeAndTransactionalCommandsContext, InsertResults> insertResultsByType, Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>> fixups, CancellationToken cancellationToken)
 		{
-			var acquisition = transactionContext.AcquirePersistenceTransactionContext(sqlDatabaseContext);
+			var acquisition = (await transactionContext.AcquirePersistenceTransactionContextAsync(sqlDatabaseContext, cancellationToken).ConfigureAwait(false));
 			acquisitions.Add(acquisition);
 			var persistenceTransactionContext = acquisition.SqlDatabaseCommandsContext;
 			var key = new TypeAndTransactionalCommandsContext(cache.Type, persistenceTransactionContext);
@@ -2024,12 +2069,32 @@ namespace Shaolinq.Persistence
 	using System.Data.Common;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;
+	using Platform;
 	using Shaolinq;
 	using Shaolinq.Persistence;
 	using Shaolinq.Persistence.Linq;
 
 	public abstract partial class SqlDatabaseContext
 	{
+		public Task<SqlTransactionalCommandsContext> CreateSqlTransactionalCommandsContextAsync(DataAccessTransaction transaction)
+		{
+			return CreateSqlTransactionalCommandsContextAsync(transaction, CancellationToken.None);
+		}
+
+		public async Task<SqlTransactionalCommandsContext> CreateSqlTransactionalCommandsContextAsync(DataAccessTransaction transaction, CancellationToken cancellationToken)
+		{
+			var connection = (await this.OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
+			try
+			{
+				return this.CreateSqlTransactionalCommandsContext(connection, transaction);
+			}
+			catch
+			{
+				ActionUtils.IgnoreExceptions(() => connection.Dispose());
+				throw;
+			}
+		}
+
 		public virtual Task<IDbConnection> OpenConnectionAsync()
 		{
 			return OpenConnectionAsync(CancellationToken.None);
@@ -2100,10 +2165,10 @@ namespace Shaolinq
 
 		public virtual async Task FlushAsync(CancellationToken cancellationToken)
 		{
-			using (var acquisition = TransactionContext.Acquire(this, true))
+			var transactionContext = this.GetCurrentContext(true);
+			if (this.GetCurrentContext(true) != null)
 			{
-				var transactionContext = acquisition.TransactionContext;
-				await transactionContext.GetCurrentDataContext().CommitAsync(transactionContext, true, cancellationToken).ConfigureAwait(false);
+				await this.GetCurrentContext(true).GetCurrentDataContext().CommitAsync(transactionContext, true, cancellationToken).ConfigureAwait(false);
 			}
 		}
 	}
@@ -2114,6 +2179,7 @@ namespace Shaolinq
 #pragma warning disable
 	using System;
 	using System.Threading;
+	using System.Diagnostics;
 	using System.Transactions;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;
@@ -2124,6 +2190,55 @@ namespace Shaolinq
 
 	public partial class TransactionContext
 	{
+		public virtual Task<DatabaseTransactionContextAcquisition> AcquirePersistenceTransactionContextAsync(SqlDatabaseContext sqlDatabaseContext)
+		{
+			return AcquirePersistenceTransactionContextAsync(sqlDatabaseContext, CancellationToken.None);
+		}
+
+		public virtual async Task<DatabaseTransactionContextAcquisition> AcquirePersistenceTransactionContextAsync(SqlDatabaseContext sqlDatabaseContext, CancellationToken cancellationToken)
+		{
+			if (this.disposed)
+			{
+				throw new ObjectDisposedException(nameof(TransactionContext));
+			}
+
+			if (this.sqlDatabaseContext == null)
+			{
+				;
+			}
+
+			Debug.Assert(this.sqlDatabaseContext == null || sqlDatabaseContext == this.sqlDatabaseContext);
+			SqlTransactionalCommandsContext commandsContext;
+			if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out commandsContext))
+			{
+				commandsContext = (await sqlDatabaseContext.CreateSqlTransactionalCommandsContextAsync(this.DataAccessTransaction, cancellationToken).ConfigureAwait(false));
+				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = commandsContext;
+			}
+
+			var startIndex = this.GetExecutionVersion();
+			var retval = new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, commandsContext);
+			if (this.DataAccessTransaction == null)
+			{
+				retval.Disposed += (s, e) =>
+				{
+					if (this.GetExecutionVersion() <= startIndex)
+					{
+						this.dataAccessObjectDataContext = null;
+						foreach (var cc in this.commandsContextsBySqlDatabaseContexts.Values)
+						{
+							cc.Dispose();
+						}
+
+						this.commandsContextsBySqlDatabaseContexts.Clear();
+					}
+				}
+
+				;
+			}
+
+			return retval;
+		}
+
 		public Task CommitAsync()
 		{
 			return CommitAsync(CancellationToken.None);

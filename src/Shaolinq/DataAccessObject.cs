@@ -37,8 +37,7 @@ namespace Shaolinq
 		DataAccessObject IDataAccessObjectAdvanced.Inflate() => this.Inflate();
 		public bool IsDeleted() => ((IDataAccessObjectAdvanced)this).IsDeleted;
 		public bool IsDeflatedReference() => ((IDataAccessObjectAdvanced)this).IsDeflatedReference;
-		public SqlDatabaseContext GetDatabaseConnection() => this.dataAccessModel?.GetCurrentSqlDatabaseContext();
-
+		
 		public DataAccessObject()
 		{
 		}

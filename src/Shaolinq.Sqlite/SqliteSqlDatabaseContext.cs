@@ -71,11 +71,6 @@ namespace Shaolinq.Sqlite
 			return Type.GetType("Mono.Runtime") != null;
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-		{
-			return new DefaultSqlTransactionalCommandsContext(this, transaction);
-		}
-
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
 		{
 			return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);	

@@ -62,11 +62,6 @@ namespace Shaolinq.MySql
 			return retval;
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-		{
-			return new DefaultSqlTransactionalCommandsContext(this, transaction);
-		}
-
 		public override DbProviderFactory CreateDbProviderFactory()
 		{
 			return new MySqlClientFactory();

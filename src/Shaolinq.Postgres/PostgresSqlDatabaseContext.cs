@@ -9,7 +9,9 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
 {
-	public class PostgresSqlDatabaseContext
+    using System.Data;
+
+    public class PostgresSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		public int Port { get; }
@@ -44,13 +46,18 @@ namespace Shaolinq.Postgres
 				Password = contextInfo.Password,
 				Port = contextInfo.Port,
 				Pooling = contextInfo.Pooling,
-				Enlist = false,
+                Enlist = false,
 				MinPoolSize = contextInfo.MinPoolSize,
 				MaxPoolSize = contextInfo.MaxPoolSize,
 				KeepAlive = contextInfo.KeepAlive,
 				ConnectionIdleLifetime = contextInfo.ConnectionIdleLifetime,
 				ConvertInfinityDateTime = contextInfo.ConvertInfinityDateTime
 			};
+
+		    if (contextInfo.Timeout != null)
+		    {
+		        connectionStringBuilder.Timeout = contextInfo.Timeout.Value;
+		    }
 
 			if (contextInfo.ConnectionTimeout.HasValue)
 			{
@@ -73,9 +80,9 @@ namespace Shaolinq.Postgres
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-		{
-			return new PostgresSqlTransactionalCommandsContext(this, transaction);
+        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+        {
+			return new PostgresSqlTransactionalCommandsContext(this, connection, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()

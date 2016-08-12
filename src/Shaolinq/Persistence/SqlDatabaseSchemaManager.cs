@@ -7,7 +7,7 @@ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
-	public abstract class SqlDatabaseSchemaManager
+	public abstract partial class SqlDatabaseSchemaManager
 		: IDisposable
 	{
 		protected static readonly ILog Logger = LogProvider.GetLogger("Shaolinq.Query");
@@ -51,6 +51,7 @@ namespace Shaolinq.Persistence
 
 		protected abstract bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options);
 
+		[RewriteAsync]
 		protected virtual void CreateDatabaseSchema(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			using (var scope = new DataAccessScope())

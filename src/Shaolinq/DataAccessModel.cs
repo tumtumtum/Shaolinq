@@ -179,17 +179,17 @@ namespace Shaolinq
 		{
 			return TransactionContext.GetCurrent(this, forWrite)?.GetCurrentDataContext();
 		}
-        
+		
 		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext()
 		{
 			var transactionContext = TransactionContext.GetCurrent(this, true);
 
-		    if (transactionContext == null)
-		    {
-		        throw new InvalidOperationException("No Current DataAccessScope");
-		    }
-            
-            return transactionContext.GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
+			if (transactionContext == null)
+			{
+				throw new InvalidOperationException("No Current DataAccessScope");
+			}
+			
+			return transactionContext.GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
 		}
 
 		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
@@ -774,12 +774,9 @@ namespace Shaolinq
 		[RewriteAsync]
 		public virtual void Flush()
 		{
-			using (var acquisition = TransactionContext.Acquire(this, true))
-			{
-				var transactionContext = acquisition.TransactionContext;
+		    var transactionContext = this.GetCurrentContext(true);
 
-				transactionContext.GetCurrentDataContext().Commit(transactionContext, true);
-			}
+		    transactionContext?.GetCurrentDataContext().Commit(transactionContext, true);
 		}
 
 		protected internal ISqlQueryProvider NewQueryProvider()

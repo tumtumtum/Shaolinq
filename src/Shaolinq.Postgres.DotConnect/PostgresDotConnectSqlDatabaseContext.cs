@@ -9,7 +9,9 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.DotConnect
 {
-	public class PostgresDotConnectSqlDatabaseContext
+    using System.Data;
+
+    public class PostgresDotConnectSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		public int Port { get; set; }
@@ -74,9 +76,9 @@ namespace Shaolinq.Postgres.DotConnect
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
 		}
 
-		public override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-		{
-			return new PostgresDotConnectSqlTransactionalCommandsContext(this, transaction);
+        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+        {
+			return new PostgresDotConnectSqlTransactionalCommandsContext(this, connection, transaction);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()

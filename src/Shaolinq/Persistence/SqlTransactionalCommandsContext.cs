@@ -76,17 +76,26 @@ namespace Shaolinq.Persistence
 		}
 
 		protected SqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection dbConnection, DataAccessTransaction transaction)
-		{	
-			this.DbConnection = dbConnection;
-			this.SqlDatabaseContext = sqlDatabaseContext;
-			this.DataAccessModel = sqlDatabaseContext.DataAccessModel;
+		{
+		    try
+		    {
+		        this.DbConnection = dbConnection;
+		        this.SqlDatabaseContext = sqlDatabaseContext;
+		        this.DataAccessModel = sqlDatabaseContext.DataAccessModel;
 
-			this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
+		        this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
 
-			if (transaction != null)
-			{
-				this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction.IsolationLevel));
-			}
+		        if (transaction != null)
+		        {
+		            this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction.IsolationLevel));
+		        }
+		    }
+		    catch
+		    {
+		        this.Dispose(true);
+
+		        throw;
+		    }
 		}
 
 		~SqlTransactionalCommandsContext()

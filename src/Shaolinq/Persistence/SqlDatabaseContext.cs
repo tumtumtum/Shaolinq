@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
-	public abstract partial class SqlDatabaseContext
+    public abstract partial class SqlDatabaseContext
 		: IDisposable
 	{
 		public TimeSpan? CommandTimeout { get; protected set; }
@@ -36,12 +37,29 @@ namespace Shaolinq.Persistence
 		public abstract DbProviderFactory CreateDbProviderFactory();
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
 
-		public virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-		{
-			return new DefaultSqlTransactionalCommandsContext(this, transaction);
-		}
+        [RewriteAsync]
+        public SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
+        {
+            var connection = this.OpenConnection();
 
-		[RewriteAsync]
+            try
+            {
+                return this.CreateSqlTransactionalCommandsContext(connection, transaction);
+            }
+            catch
+            {
+                ActionUtils.IgnoreExceptions(() => connection.Dispose());
+
+                throw;
+            }
+        }
+
+        protected virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+        {
+            return new DefaultSqlTransactionalCommandsContext(this, connection, transaction);
+        }
+
+        [RewriteAsync]
 		public virtual IDbConnection OpenConnection()
 		{
 			if (this.dbProviderFactory == null)

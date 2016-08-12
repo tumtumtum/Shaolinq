@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
+using System.Diagnostics;
 
 namespace Shaolinq
 {
@@ -86,7 +87,7 @@ namespace Shaolinq
 			return GetOrCreateCurrent(dataAccessModel, forWrite, false);
 		}
 
-		private static TransactionContext GetOrCreateCurrent(DataAccessModel dataAccessModel, bool forWrite, bool createIfNotExist)
+		private static TransactionContext GetOrCreateCurrent(DataAccessModel dataAccessModel, bool forWrite, bool createTransactionIfNotExist)
 		{
 			TransactionContext context;
 			var dataAccessTransaction = DataAccessTransaction.Current;
@@ -107,8 +108,13 @@ namespace Shaolinq
 
 				if (context == null || context.disposed)
 				{
-					if (!createIfNotExist)
+					if (!createTransactionIfNotExist)
 					{
+						if (context != null)
+						{
+							dataAccessModel.AsyncLocalAmbientTransactionContext = null;
+						}
+
 						return null;
 					}
 
@@ -224,6 +230,7 @@ namespace Shaolinq
 
 		internal TransactionContext(DataAccessTransaction dataAccessTransaction, DataAccessModel dataAccessModel)
 		{
+			Console.WriteLine("TransactionContext created");
 			this.dataAccessModel = dataAccessModel;
 			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = "*";
@@ -246,12 +253,20 @@ namespace Shaolinq
 			return this.AcquirePersistenceTransactionContext(sqlDatabaseContext).SqlDatabaseCommandsContext;
 		}
 
+		[RewriteAsync]
 		public virtual DatabaseTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext sqlDatabaseContext)
 		{
 			if (this.disposed)
 			{
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
+
+		    if (this.sqlDatabaseContext == null)
+		    {
+		        ;
+		    }
+
+			Debug.Assert(this.sqlDatabaseContext == null || sqlDatabaseContext == this.sqlDatabaseContext);
 
 			SqlTransactionalCommandsContext commandsContext;
 
@@ -305,6 +320,8 @@ namespace Shaolinq
 			{
 				return;
 			}
+
+			Console.WriteLine("TransactionContext disposed");
 
 			List<Exception> exceptions = null;
 
