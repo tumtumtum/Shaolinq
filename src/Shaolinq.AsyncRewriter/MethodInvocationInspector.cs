@@ -243,10 +243,25 @@ namespace Shaolinq.AsyncRewriter
 				{
 					retval = this.semanticModel.GetSpeculativeTypeInfo(node.SpanStart, ((ConditionalAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
 				}
-				else
-				{
-					retval = null;
-				}
+                else if (node.Parent is MemberAccessExpressionSyntax)
+                {
+                    retval = this.semanticModel.GetSpeculativeTypeInfo(pos, ((MemberAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
+                }
+                else
+                {
+                    var property = node.Parent?.GetType().GetProperty("Expression");
+
+                    if (property != null)
+                    {
+                        retval =
+                            this.semanticModel.GetSpeculativeTypeInfo
+                                (pos, (SyntaxNode)property.GetValue(node.Parent), SpeculativeBindingOption.BindAsExpression).Type;
+                    }
+                    else
+                    {
+                        retval = null;
+                    }
+                }
 			}
 			else
 			{
@@ -259,7 +274,7 @@ namespace Shaolinq.AsyncRewriter
 
 				if (!notError)
 				{
-					log.LogError($"Unable to determine type of {node.Expression} in {node.SyntaxTree.FilePath} {node.Expression.GetType()}");
+					log.LogError($"Unable to determine type of {node.Expression} in {node.SyntaxTree.FilePath} {node.Expression.GetType()} at {node.GetLocation().GetMappedLineSpan()}");
 				}
 			}
 

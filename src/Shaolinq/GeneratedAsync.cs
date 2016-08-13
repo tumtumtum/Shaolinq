@@ -2166,9 +2166,9 @@ namespace Shaolinq
 		public virtual async Task FlushAsync(CancellationToken cancellationToken)
 		{
 			var transactionContext = this.GetCurrentContext(true);
-			if (this.GetCurrentContext(true) != null)
+			if (transactionContext != null)
 			{
-				await this.GetCurrentContext(true).GetCurrentDataContext().CommitAsync(transactionContext, true, cancellationToken).ConfigureAwait(false);
+				await transactionContext.GetCurrentDataContext().CommitAsync(transactionContext, true, cancellationToken).ConfigureAwait(false);
 			}
 		}
 	}

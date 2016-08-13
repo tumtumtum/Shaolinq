@@ -16,6 +16,11 @@ namespace Shaolinq.AsyncRewriter.Tests
 			public void Bar()
 			{	
 			}
+
+		    public Foo Other()
+		    {
+		        return null;
+		    }
 		}
 
 		public class Car
@@ -32,5 +37,18 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			this.foo?.Bar();
 		}
+
+	    private Foo GetCurrentFoo()
+	    {
+	        return null;
+	    }
+
+        [RewriteAsync()]
+	    public void Test2()
+        {
+            var foo = GetCurrentFoo();
+
+	        foo?.Other().Bar();
+	    }
 	}
 }
