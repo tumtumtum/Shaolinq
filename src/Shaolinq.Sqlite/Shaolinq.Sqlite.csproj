@@ -129,6 +129,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
+    <Compile Include="GeneratedAsync.cs" />
+    <Compile Include="RewriteAsyncAttribute.cs" />
     <Compile Include="SqliteAutoIncrementPrimaryKeyColumnReducer.cs" />
     <Compile Include="SqliteConfiguration.cs" />
     <Compile Include="SqliteErrorCodes.cs" />
@@ -191,6 +193,22 @@
   </Target>
   <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.102.0\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.102.0\build\net451\System.Data.SQLite.Core.targets')" />
+  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
+  <PropertyGroup>
+    <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
+    <WithoutGeneratedExcludePattern>**\Generated*.cs</WithoutGeneratedExcludePattern>
+  </PropertyGroup>
+  <ItemGroup>
+    <SourceWithoutGenerated Include="$(WithoutGeneratedIncludePattern)" Exclude="$(WithoutGeneratedExcludePattern)">
+      <InProject>False</InProject>
+    </SourceWithoutGenerated>
+  </ItemGroup>
+  <Target Name="GenerateAsyncSource" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
+    <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
+  </Target>
+  <Target Name="GenerateAsyncSourceBeforeBuild" BeforeTargets="BeforeBuild">
+    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:2 /target:GenerateAsyncSource" WorkingDirectory="." />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

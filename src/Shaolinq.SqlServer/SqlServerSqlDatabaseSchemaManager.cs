@@ -43,36 +43,37 @@ namespace Shaolinq.SqlServer
 							{
 								command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? SqlDatabaseContextInfo.DefaultCommandTimeout), 300);
 								command.CommandText =
-									@"
+								@"
 									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLE_CONSTRAINTS where CONSTRAINT_TYPE='FOREIGN KEY'))
 									BEGIN
 										DECLARE @sql nvarchar(2000)
 										SELECT TOP 1 @sql=('ALTER TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME + '] DROP CONSTRAINT [' + CONSTRAINT_NAME + ']')
 										FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'FOREIGN KEY'
 										EXEC (@sql)
-										PRINT @sql
 									END
 								";
 
 								command.ExecuteNonQuery();
-								command.CommandTimeout = Math.Min((int)(this.SqlDatabaseContext.CommandTimeout?.TotalSeconds ?? 300), 300);
-								command.CommandText =
-									@"
+
+                                command.CommandText =
+								@"
 									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'))
 									BEGIN
 										declare @sql nvarchar(2000)
 										SELECT TOP 1 @sql=('DROP TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME + ']')
 										FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'
 										EXEC (@sql)
-										PRINT @sql
 									END
 								";
 
 								command.ExecuteNonQuery();
-							}
+
+                                command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') CREATE DATABASE [{databaseName}];";
+                                command.ExecuteNonQuery();
+                            }
 							else
 							{
-								command.CommandText = $"IF EXISTS (SELECT * FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
+								command.CommandText = $"IF EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
 								command.ExecuteNonQuery();
 
 								command.CommandText = $"CREATE DATABASE [{databaseName}];";
@@ -81,7 +82,7 @@ namespace Shaolinq.SqlServer
 						}
 						else
 						{
-							command.CommandText = $"IF EXISTS (SELECT * FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}]";
+							command.CommandText = $"IF EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
 							command.ExecuteNonQuery();
 
 							command.CommandText = $"CREATE DATABASE [{databaseName}];";
@@ -99,7 +100,7 @@ namespace Shaolinq.SqlServer
 				}
 				catch (Exception e)
 				{
-					Logger.Log(Logging.LogLevel.Debug, () => "Exception creating database: " + e);
+					Logger.Log(Logging.LogLevel.Error, () => "Exception creating database: " + e);
 
 					throw;
 				}

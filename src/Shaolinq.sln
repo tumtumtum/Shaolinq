@@ -12,14 +12,29 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Tests", "..\tests\Shaolinq.Tests\Shaolinq.Tests.csproj", "{F5BEB79B-3BCA-46AE-A08E-1B86CDD03616}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.MySql", "Shaolinq.MySql\Shaolinq.MySql.csproj", "{3020F62F-0078-4202-86EB-DD013294D1F2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302} = {318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Postgres", "Shaolinq.Postgres\Shaolinq.Postgres.csproj", "{E79DCCED-1693-4E38-98AC-B988D7429615}"
+	ProjectSection(ProjectDependencies) = postProject
+		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302} = {318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Sqlite", "Shaolinq.Sqlite\Shaolinq.Sqlite.csproj", "{5FD0C2B3-F601-452A-8C72-D5962B6A089A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302} = {318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Postgres.DotConnect", "Shaolinq.Postgres.DotConnect\Shaolinq.Postgres.DotConnect.csproj", "{7294424C-60A2-4D6E-B210-763E383CB150}"
+	ProjectSection(ProjectDependencies) = postProject
+		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302} = {318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.SqlServer", "Shaolinq.SqlServer\Shaolinq.SqlServer.csproj", "{1074BF68-A350-48A8-9769-43AD73537879}"
+	ProjectSection(ProjectDependencies) = postProject
+		{318F3A69-3F34-4CE4-8ED5-22EFE2F6C302} = {318F3A69-3F34-4CE4-8ED5-22EFE2F6C302}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq.Tests.OtherDataAccessObjects", "..\tests\Shaolinq.Tests.OtherDataAccessObjects\Shaolinq.Tests.OtherDataAccessObjects.csproj", "{737A2E9A-A1B9-4BC8-94BD-5327134142CB}"
 EndProject

@@ -760,10 +760,10 @@ namespace Shaolinq
 		{
 			this.Create(DatabaseCreationOptions.IfDatabaseNotExist);
 		}
-
+        
 		public virtual void Create(DatabaseCreationOptions options)
 		{
-			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.FromMinutes(10)))
+			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.Zero))
 			{
 				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema(options);
 

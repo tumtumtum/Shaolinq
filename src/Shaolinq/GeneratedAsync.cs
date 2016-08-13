@@ -1165,6 +1165,18 @@ namespace Shaolinq.Persistence
 
 	public abstract partial class SqlDatabaseSchemaManager
 	{
+		public virtual Task CreateDatabaseAndSchemaAsync(DatabaseCreationOptions options)
+		{
+			return CreateDatabaseAndSchemaAsync(options, CancellationToken.None);
+		}
+
+		public virtual async Task CreateDatabaseAndSchemaAsync(DatabaseCreationOptions options, CancellationToken cancellationToken)
+		{
+			var dataDefinitionExpressions = this.BuildDataDefinitonExpressions(options);
+			this.CreateDatabaseOnly(dataDefinitionExpressions, options);
+			await this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
+		}
+
 		protected virtual Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			return CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, CancellationToken.None);

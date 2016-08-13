@@ -8,7 +8,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
 {
-	public abstract class SqliteSqlDatabaseContext
+	public abstract partial class SqliteSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		public string FileName { get; protected set; }
@@ -17,6 +17,7 @@ namespace Shaolinq.Sqlite
 		
 		private IDbConnection connection;
 
+		[RewriteAsync]
 		public override IDbConnection OpenConnection()
 		{
 			var retval = this.PrivateOpenConnection();
@@ -29,12 +30,13 @@ namespace Shaolinq.Sqlite
 			using (var command = retval.CreateCommand())
 			{
 				command.CommandText = "PRAGMA foreign_keys = ON;";
-				command.ExecuteNonQuery();
+				command.ExecuteNonQueryEx(this.DataAccessModel, true);
 			}
 
 			return retval;
 		}
 
+		[RewriteAsync]
 		private IDbConnection PrivateOpenConnection()
 		{
 			if (!this.IsInMemoryConnection)

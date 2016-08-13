@@ -41,7 +41,7 @@ namespace Shaolinq.Tests
 		{
 		    var host = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER") ?? ".\\SQLEXPRESS";
 
-            return SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
+            return SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true, deleteDatabaseDropsTablesOnly:true);
 		}
 
 		protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)
