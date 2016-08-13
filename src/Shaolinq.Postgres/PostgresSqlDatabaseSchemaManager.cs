@@ -8,7 +8,7 @@ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Postgres
 {
-	internal class PostgresSqlDatabaseSchemaManager
+	internal partial class PostgresSqlDatabaseSchemaManager
 		: SqlDatabaseSchemaManager
 	{
 		public PostgresSqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)
@@ -28,6 +28,7 @@ namespace Shaolinq.Postgres
 			return retval;
 		}
 
+		[RewriteAsync]
 		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			var retval = false;
@@ -50,11 +51,11 @@ namespace Shaolinq.Postgres
 
 					using (command = dbConnection.CreateCommand())
 					{
-						command.CommandText = String.Format("SELECT datname FROM pg_database;");
+						command.CommandText = "SELECT datname FROM pg_database;";
 
-						using (var reader = command.ExecuteReader())
+						using (var reader = command.ExecuteReaderEx(this.SqlDatabaseContext.DataAccessModel, true))
 						{
-							while (reader.Read())
+							while (reader.ReadEx())
 							{
 								var s = reader.GetString(0);
 
@@ -73,15 +74,15 @@ namespace Shaolinq.Postgres
 						using (command = dbConnection.CreateCommand())
 						{
 							command.CommandText = $"DROP DATABASE \"{databaseName}\";";
-							command.ExecuteNonQuery();
+							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 						}
 					}
 
 					using (command = dbConnection.CreateCommand())
 					{
 						command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
-						command.ExecuteNonQuery();
-					}
+						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+                    }
 
 					retval = true;
 				}
@@ -92,8 +93,8 @@ namespace Shaolinq.Postgres
 						using (command = dbConnection.CreateCommand())
 						{
 							command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
-							command.ExecuteNonQuery();
-						}
+							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+                        }
 
 						retval = true;
 					}

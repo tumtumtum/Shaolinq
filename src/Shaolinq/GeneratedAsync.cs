@@ -1173,10 +1173,12 @@ namespace Shaolinq.Persistence
 		public virtual async Task CreateDatabaseAndSchemaAsync(DatabaseCreationOptions options, CancellationToken cancellationToken)
 		{
 			var dataDefinitionExpressions = this.BuildDataDefinitonExpressions(options);
-			this.CreateDatabaseOnly(dataDefinitionExpressions, options);
+			await this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
 			await this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
 		}
 
+		protected abstract Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options);
+		protected abstract Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken);
 		protected virtual Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			return CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, CancellationToken.None);
@@ -2170,6 +2172,20 @@ namespace Shaolinq
 
 	public partial class DataAccessModel
 	{
+		public virtual Task CreateAsync(DatabaseCreationOptions options)
+		{
+			return CreateAsync(options, CancellationToken.None);
+		}
+
+		public virtual async Task CreateAsync(DatabaseCreationOptions options, CancellationToken cancellationToken)
+		{
+			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.Zero))
+			{
+				await this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchemaAsync(options, cancellationToken).ConfigureAwait(false);
+				await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
+			}
+		}
+
 		public virtual Task FlushAsync()
 		{
 			return FlushAsync(CancellationToken.None);

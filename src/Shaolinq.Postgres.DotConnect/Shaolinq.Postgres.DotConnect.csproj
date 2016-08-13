@@ -153,6 +153,9 @@
     <Compile Include="..\Shaolinq.Postgres\PostgresUuidSqlDataType.cs">
       <Link>PostgresUuidSqlDataType.cs</Link>
     </Compile>
+    <Compile Include="..\Shaolinq.Postgres\RewriteAsyncAttribute.cs">
+      <Link>RewriteAsyncAttribute.cs</Link>
+    </Compile>
     <Compile Include="GeneratedAsync.cs" />
     <Compile Include="PostgresDotConnectConfiguration.cs" />
     <Compile Include="PostgresDotConnectSqlDatabaseContextInfo.cs" />
@@ -163,7 +166,6 @@
     <Compile Include="PostgresDotConnectObjectTimespanSqlDataType.cs" />
     <Compile Include="PostgresDotConnectTimespanSqlDataType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RewriteAsyncAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

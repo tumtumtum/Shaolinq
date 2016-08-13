@@ -7,7 +7,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
 {
-	public class SqlServerSqlDatabaseSchemaManager
+	public partial class SqlServerSqlDatabaseSchemaManager
 		: SqlDatabaseSchemaManager
 	{
 		public SqlServerSqlDatabaseSchemaManager(SqlServerSqlDatabaseContext sqlDatabaseContext)
@@ -15,6 +15,7 @@ namespace Shaolinq.SqlServer
 		{
 		}
 
+		[RewriteAsync]
 		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
@@ -53,9 +54,9 @@ namespace Shaolinq.SqlServer
 									END
 								";
 
-								command.ExecuteNonQuery();
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-                                command.CommandText =
+								command.CommandText =
 								@"
 									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'))
 									BEGIN
@@ -66,36 +67,35 @@ namespace Shaolinq.SqlServer
 									END
 								";
 
-								command.ExecuteNonQuery();
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-                                command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') CREATE DATABASE [{databaseName}];";
-                                command.ExecuteNonQuery();
-                            }
+								command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') CREATE DATABASE [{databaseName}];";
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+							}
 							else
 							{
 								command.CommandText = $"IF EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
-								command.ExecuteNonQuery();
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
 								command.CommandText = $"CREATE DATABASE [{databaseName}];";
-								command.ExecuteNonQuery();
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 							}
 						}
 						else
 						{
 							command.CommandText = $"IF EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
-							command.ExecuteNonQuery();
 
 							command.CommandText = $"CREATE DATABASE [{databaseName}];";
-							command.ExecuteNonQuery();
+							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 						}
 
 						command.CommandText = $"ALTER DATABASE [{databaseName}] SET ALLOW_SNAPSHOT_ISOLATION {(context.AllowSnapshotIsolation ? "ON" : "OFF")};";
-						command.ExecuteNonQuery();
+                        command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-						command.CommandText = $"ALTER DATABASE [{databaseName}] SET READ_COMMITTED_SNAPSHOT {(context.ReadCommittedSnapshop ? "ON" : "OFF")};";
-						command.ExecuteNonQuery();
+                        command.CommandText = $"ALTER DATABASE [{databaseName}] SET READ_COMMITTED_SNAPSHOT {(context.ReadCommittedSnapshop ? "ON" : "OFF")};";
+                        command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-						return true;
+                        return true;
 					}
 				}
 				catch (Exception e)

@@ -124,9 +124,21 @@ namespace Shaolinq.Persistence
 		{
 		}
 
-		public virtual void Dispose()
+        ~SqlDatabaseContext()
+        {
+            this.Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+        }
+
+		public virtual void Dispose(bool disposing)
 		{
 			this.SchemaManager.Dispose();
-		}
+
+            GC.SuppressFinalize(this);
+        }
 	}
 }

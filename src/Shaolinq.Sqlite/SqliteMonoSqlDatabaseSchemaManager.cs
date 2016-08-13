@@ -4,7 +4,7 @@ using Mono.Data.Sqlite;
 
 namespace Shaolinq.Sqlite
 {
-	public class SqliteMonoSqlDatabaseSchemaManager
+	public partial class SqliteMonoSqlDatabaseSchemaManager
 		: SqliteSqlDatabaseSchemaManager
 	{
 		public SqliteMonoSqlDatabaseSchemaManager(SqliteSqlDatabaseContext sqlDatabaseContext)

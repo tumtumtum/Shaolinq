@@ -67,22 +67,16 @@ namespace Shaolinq.Sqlite
 			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName);
 			this.IsInMemoryConnection = IsMemoryConnectionRegex.IsMatch(this.FileName);
 		}
-
-		internal static bool IsRunningMono()
-		{
-			return Type.GetType("Mono.Runtime") != null;
-		}
-
+		
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)
 		{
 			return new DisabledForeignKeyCheckContext(sqlDatabaseCommandsContext);	
 		}
 
-		public override void Dispose()
+		public override void Dispose(bool disposing)
 		{
 			this.connection?.Close();
-
-			base.Dispose();
+			base.Dispose(disposing);
 		}
 	}
 }

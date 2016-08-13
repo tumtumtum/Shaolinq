@@ -4,7 +4,7 @@ using System.Data.SQLite;
 
 namespace Shaolinq.Sqlite
 {
-	public class SqliteOfficialSqlDatabaseSchemaManager
+	public partial class SqliteOfficialSqlDatabaseSchemaManager
 		: SqliteSqlDatabaseSchemaManager
 	{
 		public SqliteOfficialSqlDatabaseSchemaManager(SqliteSqlDatabaseContext sqlDatabaseContext)

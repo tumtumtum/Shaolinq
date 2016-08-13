@@ -8,7 +8,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
 {
-	public abstract class SqliteSqlDatabaseSchemaManager
+	public abstract partial class SqliteSqlDatabaseSchemaManager
 		: SqlDatabaseSchemaManager
 	{
 		// We keep a reference to inMemoryConnection around
@@ -38,6 +38,7 @@ namespace Shaolinq.Sqlite
 
 		protected abstract void CreateFile(string path);
 
+		[RewriteAsync]
 		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			var retval = false;
@@ -68,9 +69,9 @@ namespace Shaolinq.Sqlite
 							VACUUM;
 						";
 
-						command.ExecuteNonQuery();
-					}
-				}
+                        command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+                    }
+                }
 
 				return true;
 			}

@@ -38,3 +38,80 @@ namespace Shaolinq.MySql
 		}
 	}
 }
+
+namespace Shaolinq.MySql
+{
+#pragma warning disable
+	using System;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using System.Linq.Expressions;
+	using Shaolinq;
+	using Shaolinq.MySql;
+	using Shaolinq.Persistence;
+
+	public partial class MySqlSqlDatabaseSchemaManager
+	{
+		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		{
+			return CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
+		}
+
+		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
+		{
+			var retval = false;
+			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
+			var overwrite = options == DatabaseCreationOptions.DeleteExistingDatabase;
+			using (var dbConnection = factory.CreateConnection())
+			{
+				dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
+				await dbConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
+				using (var command = dbConnection.CreateCommand())
+				{
+					if (overwrite)
+					{
+						var drop = false;
+						command.CommandText = String.Format("SHOW DATABASES;", this.SqlDatabaseContext.DatabaseName);
+						using (var reader = (await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)))
+						{
+							while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+							{
+								var s = reader.GetString(0);
+								if (s.Equals(this.SqlDatabaseContext.DatabaseName) || s.Equals(this.SqlDatabaseContext.DatabaseName.ToLower()))
+								{
+									drop = true;
+									break;
+								}
+							}
+						}
+
+						if (drop)
+						{
+							command.CommandText = $"DROP DATABASE {this.SqlDatabaseContext.DatabaseName}";
+							await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+						}
+
+						command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
+						await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+						retval = true;
+					}
+					else
+					{
+						try
+						{
+							command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
+							await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+							retval = true;
+						}
+						catch
+						{
+							retval = false;
+						}
+					}
+				}
+			}
+
+			return retval;
+		}
+	}
+}

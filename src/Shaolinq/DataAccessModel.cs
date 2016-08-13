@@ -140,8 +140,6 @@ namespace Shaolinq
 		public void Dispose()
 		{
 			this.Dispose(true);
-
-			GC.SuppressFinalize(this);
 		}
 
 		protected virtual void Dispose(bool disposing)
@@ -150,6 +148,8 @@ namespace Shaolinq
 			{
 				return;
 			}
+			
+			GC.SuppressFinalize(this);
 
 			ActionUtils.IgnoreExceptions(() => this.AsyncLocalAmbientTransactionContext?.Dispose());
 			ActionUtils.IgnoreExceptions(() => this.asyncLocalExecutionVersion.Dispose());
@@ -760,7 +760,8 @@ namespace Shaolinq
 		{
 			this.Create(DatabaseCreationOptions.IfDatabaseNotExist);
 		}
-        
+		
+		[RewriteAsync]
 		public virtual void Create(DatabaseCreationOptions options)
 		{
 			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.Zero))
@@ -774,9 +775,9 @@ namespace Shaolinq
 		[RewriteAsync]
 		public virtual void Flush()
 		{
-		    var transactionContext = this.GetCurrentContext(true);
+			var transactionContext = this.GetCurrentContext(true);
 
-		    transactionContext?.GetCurrentDataContext().Commit(transactionContext, true);
+			transactionContext?.GetCurrentDataContext().Commit(transactionContext, true);
 		}
 
 		protected internal ISqlQueryProvider NewQueryProvider()

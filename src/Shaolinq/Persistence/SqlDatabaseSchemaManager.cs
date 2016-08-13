@@ -49,7 +49,8 @@ namespace Shaolinq.Persistence
 		{
 			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, options, this.SqlDatabaseContext.TableNamePrefix, this.GetBuilderFlags());
 		}
-
+        
+        [RewriteAsync]
         protected abstract bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options);
 
 		[RewriteAsync]
