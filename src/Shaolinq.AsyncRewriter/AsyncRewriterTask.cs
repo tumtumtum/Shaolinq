@@ -108,14 +108,11 @@ namespace Shaolinq.AsyncRewriter
 			
 			try
 			{
-				using (var left = File.OpenText(filename))
+				using (TextReader left = File.OpenText(filename), right = new StringReader(code))
 				{
-					using (var right = new StringReader(code))
+					if (Equal(left, right))
 					{
-						if (Equal(left, right))
-						{
-							this.Log.LogMessage($"{filename} has not changed");
-						}
+						this.Log.LogMessage($"{filename} has not changed");
 					}
 				}
 			}

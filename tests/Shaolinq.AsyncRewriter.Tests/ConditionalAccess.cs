@@ -13,14 +13,15 @@ namespace Shaolinq.AsyncRewriter.Tests
 		public class Foo
 		{
 			[RewriteAsync]
-			public void Bar()
-			{	
+			public int Bar()
+			{
+			    return 0;
 			}
 
-		    public Foo Other()
-		    {
-		        return null;
-		    }
+			public Foo Other(int x)
+			{
+				return null;
+			}
 		}
 
 		public class Car
@@ -32,23 +33,31 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 		public Foo foo;
 
+		private Foo GetCurrentFoo()
+		{
+			return null;
+		}
+		/*
 		[RewriteAsync]
 		public void Test()
 		{
 			this.foo?.Bar();
 		}
 
-	    private Foo GetCurrentFoo()
-	    {
-	        return null;
-	    }
+		[RewriteAsync()]
+		public void Test2()
+		{
+			var foo = GetCurrentFoo();
 
-        [RewriteAsync()]
-	    public void Test2()
-        {
-            var foo = GetCurrentFoo();
+			foo?.Other(0).Bar();
+		}*/
 
-	        foo?.Other().Bar();
-	    }
+		[RewriteAsync()]
+		public void Test2()
+		{
+			var foo = GetCurrentFoo();
+
+			foo?.Other(foo.Bar()).Bar();
+		}
 	}
 }

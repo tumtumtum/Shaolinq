@@ -13,6 +13,6 @@
     <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
   </Target>
   <Target Name="GenerateAsyncSourceBeforeBuild" BeforeTargets="BeforeBuild">
-    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:2 /target:GenerateAsyncSource" WorkingDirectory="." />
+    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateAsyncSource" WorkingDirectory="." />
   </Target>
 </Project>
