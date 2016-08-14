@@ -329,7 +329,6 @@
     <Compile Include="IRelatedDataAccessObjectContext.cs" />
     <Compile Include="DataAccessObjectState.cs" />
     <Compile Include="InvalidDataAccessModelDefinition.cs" />
-    <Compile Include="DatabaseTransactionContextAcquisition.cs" />
     <Compile Include="Persistence\ModelTypeDescriptor.cs" />
     <Compile Include="Persistence\SqlDatabaseContextInfo.cs" />
     <Compile Include="Persistence\DataRecordMethods.cs" />
@@ -473,36 +472,23 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
+  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
   <PropertyGroup>
     <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
     <WithoutGeneratedExcludePattern>**\Generated*.cs</WithoutGeneratedExcludePattern>
   </PropertyGroup>
-  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
-  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
-  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
   <ItemGroup>
-    <SourceWithoutGenerated Include="$(WithoutGeneratedIncludePattern)" Exclude="$(WithoutGeneratedExcludePattern)">
+    <SourceWithoutGeneratedExpressions Include="$(WithoutGeneratedIncludePattern)" Exclude="$(WithoutGeneratedExcludePattern)">
       <InProject>False</InProject>
-    </SourceWithoutGenerated>
+    </SourceWithoutGeneratedExpressions>
   </ItemGroup>
-  <Target Name="GenerateAsyncSource" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
-    <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
-    <ExpressionComparerWriterTask InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedSqlExpressionComparer.cs" />
-    <ExpressionHasherWriterTask InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedSqlExpressionHasher.cs" />
+  <Target Name="GenerateAsyncSourceExpressions" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
+    <ExpressionComparerWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionComparer.cs" />
+    <ExpressionHasherWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionHasher.cs" />
   </Target>
-  <Target Name="GenerateAsyncSourceBeforeBuild" BeforeTargets="BeforeBuild">
-    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:2 /target:GenerateAsyncSource" WorkingDirectory="." />
+  <Target Name="GenerateAsyncSourceExpressionsBeforeBuild" BeforeTargets="BeforeBuild">
+    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateAsyncSourceExpressions" WorkingDirectory="." />
   </Target>
-  <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets'))" />
-  </Target>
-  <PropertyGroup>
-    <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"
-if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"
-</PreBuildEvent>
-  </PropertyGroup>
+  <Import Project="../AsyncRewriter.target"/>
 </Project>

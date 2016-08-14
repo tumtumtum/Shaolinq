@@ -243,25 +243,25 @@ namespace Shaolinq.AsyncRewriter
 				{
 					retval = this.semanticModel.GetSpeculativeTypeInfo(node.SpanStart, ((ConditionalAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
 				}
-                else if (node.Parent is MemberAccessExpressionSyntax)
-                {
-                    retval = this.semanticModel.GetSpeculativeTypeInfo(pos, ((MemberAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
-                }
-                else
-                {
-                    var property = node.Parent?.GetType().GetProperty("Expression");
+				else if (node.Parent is MemberAccessExpressionSyntax)
+				{
+					retval = this.semanticModel.GetSpeculativeTypeInfo(pos, ((MemberAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
+				}
+				else
+				{
+					var property = node.Parent?.GetType().GetProperty("Expression");
 
-                    if (property != null)
-                    {
-                        retval =
-                            this.semanticModel.GetSpeculativeTypeInfo
-                                (pos, (SyntaxNode)property.GetValue(node.Parent), SpeculativeBindingOption.BindAsExpression).Type;
-                    }
-                    else
-                    {
-                        retval = null;
-                    }
-                }
+					if (property != null)
+					{
+						retval =
+							this.semanticModel.GetSpeculativeTypeInfo
+								(pos, (SyntaxNode)property.GetValue(node.Parent), SpeculativeBindingOption.BindAsExpression).Type;
+					}
+					else
+					{
+						retval = null;
+					}
+				}
 			}
 			else
 			{

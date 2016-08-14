@@ -175,12 +175,12 @@ namespace Shaolinq
 			return this.TypeDescriptorProvider.GetTypeDescriptor(this.GetDefinitionTypeFromConcreteType(type));
 		}
 
-		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
+		internal DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
 			return TransactionContext.GetCurrent(this, forWrite)?.GetCurrentDataContext();
 		}
 		
-		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext()
+		public SqlTransactionalCommandsContext GetCurrentCommandsContext()
 		{
 			var transactionContext = TransactionContext.GetCurrent(this, true);
 
@@ -189,7 +189,7 @@ namespace Shaolinq
 				throw new InvalidOperationException("No Current DataAccessScope");
 			}
 			
-			return transactionContext.GetCurrentTransactionalCommandsContext(this.GetCurrentSqlDatabaseContext());
+			return transactionContext.GetSqlTransactionalCommandsContext();
 		}
 
 		private void SetAssemblyBuildInfo(RuntimeDataAccessModelInfo value)
@@ -704,7 +704,7 @@ namespace Shaolinq
 
 				if (transactionContext != null)
 				{
-					foreach (var category in transactionContext.DatabaseContextCategories)
+					foreach (var category in transactionContext.DatabaseContextCategoriesKey.Split(",").Select(c => c.Trim()))
 					{
 						info = this.sqlDatabaseContextsByCategory[category];
 
@@ -732,23 +732,22 @@ namespace Shaolinq
 
 			if (transactionContext == null)
 			{
-				throw new InvalidOperationException("No Current TransactionContext");
+				throw new InvalidOperationException("No current TransactionContext");
 			}
-			
-			if (transactionContext.DatabaseContextCategories == null)
-			{
-				foreach (var category in categories
-					.Where(category => !this.sqlDatabaseContextsByCategory.ContainsKey(category)))
-				{
-					throw new InvalidOperationException("Unsupported category: " + category);
-				}
 
-				transactionContext.DatabaseContextCategories = categories;
-			}
-			else
+			if (transactionContext.AnyCommandsHaveBeenPerformed())
 			{
 				throw new InvalidOperationException("Transactions database context categories can only be set before any scope operations are performed");
 			}
+
+			var category = categories.FirstOrDefault(c => !this.sqlDatabaseContextsByCategory.ContainsKey(c));
+
+			if (category != null)
+			{
+				throw new InvalidOperationException("Unsupported category: " + category);
+			}
+
+			transactionContext.DatabaseContextCategoriesKey = string.Join(",", categories);
 		}
 
 		public virtual void SetCurentTransactionReadOnly()
@@ -776,8 +775,8 @@ namespace Shaolinq
 		public virtual void Flush()
 		{
 			var transactionContext = this.GetCurrentContext(true);
-
-			transactionContext?.GetCurrentDataContext().Commit(transactionContext, true);
+			
+			transactionContext?.GetCurrentDataContext().Commit(transactionContext.GetSqlTransactionalCommandsContext(), true);
 		}
 
 		protected internal ISqlQueryProvider NewQueryProvider()

@@ -5,20 +5,20 @@ using System.Collections.Generic;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
-using System.Diagnostics;
 
 namespace Shaolinq
 {
 	public partial class TransactionContext
 		: ISinglePhaseNotification, IDisposable
 	{
-		public class TransactionContextExecutionVersionContext
+		public class TransactionExecutionContext
 			: IDisposable
 		{
 			public int Version { get; }
+			public event EventHandler Finished;
 			public TransactionContext TransactionContext { get; }
 
-			internal TransactionContextExecutionVersionContext(TransactionContext context)
+			internal TransactionExecutionContext(TransactionContext context)
 			{
 				this.TransactionContext = context;
 
@@ -34,30 +34,42 @@ namespace Shaolinq
 				context.executionVersionNesting++;
 			}
 
+			protected virtual void OnFinished()
+			{
+				this.Finished?.Invoke(this, EventArgs.Empty);
+			}
+
 			public void Dispose()
 			{
 				this.TransactionContext.executionVersionNesting--;
 
 				if (this.TransactionContext.executionVersionNesting == 0)
 				{
-					this.TransactionContext.VersionContextFinished(this);
+					this.OnFinished();
 				}
 			}
 		}
 
+		private bool disposed;
 		private int executionVersion;
+		private bool currentlyCommiting;
 		private int executionVersionNesting;
-		private volatile bool disposed;
-		private volatile bool currentlyCommiting;
 		internal SqlDatabaseContext sqlDatabaseContext;
 		internal readonly DataAccessModel dataAccessModel;
-		internal DataAccessTransaction DataAccessTransaction { get; }
+		private SqlTransactionalCommandsContext commandsContext;
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
-		internal readonly Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext> commandsContextsBySqlDatabaseContexts;
 
+		internal DataAccessTransaction DataAccessTransaction { get; }
+		public string DatabaseContextCategoriesKey { get; internal set; }
+		
 		internal int GetExecutionVersion()
 		{
 			return this.executionVersion;
+		}
+
+		internal bool AnyCommandsHaveBeenPerformed()
+		{
+			return this.commandsContext != null;
 		}
 
 		public static int GetCurrentTransactionContextVersion(DataAccessModel dataAccessModel)
@@ -65,7 +77,7 @@ namespace Shaolinq
 			return dataAccessModel.AsyncLocalExecutionVersion;
 		}
 
-		internal static TransactionContextExecutionVersionContext Acquire(DataAccessModel dataAccessModel, bool forWrite)
+		internal static TransactionExecutionContext Acquire(DataAccessModel dataAccessModel, bool forWrite)
 		{
 			var context = GetOrCreateCurrent(dataAccessModel, forWrite, true);
 
@@ -79,7 +91,11 @@ namespace Shaolinq
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			return new TransactionContextExecutionVersionContext(context);
+			var retval = new TransactionExecutionContext(context);
+
+			retval.Finished += context.OnVersionContextFinished;
+
+			return retval;
 		}
 
 		public static TransactionContext GetCurrent(DataAccessModel dataAccessModel, bool forWrite)
@@ -174,39 +190,10 @@ namespace Shaolinq
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			if (this.dataAccessObjectDataContext == null)
-			{
-				this.dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext());
-			}
-
-			return this.dataAccessObjectDataContext;
+			return this.dataAccessObjectDataContext ?? (this.dataAccessObjectDataContext = new DataAccessObjectDataContext(this.dataAccessModel, this.dataAccessModel.GetCurrentSqlDatabaseContext()));
 		}
-
-		public string[] DatabaseContextCategories
-		{
-			get
-			{
-				return this.databaseContextCategories;
-			}
-			set
-			{
-				this.databaseContextCategories = value;
-
-				if (value == null || value.Length == 0)
-				{
-					this.DatabaseContextCategoriesKey = "*";
-				}
-				else
-				{
-					this.DatabaseContextCategoriesKey = string.Join(",", value);
-				}
-			}
-		}
-		private string[] databaseContextCategories;
 		
-		public string DatabaseContextCategoriesKey { get; private set; }
-
-		internal void VersionContextFinished(TransactionContextExecutionVersionContext executionVersionContext)
+		private void OnVersionContextFinished(object sender, EventArgs eventArgs)
 		{
 			if (this.disposed)
 			{
@@ -216,13 +203,7 @@ namespace Shaolinq
 			if (this.DataAccessTransaction == null)
 			{
 				this.dataAccessObjectDataContext = null;
-
-				foreach (var cc in this.commandsContextsBySqlDatabaseContexts.Values)
-				{
-					cc.Dispose();
-				}
-
-				this.commandsContextsBySqlDatabaseContexts.Clear();
+				this.commandsContext?.Dispose();
 				this.dataAccessModel.AsyncLocalAmbientTransactionContext = null;
 				this.Dispose();
 			}
@@ -230,76 +211,26 @@ namespace Shaolinq
 
 		internal TransactionContext(DataAccessTransaction dataAccessTransaction, DataAccessModel dataAccessModel)
 		{
-			Console.WriteLine("TransactionContext created");
 			this.dataAccessModel = dataAccessModel;
 			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = "*";
 			this.executionVersion = dataAccessModel.AsyncLocalExecutionVersion;
-			this.commandsContextsBySqlDatabaseContexts = new Dictionary<SqlDatabaseContext, SqlTransactionalCommandsContext>();
 		}
 
-		public SqlTransactionalCommandsContext GetCurrentTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext)
+		internal SqlDatabaseContext GetSqlDatabaseContext()
 		{
-			if (this.disposed)
-			{
-				throw new ObjectDisposedException(nameof(TransactionContext));
-			}
-
-			if (this.DataAccessTransaction == null)
-			{
-				throw new InvalidOperationException("Transaction required");
-			}
-
-			return this.AcquirePersistenceTransactionContext(sqlDatabaseContext).SqlDatabaseCommandsContext;
+			return this.dataAccessModel.GetCurrentSqlDatabaseContext();
 		}
 
 		[RewriteAsync]
-		public virtual DatabaseTransactionContextAcquisition AcquirePersistenceTransactionContext(SqlDatabaseContext sqlDatabaseContext)
+		public virtual SqlTransactionalCommandsContext GetSqlTransactionalCommandsContext()
 		{
 			if (this.disposed)
 			{
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-		    if (this.sqlDatabaseContext == null)
-		    {
-		        ;
-		    }
-
-			Debug.Assert(this.sqlDatabaseContext == null || sqlDatabaseContext == this.sqlDatabaseContext);
-
-			SqlTransactionalCommandsContext commandsContext;
-
-			if (!this.commandsContextsBySqlDatabaseContexts.TryGetValue(sqlDatabaseContext, out commandsContext))
-			{
-				commandsContext = sqlDatabaseContext.CreateSqlTransactionalCommandsContext(this.DataAccessTransaction);
-
-				this.commandsContextsBySqlDatabaseContexts[sqlDatabaseContext] = commandsContext;
-			}
-
-			var startIndex = this.GetExecutionVersion();
-
-			var retval = new DatabaseTransactionContextAcquisition(this, sqlDatabaseContext, commandsContext);
-
-			if (this.DataAccessTransaction == null)
-			{
-				retval.Disposed += (s, e) =>
-				{
-					if (this.GetExecutionVersion() <= startIndex)
-					{
-						this.dataAccessObjectDataContext = null;
-
-						foreach (var cc in this.commandsContextsBySqlDatabaseContexts.Values)
-						{
-							cc.Dispose();
-						}
-
-						this.commandsContextsBySqlDatabaseContexts.Clear();
-					}
-				};
-			}
-
-			return retval;
+			return this.commandsContext ?? (this.commandsContext = this.GetSqlDatabaseContext().CreateSqlTransactionalCommandsContext(this.DataAccessTransaction));
 		}
 
 		~TransactionContext()
@@ -310,8 +241,6 @@ namespace Shaolinq
 		public void Dispose()
 		{
 			this.Dispose(true);
-
-			GC.SuppressFinalize(this);
 		}
 
 		protected void Dispose(bool disposing)
@@ -320,49 +249,18 @@ namespace Shaolinq
 			{
 				return;
 			}
-
-			Console.WriteLine("TransactionContext disposed");
-
-			List<Exception> exceptions = null;
-
-			foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
-			{
-				try
-				{
-					commandsContext.Dispose();
-				}
-				catch (Exception e)
-				{
-					if (exceptions == null)
-					{
-						exceptions = new List<Exception>();
-					}
-
-					exceptions.Add(e);
-				}
-			}
+			
+			GC.SuppressFinalize(this);
 
 			try
 			{
+				this.commandsContext?.Dispose();
 				this.DataAccessTransaction?.RemoveTransactionContext(this);
 				this.dataAccessObjectDataContext = null;
 			}
 			finally
 			{
 				this.disposed = true;
-
-				if (exceptions?.Count > 0)
-				{
-					throw new AggregateException(exceptions);
-				}
-			}
-
-			if (this.DataAccessTransaction != null)
-			{
-				if (!this.DataAccessTransaction.HasSystemTransaction)
-				{
-					DataAccessTransaction.Current?.Dispose();
-				}
 			}
 		}
 
@@ -377,10 +275,7 @@ namespace Shaolinq
 
 			try
 			{
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
-				{
-					commandsContext.Commit();
-				}
+				this.commandsContext?.Commit();
 			}
 			catch (Exception e)
 			{
@@ -425,18 +320,19 @@ namespace Shaolinq
 
 			try
 			{
-				this.dataAccessObjectDataContext?.Commit(this, false);
-
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+				if (this.dataAccessObjectDataContext != null)
 				{
-					commandsContext.Commit();
+					this.commandsContext = this.GetSqlTransactionalCommandsContext();
+
+					this.dataAccessObjectDataContext.Commit(this.commandsContext, false);
+					this.commandsContext.Commit();
 				}
 
 				singlePhaseEnlistment.Committed();
 			}
 			catch (Exception e)
 			{
-				this.commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
+				ActionUtils.IgnoreExceptions(() => this.commandsContext.Rollback());
 
 				singlePhaseEnlistment.Aborted(e);
 			}
@@ -456,16 +352,16 @@ namespace Shaolinq
 
 			try
 			{
-				this.dataAccessObjectDataContext?.Commit(this, false);
-
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+				if (this.dataAccessObjectDataContext != null)
 				{
-					commandsContext.Commit();
+					this.commandsContext = this.GetSqlTransactionalCommandsContext();
+					this.dataAccessObjectDataContext.Commit(this.commandsContext, false);
+					this.commandsContext.Commit();
 				}
 			}
 			catch (Exception e)
 			{
-				this.commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
+				ActionUtils.IgnoreExceptions(() => this.commandsContext?.Rollback());
 
 				throw new DataAccessTransactionAbortedException(e);
 			}
@@ -486,13 +382,14 @@ namespace Shaolinq
 
 			try
 			{
-				this.dataAccessObjectDataContext?.Commit(this, false);
-
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
+				if (this.dataAccessObjectDataContext != null)
 				{
-					if (commandsContext.SqlDatabaseContext.SupportsPreparedTransactions)
+					this.commandsContext = this.GetSqlTransactionalCommandsContext();
+					this.dataAccessObjectDataContext.Commit(this.commandsContext, false);
+
+					if (this.commandsContext.SqlDatabaseContext.SupportsPreparedTransactions)
 					{
-						commandsContext.Prepare();
+						this.commandsContext.Prepare();
 					}
 				}
 
@@ -506,7 +403,7 @@ namespace Shaolinq
 			}
 			catch (Exception e)
 			{
-				this.commandsContextsBySqlDatabaseContexts.Values.ForEach(c => ActionUtils.IgnoreExceptions(c.Rollback));
+				ActionUtils.IgnoreExceptions(() => this.commandsContext?.Rollback());
 
 				preparingEnlistment.ForceRollback(e);
 			}
@@ -529,10 +426,7 @@ namespace Shaolinq
 
 			try
 			{
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
-				{
-					ActionUtils.IgnoreExceptions(() => commandsContext.Rollback());
-				}
+				ActionUtils.IgnoreExceptions(() => this.commandsContext?.Rollback());
 			}
 			finally
 			{
@@ -549,10 +443,7 @@ namespace Shaolinq
 
 			try
 			{
-				foreach (var commandsContext in this.commandsContextsBySqlDatabaseContexts.Values)
-				{
-					commandsContext.Rollback();
-				}
+				ActionUtils.IgnoreExceptions(() => this.commandsContext?.Rollback());
 			}
 			finally
 			{

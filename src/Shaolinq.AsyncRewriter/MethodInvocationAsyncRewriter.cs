@@ -95,7 +95,7 @@ namespace Shaolinq.AsyncRewriter
 
 			var rewritten = (ExpressionSyntax)SyntaxFactory.AwaitExpression(methodInvocation);
 
-			if (!(node.Parent is StatementSyntax))
+			if (!(node.Parent == null || node.Parent is StatementSyntax))
 			{
 				rewritten = SyntaxFactory.ParenthesizedExpression(rewritten);
 			}
@@ -122,11 +122,16 @@ namespace Shaolinq.AsyncRewriter
 		public override SyntaxNode VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
 		{
 			var result = base.VisitConditionalAccessExpression(node);
+			var conditionalAccessResult = result as ConditionalAccessExpressionSyntax;
 
-			if (result != node && ((result as ConditionalAccessExpressionSyntax)?.WhenNotNull as ParenthesizedExpressionSyntax)?.Expression.Kind() == SyntaxKind.AwaitExpression)
+			if (conditionalAccessResult == node || conditionalAccessResult == null)
 			{
-				var conditionalAccess = result as ConditionalAccessExpressionSyntax;
-				var awaitExpression = (AwaitExpressionSyntax)(conditionalAccess.WhenNotNull as ParenthesizedExpressionSyntax)?.Expression;
+				return node;
+			}
+
+			if (((conditionalAccessResult.WhenNotNull as ParenthesizedExpressionSyntax)?.Expression ?? conditionalAccessResult.WhenNotNull as AwaitExpressionSyntax)?.Kind() == SyntaxKind.AwaitExpression)
+			{
+				var awaitExpression = (AwaitExpressionSyntax)(conditionalAccessResult.WhenNotNull as ParenthesizedExpressionSyntax)?.Expression ?? conditionalAccessResult.WhenNotNull as AwaitExpressionSyntax;
 				var awaitExpressionExpression = awaitExpression?.Expression;
 
 				if (awaitExpressionExpression == null)
@@ -153,7 +158,7 @@ namespace Shaolinq.AsyncRewriter
 					{
 						var name = ((MemberBindingExpressionSyntax)syntax).Name;
 
-						dynamic current = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, conditionalAccess.Expression, name);
+						dynamic current = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, conditionalAccessResult.Expression, name);
 
 						while (stack.Count > 0)
 						{
@@ -172,13 +177,13 @@ namespace Shaolinq.AsyncRewriter
 					}
 				}
 
-				if (node.Parent is StatementSyntax)
+				if (node.Parent == null || node.Parent is StatementSyntax)
 				{
-					return SyntaxFactory.IfStatement(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccess.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(SyntaxFactory.AwaitExpression(syntax))));
+					return SyntaxFactory.IfStatement(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccessResult.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.Block(SyntaxFactory.ExpressionStatement(SyntaxFactory.AwaitExpression(syntax))));
 				}
 				else
 				{
-					return SyntaxFactory.ConditionalExpression(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccess.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.AwaitExpression(syntax), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+					return SyntaxFactory.ConditionalExpression(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccessResult.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.AwaitExpression(syntax), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
 				}
 			}
 

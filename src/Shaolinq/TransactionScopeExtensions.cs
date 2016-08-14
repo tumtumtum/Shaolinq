@@ -107,7 +107,7 @@ namespace Shaolinq
         /// <returns>The <see cref="SqlTransactionalCommandsContext"/></returns>
 		public static SqlTransactionalCommandsContext GetCurrentSqlTransactionalCommandsContext(this TransactionScope scope, DataAccessModel model)
 		{
-			return model.GetCurrentTransactionalCommandsContext();
+			return model.GetCurrentCommandsContext();
 		}
 	}
 }

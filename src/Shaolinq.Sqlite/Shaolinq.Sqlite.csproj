@@ -178,42 +178,12 @@
       <SubType>Designer</SubType>
     </None>
     <Content Include="Mono\System.Data.SQLite.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets'))" />
-    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.102.0\build\net451\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.102.0\build\net451\System.Data.SQLite.Core.targets'))" />
-  </Target>
-  <Import Project="..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets" Condition="Exists('..\packages\MSBuild.NugetContentRestore.0.1.6\build\net40\MSBuild.NugetContentRestore.targets')" />
   <Import Project="..\packages\System.Data.SQLite.Core.1.0.102.0\build\net451\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.102.0\build\net451\System.Data.SQLite.Core.targets')" />
-  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="../Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
-  <PropertyGroup>
-    <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
-    <WithoutGeneratedExcludePattern>**\Generated*.cs</WithoutGeneratedExcludePattern>
-  </PropertyGroup>
-  <ItemGroup>
-    <SourceWithoutGenerated Include="$(WithoutGeneratedIncludePattern)" Exclude="$(WithoutGeneratedExcludePattern)">
-      <InProject>False</InProject>
-    </SourceWithoutGenerated>
-  </ItemGroup>
-  <Target Name="GenerateAsyncSource" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
-    <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
-  </Target>
-  <Target Name="GenerateAsyncSourceBeforeBuild" BeforeTargets="BeforeBuild">
-    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:2 /target:GenerateAsyncSource" WorkingDirectory="." />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Project="../AsyncRewriter.target"/>
 </Project>
