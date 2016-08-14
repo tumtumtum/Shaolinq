@@ -247,7 +247,7 @@ namespace Shaolinq.Persistence.Computed
 			var leftOperand = this.ParseUnary();
 			var retval = leftOperand;
 
-			while (this.token == ComputedExpressionToken.Multiply || this.token == ComputedExpressionToken.Divide)
+			while (this.token == ComputedExpressionToken.Multiply || this.token == ComputedExpressionToken.Divide || this.token == ComputedExpressionToken.Modulo)
 			{
 				var operationToken = this.token;
 
@@ -255,15 +255,19 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseUnary();
 
-				NormalizeOperands(ref leftOperand, ref rightOperand);
+				this.NormalizeOperands(ref leftOperand, ref rightOperand);
 
-				if (operationToken == ComputedExpressionToken.Multiply)
+				switch (operationToken)
 				{
+				case ComputedExpressionToken.Multiply:
 					retval = Expression.Multiply(leftOperand, rightOperand);
-				}
-				else
-				{
+					break;
+				case ComputedExpressionToken.Divide:
 					retval = Expression.Divide(leftOperand, rightOperand);
+					break;
+				case ComputedExpressionToken.Modulo:
+					retval = Expression.Modulo(leftOperand, rightOperand);
+					break;
 				}
 			}
 

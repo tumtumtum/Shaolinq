@@ -14,6 +14,7 @@ namespace Shaolinq.Persistence.Computed
 		Subtract,
 		Multiply,
 		Divide,
+		Modulo,
 		Comma,
 		Identifier,
 		LeftParen,

@@ -5,6 +5,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionHasher
     {
+        protected override Expression VisitTableHint(SqlTableHintExpression expression)
+        {
+            this.hashCode ^= expression.TableLock ? 233222230 : 0;
+            return base.VisitTableHint(expression);
+        }
+
         protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
         {
             this.hashCode ^= expression.ConfigurationParameter?.GetHashCode() ?? 0;

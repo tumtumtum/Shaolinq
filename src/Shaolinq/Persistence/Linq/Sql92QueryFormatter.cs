@@ -1307,6 +1307,11 @@ namespace Shaolinq.Persistence.Linq
 			return alterTableExpression;
 		}
 
+		protected virtual bool WriteInsertIntoAfterSource(SqlInsertIntoExpression expression)
+		{
+			return false;
+		}
+
 		protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
 		{
 			this.Write("INSERT INTO ");
@@ -1318,6 +1323,8 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
+				this.WriteInsertIntoAfterSource(expression);
+
 				this.Write("(");
 				this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
 

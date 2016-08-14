@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Collections.Generic;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -9,6 +9,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public Expression Source { get; }
+		public Expression WithExpression { get; }
 		public IReadOnlyList<string> ColumnNames { get; }
 		public IReadOnlyList<Expression> ValueExpressions { get; }
 		public IReadOnlyList<string> ReturningAutoIncrementColumnNames { get; }
@@ -20,12 +21,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlInsertIntoExpression(Expression source, IReadOnlyList<string> columnNames, IReadOnlyList<string> returningAutoIncrementColumnNames, IReadOnlyList<Expression> valueExpressions)
+			: this(source, columnNames, returningAutoIncrementColumnNames, valueExpressions, null)
+		{	
+		}
+
+		public SqlInsertIntoExpression(Expression source, IReadOnlyList<string> columnNames, IReadOnlyList<string> returningAutoIncrementColumnNames, IReadOnlyList<Expression> valueExpressions, Expression withExpression)
 			: base(typeof(void))
 		{
 			this.Source = source;
 			this.ColumnNames = columnNames;
 			this.ReturningAutoIncrementColumnNames = returningAutoIncrementColumnNames;
 			this.ValueExpressions = valueExpressions;
+			this.WithExpression = withExpression;
 		}
 
 		public SqlInsertIntoExpression ChangeSourceAndValueExpressions(SqlProjectionExpression source, IReadOnlyList<Expression> valueExpressions)

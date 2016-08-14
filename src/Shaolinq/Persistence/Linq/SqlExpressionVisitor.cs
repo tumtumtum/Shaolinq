@@ -90,9 +90,16 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitScalar((SqlScalarExpression)expression);
 			case SqlExpressionType.Union:
 				return this.VisitUnion((SqlUnionExpression)expression);
+			case SqlExpressionType.TableHint:
+				return this.VisitTableHint((SqlTableHintExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitTableHint(SqlTableHintExpression expression)
+		{
+			return expression;
 		}
 
 		protected virtual Expression VisitScalar(SqlScalarExpression expression)

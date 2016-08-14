@@ -18,6 +18,7 @@ namespace Shaolinq
 		public long Step { get; set; }
 		public long Seed { get; set; }
 		public bool AutoIncrement { get; set; }
+        public bool ValidateExpression { get; set; }
 	
 		public AutoIncrementAttribute()
 			: this(true)    

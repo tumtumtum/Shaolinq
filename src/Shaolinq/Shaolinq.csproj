@@ -193,6 +193,7 @@
     <Compile Include="Persistence\Linq\ComplexDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\Expressions\BinaryOperations.cs" />
     <Compile Include="Persistence\Linq\Expressions\ISqlExposesAliases.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlTableHintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUnionExpression.cs" />
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
@@ -490,5 +491,5 @@
   <Target Name="GenerateAsyncSourceExpressionsBeforeBuild" BeforeTargets="BeforeBuild">
     <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateAsyncSourceExpressions" WorkingDirectory="." />
   </Target>
-  <Import Project="../AsyncRewriter.target"/>
+  <Import Project="../AsyncRewriter.target" />
 </Project>

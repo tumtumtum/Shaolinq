@@ -184,6 +184,27 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			}
+			else if (this.currentChar == '*')
+			{
+				this.ConsumeChar();
+				this.CurrentToken = ComputedExpressionToken.Multiply;
+
+				return this.CurrentToken;
+			}
+			else if (this.currentChar == '/')
+			{
+				this.ConsumeChar();
+				this.CurrentToken = ComputedExpressionToken.Divide;
+
+				return this.CurrentToken;
+			}
+			else if (this.currentChar == '%')
+			{
+				this.ConsumeChar();
+				this.CurrentToken = ComputedExpressionToken.Modulo;
+
+				return this.CurrentToken;
+			}
 			else if (Char.IsDigit((char)this.currentChar))
 			{
 				this.stringBuilder.Length = 0;

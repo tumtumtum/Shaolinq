@@ -197,6 +197,17 @@ namespace Shaolinq.SqlServer
 			return selectExpression;
 		}
 
+		protected override bool WriteInsertIntoAfterSource(SqlInsertIntoExpression expression)
+		{
+			var tableHintExpression = expression.WithExpression as SqlTableHintExpression;
+
+			if (tableHintExpression.TableLock)
+			{
+				this.Write(" WITH (TABLOCK) ");
+			}
+
+			return true;
+		}
 		protected override void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
 		{
 			if (expression.ReturningAutoIncrementColumnNames == null
