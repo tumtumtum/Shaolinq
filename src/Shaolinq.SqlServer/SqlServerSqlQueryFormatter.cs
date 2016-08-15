@@ -142,6 +142,7 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression PreProcess(Expression expression)
 		{
+			expression = SqlServerIdentityInsertAmender.Amend(expression);
 			expression = SqlServerSubqueryOrderByFixer.Fix(expression);
 			expression = SqlServerLimitAmender.Amend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
@@ -201,7 +202,7 @@ namespace Shaolinq.SqlServer
 		{
 			var tableHintExpression = expression.WithExpression as SqlTableHintExpression;
 
-			if (tableHintExpression.TableLock)
+			if (tableHintExpression?.TableLock == true)
 			{
 				this.Write(" WITH (TABLOCK) ");
 			}
@@ -224,41 +225,6 @@ namespace Shaolinq.SqlServer
 				this.WriteQuotedIdentifier(c);
 			}, ",");
 			this.Write("");
-		}
-
-		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
-		{
-			this.Write("SET ");
-			switch (expression.ConfigurationParameter)
-			{
-			case "IdentityInsert":
-				this.Write("IDENTITY_INSERT");
-				break;
-			default:
-				this.Write(expression.ConfigurationParameter);
-				break;
-			}
-			
-			if (expression.Target != null)
-			{
-				this.Write(" ");
-				this.Write(((SqlTableExpression)expression.Target).Name);
-				this.Write(" ");
-			}
-
-			if (expression.ConfigurationParameter == "IdentityInsert")
-			{
-				this.Write((bool)((ConstantExpression)expression.Arguments[0].Reduce()).Value ? "ON" : "OFF");
-			}
-			else
-			{
-				this.Write(" ");
-				this.Write(expression.Arguments);
-			}
-
-			this.WriteLine();
-
-			return expression;
 		}
 
 		protected override Expression VisitExtension(Expression expression)

@@ -11,6 +11,16 @@ namespace Shaolinq
 	public class AsyncEnumeratorAdapter<T>
 		: IAsyncEnumerator<T>
 	{
+		public static IAsyncEnumerator<T> Adapt(IEnumerator<T> enumerator)
+		{
+			return enumerator as IAsyncEnumerator<T> ?? new AsyncEnumeratorAdapter<T>(enumerator);
+		}
+
+		public static IAsyncEnumerator<T> Adapt(IEnumerable<T> enumerable)
+		{
+			return enumerable.GetAsyncEnumeratorOrAdapt();
+		}
+
 		private readonly IEnumerator<T> enumerator;
 
 		public AsyncEnumeratorAdapter(IEnumerator<T> enumerator)

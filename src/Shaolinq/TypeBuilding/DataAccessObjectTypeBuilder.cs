@@ -49,6 +49,8 @@ namespace Shaolinq.TypeBuilding
 		private readonly Dictionary<string, FieldBuilder> valueIsSetFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, FieldBuilder> valueChangedFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, FieldBuilder> computedFuncFields = new Dictionary<string, FieldBuilder>();
+		private readonly Dictionary<string, MethodBuilder> getValidateFuncMethods = new Dictionary<string, MethodBuilder>();
+		private readonly Dictionary<string, FieldBuilder> validateFuncFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, PropertyBuilder> propertyBuilders = new Dictionary<string, PropertyBuilder>();
 		private readonly Dictionary<string, MethodBuilder> setComputedValueMethods = new Dictionary<string, MethodBuilder>();
 
@@ -94,11 +96,6 @@ namespace Shaolinq.TypeBuilding
 		{
 			if (typeBuildContext.IsFirstPass())
 			{
-				if (this.baseType.FullName.Contains("Base"))
-				{
-					;
-				}
-
 				var typeName = this.baseType.Namespace + "." + this.baseType.Name;
 
 				this.typeBuilder = this.ModuleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, this.baseType);
@@ -122,7 +119,7 @@ namespace Shaolinq.TypeBuilding
 				var defaultConstructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
 				var defaultConstructorGenerator = defaultConstructorBuilder.GetILGenerator();
 				defaultConstructorGenerator.Emit(OpCodes.Ldarg_0);
-				defaultConstructorGenerator.Emit(OpCodes.Call, typeBuilder.BaseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance, null, Type.EmptyTypes, null));
+				defaultConstructorGenerator.Emit(OpCodes.Call, this.typeBuilder.BaseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance, null, Type.EmptyTypes, null));
 
 				defaultConstructorGenerator.Emit(OpCodes.Ldarg_0);
 				defaultConstructorGenerator.Emit(OpCodes.Ldc_I4_1);
@@ -204,18 +201,19 @@ namespace Shaolinq.TypeBuilding
 							{
 								this.BuildSetComputedPropertyMethod(propertyInfo, typeBuildContext);
 							}
+							else if (propertyDescriptor.AutoIncrementAttribute?.AutoIncrement == true
+								&& !string.IsNullOrEmpty(propertyDescriptor.AutoIncrementAttribute.ValidateExpression?.Trim()))
+							{
+								this.BuildValidateAutoIncrementMethod(propertyInfo, typeBuildContext);
+							}
 						}
 					}
 					else if (persistedMemberAttribute != null && propertyInfo.PropertyType.IsDataAccessObjectType())
 					{
-						var propertyDescriptor = this.GetTypeDescriptor(this.baseType).GetPropertyDescriptorByPropertyName(propertyInfo.Name);
-
 						this.BuildPersistedProperty(propertyInfo, typeBuildContext);
 					}
 					else if (relatedObjectAttribute != null)
 					{
-						var propertyDescriptor = this.GetTypeDescriptor(this.baseType).GetPropertyDescriptorByPropertyName(propertyInfo.Name);
-
 						this.BuildPersistedProperty(propertyInfo, typeBuildContext);
 					}
 					else if (relatedObjectsAttribute != null)
@@ -253,6 +251,11 @@ namespace Shaolinq.TypeBuilding
 							else if (propertyDescriptor.IsComputedMember)
 							{
 								this.BuildSetComputedPropertyMethod(propertyInfo, typeBuildContext);
+							}
+							else if (propertyDescriptor.AutoIncrementAttribute?.AutoIncrement == true
+								&& !string.IsNullOrEmpty(propertyDescriptor.AutoIncrementAttribute.ValidateExpression?.Trim()))
+							{
+								this.BuildValidateAutoIncrementMethod(propertyInfo, typeBuildContext);
 							}
 						}
 					}
@@ -601,6 +604,61 @@ namespace Shaolinq.TypeBuilding
 			return type.GetProperties().First(c => c.Name == name);
 		}
 
+		private void BuildValidateAutoIncrementMethod(PropertyInfo propertyInfo, TypeBuildContext typeBuilderContext)
+		{
+			if (typeBuilderContext.IsFirstPass())
+			{
+				const MethodAttributes methodAttributes = MethodAttributes.Public;
+
+				var fieldBuilder = this.typeBuilder.DefineField("$$$" + propertyInfo.Name + "ValidateFunc", typeof(Func<,>).MakeGenericType(this.typeBuilder.BaseType, propertyInfo.PropertyType), FieldAttributes.Public | FieldAttributes.Static);
+				var methodBuilder = this.typeBuilder.DefineMethod("$$GetValidateFuncMethod" + propertyInfo.Name, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, fieldBuilder.FieldType, null);
+
+				this.validateFuncFields[propertyInfo.Name] = fieldBuilder;
+				this.getValidateFuncMethods[propertyInfo.Name] = methodBuilder;
+			}
+			else if (typeBuilderContext.IsSecondPass())
+			{
+				var fieldBuilder = this.validateFuncFields[propertyInfo.Name];
+				var methodBuilder = this.getValidateFuncMethods[propertyInfo.Name];
+				var generator = methodBuilder.GetILGenerator();
+				var label = generator.DefineLabel();
+
+				var lambdaLocal = generator.DeclareLocal(typeof(LambdaExpression));
+				var propertyInfoLocal = generator.DeclareLocal(typeof(PropertyInfo));
+
+				generator.Emit(OpCodes.Ldsfld, fieldBuilder);
+				generator.Emit(OpCodes.Brtrue, label);
+
+				generator.Emit(OpCodes.Ldtoken, this.typeBuilder.BaseType);
+				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
+				generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
+				generator.Emit(OpCodes.Ldc_I4, (int)(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<Type>(c => c.GetProperty(default(string), default(BindingFlags))));
+				generator.Emit(OpCodes.Stloc, propertyInfoLocal);
+
+				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
+				generator.Emit(OpCodes.Ldc_I4_1);
+				generator.Emit(OpCodes.Call, TypeUtils.GetMethod<MemberInfo>(c => c.GetFirstCustomAttribute<AutoIncrementAttribute>(default(bool))));
+				
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.Configuration).GetGetMethod());
+
+				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
+				generator.Emit(OpCodes.Callvirt, typeof(AutoIncrementAttribute).GetMethod("GetValidateLambdaExpression", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit(OpCodes.Stloc, lambdaLocal);
+
+				generator.Emit(OpCodes.Ldloc, lambdaLocal);
+				generator.Emit(OpCodes.Callvirt, typeof(LambdaExpression).GetMethod("Compile", BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null));
+				generator.Emit(OpCodes.Castclass, fieldBuilder.FieldType);
+				generator.Emit(OpCodes.Stsfld, fieldBuilder);
+
+				generator.MarkLabel(label);
+				generator.Emit(OpCodes.Ldsfld, fieldBuilder);
+				generator.Emit(OpCodes.Ret);
+			}
+		}
+		
 		private void BuildSetComputedPropertyMethod(PropertyInfo propertyInfo, TypeBuildContext typeBuildContext)
 		{
 			FieldBuilder fieldBuilder;
@@ -676,7 +734,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ret);
 			}
 		}
-
+		
 		private void BuildSetComputedTextPropertyMethod(PropertyInfo propertyInfo, TypeBuildContext typeBuildContext)
 		{
 			MethodBuilder methodBuilder;
@@ -2586,6 +2644,22 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		private void BuildHasAnyServerSidePropertiesThatNeedValidatingMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
+
+			if (this.baseType.GetProperties().Any(c => !string.IsNullOrEmpty(c.GetFirstCustomAttribute<AutoIncrementAttribute>(true)?.ValidateExpression)))
+			{
+				generator.Emit(OpCodes.Ldc_I4_1);
+			}
+			else
+			{
+				generator.Emit(OpCodes.Ldc_I4_0);
+			}
+
+			generator.Emit(OpCodes.Ret);
+		}
+
 		private void BuildHasAnyChangedPrimaryKeyServerSidePropertiesProperty()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedPropertyGetter(MethodBase.GetCurrentMethod());
@@ -2822,8 +2896,8 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Stloc, local);
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, dataObjectField);
-			generator.Emit(OpCodes.Ldfld, isDeflatedReferenceField);
+			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldfld, this.isDeflatedReferenceField);
 			generator.Emit(OpCodes.Brfalse, notDeflatedLabel);
 
 			generator.Emit(OpCodes.Ldloc, local);
@@ -2834,8 +2908,8 @@ namespace Shaolinq.TypeBuilding
 			generator.MarkLabel(notDeflatedLabel);
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Ldfld, dataObjectField);
-			generator.Emit(OpCodes.Ldfld, predicateField);
+			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+			generator.Emit(OpCodes.Ldfld, this.predicateField);
 			generator.Emit(OpCodes.Brfalse, notPredicatedLabel);
 
 			generator.Emit(OpCodes.Ldloc, local);
@@ -2980,7 +3054,7 @@ namespace Shaolinq.TypeBuilding
 
 			if (match.Success)
 			{
-				return CreateGeneratorForReflectionEmittedPropertyGetter(match.Groups[1].Value);
+				return this.CreateGeneratorForReflectionEmittedPropertyGetter(match.Groups[1].Value);
 			}
 			else
 			{
@@ -3025,7 +3099,7 @@ namespace Shaolinq.TypeBuilding
 
 			if (match.Success)
 			{
-				return CreateGeneratorForReflectionEmittedMethod(match.Groups[1].Value);
+				return this.CreateGeneratorForReflectionEmittedMethod(match.Groups[1].Value);
 			}
 			else
 			{

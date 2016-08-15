@@ -1469,6 +1469,15 @@ namespace Shaolinq.Persistence.Linq
 			return expression;
 		}
 
+		protected override Expression VisitKeyword(SqlKeywordExpression expression)
+		{
+			this.Write(' ');
+			this.Write(expression.Name);
+			this.Write(' ');
+
+			return expression;
+		}
+
 		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
 		{
 			this.Write("SET ");
@@ -1482,8 +1491,9 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			this.Write(" ");
-			this.Write(expression.Arguments);
-
+			this.WriteDeliminatedListOfItems(expression.Arguments, c => this.Visit(c));
+			this.WriteLine(";");
+			
 			return expression;
 		}
 

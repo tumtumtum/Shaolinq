@@ -26,7 +26,7 @@ namespace Shaolinq.SqlServer
 			switch (capability)
 			{
 			case SqlCapability.InsertOutput:
-			case SqlCapability.PragmaIdentityInsert:
+			case SqlCapability.SetIdentityInsert:
 			case SqlCapability.IndexInclude:
 			case SqlCapability.CrossApply:
 			case SqlCapability.OuterApply:

@@ -9,6 +9,33 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionComparer
     {
+        protected override Expression VisitKeyword(SqlKeywordExpression expression)
+        {
+            SqlKeywordExpression current;
+            if (!TryGetCurrent(expression, out current))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= object.Equals(current.Name, expression.Name)))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.NodeType == expression.NodeType))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.Type == expression.Type))
+            {
+                return expression;
+            }
+
+            this.currentObject = current;
+            return expression;
+        }
+
         protected override Expression VisitTableHint(SqlTableHintExpression expression)
         {
             SqlTableHintExpression current;
@@ -354,6 +381,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
         {
             SqlInsertIntoExpression current;
             if (!TryGetCurrent(expression, out current))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.RequiresIdentityInsert == expression.RequiresIdentityInsert))
             {
                 return expression;
             }

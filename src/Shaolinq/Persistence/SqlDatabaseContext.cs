@@ -10,7 +10,7 @@ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
-    public abstract partial class SqlDatabaseContext
+	public abstract partial class SqlDatabaseContext
 		: IDisposable
 	{
 		public TimeSpan? CommandTimeout { get; protected set; }
@@ -37,29 +37,29 @@ namespace Shaolinq.Persistence
 		public abstract DbProviderFactory CreateDbProviderFactory();
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
 
-        [RewriteAsync]
-        public SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
-        {
-            var connection = this.OpenConnection();
+		[RewriteAsync]
+		public SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
+		{
+			var connection = this.OpenConnection();
 
-            try
-            {
-                return this.CreateSqlTransactionalCommandsContext(connection, transaction);
-            }
-            catch
-            {
-                ActionUtils.IgnoreExceptions(() => connection.Dispose());
+			try
+			{
+				return this.CreateSqlTransactionalCommandsContext(connection, transaction);
+			}
+			catch
+			{
+				ActionUtils.IgnoreExceptions(() => connection.Dispose());
 
-                throw;
-            }
-        }
+				throw;
+			}
+		}
 
-        protected virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
-        {
-            return new DefaultSqlTransactionalCommandsContext(this, connection, transaction);
-        }
+		protected virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+		{
+			return new DefaultSqlTransactionalCommandsContext(this, connection, transaction);
+		}
 
-        [RewriteAsync]
+		[RewriteAsync]
 		public virtual IDbConnection OpenConnection()
 		{
 			if (this.dbProviderFactory == null)
@@ -124,21 +124,21 @@ namespace Shaolinq.Persistence
 		{
 		}
 
-        ~SqlDatabaseContext()
-        {
-            this.Dispose(false);
-        }
+		~SqlDatabaseContext()
+		{
+			this.Dispose(false);
+		}
 
-        public void Dispose()
-        {
-            this.Dispose(true);
-        }
+		public void Dispose()
+		{
+			this.Dispose(true);
+		}
 
 		public virtual void Dispose(bool disposing)
 		{
 			this.SchemaManager.Dispose();
 
-            GC.SuppressFinalize(this);
-        }
+			GC.SuppressFinalize(this);
+		}
 	}
 }

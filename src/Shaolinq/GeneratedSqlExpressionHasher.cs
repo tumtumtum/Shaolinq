@@ -5,6 +5,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionHasher
     {
+        protected override Expression VisitKeyword(SqlKeywordExpression expression)
+        {
+            this.hashCode ^= expression.Name?.GetHashCode() ?? 0;
+            return base.VisitKeyword(expression);
+        }
+
         protected override Expression VisitTableHint(SqlTableHintExpression expression)
         {
             this.hashCode ^= expression.TableLock ? 233222230 : 0;
@@ -34,6 +40,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
         {
             this.hashCode ^= expression.IfNotExist ? 1286760945 : 0;
             return base.VisitCreateType(expression);
+        }
+
+        protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
+        {
+            this.hashCode ^= expression.RequiresIdentityInsert ? 2044950846 : 0;
+            return base.VisitInsertInto(expression);
         }
 
         protected override Expression VisitJoin(SqlJoinExpression expression)

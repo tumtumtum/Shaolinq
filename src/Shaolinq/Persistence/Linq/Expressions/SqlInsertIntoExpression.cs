@@ -10,6 +10,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public Expression Source { get; }
 		public Expression WithExpression { get; }
+		public bool RequiresIdentityInsert { get; }
 		public IReadOnlyList<string> ColumnNames { get; }
 		public IReadOnlyList<Expression> ValueExpressions { get; }
 		public IReadOnlyList<string> ReturningAutoIncrementColumnNames { get; }
@@ -21,11 +22,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlInsertIntoExpression(Expression source, IReadOnlyList<string> columnNames, IReadOnlyList<string> returningAutoIncrementColumnNames, IReadOnlyList<Expression> valueExpressions)
-			: this(source, columnNames, returningAutoIncrementColumnNames, valueExpressions, null)
+			: this(source, columnNames, returningAutoIncrementColumnNames, valueExpressions, null, false)
 		{	
 		}
 
-		public SqlInsertIntoExpression(Expression source, IReadOnlyList<string> columnNames, IReadOnlyList<string> returningAutoIncrementColumnNames, IReadOnlyList<Expression> valueExpressions, Expression withExpression)
+		public SqlInsertIntoExpression(Expression source, IReadOnlyList<string> columnNames, IReadOnlyList<string> returningAutoIncrementColumnNames, IReadOnlyList<Expression> valueExpressions, Expression withExpression, bool requiresIdentityInsert)
 			: base(typeof(void))
 		{
 			this.Source = source;
@@ -33,6 +34,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ReturningAutoIncrementColumnNames = returningAutoIncrementColumnNames;
 			this.ValueExpressions = valueExpressions;
 			this.WithExpression = withExpression;
+			this.RequiresIdentityInsert = requiresIdentityInsert;
 		}
 
 		public SqlInsertIntoExpression ChangeSourceAndValueExpressions(SqlProjectionExpression source, IReadOnlyList<Expression> valueExpressions)

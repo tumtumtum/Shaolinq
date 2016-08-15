@@ -26,7 +26,7 @@ namespace Shaolinq
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T?> DefaultIfEmptyCoalesceSpecifiedValueAsync<T>(this IEnumerable<T?> source, T? specifiedValue)
-			where T : struct => new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(source.GetAsyncEnumerator(), specifiedValue));
+			where T : struct => new AsyncEnumerableAdapter<T?>(() => new DefaultIfEmptyCoalesceSpecifiedValueEnumerator<T>(source.GetAsyncEnumeratorOrAdapt(), specifiedValue));
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> source)
@@ -34,20 +34,16 @@ namespace Shaolinq
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T> DefaultIfEmptyAsync<T>(this IEnumerable<T> source, T defaultValue)
-			=> new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(source.GetAsyncEnumerator(), defaultValue));
+			=> new AsyncEnumerableAdapter<T>(() => new DefaultIfEmptyEnumerator<T>(source.GetAsyncEnumeratorOrAdapt(), defaultValue));
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IEnumerable<T> EmptyIfFirstIsNull<T>(this IEnumerable<T> source) 
-			=> new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
+			=> new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumeratorOrAdapt()));
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerable<T> EmptyIfFirstIsNullAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken) 
-			=> new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumerator()));
+			=> new AsyncEnumerableAdapter<T>(() => new EmptyIfFirstIsNullEnumerator<T>(source.GetAsyncEnumeratorOrAdapt()));
 		
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		internal static Task<IAsyncEnumerator<T>> GetEnumeratorAsync<T>(this IEnumerable<T> source)
-			=> Task.FromResult(source.GetAsyncEnumerator());
-
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static Task<bool> MoveNextAsync<T>(this IAsyncEnumerator<T> enumerator)
 			=> enumerator.MoveNextAsync(CancellationToken.None);
@@ -55,26 +51,11 @@ namespace Shaolinq
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static Task<bool> MoveNextAsync<T>(this IAsyncEnumerator<T> enumerator, CancellationToken cancellationToken)
 			=> enumerator.MoveNextAsync(cancellationToken);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrAdapt<T>(this IEnumerable<T> source)
+			=> (source as IAsyncEnumerable<T>)?.GetAsyncEnumerator() ?? new AsyncEnumeratorAdapter<T>(source.GetEnumerator());
 		
-		internal static IAsyncEnumerator<T> GetAsyncEnumerator<T>(this IEnumerable<T> source)
-		{
-			var internalAsyncEnumerable = source as IInternalAsyncEnumerable<T>;
-
-			if (internalAsyncEnumerable != null)
-			{
-				return internalAsyncEnumerable.GetAsyncEnumerator();
-			}
-
-			var asyncEnumerable = source as IAsyncEnumerable<T>;
-
-			if (asyncEnumerable != null)
-			{
-				return asyncEnumerable.GetAsyncEnumerator();
-			}
-
-		   return new AsyncEnumeratorAdapter<T>(source.GetEnumerator());
-		}
-
 		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrThrow<T>(this IEnumerable<T> source)
 		{
 			var asyncEnumerable = source as IAsyncEnumerable<T>;
@@ -99,7 +80,7 @@ namespace Shaolinq
 
 			var retval = 0;
 
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -122,7 +103,7 @@ namespace Shaolinq
 
 			var retval = 0L;
 
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -136,7 +117,7 @@ namespace Shaolinq
 		[RewriteAsync]
 		internal static T SingleOrSpecifiedValueIfFirstIsDefaultValue<T>(this IEnumerable<T> source, T specifiedValue)
 		{
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				if (!enumerator.MoveNext())
 				{
@@ -162,7 +143,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static T Single<T>(this IEnumerable<T> source)
 		{
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				if (!enumerator.MoveNext())
 				{
@@ -183,7 +164,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static T SingleOrDefault<T>(this IEnumerable<T> source)
 		{
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				if (!enumerator.MoveNext())
 				{
@@ -204,7 +185,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static T First<T>(this IEnumerable<T> enumerable)
 		{
-			using (var enumerator = enumerable.GetEnumerator())
+			using (var enumerator = enumerable.GetAsyncEnumeratorOrAdapt())
 			{
 				if (!enumerator.MoveNext())
 				{
@@ -218,7 +199,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static T FirstOrDefault<T>(this IEnumerable<T> source)
 		{
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				if (!enumerator.MoveNext())
 				{
@@ -233,7 +214,7 @@ namespace Shaolinq
 		internal static T SingleOrExceptionIfFirstIsNull<T>(this IEnumerable<T?> source)
 			where T : struct
 		{
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				if (!enumerator.MoveNext() || enumerator.Current == null)
 				{
@@ -246,7 +227,7 @@ namespace Shaolinq
 
 		public static void WithEach<T>(this IEnumerable<T> source, Action<T> value)
 		{
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -257,7 +238,7 @@ namespace Shaolinq
 
 		public static void WithEach<T>(this IEnumerable<T> source, Func<T, bool> value)
 		{
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -273,7 +254,7 @@ namespace Shaolinq
 		{
 			var tasks = new List<Task>();
 
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -288,7 +269,7 @@ namespace Shaolinq
 		{
 			var tasks = new List<Task>();
 
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -325,7 +306,7 @@ namespace Shaolinq
 
 			var retval = collection == null ? new List<T>() : new List<T>(collection.Count);
 
-			using (var enumerator = source.GetEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (enumerator.MoveNext())
 				{
@@ -405,7 +386,7 @@ namespace Shaolinq
 
 			var retval = collection == null ? new List<T>() : new List<T>(collection.Count);
 
-			using (var enumerator = source.GetAsyncEnumerator())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (await enumerator.MoveNextAsync(cancellationToken))
 				{
@@ -430,7 +411,7 @@ namespace Shaolinq
 
 		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
 		{
-			using (var enumerator = await source.GetEnumeratorAsync())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (await enumerator.MoveNextAsync(cancellationToken))
 				{
@@ -446,7 +427,7 @@ namespace Shaolinq
 
 		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
 		{
-			using (var enumerator = await source.GetEnumeratorAsync())
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
 				while (await enumerator.MoveNextAsync(cancellationToken))
 				{

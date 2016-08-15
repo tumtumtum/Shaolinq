@@ -890,7 +890,7 @@ namespace Shaolinq.Persistence.Linq
 					result = this.BindUpdateHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
 					return result;
 				case "InsertHelper":
-					result = this.BindInsertHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
+					result = this.BindInsertHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
 					return result;
 				case "ForUpdate":
 					return this.BindForUpdate(methodCallExpression.Arguments[0]);
@@ -1174,7 +1174,7 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
 		}
 
-		private Expression BindInsertHelper(Type type, Expression source, LambdaExpression updatedValues)
+		private Expression BindInsertHelper(Type type, Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
 		{
 			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
 			var values = new List<Expression>();
@@ -1202,7 +1202,7 @@ namespace Shaolinq.Persistence.Linq
 			var propertyDescriptors = typeDescriptor.PersistedPropertiesWithoutBackreferences.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide).ToList();
 			var returningAutoIncrementColumnNames = propertyDescriptors.Select(c => c.PersistedName).ToReadOnlyCollection();
 
-			var insert = new SqlInsertIntoExpression(projection, columnNames, returningAutoIncrementColumnNames, values.ToReadOnlyCollection());
+			var insert = new SqlInsertIntoExpression(projection, columnNames, returningAutoIncrementColumnNames, values.ToReadOnlyCollection(), null, requiresIdentityInsert);
 			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__INSERT", Expression.Constant(null), true) }, insert, null, null, projection.Select.ForUpdate);
 
 			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));

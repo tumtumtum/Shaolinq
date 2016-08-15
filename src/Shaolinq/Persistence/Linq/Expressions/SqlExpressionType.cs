@@ -46,6 +46,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		Exists,
 		In,
 		QueryArgument,
-		Union
+		Union,
+		Keyword
 	}
 }

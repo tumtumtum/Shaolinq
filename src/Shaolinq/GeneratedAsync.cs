@@ -368,9 +368,9 @@ namespace Shaolinq
 			}
 
 			var retval = 0;
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
-				while (enumerator.MoveNext())
+				while (await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false))
 				{
 					retval++;
 				}
@@ -393,9 +393,9 @@ namespace Shaolinq
 			}
 
 			var retval = 0L;
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
-				while (enumerator.MoveNext())
+				while (await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false))
 				{
 					retval++;
 				}
@@ -411,15 +411,15 @@ namespace Shaolinq
 
 		internal static async Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> source, T specifiedValue, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
-				if (!enumerator.MoveNext())
+				if (!(await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false)))
 				{
 					return Enumerable.Single<T>(Enumerable.Empty<T>());
 				}
 
 				var result = enumerator.Current;
-				if (enumerator.MoveNext())
+				if (await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false))
 				{
 					return Enumerable.Single<T>(new T[2]);
 				}
@@ -440,15 +440,15 @@ namespace Shaolinq
 
 		public static async Task<T> SingleAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
-				if (!enumerator.MoveNext())
+				if (!(await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false)))
 				{
 					return Enumerable.Single<T>(Enumerable.Empty<T>());
 				}
 
 				var result = enumerator.Current;
-				if (enumerator.MoveNext())
+				if (await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false))
 				{
 					return Enumerable.Single<T>(new T[2]);
 				}
@@ -464,15 +464,15 @@ namespace Shaolinq
 
 		public static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
-				if (!enumerator.MoveNext())
+				if (!(await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false)))
 				{
 					return default (T);
 				}
 
 				var result = enumerator.Current;
-				if (enumerator.MoveNext())
+				if (await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false))
 				{
 					return Enumerable.Single(new T[2]);
 				}
@@ -488,9 +488,9 @@ namespace Shaolinq
 
 		public static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(enumerable).ConfigureAwait(false)))
+			using (var enumerator = enumerable.GetAsyncEnumeratorOrAdapt())
 			{
-				if (!enumerator.MoveNext())
+				if (!(await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false)))
 				{
 					return Enumerable.First(Enumerable.Empty<T>());
 				}
@@ -506,9 +506,9 @@ namespace Shaolinq
 
 		public static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
-				if (!enumerator.MoveNext())
+				if (!(await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false)))
 				{
 					return default (T);
 				}
@@ -524,9 +524,9 @@ namespace Shaolinq
 
 		internal static async Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > source, CancellationToken cancellationToken)where T : struct
 		{
-			using (var enumerator = (await EnumerableExtensions.GetEnumeratorAsync(source).ConfigureAwait(false)))
+			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
-				if (!enumerator.MoveNext() || enumerator.Current == null)
+				if (!(await EnumerableExtensions.MoveNextAsync(enumerator, cancellationToken).ConfigureAwait(false)) || enumerator.Current == null)
 				{
 					throw new InvalidOperationException("Sequence contains no elements");
 				}
@@ -785,7 +785,7 @@ namespace Shaolinq.Persistence
 					case DataAccessObjectState.NewChanged:
 						break;
 					case DataAccessObjectState.Changed:
-						throw new NotSupportedException("Changed state not supported");
+						throw new NotSupportedException($"Changed state not supported {objectState}");
 				}
 
 				var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;

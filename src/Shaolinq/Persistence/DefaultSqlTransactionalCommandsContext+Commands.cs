@@ -131,7 +131,7 @@ namespace Shaolinq.Persistence
 				case DataAccessObjectState.NewChanged:
 					break;
 				case DataAccessObjectState.Changed:
-					throw new NotSupportedException("Changed state not supported");
+					throw new NotSupportedException($"Changed state not supported {objectState}");
 				}
 
 				var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;

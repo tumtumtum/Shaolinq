@@ -24,7 +24,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{	
 		}
 
-		public abstract void Method2(string text, System.Collections.Generic.IReadOnlyList<string> names);
+		public abstract void Method2(string text, IReadOnlyList<string> names);
 		public abstract Task Method2Async(string text, System.Collections.Generic.IReadOnlyList<string> names);
 		public abstract Task Method2Async(string text, System.Collections.Generic.IReadOnlyList<string> names, CancellationToken cancellationToken);
 		

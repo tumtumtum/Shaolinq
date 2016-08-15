@@ -78,8 +78,8 @@ namespace Shaolinq.Persistence.Linq
 state0:
 
 			this.state = 1;
-            var commandsContext = this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContext();
-            this.dataReader = commandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
+			var commandsContext = this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContext();
+			this.dataReader = commandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
 			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
 
 state1:

@@ -32,11 +32,13 @@ namespace Shaolinq.Persistence
 		{
 			public readonly Type dataAccessObjectType;
 			public readonly IList<ObjectPropertyValue> changedProperties;
+			public readonly bool requiresIdentityInsert;
 
-			public SqlCachedUpdateInsertFormatKey(Type dataAccessObjectType, IList<ObjectPropertyValue> changedProperties)
+			public SqlCachedUpdateInsertFormatKey(Type dataAccessObjectType, IList<ObjectPropertyValue> changedProperties, bool requiresIdentityInsert = false)
 			{
 				this.dataAccessObjectType = dataAccessObjectType;
 				this.changedProperties = changedProperties;
+				this.requiresIdentityInsert = requiresIdentityInsert;
 			}
 		}
 
@@ -65,7 +67,7 @@ namespace Shaolinq.Persistence
 					}
 				}
 
-				return true;
+				return x.requiresIdentityInsert == y.requiresIdentityInsert;
 			}
 
 			public int GetHashCode(SqlCachedUpdateInsertFormatKey obj)
@@ -83,6 +85,8 @@ namespace Shaolinq.Persistence
 					}
 				}
 
+				retval ^= obj.requiresIdentityInsert ? 26542323 : 0;
+
 				return retval;
 			}
 		}
@@ -90,7 +94,8 @@ namespace Shaolinq.Persistence
 		protected readonly string tableNamePrefix;
 		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		protected readonly string parameterIndicatorPrefix;
-		
+		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>> serverSideGeneratedPropertySettersByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>>();
+
 		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, DataAccessTransaction transaction)
 			: base(sqlDatabaseContext, connection, transaction)
 		{
@@ -186,8 +191,6 @@ namespace Shaolinq.Persistence
 
 			return null;
 		}
-
-		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>> serverSideGeneratedPropertySettersByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>>();
 
 		private DataAccessObject ApplyPropertiesGeneratedOnServerSide(DataAccessObject dataAccessObject, IDataReader reader)
 		{
@@ -575,6 +578,8 @@ namespace Shaolinq.Persistence
 			var assignments = new List<Expression>();
 			var success = false;
 
+			var requiresIdentityInsert = dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties;
+
 			var parameter1 = Expression.Parameter(typeDescriptor.Type);
 
 			foreach (var updated in updatedProperties)
@@ -593,32 +598,20 @@ namespace Shaolinq.Persistence
 				assignments.Add(Expression.Call(null, m, parameter1, Expression.Constant(updated.PersistedName), placeholder));
 			}
 
-			var method = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).InsertHelper(default(Expression<Action<DataAccessObject>>)))
+			var method = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).InsertHelper(default(Expression<Action<DataAccessObject>>), default(bool)))
 				.GetGenericMethodDefinition()
 				.MakeGenericMethod(typeDescriptor.Type);
 
 			var source = Expression.Constant(this.DataAccessModel.GetDataAccessObjects(typeDescriptor.Type));
 			var selector = Expression.Lambda(Expression.Block(assignments), parameter1);
-			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector));
+			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector), Expression.Constant(requiresIdentityInsert));
 
 			expression = SqlQueryProvider.Bind(this.DataAccessModel, this.sqlDataTypeProvider, expression);
 			expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
 			var projectionExpression = expression as SqlProjectionExpression;
 
 			expression = projectionExpression.Select.From;
-
-			if (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
-			{
-				var list = new List<Expression>
-				{
-					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(true)),
-					expression,
-					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(false)),
-				};
-
-				expression = new SqlStatementListExpression(list);
-			}
-
+			
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression);
 
 			IDbCommand command = null;
@@ -652,6 +645,8 @@ namespace Shaolinq.Persistence
 			SqlCachedUpdateInsertFormatValue cachedValue;
 			bool predicated;
 
+			var requiresIdentityInsert = dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties;
+
 			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out predicated);
 
 			if (predicated)
@@ -659,7 +654,7 @@ namespace Shaolinq.Persistence
 				return BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, updatedProperties);
 			}
 
-			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties);
+			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);
 
 			if (this.TryGetInsertCommand(commandKey, out cachedValue))
 			{
@@ -710,23 +705,11 @@ namespace Shaolinq.Persistence
 				valueExpressions.Add(value);
 			}
 
-			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions);
+			Expression expression = new SqlInsertIntoExpression(new SqlTableExpression(typeDescriptor.PersistedName), columnNames, returningAutoIncrementColumnNames, valueExpressions, null, requiresIdentityInsert);
 
 			for (var i = 0; i < constantPlaceholdersCount; i++)
 			{
 				valueIndexesToParameterPlaceholderIndexes[i] = i;
-			}
-
-			if (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.PragmaIdentityInsert) && dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties)
-			{
-				var list = new List<Expression>
-				{
-					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(true)),
-					expression,
-					new SqlSetCommandExpression("IdentityInsert", new SqlTableExpression(typeDescriptor.PersistedName), Expression.Constant(false)),
-				};
-
-				expression = new SqlStatementListExpression(list);
 			}
 
 			var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(expression);

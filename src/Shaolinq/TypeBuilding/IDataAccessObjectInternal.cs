@@ -7,72 +7,26 @@ namespace Shaolinq.TypeBuilding
 {
 	internal interface IDataAccessObjectInternal
 	{
-		object CompositePrimaryKey { get; }
-
-		/// <summary>
-		/// Submits this object into the cache and then returns itself.
-		/// </summary>
-		/// <returns>The current object</returns>
-		IDataAccessObjectInternal SubmitToCache();
-
-		/// <summary>
-		/// Called when an object has finished being loaded from the database
-		/// </summary>
-		/// <returns></returns>
-		IDataAccessObjectInternal FinishedInitializing();
-
-		/// <summary>
-		/// Marks this object as newly created (unpersisted).
-		/// </summary>
 		void SetIsNew(bool value);
-
-		/// <summary>
-		/// Marks this object has been deleted.
-		/// </summary>
 		void SetIsDeleted(bool value);
-
-		/// <summary>
-		/// Makes the object as write-only (reads can only be made to primary key properties and properties that have been
-		/// changed within the context of the current transaction)
-		/// </summary>
+		object CompositePrimaryKey { get; }
 		void SetIsDeflatedReference(bool value);
-
 		void MarkServerSidePropertiesAsApplied();
-
-		LambdaExpression DeflatedPredicate { get; }
-
-		void SetDeflatedPredicate(LambdaExpression value);
-
-		/// <summary>
-		/// Update all properties that rely on server side generated properties.
-		/// </summary>
-		/// <returns></returns>
-		bool ComputeServerGeneratedIdDependentComputedTextProperties();
-
-		/// <summary>
-		/// Resets the modified status of all the properties that aren't unrealised
-		/// foreign key references.
-		/// </summary>
+		IDataAccessObjectInternal SubmitToCache();
 		IDataAccessObjectInternal ResetModified();
-
-		/// <summary>
-		/// Sets the primary keys.
-		/// </summary>
-		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
-
-		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
-
-		/// <summary>
-		/// Sets the underlying data container of the current data access object with the one in the given DataAccessObject.
-		/// </summary>
-		void SwapData(DataAccessObject source, bool transferChangedProperties);
-
 		int GetHashCodeAccountForServerGenerated();
-
+		LambdaExpression DeflatedPredicate { get; }
+		IDataAccessObjectInternal FinishedInitializing();
+		void SetDeflatedPredicate(LambdaExpression value);
+		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
+		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
 		bool EqualsAccountForServerGenerated(object dataAccessObject);
-
+		bool ComputeServerGeneratedIdDependentComputedTextProperties();
 		ObjectPropertyValue[] GetPrimaryKeysFlattened(out bool predicated);
+		void SwapData(DataAccessObject source, bool transferChangedProperties);
 		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened(out bool predicated);
 		List<ObjectPropertyValue> GetChangedPropertiesFlattened(out bool predicated);
+
+		bool HasAnyServerSidePropertiesThatNeedValidating();
 	}
 }

@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 using Shaolinq.Persistence.Computed;
 
 namespace Shaolinq
@@ -24,46 +26,41 @@ namespace Shaolinq
 			this.SetExpression = setExpression;
 		}
 
-		private Type[] GetReferencedTypes(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
+		internal static Type[] GetReferencedTypes(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo, Type[] referencedTypes)
 		{
-			var referencedTypes = new List<Type>();
+			var retval = new List<Type>();
 
 			if (configuration.ReferencedTypes != null)
 			{
-				referencedTypes.AddRange(configuration.ReferencedTypes);
+				retval.AddRange(configuration.ReferencedTypes);
 			}
 
-			if (this.ReferencedTypes != null)
+			if (referencedTypes != null)
 			{
-				referencedTypes.AddRange(this.ReferencedTypes);
-			}
-
-			if (this.ReferencedType != null)
-			{
-				referencedTypes.Add(this.ReferencedType);
+				retval.AddRange(referencedTypes);
 			}
 
 			if (propertyInfo?.PropertyType != null)
 			{
-				referencedTypes.Add(propertyInfo.PropertyType);
+				retval.Add(propertyInfo.PropertyType);
 			}
 
 			if (propertyInfo?.DeclaringType != null)
 			{
-				referencedTypes.Add(propertyInfo.DeclaringType);
+				retval.Add(propertyInfo.DeclaringType);
 			}
 
-			return referencedTypes.ToArray();
+			return retval.ToArray();
 		}
 
 		public LambdaExpression GetGetLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
-			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo));
+			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes?.ConcatUnlessNull(this.ReferencedType).ToArray()));
 		}
 
 		public LambdaExpression GetSetLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
-			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo));
+			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes?.ConcatUnlessNull(this.ReferencedType).ToArray()));
 		}
 	}
 }

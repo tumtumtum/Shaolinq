@@ -92,9 +92,16 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitUnion((SqlUnionExpression)expression);
 			case SqlExpressionType.TableHint:
 				return this.VisitTableHint((SqlTableHintExpression)expression);
+			case SqlExpressionType.Keyword:
+				return this.VisitKeyword((SqlKeywordExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitKeyword(SqlKeywordExpression expression)
+		{
+			return expression;
 		}
 
 		protected virtual Expression VisitTableHint(SqlTableHintExpression expression)

@@ -1,6 +1,11 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using Platform;
+using Shaolinq.Persistence.Computed;
 
 namespace Shaolinq
 {
@@ -18,16 +23,23 @@ namespace Shaolinq
 		public long Step { get; set; }
 		public long Seed { get; set; }
 		public bool AutoIncrement { get; set; }
-        public bool ValidateExpression { get; set; }
-	
+		public Type ReferencedType { get; set; }
+		public Type[] ReferencedTypes { get; set; }
+		public string ValidateExpression { get; set; }
+
 		public AutoIncrementAttribute()
 			: this(true)    
-		{	
+		{
 		}
 
 		public AutoIncrementAttribute(bool autoIncrement)
 		{
 			this.AutoIncrement = autoIncrement;
+		}
+
+		public LambdaExpression GetValidateLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
+		{
+			return this.ValidateExpression == null ? null : ComputedExpressionParser.Parse(this.ValidateExpression, propertyInfo, ComputedMemberAttribute.GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes.Concat(this.ReferencedType).ToArray()));
 		}
 	}
 }

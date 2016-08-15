@@ -1063,6 +1063,26 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Select_FirstOrDefaultAsync2()
+		{
+			Task.Run(async () => await __Test_Select_FirstOrDefaultAsync2().ContinueOnAnyContext()).Wait();
+		}
+
+		public virtual async Task __Test_Select_FirstOrDefaultAsync2()
+		{
+			var list = await this.model.Students.AsQueryable().ToListAsync();
+
+			Assert.IsNotNull(list);
+
+			var student = this.model.Students.FirstOrDefault();
+
+			Assert.IsNotNull(student);
+
+			list = await this.model.Students.AsQueryable().ToListAsync();
+
+		}
+
+		[Test]
 		public virtual void Test_Select_FirstOrDefaultAsyncWithPredicate1()
 		{
 			Func<Task> func = async () =>
@@ -1121,7 +1141,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = new DataAccessScope())
 			{
-				var students = await this.model.Students.ToListAsync();
+				var students = await this.model.Students.AsQueryable().ToListAsync();
 
 				Assert.Greater(students.Count, 0);
 			}

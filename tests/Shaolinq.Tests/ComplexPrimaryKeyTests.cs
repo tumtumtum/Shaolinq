@@ -21,7 +21,7 @@ namespace Shaolinq.Tests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
 	{
 		private long shopId;
-
+		
 		public ComplexPrimaryKeyTests(string providerName)
 			: base(providerName)
 		{

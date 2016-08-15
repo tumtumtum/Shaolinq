@@ -34,7 +34,7 @@ namespace Shaolinq.Persistence.Linq
 	}
 
 	public class ObjectProjector<T, U, C>
-		: ObjectProjector, IAsyncEnumerable<T>, IInternalAsyncEnumerable<T>
+		: ObjectProjector, IAsyncEnumerable<T>
 		where U : T
 		where C : class
 	{

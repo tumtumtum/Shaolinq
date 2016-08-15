@@ -9,10 +9,4 @@ namespace Shaolinq
 	{
 		IAsyncEnumerator<T> GetAsyncEnumerator();
 	}
-
-	public interface IInternalAsyncEnumerable<out T>
-	   : IEnumerable<T>
-	{
-		IAsyncEnumerator<T> GetAsyncEnumerator();
-	}
 }
