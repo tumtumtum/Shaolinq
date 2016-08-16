@@ -26,7 +26,7 @@ namespace Shaolinq.TypeBuilding
 		void SwapData(DataAccessObject source, bool transferChangedProperties);
 		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened(out bool predicated);
 		List<ObjectPropertyValue> GetChangedPropertiesFlattened(out bool predicated);
-
-		bool HasAnyServerSidePropertiesThatNeedValidating();
+		bool ValidateServerSideGeneratedIds();
+		bool HasAnyServerSideGeneratedPropertiesThatNeedValidating();
 	}
 }

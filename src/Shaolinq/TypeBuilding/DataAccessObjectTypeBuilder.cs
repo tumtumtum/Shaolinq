@@ -2644,7 +2644,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildHasAnyServerSidePropertiesThatNeedValidatingMethod()
+		private void BuildHasAnyServerSideGeneratedPropertiesThatNeedValidatingMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
