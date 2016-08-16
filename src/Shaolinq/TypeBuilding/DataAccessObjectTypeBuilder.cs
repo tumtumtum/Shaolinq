@@ -2644,6 +2644,22 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		private void BuildValidateServerSideGeneratedIdsMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
+
+			if (this.baseType.GetProperties().Any(c => !string.IsNullOrEmpty(c.GetFirstCustomAttribute<AutoIncrementAttribute>(true)?.ValidateExpression)))
+			{
+				generator.Emit(OpCodes.Ldc_I4_1);
+			}
+			else
+			{
+				generator.Emit(OpCodes.Ldc_I4_0);
+			}
+
+			generator.Emit(OpCodes.Ret);
+		}
+
 		private void BuildHasAnyServerSideGeneratedPropertiesThatNeedValidatingMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
