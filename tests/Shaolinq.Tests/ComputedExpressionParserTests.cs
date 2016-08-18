@@ -36,9 +36,8 @@ namespace Shaolinq.Tests
 		[Test]
 		public void TestParse()
 		{
-			var parser = new ComputedExpressionParser(new StringReader("C.Foo()"), typeof(TestObject).GetProperty("A"));
-
-			var func = parser.Parse().Compile();
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("C.Foo()"), property, null, property.PropertyType).Compile();
 
 			var obj = new TestObject
 			{
@@ -52,29 +51,30 @@ namespace Shaolinq.Tests
 		[Test]
 		public void TestParse2()
 		{
-			var parser = new ComputedExpressionParser(new StringReader("A = value + 1000"), typeof(TestObject).GetProperty("A"));
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("A = value + 1000"), property, null, property.PropertyType).Compile();
 
-			var result = parser.Parse();
+			var result = func.DynamicInvoke(new TestObject());
 		}
 
 		[Test]
 		public void TestParse3()
 		{
-			var parser = new ComputedExpressionParser(new StringReader("A = Shaolinq.Tests.ComputedExpressionParserTests.Bar() + 1"), typeof(TestObject).GetProperty("A"), new[] { typeof(TestObject) });
+			var property = typeof(TestObject).GetProperty("A");
+			var func =
+				ComputedExpressionParser.Parse
+					(new StringReader("A = Shaolinq.Tests.ComputedExpressionParserTests.Bar() + 1"), property, new[] { typeof(TestObject) }, property.PropertyType).Compile();
 
-			var result = parser.Parse();
-
-			Assert.AreEqual(4, result.Compile().DynamicInvoke(new TestObject()));
+			Assert.AreEqual(4, func.DynamicInvoke(new TestObject()));
 		}
 
 		[Test]
 		public void TestParse4()
 		{
-			var parser = new ComputedExpressionParser(new StringReader("A = TestObject.Make(this, 1).GetHashCode()"), typeof(TestObject).GetProperty("A"));
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("A = TestObject.Make(this, 1).GetHashCode()"), property, null, property.PropertyType).Compile();
 
-			var result = parser.Parse();
-
-			Assert.AreEqual("1".GetHashCode(), result.Compile().DynamicInvoke(new TestObject()));
+			Assert.AreEqual("1".GetHashCode(), func.DynamicInvoke(new TestObject()));
 		}
 	}
 }

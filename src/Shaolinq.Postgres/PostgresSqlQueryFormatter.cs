@@ -17,8 +17,8 @@ namespace Shaolinq.Postgres
 		private readonly string schemaName;
 		internal bool ConvertEnumsToText { get; }
 
-		public PostgresSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName, bool convertEnumsToText)
-			: base(options, sqlDialect, sqlDataTypeProvider)
+		public PostgresSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, string schemaName, bool convertEnumsToText)
+			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
 			this.schemaName = schemaName;
 			this.ConvertEnumsToText = convertEnumsToText;

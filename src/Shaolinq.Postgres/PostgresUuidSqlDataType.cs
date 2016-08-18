@@ -18,7 +18,7 @@ namespace Shaolinq.Postgres
 		{
 		}
 		
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			return "UUID";
 		}

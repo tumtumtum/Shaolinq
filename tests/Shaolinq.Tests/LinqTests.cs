@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -416,10 +417,14 @@ namespace Shaolinq.Tests
 							  orderby g.Key
 							  select new { Count = g.Count(), Name = g.Key };
 
+				var results2 = from student in this.model.Students.ToList()
+							  group student by student.Firstname into g
+							  orderby g.Key
+							  select new { Count = g.Count(), Name = g.Key };
+
 				var resultsArray = results.ToArray();
 
-				Assert.AreEqual(2, resultsArray[0].Count);
-				Assert.AreEqual("Chuck", resultsArray[0].Name);
+				Assert.IsTrue(resultsArray.SequenceEqual(results2));
 				
 				scope.Complete();
 			}
@@ -436,10 +441,15 @@ namespace Shaolinq.Tests
 					orderby g.Key
 					select new {Count = g.Count(), Name = g.Key};
 
+				var results2 = from student in this.model.Students.ToList()
+							  group student by student.Firstname
+					into g
+							  orderby g.Key
+							  select new { Count = g.Count(), Name = g.Key };
+
 				var resultsArray = results.ToArray();
 
-				Assert.AreEqual("Chuck", resultsArray[0].Name);
-				Assert.AreEqual(2, resultsArray[0].Count);
+				Assert.IsTrue(resultsArray.SequenceEqual(results2));
 
 				scope.Complete();
 			}
@@ -539,15 +549,16 @@ namespace Shaolinq.Tests
 			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
-							  where student.Address == new TempObject(this.model).GetAddress() 
-							  orderby  student.Firstname
+							  where student.Address == new TempObject(this.model).GetAddress()
+							  orderby student.Firstname, student.Id
 							  select new { student };
 
-				var array =  results.ToArray();
+				var results2 = from student in this.model.Students.Include(c => c.Address).ToList()
+							  where student.Address == new TempObject(this.model).GetAddress()
+							  orderby student.Firstname, student.Id
+							  select new { student };
 
-				Assert.AreEqual(2, array.Length);
-				Assert.AreEqual("Mars", array[0].student.Firstname);
-				Assert.AreEqual("Tum", array[1].student.Firstname);
+				Assert.IsTrue(results.ToList().SequenceEqual(results2));
 
 				scope.Complete();
 			}
@@ -613,9 +624,14 @@ namespace Shaolinq.Tests
 					from student in this.model.Students.Where(c => c.School == school && school.Name == "Empty school").DefaultIfEmpty()
 					select new { school, student };
 
+				var query2 =
+					from school in this.model.Schools.ToList()
+					from student in this.model.Students.ToList().Where(c => c.School == school && school.Name == "Empty school").DefaultIfEmpty()
+					select new { school, student };
+
 				var result = query.ToList();
 
-				Assert.That(result.Count, Is.EqualTo(3));
+				Assert.That(result.Count, Is.EqualTo(query2.ToList().Count));
 			}
 		}
 
@@ -731,10 +747,10 @@ namespace Shaolinq.Tests
 				var students = this.model.Students.ToList();
 
 				var results = ((from student in this.model.Students
-								orderby student.Firstname
+								orderby student.Firstname, student.Id
 								select student).Skip(2)).ToArray();
 
-				Assert.IsTrue(students.OrderBy(c => c.Firstname).Skip(2).SequenceEqual(results));
+				Assert.IsTrue(students.OrderBy(c => c.Firstname).ThenBy(c => c.Id).Skip(2).SequenceEqual(results));
 			}
 		}
 
@@ -800,12 +816,12 @@ namespace Shaolinq.Tests
 				var students = this.model.Students.ToList();
 
 				var results = ((from student in this.model.Students
-								orderby student.Firstname
+								orderby student.Firstname, student.Id
 								select student).Skip(1).Take(2)).ToList();
 
 				Assert.AreEqual(2, results.Count);
 
-				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).Skip(1).Take(2)));
+				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).ThenBy(c => c.Id).Skip(1).Take(2)));
 			}
 		}
 
@@ -1586,7 +1602,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var studentName = this.model.Students.Select(c => c.Firstname).First();
+				var studentName = this.model.Students.Select(c => c.Firstname).First(c => c != null);
 
 				Assert.IsNotNull(studentName);
 
@@ -1993,6 +2009,8 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Sum_With_Group3()
 		{
+			var students = this.model.Students.ToList();
+
 			var tum = this.model.Students.Single(c => c.Firstname == "Tum");
 			var mars = this.model.Students.Single(c => c.Firstname == "Mars");
 
@@ -2133,6 +2151,12 @@ namespace Shaolinq.Tests
 				Assert.That(group[0].Count, Is.EqualTo(1));
 				Assert.That(group[1].Count, Is.EqualTo(1));
 			}
+
+			// Make sure temp student wasn't saved
+			using (var scope = NewTransactionScope())
+			{
+				Assert.AreEqual(1, this.model.Students.Count(c => c.Firstname == "Tum"));
+			}
 		}
 
 		[Test, Ignore("LogicalNot working on postgres yet")]
@@ -2257,7 +2281,11 @@ namespace Shaolinq.Tests
 					.Select(c => c.Id)
 					.ToList();
 
-				Assert.AreEqual(this.model.Students.Count() - 1, list.Count);
+				var list2 = this.model.Students.ToList().Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids1.Contains(c.Id))
+					.Select(c => c.Id)
+					.ToList();
+
+				Assert.IsTrue(list.SequenceEqual(list2));
 
 				scope.Complete();
 			}
@@ -2268,7 +2296,11 @@ namespace Shaolinq.Tests
 					.Select(c => c.Id)
 					.ToList();
 
-				Assert.AreEqual(4, list.Count);
+				var list2 = this.model.Students.Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids2.Contains(c.Id))
+					.Select(c => c.Id)
+					.ToList();
+
+				Assert.IsTrue(list.SequenceEqual(list2));
 
 				scope.Complete();
 			}
@@ -2978,8 +3010,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = NewTransactionScope())
 			{
-				var result = this.model.Students.OrderBy(c => c.Nickname).Skip(1).ToList();
-				var result2 = this.model.Students.ToList().OrderBy(c => c.Nickname).Skip(1).ToList();
+				var result = this.model.Students.OrderBy(c => c.Nickname).ThenBy(c => c.Id).Skip(1).ToList();
+				var result2 = this.model.Students.ToList().OrderBy(c => c.Nickname).ThenBy(c => c.Id).Skip(1).ToList();
 
 				Assert.IsTrue(result.SequenceEqual(result2));
 			}
@@ -3501,16 +3533,70 @@ namespace Shaolinq.Tests
 			}
 
 			var scopes = query.ToLookup(x => x.School, x => x.Student);
-
 			var result = scopes.ToList();
 		}
 
 		[Test]
-		public void Test()
+		public void Test_QuerySchoolAndStudentsLookup()
 		{
 			for (var i = 0; i < 10; i++)
 			{
 				QuerySchoolAndStudentsLookup(new [] { "Bruce's Kung Fu School" });
+			}
+		}
+
+		[Test]
+		public void Test_AutoIncrementValidation()
+		{
+			long schoolId;
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.Create();
+
+				school.Name = "School" + MethodBase.GetCurrentMethod().Name;
+				scope.Flush();
+
+				schoolId = school.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.GetByPrimaryKey(schoolId);
+				var student = school.Students.Create();
+
+				scope.Flush();
+				Console.WriteLine($"serialnumber1: {student.SerialNumber1}");
+				Assert.IsTrue(student.SerialNumber1 % 2 == 0);
+				
+				student = school.Students.Create();
+				scope.Flush();
+				Console.WriteLine($"serialnumber1: {student.SerialNumber1}");
+				Assert.IsTrue(student.SerialNumber1 % 2 == 0);
+
+				student = school.Students.Create();
+				scope.Flush();
+				Console.WriteLine($"serialnumber1: {student.SerialNumber1}");
+				Assert.IsTrue(student.SerialNumber1 % 2 == 0);
+
+				student = school.Students.Create();
+				scope.Flush();
+				Console.WriteLine($"serialnumber1: {student.SerialNumber1}");
+				Assert.IsTrue(student.SerialNumber1 % 2 == 0);
+
+				student = school.Students.Create();
+				scope.Flush();
+				Console.WriteLine($"serialnumber1: {student.SerialNumber1}");
+				Assert.IsTrue(student.SerialNumber1 % 2 == 0);
+
+				student = school.Students.Create();
+				scope.Flush();
+				Console.WriteLine($"serialnumber1: {student.SerialNumber1}");
+				Assert.IsTrue(student.SerialNumber1 % 2 == 0);
+
+				scope.Complete();
 			}
 		}
 	}

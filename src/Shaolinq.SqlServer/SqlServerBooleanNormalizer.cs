@@ -178,39 +178,39 @@ namespace Shaolinq.SqlServer
 			var count = selectExpression.Columns.Count;
 			List<SqlColumnDeclaration> newColumns = null;
 
-			for (var i = 0; i < count; i++)
-			{
-				var column = selectExpression.Columns[i];
-				var visitedColumnExpression = this.Visit(column.Expression);
+		    for (var i = 0; i < count; i++)
+		    {
+		        var column = selectExpression.Columns[i];
+		        var visitedColumnExpression = this.Visit(column.Expression);
 
-				if (visitedColumnExpression.Type.GetUnwrappedNullableType() == typeof(bool) && !(visitedColumnExpression is BitBooleanExpression))
-				{
-					if (newColumns == null)
-					{
-						newColumns = new List<SqlColumnDeclaration>(selectExpression.Columns.Take(i));
-					}
+		        if (visitedColumnExpression.Type.GetUnwrappedNullableType() == typeof(bool) && !(visitedColumnExpression is BitBooleanExpression))
+		        {
+		            if (newColumns == null)
+		            {
+		                newColumns = new List<SqlColumnDeclaration>(selectExpression.Columns.Take(i));
+		            }
 
-					var newColumnExpression = BitBooleanExpression.Coerce(visitedColumnExpression);
-					var newColumnDeclaration = new SqlColumnDeclaration(column.Name, newColumnExpression);
+		            var newColumnExpression = BitBooleanExpression.Coerce(visitedColumnExpression);
+		            var newColumnDeclaration = new SqlColumnDeclaration(column.Name, newColumnExpression);
 
-					newColumns.Add(newColumnDeclaration);
-				}
-				else if (visitedColumnExpression != column.Expression)
-				{
-					if (newColumns == null)
-					{
-						newColumns = new List<SqlColumnDeclaration>(selectExpression.Columns.Take(i));
-					}
+		            newColumns.Add(newColumnDeclaration);
+		        }
+		        else if (visitedColumnExpression != column.Expression)
+		        {
+		            if (newColumns == null)
+		            {
+		                newColumns = new List<SqlColumnDeclaration>(selectExpression.Columns.Take(i));
+		            }
 
-					newColumns.Add(column.ReplaceExpression(visitedColumnExpression));
-				}
-				else if (newColumns != null)
-				{
-					newColumns.Add(column);
-				}
-			}
+		            newColumns.Add(column.ReplaceExpression(visitedColumnExpression));
+		        }
+		        else if (newColumns != null)
+		        {
+		            newColumns.Add(column);
+		        }
+		    }
 
-			var from = this.VisitSource(selectExpression.From);
+		    var from = this.VisitSource(selectExpression.From);
 			var where = this.Visit(selectExpression.Where);
 			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
 			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
@@ -224,7 +224,7 @@ namespace Shaolinq.SqlServer
 
 			if (from != selectExpression.From || where != selectExpression.Where || newColumns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
 			{
-				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, newColumns ?? selectExpression.Columns, from, where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate);
+				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, newColumns ?? selectExpression.Columns, from, where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate, selectExpression.Reverse, selectExpression.Into);
 			}
 
 			return base.VisitSelect(selectExpression);

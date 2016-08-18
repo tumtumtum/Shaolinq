@@ -45,7 +45,9 @@ namespace Shaolinq.SqlServer
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDataTypeProvider = new SqlServerSqlDataTypeProvider(constraintDefaults);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(new SqlServerSqlDialect(contextInfo), sqlDataTypeProvider, typeof(SqlServerSqlQueryFormatter));
+			var sqlDialect = new SqlServerSqlDialect(contextInfo);
+			var typeDescriptorProvider = model.TypeDescriptorProvider;
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, options => new SqlServerSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider));
 
 			return new SqlServerSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -122,9 +124,9 @@ namespace Shaolinq.SqlServer
 			this.SchemaManager = new SqlServerSqlDatabaseSchemaManager(this);
 		}
 
-        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, TransactionContext transactionContext)
         {
-			return new SqlServerSqlTransactionsCommandContext(this, connection, transaction);
+			return new SqlServerSqlTransactionsCommandContext(this, connection, transactionContext);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()

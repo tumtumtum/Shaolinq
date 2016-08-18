@@ -15,7 +15,6 @@ namespace Shaolinq.TypeBuilding
 	public class DataAccessModelTypeBuilder
 		: BaseTypeBuilder
 	{
-		private TypeBuilder typeBuilder;
 		private FieldBuilder dictionaryFieldBuilder;
 
 		public DataAccessModelTypeBuilder(AssemblyBuildContext assemblyBuildContext, ModuleBuilder moduleBuilder)
@@ -23,25 +22,35 @@ namespace Shaolinq.TypeBuilding
 		{
 		}
 
-		public virtual Type BuildType(Type baseType)
+		public virtual void BuildTypePhase1(Type baseType)
 		{
-			this.typeBuilder = this.ModuleBuilder.DefineType(baseType.FullName, TypeAttributes.Class | TypeAttributes.Public, baseType);
-			
+			this.AssemblyBuildContext.DataAccessModelTypeBuilder = this.ModuleBuilder.DefineType(baseType.FullName, TypeAttributes.Class | TypeAttributes.Public, baseType);
+			this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField = this.AssemblyBuildContext.DataAccessModelTypeBuilder.DefineField("$$$dataAccessModelProperties", this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilder, FieldAttributes.Public);
+		}
+
+		public virtual Type BuildTypePhase2()
+		{
+			var typeBuilder = this.AssemblyBuildContext.DataAccessModelTypeBuilder;
+			var baseType = this.AssemblyBuildContext.DataAccessModelTypeBuilder.BaseType;
+
 			// Build constructor for DataAccessModel
-			var constructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
+			var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
 			var ctorGenerator = constructorBuilder.GetILGenerator();
 			ctorGenerator.Emit(OpCodes.Ldarg_0);
 			ctorGenerator.Emit(OpCodes.Call, baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null));
+			ctorGenerator.Emit(OpCodes.Ldarg_0);
+			ctorGenerator.Emit(OpCodes.Newobj, this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField.FieldType.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null));
+			ctorGenerator.Emit(OpCodes.Stfld, this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField);
 			ctorGenerator.Emit(OpCodes.Ret);
 
-			var methodInfo = this.typeBuilder.BaseType.GetMethod("Initialise", BindingFlags.Instance | BindingFlags.NonPublic);
+			var methodInfo = typeBuilder.BaseType.GetMethod("Initialise", BindingFlags.Instance | BindingFlags.NonPublic);
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 			methodAttributes |= methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family);
 
-			var initialiseMethodBuilder = this.typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
+			var initialiseMethodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
 			var initialiseGenerator = initialiseMethodBuilder.GetILGenerator();
 
-			this.dictionaryFieldBuilder = this.typeBuilder.DefineField("$$$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
+			this.dictionaryFieldBuilder = typeBuilder.DefineField("$$$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
 
 			initialiseGenerator.Emit(OpCodes.Ldarg_0);
 			initialiseGenerator.Emit(OpCodes.Ldc_I4, baseType.GetProperties().Count());
@@ -65,7 +74,7 @@ namespace Shaolinq.TypeBuilding
 				if (propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetSetMethod().IsAbstract)
 				{
 					// Generate the field for the queryable
-					var fieldBuilder = this.typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
+					var fieldBuilder = typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
 
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
 					initialiseGenerator.Emit(OpCodes.Ldarg_0);
@@ -82,7 +91,7 @@ namespace Shaolinq.TypeBuilding
 					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
 					initialiseGenerator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
 					
-					var propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
+					var propertyBuilder = typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
 
 					// Implement get method
 
@@ -104,14 +113,15 @@ namespace Shaolinq.TypeBuilding
 
 			this.BuildGetDataAccessObjectsMethod();
 			
-			return this.typeBuilder.CreateType();
+			return typeBuilder.CreateType();
 		}
 
 		protected virtual void BuildGetDataAccessObjectsMethod()
 		{
-			var method = this.typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && !c.IsGenericMethod && c.GetParameters().Length == 1);
+			var typeBuilder = this.AssemblyBuildContext.DataAccessModelTypeBuilder;
+			var method = typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && !c.IsGenericMethod && c.GetParameters().Length == 1);
 			var methodAttributes = (method.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot)) | MethodAttributes.Virtual;
-			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
+			var methodBuilder = typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
 			
 			var generator = methodBuilder.GetILGenerator();
 
@@ -182,6 +192,7 @@ namespace Shaolinq.TypeBuilding
 		protected virtual MethodBuilder BuildPropertyMethod(string methodType, PropertyInfo propertyInfo, FieldBuilder backingField)
 		{
 			MethodInfo method;
+			var typeBuilder = this.AssemblyBuildContext.DataAccessModelTypeBuilder;
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 			methodAttributes |= (propertyInfo.GetGetMethod().Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
 		
@@ -198,7 +209,7 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			var parameters = method.GetParameters().Select(x => x.ParameterType).ToArray();
-			var methodBuilder = this.typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, parameters);
+			var methodBuilder = typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, parameters);
 			var generator = methodBuilder.GetILGenerator();
 
 			switch (methodType)

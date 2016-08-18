@@ -55,12 +55,12 @@ namespace Shaolinq
 
 		public LambdaExpression GetGetLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
-			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes?.ConcatUnlessNull(this.ReferencedType).ToArray()));
+			return this.GetExpression == null ? null : ComputedExpressionParser.Parse(this.GetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes?.ConcatUnlessNull(this.ReferencedType).ToArray()), propertyInfo.PropertyType);
 		}
 
 		public LambdaExpression GetSetLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
-			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes?.ConcatUnlessNull(this.ReferencedType).ToArray()));
+			return this.SetExpression == null ? null : ComputedExpressionParser.Parse(this.SetExpression, propertyInfo, GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes?.ConcatUnlessNull(this.ReferencedType).ToArray()), propertyInfo.PropertyType);
 		}
 	}
 }

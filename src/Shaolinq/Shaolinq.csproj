@@ -189,13 +189,17 @@
     <Compile Include="Persistence\DbCommandWrapper.cs" />
     <Compile Include="Persistence\ExpressionCacheKey.cs" />
     <Compile Include="Persistence\ExpressionCacheKeyEqualityComparer.cs" />
+    <Compile Include="Persistence\ExpressionQueue.cs" />
+    <Compile Include="Persistence\IExpressionQueue.cs" />
     <Compile Include="Persistence\Linq\AlwaysReadFirstObjectProjector.cs" />
     <Compile Include="Persistence\Linq\ComplexDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\Expressions\BinaryOperations.cs" />
     <Compile Include="Persistence\Linq\Expressions\ISqlExposesAliases.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlDeclareExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlKeywordExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTableHintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUnionExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlVariableDeclarationExpression.cs" />
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AliasReferenceReplacer.cs" />

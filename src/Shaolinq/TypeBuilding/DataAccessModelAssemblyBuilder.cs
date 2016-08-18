@@ -2,7 +2,6 @@
 
 using System;
 using System.Configuration;
-using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using Platform;
@@ -32,10 +31,12 @@ namespace Shaolinq.TypeBuilding
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(sharedAssemblyName, AssemblyBuilderAccess.RunAndSave);
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + hash + ".dll");
 
-			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder);
+			var propertiesBuilder = moduleBuilder.DefineType("$$$DataAccessModelProperties", TypeAttributes.Class, typeof(object));
+			
+			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder, propertiesBuilder);
 
 			var dataAccessModelTypeBuilder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
-			dataAccessModelTypeBuilder.BuildType(typeDescriptorProvider.DataAccessModelType);
+			dataAccessModelTypeBuilder.BuildTypePhase1(typeDescriptorProvider.DataAccessModelType);
 
 			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
 			
@@ -50,6 +51,9 @@ namespace Shaolinq.TypeBuilding
 				dataAccessObjectTypeBuilder = assemblyBuildContext.TypeBuilders[typeDescriptor.Type];
 				dataAccessObjectTypeBuilder.Build(new DataAccessObjectTypeBuilder.TypeBuildContext(2));
 			}
+
+			assemblyBuildContext.DataAccessModelPropertiesTypeBuilder.CreateType();
+			dataAccessModelTypeBuilder.BuildTypePhase2();
 
 			bool saveConcreteAssembly;
 			bool.TryParse(ConfigurationManager.AppSettings["Shaolinq.SaveConcreteAssembly"], out saveConcreteAssembly);

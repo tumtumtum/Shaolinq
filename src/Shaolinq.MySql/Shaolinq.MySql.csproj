@@ -131,6 +131,7 @@
     <Compile Include="MySqlSqlDataTypeProvider.cs" />
     <Compile Include="MySqlSqlDialect.cs" />
     <Compile Include="MySqlSqlQueryFormatter.cs" />
+    <Compile Include="MySqlSqlTransactionalCommandsContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MySqlSqlDatabaseSchemaManager.cs" />
     <Compile Include="MySqlInsertIntoAutoIncrementAmender.cs" />

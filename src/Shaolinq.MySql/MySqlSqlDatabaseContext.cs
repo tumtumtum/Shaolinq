@@ -12,6 +12,9 @@ namespace Shaolinq.MySql
 	public partial class MySqlSqlDatabaseContext
 		: SqlDatabaseContext
 	{
+		internal const string CommitCleanupQueueKey = "$mysql$commit$cleanup$queue";
+		internal const string NeedsManualAutoIncrementKey = "$mysql$needs$manual$autoincrement";
+
 		public string Username { get; }
 		public string Password { get; }
 		public string ServerName { get; }
@@ -20,8 +23,10 @@ namespace Shaolinq.MySql
 		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
+			var sqlDialect = new MySqlSqlDialect();
 			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(new MySqlSqlDialect(), sqlDataTypeProvider, typeof(MySqlSqlQueryFormatter));
+			var typeDescriptorProvider = model.TypeDescriptorProvider;
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, options => new MySqlSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider));
 
 			return new MySqlSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -74,6 +79,11 @@ namespace Shaolinq.MySql
 
 		public override void DropAllConnections()
 		{
+		}
+
+		protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, TransactionContext transactionContext)
+		{
+			return new MySqlSqlTransactionalCommandsContext(this, connection, transactionContext);
 		}
 
 		public override Exception DecorateException(Exception exception, DataAccessObject dataAccessObject, string relatedQuery)

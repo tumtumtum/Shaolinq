@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence
 			this.GetMethod = getMethod;
 		}
 
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			return this.SqlName;
 		}

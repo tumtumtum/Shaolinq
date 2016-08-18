@@ -43,6 +43,50 @@ namespace Shaolinq.MySql
 {
 #pragma warning disable
 	using System;
+	// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+	using System.Data;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using System.Linq.Expressions;
+	using Shaolinq;
+	using Shaolinq.MySql;
+	using Shaolinq.Persistence;
+
+	public partial class MySqlSqlTransactionalCommandsContext
+	{
+		public override Task CommitAsync()
+		{
+			return CommitAsync(CancellationToken.None);
+		}
+
+		public override async Task CommitAsync(CancellationToken cancellationToken)
+		{
+			var queue = (IExpressionQueue)this.TransactionContext?.GetAttribute(MySqlSqlDatabaseContext.CommitCleanupQueueKey);
+			if (queue != null)
+			{
+				Expression current;
+				while ((current = queue.Dequeue()) != null)
+				{
+					var formatter = this.SqlDatabaseContext.SqlQueryFormatterManager.CreateQueryFormatter();
+					using (var command = (await this.TransactionContext.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false)).CreateCommand())
+					{
+						var formatResult = formatter.Format(current);
+						command.CommandText = formatResult.CommandText;
+						this.FillParameters(command, formatResult);
+						await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+					}
+				}
+			}
+
+			await base.CommitAsync(cancellationToken).ConfigureAwait(false);
+		}
+	}
+}
+
+namespace Shaolinq.MySql
+{
+#pragma warning disable
+	using System;
 	using System.Threading;
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;

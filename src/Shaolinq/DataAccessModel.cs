@@ -66,6 +66,7 @@ namespace Shaolinq
 		public virtual event EventHandler Disposed;
 
 		private bool disposed;
+		internal bool hasAnyAutoIncrementValidators;
 		public Assembly DefinitionAssembly { get; private set; }
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
 		public DataAccessModelConfiguration Configuration { get; private set; }
@@ -261,6 +262,7 @@ namespace Shaolinq
 
 			retval.SetConfiguration(configuration);
 			retval.SetAssemblyBuildInfo(buildInfo);
+			retval.hasAnyAutoIncrementValidators = retval.TypeDescriptorProvider.GetTypeDescriptors().Any(c => c.PersistedProperties.Any(d => d.IsAutoIncrement && d.AutoIncrementAttribute.ValidateExpression != null));
 
 			retval.Initialise();
 

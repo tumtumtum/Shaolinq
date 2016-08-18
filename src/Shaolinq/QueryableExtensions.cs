@@ -24,9 +24,9 @@ namespace Shaolinq
 			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
 		}
 
-		internal static IQueryable<T> UpdateHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated)
+		internal static IQueryable<T> UpdateHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated, bool requiresIdentityInsert)
 		{
-			return source.Provider.CreateQuery<T>(Expression.Call(null,((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
+			return source.Provider.CreateQuery<T>(Expression.Call(null,((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
 		}
 
 		public static Task<List<T>> ToListAsync<T>(this IQueryable<T> source)

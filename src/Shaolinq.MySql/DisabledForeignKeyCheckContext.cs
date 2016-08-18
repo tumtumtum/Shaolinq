@@ -13,20 +13,24 @@ namespace Shaolinq.MySql
 		{
 			this.context = context;
 
-			var command = ((DefaultSqlTransactionalCommandsContext)context).CreateCommand();
+			using (var command = ((DefaultSqlTransactionalCommandsContext)context).CreateCommand())
+			{
 
-			command.CommandText = "SET FOREIGN_KEY_CHECKS = 0;";
+				command.CommandText = "SET FOREIGN_KEY_CHECKS = 0;";
 
-			command.ExecuteNonQuery();
+				command.ExecuteNonQuery();
+			}
 		}
 
 		public virtual void Dispose()
 		{
-			var command = ((DefaultSqlTransactionalCommandsContext) this.context).CreateCommand();
+			using (var command = ((DefaultSqlTransactionalCommandsContext)this.context).CreateCommand())
+			{
 
-			command.CommandText = "SET FOREIGN_KEY_CHECKS = 1;";
+				command.CommandText = "SET FOREIGN_KEY_CHECKS = 1;";
 
-			command.ExecuteNonQuery();
+				command.ExecuteNonQuery();
+			}
 		}
 	}
 }

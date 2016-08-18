@@ -47,6 +47,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		In,
 		QueryArgument,
 		Union,
-		Keyword
+		Keyword,
+		VariableDeclaration,
+		Declare
 	}
 }

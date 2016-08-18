@@ -59,7 +59,7 @@
     <Compile Include="SqlServerBooleanNormalizer.cs" />
     <Compile Include="SqlServerDateTimeFunctionsAmender.cs" />
     <Compile Include="SqlServerDecimalDataType.cs" />
-    <Compile Include="SqlServerIdentityInsertAmender.cs" />
+    <Compile Include="SqlServerIdentityInsertAndUpdateAmender.cs" />
     <Compile Include="SqlServerLimitAmender.cs" />
     <Compile Include="SqlServerSqlDatabaseSchemaManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

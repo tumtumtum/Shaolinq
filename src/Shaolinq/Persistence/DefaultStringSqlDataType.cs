@@ -35,13 +35,13 @@ namespace Shaolinq.Persistence
 			return "TEXT";
 		}
 
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			var sizeConstraintAttribute = propertyDescriptor?.PropertyInfo.GetFirstCustomAttribute<SizeConstraintAttribute>(true);
 			
-			if (sizeConstraintAttribute != null)
+			if (sizeConstraintAttribute != null || constraintDefaults?.StringSizeFlexibility != null)
 			{
-				switch (sizeConstraintAttribute.SizeFlexibility)
+				switch ((constraintDefaults?.StringSizeFlexibility ?? sizeConstraintAttribute.SizeFlexibility))
 				{
 				case SizeFlexibility.Fixed:
 					return CreateFixedTypeName(sizeConstraintAttribute.MaximumLength);
@@ -61,7 +61,7 @@ namespace Shaolinq.Persistence
 				}
 				else
 				{
-					return this.CreateVariableName(this.constraintDefaultsConfiguration.StringMaximumLength);
+					return this.CreateVariableName((constraintDefaults ?? this.constraintDefaultsConfiguration).StringMaximumLength);
 				}
 			}
 		}

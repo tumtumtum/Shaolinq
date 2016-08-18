@@ -9,21 +9,40 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public Expression Table { get; }
-		public IReadOnlyList<SqlConstraintActionExpression> Actions { get; }
+		public IReadOnlyList<Expression> Actions { get; }
+		public IReadOnlyList<SqlConstraintActionExpression> ConstraintActions { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.AlterTable;
 
-		public SqlAlterTableExpression(Expression table, params SqlConstraintActionExpression[] actions)
-			: this(table, (IEnumerable<SqlConstraintActionExpression>)actions)
+		public SqlAlterTableExpression(Expression table, params SqlConstraintActionExpression[] constraintActions)
+			: this(table, (IEnumerable<SqlConstraintActionExpression>)constraintActions)
 		{	
 		}
 
-		public SqlAlterTableExpression(Expression table, IEnumerable<SqlConstraintActionExpression> actions)
-			: this(table, actions.ToReadOnlyCollection())
+		public SqlAlterTableExpression(Expression table, IEnumerable<SqlConstraintActionExpression> constraintActions)
+			: this(table, constraintActions.ToReadOnlyCollection())
 		{
 			
 		}
 
-		public SqlAlterTableExpression(Expression table, IReadOnlyList<SqlConstraintActionExpression> actions)
+		public SqlAlterTableExpression(Expression table, IReadOnlyList<SqlConstraintActionExpression> constraintActions)
+			: base(typeof(void))
+		{
+			this.Table = table;
+			this.ConstraintActions = constraintActions;
+		}
+
+		public SqlAlterTableExpression(Expression table, params Expression[] actions)
+			: this(table, (IEnumerable<Expression>)actions)
+		{
+		}
+
+		public SqlAlterTableExpression(Expression table, IEnumerable<Expression> actions)
+			: this(table, actions.ToReadOnlyCollection())
+		{
+
+		}
+
+		public SqlAlterTableExpression(Expression table, IReadOnlyList<Expression> actions)
 			: base(typeof(void))
 		{
 			this.Table = table;

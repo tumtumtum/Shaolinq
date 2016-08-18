@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Transactions;
 using Platform;
 using Shaolinq.Persistence;
@@ -58,8 +59,8 @@ namespace Shaolinq
 		internal readonly DataAccessModel dataAccessModel;
 		private SqlTransactionalCommandsContext commandsContext;
 		private DataAccessObjectDataContext dataAccessObjectDataContext;
-
 		internal DataAccessTransaction DataAccessTransaction { get; }
+		private readonly Dictionary<string, object> attributes;
 		public string DatabaseContextCategoriesKey { get; internal set; }
 		
 		internal int GetExecutionVersion()
@@ -214,7 +215,25 @@ namespace Shaolinq
 			this.dataAccessModel = dataAccessModel;
 			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = "*";
+			this.attributes = new Dictionary<string, object>();
 			this.executionVersion = dataAccessModel.AsyncLocalExecutionVersion;
+		}
+
+		public void SetAttribute(string key, object value)
+		{
+			this.attributes[key] = value;
+		}
+
+		public object GetAttribute(string key)
+		{
+			object result;
+
+			if (this.attributes.TryGetValue(key, out result))
+			{
+				return result;
+			}
+
+			return null;
 		}
 
 		internal SqlDatabaseContext GetSqlDatabaseContext()
@@ -230,7 +249,7 @@ namespace Shaolinq
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			return this.commandsContext ?? (this.commandsContext = this.GetSqlDatabaseContext().CreateSqlTransactionalCommandsContext(this.DataAccessTransaction));
+			return this.commandsContext ?? (this.commandsContext = this.GetSqlDatabaseContext().CreateSqlTransactionalCommandsContext(this));
 		}
 
 		~TransactionContext()

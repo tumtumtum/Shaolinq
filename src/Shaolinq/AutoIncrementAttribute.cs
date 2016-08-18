@@ -20,8 +20,8 @@ namespace Shaolinq
 	public class AutoIncrementAttribute
 		: Attribute
 	{
-		public long Step { get; set; }
-		public long Seed { get; set; }
+		public long Step { get; set; } = 1;
+		public long Seed { get; set; } = 1;
 		public bool AutoIncrement { get; set; }
 		public Type ReferencedType { get; set; }
 		public Type[] ReferencedTypes { get; set; }
@@ -39,7 +39,7 @@ namespace Shaolinq
 
 		public LambdaExpression GetValidateLambdaExpression(DataAccessModelConfiguration configuration, PropertyInfo propertyInfo)
 		{
-			return this.ValidateExpression == null ? null : ComputedExpressionParser.Parse(this.ValidateExpression, propertyInfo, ComputedMemberAttribute.GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes.Concat(this.ReferencedType).ToArray()));
+			return this.ValidateExpression == null ? null : ComputedExpressionParser.Parse(this.ValidateExpression, propertyInfo, ComputedMemberAttribute.GetReferencedTypes(configuration, propertyInfo, this.ReferencedTypes?.ConcatUnlessNull(this.ReferencedType).ToArray()), typeof(bool));
 		}
 	}
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -119,6 +121,8 @@ namespace Shaolinq.Persistence
 			var listToFixup = new List<DataAccessObject>();
 			var listToRetry = new List<DataAccessObject>();
 
+			var canDefer = !this.DataAccessModel.hasAnyAutoIncrementValidators;
+
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
@@ -135,9 +139,8 @@ namespace Shaolinq.Persistence
 				}
 
 				var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;
-				var deferrableOrNotReferencingNewObject = (this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability) || ((objectState & DataAccessObjectState.ReferencesNewObject) == 0));
-
-				var objectReadyToBeCommited = primaryKeyIsComplete && deferrableOrNotReferencingNewObject;
+				var constraintsDeferrableOrNotReferencingNewObject = (objectState & DataAccessObjectState.ReferencesNewObject) == 0 || (canDefer && this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability));
+				var objectReadyToBeCommited = primaryKeyIsComplete && constraintsDeferrableOrNotReferencingNewObject;
 
 				if (objectReadyToBeCommited)
 				{
@@ -145,6 +148,7 @@ namespace Shaolinq.Persistence
 
 					using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
 					{
+retryInsert:
 						Logger.Info(() => this.FormatCommand(command));
 
 						try
@@ -162,12 +166,22 @@ namespace Shaolinq.Persistence
 									if (result)
 									{
 										this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
-										dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
 									}
 
 									reader.Close();
 
-									if (dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties())
+									if (!dataAccessObjectInternal.ValidateServerSideGeneratedIds())
+									{
+										this.Delete(dataAccessObject.GetType(), new[] { dataAccessObject });
+
+										goto retryInsert;
+									}
+
+									dataAccessObjectInternal.MarkServerSidePropertiesAsApplied();
+
+									var updateRequired = dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties();
+
+									if (updateRequired)
 									{
 										this.Update(dataAccessObject.GetType(), new[] { dataAccessObject }, false);
 									}
@@ -249,6 +263,19 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public override void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
+			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
+			var expression = this.BuildDeleteExpression(type, dataAccessObjects);
+
+			if (expression == null)
+			{
+				return;
+			}
+
+			((ISqlQueryProvider)provider).Execute<int>(expression);
+		}
+
+		public virtual Expression BuildDeleteExpression(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
+		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 			var parameter = Expression.Parameter(typeDescriptor.Type, "value");
 
@@ -270,7 +297,7 @@ namespace Shaolinq.Persistence
 
 			if (body == null)
 			{
-				return;
+				return null;
 			}
 			
 			var condition = Expression.Lambda(body, parameter);
@@ -279,9 +306,7 @@ namespace Shaolinq.Persistence
 			expression = Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), expression, Expression.Quote(condition));
 			expression = Expression.Call(MethodInfoFastRef.QueryableExtensionsDeleteMethod.MakeGenericMethod(typeDescriptor.Type), expression);
 
-			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
-
-			((ISqlQueryProvider)provider).Execute<int>(expression);
+			return expression;
 		}
 
 		#endregion

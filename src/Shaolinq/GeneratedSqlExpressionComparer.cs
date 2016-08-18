@@ -9,6 +9,62 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionComparer
     {
+        protected override Expression VisitVariableDeclaration(SqlVariableDeclarationExpression expression)
+        {
+            SqlVariableDeclarationExpression current;
+            if (!TryGetCurrent(expression, out current))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= object.Equals(current.Name, expression.Name)))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.NodeType == expression.NodeType))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.Type == expression.Type))
+            {
+                return expression;
+            }
+
+            this.currentObject = current;
+            return expression;
+        }
+
+        protected override Expression VisitDeclare(SqlDeclareExpression expression)
+        {
+            SqlDeclareExpression current;
+            if (!TryGetCurrent(expression, out current))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.Type == expression.Type))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.NodeType == expression.NodeType))
+            {
+                return expression;
+            }
+
+            this.currentObject = current.VariableDeclarations;
+            this.VisitExpressionList(expression.VariableDeclarations);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current;
+            return expression;
+        }
+
         protected override Expression VisitKeyword(SqlKeywordExpression expression)
         {
             SqlKeywordExpression current;
@@ -342,6 +398,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            if (!(this.result &= current.RequiresIdentityInsert == expression.RequiresIdentityInsert))
+            {
+                return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
             {
                 return expression;
@@ -409,6 +470,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.WithExpression;
             this.Visit(expression.WithExpression);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ValuesExpression;
+            this.Visit(expression.ValuesExpression);
             if (!this.result)
             {
                 return expression;
@@ -847,6 +915,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            this.currentObject = current.Into;
+            this.Visit(expression.Into);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current.OrderBy;
             this.VisitExpressionList(expression.OrderBy);
             if (!this.result)
@@ -1156,6 +1231,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.Actions;
             this.VisitExpressionList(expression.Actions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ConstraintActions;
+            this.VisitExpressionList(expression.ConstraintActions);
             if (!this.result)
             {
                 return expression;

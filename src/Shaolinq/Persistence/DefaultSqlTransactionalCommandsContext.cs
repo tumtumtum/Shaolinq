@@ -96,8 +96,8 @@ namespace Shaolinq.Persistence
 		protected readonly string parameterIndicatorPrefix;
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>> serverSideGeneratedPropertySettersByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, IDataReader, DataAccessObject>>();
 
-		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, DataAccessTransaction transaction)
-			: base(sqlDatabaseContext, connection, transaction)
+		public DefaultSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, TransactionContext transactionContext)
+			: base(sqlDatabaseContext, connection, transactionContext)
 		{
 		    try
 		    {
@@ -266,6 +266,16 @@ namespace Shaolinq.Persistence
 			return parameter;
 		}
 
+		protected void FillParameters(IDbCommand command, SqlQueryFormatResult formatResult)
+		{
+			command.Parameters.Clear();
+
+			foreach (var parameter in formatResult.ParameterValues)
+			{
+				this.AddParameter(command, parameter.Type, parameter.Value);
+			}
+		}
+
 		private void FillParameters(IDbCommand command, SqlCachedUpdateInsertFormatValue cachedValue, IReadOnlyCollection<ObjectPropertyValue> changedProperties, IReadOnlyCollection<ObjectPropertyValue> primaryKeys)
 		{
 			if (changedProperties == null && primaryKeys == null)
@@ -351,6 +361,7 @@ namespace Shaolinq.Persistence
 			var success = false;
 
 			var parameter1 = Expression.Parameter(typeDescriptor.Type);
+			var requiresIdentityInsert = dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties;
 
 			foreach (var updated in updatedProperties)
 			{
@@ -406,13 +417,13 @@ namespace Shaolinq.Persistence
 			}
 
 			var predicate = Expression.Lambda(where, parameter);
-			var method = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).UpdateHelper(default(Expression<Action<DataAccessObject>>)))
+			var method = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).UpdateHelper(default(Expression<Action<DataAccessObject>>), requiresIdentityInsert))
 				.GetGenericMethodDefinition()
 				.MakeGenericMethod(typeDescriptor.Type);
 
 			var source = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeDescriptor.Type), Expression.Constant(this.DataAccessModel.GetDataAccessObjects(typeDescriptor.Type)), Expression.Quote(predicate));
 			var selector = Expression.Lambda(Expression.Block(assignments), parameter1);
-			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector));
+			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector), Expression.Constant(requiresIdentityInsert));
 
 			expression = SqlQueryProvider.Bind(this.DataAccessModel, this.sqlDataTypeProvider, expression);
 			expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
@@ -453,6 +464,7 @@ namespace Shaolinq.Persistence
 			bool primaryKeysPredicated;
 			IDbCommand command = null;
 			SqlCachedUpdateInsertFormatValue cachedValue;
+			var requiresIdentityInsert = dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties;
 			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out valuesPredicated);
 
 			if (updatedProperties.Count == 0)
@@ -468,7 +480,7 @@ namespace Shaolinq.Persistence
 				return BuildUpdateCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, valuesPredicated, primaryKeysPredicated, updatedProperties, primaryKeys);
 			}
 
-			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties);
+			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);
 		
 			if (this.TryGetUpdateCommand(commandKey, out cachedValue))
 			{
@@ -539,7 +551,7 @@ namespace Shaolinq.Persistence
 				primaryKeyIndexesToParameterPlaceholderIndexes[i] = i + assignments.Count;
 			}
 
-			var expression = (Expression)new SqlUpdateExpression(new SqlTableExpression(typeDescriptor.PersistedName), assignments, where);
+			var expression = (Expression)new SqlUpdateExpression(new SqlTableExpression(typeDescriptor.PersistedName), assignments, where, requiresIdentityInsert);
 
 			expression = SqlObjectOperandComparisonExpander.Expand(expression);
 

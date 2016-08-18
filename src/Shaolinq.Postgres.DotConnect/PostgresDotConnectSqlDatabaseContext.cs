@@ -24,7 +24,8 @@ namespace Shaolinq.Postgres.DotConnect
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDialect = new PostgresDotConnectSqlDialect();
 			var sqlDataTypeProvider = new PostgresSqlDataTypeProvider(model.TypeDescriptorProvider, constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresDotConnectSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName, false));
+			var typeDescriptorProvider = model.TypeDescriptorProvider;
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, (options) => new PostgresDotConnectSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.SchemaName, false));
 
 			return new PostgresDotConnectSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -76,9 +77,9 @@ namespace Shaolinq.Postgres.DotConnect
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
 		}
 
-        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, TransactionContext transactionContext)
         {
-			return new PostgresDotConnectSqlTransactionalCommandsContext(this, connection, transaction);
+			return new PostgresDotConnectSqlTransactionalCommandsContext(this, connection, transactionContext);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()

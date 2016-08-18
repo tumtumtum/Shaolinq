@@ -56,7 +56,7 @@ namespace Shaolinq.SqlServer
 					);
 				}
 
-				var retval = new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, outerColumns, innerSelectWithRow, rowPredicate, null, selectExpression.ForUpdate);
+				var retval = new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, outerColumns.ToReadOnlyCollection(), innerSelectWithRow, rowPredicate, null, null, selectExpression.Distinct, null, null, selectExpression.ForUpdate, selectExpression.Reverse, selectExpression.Into);
 
 				return retval;
 			}

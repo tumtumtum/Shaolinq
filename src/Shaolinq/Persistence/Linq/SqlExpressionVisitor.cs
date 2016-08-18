@@ -94,9 +94,30 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitTableHint((SqlTableHintExpression)expression);
 			case SqlExpressionType.Keyword:
 				return this.VisitKeyword((SqlKeywordExpression)expression);
+			case SqlExpressionType.VariableDeclaration:
+				return this.VisitVariableDeclaration((SqlVariableDeclarationExpression)expression);
+			case SqlExpressionType.Declare:
+				return this.VisitDeclare((SqlDeclareExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitVariableDeclaration(SqlVariableDeclarationExpression expression)
+		{
+			return expression;
+		}
+
+		protected virtual Expression VisitDeclare(SqlDeclareExpression expression)
+		{
+			var variableDeclarations = this.VisitExpressionList(expression.VariableDeclarations);
+
+			if (variableDeclarations != expression.VariableDeclarations)
+			{
+				return new SqlDeclareExpression(variableDeclarations);
+			}
+
+			return expression;
 		}
 
 		protected virtual Expression VisitKeyword(SqlKeywordExpression expression)
@@ -196,7 +217,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (newSource != expression.Source || newWhere != expression.Where || newAssignments != expression.Assignments)
 			{
-				return new SqlUpdateExpression(newSource, newAssignments, newWhere);
+				return new SqlUpdateExpression(newSource, newAssignments, newWhere, expression.RequiresIdentityInsert);
 			}
 
 			return expression;
@@ -362,10 +383,11 @@ namespace Shaolinq.Persistence.Linq
 			var skip = this.Visit(selectExpression.Skip);
 			var take = this.Visit(selectExpression.Take);
 			var columns = this.VisitColumnDeclarations(selectExpression.Columns);
+		    var into = this.Visit(selectExpression.Into);
 
-			if (from != selectExpression.From || where != selectExpression.Where || columns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip)
+			if (from != selectExpression.From || where != selectExpression.Where || columns != selectExpression.Columns || orderBy != selectExpression.OrderBy || groupBy != selectExpression.GroupBy || take != selectExpression.Take || skip != selectExpression.Skip || into != selectExpression.Into)
 			{
-				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, columns, from, where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate, selectExpression.Reverse);
+				return new SqlSelectExpression(selectExpression.Type, selectExpression.Alias, columns, from, where, orderBy, groupBy, selectExpression.Distinct, skip, take, selectExpression.ForUpdate, selectExpression.Reverse, into);
 			}
 
 			return selectExpression;
@@ -483,9 +505,9 @@ namespace Shaolinq.Persistence.Linq
 		protected virtual Expression VisitAlterTable(SqlAlterTableExpression alterTableExpression)
 		{
 			var newTable = this.Visit(alterTableExpression.Table);
-			var newList = this.VisitExpressionList(alterTableExpression.Actions);
+			var newList = this.VisitExpressionList(alterTableExpression.ConstraintActions);
 
-			if (newTable != alterTableExpression.Table || newList != alterTableExpression.Actions)
+			if (newTable != alterTableExpression.Table || newList != alterTableExpression.ConstraintActions)
 			{
 				return new SqlAlterTableExpression(newTable, newList);
 			}

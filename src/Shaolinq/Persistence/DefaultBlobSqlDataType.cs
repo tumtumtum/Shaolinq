@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence
 			this.sqlName = sqlName;
 		}
 
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			return this.sqlName;
 		}

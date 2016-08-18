@@ -77,7 +77,16 @@ namespace Shaolinq.Persistence
 		/// </summary>
 		/// <param name="propertyDescriptor">The property whose return type is to be serialized</param>
 		/// <returns>The SQL type name</returns>
-		public abstract string GetSqlName(PropertyDescriptor propertyDescriptor);
+		public string GetSqlName(PropertyDescriptor propertyDescriptor)
+		{
+			return GetSqlName(propertyDescriptor, null);
+		}
+
+		/// <summary>
+		/// Gets the SQL type name for the given property.
+		/// </summary>
+		/// <returns>The SQL type name</returns>
+		public abstract string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults);
 
 		/// <summary>
 		/// Gets an expression to perform reading of a column.

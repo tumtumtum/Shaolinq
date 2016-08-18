@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence
 		{
 		}
 
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			return "CHAR(32)";
 		}

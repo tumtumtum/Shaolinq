@@ -10,8 +10,8 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectSqlQueryFormatter
 		: PostgresSqlQueryFormatter
 	{
-		public PostgresDotConnectSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, string schemaName, bool convertEnumsToText)
-			: base(options, sqlDialect, sqlDataTypeProvider, schemaName, convertEnumsToText)
+		public PostgresDotConnectSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, string schemaName, bool convertEnumsToText)
+			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, schemaName, convertEnumsToText)
 		{
 		}
 

@@ -9,9 +9,9 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
 {
-    using System.Data;
+	using System.Data;
 
-    public class PostgresSqlDatabaseContext
+	public class PostgresSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		public int Port { get; }
@@ -24,7 +24,8 @@ namespace Shaolinq.Postgres
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDialect = new PostgresSqlDialect();
 			var sqlDataTypeProvider = new PostgresSqlDataTypeProvider(model.TypeDescriptorProvider, constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, sqlDataTypeProvider, (options, sqlDataTypeProviderArg, sqlDialectArg) => new PostgresSqlQueryFormatter(options, sqlDataTypeProviderArg, sqlDialectArg, contextInfo.SchemaName, true));
+			var typeDescriptorProvider = model.TypeDescriptorProvider;
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, (options) => new PostgresSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.SchemaName, true));
 
 			return new PostgresSqlDatabaseContext(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -46,7 +47,7 @@ namespace Shaolinq.Postgres
 				Password = contextInfo.Password,
 				Port = contextInfo.Port,
 				Pooling = contextInfo.Pooling,
-                Enlist = false,
+				Enlist = false,
 				MinPoolSize = contextInfo.MinPoolSize,
 				MaxPoolSize = contextInfo.MaxPoolSize,
 				KeepAlive = contextInfo.KeepAlive,
@@ -54,10 +55,10 @@ namespace Shaolinq.Postgres
 				ConvertInfinityDateTime = contextInfo.ConvertInfinityDateTime
 			};
 
-		    if (contextInfo.Timeout != null)
-		    {
-		        connectionStringBuilder.Timeout = contextInfo.Timeout.Value;
-		    }
+			if (contextInfo.Timeout != null)
+			{
+				connectionStringBuilder.Timeout = contextInfo.Timeout.Value;
+			}
 
 			if (contextInfo.ConnectionTimeout.HasValue)
 			{
@@ -80,9 +81,9 @@ namespace Shaolinq.Postgres
 			this.SchemaManager = new PostgresSqlDatabaseSchemaManager(this);
 		}
 
-        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
-        {
-			return new PostgresSqlTransactionalCommandsContext(this, connection, transaction);
+		protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, TransactionContext transactionContext)
+		{
+			return new PostgresSqlTransactionalCommandsContext(this, connection, transactionContext);
 		}
 
 		public override DbProviderFactory CreateDbProviderFactory()

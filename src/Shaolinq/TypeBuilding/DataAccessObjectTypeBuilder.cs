@@ -610,8 +610,8 @@ namespace Shaolinq.TypeBuilding
 			{
 				const MethodAttributes methodAttributes = MethodAttributes.Public;
 
-				var fieldBuilder = this.typeBuilder.DefineField("$$$" + propertyInfo.Name + "ValidateFunc", typeof(Func<,>).MakeGenericType(this.typeBuilder.BaseType, propertyInfo.PropertyType), FieldAttributes.Public | FieldAttributes.Static);
-				var methodBuilder = this.typeBuilder.DefineMethod("$$GetValidateFuncMethod" + propertyInfo.Name, methodAttributes, CallingConventions.HasThis | CallingConventions.Standard, fieldBuilder.FieldType, null);
+				var fieldBuilder = this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilder.DefineField("$$$" + propertyInfo.Name + "ValidateFunc", typeof(Func<,>).MakeGenericType(this.typeBuilder.BaseType, typeof(bool)), FieldAttributes.Public);
+				var methodBuilder = this.typeBuilder.DefineMethod("$$GetValidateFuncMethod" + propertyInfo.Name, methodAttributes, CallingConventions.Standard | CallingConventions.HasThis, fieldBuilder.FieldType, null);
 
 				this.validateFuncFields[propertyInfo.Name] = fieldBuilder;
 				this.getValidateFuncMethods[propertyInfo.Name] = methodBuilder;
@@ -626,7 +626,11 @@ namespace Shaolinq.TypeBuilding
 				var lambdaLocal = generator.DeclareLocal(typeof(LambdaExpression));
 				var propertyInfoLocal = generator.DeclareLocal(typeof(PropertyInfo));
 
-				generator.Emit(OpCodes.Ldsfld, fieldBuilder);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+				generator.Emit(OpCodes.Castclass, this.AssemblyBuildContext.DataAccessModelTypeBuilder);
+				generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField);
+				generator.Emit(OpCodes.Ldfld, fieldBuilder);
 				generator.Emit(OpCodes.Brtrue, label);
 
 				generator.Emit(OpCodes.Ldtoken, this.typeBuilder.BaseType);
@@ -645,16 +649,24 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.Configuration).GetGetMethod());
 
 				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
-				generator.Emit(OpCodes.Callvirt, typeof(AutoIncrementAttribute).GetMethod("GetValidateLambdaExpression", BindingFlags.Instance | BindingFlags.Public));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<AutoIncrementAttribute>(c => c.GetValidateLambdaExpression(default(DataAccessModelConfiguration), default(PropertyInfo))));
 				generator.Emit(OpCodes.Stloc, lambdaLocal);
 
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+				generator.Emit(OpCodes.Castclass, this.AssemblyBuildContext.DataAccessModelTypeBuilder);
+				generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField);
 				generator.Emit(OpCodes.Ldloc, lambdaLocal);
 				generator.Emit(OpCodes.Callvirt, typeof(LambdaExpression).GetMethod("Compile", BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null));
 				generator.Emit(OpCodes.Castclass, fieldBuilder.FieldType);
-				generator.Emit(OpCodes.Stsfld, fieldBuilder);
+				generator.Emit(OpCodes.Stfld, fieldBuilder);
 
 				generator.MarkLabel(label);
-				generator.Emit(OpCodes.Ldsfld, fieldBuilder);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+				generator.Emit(OpCodes.Castclass, this.AssemblyBuildContext.DataAccessModelTypeBuilder);
+				generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField);
+				generator.Emit(OpCodes.Ldfld, fieldBuilder);
 				generator.Emit(OpCodes.Ret);
 			}
 		}
@@ -2648,31 +2660,24 @@ namespace Shaolinq.TypeBuilding
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
-			if (this.baseType.GetProperties().Any(c => !string.IsNullOrEmpty(c.GetFirstCustomAttribute<AutoIncrementAttribute>(true)?.ValidateExpression)))
+			foreach (var property in this.baseType.GetProperties().Where(c => !string.IsNullOrEmpty(c.GetFirstCustomAttribute<AutoIncrementAttribute>(true)?.ValidateExpression)))
 			{
-				generator.Emit(OpCodes.Ldc_I4_1);
-			}
-			else
-			{
+				var nextLabel = generator.DefineLabel();
+
+				var method = this.getValidateFuncMethods[property.Name];
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Call, method);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Callvirt, method.ReturnType.GetMethod("Invoke"));
+				generator.Emit(OpCodes.Brtrue, nextLabel);
+
 				generator.Emit(OpCodes.Ldc_I4_0);
+				generator.Emit(OpCodes.Ret);
+
+				generator.MarkLabel(nextLabel);
 			}
 
-			generator.Emit(OpCodes.Ret);
-		}
-
-		private void BuildHasAnyServerSideGeneratedPropertiesThatNeedValidatingMethod()
-		{
-			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
-
-			if (this.baseType.GetProperties().Any(c => !string.IsNullOrEmpty(c.GetFirstCustomAttribute<AutoIncrementAttribute>(true)?.ValidateExpression)))
-			{
-				generator.Emit(OpCodes.Ldc_I4_1);
-			}
-			else
-			{
-				generator.Emit(OpCodes.Ldc_I4_0);
-			}
-
+			generator.Emit(OpCodes.Ldc_I4_1);
 			generator.Emit(OpCodes.Ret);
 		}
 

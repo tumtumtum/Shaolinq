@@ -16,9 +16,11 @@ namespace Shaolinq.MySql
 	public class MySqlInsertIntoAutoIncrementAmender
 		: SqlExpressionVisitor
 	{
-		private MySqlInsertIntoAutoIncrementAmender(SqlDataTypeProvider sqlDataTypeProvider)
+		private MySqlInsertIntoAutoIncrementAmender()
 		{
 		}
+
+		public static Expression Amend(Expression expression) => new MySqlInsertIntoAutoIncrementAmender().Visit(expression);
 
 		protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
 		{
@@ -26,7 +28,7 @@ namespace Shaolinq.MySql
 			{
 				var returningColumnName = expression.ReturningAutoIncrementColumnNames[0];
 				var index = expression.ColumnNames.IndexOf(returningColumnName);
-
+				
 				if (index > 0)
 				{
 					var newValueExpressions = new List<Expression>(expression.ValueExpressions);
@@ -38,13 +40,6 @@ namespace Shaolinq.MySql
 			}
 			
 			return expression;
-		}
-
-		public static Expression Amend(Expression expression, SqlDataTypeProvider sqlDataTypeProvider)
-		{
-			var processor = new MySqlInsertIntoAutoIncrementAmender(sqlDataTypeProvider);
-
-			return processor.Visit(expression);
 		}
 	}
 }

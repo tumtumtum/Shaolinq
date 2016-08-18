@@ -9,8 +9,8 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlTransactionsCommandContext
 		: DefaultSqlTransactionalCommandsContext
 	{
-		public SqlServerSqlTransactionsCommandContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, DataAccessTransaction transaction)
-			: base(sqlDatabaseContext, connection, transaction)
+		public SqlServerSqlTransactionsCommandContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, TransactionContext transactionContext)
+			: base(sqlDatabaseContext, connection, transactionContext)
 		{
 		}
 

@@ -12,6 +12,7 @@ namespace Shaolinq.Persistence
 	public abstract partial class SqlTransactionalCommandsContext
 		: IDisposable
 	{
+		public TransactionContext TransactionContext { get; set; }
 		internal MarsDataReader currentReader;
 
 		private bool disposed;
@@ -75,9 +76,11 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected SqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection dbConnection, DataAccessTransaction transaction)
+		protected SqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection dbConnection, TransactionContext transactionContext)
 		{
-		    try
+			this.TransactionContext = transactionContext;
+
+			try
 		    {
 		        this.DbConnection = dbConnection;
 		        this.SqlDatabaseContext = sqlDatabaseContext;
@@ -85,9 +88,9 @@ namespace Shaolinq.Persistence
 
 		        this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
 
-		        if (transaction != null)
+		        if (transactionContext?.DataAccessTransaction != null)
 		        {
-		            this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transaction.IsolationLevel));
+		            this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transactionContext.DataAccessTransaction.IsolationLevel));
 		        }
 		    }
 		    catch
@@ -137,7 +140,7 @@ namespace Shaolinq.Persistence
 				if (this.dbTransaction != null)
 				{
 					this.dbTransaction.Commit();
-
+					this.dbTransaction.Dispose();
 					this.dbTransaction = null;
 				}
 			}
@@ -167,7 +170,7 @@ namespace Shaolinq.Persistence
 				if (this.dbTransaction != null)
 				{
 					this.dbTransaction.Rollback();
-
+					this.dbTransaction.Dispose();
 					this.dbTransaction = null;
 				}
 			}

@@ -12,8 +12,8 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
-			: base(options, sqlDialect, sqlDataTypeProvider)
+		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider)
+			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
 		}
 
@@ -98,6 +98,16 @@ namespace Shaolinq.SqlServer
 			return base.VisitFunctionCall(functionCallExpression);
 		}
 
+		protected string AddParameter(TypedValue value)
+		{
+			this.Write(this.ParameterIndicatorPrefix);
+			this.Write(ParamNamePrefix);
+			this.Write(this.parameterValues.Count);
+			this.parameterValues.Add(value);
+
+			return $"{this.ParameterIndicatorPrefix}{this.parameterValues.Count}";
+		}
+
 		protected override Expression VisitUnary(UnaryExpression unaryExpression)
 		{
 			switch (unaryExpression.NodeType)
@@ -142,7 +152,7 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression PreProcess(Expression expression)
 		{
-			expression = SqlServerIdentityInsertAmender.Amend(expression);
+			expression = SqlServerIdentityInsertAndUpdateAmender.Amend(this.typeDescriptorProvider, expression);
 			expression = SqlServerSubqueryOrderByFixer.Fix(expression);
 			expression = SqlServerLimitAmender.Amend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);

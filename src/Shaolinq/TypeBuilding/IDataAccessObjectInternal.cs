@@ -27,6 +27,5 @@ namespace Shaolinq.TypeBuilding
 		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened(out bool predicated);
 		List<ObjectPropertyValue> GetChangedPropertiesFlattened(out bool predicated);
 		bool ValidateServerSideGeneratedIds();
-		bool HasAnyServerSideGeneratedPropertiesThatNeedValidating();
 	}
 }

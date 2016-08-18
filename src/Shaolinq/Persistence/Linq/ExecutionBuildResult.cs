@@ -2,6 +2,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -28,9 +29,14 @@ namespace Shaolinq.Persistence.Linq
 			return ((Func<SqlQueryProvider, SqlQueryFormatResult, object[], T>)this.Projector)(this.SqlQueryProvider, this.FormatResult, this.Arguments);
 		}
 
-		public T EvaluateAsync<T>(CancellationToken cancellationToken)
+		public Task<T> EvaluateAsync<T>(CancellationToken cancellationToken)
 		{
-			return ((Func<SqlQueryProvider, SqlQueryFormatResult, object[], CancellationToken, T>)this.AsyncProjector)(this.SqlQueryProvider, this.FormatResult, this.Arguments, cancellationToken);
+			return ((Func<SqlQueryProvider, SqlQueryFormatResult, object[], CancellationToken, Task<T>>)this.AsyncProjector)(this.SqlQueryProvider, this.FormatResult, this.Arguments, cancellationToken);
+		}
+
+		public IAsyncEnumerable<T> EvaluateAsyncEnumerable<T>(CancellationToken cancellationToken)
+		{
+			return ((Func<SqlQueryProvider, SqlQueryFormatResult, object[], CancellationToken, IAsyncEnumerable<T>>)this.AsyncProjector)(this.SqlQueryProvider, this.FormatResult, this.Arguments, cancellationToken);
 		}
 	}
 }

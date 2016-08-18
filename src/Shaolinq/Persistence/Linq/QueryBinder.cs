@@ -887,7 +887,7 @@ namespace Shaolinq.Persistence.Linq
 					this.selectorPredicateStack.Pop();
 					return result;
 				case "UpdateHelper":
-					result = this.BindUpdateHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes());
+					result = this.BindUpdateHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
 					return result;
 				case "InsertHelper":
 					result = this.BindInsertHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
@@ -1139,7 +1139,7 @@ namespace Shaolinq.Persistence.Linq
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
-		private Expression BindUpdateHelper(Type type, Expression source, LambdaExpression updatedValues)
+		private Expression BindUpdateHelper(Type type, Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
 		{
 			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
 			var assignments = new List<Expression>();
@@ -1160,7 +1160,7 @@ namespace Shaolinq.Persistence.Linq
 				assignments.Add(new SqlAssignExpression(new SqlColumnExpression(propertyType, null, persistedName), this.Visit(value)));
 			}
 			
-			var update = new SqlUpdateExpression(projection, assignments.ToReadOnlyCollection(), null);
+			var update = new SqlUpdateExpression(projection, assignments.ToReadOnlyCollection(), null, requiresIdentityInsert);
 			var select = new SqlSelectExpression(typeof(int), alias, new[] { new SqlColumnDeclaration("__SHAOLINQ__UPDATE", Expression.Constant(null), true) }, update, null, null, projection.Select.ForUpdate);
 
 			var parameterExpression = Expression.Parameter(typeof(IEnumerable<int>));

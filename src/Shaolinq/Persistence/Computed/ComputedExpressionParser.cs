@@ -14,12 +14,13 @@ namespace Shaolinq.Persistence.Computed
 	{
 		private ComputedExpressionToken token;
 		private readonly PropertyInfo propertyInfo;
+		private readonly Type coersionType;
 		private readonly List<Assembly> referencedAssemblies;
 		private readonly ParameterExpression targetObject;
 		private readonly ComputedExpressionTokenizer tokenizer;
 		private readonly Dictionary<string, Type> referencedTypesByName;
 
-		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes = null)
+		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes = null, Type coersionType = null)
 		{
 			if (propertyInfo.DeclaringType == null)
 			{
@@ -27,14 +28,15 @@ namespace Shaolinq.Persistence.Computed
 			}
 
 			this.propertyInfo = propertyInfo;
+			this.coersionType = coersionType;
 			this.referencedTypesByName = (referencedTypes ?? new Type[0]).ToDictionary(c => c.Name, c => c);
 			this.referencedAssemblies = new HashSet<Assembly>(referencedTypes?.Select(c => c.Assembly) ?? new Assembly[0]).ToList();
 			this.tokenizer = new ComputedExpressionTokenizer(reader);
 			this.targetObject = Expression.Parameter(propertyInfo.DeclaringType, "object");
 		}
 
-		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes) => new ComputedExpressionParser(reader, propertyInfo, referencedTypes).Parse();
-		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo, Type[] referencedTypes) => Parse(new StringReader(expressionText), propertyInfo, referencedTypes);
+		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes, Type coersionType) => new ComputedExpressionParser(reader, propertyInfo, referencedTypes, coersionType).Parse();
+		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo, Type[] referencedTypes, Type coersionType) => Parse(new StringReader(expressionText), propertyInfo, referencedTypes, coersionType);
 
 		public void Consume()
 		{
@@ -42,15 +44,15 @@ namespace Shaolinq.Persistence.Computed
 			this.token = this.tokenizer.CurrentToken;
 		}
 
-		public virtual LambdaExpression Parse()
+		protected virtual LambdaExpression Parse()
 		{
 			this.Consume();
 
 			var body = this.ParseExpression();
 
-			if (body.Type != this.propertyInfo.PropertyType)
+			if (coersionType != null && body.Type != coersionType)
 			{
-				body = Expression.Convert(body, this.propertyInfo.PropertyType);
+				body = Expression.Convert(body, coersionType);
 			}
 
 			var retval = Expression.Lambda(body, this.targetObject);
@@ -99,7 +101,7 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseComparison()
 		{
-			var leftOperand = this.ParseNullCoalescing();
+			var leftOperand = this.ParseAddOrSubtract();
 			var retval = leftOperand;
 
 			while (this.token >= ComputedExpressionToken.CompareStart && this.token <= ComputedExpressionToken.CompareEnd)
@@ -108,7 +110,7 @@ namespace Shaolinq.Persistence.Computed
 
 				this.Consume();
 
-				var rightOperand = this.ParseNullCoalescing();
+				var rightOperand = this.ParseAddOrSubtract();
 
 				switch (operationToken)
 				{
@@ -140,14 +142,14 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseNullCoalescing()
 		{
-			var leftOperand = this.ParseAddOrSubtract();
+			var leftOperand = this.ParseComparison();
 			var retval = leftOperand;
 
 			if (this.token == ComputedExpressionToken.DoubleQuestionMark)
 			{
 				this.Consume();
 
-				var rightOperand = this.ParseAddOrSubtract();
+				var rightOperand = this.ParseComparison();
 
 				return Expression.Coalesce(leftOperand, rightOperand);
 			}

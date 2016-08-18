@@ -15,8 +15,8 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract bool Overseas { get; set; }
 
-		[AutoIncrement(ValidateExpression =  "value % 2 == 0")]
 		[PersistedMember]
+		[AutoIncrement(ValidateExpression =  "value % 2 == 0")]
 		public abstract long SerialNumber1 { get; set; }
 
 		[PersistedMember]

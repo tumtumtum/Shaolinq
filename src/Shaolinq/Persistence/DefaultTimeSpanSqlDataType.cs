@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 		}
 
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			return this.sqlDataTypeProvider.GetSqlDataType(typeof(long)).GetSqlName(propertyDescriptor);
 		}

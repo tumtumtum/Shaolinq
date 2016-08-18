@@ -113,7 +113,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken)
 		{
-			return this.BuildExecution(expression).EvaluateAsync<Task<T>>(cancellationToken);
+			return this.BuildExecution(expression).EvaluateAsync<T>(cancellationToken);
 		}
 
 		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
@@ -123,7 +123,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression)
 		{
-			return this.BuildExecution(expression).EvaluateAsync<IAsyncEnumerable<T>>(CancellationToken.None);
+			return this.BuildExecution(expression).EvaluateAsyncEnumerable<T>(CancellationToken.None);
 		}
 
 		public static Expression Optimize(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression)

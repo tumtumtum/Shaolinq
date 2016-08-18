@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
@@ -10,8 +11,8 @@ namespace Shaolinq.MySql
 	public class MySqlSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public MySqlSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider)
-			: base(options, sqlDialect, sqlDataTypeProvider)
+		public MySqlSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider)
+			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
 		}
 
@@ -19,7 +20,7 @@ namespace Shaolinq.MySql
 		{
 			expression = base.PreProcess(expression);
 			expression = MySqlAutoIncrementAmender.Amend(expression);
-			expression = MySqlInsertIntoAutoIncrementAmender.Amend(SqlReferencesColumnDeferrabilityRemover.Remove(expression), this.sqlDataTypeProvider);
+			expression = MySqlInsertIntoAutoIncrementAmender.Amend(SqlReferencesColumnDeferrabilityRemover.Remove(expression));
 			expression = MySqlNestedTableReferenceInUpdateFixer.Fix(expression);
 
 			return expression;

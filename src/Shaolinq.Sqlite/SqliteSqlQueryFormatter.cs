@@ -11,8 +11,8 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public SqliteSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect,  SqlDataTypeProvider sqlDataTypeProvider)
-			: base(options, sqlDialect, sqlDataTypeProvider)
+		public SqliteSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect,  SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider)
+			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
 		}
 

@@ -14,8 +14,8 @@ namespace Shaolinq.Postgres
 	{
 		private string preparedTransactionName;
 
-		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, DataAccessTransaction transaction)
-			: base(sqlDatabaseContext, connection, transaction)
+		public PostgresSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, TransactionContext transactionContext)
+			: base(sqlDatabaseContext, connection, transactionContext)
 		{	
 		}
 

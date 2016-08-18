@@ -24,7 +24,7 @@ namespace Shaolinq.SqlServer
 			this.method = this.GetType().GetMethod("Read", BindingFlags.Public | BindingFlags.Static);
 		}
 
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			return this.SqlName;
 		}

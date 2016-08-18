@@ -93,8 +93,10 @@ namespace Shaolinq.Sqlite
 		public static SqliteSqlDatabaseContext Create(SqliteSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
+			var sqlDialect = new SqliteSqlDialect();
+			var typeDescriptorProvider = model.TypeDescriptorProvider;
 			var sqlDataTypeProvider = new SqliteSqlDataTypeProvider(constraintDefaults);
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(new SqliteSqlDialect(), sqlDataTypeProvider, typeof(SqliteSqlQueryFormatter));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, options => new SqliteSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider));
 
 			return new SqliteOfficialsSqlDatabaseContext(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
 		}

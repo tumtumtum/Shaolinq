@@ -38,13 +38,13 @@ namespace Shaolinq.Persistence
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
 
 		[RewriteAsync]
-		public SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(DataAccessTransaction transaction)
+		public SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(TransactionContext transactionContext)
 		{
 			var connection = this.OpenConnection();
 
 			try
 			{
-				return this.CreateSqlTransactionalCommandsContext(connection, transaction);
+				return this.CreateSqlTransactionalCommandsContext(connection, transactionContext);
 			}
 			catch
 			{
@@ -54,9 +54,9 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		protected virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, DataAccessTransaction transaction)
+		protected virtual SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, TransactionContext transactionContext)
 		{
-			return new DefaultSqlTransactionalCommandsContext(this, connection, transaction);
+			return new DefaultSqlTransactionalCommandsContext(this, connection, transactionContext);
 		}
 
 		[RewriteAsync]

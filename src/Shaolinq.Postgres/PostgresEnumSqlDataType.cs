@@ -21,7 +21,7 @@ namespace Shaolinq.Postgres
 			this.underlyingType = Nullable.GetUnderlyingType(supportedType);
 		}
 
-		public override string GetSqlName(PropertyDescriptor propertyDescriptor)
+		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)
 		{
 			var enumTypeDescriptor = this.typeDescriptorProvider.GetEnumTypeDescriptor(this.underlyingType ?? this.SupportedType);
 

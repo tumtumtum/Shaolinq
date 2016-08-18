@@ -9,8 +9,8 @@ namespace Shaolinq.Postgres.DotConnect
 	public class PostgresDotConnectSqlTransactionalCommandsContext
 		: DefaultSqlTransactionalCommandsContext
 	{
-		public PostgresDotConnectSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, DataAccessTransaction transaction)
-			: base(sqlDatabaseContext, connection, transaction)
+		public PostgresDotConnectSqlTransactionalCommandsContext(SqlDatabaseContext sqlDatabaseContext, IDbConnection connection, TransactionContext transactionContext)
+			: base(sqlDatabaseContext, connection, transactionContext)
 		{
 		}
 
