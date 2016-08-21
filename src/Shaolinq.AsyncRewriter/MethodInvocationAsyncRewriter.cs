@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,9 +8,14 @@ namespace Shaolinq.AsyncRewriter
 {
 	internal class MethodInvocationAsyncRewriter : MethodInvocationInspector
 	{
-		public MethodInvocationAsyncRewriter(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup, SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol)
-			: base(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol)
+		protected MethodInvocationAsyncRewriter(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup, SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol, MethodDeclarationSyntax methodSyntax)
+			: base(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol, methodSyntax)
 		{
+		}
+
+		public static MethodDeclarationSyntax Rewrite(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup, SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol, MethodDeclarationSyntax methodSyntax)
+		{
+			return (MethodDeclarationSyntax)new MethodInvocationAsyncRewriter(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol, methodSyntax).Visit(methodSyntax);
 		}
 
 		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall)
@@ -40,7 +43,7 @@ namespace Shaolinq.AsyncRewriter
 					rewrittenInvocation = node.WithExpression
 					(
 						memberAccessExp
-							.WithExpression(SyntaxFactory.IdentifierName(candidate.ContainingType.ToMinimalDisplayString(this.semanticModel, node.SpanStart)))
+							.WithExpression(SyntaxFactory.IdentifierName(candidate.ContainingType.ToMinimalDisplayString(this.semanticModel, node.SpanStart + displacement)))
 							.WithName(memberAccessExp.Name.WithIdentifier(SyntaxFactory.Identifier(memberAccessExp.Name.Identifier.Text + "Async")))
 					);
 

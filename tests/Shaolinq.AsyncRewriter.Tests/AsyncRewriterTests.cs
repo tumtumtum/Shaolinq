@@ -64,7 +64,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
 			var paths = new List<string> { "ConditionalAccess.cs" };
 
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
+			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray(), new[] { typeof(EnumerableExtensions).Assembly.Location }).ToArray();
 
 			Console.WriteLine(result);
 		}

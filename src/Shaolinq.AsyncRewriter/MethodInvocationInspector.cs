@@ -5,31 +5,36 @@ using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Shaolinq.AsyncRewriter
 {
-	internal abstract class MethodInvocationInspector : CSharpSyntaxRewriter
+	internal abstract class MethodInvocationInspector
+		: CSharpSyntaxRewriter
 	{
 		private readonly Stack<ExpressionSyntax> lambdaStack = new Stack<ExpressionSyntax>();
 
+		protected SemanticModel semanticModel;
 		protected readonly IAsyncRewriterLogger log;
-		protected readonly SemanticModel semanticModel;
 		protected readonly HashSet<ITypeSymbol> excludeTypes;
 		protected readonly ITypeSymbol cancellationTokenSymbol;
+		protected int displacement;
+		private MethodDeclarationSyntax methodSyntax;
 		protected readonly CompilationLookup extensionMethodLookup;
-
-		protected MethodInvocationInspector(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup,  SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol)
+		
+		protected MethodInvocationInspector(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup,  SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol, MethodDeclarationSyntax methodSyntax)
 		{
 			this.log = log;
 			this.extensionMethodLookup = extensionMethodLookup;
 			this.semanticModel = semanticModel;
 			this.cancellationTokenSymbol = cancellationTokenSymbol;
+			this.methodSyntax = methodSyntax;
 			this.excludeTypes = excludeTypes;
 		}
-
+		
 		private ITypeSymbol GetArgumentType(ArgumentSyntax syntax)
 		{
-			var symbol = this.semanticModel.GetSymbolInfo(syntax.Expression).Symbol;
+			var symbol = this.semanticModel.GetSpeculativeSymbolInfo(this.semanticModel.SyntaxTree.GetRoot().SpanStart + syntax.Expression.SpanStart - this.semanticModel.OriginalPositionForSpeculation, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Symbol;
 
 			var property = symbol?.GetType().GetProperty("Type");
 
@@ -38,12 +43,12 @@ namespace Shaolinq.AsyncRewriter
 				return property.GetValue(symbol) as ITypeSymbol;
 			}
 			
-			return this.semanticModel.GetTypeInfo(syntax.Expression).Type;
+			return this.semanticModel.GetSpeculativeTypeInfo(this.semanticModel.SyntaxTree.GetRoot().SpanStart + syntax.Expression.SpanStart - this.semanticModel.OriginalPositionForSpeculation, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Type;
 		}
 
 		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
 		{
-			lambdaStack.Push(node);
+			this.lambdaStack.Push(node);
 
 			try
 			{
@@ -51,13 +56,13 @@ namespace Shaolinq.AsyncRewriter
 			}
 			finally
 			{
-				lambdaStack.Pop();
+				this.lambdaStack.Pop();
 			}
 		}
 
 		public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
 		{
-			lambdaStack.Push(node);
+			this.lambdaStack.Push(node);
 
 			try
 			{
@@ -65,13 +70,13 @@ namespace Shaolinq.AsyncRewriter
 			}
 			finally
 			{
-				lambdaStack.Pop();
+				this.lambdaStack.Pop();
 			}
 		}
 
 		public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
 		{
-			lambdaStack.Push(node);
+			this.lambdaStack.Push(node);
 
 			try
 			{
@@ -79,13 +84,13 @@ namespace Shaolinq.AsyncRewriter
 			}
 			finally
 			{
-				lambdaStack.Pop();
+				this.lambdaStack.Pop();
 			}
 		}
 
 		public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
 		{
-			if (lambdaStack.Any())
+			if (this.lambdaStack.Any())
 			{
 				return node;
 			}
@@ -97,14 +102,16 @@ namespace Shaolinq.AsyncRewriter
 					return node;
 				}
 			}
+			
+			var originalNodeStart = node.SpanStart + this.displacement;
 
 			var explicitExtensionMethodCall = false;
-			var result = this.semanticModel.GetSymbolInfo(node);
+			var result = this.semanticModel.GetSpeculativeSymbolInfo(node.SpanStart + displacement, node, SpeculativeBindingOption.BindAsExpression);
 
 			if (result.Symbol == null)
 			{
 				var newNode = node.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(node.ArgumentList.Arguments
-						.Where(c => GetArgumentType(c) != cancellationTokenSymbol))));
+						.Where(c => this.GetArgumentType(c) != this.cancellationTokenSymbol))));
 
 				var visited = this.Visit(node.Expression);
 				
@@ -130,27 +137,42 @@ namespace Shaolinq.AsyncRewriter
 				}
 
 				IMethodSymbol syncVersion;
-
+				
 				if (newNode != null 
-					&& (syncVersion = (IMethodSymbol)this.semanticModel.GetSpeculativeSymbolInfo(node.SpanStart, newNode, SpeculativeBindingOption.BindAsExpression).Symbol) != null)
+					&& (syncVersion = (IMethodSymbol)this.semanticModel.GetSpeculativeSymbolInfo(originalNodeStart, newNode, SpeculativeBindingOption.BindAsExpression).Symbol) != null)
 				{
 					if (syncVersion.HasRewriteAsyncApplied())
 					{
-						return node
+						var retval = node
 							.WithExpression((ExpressionSyntax)visited)
-							.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+							.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
+
+						var defaultExpression = SyntaxFactory.DefaultExpression(SyntaxFactory.ParseTypeName($"Task<" + syncVersion.ReturnType + ">"));
+						var model = this.semanticModel.ParentModel ?? this.semanticModel;
+
+						var actualNode = this.semanticModel.SyntaxTree.GetRoot().FindNode(new TextSpan(originalNodeStart, node.Span.Length));
+
+						this.displacement += -this.methodSyntax.SpanStart - (node.FullSpan.Length - defaultExpression.FullSpan.Length);
+						this.methodSyntax = this.methodSyntax.ReplaceNode(actualNode, defaultExpression);
+						this.displacement += this.methodSyntax.SpanStart;
+						
+						if (!model.TryGetSpeculativeSemanticModelForMethodBody(node.SpanStart, this.methodSyntax, out this.semanticModel))
+						{
+							this.log.LogError("Unable to GetSpeculativeSemanticModelForMethodBody");
+						}
+
+						return retval;
 					}
 				}
-
-				log.LogMessage($"Could not find declaration of method '{node}' at {node.GetLocation().GetLineSpan()}");
-				log.LogMessage($"exp= {newNode}");
+				
+				this.log.LogMessage($"Could not find declaration of method '{node}' at {node.GetLocation().GetLineSpan()}");
+				this.log.LogMessage($"exp= {newNode}");
 
 				return node
-					.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
-					.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+					.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
+					.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 			}
-
-			var orignalNode = node;
+			
 			var methodSymbol = (IMethodSymbol)result.Symbol;
 			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
 
@@ -167,8 +189,8 @@ namespace Shaolinq.AsyncRewriter
 				if (this.excludeTypes.Contains(methodSymbol.ContainingType))
 				{
 					return node
-						.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
-						.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+						.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
+						.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 				}
 				
 				var expectedParameterTypes = new List<ITypeSymbol>();
@@ -189,7 +211,7 @@ namespace Shaolinq.AsyncRewriter
 
 				if (candidate == null)
 				{
-					var asyncCandidates2 = extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", GetInvocationTargetType(orignalNode.SpanStart, node, methodSymbol)).ToList();
+					var asyncCandidates2 = this.extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", this.GetInvocationTargetType(originalNodeStart, node, methodSymbol)).ToList();
 
 					candidate = asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default))
 						?? asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
@@ -201,8 +223,8 @@ namespace Shaolinq.AsyncRewriter
 					else
 					{
 						return node
-							.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
-							.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+							.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
+							.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 					}
 				}
 
@@ -217,8 +239,8 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			node = node
-				.WithExpression((ExpressionSyntax)base.Visit(node.Expression))
-				.WithArgumentList((ArgumentListSyntax)base.VisitArgumentList(node.ArgumentList));
+				.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
+				.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 
 			return this.InspectExpression(node, cancellationTokenPos, candidate, explicitExtensionMethodCall);
 		}
@@ -241,7 +263,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				if (node.Parent is ConditionalAccessExpressionSyntax)
 				{
-					retval = this.semanticModel.GetSpeculativeTypeInfo(node.SpanStart, ((ConditionalAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
+					retval = this.semanticModel.GetSpeculativeTypeInfo(pos, ((ConditionalAccessExpressionSyntax)node.Parent).Expression, SpeculativeBindingOption.BindAsExpression).Type;
 				}
 				else if (node.Parent is MemberAccessExpressionSyntax)
 				{
@@ -274,7 +296,7 @@ namespace Shaolinq.AsyncRewriter
 
 				if (!notError)
 				{
-					log.LogError($"Unable to determine type of {node.Expression} in {node.SyntaxTree.FilePath} {node.Expression.GetType()} at {node.GetLocation().GetMappedLineSpan()}");
+					this.log.LogError($"Unable to determine type of {node.Expression} in {node.SyntaxTree.FilePath} {node.Expression.GetType()} at {node.GetLocation().GetMappedLineSpan()}");
 				}
 			}
 

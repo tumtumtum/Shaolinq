@@ -103,18 +103,16 @@ namespace Shaolinq.AsyncRewriter
 					
 					if (File.Exists(n))
 					{
-						var facadesPath = Path.Combine(Path.GetDirectoryName(n) ?? "", "Facades");
+					   var facadesPath = Path.Combine(Path.GetDirectoryName(n) ?? "", "Facades");
 
 						results.Add(MetadataReference.CreateFromFile(n));
-
+						this.log.LogMessage($"Found referenced assembly: {n}"););
+						
 						if (Directory.Exists(facadesPath) && !facadesLoaded.Contains(facadesPath))
 						{
 							facadesLoaded.Add(facadesPath);
 
-							foreach (var facadeDll in Directory.GetFiles(facadesPath))
-							{
-								results.Add(MetadataReference.CreateFromFile(facadeDll));
-							}
+							results.AddRange(Directory.GetFiles(facadesPath).Select(facadeDll => MetadataReference.CreateFromFile(facadeDll)));
 						}
 
 						return results;
@@ -237,7 +235,7 @@ namespace Shaolinq.AsyncRewriter
 				{
 					throw new ArgumentException("A provided syntax tree was compiled into the provided compilation");
 				}
-
+				
 				var asyncMethods = syntaxTree
 					.GetRoot()
 					.DescendantNodes()
@@ -381,8 +379,7 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 
-			var rewriter = new MethodInvocationAsyncRewriter(this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
-			var newAsyncMethod = (MethodDeclarationSyntax)rewriter.Visit(methodSyntax);
+			var newAsyncMethod = MethodInvocationAsyncRewriter.Rewrite(this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol, methodSyntax);
 			var returnTypeName = methodSyntax.ReturnType.ToString();
 
 			newAsyncMethod = newAsyncMethod
