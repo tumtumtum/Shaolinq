@@ -82,6 +82,10 @@
       <Project>{318f3a69-3f34-4ce4-8ed5-22efe2f6c302}</Project>
       <Name>Shaolinq.AsyncRewriter</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Shaolinq\Shaolinq.csproj">
+      <Project>{0c8321d6-4df6-4b90-af5a-92537d4a7e54}</Project>
+      <Name>Shaolinq</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

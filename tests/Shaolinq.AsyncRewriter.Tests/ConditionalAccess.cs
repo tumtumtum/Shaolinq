@@ -3,19 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
-	[TestFixture]
-	public class ConditionalAccess
+	public class RewriteAsyncAttribute : Attribute
 	{
-		public class Foo
+	}
+
+	public interface IFoo
+	{
+		[RewriteAsync]
+		int Bar(string s);
+	}
+	
+	public class ConditionalAccess<T>
+	{
+		public class Foo: IFoo
 		{
 			[RewriteAsync]
-			public int Bar()
+			public int Bar(string s)
 			{
-			    return 0;
+				return 0;
 			}
 
 			public Foo Other(int x)
@@ -50,7 +58,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			var foo = GetCurrentFoo();
 
 			foo?.Other(0).Bar();
-		}*/
+		}
 
 		[RewriteAsync()]
 		public void Test2()
@@ -58,6 +66,32 @@ namespace Shaolinq.AsyncRewriter.Tests
 			var foo = GetCurrentFoo();
 
 			foo?.Other(foo.Bar()).Bar();
+		}*/
+
+
+		[RewriteAsync]
+		public IQueryable<T> GetAll()
+		{
+			return null;
+		}
+		
+		public async void Test3Async()
+		{
+			if (true)
+			{
+				var q = await this.GetAllAsync();
+
+				await q.Where(c => true);
+
+				var x = q.Where(c => true).ToList();
+
+				if (true)
+				{
+					var q2 = await this.GetAllAsync();
+
+					await q2.Where(c => true).ToListAsync;
+				}
+			}
 		}
 	}
 }

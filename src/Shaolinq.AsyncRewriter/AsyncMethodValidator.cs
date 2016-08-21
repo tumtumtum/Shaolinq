@@ -19,15 +19,15 @@ namespace Shaolinq.AsyncRewriter
 
 		public static List<ValidatorResult> Validate(MethodDeclarationSyntax methodSyntax, IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup, SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol)
 		{
-			var validator = new AsyncMethodValidator(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol);
+			var validator = new AsyncMethodValidator(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol, methodSyntax);
 
 			validator.Visit(methodSyntax);
 
 			return validator.results;
 		}
 
-		private AsyncMethodValidator(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup, SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol)
-			: base(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol)
+		private AsyncMethodValidator(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup, SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol, MethodDeclarationSyntax methodSyntax)
+			: base(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol, methodSyntax)
 		{
 		}
 

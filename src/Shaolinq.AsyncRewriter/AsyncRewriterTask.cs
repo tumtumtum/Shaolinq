@@ -105,8 +105,8 @@ namespace Shaolinq.AsyncRewriter
 		{
 			var filename = this.OutputFile.ItemSpec;
 			var code = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
-			
-			try
+
+            try
 			{
 				using (TextReader left = File.OpenText(filename), right = new StringReader(code))
 				{
