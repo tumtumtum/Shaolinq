@@ -186,7 +186,16 @@ namespace Shaolinq.AsyncRewriter
 				}
 				else
 				{
-					return SyntaxFactory.ConditionalExpression(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccessResult.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.AwaitExpression(syntax), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
+					var typeResult = this.semanticModel.GetSpeculativeTypeInfo(node.SpanStart + this.displacement, node, SpeculativeBindingOption.BindAsExpression);
+
+					if (typeResult.Type.IsValueType)
+					{
+						return SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalExpression(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccessResult.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.AwaitExpression(syntax), SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(typeResult.Type.ToString()), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)))));
+					}
+					else
+					{ 
+						return SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ConditionalExpression(SyntaxFactory.BinaryExpression(SyntaxKind.NotEqualsExpression, conditionalAccessResult.Expression, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)), SyntaxFactory.AwaitExpression(syntax), SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)));
+					}
 				}
 			}
 
