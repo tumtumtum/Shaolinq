@@ -438,26 +438,6 @@ namespace Shaolinq
 			}
 		}
 
-		public static Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source)
-		{
-			return source.ToListAsync(CancellationToken.None);
-		}
-
-		public static Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken)
-		{
-			return ((IEnumerable<T>)source).ToListAsync(cancellationToken);
-		}
-
-		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IAsyncEnumerable<T> source)
-		{
-			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync();
-		}
-
-		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IAsyncEnumerable<T> source, CancellationToken cancellationToken)
-		{
-			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync(cancellationToken);
-		}
-
 		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task> value)
 		{
 			return ((IEnumerable<T>)source).WithEachAsync(value);
