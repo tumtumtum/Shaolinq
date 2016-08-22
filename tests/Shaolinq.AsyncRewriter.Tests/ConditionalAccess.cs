@@ -74,7 +74,13 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			return null;
 		}
-		
+
+		[RewriteAsync]
+		public IQueryable<U> GetBalls<U>()
+		{
+			return null;
+		}
+
 		public async void Test3Async()
 		{
 			if (true)

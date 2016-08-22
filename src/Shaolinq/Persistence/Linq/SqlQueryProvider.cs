@@ -399,7 +399,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo, "projectorCache", ProjectorCacheMaxLimit);
 
-				ProjectionCacheLogger.Info(() => $"Cached projector:\n{cacheInfo.projector}");
+				ProjectionCacheLogger.Info(() => $"Cached projector:\n{projectionLambda}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 			}
 			

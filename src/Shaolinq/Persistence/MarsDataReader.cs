@@ -3,10 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 
 namespace Shaolinq.Persistence
 {
-	public class MarsDataReader
+	public partial class MarsDataReader
 		: DataReaderWrapper
 	{
 		private bool closed;
@@ -28,6 +29,7 @@ namespace Shaolinq.Persistence
 			this.command = command;
 		}
 
+		[RewriteAsync]
 		public void BufferAll()
 		{
 			if (this.IsClosed || this.closed)
@@ -54,7 +56,7 @@ namespace Shaolinq.Persistence
 					this.names[i] = base.GetName(i);
 				}
 
-				while (base.Read())
+				while (this.Inner.ReadEx())
 				{
 					var rowData = new object[base.FieldCount];
 
@@ -79,6 +81,7 @@ namespace Shaolinq.Persistence
 			this.rows = null;
 		}
 
+		[RewriteAsync]
 		public override bool NextResult()
 		{
 			if (this.rows == null)
@@ -89,6 +92,7 @@ namespace Shaolinq.Persistence
 			throw new NotImplementedException();
 		}
 
+		[RewriteAsync]
 		public override bool Read()
 		{
 			if (this.rows == null)
@@ -121,13 +125,13 @@ namespace Shaolinq.Persistence
 			}
 		}
 
-		public override void Dispose()
+		protected override void Dispose(bool disposing)
 		{
 			if (this.command.context.currentReader == this)
 			{
 				this.command.context.currentReader = null;
 
-				base.Dispose();
+				base.Dispose(disposing);
 			}
 		}
 
@@ -159,6 +163,17 @@ namespace Shaolinq.Persistence
 			}
 
 			return this.fieldTypes[i];
+		}
+
+		[RewriteAsync]
+		public override T GetFieldValue<T>(int ordinal)
+		{
+			if (this.rows == null)
+			{
+				return this.Inner.GetFieldValueEx<T>(ordinal);
+			}
+
+			return (T)Convert.ChangeType(this.currentRow[ordinal], typeof(T));
 		}
 
 		public override object GetValue(int i)
@@ -357,21 +372,17 @@ namespace Shaolinq.Persistence
 			return Convert.ToDateTime(this.currentRow[i]);
 		}
 
-		public override IDataReader GetData(int i)
+		protected override DbDataReader GetDbDataReader(int ordinal)
 		{
-			if (this.rows == null)
-			{
-				return base.GetData(i);
-			}
-
 			throw new NotSupportedException($"{nameof(MarsDataReader)}.{nameof(GetData)}");
 		}
 
+		[RewriteAsync]
 		public override bool IsDBNull(int i)
 		{
 			if (this.rows == null)
 			{
-				return base.IsDBNull(i);
+				return this.Inner.IsDbNullEx(i);
 			}
 
 			return this.currentRow[i] == DBNull.Value;

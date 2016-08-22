@@ -2078,6 +2078,8 @@ namespace Shaolinq.Tests
 								g.Key.Firstname,
 								Count = g.Count()
 							}).ToList();
+
+			Console.WriteLine(students.Count);
 		}
 
 		[Test]

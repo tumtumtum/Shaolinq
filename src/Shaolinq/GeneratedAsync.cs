@@ -346,7 +346,7 @@ namespace Shaolinq
 	{
 		internal static Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> source)
 		{
-			return AlwaysReadFirstAsync(source, CancellationToken.None);
+			return AlwaysReadFirstAsync<T>(source, CancellationToken.None);
 		}
 
 		internal static async Task<T> AlwaysReadFirstAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
@@ -356,7 +356,7 @@ namespace Shaolinq
 
 		public static Task<int> CountAsync<T>(this IEnumerable<T> source)
 		{
-			return CountAsync(source, CancellationToken.None);
+			return CountAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<int> CountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
@@ -381,7 +381,7 @@ namespace Shaolinq
 
 		public static Task<long> LongCountAsync<T>(this IEnumerable<T> source)
 		{
-			return LongCountAsync(source, CancellationToken.None);
+			return LongCountAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<long> LongCountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
@@ -406,7 +406,7 @@ namespace Shaolinq
 
 		internal static Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> source, T specifiedValue)
 		{
-			return SingleOrSpecifiedValueIfFirstIsDefaultValueAsync(source, specifiedValue, CancellationToken.None);
+			return SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(source, specifiedValue, CancellationToken.None);
 		}
 
 		internal static async Task<T> SingleOrSpecifiedValueIfFirstIsDefaultValueAsync<T>(this IEnumerable<T> source, T specifiedValue, CancellationToken cancellationToken)
@@ -435,7 +435,7 @@ namespace Shaolinq
 
 		public static Task<T> SingleAsync<T>(this IEnumerable<T> source)
 		{
-			return SingleAsync(source, CancellationToken.None);
+			return SingleAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> SingleAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
@@ -459,7 +459,7 @@ namespace Shaolinq
 
 		public static Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source)
 		{
-			return SingleOrDefaultAsync(source, CancellationToken.None);
+			return SingleOrDefaultAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> SingleOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
@@ -483,7 +483,7 @@ namespace Shaolinq
 
 		public static Task<T> FirstAsync<T>(this IEnumerable<T> enumerable)
 		{
-			return FirstAsync(enumerable, CancellationToken.None);
+			return FirstAsync<T>(enumerable, CancellationToken.None);
 		}
 
 		public static async Task<T> FirstAsync<T>(this IEnumerable<T> enumerable, CancellationToken cancellationToken)
@@ -501,7 +501,7 @@ namespace Shaolinq
 
 		public static Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source)
 		{
-			return FirstOrDefaultAsync(source, CancellationToken.None);
+			return FirstOrDefaultAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> FirstOrDefaultAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
@@ -519,7 +519,7 @@ namespace Shaolinq
 
 		internal static Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > source)where T : struct
 		{
-			return SingleOrExceptionIfFirstIsNullAsync(source, CancellationToken.None);
+			return SingleOrExceptionIfFirstIsNullAsync<T>(source, CancellationToken.None);
 		}
 
 		internal static async Task<T> SingleOrExceptionIfFirstIsNullAsync<T>(this IEnumerable<T? > source, CancellationToken cancellationToken)where T : struct
@@ -624,7 +624,6 @@ namespace Shaolinq.Persistence
 	// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
-	using System.Reflection;
 	using System.Data.Common;
 	using System.Threading.Tasks;
 	using Shaolinq;
@@ -646,6 +645,54 @@ namespace Shaolinq.Persistence
 			}
 
 			return reader.Read();
+		}
+
+		public static Task<bool> NextResultExAsync(this IDataReader reader, int ordinal)
+		{
+			return NextResultExAsync(reader, ordinal, CancellationToken.None);
+		}
+
+		public static async Task<bool> NextResultExAsync(this IDataReader reader, int ordinal, CancellationToken cancellationToken)
+		{
+			var dbDataReader = reader as DbDataReader;
+			if (dbDataReader != null)
+			{
+				return await dbDataReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
+			}
+
+			return reader.NextResult();
+		}
+
+		public static Task<bool> IsDbNullExAsync(this IDataReader reader, int ordinal)
+		{
+			return IsDbNullExAsync(reader, ordinal, CancellationToken.None);
+		}
+
+		public static async Task<bool> IsDbNullExAsync(this IDataReader reader, int ordinal, CancellationToken cancellationToken)
+		{
+			var dbDataReader = reader as DbDataReader;
+			if (dbDataReader != null)
+			{
+				return await dbDataReader.IsDBNullAsync(ordinal, cancellationToken).ConfigureAwait(false);
+			}
+
+			return reader.IsDBNull(ordinal);
+		}
+
+		public static Task<T> GetFieldValueExAsync<T>(this IDataReader reader, int ordinal)
+		{
+			return GetFieldValueExAsync<T>(reader, ordinal, CancellationToken.None);
+		}
+
+		public static async Task<T> GetFieldValueExAsync<T>(this IDataReader reader, int ordinal, CancellationToken cancellationToken)
+		{
+			var dbDataReader = reader as DbDataReader;
+			if (dbDataReader != null)
+			{
+				return await dbDataReader.GetFieldValueAsync<T>(ordinal, cancellationToken).ConfigureAwait(false);
+			}
+
+			return await dbDataReader.GetFieldValueAsync<T>(ordinal, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
@@ -984,6 +1031,111 @@ namespace Shaolinq.Persistence
 	using System.Threading;
 	using System.Data.Common;
 	using System.Threading.Tasks;
+	using System.Collections.Generic;
+	using Shaolinq;
+	using Shaolinq.Persistence;
+
+	public partial class MarsDataReader
+	{
+		public Task BufferAllAsync()
+		{
+			return BufferAllAsync(CancellationToken.None);
+		}
+
+		public async Task BufferAllAsync(CancellationToken cancellationToken)
+		{
+			if (this.IsClosed || this.closed)
+			{
+				return;
+			}
+
+			this.rows = new Queue<object[]>();
+			try
+			{
+				this.fieldCount = base.FieldCount;
+				this.recordsAffected = base.RecordsAffected;
+				this.ordinalByFieldName = new Dictionary<string, int>(this.fieldCount);
+				this.dataTypeNames = new string[this.fieldCount];
+				this.fieldTypes = new Type[this.fieldCount];
+				this.names = new string[this.fieldCount];
+				for (var i = 0; i < base.FieldCount; i++)
+				{
+					this.ordinalByFieldName[base.GetName(i)] = i;
+					this.dataTypeNames[i] = base.GetDataTypeName(i);
+					this.fieldTypes[i] = base.GetFieldType(i);
+					this.names[i] = base.GetName(i);
+				}
+
+				while (await this.Inner.ReadExAsync(cancellationToken).ConfigureAwait(false))
+				{
+					var rowData = new object[base.FieldCount];
+					base.GetValues(rowData);
+					this.rows.Enqueue(rowData);
+				}
+			}
+			finally
+			{
+				this.Dispose();
+			}
+		}
+
+		public override async Task<bool> NextResultAsync(CancellationToken cancellationToken)
+		{
+			if (this.rows == null)
+			{
+				return base.NextResult();
+			}
+
+			throw new NotImplementedException();
+		}
+
+		public override async Task<bool> ReadAsync(CancellationToken cancellationToken)
+		{
+			if (this.rows == null)
+			{
+				return base.Read();
+			}
+
+			if (this.rows.Count == 0)
+			{
+				this.currentRow = null;
+				return false;
+			}
+
+			this.currentRow = this.rows.Dequeue();
+			return true;
+		}
+
+		public override async Task<T> GetFieldValueAsync<T>(int ordinal, CancellationToken cancellationToken)
+		{
+			if (this.rows == null)
+			{
+				return await this.Inner.GetFieldValueExAsync<T>(ordinal, cancellationToken).ConfigureAwait(false);
+			}
+
+			return (T)Convert.ChangeType(this.currentRow[ordinal], typeof (T));
+		}
+
+		public override async Task<bool> IsDBNullAsync(int i, CancellationToken cancellationToken)
+		{
+			if (this.rows == null)
+			{
+				return await this.Inner.IsDbNullExAsync(i, cancellationToken).ConfigureAwait(false);
+			}
+
+			return this.currentRow[i] == DBNull.Value;
+		}
+	}
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+	using System;
+	using System.Data;
+	using System.Threading;
+	using System.Data.Common;
+	using System.Threading.Tasks;
 	using Shaolinq;
 	using Shaolinq.Persistence;
 
@@ -996,7 +1148,11 @@ namespace Shaolinq.Persistence
 
 		public async virtual Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
 		{
-			this.context.currentReader?.BufferAll();
+			if (this.context.currentReader != null)
+			{
+				await this.context.currentReader.BufferAllAsync(cancellationToken).ConfigureAwait(false);
+			}
+
 			var dbCommand = this.Inner as DbCommand;
 			if (dbCommand != null)
 			{
@@ -1015,7 +1171,11 @@ namespace Shaolinq.Persistence
 
 		public async virtual Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
 		{
-			this.context.currentReader?.BufferAll();
+			if (this.context.currentReader != null)
+			{
+				await this.context.currentReader.BufferAllAsync(cancellationToken).ConfigureAwait(false);
+			}
+
 			var dbCommand = this.Inner as DbCommand;
 			if (dbCommand != null)
 			{
@@ -1034,7 +1194,11 @@ namespace Shaolinq.Persistence
 
 		public async virtual Task<IDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
 		{
-			this.context.currentReader?.BufferAll();
+			if (this.context.currentReader != null)
+			{
+				await this.context.currentReader.BufferAllAsync(cancellationToken).ConfigureAwait(false);
+			}
+
 			var dbCommand = this.Inner as DbCommand;
 			if (dbCommand != null)
 			{
@@ -1060,7 +1224,11 @@ namespace Shaolinq.Persistence
 
 		public async virtual Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
 		{
-			this.context.currentReader?.BufferAll();
+			if (this.context.currentReader != null)
+			{
+				await this.context.currentReader.BufferAllAsync(cancellationToken).ConfigureAwait(false);
+			}
+
 			var dbCommand = this.Inner as DbCommand;
 			if (dbCommand != null)
 			{
@@ -1229,7 +1397,7 @@ namespace Shaolinq
 	{
 		public static Task<bool> AnyAsync<T>(this IQueryable<T> source)
 		{
-			return AnyAsync(source, CancellationToken.None);
+			return AnyAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<bool> AnyAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1240,7 +1408,7 @@ namespace Shaolinq
 
 		public static Task<bool> AnyAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return AnyAsync(source, predicate, CancellationToken.None);
+			return AnyAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<bool> AnyAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1251,7 +1419,7 @@ namespace Shaolinq
 
 		public static Task<bool> AllAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return AllAsync(source, predicate, CancellationToken.None);
+			return AllAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<bool> AllAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1262,7 +1430,7 @@ namespace Shaolinq
 
 		public static Task<T> FirstAsync<T>(this IQueryable<T> source)
 		{
-			return FirstAsync(source, CancellationToken.None);
+			return FirstAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> FirstAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1273,7 +1441,7 @@ namespace Shaolinq
 
 		public static Task<T> FirstAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return FirstAsync(source, predicate, CancellationToken.None);
+			return FirstAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<T> FirstAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1284,7 +1452,7 @@ namespace Shaolinq
 
 		public static Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source)
 		{
-			return FirstOrDefaultAsync(source, CancellationToken.None);
+			return FirstOrDefaultAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1295,7 +1463,7 @@ namespace Shaolinq
 
 		public static Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return FirstOrDefaultAsync(source, predicate, CancellationToken.None);
+			return FirstOrDefaultAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1306,7 +1474,7 @@ namespace Shaolinq
 
 		public static Task<T> SingleAsync<T>(this IQueryable<T> source)
 		{
-			return SingleAsync(source, CancellationToken.None);
+			return SingleAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> SingleAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1317,7 +1485,7 @@ namespace Shaolinq
 
 		public static Task<T> SingleAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return SingleAsync(source, predicate, CancellationToken.None);
+			return SingleAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<T> SingleAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1328,7 +1496,7 @@ namespace Shaolinq
 
 		public static Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source)
 		{
-			return SingleOrDefaultAsync(source, CancellationToken.None);
+			return SingleOrDefaultAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1339,7 +1507,7 @@ namespace Shaolinq
 
 		public static Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return SingleOrDefaultAsync(source, predicate, CancellationToken.None);
+			return SingleOrDefaultAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<T> SingleOrDefaultAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1350,7 +1518,7 @@ namespace Shaolinq
 
 		public static Task<int> DeleteAsync<T>(this IQueryable<T> source)where T : DataAccessObject
 		{
-			return DeleteAsync(source, CancellationToken.None);
+			return DeleteAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
@@ -1362,7 +1530,7 @@ namespace Shaolinq
 
 		public static Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)where T : DataAccessObject
 		{
-			return DeleteAsync(source, predicate, CancellationToken.None);
+			return DeleteAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)where T : DataAccessObject
@@ -1374,7 +1542,7 @@ namespace Shaolinq
 
 		public static Task<int> CountAsync<T>(this IQueryable<T> source)
 		{
-			return CountAsync(source, CancellationToken.None);
+			return CountAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<int> CountAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1385,7 +1553,7 @@ namespace Shaolinq
 
 		public static Task<int> CountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return CountAsync(source, predicate, CancellationToken.None);
+			return CountAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<int> CountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1396,7 +1564,7 @@ namespace Shaolinq
 
 		public static Task<long> LongCountAsync<T>(this IQueryable<T> source)
 		{
-			return LongCountAsync(source, CancellationToken.None);
+			return LongCountAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1407,7 +1575,7 @@ namespace Shaolinq
 
 		public static Task<long> LongCountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate)
 		{
-			return LongCountAsync(source, predicate, CancellationToken.None);
+			return LongCountAsync<T>(source, predicate, CancellationToken.None);
 		}
 
 		public static async Task<long> LongCountAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)
@@ -1418,7 +1586,7 @@ namespace Shaolinq
 
 		public static Task<T> MinAsync<T>(this IQueryable<T> source)
 		{
-			return MinAsync(source, CancellationToken.None);
+			return MinAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> MinAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1429,7 +1597,7 @@ namespace Shaolinq
 
 		public static Task<T> MaxAsync<T>(this IQueryable<T> source)
 		{
-			return MaxAsync(source, CancellationToken.None);
+			return MaxAsync<T>(source, CancellationToken.None);
 		}
 
 		public static async Task<T> MaxAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
@@ -1440,7 +1608,7 @@ namespace Shaolinq
 
 		public static Task<U> MinAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
 		{
-			return MinAsync(source, selector, CancellationToken.None);
+			return MinAsync<T, U>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<U> MinAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector, CancellationToken cancellationToken)
@@ -1451,7 +1619,7 @@ namespace Shaolinq
 
 		public static Task<U> MaxAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector)
 		{
-			return MaxAsync(source, selector, CancellationToken.None);
+			return MaxAsync<T, U>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<U> MaxAsync<T, U>(this IQueryable<T> source, Expression<Func<T, U>> selector, CancellationToken cancellationToken)
@@ -1572,7 +1740,7 @@ namespace Shaolinq
 
 		public static Task<int> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<int> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector, CancellationToken cancellationToken)
@@ -1583,7 +1751,7 @@ namespace Shaolinq
 
 		public static Task<int ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<int ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector, CancellationToken cancellationToken)
@@ -1594,7 +1762,7 @@ namespace Shaolinq
 
 		public static Task<long> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<long> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector, CancellationToken cancellationToken)
@@ -1605,7 +1773,7 @@ namespace Shaolinq
 
 		public static Task<long ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<long ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector, CancellationToken cancellationToken)
@@ -1616,7 +1784,7 @@ namespace Shaolinq
 
 		public static Task<float> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<float> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector, CancellationToken cancellationToken)
@@ -1627,7 +1795,7 @@ namespace Shaolinq
 
 		public static Task<float ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<float ? > SumAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector, CancellationToken cancellationToken)
@@ -1638,7 +1806,7 @@ namespace Shaolinq
 
 		public static Task<double> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<double> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector, CancellationToken cancellationToken)
@@ -1649,7 +1817,7 @@ namespace Shaolinq
 
 		public static Task<double ? > SumAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<double ? > SumAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector, CancellationToken cancellationToken)
@@ -1660,7 +1828,7 @@ namespace Shaolinq
 
 		public static Task<decimal> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, decimal>> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<decimal> SumAsync<T>(this IQueryable<T> source, Expression<Func<T, decimal>> selector, CancellationToken cancellationToken)
@@ -1671,7 +1839,7 @@ namespace Shaolinq
 
 		public static Task<decimal ? > SumAsync<T>(this IQueryable<decimal ? > source, Expression<Func<T, decimal ? >> selector)
 		{
-			return SumAsync(source, selector, CancellationToken.None);
+			return SumAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<decimal ? > SumAsync<T>(this IQueryable<decimal ? > source, Expression<Func<T, decimal ? >> selector, CancellationToken cancellationToken)
@@ -1770,7 +1938,7 @@ namespace Shaolinq
 
 		public static Task<int> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<int> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int>> selector, CancellationToken cancellationToken)
@@ -1781,7 +1949,7 @@ namespace Shaolinq
 
 		public static Task<int ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<int ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, int ? >> selector, CancellationToken cancellationToken)
@@ -1792,7 +1960,7 @@ namespace Shaolinq
 
 		public static Task<long> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<long> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long>> selector, CancellationToken cancellationToken)
@@ -1803,7 +1971,7 @@ namespace Shaolinq
 
 		public static Task<long ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<long ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, long ? >> selector, CancellationToken cancellationToken)
@@ -1814,7 +1982,7 @@ namespace Shaolinq
 
 		public static Task<float> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<float> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float>> selector, CancellationToken cancellationToken)
@@ -1825,7 +1993,7 @@ namespace Shaolinq
 
 		public static Task<float ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<float ? > AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, float ? >> selector, CancellationToken cancellationToken)
@@ -1836,7 +2004,7 @@ namespace Shaolinq
 
 		public static Task<double> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<double> AverageAsync<T>(this IQueryable<T> source, Expression<Func<T, double>> selector, CancellationToken cancellationToken)
@@ -1847,7 +2015,7 @@ namespace Shaolinq
 
 		public static Task<double ? > AverageAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector)
 		{
-			return AverageAsync(source, selector, CancellationToken.None);
+			return AverageAsync<T>(source, selector, CancellationToken.None);
 		}
 
 		public static async Task<double ? > AverageAsync<T>(this IQueryable<double ? > source, Expression<Func<T, double ? >> selector, CancellationToken cancellationToken)

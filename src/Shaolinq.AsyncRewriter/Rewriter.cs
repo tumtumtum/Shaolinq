@@ -300,7 +300,13 @@ namespace Shaolinq.AsyncRewriter
 
 		IEnumerable<MethodDeclarationSyntax> RewriteMethods(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
 		{
-			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel, false);
+			var result = this.RewriteMethodAsync(inMethodSyntax, semanticModel, false);
+
+			if (result != null)
+			{
+				yield return result;
+			}
+
 			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel, true);
 		}
 		
@@ -371,7 +377,7 @@ namespace Shaolinq.AsyncRewriter
 			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
 			var asyncMethodName = methodSymbol.Name + "Async";
 			var isInterfaceMethod = methodSymbol.ContainingType.TypeKind == TypeKind.Interface;
-
+			
 			if (((methodSyntax.Parent as TypeDeclarationSyntax)?.Modifiers)?.Any(c => c.Kind() == SyntaxKind.PartialKeyword) != true)
 			{
 				var name = ((TypeDeclarationSyntax)methodSyntax.Parent).Identifier.ToString();
@@ -414,9 +420,18 @@ namespace Shaolinq.AsyncRewriter
 			}
 			else
 			{
+				var methodName = asyncMethodName;
+
+				if (methodSymbol.TypeParameters.Length > 0)
+				{
+					var typeParams = string.Join(", ", methodSymbol.TypeParameters.Select(c => c.ToString()));
+
+					methodName += "<" + typeParams + ">";
+				}
+
 				var callAsyncWithCancellationToken = SyntaxFactory.InvocationExpression
 				(
-					SyntaxFactory.IdentifierName(asyncMethodName),
+					SyntaxFactory.IdentifierName(methodName),
 					SyntaxFactory.ArgumentList
 					(
 						new SeparatedSyntaxList<ArgumentSyntax>()
@@ -452,6 +467,11 @@ namespace Shaolinq.AsyncRewriter
 				if (!parentContainsAsyncMethod && hadNew)
 				{
 					newAsyncMethod = newAsyncMethod.WithModifiers(new SyntaxTokenList().AddRange(newAsyncMethod.Modifiers.Where(c => c.Kind() != SyntaxKind.NewKeyword)));
+				}
+
+				if (parentContainsAsyncMethod && !(baseAsyncMethod.IsVirtual || baseAsyncMethod.IsAbstract || baseAsyncMethod.IsOverride))
+				{
+					return null;
 				}
 
 				if (!(parentContainsAsyncMethod || parentContainsMethodWithRewriteAsync))
