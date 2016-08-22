@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Shaolinq
 {
-	public class AsyncEnumeratorAdapter<T>
+    public class AsyncEnumeratorAdapter<T>
 		: IAsyncEnumerator<T>
 	{
 		public static IAsyncEnumerator<T> Adapt(IEnumerator<T> enumerator)

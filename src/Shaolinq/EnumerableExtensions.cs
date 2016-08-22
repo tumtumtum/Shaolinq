@@ -53,9 +53,13 @@ namespace Shaolinq
 			=> enumerator.MoveNextAsync(cancellationToken);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static IAsyncEnumerable<T> GetAsyncEnumerableOrAdapt<T>(this IEnumerable<T> source)
+			=> (source as IAsyncEnumerable<T>) ?? new AsyncEnumerableAdapter<T>(source.GetAsyncEnumeratorOrAdapt);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrAdapt<T>(this IEnumerable<T> source)
 			=> (source as IAsyncEnumerable<T>)?.GetAsyncEnumerator() ?? new AsyncEnumeratorAdapter<T>(source.GetEnumerator());
-		
+
 		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrThrow<T>(this IEnumerable<T> source)
 		{
 			var asyncEnumerable = source as IAsyncEnumerable<T>;
@@ -317,12 +321,12 @@ namespace Shaolinq
 			return new ReadOnlyCollection<T>(retval);
 		}
 
-		internal static Task<List<T>> ToListAsync<T>(this IEnumerable<T> source)
+		public static Task<List<T>> ToListAsync<T>(this IEnumerable<T> source)
 		{
 			return source.ToListAsync(CancellationToken.None);
 		}
 
-		internal static async Task<List<T>> ToListAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		public static async Task<List<T>> ToListAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			// ReSharper disable once SuspiciousTypeConversion.Global
 			var queryable = source as ReusableQueryable<T>;
@@ -350,12 +354,12 @@ namespace Shaolinq
 			return result;
 		}
 
-		internal static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> source)
+		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> source)
 		{
 			return source.ToReadOnlyCollectionAsync(CancellationToken.None);
 		}
 
-		internal static async Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
+		public static async Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			// ReSharper disable once SuspiciousTypeConversion.Global
 			var queryable = source as ReusableQueryable<T>;
@@ -399,17 +403,17 @@ namespace Shaolinq
 			return new ReadOnlyCollection<T>(retval);
 		}
 
-		internal static Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value)
+		public static Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value)
 		{
 			return source.WithEachAsync(value, CancellationToken.None);
 		}
 
-		internal static Task WithEachAsync<T>(this IEnumerable<T> queryable, Func<T, Task<bool>> value)
+		public static Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task<bool>> value)
 		{
-			return queryable.WithEachAsync(value, CancellationToken.None);
+			return source.WithEachAsync(value, CancellationToken.None);
 		}
 
-		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
+		public static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
 		{
 			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
@@ -425,7 +429,7 @@ namespace Shaolinq
 			}
 		}
 
-		internal static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
+		public static async Task WithEachAsync<T>(this IEnumerable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
 		{
 			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
@@ -440,12 +444,12 @@ namespace Shaolinq
 
 		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task> value)
 		{
-			return ((IEnumerable<T>)source).WithEachAsync(value);
+			return source.WithEachAsync(value, CancellationToken.None);
 		}
 
 		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task<bool>> value)
 		{
-			return ((IEnumerable<T>)source).WithEachAsync(value);
+			return source.WithEachAsync(value, CancellationToken.None);
 		}
 
 		public static Task WithEachAsync<T>(this IAsyncEnumerable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)

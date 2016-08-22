@@ -29,46 +29,6 @@ namespace Shaolinq
 			return source.Provider.CreateQuery<T>(Expression.Call(null,((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
 		}
 
-		public static Task<List<T>> ToListAsync<T>(this IQueryable<T> source)
-		{
-			return ((IEnumerable<T>)source).ToListAsync();
-		}
-
-		public static Task<List<T>> ToListAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
-		{
-			return ((IEnumerable<T>)source).ToListAsync(cancellationToken);
-		}
-
-		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IQueryable<T> source)
-		{
-			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync();
-		}
-
-		public static Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)
-		{
-			return ((IEnumerable<T>)source).ToReadOnlyCollectionAsync(cancellationToken);
-		}
-
-		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task> value)
-		{
-			return ((IEnumerable<T>)source).WithEachAsync(value);
-		}
-
-		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task<bool>> value)
-		{
-			return ((IEnumerable<T>)source).WithEachAsync(value);
-		}
-
-		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task<bool>> value, CancellationToken cancellationToken)
-		{
-			return ((IEnumerable<T>)source).WithEachAsync(value, cancellationToken);
-		}
-
-		public static Task WithEachAsync<T>(this IQueryable<T> source, Func<T, Task> value, CancellationToken cancellationToken)
-		{
-			return ((IEnumerable<T>)source).WithEachAsync(value, cancellationToken);
-		}
-
 		[RewriteAsync(MethodAttributes.Public)]
 		private static bool Any<T>(this IQueryable<T> source)
 		{
