@@ -34,7 +34,7 @@ namespace Shaolinq.AsyncRewriter
 		
 		private ITypeSymbol GetArgumentType(ArgumentSyntax syntax)
 		{
-			var symbol = this.semanticModel.GetSpeculativeSymbolInfo(this.semanticModel.SyntaxTree.GetRoot().SpanStart + syntax.Expression.SpanStart - this.semanticModel.OriginalPositionForSpeculation, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Symbol;
+			var symbol = this.semanticModel.GetSpeculativeSymbolInfo(syntax.Expression.SpanStart + this.displacement, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Symbol;
 
 			var property = symbol?.GetType().GetProperty("Type");
 
@@ -43,7 +43,7 @@ namespace Shaolinq.AsyncRewriter
 				return property.GetValue(symbol) as ITypeSymbol;
 			}
 			
-			return this.semanticModel.GetSpeculativeTypeInfo(this.semanticModel.SyntaxTree.GetRoot().SpanStart + syntax.Expression.SpanStart - this.semanticModel.OriginalPositionForSpeculation, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Type;
+			return this.semanticModel.GetSpeculativeTypeInfo(syntax.Expression.SpanStart + this.displacement, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Type;
 		}
 
 		public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
@@ -119,35 +119,49 @@ namespace Shaolinq.AsyncRewriter
 				{
 					var memberAccess = (MemberAccessExpressionSyntax)visited;
 
-					var newExp = memberAccess.WithName(SyntaxFactory.IdentifierName(Regex.Replace(memberAccess.Name.Identifier.Text, "Async$", "")));
+					if (memberAccess.Name.Identifier.Text.EndsWith("Async"))
+					{
+						var newExp = memberAccess.WithName(SyntaxFactory.IdentifierName(Regex.Replace(memberAccess.Name.Identifier.Text, "Async$", "")));
 
-					newNode = newExp == null ? null : newNode.WithExpression(newExp);
+						newNode = newExp == null ? null : newNode.WithExpression(newExp);
+					}
+					else
+					{
+						newNode = null;
+					}
 				}
 				else if (visited is IdentifierNameSyntax)
 				{
 					var identifier = (IdentifierNameSyntax)visited;
 
-					var newExp = identifier.WithIdentifier(SyntaxFactory.Identifier(Regex.Replace(identifier.Identifier.Text, "Async$", "")));
+					if (identifier.Identifier.Text.EndsWith("Async"))
+					{
+						var newExp = identifier.WithIdentifier(SyntaxFactory.Identifier(Regex.Replace(identifier.Identifier.Text, "Async$", "")));
 
-					newNode = newExp == null ? null : newNode.WithExpression(newExp);
+						newNode = newExp == null ? null : newNode.WithExpression(newExp);
+					}
+					else
+					{
+						newNode = null;
+					}
 				}
 				else
 				{
 					newNode = null;
 				}
 
-				IMethodSymbol syncVersion;
+				IMethodSymbol syncMethod;
 				
 				if (newNode != null 
-					&& (syncVersion = (IMethodSymbol)this.semanticModel.GetSpeculativeSymbolInfo(originalNodeStart, newNode, SpeculativeBindingOption.BindAsExpression).Symbol) != null)
+					&& (syncMethod = (IMethodSymbol)(this.semanticModel.ParentModel ?? this.semanticModel).GetSpeculativeSymbolInfo(node.SpanStart, newNode, SpeculativeBindingOption.BindAsExpression).Symbol) != null)
 				{
-					if (syncVersion.HasRewriteAsyncApplied())
+					if (syncMethod.HasRewriteAsyncApplied())
 					{
 						var retval = node
 							.WithExpression((ExpressionSyntax)visited)
 							.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 
-						var defaultExpression = SyntaxFactory.DefaultExpression(SyntaxFactory.ParseTypeName($"Task<" + syncVersion.ReturnType + ">"));
+						var defaultExpression = SyntaxFactory.DefaultExpression(SyntaxFactory.ParseTypeName($"Task<" + syncMethod.ReturnType + ">"));
 						var model = this.semanticModel.ParentModel ?? this.semanticModel;
 
 						var actualNode = this.semanticModel.SyntaxTree.GetRoot().FindNode(new TextSpan(originalNodeStart, node.Span.Length));
@@ -164,9 +178,6 @@ namespace Shaolinq.AsyncRewriter
 						return retval;
 					}
 				}
-				
-				this.log.LogMessage($"Could not find declaration of method '{node}' at {node.GetLocation().GetLineSpan()}");
-				this.log.LogMessage($"exp= {newNode}");
 
 				return node
 					.WithExpression((ExpressionSyntax)this.Visit(node.Expression))

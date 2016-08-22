@@ -97,6 +97,8 @@ namespace Shaolinq.AsyncRewriter
 
 				var facadesLoaded = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
+				var loadedAssemblies = new List<string>();
+
 				references.AddRange(additionalAssemblyNames.SelectMany(n =>
 				{
 					var results = new List<MetadataReference>();
@@ -106,8 +108,9 @@ namespace Shaolinq.AsyncRewriter
 					   var facadesPath = Path.Combine(Path.GetDirectoryName(n) ?? "", "Facades");
 
 						results.Add(MetadataReference.CreateFromFile(n));
-						this.log.LogMessage($"Found referenced assembly: {n}");
 						
+						loadedAssemblies.Add(n);
+
 						if (Directory.Exists(facadesPath) && !facadesLoaded.Contains(facadesPath))
 						{
 							facadesLoaded.Add(facadesPath);
@@ -129,6 +132,8 @@ namespace Shaolinq.AsyncRewriter
 
 					return results;
 				}).Where(c => c != null));
+
+				log.LogMessage($"Loaded assemblies: {string.Join(",", loadedAssemblies)}");
 			}
 
 			var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
