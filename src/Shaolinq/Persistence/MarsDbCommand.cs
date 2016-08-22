@@ -60,14 +60,7 @@ namespace Shaolinq.Persistence
 
 			if (dbCommand != null)
 			{
-				try
-				{
-					return new MarsDataReader(this, dbCommand.ExecuteReader());
-				}
-				catch (Exception)
-				{
-					throw;
-				}
+				return new MarsDataReader(this, dbCommand.ExecuteReader());
 			}
 			else
 			{

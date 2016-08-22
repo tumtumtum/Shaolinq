@@ -86,7 +86,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.rows == null)
 			{
-				return base.NextResult();
+				return this.Inner.NextResultEx();
 			}
 
 			throw new NotImplementedException();
@@ -97,7 +97,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.rows == null)
 			{
-				return base.Read();
+				return this.Inner.ReadEx();
 			}
 
 			if (this.rows.Count == 0)

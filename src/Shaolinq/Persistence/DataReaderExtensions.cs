@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Data;
 using System.Data.Common;
 
@@ -10,7 +11,7 @@ namespace Shaolinq.Persistence
 		public static T Cast<T>(this IDataRecord reader)
 			where T : class, IDataRecord
 		{
-			return (reader as T) ?? (T)((reader as MarsDataReader))?.Inner;
+			return reader as T ?? (T)(reader as MarsDataReader)?.Inner;
 		}
 		
 		[RewriteAsync]
@@ -18,25 +19,15 @@ namespace Shaolinq.Persistence
 		{
 			var dbDataReader = reader as DbDataReader;
 
-			if (dbDataReader != null)
-			{
-				return dbDataReader.Read();
-			}
-
-			return reader.Read();
+			return dbDataReader?.Read() ?? reader.Read();
 		}
 
 		[RewriteAsync]
-		public static bool NextResultEx(this IDataReader reader, int ordinal)
+		public static bool NextResultEx(this IDataReader reader)
 		{
 			var dbDataReader = reader as DbDataReader;
 
-			if (dbDataReader != null)
-			{
-				return dbDataReader.NextResult();
-			}
-
-			return reader.NextResult();
+			return dbDataReader?.NextResult() ?? reader.NextResult();
 		}
 
 		[RewriteAsync]
@@ -44,12 +35,7 @@ namespace Shaolinq.Persistence
 		{
 			var dbDataReader = reader as DbDataReader;
 
-			if (dbDataReader != null)
-			{
-				return dbDataReader.IsDBNull(ordinal);
-			}
-
-			return reader.IsDBNull(ordinal);
+			return dbDataReader?.IsDBNull(ordinal) ?? reader.IsDBNull(ordinal);
 		}
 
 		[RewriteAsync]
@@ -62,7 +48,7 @@ namespace Shaolinq.Persistence
 				return dbDataReader.GetFieldValue<T>(ordinal);
 			}
 
-			return dbDataReader.GetFieldValue<T>(ordinal);
+			return (T)Convert.ChangeType(reader.GetValue(ordinal), typeof(T));
 		}
 	}
 }

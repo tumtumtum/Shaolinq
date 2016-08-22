@@ -801,10 +801,10 @@ namespace Shaolinq.Tests
 				var students = this.model.Students.ToList();
 
 				var results = ((from student in this.model.Students
-								orderby student.Firstname
+								orderby student.Firstname, student.Id
 								select student).Take(2));
 
-				Assert.IsTrue(students.OrderBy(c => c.Firstname).Take(2).SequenceEqual(results));
+				Assert.IsTrue(students.OrderBy(c => c.Firstname).ThenBy(c => c.Id).Take(2).SequenceEqual(results));
 			}
 		}
 

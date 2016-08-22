@@ -621,7 +621,6 @@ namespace Shaolinq.Persistence
 {
 #pragma warning disable
 	using System;
-	// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Data.Common;
@@ -639,28 +638,18 @@ namespace Shaolinq.Persistence
 		public static async Task<bool> ReadExAsync(this IDataReader reader, CancellationToken cancellationToken)
 		{
 			var dbDataReader = reader as DbDataReader;
-			if (dbDataReader != null)
-			{
-				return await dbDataReader.ReadAsync(cancellationToken).ConfigureAwait(false);
-			}
-
-			return reader.Read();
+			return dbDataReader != null ? await dbDataReader.ReadAsync(cancellationToken).ConfigureAwait(false) : null ?? reader.Read();
 		}
 
-		public static Task<bool> NextResultExAsync(this IDataReader reader, int ordinal)
+		public static Task<bool> NextResultExAsync(this IDataReader reader)
 		{
-			return NextResultExAsync(reader, ordinal, CancellationToken.None);
+			return NextResultExAsync(reader, CancellationToken.None);
 		}
 
-		public static async Task<bool> NextResultExAsync(this IDataReader reader, int ordinal, CancellationToken cancellationToken)
+		public static async Task<bool> NextResultExAsync(this IDataReader reader, CancellationToken cancellationToken)
 		{
 			var dbDataReader = reader as DbDataReader;
-			if (dbDataReader != null)
-			{
-				return await dbDataReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
-			}
-
-			return reader.NextResult();
+			return dbDataReader != null ? await dbDataReader.NextResultAsync(cancellationToken).ConfigureAwait(false) : null ?? reader.NextResult();
 		}
 
 		public static Task<bool> IsDbNullExAsync(this IDataReader reader, int ordinal)
@@ -671,12 +660,7 @@ namespace Shaolinq.Persistence
 		public static async Task<bool> IsDbNullExAsync(this IDataReader reader, int ordinal, CancellationToken cancellationToken)
 		{
 			var dbDataReader = reader as DbDataReader;
-			if (dbDataReader != null)
-			{
-				return await dbDataReader.IsDBNullAsync(ordinal, cancellationToken).ConfigureAwait(false);
-			}
-
-			return reader.IsDBNull(ordinal);
+			return dbDataReader != null ? await dbDataReader.IsDBNullAsync(ordinal, cancellationToken).ConfigureAwait(false) : null ?? reader.IsDBNull(ordinal);
 		}
 
 		public static Task<T> GetFieldValueExAsync<T>(this IDataReader reader, int ordinal)
@@ -692,7 +676,7 @@ namespace Shaolinq.Persistence
 				return await dbDataReader.GetFieldValueAsync<T>(ordinal, cancellationToken).ConfigureAwait(false);
 			}
 
-			return await dbDataReader.GetFieldValueAsync<T>(ordinal, cancellationToken).ConfigureAwait(false);
+			return (T)Convert.ChangeType(reader.GetValue(ordinal), typeof (T));
 		}
 	}
 }
@@ -1083,7 +1067,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.rows == null)
 			{
-				return base.NextResult();
+				return await this.Inner.NextResultExAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			throw new NotImplementedException();
@@ -1093,7 +1077,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.rows == null)
 			{
-				return base.Read();
+				return await this.Inner.ReadExAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			if (this.rows.Count == 0)
@@ -1202,14 +1186,7 @@ namespace Shaolinq.Persistence
 			var dbCommand = this.Inner as DbCommand;
 			if (dbCommand != null)
 			{
-				try
-				{
-					return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)));
-				}
-				catch (Exception)
-				{
-					throw;
-				}
+				return new MarsDataReader(this, (await dbCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)));
 			}
 			else
 			{

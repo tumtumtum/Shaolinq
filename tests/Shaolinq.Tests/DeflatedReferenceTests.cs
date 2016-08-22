@@ -1060,9 +1060,7 @@ namespace Shaolinq.Tests
 			{
 				var school = this.model.Schools.GetReference(schoolId);
 				var student2 = this.model.Students.GetReference(c => c.Firstname == studentName2);
-
-				return;
-
+				
 				var student1 = this.model.Students.Single(c => c.BestFriend == student2);
 
 				Assert.AreEqual(student1.Id, studentId1);
