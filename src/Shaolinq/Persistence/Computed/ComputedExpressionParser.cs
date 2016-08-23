@@ -444,7 +444,7 @@ namespace Shaolinq.Persistence.Computed
 			var identifierStack = new Stack<string>();
 			Expression current = null;
 
-			if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.This)
+			if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@this)
 			{
 				current = this.targetObject;
 				this.Consume();
@@ -454,7 +454,19 @@ namespace Shaolinq.Persistence.Computed
 					this.Consume();
 				}
 			}
-			
+			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@true)
+			{
+				this.Consume();
+
+				return Expression.Constant(true);
+			}
+			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@true)
+			{
+				this.Consume();
+
+				return Expression.Constant(false);
+			}
+
 			if (this.token == ComputedExpressionToken.Identifier)
 			{
 				while (true)

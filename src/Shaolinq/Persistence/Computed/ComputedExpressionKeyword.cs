@@ -5,6 +5,8 @@ namespace Shaolinq.Persistence.Computed
 	public enum ComputedExpressionKeyword
 	{
 		None,
-		This
+		@this,
+		@true,
+		@false
 	}
 }

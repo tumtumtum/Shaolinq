@@ -638,7 +638,7 @@ namespace Shaolinq.Persistence
 		public static async Task<bool> ReadExAsync(this IDataReader reader, CancellationToken cancellationToken)
 		{
 			var dbDataReader = reader as DbDataReader;
-			return dbDataReader != null ? await dbDataReader.ReadAsync(cancellationToken).ConfigureAwait(false) : (bool ? )null ?? reader.Read();
+			return (dbDataReader != null ? await dbDataReader.ReadAsync(cancellationToken).ConfigureAwait(false) : ((bool ? )null)) ?? reader.Read();
 		}
 
 		public static Task<bool> NextResultExAsync(this IDataReader reader)
@@ -649,7 +649,7 @@ namespace Shaolinq.Persistence
 		public static async Task<bool> NextResultExAsync(this IDataReader reader, CancellationToken cancellationToken)
 		{
 			var dbDataReader = reader as DbDataReader;
-			return dbDataReader != null ? await dbDataReader.NextResultAsync(cancellationToken).ConfigureAwait(false) : (bool ? )null ?? reader.NextResult();
+			return (dbDataReader != null ? await dbDataReader.NextResultAsync(cancellationToken).ConfigureAwait(false) : ((bool ? )null)) ?? reader.NextResult();
 		}
 
 		public static Task<bool> IsDbNullExAsync(this IDataReader reader, int ordinal)
@@ -660,7 +660,7 @@ namespace Shaolinq.Persistence
 		public static async Task<bool> IsDbNullExAsync(this IDataReader reader, int ordinal, CancellationToken cancellationToken)
 		{
 			var dbDataReader = reader as DbDataReader;
-			return dbDataReader != null ? await dbDataReader.IsDBNullAsync(ordinal, cancellationToken).ConfigureAwait(false) : (bool ? )null ?? reader.IsDBNull(ordinal);
+			return (dbDataReader != null ? await dbDataReader.IsDBNullAsync(ordinal, cancellationToken).ConfigureAwait(false) : ((bool ? )null)) ?? reader.IsDBNull(ordinal);
 		}
 
 		public static Task<T> GetFieldValueExAsync<T>(this IDataReader reader, int ordinal)
