@@ -318,7 +318,7 @@ namespace Shaolinq.AsyncRewriter
 				.GetAllMembers(symbol)
 				.Where(c => c.Name == name)
 				.OfType<IMethodSymbol>()
-				.Where(c => c.Parameters.Select(d => this.GetParameterTypeComparisonKey(d.Type)).SequenceEqual(parameters.Select(d => this.GetParameterTypeComparisonKey((ITypeSymbol)semanticModel.GetSpeculativeSymbolInfo(originalMethod.ParameterList.Parameters.Span.Start, d.Type, SpeculativeBindingOption.BindAsExpression).Symbol, method, d.Type))));
+				.Where(c => c.Parameters.Select(d => this.GetParameterTypeComparisonKey(d.Type)).SequenceEqual(parameters.Select(d => this.GetParameterTypeComparisonKey(semanticModel.GetSpeculativeTypeInfo(originalMethod.ParameterList.SpanStart, d.Type, SpeculativeBindingOption.BindAsExpression).Type, method, d.Type))));
 		}
 
 		private object GetParameterTypeComparisonKey(ITypeSymbol symbol, MethodDeclarationSyntax method = null, TypeSyntax typeSyntax = null)
