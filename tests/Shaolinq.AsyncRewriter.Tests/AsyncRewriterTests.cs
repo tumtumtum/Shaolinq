@@ -81,16 +81,16 @@ namespace Shaolinq.AsyncRewriter.Tests
 			Console.WriteLine(result);
 		}
 
-        [Test]
-        public void TestTestGenericSpecialisedImplementation()
-        {
-            var rewriter = new Rewriter();
-            var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-            var paths = new List<string> { "TestGenericSpecialisedImplementation.cs" };
+		[Test]
+		public void TestTestGenericSpecialisedImplementation()
+		{
+			var rewriter = new Rewriter();
+			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
+			var paths = new List<string> { "TestGenericSpecialisedImplementation.cs" };
 
-            var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
+			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
 
-            Console.WriteLine(result);
-        }
-    }
+			Console.WriteLine(result);
+		}
+	}
 }

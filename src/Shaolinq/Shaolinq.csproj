@@ -493,7 +493,7 @@
     <ExpressionComparerWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionComparer.cs" />
     <ExpressionHasherWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionHasher.cs" />
   </Target>
-  <Target Name="GenerateAsyncSourceExpressionsBeforeBuild" BeforeTargets="BeforeBuild">
+  <Target Name="GenerateAsyncSourceExpressionsBeforeBuild" AfterTargets="ResolveReferences" BeforeTargets="CoreResGen">
     <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateAsyncSourceExpressions" WorkingDirectory="." />
   </Target>
   <Import Project="../AsyncRewriter.target" />
