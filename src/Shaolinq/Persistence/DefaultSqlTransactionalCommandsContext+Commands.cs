@@ -139,7 +139,7 @@ namespace Shaolinq.Persistence
 				}
 
 				var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;
-				var constraintsDeferrableOrNotReferencingNewObject = (objectState & DataAccessObjectState.ReferencesNewObject) == 0 || (canDefer && this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability));
+				var constraintsDeferrableOrNotReferencingNewObject = (canDefer && this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability)) || (objectState & DataAccessObjectState.ReferencesNewObject) == 0;
 				var objectReadyToBeCommited = primaryKeyIsComplete && constraintsDeferrableOrNotReferencingNewObject;
 
 				if (objectReadyToBeCommited)

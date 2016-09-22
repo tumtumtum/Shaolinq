@@ -314,11 +314,13 @@ namespace Shaolinq.AsyncRewriter
 		{
 			var parameters = method.ParameterList.Parameters;
 
-			return this
+			var retval = this
 				.GetAllMembers(symbol)
 				.Where(c => c.Name == name)
 				.OfType<IMethodSymbol>()
 				.Where(c => c.Parameters.Select(d => this.GetParameterTypeComparisonKey(d.Type)).SequenceEqual(parameters.Select(d => this.GetParameterTypeComparisonKey(semanticModel.GetSpeculativeTypeInfo(originalMethod.ParameterList.SpanStart, d.Type, SpeculativeBindingOption.BindAsExpression).Type, method, d.Type))));
+
+		    return retval;
 		}
 
 		private object GetParameterTypeComparisonKey(ITypeSymbol symbol, MethodDeclarationSyntax method = null, TypeSyntax typeSyntax = null)
@@ -330,7 +332,7 @@ namespace Shaolinq.AsyncRewriter
 				return typedParameterSymbol.Ordinal;
 			}
 
-			if (symbol != null)
+			if (symbol != null && symbol.TypeKind != TypeKind.Error)
 			{
 				return symbol;
 			}

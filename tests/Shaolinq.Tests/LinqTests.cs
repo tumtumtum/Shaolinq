@@ -3550,23 +3550,12 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_AutoIncrementValidation()
 		{
-			long schoolId;
-
 			using (var scope = this.NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 
 				school.Name = "School" + MethodBase.GetCurrentMethod().Name;
-				scope.Flush();
-
-				schoolId = school.Id;
-
-				scope.Complete();
-			}
-
-			using (var scope = this.NewTransactionScope())
-			{
-				var school = this.model.Schools.GetByPrimaryKey(schoolId);
+				
 				var student = school.Students.Create();
 
 				scope.Flush();
