@@ -337,7 +337,7 @@ namespace Shaolinq.AsyncRewriter
 				return symbol;
 			}
 
-			return method?.TypeParameterList?.Parameters.IndexOf(c => c?.Identifier.Text == typeSyntax?.ToString());
+		    return method?.TypeParameterList?.Parameters.IndexOf(c => c?.Identifier.Text == typeSyntax?.ToString()) ?? (object)symbol;
 		}
 
 		private IEnumerable<ISymbol> GetAllMembers(ITypeSymbol symbol, bool includeParents = true)

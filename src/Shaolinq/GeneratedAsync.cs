@@ -2135,7 +2135,7 @@ namespace Shaolinq
 		{
 			var fixups = new Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>>();
 			var insertResultsByType = new Dictionary<TypeAndTransactionalCommandsContext, InsertResults>();
-			foreach (var value in this.cachesByType.Values.Reverse())
+			foreach (var value in this.cachesByType.Values)
 			{
 				await CommitNewPhase1Async(commandsContext, value, insertResultsByType, fixups, cancellationToken).ConfigureAwait(false);
 			}
