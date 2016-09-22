@@ -128,7 +128,7 @@ namespace Shaolinq.AsyncRewriter
 						return results;
 					}
 
-					log.LogError($"Could find ResolveProjectReferencesResolveProjectReferencesreferenced assembly: {n}");
+					log.LogError($"Could not find ResolveProjectReferencesResolveProjectReferencesreferenced assembly: {n}");
 
 					return results;
 				}).Where(c => c != null));
