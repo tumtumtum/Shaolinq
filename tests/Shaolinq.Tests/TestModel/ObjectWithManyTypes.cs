@@ -54,6 +54,9 @@ namespace Shaolinq.Tests.TestModel
 		public abstract Sex Enum { get; set; }
 
 		[PersistedMember]
+		public abstract Sex? NullableEnum { get; set; }
+
+		[PersistedMember]
 		public abstract DateTime? NullableDateTime { get; set; }
 
 		[PersistedMember]
