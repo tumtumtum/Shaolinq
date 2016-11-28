@@ -69,6 +69,7 @@
     <Compile Include="AsyncMethodValidator.cs" />
     <Compile Include="AsyncRewriterTaskLogger.cs" />
     <Compile Include="CompilationLookup.cs" />
+    <Compile Include="GeneratedAsyncMethodSubstitutor.cs" />
     <Compile Include="IAsyncRewriterLogger.cs" />
     <Compile Include="MethodInvocationInspector.cs" />
     <Compile Include="MethodInvocationAsyncRewriter.cs" />

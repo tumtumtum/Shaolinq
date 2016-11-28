@@ -12,7 +12,7 @@ namespace Shaolinq.AsyncRewriter
 	internal abstract class MethodInvocationInspector
 		: CSharpSyntaxRewriter
 	{
-		private readonly Stack<ExpressionSyntax> lambdaStack = new Stack<ExpressionSyntax>();
+		protected readonly Stack<ExpressionSyntax> lambdaStack = new Stack<ExpressionSyntax>();
 
 		protected SemanticModel semanticModel;
 		protected readonly IAsyncRewriterLogger log;
@@ -32,7 +32,7 @@ namespace Shaolinq.AsyncRewriter
 			this.excludeTypes = excludeTypes;
 		}
 		
-		private ITypeSymbol GetArgumentType(ArgumentSyntax syntax)
+		protected ITypeSymbol GetArgumentType(ArgumentSyntax syntax)
 		{
 			var symbol = this.semanticModel.GetSpeculativeSymbolInfo(syntax.Expression.SpanStart + this.displacement, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Symbol;
 
