@@ -162,19 +162,12 @@ namespace Shaolinq.AsyncRewriter
 							.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 
 						var defaultExpression = SyntaxFactory.DefaultExpression(SyntaxFactory.ParseTypeName($"Task<" + syncMethod.ReturnType + ">"));
-						var model = this.semanticModel.ParentModel ?? this.semanticModel;
-
 						var actualNode = this.semanticModel.SyntaxTree.GetRoot().FindNode(new TextSpan(originalNodeStart, node.Span.Length));
 
 						this.displacement += -this.methodSyntax.SpanStart - (node.FullSpan.Length - defaultExpression.FullSpan.Length);
 						this.methodSyntax = this.methodSyntax.ReplaceNode(actualNode, defaultExpression);
 						this.displacement += this.methodSyntax.SpanStart;
 						
-						if (!model.TryGetSpeculativeSemanticModelForMethodBody(node.SpanStart, this.methodSyntax, out this.semanticModel))
-						{
-							this.log.LogError("Unable to GetSpeculativeSemanticModelForMethodBody");
-						}
-
 						return retval;
 					}
 				}

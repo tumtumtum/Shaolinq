@@ -8,6 +8,14 @@ using Platform;
 
 namespace Shaolinq.AsyncRewriter.Tests.NS1
 {
+	public static class Extensions
+	{
+		public static async IEnumerable<string> SingleAsync(this IEnumerable<string> s)
+		{
+			return new string[0];
+		}
+	}
+
 	public partial class Bar: Foo
 	{
 		[RewriteAsync]
@@ -24,6 +32,18 @@ namespace Shaolinq.AsyncRewriter.Tests.NS1
 		[RewriteAsync]
 		public override void Method3<T>()
 		{
+		}
+
+		[RewriteAsync]
+		public List<string> GetAll()
+		{
+			
+		}
+
+		public async void Test()
+		{
+			var dao = await (GetAll()).SingleAsync();
+			var dao2 = await (await GetAllAsync().ConfigureAwait(false)).SingleAsync();
 		}
 	}
 }
