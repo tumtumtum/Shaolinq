@@ -53,6 +53,7 @@
     <Content Include="TestExplicitAwaitRewrittenAsyncMethod.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="app.config" />
     <None Include="TestGenericSpecialisedImplementation.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
