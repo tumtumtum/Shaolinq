@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Platform.Xml.Serialization;
 
 namespace Shaolinq.TypeBuilding
@@ -17,7 +18,7 @@ namespace Shaolinq.TypeBuilding
 			private readonly string configurationHash;
 			private readonly Type dataAccessModelType;
 			private readonly DataAccessModelConfiguration configuration;
-			
+
 			public AssemblyKey(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 			{
 				this.configuration = configuration;
@@ -41,14 +42,15 @@ namespace Shaolinq.TypeBuilding
 				}
 
 				var serializer = XmlSerializer<DataAccessModelConfiguration>.New();
-				
+
 				return other.Value.configurationHash == this.configurationHash
-					   && other.Value.dataAccessModelType == this.dataAccessModelType
-					   && (this.configurationXml == serializer.SerializeToString(other.Value.configuration));
+						&& other.Value.dataAccessModelType == this.dataAccessModelType
+						&& (this.configurationXml == serializer.SerializeToString(other.Value.configuration));
 			}
 		}
 
 		private readonly DataAccessAssemblyProvider provider;
+		private readonly HashSet<AssemblyKey> buildingSet = new HashSet<AssemblyKey>();
 		private readonly Dictionary<AssemblyKey, RuntimeDataAccessModelInfo> assemblyBuildInfosByKey = new Dictionary<AssemblyKey, RuntimeDataAccessModelInfo>();
 
 		public CachingDataAccessModelAssemblyProvider(DataAccessAssemblyProvider provider)
@@ -60,19 +62,42 @@ namespace Shaolinq.TypeBuilding
 		{
 			var key = new AssemblyKey(dataAccessModelType, configuration);
 
-			RuntimeDataAccessModelInfo runtimeDataAccessModelInfo;
-
-			lock (this.assemblyBuildInfosByKey)
+			lock (this.buildingSet)
 			{
-				if (!this.assemblyBuildInfosByKey.TryGetValue(key, out runtimeDataAccessModelInfo))
+				while (true)
 				{
-					runtimeDataAccessModelInfo = this.provider.GetDataAccessModelAssembly(dataAccessModelType, configuration);
+					RuntimeDataAccessModelInfo runtimeDataAccessModelInfo;
 
-					this.assemblyBuildInfosByKey[key] = runtimeDataAccessModelInfo;
+					if (this.assemblyBuildInfosByKey.TryGetValue(key, out runtimeDataAccessModelInfo))
+					{
+						return runtimeDataAccessModelInfo;
+					}
+
+					if (this.buildingSet.Contains(key))
+					{
+						Monitor.Wait(this.buildingSet);
+
+						continue;
+					}
+
+					try
+					{
+						this.buildingSet.Add(key);
+
+						runtimeDataAccessModelInfo = this.provider.GetDataAccessModelAssembly(dataAccessModelType, configuration);
+
+						this.assemblyBuildInfosByKey[key] = runtimeDataAccessModelInfo;
+
+						return runtimeDataAccessModelInfo;
+					}
+					finally
+					{
+						this.buildingSet.Remove(key);
+
+						Monitor.PulseAll(this.buildingSet);
+					}
 				}
 			}
-
-			return runtimeDataAccessModelInfo;
 		}
 	}
 }

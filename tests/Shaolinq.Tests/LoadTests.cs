@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Npgsql.Logging;
 using NUnit.Framework;
 using Shaolinq.Postgres;
@@ -81,8 +82,6 @@ namespace Shaolinq.Tests
 		[Test, Ignore("Not yet")]
 		public void StressTest()
 		{
-			NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Info, true, true);
-
 			var config = PostgresConfiguration.Create("StressTest", "localhost", "postgres", "postgres");
 			(config.SqlDatabaseContextInfos[0] as PostgresSqlDatabaseContextInfo).MaxPoolSize = 2;
 			(config.SqlDatabaseContextInfos[0] as PostgresSqlDatabaseContextInfo).KeepAlive = 0;
@@ -137,8 +136,7 @@ namespace Shaolinq.Tests
 							Console.WriteLine("Test error: {0}", ex);
 						}
 					}
-
-					//Console.WriteLine("Stopped");
+					
 					resetEvent.Set();
 				})
 				{ Name = $"Thread: {i + 1}" };
