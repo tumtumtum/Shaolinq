@@ -110,7 +110,7 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.InitialCatalog = this.DatabaseName;
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
 				connectionStringBuilder.Pooling = contextInfo.Pooling;
-				
+                
 				if (contextInfo.ConnectionTimeout != null)
 				{
 					connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout.Value;

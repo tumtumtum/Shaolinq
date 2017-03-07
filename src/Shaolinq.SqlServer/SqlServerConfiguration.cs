@@ -21,7 +21,8 @@ namespace Shaolinq.SqlServer
 					{
 						ConnectionString = connectionString,
 						DeleteDatabaseDropsTablesOnly = deleteDatabaseDropsTablesOnly,
-						MultipleActiveResultSets = multipleActiveResultsets
+						MultipleActiveResultSets = multipleActiveResultsets,
+                        TrustedConnection = true
 					}
 				}
 			}; 

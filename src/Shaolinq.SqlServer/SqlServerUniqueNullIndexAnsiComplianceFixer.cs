@@ -15,9 +15,14 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
+		    if (!createIndexExpression.Unique)
+		    {
+		        return createIndexExpression;
+		    }
+
 			var predicate = createIndexExpression
 				.Columns
-				.Select(c => (Expression)new SqlFunctionCallExpression(typeof(bool), SqlFunction.IsNotNull, c.Column))
+				.Select(c =>  (Expression)new SqlFunctionCallExpression(typeof(bool), SqlFunction.IsNotNull, c.Column))
 				.Aggregate(Expression.And);
 
 			return createIndexExpression.ChangeWhere(createIndexExpression.Where == null ? predicate : Expression.And(createIndexExpression.Where, predicate));
