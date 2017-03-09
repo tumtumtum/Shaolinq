@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using NUnit.Framework;
 using Shaolinq.Persistence;
 
@@ -12,7 +13,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test()
 		{
-			var s = VariableSubstituter.SedTransform("Pokwer", "s/o/0/g");
+			var s = VariableSubstituter.SedTransform("Pokwer22", "s/^.*$/$(env_USERNAME)$0/g");
+
+			Assert.AreEqual(Environment.GetEnvironmentVariable("USERNAME") + "Pokwer22", s);
+
+			s = VariableSubstituter.SedTransform("Pokwer", "s/o/0/g");
 
 			Assert.AreEqual("P0kwer", s);
 

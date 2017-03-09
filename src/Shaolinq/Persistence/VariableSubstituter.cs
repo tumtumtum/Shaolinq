@@ -2,29 +2,30 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace Shaolinq.Persistence
 {
 	internal static class VariableSubstituter
 	{
-		private static readonly Regex PatternRegex = new Regex(@"\$\((env\\_)?([a-z_A-Z]+?)((_TOLOWER)|(:([^\)]+)))?\)", RegexOptions.Compiled | RegexOptions.IgnoreCase); 
+		private static readonly Regex PatternRegex = new Regex(@"(?<prefix>^|[^\\\$]*|[\\\\]+)(\$(?<name>[0-9])+|\$\((?<env>env_)?(?<name>[a-z_A-Z]+?)((?<tolower>_TOLOWER)|(:(?<format>[^\)]+)))?\))", RegexOptions.Compiled | RegexOptions.IgnoreCase); 
 
 		public static string Substitute(string value, Func<string, string> variableToValue)
 		{
 			return PatternRegex.Replace(value, match =>
 			{
-				var result = match.Groups[1].Length != 0 ? Environment.GetEnvironmentVariable(match.Groups[2].Value) : variableToValue(match.Groups[2].Value);
+				var result = match.Groups["env"].Length != 0 ? Environment.GetEnvironmentVariable(match.Groups["name"].Value) : variableToValue(match.Groups["name"].Value);
 
-				if (match.Groups[4].Length > 0)
+				if (match.Groups["tolower"].Length > 0)
 				{
 					result = result?.ToLowerInvariant();
 				}
 
-				if (match.Groups[6].Length > 0)
+				var format = match.Groups["format"].Value;
+
+				if (format.Length > 0)
 				{
-					switch (match.Groups[6].Value)
+					switch (format)
 					{
 					case "L":
 						result = result?.ToLowerInvariant();
@@ -35,80 +36,53 @@ namespace Shaolinq.Persistence
 					}
 				}
 
-				return result;
+				return match.Groups["prefix"].Value + result;
 			});
 		}
 		
-		[ThreadStatic] private static HashSet<TypeDescriptor> visitedTypes;
-
-		public static string Substitute(string pattern, TypeDescriptor typeDescriptor)
+		public static string Substitute(string input, TypeDescriptor typeDescriptor)
 		{
-			var root = false;
-
-			if (pattern == null)
+			if (input == null)
 			{
 				return typeDescriptor.TypeName;
 			}
 
-			if (visitedTypes == null)
+			var visitedTypes = new HashSet<TypeDescriptor>();
+			
+			return Substitute(input, value =>
 			{
-				root = true;
-				visitedTypes = new HashSet<TypeDescriptor>();
-			}
-
-			try
-			{
-				return Substitute(pattern, value =>
+				switch (value.ToUpper())
 				{
-					switch (value.ToUpper())
+				case "TYPENAME":
+					return typeDescriptor.TypeName;
+				case "TABLENAME":
+				case "PERSISTED_TYPENAME":
+					if (visitedTypes.Contains(typeDescriptor))
 					{
-					case "TYPENAME":
-						return typeDescriptor.TypeName;
-					case "TABLENAME":
-					case "PERSISTED_TYPENAME":
-						if (visitedTypes.Contains(typeDescriptor))
-						{
-							throw new InvalidOperationException("Recursive variable substitution");
-						}
-						visitedTypes.Add(typeDescriptor);
-						return typeDescriptor.PersistedName;
-					default:
-						throw new NotSupportedException(value);
+						throw new InvalidOperationException("Recursive variable substitution");
 					}
-				});
-			}
-			finally
-			{
-				visitedTypes.Remove(typeDescriptor);
-
-				Debug.Assert(!root || (root && visitedTypes.Count == 0));
-			}
+					visitedTypes.Add(typeDescriptor);
+					return typeDescriptor.PersistedName;
+				default:
+					throw new NotSupportedException(value);
+				}
+			});
 		}
-
-		[ThreadStatic] private static HashSet<PropertyDescriptor> visitedProperties;
-
-		public static string Substitute(string pattern, PropertyDescriptor propertyDescriptor)
+		
+		public static string Substitute(string input, PropertyDescriptor propertyDescriptor = null, Func<int, string> indexedToValue = null)
 		{
-			var root = false;
-
-			if (pattern == null)
+			if (input == null)
 			{
-				return propertyDescriptor.PropertyName;
+				return propertyDescriptor?.PropertyName;
 			}
 
-			if (visitedProperties == null)
+			return Substitute(input, value =>
 			{
-				root = true;
-				visitedProperties = new HashSet<PropertyDescriptor>();
-			}
+				var s = value.ToUpper();
 
-			try
-			{
-				visitedProperties.Add(propertyDescriptor);
-
-				return Substitute(pattern, value =>
+				if (propertyDescriptor != null)
 				{
-					switch (value.ToUpper())
+					switch (s)
 					{
 					case "TYPENAME":
 						return propertyDescriptor.DeclaringTypeDescriptor.TypeName;
@@ -125,22 +99,21 @@ namespace Shaolinq.Persistence
 					case "COLUMNTYPENAME":
 					case "PERSISTED_PROPERTYTYPENAME":
 						return propertyDescriptor.PropertyTypeTypeDescriptor.PersistedName;
-					default:
-						throw new NotSupportedException(value);
 					}
-				});
-			}
-			finally
-			{
-				visitedProperties.Remove(propertyDescriptor);
+				}
 
-				Debug.Assert(!root || (root && visitedProperties.Count == 0));
-			}
+				int number;
+
+				if (indexedToValue != null && int.TryParse(s, out number))
+				{
+					return indexedToValue(number);
+				}
+
+				throw new NotSupportedException(value);
+			});
 		}
-
-		private static readonly Regex ReplacementRegex = new Regex(@"((\\\\)+|([^\\])|)\$([0-9]+?)", RegexOptions.Compiled);
-
-		public static string SedTransform(string value, string transformString)
+		
+		public static string SedTransform(string value, string transformString, PropertyDescriptor propertyDescriptor = null)
 		{
 			if (string.IsNullOrEmpty(transformString))
 			{
@@ -190,7 +163,7 @@ namespace Shaolinq.Persistence
 
 				count++;
 
-				var result = useReplacementRegex ? ReplacementRegex.Replace(replacement, m => match.Groups[int.Parse(m.Groups[4].Value)].Value) : replacement;
+				var result = useReplacementRegex ? Substitute(replacement, propertyDescriptor, index => match.Groups[index].Value) : replacement;
 
 				return result;
 			}, regexOptions);

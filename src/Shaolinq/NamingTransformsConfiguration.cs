@@ -7,6 +7,8 @@ namespace Shaolinq
 	[XmlElement]
 	public class NamingTransformsConfiguration
 	{
+		public const string DefaultForeignKeyConstraintName = "s/^.*$/fkc_$(TYPENAME)_$(PROPERTYNAME)/";
+
 		[XmlAttribute]
 		public string DataAccessObjectName { get; set; }
 
@@ -18,5 +20,8 @@ namespace Shaolinq
 
 		[XmlAttribute]
 		public string PersistedMemberSuffixName { get; set; }
+
+		[XmlAttribute]
+		public string ForeignKeyConstraintName { get; set; }
 	}
 }

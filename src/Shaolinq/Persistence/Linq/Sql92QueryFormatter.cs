@@ -1175,7 +1175,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
 		{
-			if (foreignKeyConstraintExpression.ConstraintName != null)
+			if (!foreignKeyConstraintExpression.ConstraintName.IsNullOrEmpty())
 			{
 				this.Write("CONSTRAINT ");
 				this.WriteQuotedIdentifier(foreignKeyConstraintExpression.ConstraintName);

@@ -163,7 +163,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (columnInfos.Length > 1 || !supportsInlineForeignKeys)
 			{
-				var currentTableColumnNames = columnInfos.Select(c => c.ColumnName);
+				var currentTableColumnNames = columnInfos.Select(c => c.ColumnName).ToList();
 				var referencedTableColumnNames = columnInfos.Select(c => c.GetTailColumnName());
 				
 				var referencesColumnExpression = new SqlReferencesColumnExpression
@@ -172,12 +172,26 @@ namespace Shaolinq.Persistence.Linq
 					SqlColumnReferenceDeferrability.InitiallyDeferred,
 					referencedTableColumnNames, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
-
-				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(null, currentTableColumnNames, referencesColumnExpression);
+				
+				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames, referencesColumnExpression);
 
 				this.currentTableConstraints.Add(foreignKeyConstraint);
 			}
 		}
+
+		protected string GetForeignKeyConstraintName(PropertyDescriptor propertyDescriptor)
+		{
+			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultForeignKeyConstraintName, propertyDescriptor);
+			var namingTransformsConfiguration = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
+
+			if (namingTransformsConfiguration?.ForeignKeyConstraintName == null)
+			{
+				return defaultName;
+			}
+
+			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.ForeignKeyConstraintName);
+		}
+
 
 		private SqlColumnDefinitionExpression BuildColumnDefinition(ColumnInfo columnInfo)
 		{
