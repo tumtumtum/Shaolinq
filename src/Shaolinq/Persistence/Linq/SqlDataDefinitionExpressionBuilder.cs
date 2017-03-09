@@ -141,7 +141,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var retval = this.BuildColumnDefinition(foreignKeyColumn);
 
-				if (columnInfos.Length == 1 && supportsInlineForeignKeys)
+				if (columnInfos.Length == 1 && supportsInlineForeignKeys && !(referencingProperty.ForeignObjectConstraintAttribute?.Disabled ?? false))
 				{
 					var names = new[] { foreignKeyColumn.DefinitionProperty.PersistedName };
 					var newConstraints = new List<Expression>(retval.ConstraintExpressions);
@@ -161,7 +161,7 @@ namespace Shaolinq.Persistence.Linq
 				yield return retval;
 			}
 
-			if (columnInfos.Length > 1 || !supportsInlineForeignKeys)
+			if ((columnInfos.Length > 1 || !supportsInlineForeignKeys) && !(referencingProperty.ForeignObjectConstraintAttribute?.Disabled ?? false))
 			{
 				var currentTableColumnNames = columnInfos.Select(c => c.ColumnName).ToList();
 				var referencedTableColumnNames = columnInfos.Select(c => c.GetTailColumnName());
