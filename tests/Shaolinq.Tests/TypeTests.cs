@@ -85,6 +85,7 @@ namespace Shaolinq.Tests
 				TimeSpan.MinValue ,
 				Sex.Male,
 				null,
+				null,
 				Encoding.UTF8.GetBytes("Hi Kitty Kat 😻😻😻"));
 		}
 
@@ -115,6 +116,7 @@ namespace Shaolinq.Tests
 				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromDays(1) + TimeSpan.FromSeconds(1),
 				Sex.Female,
+				Sex.Female,
 				Truncate(this.MaxDateTime, TimeSpan.FromMilliseconds(1)),
 				Encoding.UTF8.GetBytes("Hi Kitty Kat 😻😻😻"));
 		}
@@ -137,6 +139,7 @@ namespace Shaolinq.Tests
 				true,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromHours(24),
+				Sex.Female,
 				Sex.Female,
 				null,
 				Encoding.UTF8.GetBytes("Hi Kitty Kat 😻😻😻"));
@@ -168,6 +171,7 @@ namespace Shaolinq.Tests
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				TimeSpan.FromMilliseconds(1),
 				Sex.Female,
+				Sex.Male,
 				Truncate(DateTime.UtcNow, TimeSpan.FromMilliseconds(1)),
 				Encoding.UTF8.GetBytes("\0x0\0x0\0x1"));
 		}
@@ -188,6 +192,7 @@ namespace Shaolinq.Tests
 			DateTime dateTime,
 			TimeSpan timeSpan,
 			Sex @enum,
+			Sex? nullableEnum,
 			DateTime? nullableDateTime,
 			byte[] byteArray
 		)
@@ -213,6 +218,7 @@ namespace Shaolinq.Tests
 				subject.DateTime = dateTime;
 				subject.TimeSpan = timeSpan;
 				subject.Enum = @enum;
+				subject.NullableEnum = nullableEnum;
 				subject.NullableDateTime = nullableDateTime;
 				subject.ByteArray = byteArray;
 
@@ -271,6 +277,7 @@ namespace Shaolinq.Tests
 				this.AssertDateTime(dbObj.DateTime, dateTime);
 				Assert.That(Abs(dbObj.TimeSpan - timeSpan), Is.LessThan(this.timespanEpsilon));
 				Assert.That(dbObj.Enum, Is.EqualTo(@enum));
+				Assert.That(dbObj.NullableEnum, Is.EqualTo(nullableEnum));
 				AssertNullable(dbObj.NullableDateTime, nullableDateTime, this.AssertDateTime);
 				Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
 			}

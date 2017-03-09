@@ -73,12 +73,12 @@ namespace Shaolinq.Postgres
 
 			if (unwrapped.IsEnum)
 			{
-				return new NpgsqlParameter(parameterName, NpgsqlDbType.Unknown) { Value = value };
+				return new NpgsqlParameter(parameterName, NpgsqlDbType.Unknown) { Value = value ?? DBNull.Value };
 			}
 
 			if (unwrapped == typeof(TimeSpan))
 			{
-				return new NpgsqlParameter(parameterName, NpgsqlDbType.Interval) { Value = value };
+				return new NpgsqlParameter(parameterName, NpgsqlDbType.Interval) { Value = value ?? DBNull.Value };
 			}
 
 			return base.CreateParameter(command, parameterName, type, value);
