@@ -7,7 +7,7 @@ namespace Shaolinq
 	[XmlElement]
 	public class NamingTransformsConfiguration
 	{
-		public const string DefaultForeignKeyConstraintName = "s/^.*$/fkc_$(TYPENAME)_$(PROPERTYNAME)/";
+		public const string DefaultForeignKeyConstraintName = "s/^.*$/fkc_$(TABLENAME)_$(COLUMNNAME)/";
 
 		[XmlAttribute]
 		public string DataAccessObjectName { get; set; }
