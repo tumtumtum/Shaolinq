@@ -23,7 +23,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				this.configuration = configuration;
 				this.dataAccessModelType = dataAccessModelType;
-				this.configurationHash = configuration.GetSha1();
+				this.configurationHash = configuration.GetSha1Hex();
 				this.configurationXml = XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(configuration);
 			}
 

@@ -1,10 +1,16 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Security.Cryptography;
+using System.Text;
 using Platform;
+using Platform.Text;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
@@ -25,20 +31,23 @@ namespace Shaolinq.TypeBuilding
 		{
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 
-			var hash = configuration.GetSha1();
-			var assemblyName = new AssemblyName(typeDescriptorProvider.DataAccessModelType.Assembly.GetName().Name + "." + typeDescriptorProvider.DataAccessModelType.Name);
-			var sharedAssemblyName = new AssemblyName("Shaolinq.GeneratedDataAccessModel");
-			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(sharedAssemblyName, AssemblyBuilderAccess.RunAndSave);
-			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + "." + hash + ".dll");
+			var filename = GetFileName(typeDescriptorProvider, configuration);
+
+			if (filename != null && File.Exists(filename))
+			{
+				return Assembly.LoadFile(filename);
+			}
+
+			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
+			var assemblyName = new AssemblyName("Shaolinq.GeneratedDataAccessModel");
+			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave, Path.GetDirectoryName(filename));
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + ".dll");
 
 			var propertiesBuilder = moduleBuilder.DefineType("$$$DataAccessModelProperties", TypeAttributes.Class, typeof(object));
-			
 			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder, propertiesBuilder);
 
 			var dataAccessModelTypeBuilder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
 			dataAccessModelTypeBuilder.BuildTypePhase1(typeDescriptorProvider.DataAccessModelType);
-
-			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
 			
 			foreach (var typeDescriptor in typeDescriptors)
 			{
@@ -54,23 +63,83 @@ namespace Shaolinq.TypeBuilding
 
 			assemblyBuildContext.DataAccessModelPropertiesTypeBuilder.CreateType();
 			dataAccessModelTypeBuilder.BuildTypePhase2();
-
-			bool saveConcreteAssembly;
-			bool.TryParse(ConfigurationManager.AppSettings["Shaolinq.SaveConcreteAssembly"], out saveConcreteAssembly);
-
+			
 #if DEBUG
 			const bool isInDebugMode = true;
 #else
 			const bool isInDebugMode = false;
 #endif
 
-			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
-			if (saveConcreteAssembly || isInDebugMode)
+			var saveAssembly = configuration.SaveAndReuseGeneratedAssemblies ?? !isInDebugMode;
+
+			if (saveAssembly)
 			{
-				ActionUtils.IgnoreExceptions(() => assemblyBuilder.Save(assemblyName + "." + hash + ".dll"));
+				ActionUtils.IgnoreExceptions(() =>
+				{
+					try
+					{
+						assemblyBuilder.Save(Path.GetFileName(filename));
+					}
+					catch (Exception e)
+					{
+						Console.WriteLine(e);
+					}
+				});
 			}
 
 			return assemblyBuilder;
+		}
+
+		private static string GetFileName(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration)
+		{
+			var sha1 = SHA1.Create();
+			var modelAssembly = typeDescriptorProvider.DataAccessModelType.Assembly;
+			var uniquelyReferencedAssemblies = new HashSet<Assembly> { modelAssembly };
+
+			var bytes = configuration.GetSha1Bytes();
+
+			sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
+
+			foreach (var assembly in uniquelyReferencedAssemblies)
+			{
+				bytes = Encoding.UTF8.GetBytes(assembly.FullName);
+
+				sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
+				
+				var path = StringUriUtils.GetScheme(assembly.CodeBase) == "file" ? new Uri(assembly.CodeBase).LocalPath : assembly.Location;
+
+				if (path != null)
+				{
+					if (assembly.GetName().GetPublicKeyToken().Length == 0)
+					{
+						var fileInfo = new FileInfo(path);
+						
+						bytes = BitConverter.GetBytes(fileInfo.Length);
+						sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
+
+						bytes = BitConverter.GetBytes(fileInfo.LastWriteTimeUtc.Ticks);
+						sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
+					}
+				}
+			}
+
+			sha1.TransformFinalBlock(new byte[0], 0, 0);
+
+			var fileName = modelAssembly.Location == null ? modelAssembly.GetName().Name : Path.GetFileNameWithoutExtension(modelAssembly.Location);
+			var cacheDirectory = configuration.GeneratedAssembliesSaveDirectory?.Trim();
+			var codebaseUri = new Uri(modelAssembly.CodeBase);
+
+			var modelName = typeDescriptorProvider.DataAccessModelType.Name;
+
+			if (modelAssembly.GetExportedTypes().Any(c => c.Name == modelName && c != typeDescriptorProvider.DataAccessModelType))
+			{
+				modelName = typeDescriptorProvider.DataAccessModelType.FullName.Replace(".", "_");
+			}
+
+			fileName += "_" + modelName + "_" + TextConversion.ToHexString(sha1.Hash) + ".dll";
+			cacheDirectory = !string.IsNullOrEmpty(cacheDirectory) ? cacheDirectory : !codebaseUri.IsFile ? Environment.CurrentDirectory : Path.GetDirectoryName(codebaseUri.LocalPath);
+
+			return Path.Combine(cacheDirectory, fileName);
 		}
 	}
 }

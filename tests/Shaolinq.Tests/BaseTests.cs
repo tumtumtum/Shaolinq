@@ -42,33 +42,51 @@ namespace Shaolinq.Tests
 		    var host = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER") ?? ".\\SQLEXPRESS";
 
             var retval = SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
-            
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
 		    return retval;
 		}
 
 		protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)
 		{
-			return MySqlConfiguration.Create(databaseName, "localhost", "root", "root");
+			var retval = MySqlConfiguration.Create(databaseName, "localhost", "root", "root");
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration CreateSqliteConfiguration(string databaseName)
 		{
-			return SqliteConfiguration.Create(databaseName + ".db", null, useMonoData);
+			var retval = SqliteConfiguration.Create(databaseName + ".db", null, useMonoData);
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration CreateSqliteInMemoryConfiguration(string databaseName)
 		{
-			return SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
+			var retval = SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration CreateSqliteClassicInMemoryConfiguration(string databaseName)
 		{
-			return SqliteConfiguration.Create(":memory:", null, useMonoData);
+			var retval = SqliteConfiguration.Create(":memory:", null, useMonoData);
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration CreatePostgresConfiguration(string databaseName)
 		{
-			return PostgresConfiguration.Create(new PostgresSqlDatabaseContextInfo()
+			var retval = PostgresConfiguration.Create(new PostgresSqlDatabaseContextInfo()
 			{
 				DatabaseName = databaseName,	
 				ServerName = "localhost",
@@ -80,11 +98,15 @@ namespace Shaolinq.Tests
 				MinPoolSize = 10,
 				MaxPoolSize = 10
 			});
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration CreatePostgresDotConnectConfiguration(string databaseName)
 		{
-			return PostgresDotConnectConfiguration.Create(new PostgresDotConnectSqlDatabaseContextInfo
+			var retval = PostgresDotConnectConfiguration.Create(new PostgresDotConnectSqlDatabaseContextInfo
 			{
 				DatabaseName = "DotConnectPrepared" + databaseName,
 				ServerName = "localhost",
@@ -93,11 +115,15 @@ namespace Shaolinq.Tests
 				Categories = null,
 				UnpreparedExecute = false
 			});
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration CreatePostgresDotConnectUnpreparedConfiguration(string databaseName)
 		{
-			return PostgresDotConnectConfiguration.Create(new PostgresDotConnectSqlDatabaseContextInfo
+			var retval = PostgresDotConnectConfiguration.Create(new PostgresDotConnectSqlDatabaseContextInfo
 			{
 				DatabaseName = "DotConnectUnprepared" + databaseName,
 				ServerName = "localhost",
@@ -106,6 +132,10 @@ namespace Shaolinq.Tests
 				Categories = null,
 				UnpreparedExecute = false
 			});
+
+			retval.SaveAndReuseGeneratedAssemblies = true;
+
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration Create(string providerName, string databaseName)

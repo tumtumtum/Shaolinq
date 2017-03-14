@@ -3,6 +3,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml;
 using Platform.Text;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
@@ -26,15 +27,26 @@ namespace Shaolinq
 		[XmlListElement("Type", ItemType = typeof(Type), SerializeAsValueNode = true, ValueNodeAttributeName = "Name")]
 		public Type[] ReferencedTypes { get; set; }
 
+		[XmlAttribute]
+		public bool? SaveAndReuseGeneratedAssemblies { get; set; } = true;
+
+		[XmlAttribute]
+		public string GeneratedAssembliesSaveDirectory { get; set; }
+
 		public DataAccessModelConfiguration()
 		{
 			this.SqlDatabaseContextInfos = new SqlDatabaseContextInfo[0];
 			this.ConstraintDefaultsConfiguration = new ConstraintDefaultsConfiguration();
 		}
 
-		public string GetSha1()
+		public byte[] GetSha1Bytes()
 		{
-			return TextConversion.ToHexString(new SHA1CryptoServiceProvider().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this))));
+			return Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this));
+		}
+
+		public string GetSha1Hex()
+		{
+			return TextConversion.ToHexString(this.GetSha1Bytes());
 		}
 	}
 }
