@@ -41,7 +41,7 @@ namespace Shaolinq
 
 		public byte[] GetSha1Bytes()
 		{
-			return Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this));
+			return SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this)));
 		}
 
 		public string GetSha1Hex()

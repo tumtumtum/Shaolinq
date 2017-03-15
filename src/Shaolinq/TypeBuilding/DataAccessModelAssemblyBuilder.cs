@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Platform;
 using Platform.Text;
+using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
@@ -96,7 +97,12 @@ namespace Shaolinq.TypeBuilding
 			var modelAssembly = typeDescriptorProvider.DataAccessModelType.Assembly;
 			var uniquelyReferencedAssemblies = new HashSet<Assembly> { modelAssembly };
 
-			var bytes = configuration.GetSha1Bytes();
+			foreach (var type in typeDescriptorProvider.GetTypeDescriptors())
+			{
+				uniquelyReferencedAssemblies.Add(type.Type.Assembly);
+			}
+
+			var bytes = Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(configuration));
 
 			sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
 
