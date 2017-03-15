@@ -140,6 +140,7 @@
     <Compile Include="ConstraintDefaultsConfiguration.cs" />
     <Compile Include="DataAccessIsolationLevel.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
+    <Compile Include="DataAccessObjectHelpersInternal.cs" />
     <Compile Include="DataAccessScope.cs" />
     <Compile Include="DataAccessScopeOptions.cs" />
     <Compile Include="DataAccessTransaction.cs" />
@@ -156,6 +157,7 @@
     <Compile Include="GeneratedSqlExpressionHasher.cs" />
     <Compile Include="IAsyncEnumerator.cs" />
     <Compile Include="IAsyncEnumerable.cs" />
+    <Compile Include="IDataAccessModelInternal.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="NativeAsyncLocal.cs" />

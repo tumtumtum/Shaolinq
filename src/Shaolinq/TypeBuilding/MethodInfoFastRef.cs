@@ -13,7 +13,7 @@ namespace Shaolinq.TypeBuilding
 {
 	public static class MethodInfoFastRef
 	{
-		public static readonly MethodInfo DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject = TypeUtils.GetMethod(() => default(DataAccessObject).GetPropertyValueExpressionFromPredicatedDeflatedObject<DataAccessObject, int>(default(string))).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject = TypeUtils.GetMethod(() => DataAccessObjectHelpersInternal.GetPropertyValueExpressionFromPredicatedDeflatedObject<DataAccessObject, int>(default(DataAccessObject), default(string))).GetGenericMethodDefinition();
 		public static readonly MethodInfo TaskExtensionsUnwrapMethod = TypeUtils.GetMethod(() => System.Threading.Tasks.TaskExtensions.Unwrap<int>(null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableWhereMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).Where(c => true)).GetGenericMethodDefinition();

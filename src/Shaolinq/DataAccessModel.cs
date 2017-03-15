@@ -15,10 +15,11 @@ using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
 
+
 namespace Shaolinq
 {
 	public partial class DataAccessModel
-		 : IDisposable
+		 : IDisposable, IDataAccessModelInternal
 	{
 		#region ContextData
 		
@@ -86,7 +87,7 @@ namespace Shaolinq
 			return (DataAccessObjects<T>) this.GetDataAccessObjects(typeof(T));
 		}
 
-		public virtual IQueryable CreateDataAccessObjects(RuntimeTypeHandle typeHandle)
+		IQueryable IDataAccessModelInternal.CreateDataAccessObjects(RuntimeTypeHandle typeHandle)
 		{
 			Func<IQueryable> func;
 
@@ -108,9 +109,9 @@ namespace Shaolinq
 			return func();
 		}
 
-		internal virtual IQueryable CreateDataAccessObjects(Type type)
+		IQueryable IDataAccessModelInternal.CreateDataAccessObjects(Type type)
 		{
-			return this.CreateDataAccessObjects(type.TypeHandle);
+			return ((IDataAccessModelInternal)this).CreateDataAccessObjects(type.TypeHandle);
 		}
 
 		private TransactionContext GetCurrentContext(bool forWrite)

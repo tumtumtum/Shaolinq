@@ -149,7 +149,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Ldloca, local);
-			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("TryGetValue", new Type[] { typeof(Type), typeof(IQueryable).MakeByRefType() }));
+			generator.Emit(OpCodes.Callvirt, typeof(Dictionary<Type, IQueryable>).GetMethod("TryGetValue", new [] { typeof(Type), typeof(IQueryable).MakeByRefType() }));
 			generator.Emit(OpCodes.Brfalse, label);
 			generator.Emit(OpCodes.Nop);
 			generator.Emit(OpCodes.Leave, returnLabel);
@@ -157,8 +157,9 @@ namespace Shaolinq.TypeBuilding
 			generator.MarkLabel(label);
 
 			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessModelInternal));
 			generator.Emit(OpCodes.Ldarg_1);
-			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateDataAccessObjects(default(Type))));
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessModelInternal>(c => c.CreateDataAccessObjects(default(Type))));
 			generator.Emit(OpCodes.Stloc, local);
 			
 			generator.Emit(OpCodes.Ldarg_0);

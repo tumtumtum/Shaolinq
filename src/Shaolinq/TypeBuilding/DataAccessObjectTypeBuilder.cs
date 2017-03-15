@@ -2482,7 +2482,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldloc, currentObject);
 						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
 
-						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(visited.PropertyInfo.ReflectedType, visited.PropertyType));
+						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(visited.PropertyInfo.ReflectedType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);
 
 						if (predicatedIndex > 0)
@@ -2526,7 +2526,7 @@ namespace Shaolinq.TypeBuilding
 						generator.Emit(OpCodes.Ldloc, currentObject);
 						generator.Emit(OpCodes.Ldstr, visited.PropertyName);
 
-						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(visited.PropertyInfo.ReflectedType, visited.PropertyType));
+						generator.Emit(OpCodes.Call, MethodInfoFastRef.DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject.MakeGenericMethod(visited.PropertyInfo.ReflectedType, visited.PropertyType));
 						generator.Emit(OpCodes.Stloc, result);
 
 						if (predicatedIndex > 0)

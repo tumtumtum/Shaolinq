@@ -2063,7 +2063,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (parentValue.ToObjectInternal().DeflatedPredicate != null)
 						{
-							var subqueryExpression = (Expression)MethodInfoFastRef.DataAccessObjectExtensionsGetPropertyValueExpressionFromPredicatedDeflatedObject
+							var subqueryExpression = (Expression)MethodInfoFastRef.DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject
 								.MakeGenericMethod(parentExpression.Type, value.DefinitionProperty.PropertyType)
 								.Invoke(null, new object[] { parentValue, value.DefinitionProperty.PropertyName });
 

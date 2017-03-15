@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Platform;
 using Platform.Reflection;
 using Shaolinq.TypeBuilding;
 
@@ -80,25 +78,6 @@ namespace Shaolinq
 			where T : DataAccessObject
 		{
 			throw new NotImplementedException();
-		}
-		
-		public static Expression GetPropertyValueExpressionFromPredicatedDeflatedObject<T, U>(this T obj, string propertyPath)
-			where T : DataAccessObject
-		{
-			var pathComponents = propertyPath.Split('.');
-			var parameter = Expression.Parameter(typeof(T));
-
-			var propertyExpression = pathComponents.Aggregate<string, Expression>
-			(
-				parameter,
-				(instance, name) => Expression.Property(instance, instance.Type.GetMostDerivedProperty(name))
-			);
-
-			var expression = obj.dataAccessModel.GetDataAccessObjects<T>()
-				.Where((Expression<Func<T, bool>>)obj.ToObjectInternal().DeflatedPredicate)
-				.Select(Expression.Lambda<Func<T, U>>(propertyExpression, parameter)).Expression;
-
-			return Expression.Call(null, TypeUtils.GetMethod(() => default(IQueryable<U>).First()), expression);
 		}
 	}
 }
