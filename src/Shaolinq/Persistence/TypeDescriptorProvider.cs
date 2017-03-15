@@ -153,7 +153,6 @@ namespace Shaolinq.Persistence
 				}
 			}
 
-
 			this.ModelTypeDescriptor = new ModelTypeDescriptor(this, dataAccessModelType);
 		}
 

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -32,7 +31,7 @@ namespace Shaolinq.TypeBuilding
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 
 			var filename = GetFileName(typeDescriptorProvider, configuration);
-
+			
 			if (filename != null && File.Exists(filename))
 			{
 				return Assembly.LoadFile(filename);
@@ -41,7 +40,7 @@ namespace Shaolinq.TypeBuilding
 			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
 			var assemblyName = new AssemblyName("Shaolinq.GeneratedDataAccessModel");
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave, Path.GetDirectoryName(filename));
-			var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name, assemblyName.Name + ".dll");
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule(Path.GetFileNameWithoutExtension(filename), Path.GetFileName(assemblyName.Name));
 
 			var propertiesBuilder = moduleBuilder.DefineType("$$$DataAccessModelProperties", TypeAttributes.Class, typeof(object));
 			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder, propertiesBuilder);
