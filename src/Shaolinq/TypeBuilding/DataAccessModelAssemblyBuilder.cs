@@ -34,7 +34,7 @@ namespace Shaolinq.TypeBuilding
 			
 			if (filename != null && File.Exists(filename))
 			{
-				return Assembly.Load(File.ReadAllBytes(filename));
+				return Assembly.LoadFile(filename);
 			}
 
 			var filenameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
