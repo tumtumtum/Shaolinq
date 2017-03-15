@@ -82,7 +82,7 @@ namespace Shaolinq.TypeBuilding
 				{
 					try
 					{
-						assemblyBuilder.Save(Path.GetFileName(filename));
+						assemblyBuilder.Save(Path.GetFileName(filename), PortableExecutableKinds.ILOnly, ImageFileMachine.AMD64);
 					}
 					catch (Exception e)
 					{
