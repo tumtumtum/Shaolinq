@@ -176,7 +176,7 @@ namespace Shaolinq
 			return this.TypeDescriptorProvider.GetTypeDescriptor(this.GetDefinitionTypeFromConcreteType(type));
 		}
 
-		internal DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
+		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
 		{
 			return TransactionContext.GetCurrent(this, forWrite)?.GetCurrentDataContext();
 		}

@@ -38,4 +38,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("0.0.0.0")]
 
 [assembly: InternalsVisibleTo("Shaolinq.Tests")]
-[assembly: InternalsVisibleTo("Shaolinq.GeneratedDataAccessModel")]
+[assembly: InternalsVisibleTo("Shaolinq.GeneratedAssembly")]
