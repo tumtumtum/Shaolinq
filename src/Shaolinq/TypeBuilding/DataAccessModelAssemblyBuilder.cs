@@ -37,7 +37,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				if (filename != null && File.Exists(filename))
 				{
-					return Assembly.Load(File.ReadAllBytes(filename));
+					return Assembly.LoadFile(filename);
 				}
 			}
 
@@ -82,7 +82,7 @@ namespace Shaolinq.TypeBuilding
 				{
 					try
 					{
-						assemblyBuilder.Save(Path.GetFileName(filename), PortableExecutableKinds.ILOnly, ImageFileMachine.AMD64);
+						assemblyBuilder.Save(Path.GetFileName(filename));
 					}
 					catch (Exception e)
 					{
@@ -145,7 +145,7 @@ namespace Shaolinq.TypeBuilding
 				modelName = typeDescriptorProvider.DataAccessModelType.FullName.Replace(".", "_");
 			}
 
-			fileName += "_" + modelName + "_" + TextConversion.ToHexString(sha1.Hash) + ".dll";
+			fileName = $"_{modelName}_{TextConversion.ToHexString(sha1.Hash)}{(Environment.Is64BitProcess ? "_x64" : "")}.dll";
 			cacheDirectory = !string.IsNullOrEmpty(cacheDirectory) ? cacheDirectory : !codebaseUri.IsFile ? Environment.CurrentDirectory : Path.GetDirectoryName(codebaseUri.LocalPath);
 
 			return Path.Combine(cacheDirectory, fileName);
