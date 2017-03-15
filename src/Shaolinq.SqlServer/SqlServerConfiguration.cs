@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -15,7 +16,7 @@ namespace Shaolinq.SqlServer
 		{
 			return new DataAccessModelConfiguration
 			{
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>
 				{
 					new SqlServerSqlDatabaseContextInfo()
 					{
@@ -32,7 +33,7 @@ namespace Shaolinq.SqlServer
 		{
 			return new DataAccessModelConfiguration()
 			{
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>
 				{
 					new SqlServerSqlDatabaseContextInfo
 					{

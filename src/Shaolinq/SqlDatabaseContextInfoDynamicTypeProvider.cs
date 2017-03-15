@@ -9,8 +9,15 @@ namespace Shaolinq
 	internal class SqlDatabaseContextInfoDynamicTypeProvider
 		: IXmlListElementDynamicTypeProvider
 	{
-		public Type GetType(object instance) => instance.GetType();
-		public string GetName(object instance) => instance.GetType().Name.ReplaceLast("Info", "");
+		public Type GetType(object instance)
+		{
+			return instance.GetType();
+		}
+
+		public string GetName(object instance)
+		{
+			return instance.GetType().Name.ReplaceLast("Info", "");
+		}
 
 		public SqlDatabaseContextInfoDynamicTypeProvider(SerializationMemberInfo memberInfo, TypeSerializerCache cache, SerializerOptions options)
 		{

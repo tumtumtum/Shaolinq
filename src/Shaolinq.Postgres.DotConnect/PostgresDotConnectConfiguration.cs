@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.DotConnect
@@ -38,7 +39,7 @@ namespace Shaolinq.Postgres.DotConnect
 		{
 			return new DataAccessModelConfiguration
 			{
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>
 				{
 					contextInfo
 				}

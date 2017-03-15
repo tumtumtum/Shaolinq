@@ -13,7 +13,7 @@ namespace Shaolinq.Tests
 		{
 			var config = DataAccessModel.GetConfiguration("TestDataAccessModelPostgresDotConnect");
 
-			XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(config);
+			var s = XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(config);
 		}
 	}
 }

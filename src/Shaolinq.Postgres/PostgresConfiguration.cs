@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
@@ -10,7 +11,7 @@ namespace Shaolinq.Postgres
 		{
 			return new DataAccessModelConfiguration
 			{
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>
 				{
 					new PostgresSqlDatabaseContextInfo
 					{
@@ -40,7 +41,7 @@ namespace Shaolinq.Postgres
 		{
 			return new DataAccessModelConfiguration
 			{
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>
 				{
 					contextInfo
 				}

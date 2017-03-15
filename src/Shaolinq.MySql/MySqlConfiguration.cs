@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Collections.Generic;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.MySql
@@ -10,7 +11,7 @@ namespace Shaolinq.MySql
 		{
 			return new DataAccessModelConfiguration
 			{
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>
 				{
 					new MySqlSqlDatabaseContextInfo
 					{
@@ -35,7 +36,7 @@ namespace Shaolinq.MySql
 		{
 			var retval = new DataAccessModelConfiguration
 			{
-				SqlDatabaseContextInfos = new SqlDatabaseContextInfo[]
+				SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>
 				{
 					new MySqlSqlDatabaseContextInfo
 					{

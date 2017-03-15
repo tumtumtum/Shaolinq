@@ -32,10 +32,13 @@ namespace Shaolinq.TypeBuilding
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 
 			var filename = GetFileName(typeDescriptorProvider, configuration);
-			
-			if (filename != null && File.Exists(filename))
+
+			if (configuration.SaveAndReuseGeneratedAssemblies ?? false)
 			{
-				return Assembly.LoadFile(filename);
+				if (filename != null && File.Exists(filename))
+				{
+					return Assembly.LoadFile(filename);
+				}
 			}
 
 			var filenameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
@@ -129,7 +132,7 @@ namespace Shaolinq.TypeBuilding
 				}
 			}
 
-			sha1.TransformFinalBlock(new byte[0], 0, 0);
+			sha1.TransformFinalBlock(bytes, 0, 0);
 
 			var fileName = modelAssembly.Location == null ? modelAssembly.GetName().Name : Path.GetFileNameWithoutExtension(modelAssembly.Location);
 			var cacheDirectory = configuration.GeneratedAssembliesSaveDirectory?.Trim();

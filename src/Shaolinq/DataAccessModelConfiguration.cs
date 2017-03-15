@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
@@ -15,7 +16,7 @@ namespace Shaolinq
 	{
 		[XmlElement("SqlDatabaseContexts")]
 		[XmlListElementDynamicTypeProvider(typeof(SqlDatabaseContextInfoDynamicTypeProvider))]
-		public SqlDatabaseContextInfo[] SqlDatabaseContextInfos { get; set; }
+		public List<SqlDatabaseContextInfo> SqlDatabaseContextInfos { get; set; }
 
 		[XmlElement("ConstraintDefaultsConfiguration")]
 		public ConstraintDefaultsConfiguration ConstraintDefaultsConfiguration { get; set; }
@@ -25,7 +26,7 @@ namespace Shaolinq
 
 		[XmlElement("ReferencedTypes")]
 		[XmlListElement("Type", ItemType = typeof(Type), SerializeAsValueNode = true, ValueNodeAttributeName = "Name")]
-		public Type[] ReferencedTypes { get; set; }
+		public List<Type> ReferencedTypes { get; set; }
 
 		[XmlAttribute]
 		public bool? SaveAndReuseGeneratedAssemblies { get; set; } = true;
@@ -35,7 +36,7 @@ namespace Shaolinq
 
 		public DataAccessModelConfiguration()
 		{
-			this.SqlDatabaseContextInfos = new SqlDatabaseContextInfo[0];
+			this.SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>();
 			this.ConstraintDefaultsConfiguration = new ConstraintDefaultsConfiguration();
 		}
 
