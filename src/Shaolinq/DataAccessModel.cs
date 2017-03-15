@@ -86,7 +86,7 @@ namespace Shaolinq
 			return (DataAccessObjects<T>) this.GetDataAccessObjects(typeof(T));
 		}
 
-		internal virtual IQueryable CreateDataAccessObjects(RuntimeTypeHandle typeHandle)
+		public virtual IQueryable CreateDataAccessObjects(RuntimeTypeHandle typeHandle)
 		{
 			Func<IQueryable> func;
 
