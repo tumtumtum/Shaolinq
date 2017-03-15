@@ -37,7 +37,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				if (filename != null && File.Exists(filename))
 				{
-					return Assembly.LoadFile(filename);
+					return Assembly.Load(File.ReadAllBytes(filename));
 				}
 			}
 
