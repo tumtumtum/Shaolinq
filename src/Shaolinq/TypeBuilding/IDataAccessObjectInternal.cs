@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace Shaolinq.TypeBuilding
 {
-	internal interface IDataAccessObjectInternal
+	public interface IDataAccessObjectInternal
 	{
 		void SetIsNew(bool value);
 		void SetIsDeleted(bool value);

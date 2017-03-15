@@ -35,12 +35,12 @@ namespace Shaolinq.TypeBuilding
 			
 			if (filename != null && File.Exists(filename))
 			{
-				return Assembly.Load(File.ReadAllBytes(filename));
+				return Assembly.LoadFile(filename);
 			}
 
 			var filenameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
 			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
-			var assemblyName = new AssemblyName("Shaolinq.GeneratedAssembly");
+			var assemblyName = new AssemblyName(filenameWithoutExtension);
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave, Path.GetDirectoryName(filename));
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(filenameWithoutExtension, filenameWithoutExtension + ".dll");
 

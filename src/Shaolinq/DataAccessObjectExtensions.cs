@@ -82,7 +82,7 @@ namespace Shaolinq
 			throw new NotImplementedException();
 		}
 		
-		internal static Expression GetPropertyValueExpressionFromPredicatedDeflatedObject<T, U>(this T obj, string propertyPath)
+		public static Expression GetPropertyValueExpressionFromPredicatedDeflatedObject<T, U>(this T obj, string propertyPath)
 			where T : DataAccessObject
 		{
 			var pathComponents = propertyPath.Split('.');
