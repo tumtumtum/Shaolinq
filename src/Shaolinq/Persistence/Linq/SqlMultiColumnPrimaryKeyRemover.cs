@@ -21,10 +21,9 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var columnDefinition in createTableExpression
 				.ColumnDefinitionExpressions
-				.Where(columnDefinition => columnDefinition
+				.Where(c => c
 					.ConstraintExpressions
-					.OfType<SqlSimpleConstraintExpression>()
-					.Any(simpleConstraint => simpleConstraint.Constraint == SqlSimpleConstraint.PrimaryKey)))
+					.Any(d => d.SimpleConstraint == SqlSimpleConstraint.PrimaryKey)))
 			{
 				count++;
 
@@ -40,33 +39,16 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var newColumnExpressions = new List<SqlColumnDefinitionExpression>();
-			var newTableConstraintExpressions = new List<Expression>(createTableExpression.TableConstraints);
+			var newTableConstraintExpressions = new List<SqlConstraintExpression>(createTableExpression.TableConstraints);
 
 			foreach (var columnDefinition in createTableExpression.ColumnDefinitionExpressions)
 			{
-				var newConstraints = columnDefinition.ConstraintExpressions.Where(delegate(Expression constraint)
-				{
-					var simpleConstraint = constraint as SqlSimpleConstraintExpression;
+				var newConstraints = columnDefinition.ConstraintExpressions.Where(c => c.SimpleConstraint != SqlSimpleConstraint.PrimaryKey).ToReadOnlyCollection();
 
-					if (simpleConstraint == null)
-					{
-						return true;
-					}
-
-					return simpleConstraint.Constraint != SqlSimpleConstraint.PrimaryKey;
-				});
-
-				if (ReferenceEquals(newConstraints, columnDefinition.ConstraintExpressions))
-				{
-					newColumnExpressions.Add(columnDefinition);
-				}
-				else
-				{
-					newColumnExpressions.Add(new SqlColumnDefinitionExpression(columnDefinition.ColumnName, columnDefinition.ColumnType, newConstraints));
-				}
+				newColumnExpressions.Add(new SqlColumnDefinitionExpression(columnDefinition.ColumnName, columnDefinition.ColumnType, newConstraints));
 			}
 
-			return new SqlCreateTableExpression(createTableExpression.Table, false, newColumnExpressions, newTableConstraintExpressions, Enumerable.Empty<SqlTableOption>());
+			return new SqlCreateTableExpression(createTableExpression.Table, false, newColumnExpressions, newTableConstraintExpressions, Enumerable.Empty<SqlTableOption>().ToReadOnlyCollection());
 		}
 	}
 }

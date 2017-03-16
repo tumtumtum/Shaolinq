@@ -20,9 +20,14 @@ namespace Shaolinq.Persistence.Linq
 			return retval;
 		}
 
-		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
+		protected override Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			var action = new SqlConstraintActionExpression(SqlConstraintActionType.Add, foreignKeyConstraintExpression);
+			if (expression.ReferencesExpression == null)
+			{
+				return expression;
+			}
+
+			var action = new SqlConstraintActionExpression(SqlConstraintActionType.Add, expression);
 			var amendmentEpression = new SqlAlterTableExpression(this.currentTable.Table, action);
 
 			this.amendments.Add(amendmentEpression);

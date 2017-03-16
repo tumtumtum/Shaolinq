@@ -9,6 +9,57 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionComparer
     {
+        protected override Expression VisitReferences(SqlReferencesExpression expression)
+        {
+            SqlReferencesExpression current;
+            if (!TryGetCurrent(expression, out current))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.Deferrability == expression.Deferrability))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.OnDeleteAction == expression.OnDeleteAction))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.OnUpdateAction == expression.OnUpdateAction))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.NodeType == expression.NodeType))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.Type == expression.Type))
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ReferencedTable;
+            this.VisitTable(expression.ReferencedTable);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ReferencedColumnNames;
+            this.VisitObjectList(expression.ReferencedColumnNames);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current;
+            return expression;
+        }
+
         protected override Expression VisitVariableDeclaration(SqlVariableDeclarationExpression expression)
         {
             SqlVariableDeclarationExpression current;
@@ -1179,15 +1230,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.TableConstraints;
-            this.VisitExpressionList(expression.TableConstraints);
+            this.currentObject = current.TableOptions;
+            this.VisitObjectList(expression.TableOptions);
             if (!this.result)
             {
                 return expression;
             }
 
-            this.currentObject = current.TableOptions;
-            this.VisitObjectList(expression.TableOptions);
+            this.currentObject = current.TableConstraints;
+            this.VisitExpressionList(expression.TableConstraints);
             if (!this.result)
             {
                 return expression;
@@ -1356,96 +1407,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
             return expression;
         }
 
-        protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression expression)
-        {
-            SqlReferencesColumnExpression current;
-            if (!TryGetCurrent(expression, out current))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.Deferrability == expression.Deferrability))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.OnDeleteAction == expression.OnDeleteAction))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.OnUpdateAction == expression.OnUpdateAction))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.NodeType == expression.NodeType))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.Type == expression.Type))
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ReferencedTable;
-            this.VisitTable(expression.ReferencedTable);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ReferencedColumnNames;
-            this.VisitObjectList(expression.ReferencedColumnNames);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current;
-            return expression;
-        }
-
-        protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression expression)
-        {
-            SqlSimpleConstraintExpression current;
-            if (!TryGetCurrent(expression, out current))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= object.Equals(current.Value, expression.Value)))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.Constraint == expression.Constraint))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.NodeType == expression.NodeType))
-            {
-                return expression;
-            }
-
-            if (!(this.result &= current.Type == expression.Type))
-            {
-                return expression;
-            }
-
-            this.currentObject = current.ColumnNames;
-            this.VisitObjectList(expression.ColumnNames);
-            if (!this.result)
-            {
-                return expression;
-            }
-
-            this.currentObject = current;
-            return expression;
-        }
-
         protected override Expression VisitStatementList(SqlStatementListExpression expression)
         {
             SqlStatementListExpression current;
@@ -1475,15 +1436,20 @@ namespace Shaolinq.Persistence.Linq.Expressions
             return expression;
         }
 
-        protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression expression)
+        protected override Expression VisitConstraint(SqlConstraintExpression expression)
         {
-            SqlForeignKeyConstraintExpression current;
+            SqlConstraintExpression current;
             if (!TryGetCurrent(expression, out current))
             {
                 return expression;
             }
 
             if (!(this.result &= object.Equals(current.ConstraintName, expression.ConstraintName)))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.SimpleConstraint == expression.SimpleConstraint))
             {
                 return expression;
             }
@@ -1498,8 +1464,15 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            this.currentObject = current.ReferencesColumnExpression;
-            this.VisitReferencesColumn(expression.ReferencesColumnExpression);
+            this.currentObject = current.ReferencesExpression;
+            this.VisitReferences(expression.ReferencesExpression);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.DefaultValue;
+            this.Visit(expression.DefaultValue);
             if (!this.result)
             {
                 return expression;
@@ -1507,6 +1480,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
             this.currentObject = current.ColumnNames;
             this.VisitObjectList(expression.ColumnNames);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.ConstraintOptions;
+            this.VisitObjectList(expression.ConstraintOptions);
             if (!this.result)
             {
                 return expression;

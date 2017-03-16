@@ -17,27 +17,31 @@ namespace Shaolinq.MySql
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
-			var autoIncrementColumn = createTableExpression.ColumnDefinitionExpressions.SingleOrDefault(c => c.ConstraintExpressions.OfType<SqlSimpleConstraintExpression>().Any(d => d.Constraint == SqlSimpleConstraint.AutoIncrement));
+			var autoIncrementColumn = createTableExpression
+				.ColumnDefinitionExpressions
+				.SingleOrDefault(c => c.ConstraintExpressions.Any(d => d.SimpleConstraint == SqlSimpleConstraint.AutoIncrement));
 
 			if (autoIncrementColumn != null)
 			{
-				var primaryKeyConstraint = createTableExpression.TableConstraints.OfType<SqlSimpleConstraintExpression>().SingleOrDefault(c => c.Constraint == SqlSimpleConstraint.PrimaryKey);
+				var primaryKeyConstraint = createTableExpression
+					.TableConstraints
+					.SingleOrDefault(c => c.SimpleConstraint == SqlSimpleConstraint.PrimaryKey);
 
 				if (primaryKeyConstraint != null)
 				{
 					if (!primaryKeyConstraint.ColumnNames.Contains(autoIncrementColumn.ColumnName))
 					{
-						var newPrimaryKeyConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName });
-						var newUniqueConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames.Concat(autoIncrementColumn.ColumnName).ToArray());
+						var newPrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName }.ToReadOnlyCollection());
+						var newUniqueConstraint = new SqlConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames.Concat(autoIncrementColumn.ColumnName).ToReadOnlyCollection());
 
-						return createTableExpression.UpdateConstraints(createTableExpression.TableConstraints.Where(c => c != primaryKeyConstraint).Concat(newPrimaryKeyConstraint).Concat(newUniqueConstraint).ToReadOnlyCollection());
+						return createTableExpression.ChangeConstraints(createTableExpression.TableConstraints.Where(c => c != primaryKeyConstraint).Concat(newPrimaryKeyConstraint).Concat(newUniqueConstraint).ToReadOnlyCollection());
 					}
 				}
 				else
 				{
-					var newPrimaryKeyConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName });
+					var newPrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName }.ToReadOnlyCollection());
 
-					return createTableExpression.UpdateConstraints(new [] { newPrimaryKeyConstraint }.ToReadOnlyCollection());
+					return createTableExpression.ChangeConstraints(new [] { newPrimaryKeyConstraint }.ToReadOnlyCollection());
 				}
 			}
 

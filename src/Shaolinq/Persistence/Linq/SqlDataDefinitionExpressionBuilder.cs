@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly DataAccessModel model;
 		private readonly DatabaseCreationOptions options;
 		private readonly string tableNamePrefix;
-		private List<Expression> currentTableConstraints;
+		private List<SqlConstraintExpression> currentTableConstraints;
 		private readonly SqlDataDefinitionBuilderFlags flags;
 		
 		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
@@ -28,12 +28,12 @@ namespace Shaolinq.Persistence.Linq
 			this.flags = flags;
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
 
-			this.currentTableConstraints = new List<Expression>();
+			this.currentTableConstraints = new List<SqlConstraintExpression>();
 		}
 
-		private List<Expression> BuildColumnConstraints(PropertyDescriptor propertyDescriptor, PropertyDescriptor foreignKeyReferencingProperty)
+		private List<SqlConstraintExpression> BuildColumnConstraints(PropertyDescriptor propertyDescriptor, PropertyDescriptor foreignKeyReferencingProperty)
 		{
-			var retval = new List<Expression>();
+			var retval = new List<SqlConstraintExpression>();
 
 			if (foreignKeyReferencingProperty != null)
 			{
@@ -41,12 +41,12 @@ namespace Shaolinq.Persistence.Linq
 
 				if (foreignKeyReferencingProperty.HasUniqueAttribute && foreignKeyReferencingProperty.UniqueAttribute.Unique)
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.Unique));
 				}
 
 				if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
 				}
 			}
 			else
@@ -57,29 +57,29 @@ namespace Shaolinq.Persistence.Linq
 
 					if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
 					{
-						retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
+						retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
 					}
 				}
 				else
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
 				}
 
 				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true))
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.AutoIncrement, value: new object[] { propertyDescriptor.AutoIncrementAttribute.Seed, propertyDescriptor.AutoIncrementAttribute.Step }));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.AutoIncrement, new object[] { propertyDescriptor.AutoIncrementAttribute.Seed, propertyDescriptor.AutoIncrementAttribute.Step }));
 				}
 
 				if (propertyDescriptor.HasUniqueAttribute && propertyDescriptor.UniqueAttribute.Unique)
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.Unique));
 				}
 				
 				var defaultValueAttribute = propertyDescriptor.DefaultValueAttribute;
 
 				if (defaultValueAttribute != null)
 				{
-					retval.Add(new SqlSimpleConstraintExpression(SqlSimpleConstraint.DefaultValue, null, defaultValueAttribute.Value));
+					retval.Add(new SqlConstraintExpression(null, SqlSimpleConstraint.DefaultValue, null, null, Expression.Constant(defaultValueAttribute.Value)));
 				}
 			}
 
@@ -144,16 +144,16 @@ namespace Shaolinq.Persistence.Linq
 				if (columnInfos.Length == 1 && supportsInlineForeignKeys && !(referencingProperty.ForeignObjectConstraintAttribute?.Disabled ?? false))
 				{
 					var names = new[] { foreignKeyColumn.DefinitionProperty.PersistedName };
-					var newConstraints = new List<Expression>(retval.ConstraintExpressions);
+					var newConstraints = new List<SqlConstraintExpression>(retval.ConstraintExpressions);
 
-					var referencesColumnExpression = new SqlReferencesColumnExpression
+					var referencesColumnExpression = new SqlReferencesExpression
 					(
 						new SqlTableExpression(referencedTableName),
 						SqlColumnReferenceDeferrability.InitiallyDeferred,
-						names, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
+						names, this.FixAction(foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 					);
 
-					newConstraints.Add(referencesColumnExpression);
+					newConstraints.Add(new SqlConstraintExpression(this.GetForeignKeyConstraintName(referencingProperty), referencesColumnExpression));
 
 					retval = new SqlColumnDefinitionExpression(retval.ColumnName, retval.ColumnType, newConstraints);
 				}
@@ -166,14 +166,14 @@ namespace Shaolinq.Persistence.Linq
 				var currentTableColumnNames = columnInfos.Select(c => c.ColumnName).ToList();
 				var referencedTableColumnNames = columnInfos.Select(c => c.GetTailColumnName());
 				
-				var referencesColumnExpression = new SqlReferencesColumnExpression
+				var referencesExpression = new SqlReferencesExpression
 				(
 					new SqlTableExpression(referencedTableName),
 					SqlColumnReferenceDeferrability.InitiallyDeferred,
 					referencedTableColumnNames, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
 				
-				var foreignKeyConstraint = new SqlForeignKeyConstraintExpression(GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames, referencesColumnExpression);
+				var foreignKeyConstraint = new SqlConstraintExpression(GetForeignKeyConstraintName(referencingProperty), referencesExpression, currentTableColumnNames);
 
 				this.currentTableConstraints.Add(foreignKeyConstraint);
 			}
@@ -219,7 +219,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var columnExpressions = new List<SqlColumnDefinitionExpression>();
 
-			this.currentTableConstraints = new List<Expression>();
+			this.currentTableConstraints = new List<SqlConstraintExpression>();
 
 			var columnInfos = QueryBinder.GetColumnInfos
 			(
@@ -269,14 +269,14 @@ namespace Shaolinq.Persistence.Linq
 
 			if (primaryKeys.Length > 0)
 			{
-				var columnNames = primaryKeys.Select(c => c.ColumnName).ToArray();
+				var columnNames = primaryKeys.Select(c => c.ColumnName).ToReadOnlyCollection();
 
-				var compositePrimaryKeyConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames);
+				var compositePrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames);
 
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}
 
-			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, Enumerable.Empty<SqlTableOption>());
+			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, Enumerable.Empty<SqlTableOption>().ToReadOnlyCollection());
 		}
 
 		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)

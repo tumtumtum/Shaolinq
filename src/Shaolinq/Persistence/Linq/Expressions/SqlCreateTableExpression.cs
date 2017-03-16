@@ -11,17 +11,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public bool IfNotExist { get; }
 		public SqlTableExpression Table { get; }
-		public IReadOnlyList<Expression> TableConstraints { get; }
 		public IReadOnlyList<SqlTableOption> TableOptions { get; }
+		public IReadOnlyList<SqlConstraintExpression> TableConstraints { get; }
 		public IReadOnlyList<SqlColumnDefinitionExpression> ColumnDefinitionExpressions { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateTable;
 
-		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IEnumerable<SqlColumnDefinitionExpression> columnExpressions, IEnumerable<Expression> tableConstraintExpressions, IEnumerable<SqlTableOption> tableOptions = null)
-			: this(table, ifNotExist, columnExpressions.ToReadOnlyCollection(), tableConstraintExpressions.ToReadOnlyCollection(), tableOptions?.ToReadOnlyCollection())
-		{
-		}
-
-		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IReadOnlyList<SqlColumnDefinitionExpression> columnExpressions, IReadOnlyList<Expression> tableConstraintExpressions, IReadOnlyList<SqlTableOption> tableOptions = null)
+		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IReadOnlyList<SqlColumnDefinitionExpression> columnExpressions, IReadOnlyList<SqlConstraintExpression> tableConstraintExpressions, IReadOnlyList<SqlTableOption> tableOptions = null)
 			: base(typeof(void))
 		{
 			this.Table = table;
@@ -31,7 +26,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ColumnDefinitionExpressions = columnExpressions;
 		}
 
-		public SqlCreateTableExpression UpdateConstraints(IReadOnlyList<Expression> constraints)
+		public SqlCreateTableExpression ChangeConstraints(IReadOnlyList<SqlConstraintExpression> constraints)
 		{
 			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, constraints, this.TableOptions);
 		}

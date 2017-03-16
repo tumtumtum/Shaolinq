@@ -60,12 +60,10 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitIndexedColumn((SqlIndexedColumnExpression)expression);
 			case SqlExpressionType.CreateTable:
 				return this.VisitCreateTable((SqlCreateTableExpression)expression);
-			case SqlExpressionType.ForeignKeyConstraint:
-				return this.VisitForeignKeyConstraint((SqlForeignKeyConstraintExpression)expression);
-			case SqlExpressionType.ReferencesColumn:
-				return this.VisitReferencesColumn((SqlReferencesColumnExpression)expression);
-			case SqlExpressionType.SimpleConstraint:
-				return this.VisitSimpleConstraint((SqlSimpleConstraintExpression)expression);
+			case SqlExpressionType.Constraint:
+				return this.VisitConstraint((SqlConstraintExpression)expression);
+			case SqlExpressionType.References:
+				return this.VisitReferences((SqlReferencesExpression)expression);
 			case SqlExpressionType.StatementList:
 				return this.VisitStatementList((SqlStatementListExpression)expression);
 			case SqlExpressionType.InsertInto:
@@ -101,6 +99,18 @@ namespace Shaolinq.Persistence.Linq
 			default:
 				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitReferences(SqlReferencesExpression expression)
+		{
+			var table = (SqlTableExpression)this.Visit(expression.ReferencedTable);
+			
+			if (table != expression.ReferencedTable)
+			{
+				return expression.ChangeReferencedTable(table);
+			}
+
+			return expression;
 		}
 
 		protected virtual Expression VisitVariableDeclaration(SqlVariableDeclarationExpression expression)
@@ -494,7 +504,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (newTable != createTableExpression.Table || createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
 			{
-				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints, Enumerable.Empty<SqlTableOption>());
+				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints, Enumerable.Empty<SqlTableOption>().ToReadOnlyCollection());
 			}
 			else
 			{
@@ -523,16 +533,6 @@ namespace Shaolinq.Persistence.Linq
 		protected virtual Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
 			return createIndexExpression;
-		}
-
-		protected virtual Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
-		{
-			return referencesColumnExpression;
-		}
-
-		protected virtual Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
-		{
-			return simpleConstraintExpression;
 		}
 
 		protected virtual Expression VisitStatementList(SqlStatementListExpression statementListExpression)
@@ -565,17 +565,17 @@ namespace Shaolinq.Persistence.Linq
 			return newStatements == null ? statementListExpression : new SqlStatementListExpression(newStatements);
 		}
 
-		protected virtual Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
+		protected virtual Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			var referencesColumnExpression = (SqlReferencesColumnExpression)this.Visit(foreignKeyConstraintExpression.ReferencesColumnExpression);
+			var referencesExpression = (SqlReferencesExpression)this.Visit(expression.ReferencesExpression);
 
-			if (referencesColumnExpression != foreignKeyConstraintExpression.ReferencesColumnExpression)
+			if (referencesExpression != expression.ReferencesExpression)
 			{
-				return new SqlForeignKeyConstraintExpression(foreignKeyConstraintExpression.ConstraintName, foreignKeyConstraintExpression.ColumnNames, referencesColumnExpression);
+				return expression.ChangeReferences(referencesExpression);
 			}
 			else
 			{
-				return foreignKeyConstraintExpression;
+				return expression;
 			}
 		}
 

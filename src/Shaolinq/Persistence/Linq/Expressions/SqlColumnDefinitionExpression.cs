@@ -10,15 +10,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string ColumnName { get; }
 		public Expression ColumnType { get; }
-		public IReadOnlyList<Expression> ConstraintExpressions { get; }
+		public IReadOnlyList<SqlConstraintExpression> ConstraintExpressions { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.ColumnDefinition;
 
-		public SqlColumnDefinitionExpression(string columnName, Expression columnTypeName, IEnumerable<Expression> constraintExpressions)
-			: this(columnName, columnTypeName, constraintExpressions.ToReadOnlyCollection())
-		{	
-		}
-
-		public SqlColumnDefinitionExpression(string columnName, Expression columnTypeName, IReadOnlyList<Expression> constraintExpressions)
+		public SqlColumnDefinitionExpression(string columnName, Expression columnTypeName, IReadOnlyList<SqlConstraintExpression> constraintExpressions)
 			: base(typeof(void))
 		{
 			this.ColumnName = columnName;
@@ -26,7 +21,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ConstraintExpressions = constraintExpressions;
 		}
 
-		public SqlColumnDefinitionExpression UpdateConstraints(IEnumerable<Expression> newConstraints)
+		public SqlColumnDefinitionExpression ChangeConstraints(IReadOnlyList<SqlConstraintExpression> newConstraints)
 		{
 			return new SqlColumnDefinitionExpression(this.ColumnName, this.ColumnType, newConstraints);
 		}

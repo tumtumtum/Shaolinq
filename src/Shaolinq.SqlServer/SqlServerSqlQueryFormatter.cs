@@ -44,30 +44,30 @@ namespace Shaolinq.SqlServer
 			return base.ResolveSqlFunction(functionCallExpression);
 		}
 
-		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
+		protected override Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			base.VisitSimpleConstraint(simpleConstraintExpression);
+			base.VisitConstraint(expression);
 
-			if (simpleConstraintExpression.Constraint != SqlSimpleConstraint.AutoIncrement)
+			if (expression.SimpleConstraint != SqlSimpleConstraint.AutoIncrement)
 			{
-				return simpleConstraintExpression;
+				return expression;
 			}
 
-			var options = simpleConstraintExpression.Value as object[];
+			var constraintOptions = expression.ConstraintOptions;
 
-			if (options != null && options.Length == 2 && (options[0] as long?) > 0)
+			if (constraintOptions != null && constraintOptions.Length == 2 && (constraintOptions[0] as long?) > 0)
 			{
-				if (options[1] as long? == 0)
+				if (constraintOptions[1] as long? == 0)
 				{
-					options[1] = 1L;
+					constraintOptions[1] = 1L;
 				}
 
 				this.Write("(");
-				this.WriteDeliminatedListOfItems(options, this.Write);
+				this.WriteDeliminatedListOfItems(constraintOptions, this.Write);
 				this.Write(")");
 			}
 
-			return simpleConstraintExpression;
+			return expression;
 		}
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)

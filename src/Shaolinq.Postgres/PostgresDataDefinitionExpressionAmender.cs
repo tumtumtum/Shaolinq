@@ -26,25 +26,23 @@ namespace Shaolinq.Postgres
 			return processor.Visit(expression);
 		}
 		
-		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
+		protected override Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			if (this.currentIsPrimaryKey && simpleConstraintExpression.Constraint == SqlSimpleConstraint.AutoIncrement)
+			if (this.currentIsPrimaryKey && expression.SimpleConstraint == SqlSimpleConstraint.AutoIncrement)
 			{
 				return null;
 			}
 
-			return base.VisitSimpleConstraint(simpleConstraintExpression);
+			return base.VisitConstraint(expression);
 		}
 
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
 		{
 			this.currentIsPrimaryKey = columnDefinitionExpression.ConstraintExpressions
-				.OfType<SqlSimpleConstraintExpression>()
-				.Any(c => c.Constraint == SqlSimpleConstraint.PrimaryKey);
+				.Any(c => c.SimpleConstraint == SqlSimpleConstraint.PrimaryKey);
 
 			var isAutoIncrement = columnDefinitionExpression.ConstraintExpressions
-				.OfType<SqlSimpleConstraintExpression>()
-				.Any(c => c.Constraint == SqlSimpleConstraint.AutoIncrement);
+				.Any(c => c.SimpleConstraint == SqlSimpleConstraint.AutoIncrement);
 
 			var retval = (SqlColumnDefinitionExpression)base.VisitColumnDefinition(columnDefinitionExpression);
 

@@ -53,16 +53,16 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new []
 			{
-				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<Expression> { new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique),  new SqlReferencesColumnExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull)})
+				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<SqlConstraintExpression> { new SqlConstraintExpression(SqlSimpleConstraint.Unique),  new SqlConstraintExpression(null, new SqlReferencesExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull))})
 			};
 
-			var constraints = new Expression[]
+			var constraints = new []
 			{
-				new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, new[] {"Column1"}),
-				new SqlForeignKeyConstraintExpression("fkc", new [] {"Column1"}, new SqlReferencesColumnExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction))
+				new SqlConstraintExpression(SqlSimpleConstraint.Unique),
+				new SqlConstraintExpression("fkc", new SqlReferencesExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction), new [] {"Column1"})
 			};
 
-			var createTableExpression = new SqlCreateTableExpression(new SqlTableExpression("Table1"), false, columnDefinitions, constraints);
+			var createTableExpression = new SqlCreateTableExpression(new SqlTableExpression("Table1"), false, columnDefinitions.ToReadOnlyCollection(), constraints.ToReadOnlyCollection());
 
 			var formatter = new Sql92QueryFormatter();
 

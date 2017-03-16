@@ -5,6 +5,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionHasher
     {
+        protected override Expression VisitReferences(SqlReferencesExpression expression)
+        {
+            this.hashCode ^= expression.Deferrability.GetHashCode();
+            this.hashCode ^= expression.OnDeleteAction.GetHashCode();
+            this.hashCode ^= expression.OnUpdateAction.GetHashCode();
+            return base.VisitReferences(expression);
+        }
+
         protected override Expression VisitVariableDeclaration(SqlVariableDeclarationExpression expression)
         {
             this.hashCode ^= expression.Name?.GetHashCode() ?? 0;
@@ -158,25 +166,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
             return base.VisitCreateIndex(expression);
         }
 
-        protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression expression)
-        {
-            this.hashCode ^= expression.Deferrability.GetHashCode();
-            this.hashCode ^= expression.OnDeleteAction.GetHashCode();
-            this.hashCode ^= expression.OnUpdateAction.GetHashCode();
-            return base.VisitReferencesColumn(expression);
-        }
-
-        protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression expression)
-        {
-            this.hashCode ^= expression.Value?.GetHashCode() ?? 0;
-            this.hashCode ^= expression.Constraint.GetHashCode();
-            return base.VisitSimpleConstraint(expression);
-        }
-
-        protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression expression)
+        protected override Expression VisitConstraint(SqlConstraintExpression expression)
         {
             this.hashCode ^= expression.ConstraintName?.GetHashCode() ?? 0;
-            return base.VisitForeignKeyConstraint(expression);
+            this.hashCode ^= expression.SimpleConstraint.GetHashCode();
+            return base.VisitConstraint(expression);
         }
 
         protected override Expression VisitIndexedColumn(SqlIndexedColumnExpression expression)

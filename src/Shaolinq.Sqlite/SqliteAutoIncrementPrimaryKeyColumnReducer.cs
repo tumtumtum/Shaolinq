@@ -32,15 +32,14 @@ namespace Shaolinq.Sqlite
 		{
 			var primaryKeyConstraint = createTableExpression
 				.TableConstraints
-				.OfType<SqlSimpleConstraintExpression>()
-				.SingleOrDefault(c => c.Constraint == SqlSimpleConstraint.PrimaryKey);
+				.SingleOrDefault(c => c.SimpleConstraint == SqlSimpleConstraint.PrimaryKey);
 
 			if (primaryKeyConstraint != null)
 			{
 				var autoIncrementColumns = createTableExpression
 					.ColumnDefinitionExpressions
-					.SelectMany(c => c.ConstraintExpressions.OfType<SqlSimpleConstraintExpression>().Select(d => new { Constraint = d, ColumnDefinition = c}))
-					.Where(c => c.Constraint.Constraint == SqlSimpleConstraint.AutoIncrement)
+					.SelectMany(c => c.ConstraintExpressions.Select(d => new { Constraint = d, ColumnDefinition = c}))
+					.Where(c => c.Constraint.SimpleConstraint == SqlSimpleConstraint.AutoIncrement)
 					.ToList();
 
 				if (autoIncrementColumns.Count > 1)
@@ -56,10 +55,10 @@ namespace Shaolinq.Sqlite
 						.TableConstraints
 						.Where(c => c != primaryKeyConstraint);
 
-					if (primaryKeyConstraint.ColumnNames.Length > 1
-						|| autoIncrementColumn.ColumnDefinition.ConstraintExpressions.OfType<SqlSimpleConstraintExpression>().All(c => c.Constraint != SqlSimpleConstraint.PrimaryKey))
+					if (primaryKeyConstraint.ColumnNames.Count > 1
+						|| autoIncrementColumn.ColumnDefinition.ConstraintExpressions.All(c => c.SimpleConstraint != SqlSimpleConstraint.PrimaryKey))
 					{
-						var uniqueConstraint = new SqlSimpleConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames);
+						var uniqueConstraint = new SqlConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames);
 
 						newTableConstraints = newTableConstraints.Concat(uniqueConstraint);
 					}
@@ -78,7 +77,7 @@ namespace Shaolinq.Sqlite
 						createTableExpression.Table,
 						createTableExpression.IfNotExist,
 						this.VisitExpressionList(createTableExpression.ColumnDefinitionExpressions),
-						newTableConstraints
+						newTableConstraints.ToReadOnlyCollection()
 					);
 
 					this.columnsToMakeNotNull.Clear();
@@ -92,23 +91,23 @@ namespace Shaolinq.Sqlite
 
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
 		{
-			var autoIncrement = columnDefinitionExpression.ConstraintExpressions
-				.OfType<SqlSimpleConstraintExpression>()
-				.Any(c => c.Constraint == SqlSimpleConstraint.AutoIncrement);
+			var autoIncrement = columnDefinitionExpression
+				.ConstraintExpressions
+				.Any(c => c.SimpleConstraint == SqlSimpleConstraint.AutoIncrement);
 
-			IEnumerable<Expression> newConstraints = columnDefinitionExpression.ConstraintExpressions;
+			IEnumerable<SqlConstraintExpression> newConstraints = columnDefinitionExpression.ConstraintExpressions;
 
 			if (this.columnsToMakeNotNull.Contains(columnDefinitionExpression.ColumnName))
 			{
 				newConstraints = newConstraints
-					.Concat(new SqlSimpleConstraintExpression(SqlSimpleConstraint.NotNull));
+					.Concat(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
 			}
 
 			if (autoIncrement)
 			{
 				newConstraints = newConstraints
-					.Where(c => !(c is SqlSimpleConstraintExpression) || ((SqlSimpleConstraintExpression)c).Constraint != SqlSimpleConstraint.NotNull)
-					.Prepend(new SqlSimpleConstraintExpression(SqlSimpleConstraint.PrimaryKey));
+					.Where(c => c.SimpleConstraint != SqlSimpleConstraint.NotNull)
+					.Prepend(new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey));
 			}
 
 			if (ReferenceEquals(newConstraints, columnDefinitionExpression.ConstraintExpressions))
@@ -117,7 +116,7 @@ namespace Shaolinq.Sqlite
 			}
 			else
 			{
-				return columnDefinitionExpression.UpdateConstraints(newConstraints);
+				return columnDefinitionExpression.ChangeConstraints(newConstraints.ToReadOnlyCollection());
 			}
 		}
 	}

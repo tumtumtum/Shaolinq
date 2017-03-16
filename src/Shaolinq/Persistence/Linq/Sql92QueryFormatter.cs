@@ -549,7 +549,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return binaryExpression;
 		}
-
+			
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholderExpression)
 		{
 			if ((this.options & SqlQueryFormatterOptions.EvaluateConstantPlaceholders) != 0)
@@ -1173,22 +1173,76 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
+		protected override Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			if (!foreignKeyConstraintExpression.ConstraintName.IsNullOrEmpty())
+			if (!expression.ConstraintName.IsNullOrEmpty())
 			{
 				this.Write("CONSTRAINT ");
-				this.WriteQuotedIdentifier(foreignKeyConstraintExpression.ConstraintName);
+				this.WriteQuotedIdentifier(expression.ConstraintName);
 				this.Write(" ");
 			}
 
-			this.Write("FOREIGN KEY(");
-			this.WriteDeliminatedListOfItems(foreignKeyConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
-			this.Write(") ");
+			if (expression.SimpleConstraint != null)
+			{
+				switch (expression.SimpleConstraint.Value)
+				{
+				case SqlSimpleConstraint.DefaultValue:
+					if (expression.DefaultValue != null)
+					{
+						this.Write("DEFAULT");
+						this.Write(" ");
+						this.Write(expression.DefaultValue);
+					}
+					break;
+				case SqlSimpleConstraint.NotNull:
+					this.Write("NOT NULL");
+					break;
+				case SqlSimpleConstraint.AutoIncrement:
+				{
+					var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement);
 
-			this.Visit(foreignKeyConstraintExpression.ReferencesColumnExpression);
+					if (!string.IsNullOrEmpty(s))
+					{
+						this.Write(s);
+					}
 
-			return foreignKeyConstraintExpression;
+					break;
+				}
+				case SqlSimpleConstraint.PrimaryKey:
+					this.Write("PRIMARY KEY");
+					if (expression.ColumnNames != null)
+					{
+						this.Write("(");
+						this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
+						this.Write(")");
+					}
+					break;
+				case SqlSimpleConstraint.Unique:
+					this.Write("UNIQUE");
+					if (expression.ColumnNames != null)
+					{
+						this.Write("(");
+						this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
+						this.Write(")");
+					}
+					break;
+				}
+			}
+			else if (expression.ReferencesExpression != null)
+			{
+				if (expression.ColumnNames != null)
+				{
+					this.Write("FOREIGN KEY ");
+
+					this.Write("(");
+					this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
+					this.Write(") ");
+				}
+				
+				this.Visit(expression.ReferencesExpression);
+			}
+
+			return expression;
 		}
 
 		protected virtual void WriteQuotedIdentifier(string identifierName)
@@ -1220,35 +1274,35 @@ namespace Shaolinq.Persistence.Linq
 			}
 		}
 
-		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
+		protected override Expression VisitReferences(SqlReferencesExpression referencesExpression)
 		{
 			this.Write("REFERENCES ");
-			this.Visit(referencesColumnExpression.ReferencedTable);
+			this.Visit(referencesExpression.ReferencedTable);
 			this.Write("(");
 
-			this.WriteDeliminatedListOfItems(referencesColumnExpression.ReferencedColumnNames, this.WriteQuotedIdentifier);
+			this.WriteDeliminatedListOfItems(referencesExpression.ReferencedColumnNames, this.WriteQuotedIdentifier);
 
 			this.Write(")");
 
-			if (referencesColumnExpression.OnDeleteAction != SqlColumnReferenceAction.NoAction)
+			if (referencesExpression.OnDeleteAction != SqlColumnReferenceAction.NoAction)
 			{
 				this.Write(" ON DELETE ");
-				this.Write(referencesColumnExpression.OnDeleteAction);
+				this.Write(referencesExpression.OnDeleteAction);
 			}
 
-			if (referencesColumnExpression.OnUpdateAction != SqlColumnReferenceAction.NoAction)
+			if (referencesExpression.OnUpdateAction != SqlColumnReferenceAction.NoAction)
 			{
 				this.Write(" ON UPDATE ");
 
-				this.Write(referencesColumnExpression.OnUpdateAction);
+				this.Write(referencesExpression.OnUpdateAction);
 			}
 
 			if (this.sqlDialect.SupportsCapability(SqlCapability.Deferrability))
 			{
-				this.WriteDeferrability(referencesColumnExpression.Deferrability);
+				this.WriteDeferrability(referencesExpression.Deferrability);
 			}
 
-			return referencesColumnExpression;
+			return referencesExpression;
 		}
 
 		protected virtual void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)
@@ -1265,55 +1319,6 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(" DEFERRABLE INITIALLY IMMEDIATE");
 				break;
 			}
-		}
-
-		protected override Expression VisitSimpleConstraint(SqlSimpleConstraintExpression simpleConstraintExpression)
-		{
-			switch (simpleConstraintExpression.Constraint)
-			{
-			case SqlSimpleConstraint.DefaultValue:
-				if (simpleConstraintExpression.Value != null)
-				{
-					this.Write("DEFAULT");
-					this.Write(" ");
-					this.Write(simpleConstraintExpression.Value);
-				}
-				break;
-			case SqlSimpleConstraint.NotNull:
-				this.Write("NOT NULL");
-				break;
-			case SqlSimpleConstraint.AutoIncrement:
-			{
-				var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement);
-
-				if (!string.IsNullOrEmpty(s))
-				{
-					this.Write(s);
-				}
-				
-				break;
-			}
-			case SqlSimpleConstraint.PrimaryKey:
-				this.Write("PRIMARY KEY");
-				if (simpleConstraintExpression.ColumnNames != null)
-				{
-					this.Write("(");
-					this.WriteDeliminatedListOfItems(simpleConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
-					this.Write(")");
-				}
-				break;
-			case SqlSimpleConstraint.Unique:
-				this.Write("UNIQUE");
-				if (simpleConstraintExpression.ColumnNames != null)
-				{
-					this.Write("(");
-					this.WriteDeliminatedListOfItems(simpleConstraintExpression.ColumnNames, this.WriteQuotedIdentifier);
-					this.Write(")");
-				}
-				break;
-			}
-
-			return simpleConstraintExpression;
 		}
 
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)

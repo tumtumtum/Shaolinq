@@ -12,14 +12,14 @@ namespace Shaolinq.Persistence.Linq
 		{	
 		}
 
-		protected override Expression VisitReferencesColumn(SqlReferencesColumnExpression referencesColumnExpression)
+		protected override Expression VisitReferences(SqlReferencesExpression expression)
 		{
-			if (referencesColumnExpression.Deferrability != SqlColumnReferenceDeferrability.NotDeferrable)
+			if (expression.Deferrability != SqlColumnReferenceDeferrability.NotDeferrable)
 			{
-				return new SqlReferencesColumnExpression(referencesColumnExpression.ReferencedTable, SqlColumnReferenceDeferrability.NotDeferrable, referencesColumnExpression.ReferencedColumnNames, referencesColumnExpression.OnDeleteAction, referencesColumnExpression.OnUpdateAction);
+				return expression.ChangeDeferrability(SqlColumnReferenceDeferrability.NotDeferrable);
 			}
 
-			return base.VisitReferencesColumn(referencesColumnExpression);
+			return base.VisitReferences(expression);
 		}
 
 		public static Expression Remove(Expression expression)

@@ -37,21 +37,28 @@ namespace Shaolinq.Sqlite
 			return retval;
 		}
 
-		protected override Expression VisitForeignKeyConstraint(SqlForeignKeyConstraintExpression foreignKeyConstraintExpression)
+		protected override Expression VisitConstraint(SqlConstraintExpression constraintExpression)
 		{
 			string primaryKeyName;
 
-			if (this.primaryKeyNameByTablesWithReducedPrimaryKeyName.TryGetValue(foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedTable.Name, out primaryKeyName))
+			if (constraintExpression.ReferencesExpression == null || constraintExpression.ColumnNames == null)
 			{
-				var index = foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedColumnNames.IndexOf(primaryKeyName);
-
-				var newColumnNames = foreignKeyConstraintExpression.ColumnNames.Where((c, i) => i == index);
-				var newReferencedColumnNames = foreignKeyConstraintExpression.ReferencesColumnExpression.ReferencedColumnNames.Where((c, i) => i == index);
-
-				return foreignKeyConstraintExpression.UpdateColumnNamesAndReferencedColumnExpression(newColumnNames, foreignKeyConstraintExpression.ReferencesColumnExpression.UpdateReferencedColumnNames(newReferencedColumnNames));
+				return base.VisitConstraint(constraintExpression);
 			}
 			
-			return base.VisitForeignKeyConstraint(foreignKeyConstraintExpression);
+			if (this.primaryKeyNameByTablesWithReducedPrimaryKeyName.TryGetValue(constraintExpression.ReferencesExpression.ReferencedTable.Name, out primaryKeyName))
+			{
+				var index = constraintExpression.ReferencesExpression.ReferencedColumnNames.IndexOf(primaryKeyName);
+
+				var newColumnNames = constraintExpression.ColumnNames.Where((c, i) => i == index);
+				var newReferencedColumnNames = constraintExpression.ReferencesExpression.ReferencedColumnNames.Where((c, i) => i == index);
+
+				return constraintExpression
+					.ChangeColumnNames(newColumnNames.ToReadOnlyCollection())
+					.ChangeReferences(constraintExpression.ReferencesExpression.ChangeReferencedColumnNames(newReferencedColumnNames));
+			}
+			
+			return base.VisitConstraint(constraintExpression);
 		}
 	}
 }

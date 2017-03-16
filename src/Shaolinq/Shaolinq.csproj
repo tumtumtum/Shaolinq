@@ -290,14 +290,13 @@
     <Compile Include="Persistence\Linq\Expressions\SqlConstraintActionType.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlCreateTypeExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlEnumDefinitionExpression.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlForeignKeyConstraintExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlConstraintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlColumnReferenceAction.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlInsertIntoExpression.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlReferencesColumnExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlReferencesExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlCreateIndexExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlCreateTableExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlSimpleConstraint.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlSimpleConstraintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlStatementListExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTupleExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTypeExpression.cs" />
