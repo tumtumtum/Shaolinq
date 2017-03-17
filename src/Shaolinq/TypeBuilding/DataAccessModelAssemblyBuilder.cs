@@ -185,7 +185,7 @@ namespace Shaolinq.TypeBuilding
 
 			fullhash = TextConversion.ToHexString(sha1.Hash);
 
-			fileName = $"{fileName}.{modelName}.Generated.dll";
+			fileName = $"{fileName}.{modelName}.Generated{(Environment.Is64BitProcess ? ".x64" : "")}.dll";
 			cacheDirectory = !string.IsNullOrEmpty(cacheDirectory) ? cacheDirectory : !codebaseUri.IsFile ? Environment.CurrentDirectory : Path.GetDirectoryName(codebaseUri.LocalPath);
 			
 			return Path.Combine(cacheDirectory, fileName);
