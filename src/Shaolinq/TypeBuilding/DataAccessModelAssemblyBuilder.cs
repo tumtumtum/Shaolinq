@@ -133,7 +133,14 @@ namespace Shaolinq.TypeBuilding
 
 			foreach (var type in typeDescriptorProvider.GetTypeDescriptors())
 			{
-				uniquelyReferencedAssemblies.Add(type.Type.Assembly);
+				var current = type.Type;
+
+				while (current != null)
+				{
+					uniquelyReferencedAssemblies.Add(current.Assembly);
+
+					current = current.BaseType;
+				}
 			}
 
 			var bytes = Encoding.UTF8.GetBytes(serializedConfiguration);
