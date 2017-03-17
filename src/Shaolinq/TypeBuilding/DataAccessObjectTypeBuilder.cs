@@ -2242,7 +2242,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldstr, String.Intern(persistedName));
 			
 			// Load the property name hashcode
-			generator.Emit(OpCodes.Ldsfld, this.AssemblyBuildContext.GetFieldByConstant(propertyName.GetHashCode(), "__"+  propertyName));
+			generator.Emit(OpCodes.Ldsfld, this.AssemblyBuildContext.GetHashCodeField(propertyName, "__hash_"+  propertyName));
 
 			// Load the value
 			generator.Emit(OpCodes.Ldloc, value);

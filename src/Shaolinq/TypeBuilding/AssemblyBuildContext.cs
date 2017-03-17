@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using Platform;
 
 namespace Shaolinq.TypeBuilding
 {
@@ -16,7 +17,7 @@ namespace Shaolinq.TypeBuilding
 		public FieldInfo DataAccessModelPropertiesTypeBuilderField { get; set; }
 		public Dictionary<Type, DataAccessObjectTypeBuilder> TypeBuilders { get; }
 		public TypeBuilder ConstantsContainer { get; }
-		public Dictionary<object, FieldBuilder> FieldsByValue { get; }
+		public Dictionary<string, FieldBuilder> FieldsByValue { get; }
 
 		public AssemblyBuildContext(Assembly targetAssembly, ModuleBuilder moduleBuilder, TypeBuilder dataAccessModelPropertiesTypeBuilder)
 		{
@@ -24,17 +25,17 @@ namespace Shaolinq.TypeBuilding
 			this.ModuleBuilder = moduleBuilder;
 			this.DataAccessModelPropertiesTypeBuilder = dataAccessModelPropertiesTypeBuilder;
 			this.TypeBuilders = new Dictionary<Type, DataAccessObjectTypeBuilder>();
-			this.FieldsByValue = new Dictionary<object, FieldBuilder>();
-			this.ConstantsContainer = this.ModuleBuilder.DefineType(targetAssembly.GetName().Name + "__CONSTANTS__");	
+			this.FieldsByValue = new Dictionary<string, FieldBuilder>();
+			this.ConstantsContainer = this.ModuleBuilder.DefineType("___STRINGHASHCODES___");	
 		}
 
-		public FieldBuilder GetFieldByConstant<T>(T value, string prefix = "__value")
+		public FieldBuilder GetHashCodeField(string value, string prefix = "__hash")
 		{
 			FieldBuilder fieldBuilder;
 
 			if (!this.FieldsByValue.TryGetValue(value, out fieldBuilder))
 			{
-				fieldBuilder = this.ConstantsContainer.DefineField(prefix + "_" +this.FieldsByValue.Count, typeof(T), FieldAttributes.Static | FieldAttributes.Public | FieldAttributes.InitOnly);
+				fieldBuilder = this.ConstantsContainer.DefineField(prefix + "_" +this.FieldsByValue.Count, typeof(int), FieldAttributes.Static | FieldAttributes.Public | FieldAttributes.InitOnly);
 
 				this.FieldsByValue[value] = fieldBuilder;
 			}
@@ -50,21 +51,9 @@ namespace Shaolinq.TypeBuilding
 
 			foreach (var fieldByValue in this.FieldsByValue)
 			{
-				switch (Type.GetTypeCode(fieldByValue.Key.GetType()))
-				{
-				case TypeCode.Int16:
-					generator.Emit(OpCodes.Ldc_I4, (short)fieldByValue.Key);
-					generator.Emit(OpCodes.Stsfld, fieldByValue.Value);
-					break;
-				case TypeCode.Int32:
-					generator.Emit(OpCodes.Ldc_I4, (int)fieldByValue.Key);
-					generator.Emit(OpCodes.Stsfld, fieldByValue.Value);
-					break;
-				case TypeCode.Int64:
-					generator.Emit(OpCodes.Ldc_I8, (long)fieldByValue.Key);
-					generator.Emit(OpCodes.Stsfld, fieldByValue.Value);
-					break;
-				}
+				generator.Emit(OpCodes.Ldstr, fieldByValue.Key);
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<string>(c => c.GetHashCode()));
+				generator.Emit(OpCodes.Stsfld, fieldByValue.Value);
 			}
 
 			generator.Emit(OpCodes.Ret);
