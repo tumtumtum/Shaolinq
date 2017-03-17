@@ -53,6 +53,7 @@ namespace Shaolinq.TypeBuilding
 		private readonly Dictionary<string, FieldBuilder> validateFuncFields = new Dictionary<string, FieldBuilder>();
 		private readonly Dictionary<string, PropertyBuilder> propertyBuilders = new Dictionary<string, PropertyBuilder>();
 		private readonly Dictionary<string, MethodBuilder> setComputedValueMethods = new Dictionary<string, MethodBuilder>();
+		private readonly Dictionary<string, FieldBuilder> hashcodeProperties = new Dictionary<string, FieldBuilder>();
 
 		public struct TypeBuildContext
 		{
@@ -2239,9 +2240,9 @@ namespace Shaolinq.TypeBuilding
 
 			// Load persisted name
 			generator.Emit(OpCodes.Ldstr, String.Intern(persistedName));
-
+			
 			// Load the property name hashcode
-			generator.Emit(OpCodes.Ldc_I4, propertyName.GetHashCode());
+			generator.Emit(OpCodes.Ldsfld, this.AssemblyBuildContext.GetFieldByConstant(propertyName.GetHashCode(), "__"+  propertyName));
 
 			// Load the value
 			generator.Emit(OpCodes.Ldloc, value);

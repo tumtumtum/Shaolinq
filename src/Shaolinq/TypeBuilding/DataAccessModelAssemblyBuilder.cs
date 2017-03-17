@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
 using Platform;
+using Platform.IO;
 using Platform.Text;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
@@ -27,17 +28,41 @@ namespace Shaolinq.TypeBuilding
 			return new RuntimeDataAccessModelInfo(typeDescriptorProvider, builtAssembly, originalAssembly);
 		}
 
+		private static string ReadResource(Assembly assembly, string resourceName)
+		{
+			using (var stream = assembly.GetManifestResourceStream(resourceName))
+			{
+				if (stream == null)
+				{
+					return null;
+				}
+
+				using (var reader = new StreamReader(stream, Encoding.UTF8))
+				{
+					return reader.ReadToEnd();
+				}
+			}
+		}
+
 		private static Assembly BuildAssembly(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration)
 		{
+			string fullhash;
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
-
-			var filename = GetFileName(typeDescriptorProvider, configuration);
+			var serializedConfiguration = XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(configuration);
+			
+			var filename = GetFileName(typeDescriptorProvider, configuration, serializedConfiguration, out fullhash);
 
 			if (configuration.SaveAndReuseGeneratedAssemblies ?? false)
 			{
 				if (filename != null && File.Exists(filename))
 				{
-					return Assembly.LoadFile(filename);
+					var candidate = Assembly.LoadFile(filename);
+
+					if (ReadResource(candidate, "configuration.xml") == serializedConfiguration
+						&& ReadResource(candidate, "sha1.txt") == fullhash)
+					{
+						return candidate;
+					}
 				}
 			}
 
@@ -48,7 +73,7 @@ namespace Shaolinq.TypeBuilding
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(filenameWithoutExtension, filenameWithoutExtension + ".dll");
 
 			var propertiesBuilder = moduleBuilder.DefineType("$$$DataAccessModelProperties", TypeAttributes.Class, typeof(object));
-			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder, propertiesBuilder);
+			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder, moduleBuilder, propertiesBuilder);
 
 			var dataAccessModelTypeBuilder = new DataAccessModelTypeBuilder(assemblyBuildContext, moduleBuilder);
 			dataAccessModelTypeBuilder.BuildTypePhase1(typeDescriptorProvider.DataAccessModelType);
@@ -66,6 +91,9 @@ namespace Shaolinq.TypeBuilding
 			}
 
 			assemblyBuildContext.DataAccessModelPropertiesTypeBuilder.CreateType();
+			assemblyBuildContext.FinishConstantsContainer();
+			assemblyBuildContext.ConstantsContainer.CreateType();
+			
 			dataAccessModelTypeBuilder.BuildTypePhase2();
 			
 #if DEBUG
@@ -82,6 +110,9 @@ namespace Shaolinq.TypeBuilding
 				{
 					try
 					{
+						moduleBuilder.DefineManifestResource("configuration.xml", new MemoryStream(Encoding.UTF8.GetBytes(serializedConfiguration)), ResourceAttributes.Public);
+						moduleBuilder.DefineManifestResource("sha1.txt", new MemoryStream(Encoding.UTF8.GetBytes(fullhash)), ResourceAttributes.Public);
+
 						assemblyBuilder.Save(Path.GetFileName(filename));
 					}
 					catch (Exception e)
@@ -94,22 +125,22 @@ namespace Shaolinq.TypeBuilding
 			return assemblyBuilder;
 		}
 
-		private static string GetFileName(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration)
+		private static string GetFileName(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration, string serializedConfiguration, out string fullhash)
 		{
 			var sha1 = SHA1.Create();
 			var modelAssembly = typeDescriptorProvider.DataAccessModelType.Assembly;
-			var uniquelyReferencedAssemblies = new HashSet<Assembly> { modelAssembly };
+			var uniquelyReferencedAssemblies = new HashSet<Assembly> { typeof(DataAccessModel).Assembly, modelAssembly };
 
 			foreach (var type in typeDescriptorProvider.GetTypeDescriptors())
 			{
 				uniquelyReferencedAssemblies.Add(type.Type.Assembly);
 			}
 
-			var bytes = Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(configuration));
+			var bytes = Encoding.UTF8.GetBytes(serializedConfiguration);
 
 			sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
 
-			foreach (var assembly in uniquelyReferencedAssemblies)
+			foreach (var assembly in uniquelyReferencedAssemblies.OrderBy(c => c.FullName))
 			{
 				bytes = Encoding.UTF8.GetBytes(assembly.FullName);
 
@@ -145,9 +176,11 @@ namespace Shaolinq.TypeBuilding
 				modelName = typeDescriptorProvider.DataAccessModelType.FullName.Replace(".", "_");
 			}
 
-			fileName = $"_{modelName}_{TextConversion.ToHexString(sha1.Hash)}{(Environment.Is64BitProcess ? "_x64" : "")}.dll";
-			cacheDirectory = !string.IsNullOrEmpty(cacheDirectory) ? cacheDirectory : !codebaseUri.IsFile ? Environment.CurrentDirectory : Path.GetDirectoryName(codebaseUri.LocalPath);
+			fullhash = TextConversion.ToHexString(sha1.Hash);
 
+			fileName = $"{fileName}.{modelName}.Generated.dll";
+			cacheDirectory = !string.IsNullOrEmpty(cacheDirectory) ? cacheDirectory : !codebaseUri.IsFile ? Environment.CurrentDirectory : Path.GetDirectoryName(codebaseUri.LocalPath);
+			
 			return Path.Combine(cacheDirectory, fileName);
 		}
 	}
