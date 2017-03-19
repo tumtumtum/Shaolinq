@@ -91,18 +91,18 @@ namespace Shaolinq.Persistence
 			return Substitute(input, new[] { property });
 		}
 
-		public static string Substitute(string input, PropertyDescriptor[] properties = null, Func<int, string> indexedToValue = null)
+		public static string Substitute(string input, PropertyDescriptor[] properties, Func<int, string> indexedToValue = null)
 		{
 			if (input == null)
 			{
-				return properties.FirstOrDefault()?.PropertyName;
+				return properties?.FirstOrDefault()?.PropertyName;
 			}
 
 			return Substitute(input, value =>
 			{
 				var s = value.ToUpper();
 
-				if (properties.Length > 0)
+				if (properties?.Length > 0)
 				{
 					var property = properties[0];
 
