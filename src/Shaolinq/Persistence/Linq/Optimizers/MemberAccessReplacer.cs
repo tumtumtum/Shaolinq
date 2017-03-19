@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -22,9 +24,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitMemberAccess(MemberExpression memberAccess)
 		{
-			if (memberAccess.Member == member)
+			if (memberAccess.Member == this.member)
 			{
-				return replacement;
+				return this.replacement;
 			}
 
 			return base.VisitMemberAccess(memberAccess);

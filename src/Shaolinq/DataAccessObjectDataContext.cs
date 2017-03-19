@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.TypeBuilding;
+
 // ReSharper disable SuspiciousTypeConversion.Global
 
 namespace Shaolinq
@@ -198,7 +199,7 @@ namespace Shaolinq
 				{
 					var x = this.objectsNotReadyForCommit.Count;
 
-					foreach (var value in (objectsNotReadyForCommit.Where(c => c.GetAdvanced().PrimaryKeyIsCommitReady)).ToList())
+					foreach (var value in (this.objectsNotReadyForCommit.Where(c => c.GetAdvanced().PrimaryKeyIsCommitReady)).ToList())
 					{
 						this.dataAccessObjectDataContext.CacheObject(value, false);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 
@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence
 		public RelationshipType RelationshipType { get; set; }
 		public PropertyDescriptor ReferencingProperty { get; set; }
 		public PropertyDescriptor TargetProperty { get; set; }
-		public TypeDescriptor TargetType => TargetProperty.DeclaringTypeDescriptor;
-		public TypeDescriptor ReferencingType => ReferencingProperty.DeclaringTypeDescriptor;
+		public TypeDescriptor TargetType => this.TargetProperty.DeclaringTypeDescriptor;
+		public TypeDescriptor ReferencingType => this.ReferencingProperty.DeclaringTypeDescriptor;
 
 		public TypeRelationshipInfo(RelationshipType relationshipType, PropertyDescriptor referencingProperty, PropertyDescriptor targetProperty)
 		{

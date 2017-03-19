@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -32,9 +32,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return null;
 			}
 
-			if (isMatch(expression))
+			if (this.isMatch(expression))
 			{
-				count++;
+				this.count++;
 			}
 
 			return base.Visit(expression);

@@ -1,6 +1,5 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using Platform;
@@ -40,13 +39,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (nullableType == constantPlaceholder.Type)
 			{
-				replacedExpressions.Add(constantPlaceholder);
+				this.replacedExpressions.Add(constantPlaceholder);
 
 				return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, nullableType));
 			}
 			else
 			{
-				replacedExpressions.Add(new SqlConstantPlaceholderExpression(constantPlaceholder.Index, Expression.Constant(constantPlaceholder.ConstantExpression.Value, nullableType)));
+				this.replacedExpressions.Add(new SqlConstantPlaceholderExpression(constantPlaceholder.Index, Expression.Constant(constantPlaceholder.ConstantExpression.Value, nullableType)));
 
 				return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, nullableType));
 			}
@@ -54,19 +53,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
 		{
-			if (!aliases.Contains(columnExpression.SelectAlias))
+			if (!this.aliases.Contains(columnExpression.SelectAlias))
 			{
 				var nullableType = columnExpression.Type.MakeNullable();
 
 				if (nullableType == columnExpression.Type)
 				{
-					replacedExpressions.Add(columnExpression);
+					this.replacedExpressions.Add(columnExpression);
 
 					return new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, columnExpression.Type.MakeNullable()));
 				}
 				else
 				{
-					replacedExpressions.Add(columnExpression.ChangeToNullable());
+					this.replacedExpressions.Add(columnExpression.ChangeToNullable());
 
 					return Expression.Convert(new SqlConstantPlaceholderExpression(this.placeholderCount++, Expression.Constant(null, columnExpression.Type.MakeNullable())), columnExpression.Type);
 				}

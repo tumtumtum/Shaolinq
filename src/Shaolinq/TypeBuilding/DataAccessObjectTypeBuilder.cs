@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,8 @@ using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using Platform;
 using Platform.Reflection;
-using Shaolinq.Persistence.Computed;
 using Shaolinq.Persistence;
+using Shaolinq.Persistence.Computed;
 using Shaolinq.Persistence.Linq;
 
 // ReSharper disable UnusedMember.Local

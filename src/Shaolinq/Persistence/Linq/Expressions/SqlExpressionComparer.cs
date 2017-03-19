@@ -1,10 +1,9 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -28,7 +27,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public static bool Equals(Expression left, Expression right, SqlExpressionComparerOptions options)
 		{
-			if (object.ReferenceEquals(left, right))
+			if (ReferenceEquals(left, right))
 			{
 				return true;
 			}
@@ -105,7 +104,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (typeof(Expression).IsAssignableFrom(current.Type))
 			{
-				this.result &= SqlExpressionComparer.Equals((Expression)current.Value, (Expression)constantExpression.Value, options);
+				this.result &= Equals((Expression)current.Value, (Expression)constantExpression.Value, this.options);
 
 				return constantExpression;
 			}

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -554,7 +554,7 @@ namespace Shaolinq.Persistence.Linq
 				var property = referencedObjectPath.FullAccessPropertyPath[referencedObjectPath.FullAccessPropertyPath.Length - 1];
 				var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType.JoinedObjectType()), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType.JoinedObjectType()));
 
-				var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
+				var join = this.MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
 
 				currentLeft = join;
 				index++;

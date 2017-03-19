@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
 		{
-			if (placeholderValues != null)
+			if (this.placeholderValues != null)
 			{
 				var retval = Expression.ArrayIndex(this.placeholderValues, Expression.Constant(constantPlaceholder.Index));
 

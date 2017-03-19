@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using Shaolinq.Persistence;
 
@@ -23,7 +23,7 @@ namespace Shaolinq.Sqlite
 
 		public virtual void Dispose()
 		{
-			using (var command = ((DefaultSqlTransactionalCommandsContext)context).CreateCommand())
+			using (var command = ((DefaultSqlTransactionalCommandsContext)this.context).CreateCommand())
 			{
 				command.CommandText = "PRAGMA foriegn_keys = ON;";
 

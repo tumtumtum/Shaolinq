@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
@@ -28,7 +28,7 @@ namespace Shaolinq.Tests
 			Cat cat;
 			long id;
 			
-			using (var scope = NewTransactionScope())
+			using (var scope = this.NewTransactionScope())
 			{
 				cat = this.model.Cats.Create();
 

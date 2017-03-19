@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -26,11 +26,11 @@ namespace Shaolinq.Postgres
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			selectNesting++;
+			this.selectNesting++;
 
 			var retval = base.VisitSelect(selectExpression);
 
-			selectNesting--;
+			this.selectNesting--;
 
 			return retval;
 		}
@@ -167,7 +167,7 @@ namespace Shaolinq.Postgres
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)
 		{
-			if (selectNesting == 1 && (this.ConvertEnumsToText && columnExpression.Type.GetUnwrappedNullableType().IsEnum))
+			if (this.selectNesting == 1 && (this.ConvertEnumsToText && columnExpression.Type.GetUnwrappedNullableType().IsEnum))
 			{
 				base.VisitColumn(columnExpression);
 				this.Write("::TEXT");

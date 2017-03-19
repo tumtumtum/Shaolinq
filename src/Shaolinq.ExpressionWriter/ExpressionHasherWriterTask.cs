@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 

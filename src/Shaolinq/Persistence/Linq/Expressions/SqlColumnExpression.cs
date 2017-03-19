@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			var other = obj as SqlColumnExpression;
 
-			return other != null && (object.ReferenceEquals(this, other) || (this.SelectAlias == other.SelectAlias && this.Name == other.Name));
+			return other != null && (ReferenceEquals(this, other) || (this.SelectAlias == other.SelectAlias && this.Name == other.Name));
 		}
 
 		public SqlColumnExpression ChangeToNullable()

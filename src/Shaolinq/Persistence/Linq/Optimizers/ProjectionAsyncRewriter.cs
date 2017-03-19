@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -67,12 +67,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return binaryExpression.ChangeLeftRight(left, right);
 			}
 
-			if (!IsTaskType(left.Type) && !IsTaskType(right.Type))
+			if (!this.IsTaskType(left.Type) && !this.IsTaskType(right.Type))
 			{
 				return binaryExpression.ChangeLeftRight(left, right);
 			}
 
-			if (IsTaskType(left.Type) && IsTaskType(right.Type))
+			if (this.IsTaskType(left.Type) && this.IsTaskType(right.Type))
 			{
 				var leftVar = Expression.Parameter(left.Type);
 				var rightVar = Expression.Parameter(right.Type);
@@ -115,7 +115,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				var operand = this.Visit(unaryExpression.Operand);
 
-				if (operand.Type != unaryExpression.Operand.Type && IsTaskType(operand.Type))
+				if (operand.Type != unaryExpression.Operand.Type && this.IsTaskType(operand.Type))
 				{
 					var param = Expression.Parameter(operand.Type);
 					var result = Expression.Property(Expression.Convert(param, operand.Type), "Result");
@@ -156,7 +156,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					if (asyncMethod != null)
 					{
-						parameters = this.VisitExpressionList(methodCallExpression.Arguments).Concat(cancellationToken).ToList();
+						parameters = this.VisitExpressionList(methodCallExpression.Arguments).Concat(this.cancellationToken).ToList();
 					}
 					else
 					{
@@ -180,7 +180,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						{
 							if (parameters[i].Type != methodParameters[i].ParameterType)
 							{
-								if (IsTaskType(parameters[i].Type))
+								if (this.IsTaskType(parameters[i].Type))
 								{
 									if (taskParams == null)
 									{

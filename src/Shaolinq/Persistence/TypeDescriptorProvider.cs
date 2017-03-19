@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -145,7 +145,7 @@ namespace Shaolinq.Persistence
 
 			// Fill in column names
 
-			foreach (var typeDescriptor in typeDescriptorsByType.Values)
+			foreach (var typeDescriptor in this.typeDescriptorsByType.Values)
 			{
 				foreach (var columnInfo in QueryBinder.GetColumnInfos(this, typeDescriptor.PersistedProperties.ToArray()))
 				{

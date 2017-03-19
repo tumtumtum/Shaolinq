@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -198,7 +198,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (isRoot)
 			{
-				retval = GetSingletonSequence(retval, "SingleOrDefault");
+				retval = this.GetSingletonSequence(retval, "SingleOrDefault");
 			}
 
 			return retval;
@@ -243,7 +243,7 @@ namespace Shaolinq.Persistence.Linq
 
 			Expression take = null;
 
-			var localSideAggregateEval = isRoot || selectorPredicateStack.Count > 0;
+			var localSideAggregateEval = isRoot || this.selectorPredicateStack.Count > 0;
 			var isFirst = selectFirstType == SelectFirstType.First || selectFirstType == SelectFirstType.FirstOrDefault;
 			var isLast = selectFirstType == SelectFirstType.Last || selectFirstType == SelectFirstType.LastOrDefault;
 			var isSingle = selectFirstType == SelectFirstType.Single || selectFirstType == SelectFirstType.SingleOrDefault;
@@ -333,7 +333,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (isRoot)
 			{
-				retval = GetSingletonSequence(retval, "SingleOrDefault");
+				retval = this.GetSingletonSequence(retval, "SingleOrDefault");
 			}
 
 			return retval;
@@ -374,7 +374,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (isRoot)
 			{
-				retval = GetSingletonSequence(retval, "SingleOrDefault");
+				retval = this.GetSingletonSequence(retval, "SingleOrDefault");
 			}
 
 			return retval;
@@ -577,7 +577,7 @@ namespace Shaolinq.Persistence.Linq
 			if (value == null)
 			{
 				var projection = this.VisitSequence(source);
-				var leftSelect = new SqlSelectExpression(resultType, GetNextAlias(), new[] { new SqlColumnDeclaration("__SHAOLINQ__EMPTY", Expression.Constant(null), true) }, null, null, null);
+				var leftSelect = new SqlSelectExpression(resultType, this.GetNextAlias(), new[] { new SqlColumnDeclaration("__SHAOLINQ__EMPTY", Expression.Constant(null), true) }, null, null, null);
 
 				var join = new SqlJoinExpression(resultType, SqlJoinType.Left, leftSelect, projection.Select, Expression.Constant(true));
 				var alias = this.GetNextAlias();
@@ -1025,11 +1025,11 @@ namespace Shaolinq.Persistence.Linq
 				case "DefaultIfEmpty":
 					if (methodCallExpression.Arguments.Count == 1)
 					{
-						return BindDefaultIfEmpty(methodCallExpression.Type, methodCallExpression.Arguments[0], null, methodCallExpression == this.rootExpression);
+						return this.BindDefaultIfEmpty(methodCallExpression.Type, methodCallExpression.Arguments[0], null, methodCallExpression == this.rootExpression);
 					}
 					else if (methodCallExpression.Arguments.Count == 2)
 					{
-						return BindDefaultIfEmpty(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], methodCallExpression == this.rootExpression);
+						return this.BindDefaultIfEmpty(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], methodCallExpression == this.rootExpression);
 					}
 					else
 					{
@@ -1120,7 +1120,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else if (methodCallExpression.Method.DeclaringType == typeof(string))
 			{
-				return BindStringMethod(methodCallExpression);
+				return this.BindStringMethod(methodCallExpression);
 			}
 			else if (methodCallExpression.Method.ReturnType.IsDataAccessObjectType())
 			{
@@ -1148,7 +1148,7 @@ namespace Shaolinq.Persistence.Linq
 			
 			this.AddExpressionByParameter(updatedValues.Parameters[0], source);
 
-			var alias = GetNextAlias();
+			var alias = this.GetNextAlias();
 
 			foreach (var updated in updatedValueExpressions)
 			{
@@ -1184,7 +1184,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.AddExpressionByParameter(updatedValues.Parameters[0], source);
 
-			var alias = GetNextAlias();
+			var alias = this.GetNextAlias();
 
 			foreach (var updated in updatedValueExpressions)
 			{
@@ -1394,7 +1394,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var memberInitExpression = (MemberInitExpression)expression;
 
-				expression = RemoveNonPrimaryKeyBindings(memberInitExpression);
+				expression = this.RemoveNonPrimaryKeyBindings(memberInitExpression);
 			}
 
 			var orderings = ProjectColumns(expression, alias, null, projection.Select.Alias).Columns.Select(column => new SqlOrderByExpression(orderType, column.Expression)).ToList();
@@ -1804,7 +1804,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private string GetNextAggr()
 		{
-			return "__TAGGR" + aggregateCount++;
+			return "__TAGGR" + this.aggregateCount++;
 		}
 
 		private Expression BindSelect(Type resultType, Expression source, LambdaExpression selector, bool forUpdate)
@@ -1824,7 +1824,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var projection = (SqlProjectionExpression)this.Visit(source);
 
-			var alias = GetNextAlias();
+			var alias = this.GetNextAlias();
 			var deleteExpression = new SqlDeleteExpression(projection, null);
 			var select = new SqlSelectExpression(typeof(int), alias, new [] { new SqlColumnDeclaration("__SHAOLINQ__DELETE", Expression.Constant(null), true) }, deleteExpression, null, null, projection.Select.ForUpdate);
 
@@ -1921,7 +1921,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var rootPrimaryKeyProperties = new HashSet<string>(typeDescriptor.PrimaryKeyProperties.Select(c => c.PropertyName));
 
-			var propertyAdded = new HashSet<Pair<List<MemberBinding>, PropertyInfo>>(QueryBinder.PropertyWiseComparerer);
+			var propertyAdded = new HashSet<Pair<List<MemberBinding>, PropertyInfo>>(PropertyWiseComparerer);
 
 			foreach (var value in columnInfos)
 			{
@@ -2393,7 +2393,7 @@ namespace Shaolinq.Persistence.Linq
 						MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod.MakeGenericMethod(expression.Type, value.Type),
 						expression,
 						Expression.Lambda(Expression.Property(param, propertyInfo.Name), param),
-						nextProperties.Count > 0 ? ProcessJoins(value, nextProperties, index + 1, useFullPath) : value,
+						nextProperties.Count > 0 ? this.ProcessJoins(value, nextProperties, index + 1, useFullPath) : value,
 						Expression.Call(MethodInfoFastRef.TransactionContextGetCurrentContextVersion, Expression.Constant(this.DataAccessModel))
 					);
 				}
@@ -2433,10 +2433,10 @@ namespace Shaolinq.Persistence.Linq
 
 					if (nextProperties.Count > 0)
 					{
-						replacement = ProcessJoins(replacement, nextProperties, index + 1, useFullPath);
+						replacement = this.ProcessJoins(replacement, nextProperties, index + 1, useFullPath);
 					}
 
-					if (!object.ReferenceEquals(replacement, expressionToReplace))
+					if (!ReferenceEquals(replacement, expressionToReplace))
 					{
 						expression = SqlExpressionReplacer.Replace(expression, expressionToReplace, replacement);
 					}

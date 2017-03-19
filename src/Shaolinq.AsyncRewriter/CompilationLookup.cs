@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -44,7 +46,7 @@ namespace Shaolinq.AsyncRewriter
 				throw new ArgumentNullException(nameof(type));
 			}
 
-			if (!extensionMethodsByName.TryGetValue(name, out methods))
+			if (!this.extensionMethodsByName.TryGetValue(name, out methods))
 			{
 				return new List<IMethodSymbol>();
 			}
@@ -66,19 +68,19 @@ namespace Shaolinq.AsyncRewriter
 		
 		private void Visit(Compilation compilationNode)
 		{
-			Visit(compilationNode.GlobalNamespace);
+			this.Visit(compilationNode.GlobalNamespace);
 		}
 
 		private void Visit(INamespaceSymbol nameSpace)
 		{
 			foreach (var type in nameSpace.GetTypeMembers())
 			{
-				Visit(type);
+				this.Visit(type);
 			}
 
 			foreach (var innerNameSpace in nameSpace.GetNamespaceMembers())
 			{
-				Visit(innerNameSpace);
+				this.Visit(innerNameSpace);
 			}
 		}
 
@@ -86,7 +88,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			foreach (var method in type.GetMembers().OfType<IMethodSymbol>())
 			{
-				Visit(method);
+				this.Visit(method);
 			}
 		}
 
@@ -95,17 +97,17 @@ namespace Shaolinq.AsyncRewriter
 			if (method.Name.EndsWith("Async") 
 				&& method.ReturnType.Name == "Task"
 				&& method.IsExtensionMethod
-				&& MethodIsPublicOrAccessibleFromCompilation(method))
+				&& this.MethodIsPublicOrAccessibleFromCompilation(method))
 			{
 				List<IMethodSymbol> methods;
 
-				if (extensionMethodsByName.TryGetValue(method.Name, out methods))
+				if (this.extensionMethodsByName.TryGetValue(method.Name, out methods))
 				{
 					methods.Add(method);
 				}
 				else
 				{
-					extensionMethodsByName[method.Name] = new List<IMethodSymbol> { method };
+					this.extensionMethodsByName[method.Name] = new List<IMethodSymbol> { method };
 				}
 			}
 		}

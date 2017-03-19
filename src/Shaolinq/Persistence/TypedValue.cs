@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 
@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence
 
 		public TypedValue ChangeValue(object value)
 		{
-			value = Converter(value);
+			value = this.Converter(value);
 
 			if (value != null && !this.Type.IsInstanceOfType(value))
 			{

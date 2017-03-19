@@ -1,4 +1,5 @@
-using System;
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -106,7 +107,7 @@ namespace Shaolinq.AsyncRewriter
 			var originalNodeStart = node.SpanStart + this.displacement;
 
 			var explicitExtensionMethodCall = false;
-			var result = this.semanticModel.GetSpeculativeSymbolInfo(node.SpanStart + displacement, node, SpeculativeBindingOption.BindAsExpression);
+			var result = this.semanticModel.GetSpeculativeSymbolInfo(node.SpanStart + this.displacement, node, SpeculativeBindingOption.BindAsExpression);
 
 			if (result.Symbol == null)
 			{

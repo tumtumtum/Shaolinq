@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -90,14 +90,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			ignoreSet.Add(join.Left);
-			ignoreSet.Add(join.Right);
+			this.ignoreSet.Add(join.Left);
+			this.ignoreSet.Add(join.Right);
 
 			var left = this.Visit(join.Left);
 			var right = this.Visit(join.Right);
-			
-			ignoreSet.Remove(join.Left);
-			ignoreSet.Remove(join.Right);
+
+			this.ignoreSet.Remove(join.Left);
+			this.ignoreSet.Remove(join.Right);
 
 			var condition = this.Visit(join.JoinCondition);
 
@@ -131,7 +131,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
-			if (ignoreSet.Contains(select))
+			if (this.ignoreSet.Contains(select))
 			{
 				return base.VisitSelect(select);
 			}

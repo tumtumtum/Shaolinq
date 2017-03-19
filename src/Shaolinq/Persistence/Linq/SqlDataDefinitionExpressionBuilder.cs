@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -79,7 +79,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (defaultValueAttribute != null)
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.DefaultValue, constraintName: GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(defaultValueAttribute.Value)));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.DefaultValue, constraintName: this.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(defaultValueAttribute.Value)));
 				}
 			}
 
@@ -173,7 +173,7 @@ namespace Shaolinq.Persistence.Linq
 					referencedTableColumnNames, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
 				
-				var foreignKeyConstraint = new SqlConstraintExpression(referencesExpression, GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames);
+				var foreignKeyConstraint = new SqlConstraintExpression(referencesExpression, this.GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames);
 
 				this.currentTableConstraints.Add(foreignKeyConstraint);
 			}
@@ -295,7 +295,7 @@ namespace Shaolinq.Persistence.Linq
 			if (primaryKeys.Length > 0)
 			{
 				var columnNames = primaryKeys.Select(c => c.ColumnName);
-				var compositePrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames, GetPrimaryKeyConstraintName(typeDescriptor, typeDescriptor.PrimaryKeyProperties.ToArray()));
+				var compositePrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames, this.GetPrimaryKeyConstraintName(typeDescriptor, typeDescriptor.PrimaryKeyProperties.ToArray()));
 
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}

@@ -1,7 +1,6 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -91,9 +90,9 @@ namespace Shaolinq.Persistence.Linq
 			
 			try
 			{
-				if (atRootLevel)
+				if (this.atRootLevel)
 				{
-					atRootLevel = false;
+					this.atRootLevel = false;
 
 					if (typeof(DataAccessObject).IsAssignableFrom(expression.NewExpression.Type))
 					{
@@ -157,12 +156,12 @@ namespace Shaolinq.Persistence.Linq
 					var resetModifiedMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.ResetModified());
 					var finishedInitializingMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.FinishedInitializing());
 
-					retval = Expression.Convert(Expression.Invoke(filterParameter, Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), typeof(DataAccessObject))), retval.Type);
+					retval = Expression.Convert(Expression.Invoke(this.filterParameter, Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), typeof(DataAccessObject))), retval.Type);
 				}
 
 				if (nullCheck != null)
 				{
-					return Expression.Condition(nullCheck, Expression.Convert(Expression.Invoke(filterParameter, Expression.Constant(null, retval.Type)), retval.Type), retval);
+					return Expression.Condition(nullCheck, Expression.Convert(Expression.Invoke(this.filterParameter, Expression.Constant(null, retval.Type)), retval.Type), retval);
 				}
 				else
 				{
@@ -280,7 +279,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
-			if (treatColumnsAsNullable && column.Type.IsValueType && !column.Type.IsNullableType())
+			if (this.treatColumnsAsNullable && column.Type.IsValueType && !column.Type.IsNullableType())
 			{
 				return this.ConvertColumnToDataReaderRead(column, column.Type.MakeNullable());
 			}
@@ -435,7 +434,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedScope = this.scope;
 				this.scope = new ProjectionBuilderScope(newColumnIndexes);
-				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), objectProjector, dataReader, versionParameter, dynamicParameters, filterParameter);
+				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), this.objectProjector, this.dataReader, this.versionParameter, this.dynamicParameters, this.filterParameter);
 
 				Expression rootKeys;
 
@@ -450,7 +449,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.scope = savedScope;
 
-				var values = replacedExpressions.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
+				var values = replacedExpressions.Select(c => (Expression)Expression.Convert(this.Visit(c), typeof(object))).ToList();
 
 				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[]), default(Expression<Func<IDataReader, object[]>>)));
 

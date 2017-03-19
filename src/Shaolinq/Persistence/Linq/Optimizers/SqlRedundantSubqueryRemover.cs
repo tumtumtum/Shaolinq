@@ -1,6 +1,5 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -83,11 +82,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				// Attempt to merge subqueries that would have been removed by the above
 				// logic except for the existence of a where clause
 
-				while (CanMergeWithFrom(select))
+				while (this.CanMergeWithFrom(select))
 				{
 					var fromSelect = select.From.GetLeftMostSelect();
 
-					CanMergeWithFrom(select);
+					this.CanMergeWithFrom(select);
 
 					// remove the redundant subquery
 					select = SubqueryRemover.Remove(select, fromSelect);
@@ -214,7 +213,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 
 				// cannot move forward a distinct if outer has take, skip, groupby or a different projection
-				if (fromSelect.Distinct && (select.Take != null || select.Skip != null || !selHasNameMapProjection || selHasGroupBy || selHasAggregates || (selHasOrderBy && !isTopLevel) || selHasJoin))
+				if (fromSelect.Distinct && (select.Take != null || select.Skip != null || !selHasNameMapProjection || selHasGroupBy || selHasAggregates || (selHasOrderBy && !this.isTopLevel) || selHasJoin))
 				{
 					return false;
 				}

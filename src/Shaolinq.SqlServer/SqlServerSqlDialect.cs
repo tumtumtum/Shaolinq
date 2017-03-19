@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Text.RegularExpressions;
 using Shaolinq.Persistence;
@@ -17,7 +17,7 @@ namespace Shaolinq.SqlServer
 				var connectionString = contextInfo.ConnectionString;
 				var marsEnabledInConnectionString = connectionString != null && Regex.IsMatch(connectionString, @".*MultipleActiveResultSets\s*=\s*true.*", RegexOptions.IgnoreCase);
 
-				marsEnabled = contextInfo.MultipleActiveResultSets || marsEnabledInConnectionString;
+				this.marsEnabled = contextInfo.MultipleActiveResultSets || marsEnabledInConnectionString;
 			}
 		}
 
@@ -32,7 +32,7 @@ namespace Shaolinq.SqlServer
 			case SqlCapability.OuterApply:
 				return true;
 			case SqlCapability.MultipleActiveResultSets:
-				return marsEnabled;
+				return this.marsEnabled;
 			case SqlCapability.Deferrability:
 			case SqlCapability.CascadeAction:
 			case SqlCapability.DeleteAction:

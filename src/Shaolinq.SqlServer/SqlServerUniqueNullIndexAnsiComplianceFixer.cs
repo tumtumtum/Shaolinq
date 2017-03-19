@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;

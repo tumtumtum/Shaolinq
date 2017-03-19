@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -32,8 +32,8 @@ namespace Shaolinq
 			var parentType = this.DataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentDataAccessObject.GetType()));
 			this.relationshipInfo = parentType.GetRelationshipInfos().Single(c => c.ReferencingProperty.PropertyName == parentPropertyName);
 
-			this.Condition = this.CreateJoinCondition(relationshipInfo.TargetProperty);
-			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod(parentType, relationshipInfo.TargetProperty);
+			this.Condition = this.CreateJoinCondition(this.relationshipInfo.TargetProperty);
+			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod(parentType, this.relationshipInfo.TargetProperty);
 		}
 
 		private IReadOnlyList<T> AssertValues(ref string error)
@@ -47,7 +47,7 @@ namespace Shaolinq
 
 			if (this.valuesVersion != version)
 			{
-				error = $"{(error == null ? "" : error + ". ")}Cache flushed because collection version {valuesVersion} did not match current DataAccessModel version {version}";
+				error = $"{(error == null ? "" : error + ". ")}Cache flushed because collection version {this.valuesVersion} did not match current DataAccessModel version {version}";
 
 				this.values = null;
 				this.valuesSet = null;
@@ -85,7 +85,7 @@ namespace Shaolinq
 
 		internal void AddIfNotExist(T value)
 		{
-			if (!valuesSet.Contains(value))
+			if (!this.valuesSet.Contains(value))
 			{
 				this.values.Add(value);
 				this.valuesSet.Add(value);
@@ -111,19 +111,19 @@ namespace Shaolinq
 
 				if (value != null)
 				{
-					AddIfNotExist(value);
+					this.AddIfNotExist(value);
 				}
 			}
 			else if (this.values.Count > 0)
 			{
 				if (value != null)
 				{
-					AddIfNotExist(value);
+					this.AddIfNotExist(value);
 				}
 			}
 			else if (value != null)
 			{
-				AddIfNotExist(value);
+				this.AddIfNotExist(value);
 			}
 		}
 
@@ -137,7 +137,7 @@ namespace Shaolinq
 		
 		private Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> GetInitializeRelatedMethod(TypeDescriptor parentType, PropertyDescriptor childBackReferenceProperty)
 		{
-			var key = relationshipInfo;
+			var key = this.relationshipInfo;
 			var cache = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
 
 			Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> initializeDataAccessObject;

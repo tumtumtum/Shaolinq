@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -75,7 +77,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			var syntaxTrees = paths
 				.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p)).WithFilePath(p))
-				.Select(c => c.WithRootAndOptions(UpdateUsings(c.GetCompilationUnitRoot()), c.Options))
+				.Select(c => c.WithRootAndOptions(this.UpdateUsings(c.GetCompilationUnitRoot()), c.Options))
 				.ToArray();
 
 			var references = new List<MetadataReference>()
@@ -88,7 +90,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				var assemblyPath = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
 
-				log.LogMessage("FrameworkPath: " + assemblyPath);
+				this.log.LogMessage("FrameworkPath: " + assemblyPath);
 
 				if (assemblyPath == null)
 				{
@@ -128,12 +130,12 @@ namespace Shaolinq.AsyncRewriter
 						return results;
 					}
 
-					log.LogError($"Could not find ResolveProjectReferencesResolveProjectReferencesreferenced assembly: {n}");
+					this.log.LogError($"Could not find ResolveProjectReferencesResolveProjectReferencesreferenced assembly: {n}");
 
 					return results;
 				}).Where(c => c != null));
 
-				log.LogMessage($"Loaded assemblies: {string.Join(",", loadedAssemblies)}");
+				this.log.LogMessage($"Loaded assemblies: {string.Join(",", loadedAssemblies)}");
 			}
 
 			var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
@@ -143,7 +145,7 @@ namespace Shaolinq.AsyncRewriter
 
 			this.lookup = new CompilationLookup(this.compilation);
 
-			var resultTree = this.RewriteAndMerge(syntaxTrees, compilation, excludeTypes);
+			var resultTree = this.RewriteAndMerge(syntaxTrees, this.compilation, excludeTypes);
 			var retval = resultTree.ToString();
 
 #if OUTPUT_COMPILER_ERRORS
@@ -305,7 +307,7 @@ namespace Shaolinq.AsyncRewriter
 
 				foreach (var asyncMethod in asyncMethods)
 				{
-					ValidateAsyncMethod(asyncMethod, semanticModel);
+					this.ValidateAsyncMethod(asyncMethod, semanticModel);
 				}
 
 				if (syntaxTree.GetRoot().DescendantNodes().All(m => ((m as MethodDeclarationSyntax)?.AttributeLists ?? (m as TypeDeclarationSyntax)?.AttributeLists)?.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")) == null))
@@ -415,7 +417,7 @@ namespace Shaolinq.AsyncRewriter
 		private void ValidateAsyncMethod(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel)
 		{
 			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
-			var results = AsyncMethodValidator.Validate(methodSyntax, log, this.lookup, semanticModel, excludedTypes, cancellationTokenSymbol);
+			var results = AsyncMethodValidator.Validate(methodSyntax, this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol);
 
 			if (results.Count > 0)
 			{
@@ -423,8 +425,8 @@ namespace Shaolinq.AsyncRewriter
 				{
 					if (!result.ReplacementMethodSymbol.Equals(methodSymbol))
 					{
-						log.LogWarning($"Async method call possible in {result.Position.GetLineSpan()}");
-						log.LogWarning($"Replace {result.MethodInvocationSyntax.NormalizeWhitespace()} with {result.ReplacementExpressionSyntax.NormalizeWhitespace()}");
+						this.log.LogWarning($"Async method call possible in {result.Position.GetLineSpan()}");
+						this.log.LogWarning($"Replace {result.MethodInvocationSyntax.NormalizeWhitespace()} with {result.ReplacementExpressionSyntax.NormalizeWhitespace()}");
 					}
 				}
 			}
@@ -440,11 +442,11 @@ namespace Shaolinq.AsyncRewriter
 			{
 				var name = ((TypeDeclarationSyntax)methodSyntax.Parent).Identifier.ToString();
 
-				if (!typesAlreadyWarnedAbout.Contains(name))
+				if (!this.typesAlreadyWarnedAbout.Contains(name))
 				{
-					typesAlreadyWarnedAbout.Add(name);
+					this.typesAlreadyWarnedAbout.Add(name);
 
-					log.LogError($"Type '{name}' needs to be marked as partial");
+					this.log.LogError($"Type '{name}' needs to be marked as partial");
 				}
 			}
 

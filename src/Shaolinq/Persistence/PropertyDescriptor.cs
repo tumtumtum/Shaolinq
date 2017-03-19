@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -68,7 +68,7 @@ namespace Shaolinq.Persistence
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 			this.ForeignObjectConstraintAttribute = propertyInfo.GetFirstCustomAttribute<ForeignObjectConstraintAttribute>(true);
 
-			if (PersistedMemberAttribute == null)
+			if (this.PersistedMemberAttribute == null)
 			{
 				this.PersistedMemberAttribute = (PersistedMemberAttribute)this.ComputedMemberAttribute ?? this.ComputedTextMemberAttribute;
 			}

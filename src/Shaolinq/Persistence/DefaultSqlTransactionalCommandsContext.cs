@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,6 @@ using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
-using FormatParamValue = Shaolinq.Persistence.SqlQueryFormatterManager.FormatParamValue;
 
 namespace Shaolinq.Persistence
 {
@@ -349,7 +348,7 @@ namespace Shaolinq.Persistence
 
 				var cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result };
 
-				FillParameters(command, cachedValue, null, null);
+				this.FillParameters(command, cachedValue, null, null);
 
 				success = true;
 
@@ -383,7 +382,7 @@ namespace Shaolinq.Persistence
 
 			if (valuesPredicated || primaryKeysPredicated)
 			{
-				return BuildUpdateCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, valuesPredicated, primaryKeysPredicated, updatedProperties, primaryKeys);
+				return this.BuildUpdateCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, valuesPredicated, primaryKeysPredicated, updatedProperties, primaryKeys);
 			}
 
 			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);
@@ -475,7 +474,7 @@ namespace Shaolinq.Persistence
 					this.CacheUpdateCommand(commandKey, cachedValue);
 				}
 
-				FillParameters(command, cachedValue, null, null);
+				this.FillParameters(command, cachedValue, null, null);
 				
 				success = true;
 
@@ -541,7 +540,7 @@ namespace Shaolinq.Persistence
 
 				var cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result };
 
-				FillParameters(command, cachedValue, null, null);
+				this.FillParameters(command, cachedValue, null, null);
 
 				success = true;
 
@@ -569,7 +568,7 @@ namespace Shaolinq.Persistence
 
 			if (predicated)
 			{
-				return BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, updatedProperties);
+				return this.BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, updatedProperties);
 			}
 
 			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);

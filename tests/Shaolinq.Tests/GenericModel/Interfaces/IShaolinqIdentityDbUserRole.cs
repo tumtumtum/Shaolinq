@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 namespace Shaolinq.Tests.GenericModel.Interfaces
 {
 	public interface IShaolinqIdentityDbUserRole<TPrimaryKey, TDbUser>

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq
 		public string CommandText { get; }
 		public IReadOnlyList<TypedValue> ParameterValues { get; }
 		public Dictionary<int, int> ParameterIndexToPlaceholderIndexes;
-		public bool Cacheable => ParameterIndexToPlaceholderIndexes != null;
+		public bool Cacheable => this.ParameterIndexToPlaceholderIndexes != null;
 		public Dictionary<int, int> PlaceholderIndexToParameterIndex;
 		
 		public SqlQueryFormatResult(SqlQueryFormatter formatter, string commandText, IEnumerable<TypedValue> parameterValues, IReadOnlyList<Pair<int, int>> parameterIndexToPlaceholderIndexes)

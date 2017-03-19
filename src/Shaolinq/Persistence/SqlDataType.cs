@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data;
@@ -79,7 +79,7 @@ namespace Shaolinq.Persistence
 		/// <returns>The SQL type name</returns>
 		public string GetSqlName(PropertyDescriptor propertyDescriptor)
 		{
-			return GetSqlName(propertyDescriptor, null);
+			return this.GetSqlName(propertyDescriptor, null);
 		}
 
 		/// <summary>

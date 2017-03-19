@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -18,12 +18,12 @@ namespace Shaolinq
 
 		public IAsyncEnumerator<T> GetAsyncEnumerator()
 		{
-			return getEnumerator();
+			return this.getEnumerator();
 		}
 
 		public IEnumerator<T> GetEnumerator()
 		{
-			return getEnumerator();
+			return this.getEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()

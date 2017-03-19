@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -60,7 +60,7 @@ namespace Shaolinq.Persistence
 
 		public IDbDataParameter AddParameter(IDbCommand command, Type type, object value)
 		{
-			var parameter = this.CreateParameter(command, this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
+			var parameter = this.CreateParameter(command, this.parameterIndicatorPrefix + SqlQueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
 
 			command.Parameters.Add(parameter);
 

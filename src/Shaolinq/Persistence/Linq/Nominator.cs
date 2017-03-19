@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			
 			if (this.canBeColumn(expression)
-				|| (expression.Type.IsIntegralType() && expression == rootExpression))
+				|| (expression.Type.IsIntegralType() && expression == this.rootExpression))
 			{
 				this.candidates.Add(expression);
 			}
@@ -107,7 +107,7 @@ namespace Shaolinq.Persistence.Linq
 			this.VisitSource(selectExpression.From);
 			this.VisitColumnDeclarations(selectExpression.Columns);
 
-			if (inProjection)
+			if (this.inProjection)
 			{
 				var saveCanBeColumn = this.canBeColumn;
 

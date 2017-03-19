@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -374,7 +374,7 @@ namespace Shaolinq.Persistence
 
 		protected override DbDataReader GetDbDataReader(int ordinal)
 		{
-			throw new NotSupportedException($"{nameof(MarsDataReader)}.{nameof(GetData)}");
+			throw new NotSupportedException($"{nameof(MarsDataReader)}.{nameof(this.GetData)}");
 		}
 
 		[RewriteAsync]

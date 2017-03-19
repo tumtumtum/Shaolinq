@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -44,11 +44,11 @@ namespace Shaolinq.Persistence
 				switch ((constraintDefaults?.StringSizeFlexibility ?? sizeConstraintAttribute.SizeFlexibility))
 				{
 				case SizeFlexibility.Fixed:
-					return CreateFixedTypeName(sizeConstraintAttribute.MaximumLength);
+					return this.CreateFixedTypeName(sizeConstraintAttribute.MaximumLength);
 				case SizeFlexibility.Variable:
-					return CreateVariableName(sizeConstraintAttribute.MaximumLength);
+					return this.CreateVariableName(sizeConstraintAttribute.MaximumLength);
 				case SizeFlexibility.LargeVariable:
-					return CreateTextName();
+					return this.CreateTextName();
 				default:
 					throw new NotSupportedException("SizeFlexibility: " + sizeConstraintAttribute.SizeFlexibility);
 				}

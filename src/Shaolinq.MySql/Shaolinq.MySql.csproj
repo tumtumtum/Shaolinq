@@ -125,6 +125,7 @@
     <Compile Include="GeneratedAsync.cs" />
     <Compile Include="MySqlAutoIncrementAmender.cs" />
     <Compile Include="MySqlConfiguration.cs" />
+    <Compile Include="MySqlDefaultValueConstraintFixer.cs" />
     <Compile Include="MySqlNestedTableReferenceInUpdateFixer.cs" />
     <Compile Include="MySqlSqlDatabaseContextInfo.cs" />
     <Compile Include="MySqlSqlDatabaseContext.cs" />

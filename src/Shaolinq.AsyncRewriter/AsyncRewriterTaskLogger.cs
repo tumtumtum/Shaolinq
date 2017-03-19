@@ -1,4 +1,6 @@
-﻿using Microsoft.Build.Utilities;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using Microsoft.Build.Utilities;
 
 namespace Shaolinq.AsyncRewriter
 {

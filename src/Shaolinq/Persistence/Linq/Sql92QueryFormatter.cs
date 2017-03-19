@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -303,7 +303,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (SqlExpressionFinder.FindExists(arguments[1], c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder))
 					{
-						canReuse = false;
+						this.canReuse = false;
 						this.parameterIndexToPlaceholderIndexes = null;
 					}
 				}
@@ -326,7 +326,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (SqlExpressionFinder.FindExists(arguments[1], c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder))
 					{
-						canReuse = false;
+						this.canReuse = false;
 						this.parameterIndexToPlaceholderIndexes = null;
 					}
 				}
@@ -348,7 +348,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (SqlExpressionFinder.FindExists(arguments[1], c => c.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder))
 					{
-						canReuse = false;
+						this.canReuse = false;
 						this.parameterIndexToPlaceholderIndexes = null;
 					}
 				}
@@ -566,11 +566,11 @@ namespace Shaolinq.Persistence.Linq
 
 				var endIndex = this.parameterValues.Count;
 
-				if (endIndex - startIndex == 1 && canReuse)
+				if (endIndex - startIndex == 1 && this.canReuse)
 				{
 					var index = startIndex;
 
-					parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
+					this.parameterIndexToPlaceholderIndexes.Add(new Pair<int, int>(index, constantPlaceholderExpression.Index));
 				}
 
 				return retval;
@@ -603,8 +603,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (typeof(SqlValuesEnumerable).IsAssignableFrom(constantExpression.Type))
 				{
-					canReuse = false;
-					parameterIndexToPlaceholderIndexes = null;
+					this.canReuse = false;
+					this.parameterIndexToPlaceholderIndexes = null;
 
 					this.Write("(");
 					this.WriteDeliminatedListOfItems((IEnumerable)constantExpression.Value, c => this.VisitConstant(Expression.Constant(c)));

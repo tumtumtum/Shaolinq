@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -18,19 +20,19 @@ namespace Shaolinq.Tests
 		public async Task Test()
 		{
 			var x = 0;
-			model.AsyncLocalExecutionVersion = 10;
+			this.model.AsyncLocalExecutionVersion = 10;
 
 			ExecutionContext.SuppressFlow();
 
 			await Task.Run(async () =>
 			{
-				x = model.AsyncLocalExecutionVersion;
-				model.AsyncLocalExecutionVersion = 11;
+				x = this.model.AsyncLocalExecutionVersion;
+				this.model.AsyncLocalExecutionVersion = 11;
 
 				await Task.Yield();
 			}).ConfigureAwait(false);
 
-			Console.WriteLine(model.AsyncLocalExecutionVersion);
+			Console.WriteLine(this.model.AsyncLocalExecutionVersion);
 
 			Assert.AreNotEqual(10, x);
 		}

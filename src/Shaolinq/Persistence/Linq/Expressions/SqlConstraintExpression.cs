@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -84,6 +84,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 
 			return new SqlConstraintExpression(value, this.ReferencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue);
+		}
+
+		public Expression ChangeConstraintName(string value)
+		{
+			return new SqlConstraintExpression(this.SimpleConstraint, this.ReferencesExpression, value, this.ColumnNames, this.DefaultValue);
 		}
 	}
 }

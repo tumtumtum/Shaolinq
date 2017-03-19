@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.path = path;
 			this.toString = c => c.ToString();
-			this.stringValue = string.Join(".", this.path.Select(toString));
+			this.stringValue = string.Join(".", this.path.Select(this.toString));
 		}
 
 		public ObjectPath(IEnumerable<T> path)
@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.path = path.ToArray();
 			this.toString = c => c.ToString();
-			this.stringValue = string.Join(".", this.path.Select(toString));
+			this.stringValue = string.Join(".", this.path.Select(this.toString));
 		}
 
 		public ObjectPath(Func<T, string> toString, params T[] path)

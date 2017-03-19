@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -28,14 +28,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitTable(SqlTableExpression table)
 		{
-			results.Add(new Tuple<string, Type>(table.Alias, table.Type));
+			this.results.Add(new Tuple<string, Type>(table.Alias, table.Type));
 
 			return base.VisitTable(table);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			results.Add(new Tuple<string, Type>(selectExpression.Alias, selectExpression.Type));
+			this.results.Add(new Tuple<string, Type>(selectExpression.Alias, selectExpression.Type));
 
 			return base.VisitSelect(selectExpression);
 		}

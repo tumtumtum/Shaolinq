@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -73,7 +73,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(this, this.writer.ToString(), this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
+			return new SqlQueryFormatResult(this, this.writer.ToString(), this.parameterValues, this.canReuse ? this.parameterIndexToPlaceholderIndexes : null);
 		}
 
 		public virtual SqlQueryFormatResult Format(Expression expression, TextWriter writer)
@@ -86,7 +86,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.Visit(this.PreProcess(expression));
 
-			return new SqlQueryFormatResult(this,null, this.parameterValues, canReuse ? parameterIndexToPlaceholderIndexes : null);
+			return new SqlQueryFormatResult(this,null, this.parameterValues, this.canReuse ? this.parameterIndexToPlaceholderIndexes : null);
 		}
 
 		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)

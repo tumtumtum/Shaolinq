@@ -424,7 +424,7 @@ namespace Shaolinq
 					return Enumerable.Single<T>(new T[2]);
 				}
 
-				if (object.Equals(result, default (T)))
+				if (Equals(result, default (T)))
 				{
 					return specifiedValue;
 				}
@@ -541,7 +541,7 @@ namespace Shaolinq.Persistence
 {
 #pragma warning disable
 	using System;
-	// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+	// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Data.Common;
@@ -687,7 +687,6 @@ namespace Shaolinq.Persistence
 	using System;
 	using System.Data;
 	using System.Threading;
-	using System.Diagnostics;
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;
 	using System.Collections.Generic;
@@ -722,7 +721,7 @@ namespace Shaolinq.Persistence
 				}
 				catch (Exception e)
 				{
-					var decoratedException = LogAndDecorateException(e, command);
+					var decoratedException = this.LogAndDecorateException(e, command);
 					if (decoratedException != null)
 					{
 						throw decoratedException;
@@ -740,7 +739,7 @@ namespace Shaolinq.Persistence
 
 		public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
-			await UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
+			await this.UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
 		}
 
 		private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
@@ -775,7 +774,7 @@ namespace Shaolinq.Persistence
 					}
 					catch (Exception e)
 					{
-						var decoratedException = LogAndDecorateException(e, command);
+						var decoratedException = this.LogAndDecorateException(e, command);
 						if (decoratedException != null)
 						{
 							throw decoratedException;
@@ -863,7 +862,7 @@ namespace Shaolinq.Persistence
 						}
 						catch (Exception e)
 						{
-							var decoratedException = LogAndDecorateException(e, command);
+							var decoratedException = this.LogAndDecorateException(e, command);
 							if (decoratedException != null)
 							{
 								throw decoratedException;
@@ -914,7 +913,7 @@ namespace Shaolinq.Persistence
 				}
 				catch (Exception e)
 				{
-					var decoratedException = LogAndDecorateException(e, command);
+					var decoratedException = this.LogAndDecorateException(e, command);
 					if (decoratedException != null)
 					{
 						throw decoratedException;
@@ -965,7 +964,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public virtual async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
 		{
-			switch (state)
+			switch (this.state)
 			{
 				case 0:
 					goto state0;
@@ -979,12 +978,12 @@ namespace Shaolinq.Persistence.Linq
 				this.state = 1;
 			var commandsContext = (await this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false));
 			this.dataReader = (await commandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
-			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
+			this.context = this.objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
 			state1:
 				T result;
 			if (await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false))
 			{
-				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
+				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues, o => this.objectProjector.ProcessDataAccessObject(o, ref this.context));
 				if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
 				{
 					this.Current = result;
@@ -1116,6 +1115,7 @@ namespace Shaolinq.Persistence
 {
 #pragma warning disable
 	using System;
+	// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Data.Common;
@@ -1360,9 +1360,6 @@ namespace Shaolinq
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 	using Platform;
 	using Shaolinq.Persistence;
 	using Shaolinq.TypeBuilding;
@@ -1502,7 +1499,7 @@ namespace Shaolinq
 
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), source.Expression);
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Delete<T>(default (IQueryable<T>))), source.Expression);
 			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
@@ -1514,7 +1511,7 @@ namespace Shaolinq
 
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)where T : DataAccessObject
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Delete<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
 			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			return await SqlQueryProviderExtensions.ExecuteAsync<int>(((IQueryProvider)source.Provider), expression, cancellationToken).ConfigureAwait(false);
 		}
@@ -2318,7 +2315,6 @@ namespace Shaolinq
 	using System.Threading;
 	using System.Transactions;
 	using System.Threading.Tasks;
-	using System.Linq.Expressions;
 	using System.Collections.Generic;
 	using Platform;
 	using Shaolinq.Persistence;

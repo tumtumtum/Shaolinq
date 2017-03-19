@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,6 @@ using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
-using FormatParamValue = Shaolinq.Persistence.SqlQueryFormatterManager.FormatParamValue;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -237,12 +236,12 @@ namespace Shaolinq.Persistence.Linq
 				{
 					projection = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns), out rootKeys);
 				}
-				
-				BuildProjector(projection, projectionExpression.Aggregator, rootKeys, out cacheInfo.projector, out cacheInfo.asyncProjector);
-				
-				this.SqlDatabaseContext.projectionExpressionCache = this.SqlDatabaseContext.projectionExpressionCache.Clone(key, cacheInfo, "ProjectionExpression", ProjectionExpressionCacheMaxLimit, ProjectionCacheLogger, c => c.projectionExpression.ToString());
 
-				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult, this.GetParamName)}\n\nProjector:\n{cacheInfo.projector}");
+				this.BuildProjector(projection, projectionExpression.Aggregator, rootKeys, out cacheInfo.projector, out cacheInfo.asyncProjector);
+				
+				this.SqlDatabaseContext.projectionExpressionCache = this.SqlDatabaseContext.projectionExpressionCache.Clone(key, cacheInfo, "ProjectionExpression", this.ProjectionExpressionCacheMaxLimit, ProjectionCacheLogger, c => c.projectionExpression.ToString());
+
+				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{this.GetQueryText(formatResult, this.GetParamName)}\n\nProjector:\n{cacheInfo.projector}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 
 				cacheInfo.formatResult = formatResult;
@@ -281,7 +280,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (foundCachedProjection)
 			{
-				ProjectionCacheLogger.Debug(() => $"Cache hit for query:\n{GetQueryText(cacheInfo.formatResult, this.GetParamName)}");
+				ProjectionCacheLogger.Debug(() => $"Cache hit for query:\n{this.GetQueryText(cacheInfo.formatResult, this.GetParamName)}");
 			}
 
 			return new ExecutionBuildResult(this, cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);
@@ -401,7 +400,7 @@ namespace Shaolinq.Persistence.Linq
 				cacheInfo.projector = projectionLambda.Compile();
 				cacheInfo.asyncProjector = asyncProjectorLambda.Compile();
 
-				this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo, "projectorCache", ProjectorCacheMaxLimit);
+				this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo, "projectorCache", this.ProjectorCacheMaxLimit);
 
 				ProjectionCacheLogger.Info(() => $"Cached projector:\n{projectionLambda}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");

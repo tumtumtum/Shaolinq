@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -50,9 +50,9 @@ namespace Shaolinq.Persistence.Computed
 
 			var body = this.ParseExpression();
 
-			if (coersionType != null && body.Type != coersionType)
+			if (this.coersionType != null && body.Type != this.coersionType)
 			{
-				body = Expression.Convert(body, coersionType);
+				body = Expression.Convert(body, this.coersionType);
 			}
 
 			var retval = Expression.Lambda(body, this.targetObject);
@@ -227,7 +227,7 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseMultiplyOrDivide();
 
-				NormalizeOperands(ref leftOperand, ref rightOperand);
+				this.NormalizeOperands(ref leftOperand, ref rightOperand);
 
 				if (operationToken == ComputedExpressionToken.Add)
 				{
@@ -320,7 +320,7 @@ namespace Shaolinq.Persistence.Computed
 			{
 				var type = ((target as ConstantExpression).Value as TypeHolder).Type;
 
-				var method = FindMatchingMethod(type, methodName, arguments.Select(c => c.Type).ToArray(), true);
+				var method = this.FindMatchingMethod(type, methodName, arguments.Select(c => c.Type).ToArray(), true);
 
 				if (method == null)
 				{
@@ -331,7 +331,7 @@ namespace Shaolinq.Persistence.Computed
 			}
 			else
 			{
-				var method = FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), false);
+				var method = this.FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), false);
 
 				if (method == null)
 				{
@@ -401,7 +401,7 @@ namespace Shaolinq.Persistence.Computed
 				return true;
 			}
 
-			if (!name.Contains(".") && referencedTypesByName.TryGetValue(name, out value))
+			if (!name.Contains(".") && this.referencedTypesByName.TryGetValue(name, out value))
 			{
 				return true;
 			}
@@ -531,7 +531,7 @@ namespace Shaolinq.Persistence.Computed
 								fullIdentifierName += (fullIdentifierName == "" ? "" : ".") + identifierStack.First();
 							}
 
-							if (TryGetType(fullIdentifierName, out type))
+							if (this.TryGetType(fullIdentifierName, out type))
 							{
 								current = Expression.Constant(new TypeHolder(type));
 							}
@@ -539,7 +539,7 @@ namespace Shaolinq.Persistence.Computed
 							{
 								if (currentWasNull)
 								{
-									current = Expression.Constant(new TypeHolder(targetObject.Type));
+									current = Expression.Constant(new TypeHolder(this.targetObject.Type));
 								}
 							}
 						}

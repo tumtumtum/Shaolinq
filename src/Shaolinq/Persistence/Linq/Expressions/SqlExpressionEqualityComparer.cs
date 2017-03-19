@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -32,12 +32,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public bool Equals(T x, T y)
 		{
-			return SqlExpressionComparer.Equals(x, y, options);
+			return SqlExpressionComparer.Equals(x, y, this.options);
 		}
 
 		public int GetHashCode(T obj)
 		{
-			return SqlExpressionHasher.Hash(obj, options);
+			return SqlExpressionHasher.Hash(obj, this.options);
 		}
 	}
 }

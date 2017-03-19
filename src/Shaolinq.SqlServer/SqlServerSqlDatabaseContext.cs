@@ -1,6 +1,7 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
@@ -8,8 +9,6 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
 {
-	using System.Data;
-
 	public partial class SqlServerSqlDatabaseContext
 		: SqlDatabaseContext
 	{

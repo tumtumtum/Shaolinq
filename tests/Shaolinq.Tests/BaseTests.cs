@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Reflection;
@@ -27,7 +27,7 @@ namespace Shaolinq.Tests
 		
 		protected TransactionScopeAdapter NewTransactionScope()
 		{
-			if (useDataAccessScope)
+			if (this.useDataAccessScope)
 			{
 				return new TransactionScopeAdapter(new DataAccessScope());
 			}
@@ -145,7 +145,7 @@ namespace Shaolinq.Tests
 			return (DataAccessModelConfiguration)methodInfo.Invoke(this, new object[] { databaseName });
 		}
 
-		protected string ProviderName { get; private set; }
+		protected string ProviderName { get; }
 
 		public BaseTests(string providerName)
 		{

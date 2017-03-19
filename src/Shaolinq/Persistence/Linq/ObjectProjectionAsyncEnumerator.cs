@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -42,12 +42,12 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (disposed)
+			if (this.disposed)
 			{
 				throw new ObjectDisposedException(nameof(ObjectProjectionAsyncEnumerator<T, U, C>));
 			}
 
-			disposed = true;
+			this.disposed = true;
 
 			// ReSharper disable EmptyGeneralCatchClause
 			try { this.dataReader?.Dispose(); } catch { }
@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence.Linq
 		[RewriteAsync]
 		public virtual bool MoveNext()
 		{
-			switch (state)
+			switch (this.state)
 			{
 			case 0:
 				goto state0;
@@ -80,14 +80,14 @@ state0:
 			this.state = 1;
 			var commandsContext = this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContext();
 			this.dataReader = commandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
-			this.context = objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
+			this.context = this.objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
 
 state1:
 			T result;
 
 			if (this.dataReader.ReadEx())
 			{
-				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues, o => objectProjector.ProcessDataAccessObject(o, ref context));
+				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues, o => this.objectProjector.ProcessDataAccessObject(o, ref this.context));
 
 				if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
 				{

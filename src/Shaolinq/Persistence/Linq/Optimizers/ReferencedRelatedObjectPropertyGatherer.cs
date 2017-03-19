@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -94,7 +94,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			Expression retval;
 			var parameterExpression = expression as ParameterExpression;
 
-			if (parameterExpression != null && expressionByParameter.TryGetValue(parameterExpression, out retval))
+			if (parameterExpression != null && this.expressionByParameter.TryGetValue(parameterExpression, out retval))
 			{
 				return retval;
 			}
@@ -106,7 +106,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableSelectMethod)
 			{
-				expressionByParameter[methodCallExpression.Arguments[1].StripQuotes().Parameters[0]] = methodCallExpression.Arguments[0];
+				this.expressionByParameter[methodCallExpression.Arguments[1].StripQuotes().Parameters[0]] = methodCallExpression.Arguments[0];
 
 				return base.VisitMethodCall(methodCallExpression);
 			}
@@ -347,7 +347,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					var includedPropertyPath = new PropertyPath(c => c.Name, path.Skip(includedPathSkip));
 
-					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, sourceParameterExpression);
+					objectInfo = new ReferencedRelatedObject(path, includedPropertyPath, this.sourceParameterExpression);
 
 					this.results[path] = objectInfo;
 				}

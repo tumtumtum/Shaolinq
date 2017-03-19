@@ -1,6 +1,7 @@
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -44,7 +45,7 @@ namespace Shaolinq.AsyncRewriter
 					rewrittenInvocation = node.WithExpression
 					(
 						memberAccessExp
-							.WithExpression(SyntaxFactory.IdentifierName(candidate.ContainingType.ToMinimalDisplayString(this.semanticModel, node.SpanStart + displacement)))
+							.WithExpression(SyntaxFactory.IdentifierName(candidate.ContainingType.ToMinimalDisplayString(this.semanticModel, node.SpanStart + this.displacement)))
 							.WithName(memberAccessExp.Name.WithIdentifier(SyntaxFactory.Identifier(memberAccessExp.Name.Identifier.Text + "Async")))
 					);
 

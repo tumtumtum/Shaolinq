@@ -1,17 +1,16 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.Extensions.Logging;
-using Npgsql.Logging;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using Shaolinq.Postgres;
 using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	using System.Threading.Tasks;
-
 	[TestFixture("Postgres")]
 	public class LoadTests
 		: BaseTests<TestDataAccessModel>
@@ -35,7 +34,7 @@ namespace Shaolinq.Tests
 
 			for (var i = 0; i < threadCount; i++)
 			{
-				var thread = new Thread(() => GetCatsNoDataAccessScopeAsync(i).Wait());
+				var thread = new Thread(() => this.GetCatsNoDataAccessScopeAsync(i).Wait());
 
 				thread.Start();
 				threads.Add(thread);
@@ -48,7 +47,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = DataAccessScope.CreateReadCommitted())
 			{
-				var result = await GetCatsNoDataAccessScopeAsync(iteration);
+				var result = await this.GetCatsNoDataAccessScopeAsync(iteration);
 
 				await scope.CompleteAsync();
 

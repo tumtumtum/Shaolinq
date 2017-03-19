@@ -1,17 +1,13 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.TypeBuilding;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 // ReSharper disable InvokeAsExtensionMethod
 
@@ -166,7 +162,7 @@ namespace Shaolinq
 		public static int Delete<T>(this IQueryable<T> source)
 			where T : DataAccessObject
 		{
-			Expression expression = Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default(IQueryable<T>))), source.Expression);
+			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Delete<T>(default(IQueryable<T>))), source.Expression);
 
 			((SqlQueryProvider)source.Provider).DataAccessModel.Flush();
 
@@ -179,7 +175,7 @@ namespace Shaolinq
 		{
 			Expression expression = Expression.Call
 			(
-				TypeUtils.GetMethod(() => QueryableExtensions.Delete<T>(default(IQueryable<T>))),
+				TypeUtils.GetMethod(() => Delete<T>(default(IQueryable<T>))),
 				Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Quote(predicate))
 			);
 

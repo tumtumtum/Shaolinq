@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,6 @@ using Shaolinq.Analytics;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
-
 
 namespace Shaolinq
 {
@@ -62,11 +61,10 @@ namespace Shaolinq
 
 		internal QueryAnalytics queryAnalytics = new QueryAnalytics();
 
-		public virtual IQueryAnalytics QueryAnalytics => queryAnalytics;
+		public virtual IQueryAnalytics QueryAnalytics => this.queryAnalytics;
 
 		public virtual event EventHandler Disposed;
 
-		private bool disposed;
 		internal bool hasAnyAutoIncrementValidators;
 		public Assembly DefinitionAssembly { get; private set; }
 		public ModelTypeDescriptor ModelTypeDescriptor { get; private set; }
@@ -124,7 +122,7 @@ namespace Shaolinq
 			this.Disposed?.Invoke(this, eventArgs);
 		}
 
-		internal bool IsDisposed => this.disposed;
+		internal bool IsDisposed { get; private set; }
 
 		~DataAccessModel()
 		{
@@ -146,7 +144,7 @@ namespace Shaolinq
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (this.disposed)
+			if (this.IsDisposed)
 			{
 				return;
 			}
@@ -157,7 +155,7 @@ namespace Shaolinq
 			ActionUtils.IgnoreExceptions(() => this.asyncLocalExecutionVersion.Dispose());
 			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionalAmbientTransactionContext.Dispose());
 
-			this.disposed = true;
+			this.IsDisposed = true;
 			this.DisposeAllSqlDatabaseContexts();
 			this.OnDisposed(EventArgs.Empty);
 		}
@@ -364,7 +362,7 @@ namespace Shaolinq
 		public virtual T GetReference<T>(LambdaExpression predicate)
 			where T : DataAccessObject
 		{
-			return (T)GetReference(typeof(T), predicate);
+			return (T)this.GetReference(typeof(T), predicate);
 		}
 
 		protected internal virtual DataAccessObject GetReference(Type type, LambdaExpression predicate)

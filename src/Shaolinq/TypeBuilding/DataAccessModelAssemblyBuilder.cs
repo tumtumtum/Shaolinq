@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,6 @@ using System.Reflection.Emit;
 using System.Security.Cryptography;
 using System.Text;
 using Platform;
-using Platform.IO;
 using Platform.Text;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;

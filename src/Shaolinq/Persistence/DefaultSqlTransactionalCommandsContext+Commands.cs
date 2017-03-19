@@ -1,9 +1,9 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -34,7 +34,7 @@ namespace Shaolinq.Persistence
 				}
 				catch (Exception e)
 				{
-					var decoratedException = LogAndDecorateException(e, command);
+					var decoratedException = this.LogAndDecorateException(e, command);
 
 					if (decoratedException != null)
 					{
@@ -52,7 +52,7 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			Update(type, dataAccessObjects, true);
+			this.Update(type, dataAccessObjects, true);
 		}
 
 		[RewriteAsync]
@@ -89,7 +89,7 @@ namespace Shaolinq.Persistence
 					}
 					catch (Exception e)
 					{
-						var decoratedException = LogAndDecorateException(e, command);
+						var decoratedException = this.LogAndDecorateException(e, command);
 
 						if (decoratedException != null)
 						{
@@ -190,7 +190,7 @@ retryInsert:
 						}
 						catch (Exception e)
 						{
-							var decoratedException = LogAndDecorateException(e, command);
+							var decoratedException = this.LogAndDecorateException(e, command);
 
 							if (decoratedException != null)
 							{
@@ -244,7 +244,7 @@ retryInsert:
 				}
 				catch (Exception e)
 				{
-					var decoratedException = LogAndDecorateException(e, command);
+					var decoratedException = this.LogAndDecorateException(e, command);
 
 					if (decoratedException != null)
 					{

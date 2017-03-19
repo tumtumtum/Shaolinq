@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +39,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			var aliasesAndTypes = SqlAliasTypeCollector.Collect(selectExpression)
-				.ToDictionary(c => c.Item1, c => typeDescriptorProvider.GetTypeDescriptor(c.Item2.GetSequenceElementType() ?? c.Item2));
+				.ToDictionary(c => c.Item1, c => this.typeDescriptorProvider.GetTypeDescriptor(c.Item2.GetSequenceElementType() ?? c.Item2));
 
 			List<SqlOrderByExpression> orderBys = null;
 			var includeJoins = selectExpression.From.GetIncludeJoins().ToList();

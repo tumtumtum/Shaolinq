@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Threading;
 
 namespace Shaolinq.Analytics
 {
@@ -6,11 +8,11 @@ namespace Shaolinq.Analytics
 		: IQueryAnalytics
 	{
 		private long queryCount;
-		public long QueryCount => queryCount;
+		public long QueryCount => this.queryCount;
 
 		internal void IncrementQueryCount()
 		{
-			Interlocked.Increment(ref queryCount);
+			Interlocked.Increment(ref this.queryCount);
 		}
 	}
 }

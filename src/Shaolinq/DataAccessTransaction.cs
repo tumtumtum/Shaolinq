@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -83,7 +83,7 @@ namespace Shaolinq
 
 			if (this.SystemTransaction != null)
 			{
-				this.previousTransaction = DataAccessTransaction.Current;
+				this.previousTransaction = Current;
 
 				this.SystemTransaction.TransactionCompleted += (sender, eventArgs) =>
 				{
@@ -147,7 +147,7 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
-			if (disposed)
+			if (this.disposed)
 			{
 				return;
 			}

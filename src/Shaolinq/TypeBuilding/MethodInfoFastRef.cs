@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -50,8 +50,8 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo EnumerableDefaultIfEmptyCoalesceSpecifiedValueMethod = TypeUtils.GetMethod(() => default(IEnumerable<int?>).DefaultIfEmptyCoalesceSpecifiedValue(0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo StringStaticEqualsMethod = TypeUtils.GetMethod(() => string.Equals(default(string), default(string)));
 		public static readonly MethodInfo ObjectEqualsMethod = TypeUtils.GetMethod<object>(c => c.Equals((object)null));
-		public static readonly MethodInfo ObjectStaticEqualsMethod = TypeUtils.GetMethod(() => object.Equals((object)1, (object)2));
-		public static readonly MethodInfo ObjectStaticReferenceEqualsMethod = TypeUtils.GetMethod(() => object.ReferenceEquals((object)1, (object)2));
+		public static readonly MethodInfo ObjectStaticEqualsMethod = TypeUtils.GetMethod(() => Equals((object)1, (object)2));
+		public static readonly MethodInfo ObjectStaticReferenceEqualsMethod = TypeUtils.GetMethod(() => ReferenceEquals((object)1, (object)2));
 		public static readonly MethodInfo StringConcatMethod2 = TypeUtils.GetMethod(() => string.Concat(default(string), default(string)));
 		public static readonly MethodInfo StringConcatMethod3 = TypeUtils.GetMethod(() => string.Concat(default(string), default(string), default(string)));
 		public static readonly MethodInfo StringConcatMethod4 = TypeUtils.GetMethod(() => string.Concat(default(string), default(string), default(string)));

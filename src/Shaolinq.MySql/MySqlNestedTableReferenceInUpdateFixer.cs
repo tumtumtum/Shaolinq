@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -28,7 +25,7 @@ namespace Shaolinq.MySql
 
 				this.inUpdate = true;
 
-				updateTableName = (expression.Source as SqlTableExpression).Name;
+				this.updateTableName = (expression.Source as SqlTableExpression).Name;
 
 				var newWhere = this.Visit(expression.Where);
 				var newAssignments = this.VisitExpressionList(expression.Assignments);
@@ -48,7 +45,7 @@ namespace Shaolinq.MySql
 
 		protected override Expression VisitTable(SqlTableExpression table)
 		{
-			if (table.Name != updateTableName || !inUpdate)
+			if (table.Name != this.updateTableName || !this.inUpdate)
 			{
 				return base.VisitTable(table);
 			}

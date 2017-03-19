@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data;
@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			private T value;
 			internal bool HasValue { get; private set; }
-			internal T Value { get { return value; } set { this.value = value; this.HasValue = true; } }
+			internal T Value { get { return this.value; } set { this.value = value; this.HasValue = true; } }
 
 			internal Context()
 			{
@@ -49,7 +49,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected internal override bool ProcessMoveNext(IDataReader reader, T value, ref Context context, out T result)
 		{
-			if (!context.HasValue || object.ReferenceEquals(value, context.Value))
+			if (!context.HasValue || ReferenceEquals(value, context.Value))
 			{
 				result = value;
 				context.Value = value;

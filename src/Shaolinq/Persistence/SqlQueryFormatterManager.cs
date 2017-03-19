@@ -1,9 +1,8 @@
-﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
