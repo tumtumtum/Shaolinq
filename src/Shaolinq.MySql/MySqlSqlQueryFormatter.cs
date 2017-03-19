@@ -21,6 +21,7 @@ namespace Shaolinq.MySql
 			expression = MySqlAutoIncrementAmender.Amend(expression);
 			expression = MySqlInsertIntoAutoIncrementAmender.Amend(SqlReferencesColumnDeferrabilityRemover.Remove(expression));
 			expression = MySqlNestedTableReferenceInUpdateFixer.Fix(expression);
+			expression = MySqlDefaultValueConstraintFixer.Fix(expression);
 
 			return expression;
 		}
