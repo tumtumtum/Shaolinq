@@ -1227,8 +1227,10 @@ namespace Shaolinq.Persistence
 	using System.Threading;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;
+	using Platform;
 	using Shaolinq;
 	using Shaolinq.Persistence;
+	using Shaolinq.Persistence.Linq;
 	using Shaolinq.Persistence.Linq.Expressions;
 
 	public abstract partial class SqlTransactionalCommandsContext
@@ -1331,7 +1333,7 @@ namespace Shaolinq.Persistence
 				{
 					using (this.SqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{
-						var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
+						var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions, SqlQueryFormatterOptions.Default | SqlQueryFormatterOptions.EvaluateConstants);
 						using (var command = dataTransactionContext.CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
 						{
 							command.CommandText = result.CommandText;

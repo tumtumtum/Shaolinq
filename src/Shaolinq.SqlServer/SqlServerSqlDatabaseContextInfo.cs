@@ -74,6 +74,13 @@ namespace Shaolinq.SqlServer
 		[XmlAttribute]
 		public bool ReadCommittedSnapshot { get; set; } = false;
 
+		/// <summary>
+		/// When <c>true</c> indexes will always exclude any row with null columns. When false (default)
+		/// rows with nulls will only be excluded if the entire index is declared as unique.
+		/// </summary>
+		[XmlAttribute]
+		public bool UniqueNullIndexAnsiComplianceFixerClassicBehaviour { get; set; } = false;
+
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
 			return SqlServerSqlDatabaseContext.Create(this, model);

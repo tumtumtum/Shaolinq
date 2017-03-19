@@ -108,17 +108,10 @@ namespace Shaolinq.TypeBuilding
 			{
 				ActionUtils.IgnoreExceptions(() =>
 				{
-					try
-					{
-						moduleBuilder.DefineManifestResource("configuration.xml", new MemoryStream(Encoding.UTF8.GetBytes(serializedConfiguration)), ResourceAttributes.Public);
-						moduleBuilder.DefineManifestResource("sha1.txt", new MemoryStream(Encoding.UTF8.GetBytes(fullhash)), ResourceAttributes.Public);
+					moduleBuilder.DefineManifestResource("configuration.xml", new MemoryStream(Encoding.UTF8.GetBytes(serializedConfiguration)), ResourceAttributes.Public);
+					moduleBuilder.DefineManifestResource("sha1.txt", new MemoryStream(Encoding.UTF8.GetBytes(fullhash)), ResourceAttributes.Public);
 
-						assemblyBuilder.Save(Path.GetFileName(filename));
-					}
-					catch (Exception e)
-					{
-						Console.WriteLine(e);
-					}
+					assemblyBuilder.Save(Path.GetFileName(filename));
 				});
 			}
 

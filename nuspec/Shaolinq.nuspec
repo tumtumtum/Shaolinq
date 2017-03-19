@@ -27,8 +27,8 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
     <copyright>Copyright (c) 2007-2015 Thong Nguyen (tumtumtum@gmail.com)</copyright>
     <tags>shaolinq linq provider orm sqlite mysql postgres sql database</tags>
     <dependencies>
-      <dependency id="Platform.NET" version="1.2.1.287"/>
-      <dependency id="Platform.Xml.Serialization" version="1.2.1.287"/>
+      <dependency id="Platform.NET" version="1.2.1.288"/>
+      <dependency id="Platform.Xml.Serialization" version="1.2.1.288"/>
     </dependencies>
   </metadata>
 </package>

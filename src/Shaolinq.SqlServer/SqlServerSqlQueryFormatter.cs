@@ -12,9 +12,12 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider)
+		private readonly SqlServerSqlDatabaseContextInfo contextInfo;
+
+		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, SqlServerSqlDatabaseContextInfo contextInfo)
 			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
+			this.contextInfo = contextInfo;
 		}
 
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)
@@ -139,10 +142,17 @@ namespace Shaolinq.SqlServer
 			switch (Type.GetTypeCode(type))
 			{
 			case TypeCode.Boolean:
-				this.Write(this.ParameterIndicatorPrefix);
-				this.Write(ParamNamePrefix);
-				this.Write(this.parameterValues.Count);
-				this.parameterValues.Add(new TypedValue(typeof(int), constantExpression.Value, c => Convert.ToInt32(c)));
+				if ((this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
+				{
+					this.Write(this.FormatConstant(Convert.ToInt32(constantExpression.Value)));
+				}
+				else
+				{
+					this.Write(this.ParameterIndicatorPrefix);
+					this.Write(ParamNamePrefix);
+					this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new TypedValue(typeof(int), constantExpression.Value, c => Convert.ToInt32(c)));
+				}
 
 				return constantExpression;
 			}
@@ -157,7 +167,7 @@ namespace Shaolinq.SqlServer
 			expression = SqlServerLimitAmender.Amend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
 			expression = SqlServerDateTimeFunctionsAmender.Amend(expression);
-			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression);
+			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression, this.contextInfo.UniqueNullIndexAnsiComplianceFixerClassicBehaviour);
 			
 			return base.PreProcess(expression);
 		}

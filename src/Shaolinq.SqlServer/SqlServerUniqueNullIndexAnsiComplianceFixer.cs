@@ -8,14 +8,21 @@ namespace Shaolinq.SqlServer
 	public class SqlServerUniqueNullIndexAnsiComplianceFixer
 		: SqlExpressionVisitor
 	{
-		public static Expression Fix(Expression expression)
+		private readonly bool fixNonUniqueIndexesAsWell;
+
+		private SqlServerUniqueNullIndexAnsiComplianceFixer(bool fixNonUniqueIndexesAsWell)
 		{
-			return new SqlServerUniqueNullIndexAnsiComplianceFixer().Visit(expression);
+			this.fixNonUniqueIndexesAsWell = fixNonUniqueIndexesAsWell;
+		}
+
+		public static Expression Fix(Expression expression, bool fixNonUniqueIndexesAsWell = false)
+		{
+			return new SqlServerUniqueNullIndexAnsiComplianceFixer(fixNonUniqueIndexesAsWell).Visit(expression);
 		}
 
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
-		    if (!createIndexExpression.Unique)
+		    if (!(createIndexExpression.Unique || this.fixNonUniqueIndexesAsWell))
 		    {
 		        return createIndexExpression;
 		    }

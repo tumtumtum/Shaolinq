@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using Platform;
+using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence
@@ -23,6 +25,7 @@ namespace Shaolinq.Persistence
 		protected IDbTransaction dbTransaction;
 		public DataAccessModel DataAccessModel { get; }
 		private readonly bool emulateMultipleActiveResultSets;
+		private readonly string parameterIndicatorPrefix;
 
 		public abstract void Delete(SqlDeleteExpression deleteExpression);
 		public abstract Task DeleteAsync(SqlDeleteExpression deleteExpression);
@@ -44,17 +47,95 @@ namespace Shaolinq.Persistence
 		public abstract Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken);
 
 		public virtual bool IsClosed => this.DbConnection == null || this.DbConnection?.State == ConnectionState.Closed || this.DbConnection?.State == ConnectionState.Broken;
+
+		public void FillParameters(IDbCommand command, SqlQueryFormatResult formatResult)
+		{
+			command.Parameters.Clear();
+
+			foreach (var parameter in formatResult.ParameterValues)
+			{
+				this.AddParameter(command, parameter.Type, parameter.Value);
+			}
+		}
+
+		public IDbDataParameter AddParameter(IDbCommand command, Type type, object value)
+		{
+			var parameter = this.CreateParameter(command, this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
+
+			command.Parameters.Add(parameter);
+
+			return parameter;
+		}
+
+		protected virtual DbType GetDbType(Type type)
+		{
+			type = type.GetUnwrappedNullableType();
+
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Boolean:
+					return DbType.Boolean;
+				case TypeCode.Byte:
+				case TypeCode.SByte:
+					return DbType.Byte;
+				case TypeCode.Char:
+					return DbType.Object;
+				case TypeCode.DateTime:
+					return DbType.DateTime;
+				case TypeCode.Decimal:
+					return DbType.Decimal;
+				case TypeCode.Single:
+					return DbType.Single;
+				case TypeCode.Double:
+					return DbType.Double;
+				case TypeCode.Int16:
+				case TypeCode.UInt16:
+					return DbType.Int16;
+				case TypeCode.Int32:
+				case TypeCode.UInt32:
+					return DbType.Int32;
+				case TypeCode.Int64:
+				case TypeCode.UInt64:
+					return DbType.Int64;
+				case TypeCode.String:
+					return DbType.AnsiString;
+				default:
+					if (type == typeof(Guid))
+					{
+						return DbType.Guid;
+					}
+					else if (type.IsArray && type.GetElementType() == typeof(byte))
+					{
+						return DbType.Binary;
+					}
+					else if (type.IsEnum)
+					{
+						return DbType.AnsiString;
+					}
+
+					return DbType.Object;
+			}
+		}
+
+		protected virtual IDbDataParameter CreateParameter(IDbCommand command, string parameterName, Type type, object value)
+		{
+			var parameter = command.CreateParameter();
+
+			parameter.ParameterName = parameterName;
+
+			if (value == null)
+			{
+				parameter.DbType = this.GetDbType(type);
+			}
+
+			var result = this.SqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
+
+			parameter.DbType = this.GetDbType(result.Type);
+			parameter.Value = result.Value ?? DBNull.Value;
+
+			return parameter;
+		}
 		
-		protected SqlTransactionalCommandsContext()
-			: this(true)
-		{
-		}
-
-		protected SqlTransactionalCommandsContext(bool supportsAsync)
-		{
-			this.SupportsAsync = supportsAsync;
-		}
-
 		public static IsolationLevel ConvertIsolationLevel(DataAccessIsolationLevel isolationLevel)
 		{
 			switch (isolationLevel)
@@ -85,8 +166,9 @@ namespace Shaolinq.Persistence
 		        this.DbConnection = dbConnection;
 		        this.SqlDatabaseContext = sqlDatabaseContext;
 		        this.DataAccessModel = sqlDatabaseContext.DataAccessModel;
+			    this.parameterIndicatorPrefix = this.SqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 
-		        this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
+				this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
 
 		        if (transactionContext?.DataAccessTransaction != null)
 		        {

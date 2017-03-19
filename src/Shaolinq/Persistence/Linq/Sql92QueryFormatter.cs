@@ -17,8 +17,6 @@ namespace Shaolinq.Persistence.Linq
 	public class Sql92QueryFormatter
 		: SqlQueryFormatter
 	{
-		protected internal static readonly string ParamNamePrefix = "shaolinqparam";
-		
 		public struct FunctionResolveResult
 		{
 			public static TypedValue[] MakeArguments(params object[] args)
@@ -589,7 +587,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (constantExpression.Value == null)
 			{
-				if ((this.options & SqlQueryFormatterOptions.OptimiseOutConstantNulls) != 0)
+				if ((this.options & SqlQueryFormatterOptions.OptimiseOutConstantNulls) != 0 || (this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
 				{
 					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null));
 				}
@@ -614,10 +612,17 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					this.Write(this.ParameterIndicatorPrefix);
-					this.Write(ParamNamePrefix);
-					this.Write(this.parameterValues.Count);
-					this.parameterValues.Add(new TypedValue(constantExpression.Type, constantExpression.Value));
+					if ((this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
+					{
+						this.Write(this.FormatConstant(constantExpression.Value));
+					}
+					else
+					{
+						this.Write(this.ParameterIndicatorPrefix);
+						this.Write(ParamNamePrefix);
+						this.Write(this.parameterValues.Count);
+						this.parameterValues.Add(new TypedValue(constantExpression.Type, constantExpression.Value));
+					}
 				}
 			}
 
@@ -1191,7 +1196,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						this.Write("DEFAULT");
 						this.Write(" ");
-						this.Write(expression.DefaultValue);
+						this.Visit(expression.DefaultValue);
 					}
 					break;
 				case SqlSimpleConstraint.NotNull:

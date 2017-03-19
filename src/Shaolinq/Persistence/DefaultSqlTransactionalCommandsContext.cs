@@ -115,67 +115,11 @@ namespace Shaolinq.Persistence
 
 		internal string FormatCommand(IDbCommand command)
 		{
-			return this.SqlDatabaseContext.SqlQueryFormatterManager.Format(command.CommandText, c =>
-			{
-				if (!command.Parameters.Contains(c))
-				{
-					return new FormatParamValue("(?!)", true);
-				}
+			var formatManager = this.SqlDatabaseContext.SqlQueryFormatterManager;
 
-				return new FormatParamValue(((IDbDataParameter)command.Parameters[c]).Value, true);
-			});
+			return formatManager.SubstitutedParameterValues(command.CommandText, (parameterName, formatConstant) => formatConstant(((IDbDataParameter)command.Parameters[parameterName]).Value));
 		}
-
-		protected virtual DbType GetDbType(Type type)
-		{
-			type = type.GetUnwrappedNullableType();
-
-			switch (Type.GetTypeCode(type))
-			{
-			case TypeCode.Boolean:
-				return DbType.Boolean;
-			case TypeCode.Byte:
-			case TypeCode.SByte:
-				return DbType.Byte;
-			case TypeCode.Char:
-				return DbType.Object;
-			case TypeCode.DateTime:
-				return DbType.DateTime;
-			case TypeCode.Decimal:
-				return DbType.Decimal;
-			case TypeCode.Single:
-				return DbType.Single;
-			case TypeCode.Double:
-				return DbType.Double;
-			case TypeCode.Int16:
-			case TypeCode.UInt16:
-				return DbType.Int16;
-			case TypeCode.Int32:
-			case TypeCode.UInt32:
-				return DbType.Int32;
-			case TypeCode.Int64:
-			case TypeCode.UInt64:
-				return DbType.Int64;
-			case TypeCode.String:
-				return DbType.AnsiString;
-			default:
-				if (type == typeof(Guid))
-				{
-					return DbType.Guid;
-				}
-				else if (type.IsArray && type.GetElementType() == typeof(byte))
-				{
-					return DbType.Binary;
-				}
-				else if (type.IsEnum)
-				{
-					return DbType.AnsiString;
-				}
-
-				return DbType.Object;
-			}
-		}
-
+		
 		private Exception LogAndDecorateException(Exception e, IDbCommand command)
 		{
 			var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
@@ -236,44 +180,6 @@ namespace Shaolinq.Persistence
 			}
 
 			return applicator(dataAccessObject, reader);
-		}
-
-		private IDbDataParameter AddParameter(IDbCommand command, Type type, object value)
-		{
-			var parameter = this.CreateParameter(command, this.parameterIndicatorPrefix + Sql92QueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
-
-			command.Parameters.Add(parameter);
-
-			return parameter;
-		}
-
-		protected virtual IDbDataParameter CreateParameter(IDbCommand command, string parameterName, Type type, object value)
-		{
-			var parameter = command.CreateParameter();
-		
-			parameter.ParameterName = parameterName;
-
-			if (value == null)
-			{
-				parameter.DbType = this.GetDbType(type);
-			}
-
-			var result = this.sqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
-
-			parameter.DbType = this.GetDbType(result.Type);
-			parameter.Value = result.Value ?? DBNull.Value;
-		
-			return parameter;
-		}
-
-		protected void FillParameters(IDbCommand command, SqlQueryFormatResult formatResult)
-		{
-			command.Parameters.Clear();
-
-			foreach (var parameter in formatResult.ParameterValues)
-			{
-				this.AddParameter(command, parameter.Type, parameter.Value);
-			}
 		}
 
 		private void FillParameters(IDbCommand command, SqlCachedUpdateInsertFormatValue cachedValue, IReadOnlyCollection<ObjectPropertyValue> changedProperties, IReadOnlyCollection<ObjectPropertyValue> primaryKeys)

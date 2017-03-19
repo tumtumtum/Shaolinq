@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -17,21 +16,28 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Constraint;
 		public object[] ConstraintOptions { get; }
 
-		public SqlConstraintExpression(SqlSimpleConstraint simpleConstraint, object[] constraintOptions = null)
+		public SqlConstraintExpression(SqlSimpleConstraint simpleConstraint, object[] constraintOptions = null, string constraintName = null)
 			: base(typeof(void))
 		{
 			this.SimpleConstraint = simpleConstraint;
 			this.ConstraintOptions = constraintOptions;
+			this.ConstraintName = constraintName;
 		}
 
-		public SqlConstraintExpression(SqlSimpleConstraint simpleConstraint, IReadOnlyList<string> columnNames)
+		public SqlConstraintExpression(SqlSimpleConstraint simpleConstraint, IEnumerable<string> columnNames, string constraintName = null)
+			: this(simpleConstraint, columnNames.ToReadOnlyCollection(), constraintName)
+		{
+		}
+
+		public SqlConstraintExpression(SqlSimpleConstraint simpleConstraint, IReadOnlyList<string> columnNames, string constraintName = null)
 			: base(typeof(void))
 		{
 			this.SimpleConstraint = simpleConstraint;
 			this.ColumnNames = columnNames;
+			this.ConstraintName = constraintName;
 		}
 
-		public SqlConstraintExpression(string constraintName, SqlReferencesExpression sqlReferencesExpression, IReadOnlyList<string> columnNames = null, Expression defaultValue = null)
+		public SqlConstraintExpression(SqlReferencesExpression sqlReferencesExpression, string constraintName = null, IReadOnlyList<string> columnNames = null, Expression defaultValue = null)
 			: base(typeof(void))
 		{
 			this.ConstraintName = constraintName;
@@ -40,7 +46,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.DefaultValue = defaultValue;
 		}
 
-		public SqlConstraintExpression(string constraintName, SqlSimpleConstraint? simpleConstraint, SqlReferencesExpression sqlReferencesExpression, IReadOnlyList<string> columnNames = null, Expression defaultValue = null)
+		public SqlConstraintExpression(SqlSimpleConstraint? simpleConstraint, SqlReferencesExpression sqlReferencesExpression = null, string constraintName = null, IReadOnlyList<string> columnNames = null, Expression defaultValue = null)
 			: base(typeof(void))
 		{
 			this.ConstraintName = constraintName;
@@ -57,7 +63,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return this;
 			}
 
-			return new SqlConstraintExpression(this.ConstraintName, this.SimpleConstraint, this.ReferencesExpression, columnNames, this.DefaultValue);
+			return new SqlConstraintExpression(this.SimpleConstraint, this.ReferencesExpression, this.ConstraintName, columnNames, this.DefaultValue);
 		}
 
 		public SqlConstraintExpression ChangeReferences(SqlReferencesExpression referencesExpression)
@@ -67,7 +73,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return this;
 			}
 
-			return new SqlConstraintExpression(this.ConstraintName, this.SimpleConstraint, referencesExpression, this.ColumnNames, this.DefaultValue);
+			return new SqlConstraintExpression(this.SimpleConstraint, referencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue);
 		}
 
 		public SqlConstraintExpression ChangeSimpleConstraint(SqlSimpleConstraint? value)
@@ -77,7 +83,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return this;
 			}
 
-			return new SqlConstraintExpression(this.ConstraintName, value, this.ReferencesExpression, this.ColumnNames, this.DefaultValue);
+			return new SqlConstraintExpression(value, this.ReferencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue);
 		}
 	}
 }

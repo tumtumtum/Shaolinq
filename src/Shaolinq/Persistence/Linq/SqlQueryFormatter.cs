@@ -14,6 +14,7 @@ namespace Shaolinq.Persistence.Linq
 		: SqlExpressionVisitor
 	{
 		public const char DefaultParameterIndicatorChar = '@';
+		protected internal static readonly string ParamNamePrefix = "SHAOLINQPARAM";
 
 		protected enum Indentation
 		{
@@ -59,6 +60,8 @@ namespace Shaolinq.Persistence.Linq
 		protected List<Pair<int, int>> parameterIndexToPlaceholderIndexes;
 		
 		protected readonly SqlDialect sqlDialect;
+		private readonly string stringQuote;
+		private readonly string stringEscape;
 
 		public virtual SqlQueryFormatResult Format(Expression expression)
 		{
@@ -90,8 +93,57 @@ namespace Shaolinq.Persistence.Linq
 		{
 			this.sqlDialect = sqlDialect ?? new SqlDialect();
 			this.writer = writer;
+			this.stringEscape = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringEscape);
+			this.stringQuote = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote);
 			this.ParameterIndicatorPrefix = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 			this.IndentationWidth = 2;
+		}
+
+		public virtual string FormatConstant(object value)
+		{
+			if (value == null || value == DBNull.Value)
+			{
+				return this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null);
+			}
+
+			var type = value.GetType();
+
+			type = Nullable.GetUnderlyingType(type) ?? type;
+
+			if (type == typeof(string) || type.IsEnum)
+			{
+				var str = value.ToString();
+
+				if (str.Contains(this.stringQuote))
+				{
+					return this.stringQuote + str.Replace(this.stringQuote, this.stringEscape + this.stringQuote) + this.stringQuote;
+				}
+
+				return this.stringQuote + str + this.stringQuote;
+			}
+
+			if (type == typeof(Guid))
+			{
+				var guidValue = (Guid)value;
+
+				return this.stringQuote + guidValue.ToString("D") + this.stringQuote;
+			}
+
+			if (type == typeof(TimeSpan))
+			{
+				var timespanValue = (TimeSpan)value;
+
+				return this.stringQuote + timespanValue + this.stringQuote;
+			}
+
+			if (type == typeof(DateTime))
+			{
+				var dateTime = ((DateTime)value).ToUniversalTime();
+
+				return this.stringQuote + dateTime.ToString("yyyy-MM-dd HH:mm:ss.fffff") + this.stringQuote;
+			}
+
+			return Convert.ToString(value);
 		}
 
 		protected void Indent(Indentation style)
@@ -188,3 +240,4 @@ namespace Shaolinq.Persistence.Linq
 		}
 	}
 }
+

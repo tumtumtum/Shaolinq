@@ -102,12 +102,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Platform, Version=1.2.1.287, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.2.1.287\lib\net452\Platform.dll</HintPath>
+    <Reference Include="Platform, Version=1.2.1.288, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.2.1.288\lib\net452\Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.2.1.287, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.2.1.287\lib\net452\Platform.Xml.Serialization.dll</HintPath>
+    <Reference Include="Platform.Xml.Serialization, Version=1.2.1.288, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.2.1.288\lib\net452\Platform.Xml.Serialization.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -310,7 +310,6 @@
     <Compile Include="Persistence\SqlQueryFormatterManager.cs" />
     <Compile Include="Persistence\Linq\SqlReferencesColumnDeferrabilityRemover.cs" />
     <Compile Include="Persistence\Linq\SqlDataDefinitionExpressionBuilder.cs" />
-    <Compile Include="Persistence\Linq\SqlMultiColumnPrimaryKeyRemover.cs" />
     <Compile Include="Persistence\SqlCreateCommandOptions.cs" />
     <Compile Include="Persistence\SqlCapability.cs" />
     <Compile Include="Persistence\SqlSyntaxSymbol.cs" />

@@ -1,8 +1,11 @@
 // Copyright (c) 2007-2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Platform;
 
 namespace Shaolinq.Persistence
 {
@@ -10,15 +13,15 @@ namespace Shaolinq.Persistence
 	{
 		private static readonly Regex PatternRegex = new Regex(@"(?<prefix>^|[^\\\$]*|[\\\\]+)(\$(?<name>[0-9])+|\$\((?<env>env_)?(?<name>[a-z_A-Z]+?)((?<tolower>_TOLOWER)|(:(?<format>[^\)]+)))?\))", RegexOptions.Compiled | RegexOptions.IgnoreCase); 
 
-		public static string Substitute(string value, Func<string, string> variableToValue)
+		public static string Substitute(string value, Func<string, object> variableToValue)
 		{
 			return PatternRegex.Replace(value, match =>
 			{
 				var result = match.Groups["env"].Length != 0 ? Environment.GetEnvironmentVariable(match.Groups["name"].Value) : variableToValue(match.Groups["name"].Value);
 
-				if (match.Groups["tolower"].Length > 0)
+				if (match.Groups["tolower"].Length > 0 && result is string)
 				{
-					result = result?.ToLowerInvariant();
+					result = ((string)result).ToLowerInvariant();
 				}
 
 				var format = match.Groups["format"].Value;
@@ -28,12 +31,26 @@ namespace Shaolinq.Persistence
 					switch (format)
 					{
 					case "L":
-						result = result?.ToLowerInvariant();
+						if (result is string)
+						{
+							result = ((string)result).ToLowerInvariant();
+						}
 						break;
 					case "U":
-						result = result?.ToUpperInvariant();
+						if (result is string)
+						{
+							result = ((string)result).ToUpperInvariant();
+						}	
+						break;
+					case "_":
+						result = string.Join("_", (result as IEnumerable).ToTyped<object>()?.Select(c => c.ToString()).ToArray());
 						break;
 					}
+				}
+
+				if (result is IEnumerable && !(result is string))
+				{
+					result = string.Join("_", (result as IEnumerable).ToTyped<object>()?.Select(c => c.ToString()).ToArray());
 				}
 
 				return match.Groups["prefix"].Value + result;
@@ -68,37 +85,48 @@ namespace Shaolinq.Persistence
 				}
 			});
 		}
-		
-		public static string Substitute(string input, PropertyDescriptor propertyDescriptor = null, Func<int, string> indexedToValue = null)
+
+		public static string Substitute(string input, PropertyDescriptor property)
+		{
+			return Substitute(input, new[] { property });
+		}
+
+		public static string Substitute(string input, PropertyDescriptor[] properties = null, Func<int, string> indexedToValue = null)
 		{
 			if (input == null)
 			{
-				return propertyDescriptor?.PropertyName;
+				return properties.FirstOrDefault()?.PropertyName;
 			}
 
 			return Substitute(input, value =>
 			{
 				var s = value.ToUpper();
 
-				if (propertyDescriptor != null)
+				if (properties.Length > 0)
 				{
+					var property = properties[0];
+
 					switch (s)
 					{
 					case "TYPENAME":
-						return propertyDescriptor.DeclaringTypeDescriptor.TypeName;
+						return property.DeclaringTypeDescriptor.TypeName;
 					case "PROPERTYNAME":
-						return propertyDescriptor.PropertyName;
+						return property.PropertyName;
 					case "PROPERTYTYPENAME":
-						return propertyDescriptor.PropertyType.Name;
+						return property.PropertyType.Name;
 					case "TABLENAME":
 					case "PERSISTED_TYPENAME":
-						return propertyDescriptor.DeclaringTypeDescriptor.PersistedName;
+						return property.DeclaringTypeDescriptor.PersistedName;
 					case "COLUMNNAME":
 					case "PERSISTED_PROPERTYNAME":
-						return propertyDescriptor.PersistedName;
+						return property.PersistedName;
 					case "COLUMNTYPENAME":
 					case "PERSISTED_PROPERTYTYPENAME":
-						return propertyDescriptor.PropertyTypeTypeDescriptor.PersistedName;
+						return property.PropertyTypeTypeDescriptor.PersistedName;
+					case "PROPERTYNAMES":
+						return properties.Select(c => c.PropertyName);
+					case "COLUMNNAMES":
+						return properties.Select(c => c.PersistedName);
 					}
 				}
 
@@ -112,8 +140,13 @@ namespace Shaolinq.Persistence
 				throw new NotSupportedException(value);
 			});
 		}
-		
-		public static string SedTransform(string value, string transformString, PropertyDescriptor propertyDescriptor = null)
+
+		public static string SedTransform(string value, string transformString, PropertyDescriptor property)
+		{
+			return SedTransform(value, transformString, new[] { property });
+		}
+
+		public static string SedTransform(string value, string transformString, PropertyDescriptor[] properties = null)
 		{
 			if (string.IsNullOrEmpty(transformString))
 			{
@@ -163,7 +196,7 @@ namespace Shaolinq.Persistence
 
 				count++;
 
-				var result = useReplacementRegex ? Substitute(replacement, propertyDescriptor, index => match.Groups[index].Value) : replacement;
+				var result = useReplacementRegex ? Substitute(replacement, properties, index => match.Groups[index].Value) : replacement;
 
 				return result;
 			}, regexOptions);

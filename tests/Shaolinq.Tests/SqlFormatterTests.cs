@@ -59,7 +59,7 @@ namespace Shaolinq.Tests
 			var constraints = new []
 			{
 				new SqlConstraintExpression(SqlSimpleConstraint.Unique),
-				new SqlConstraintExpression("fkc", new SqlReferencesExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction), new [] {"Column1"})
+				new SqlConstraintExpression(new SqlReferencesExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction), columnNames: new [] {"Column1"}, constraintName: "fck")
 			};
 
 			var createTableExpression = new SqlCreateTableExpression(new SqlTableExpression("Table1"), false, columnDefinitions.ToReadOnlyCollection(), constraints.ToReadOnlyCollection());

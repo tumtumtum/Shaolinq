@@ -16,6 +16,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public IReadOnlyList<SqlColumnDefinitionExpression> ColumnDefinitionExpressions { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateTable;
 
+		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IEnumerable<SqlColumnDefinitionExpression> columnExpressions, IEnumerable<SqlConstraintExpression> tableConstraintExpressions, IReadOnlyList<SqlTableOption> tableOptions = null)
+			: this(table, ifNotExist, columnExpressions.ToReadOnlyCollection(), tableConstraintExpressions.ToReadOnlyCollection(), tableOptions)
+		{
+		}
+
 		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IReadOnlyList<SqlColumnDefinitionExpression> columnExpressions, IReadOnlyList<SqlConstraintExpression> tableConstraintExpressions, IReadOnlyList<SqlTableOption> tableOptions = null)
 			: base(typeof(void))
 		{

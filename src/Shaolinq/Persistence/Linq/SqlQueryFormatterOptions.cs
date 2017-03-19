@@ -11,6 +11,7 @@ namespace Shaolinq.Persistence.Linq
 		EvaluateConstantPlaceholders = 1,
 		ExpectSchemaExpressions = 2,
 		OptimiseOutConstantNulls = 4,
+		EvaluateConstants = 8,
 		Default = EvaluateConstantPlaceholders | ExpectSchemaExpressions | OptimiseOutConstantNulls
 	}
 }

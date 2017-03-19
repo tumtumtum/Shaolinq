@@ -10,6 +10,7 @@ namespace Shaolinq.Tests.TestModel
 		: DataAccessObject<Guid>, IIdentified<Guid>
 	{
 		[PersistedMember]
+		[DefaultValue(Value = "Anonymous")]
 		public abstract string Firstname { get; set; }
 
 		[Index(LowercaseIndex = true), PersistedMember, SizeConstraint(MaximumLength = 64)]

@@ -30,7 +30,7 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
     <tags>shaolinq linq provider orm sqlite sql database</tags>
     <dependencies>
       <dependency id="Shaolinq" version="$version$"/>
-      <dependency id="System.Data.SQLite.Core" version="1.0.102"/>
+      <dependency id="System.Data.SQLite.Core" version="1.0.104"/>
     </dependencies>
   </metadata>
 </package>

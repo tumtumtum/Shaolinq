@@ -8,9 +8,9 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
 {
-    using System.Data;
+	using System.Data;
 
-    public partial class SqlServerSqlDatabaseContext
+	public partial class SqlServerSqlDatabaseContext
 		: SqlDatabaseContext
 	{
 		public string Username { get; }
@@ -47,7 +47,7 @@ namespace Shaolinq.SqlServer
 			var sqlDataTypeProvider = new SqlServerSqlDataTypeProvider(constraintDefaults);
 			var sqlDialect = new SqlServerSqlDialect(contextInfo);
 			var typeDescriptorProvider = model.TypeDescriptorProvider;
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, options => new SqlServerSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, options => new SqlServerSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo));
 
 			return new SqlServerSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -110,7 +110,7 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.InitialCatalog = this.DatabaseName;
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
 				connectionStringBuilder.Pooling = contextInfo.Pooling;
-                
+				
 				if (contextInfo.ConnectionTimeout != null)
 				{
 					connectionStringBuilder.ConnectTimeout = contextInfo.ConnectionTimeout.Value;
@@ -124,8 +124,8 @@ namespace Shaolinq.SqlServer
 			this.SchemaManager = new SqlServerSqlDatabaseSchemaManager(this);
 		}
 
-        protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, TransactionContext transactionContext)
-        {
+		protected override SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(IDbConnection connection, TransactionContext transactionContext)
+		{
 			return new SqlServerSqlTransactionsCommandContext(this, connection, transactionContext);
 		}
 

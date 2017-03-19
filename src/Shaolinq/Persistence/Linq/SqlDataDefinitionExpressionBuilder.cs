@@ -79,7 +79,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (defaultValueAttribute != null)
 				{
-					retval.Add(new SqlConstraintExpression(null, SqlSimpleConstraint.DefaultValue, null, null, Expression.Constant(defaultValueAttribute.Value)));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.DefaultValue, constraintName: GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(defaultValueAttribute.Value)));
 				}
 			}
 
@@ -153,7 +153,7 @@ namespace Shaolinq.Persistence.Linq
 						names, this.FixAction(foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 					);
 
-					newConstraints.Add(new SqlConstraintExpression(this.GetForeignKeyConstraintName(referencingProperty), referencesColumnExpression));
+					newConstraints.Add(new SqlConstraintExpression(referencesColumnExpression, this.GetForeignKeyConstraintName(referencingProperty)));
 
 					retval = new SqlColumnDefinitionExpression(retval.ColumnName, retval.ColumnType, newConstraints);
 				}
@@ -173,10 +173,23 @@ namespace Shaolinq.Persistence.Linq
 					referencedTableColumnNames, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
 				
-				var foreignKeyConstraint = new SqlConstraintExpression(GetForeignKeyConstraintName(referencingProperty), referencesExpression, currentTableColumnNames);
+				var foreignKeyConstraint = new SqlConstraintExpression(referencesExpression, GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames);
 
 				this.currentTableConstraints.Add(foreignKeyConstraint);
 			}
+		}
+
+		protected string GetDefaultValueConstraintName(PropertyDescriptor propertyDescriptor)
+		{
+			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultDefaultValueConstraintName, propertyDescriptor);
+			var namingTransformsConfiguration = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
+
+			if (namingTransformsConfiguration?.DefaultValueConstraintName == null)
+			{
+				return defaultName;
+			}
+
+			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.DefaultValueConstraintName);
 		}
 
 		protected string GetForeignKeyConstraintName(PropertyDescriptor propertyDescriptor)
@@ -192,6 +205,18 @@ namespace Shaolinq.Persistence.Linq
 			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.ForeignKeyConstraintName);
 		}
 
+		protected string GetPrimaryKeyConstraintName(TypeDescriptor declaringTypeDescriptor, PropertyDescriptor[] primaryKeys)
+		{
+			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultPrimaryKeyConstraintName, primaryKeys);
+			var namingTransformsConfiguration = declaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
+
+			if (namingTransformsConfiguration?.PrimaryKeyConstraintName == null)
+			{
+				return defaultName;
+			}
+
+			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.PrimaryKeyConstraintName);
+		}
 
 		private SqlColumnDefinitionExpression BuildColumnDefinition(ColumnInfo columnInfo)
 		{
@@ -269,9 +294,8 @@ namespace Shaolinq.Persistence.Linq
 
 			if (primaryKeys.Length > 0)
 			{
-				var columnNames = primaryKeys.Select(c => c.ColumnName).ToReadOnlyCollection();
-
-				var compositePrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames);
+				var columnNames = primaryKeys.Select(c => c.ColumnName);
+				var compositePrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames, GetPrimaryKeyConstraintName(typeDescriptor, typeDescriptor.PrimaryKeyProperties.ToArray()));
 
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}

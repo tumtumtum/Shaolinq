@@ -43,68 +43,16 @@ namespace Shaolinq.Persistence
 			return this.CreateQueryFormatter(options).Format(expression);
 		}
 		
-		public virtual string Format(string commandText, Func<string, FormatParamValue> paramNameToValue)
+		public virtual string SubstitutedParameterValues(string commandText, Func<string, Func<object, string>, string> paramNameToString)
 		{
 			if (this.formatCommandRegex == null)
 			{
-				this.formatCommandRegex = new Regex($@"\{this.parameterPrefix}{Sql92QueryFormatter.ParamNamePrefix}[0-9]+", RegexOptions.Compiled);
+				this.formatCommandRegex = new Regex($@"\{this.parameterPrefix}{SqlQueryFormatter.ParamNamePrefix}[0-9]+", RegexOptions.Compiled);
 			}
+
+			var formatter = this.CreateQueryFormatter();
 			
-			return this.formatCommandRegex.Replace(commandText, match =>
-			{
-				var result = paramNameToValue(match.Value);
-				var value = result.Value;
-				var autoQuote = result.AutoQuote;
-
-				if (value == null || value == DBNull.Value)
-				{
-					return this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null);
-				}
-
-				if (!autoQuote)
-				{
-					return Convert.ToString(value);
-				}
-
-				var type = value.GetType();
-
-				type = Nullable.GetUnderlyingType(type) ?? type;
-
-				if (type == typeof(string) || type.IsEnum)
-				{
-					var str = value.ToString();
-
-					if (str.Contains(this.stringQuote))
-					{
-						return this.stringQuote + str.Replace(this.stringQuote, this.stringEscape + this.stringQuote) + this.stringQuote;
-					}
-
-					return this.stringQuote + str + this.stringQuote;
-				}
-
-				if (type == typeof(Guid))
-				{
-					var guidValue = (Guid)value;
-
-					return this.stringQuote + guidValue.ToString("D") + this.stringQuote;
-				}
-
-				if (type == typeof(TimeSpan))
-				{
-					var timespanValue = (TimeSpan)value;
-
-					return this.stringQuote + timespanValue + this.stringQuote;
-				}
-
-				if (type == typeof(DateTime))
-				{
-					var dateTime = ((DateTime)value).ToUniversalTime();
-
-					return this.stringQuote + dateTime.ToString("yyyy-MM-dd HH:mm:ss.fffff") + this.stringQuote;
-				}
-
-				return Convert.ToString(value);
-			});
-		}
+			return this.formatCommandRegex.Replace(commandText, match => paramNameToString(match.Value, c => formatter.FormatConstant(c)));
+		}	
 	}
 }

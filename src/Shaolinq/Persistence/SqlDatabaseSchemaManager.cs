@@ -62,7 +62,7 @@ namespace Shaolinq.Persistence
 				{
 					using (this.SqlDatabaseContext.AcquireDisabledForeignKeyCheckContext(dataTransactionContext))
 					{
-						var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions);
+						var result = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(dataDefinitionExpressions, SqlQueryFormatterOptions.Default | SqlQueryFormatterOptions.EvaluateConstants);
 
 						using (var command = dataTransactionContext.CreateCommand(SqlCreateCommandOptions.Default | SqlCreateCommandOptions.UnpreparedExecute))
 						{

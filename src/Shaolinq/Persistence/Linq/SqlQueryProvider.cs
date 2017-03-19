@@ -62,23 +62,27 @@ namespace Shaolinq.Persistence.Linq
 			var projectionExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
-			return GetQueryText(formatResult);
+			return this.GetQueryText(formatResult);
 		}
 
-		internal FormatParamValue GetParamName(int index)
-		{
-			return new FormatParamValue(paramPrefix + "PARAM" + index, false);
-		}
+		internal string GetParamName(int index) => SqlQueryFormatter.ParamNamePrefix + index;
 
-		internal string GetQueryText(SqlQueryFormatResult formatResult, Func<int, FormatParamValue> paramSelector = null)
+		internal string GetQueryText(SqlQueryFormatResult formatResult, Func<int, string> toString = null)
 		{
-			var sql = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(formatResult.CommandText, c =>
+			var formatManager = this.SqlDatabaseContext.SqlQueryFormatterManager;
+
+			var sql = formatManager.SubstitutedParameterValues(formatResult.CommandText, (parameterName, formatConstant) =>
 			{
-				var index = c.IndexOf(char.IsDigit);
-
-				index = int.Parse(c.Substring(index));
-
-				return paramSelector?.Invoke(index) ?? new FormatParamValue(formatResult.ParameterValues[index].Value, true);
+				var index = 0;
+				var start = parameterName.IndexOf(char.IsDigit);
+				
+				for (var i = start; i < parameterName.Length; i++)
+				{
+					index *= 10;
+					index = parameterName[i] - '0';
+				}
+				
+				return toString?.Invoke(index) ?? formatConstant(formatResult.ParameterValues[index].Value);
 			});
 
 			return sql;
