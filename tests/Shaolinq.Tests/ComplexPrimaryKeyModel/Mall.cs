@@ -2,14 +2,20 @@
 
 using System;
 using System.Linq;
+using Platform;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
+	public interface IAddressed
+	{
+		Address Address { get; set; }
+	}
+
 	[DataAccessObject]
 	public class Mall
-		: DataAccessObject<Guid>
+		: DataAccessObject<Guid>, IAddressed
 	{
 		[PersistedMember]
 		public virtual string Name { get; set; }

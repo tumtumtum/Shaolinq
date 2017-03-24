@@ -22,6 +22,77 @@ namespace Shaolinq.Tests
 	{
 		private long shopId;
 		
+		public class SelectorTesterClass<T>
+			where T : IAddressed
+		{
+			private readonly Func<IQueryable<T>> queryable;
+
+			public SelectorTesterClass(Func<IQueryable<T>> queryable)
+			{
+				this.queryable = queryable;
+			}
+
+			public IQueryable<T> Query1()
+			{
+				// Roslyn turns this into Expression.Member(c, methodof(IAddressed.Address))
+				// Instead of Expression.Member(c, methodof(T.Address))
+
+				return this.queryable().Include(c => c.Address);
+			}
+
+			public IQueryable<T> Query2()
+			{
+				// Roslyn turns this into Expression.Member(c, methodof(IAddressed.Address))
+				// Instead of Expression.Member(c, methodof(T.Address))
+
+				return (this.queryable()).Where(c => c.Address.Number == 0);
+			}
+
+			public IQueryable<T> Query3()
+			{
+				// Roslyn turns this into Expression.Member(c, methodof(IAddressed.Address))
+				// Instead of Expression.Member(c, methodof(T.Address))
+
+				return (this.queryable()).Select(c => c.Include(d => d.Address));
+			}
+		}
+
+		[Test]
+		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics1()
+		{
+			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
+
+			tester.Query1();
+
+			var s = tester.Query1().ToString();
+
+			Assert.IsTrue(s.Contains("JOIN"));
+		}
+
+		[Test]
+		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics2()
+		{
+			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
+
+			tester.Query1();
+
+			var s = tester.Query2().ToString();
+
+			Assert.IsTrue(s.Contains("JOIN"));
+		}
+
+		[Test]
+		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics3()
+		{
+			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
+
+			tester.Query1();
+
+			var s = tester.Query3().ToString();
+
+			Assert.IsTrue(s.Contains("JOIN"));
+		}
+		
 		public ComplexPrimaryKeyTests(string providerName)
 			: base(providerName)
 		{
