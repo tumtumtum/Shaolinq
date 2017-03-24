@@ -159,10 +159,14 @@ namespace Shaolinq.Persistence.Linq
 
 					var memberExpressionExpression = memberExpression.Expression.StripForIncludeScanning();
 
-					if (memberExpressionExpression.NodeType == ExpressionType.Parameter
-							&& memberExpression.Member.DeclaringType != memberExpressionExpression.Type)
+					if (memberExpressionExpression.NodeType == ExpressionType.Parameter && !memberExpression.Member.DeclaringType.IsDataAccessObjectType())
 					{
-						return Expression.MakeMemberAccess(memberExpressionExpression, memberExpressionExpression.Type.GetMember(memberExpression.Member.Name)[0]);
+						var member = memberExpressionExpression.Type.GetMember(memberExpression.Member.Name)[0];
+
+						if (member != memberExpression.Member)
+						{
+							return Expression.MakeMemberAccess(memberExpressionExpression, member);
+						}
 					}
 
 					return null;
