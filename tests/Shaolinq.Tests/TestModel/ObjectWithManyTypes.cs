@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.TestModel
 {
@@ -11,46 +12,46 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract string String { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue("00000000-0000-0000-0000-000000000000")]
 		public abstract Guid Guid { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract short Short { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract int Int { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract long Long { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract ushort UShort { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract uint UInt { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract ulong ULong { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract decimal Decimal { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract float Float { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract double Double { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(false)]
 		public abstract bool Bool { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue("0001-01-01 00:00")]
 		public abstract DateTime DateTime { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue("00:00")]
 		public abstract TimeSpan TimeSpan { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(Sex.Male)]
 		public abstract Sex Enum { get; set; }
 
 		[PersistedMember]
