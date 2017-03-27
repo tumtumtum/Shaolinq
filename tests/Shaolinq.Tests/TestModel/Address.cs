@@ -1,4 +1,7 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Validation;
+
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
@@ -8,7 +11,7 @@ namespace Shaolinq.Tests.TestModel
 		[AutoIncrement(Seed = 70000, Step = 1)]
 		public abstract override long Id { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract int Number { get; set; }
 
 		[PersistedMember]

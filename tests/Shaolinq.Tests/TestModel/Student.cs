@@ -9,10 +9,10 @@ namespace Shaolinq.Tests.TestModel
 	public abstract class Student
 		: Person, IComparable<Student>
 	{
-		[PersistedMember]
+		[PersistedMember, DefaultValue(Sex.Female)]
 		public abstract Sex Sex { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(false)]
 		public abstract bool Overseas { get; set; }
 
 		[PersistedMember]

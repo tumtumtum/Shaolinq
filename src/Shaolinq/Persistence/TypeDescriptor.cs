@@ -23,7 +23,7 @@ namespace Shaolinq.Persistence
 		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyDerivableProperties { get; }
-
+		
 		public string TypeName => this.Type.Name;
 		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
 		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;

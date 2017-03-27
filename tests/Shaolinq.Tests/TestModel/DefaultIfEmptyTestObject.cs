@@ -1,4 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Validation;
+
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
@@ -9,6 +12,7 @@ namespace Shaolinq.Tests.TestModel
 		public abstract string Text { get; set; }
 
 		[PersistedMember]
+		[DefaultValue(0)]
 		public abstract int Integer { get; set; }
 
 		[PersistedMember]

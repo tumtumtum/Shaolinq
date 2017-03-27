@@ -11,6 +11,18 @@ namespace Shaolinq.Tests.TestModel
 		[SizeConstraint(MaximumLength = 32)]
 		public abstract override string Id { get; set; }
 
+		[PersistedMember]
+		public abstract int Points { get; set; }
+
+		[PersistedMember, DefaultValue(0)]
+		public abstract int ExttraPoints1 { get; set; }
+
+		[PersistedMember, DefaultValue(10)]
+		public abstract int ExttraPoints2 { get; set; }
+
+		[PersistedMember]
+		public abstract int? MaximumClassSize { get; set; }
+
 		[BackReference]
 		public abstract Lecturer Lecturer { get; set; }
 

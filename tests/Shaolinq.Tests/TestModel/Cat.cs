@@ -1,4 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Validation;
+
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
@@ -15,7 +18,7 @@ namespace Shaolinq.Tests.TestModel
 
 		[Index("CompositeIndexOverObjectAndNonObject", CompositeOrder = 2)]
 		[Index(IndexName = "Index", SortOrder = SortOrder.Descending)]
-		[PersistedMember]
+		[PersistedMember, DefaultValue(9)]
 		public virtual int LivesRemaining { get; set; }
 
 		[Index("CompositeIndexOverObjectAndNonObject", CompositeOrder = 1)]

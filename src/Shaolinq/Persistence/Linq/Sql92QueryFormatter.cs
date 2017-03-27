@@ -64,7 +64,6 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		protected SqlQueryFormatterOptions options;
-		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
 		protected readonly TypeDescriptorProvider typeDescriptorProvider;
 
 		public IndentationContext AcquireIndentationContext()
@@ -73,11 +72,10 @@ namespace Shaolinq.Persistence.Linq
 		}
 		
 		public Sql92QueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default, SqlDialect sqlDialect = null, SqlDataTypeProvider sqlDataTypeProvider = null, TypeDescriptorProvider typeDescriptorProvider = null)
-			: base(sqlDialect, new StringWriter(new StringBuilder()))
+			: base(sqlDialect, new StringWriter(new StringBuilder()), sqlDataTypeProvider)
 		{
 			this.options = options;
 			this.typeDescriptorProvider = typeDescriptorProvider;
-			this.sqlDataTypeProvider = sqlDataTypeProvider ?? new DefaultSqlDataTypeProvider(new ConstraintDefaultsConfiguration());
 			this.stringQuote = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote);
 			this.identifierQuoteString = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.IdentifierQuote);
 		}
@@ -1386,6 +1384,12 @@ namespace Shaolinq.Persistence.Linq
 
 			if ((expression.ValueExpressions == null || expression.ValueExpressions.Count == 0) && expression.ValuesExpression == null)
 			{
+				if (this.sqlDialect.SupportsCapability(SqlCapability.InsertOutput))
+				{
+					this.WriteInsertIntoReturning(expression);
+					this.Write(" ");
+				}
+
 				this.WriteInsertDefaultValuesSuffix();
 			}
 			else

@@ -55,8 +55,9 @@ namespace Shaolinq.Persistence.Linq
 		protected TextWriter writer;
 		protected List<TypedValue> parameterValues;
 		internal int IndentationWidth { get; }
-		public string ParameterIndicatorPrefix { get; protected set; }
 		protected bool canReuse = true;
+		protected readonly SqlDataTypeProvider sqlDataTypeProvider;
+		public string ParameterIndicatorPrefix { get; protected set; }
 		protected List<Pair<int, int>> parameterIndexToPlaceholderIndexes;
 		
 		protected readonly SqlDialect sqlDialect;
@@ -89,10 +90,12 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlQueryFormatResult(this,null, this.parameterValues, this.canReuse ? this.parameterIndexToPlaceholderIndexes : null);
 		}
 
-		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer)
+		protected SqlQueryFormatter(SqlDialect sqlDialect, TextWriter writer, SqlDataTypeProvider sqlDataTypeProvider)
 		{
 			this.sqlDialect = sqlDialect ?? new SqlDialect();
 			this.writer = writer;
+			
+			this.sqlDataTypeProvider = sqlDataTypeProvider ?? new DefaultSqlDataTypeProvider(new ConstraintDefaultsConfiguration());
 			this.stringEscape = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringEscape);
 			this.stringQuote = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote);
 			this.ParameterIndicatorPrefix = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
@@ -106,7 +109,13 @@ namespace Shaolinq.Persistence.Linq
 				return this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null);
 			}
 
-			var type = value.GetType();
+			var dataTypeProvider = this.sqlDataTypeProvider.GetSqlDataType(value.GetType());
+
+			var sqlDaType = dataTypeProvider.ConvertForSql(value);
+
+			value = sqlDaType.Value;
+			var type = sqlDaType.Type;
+			
 
 			type = Nullable.GetUnderlyingType(type) ?? type;
 

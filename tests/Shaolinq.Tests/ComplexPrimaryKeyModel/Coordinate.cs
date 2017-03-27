@@ -1,4 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Validation;
+
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
@@ -8,10 +11,10 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public abstract string Label { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract double Longitude { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract double Magnitude { get; set; }
 	}
 }

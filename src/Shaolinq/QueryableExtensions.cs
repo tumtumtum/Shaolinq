@@ -15,14 +15,20 @@ namespace Shaolinq
 {
 	public static partial class QueryableExtensions
 	{
+		private static readonly MethodInfo ForUpdateMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).ForUpdate()).GetGenericMethodDefinition();
+		private static readonly MethodInfo InsertHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).InsertHelper(default(Expression<Action<string>>), default(bool))).GetGenericMethodDefinition();
+		private static readonly MethodInfo UpdateHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).UpdateHelper(default(Expression<Action<string>>), default(bool))).GetGenericMethodDefinition();
+		private static readonly MethodInfo IncludedItemsMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).IncludedItems()).GetGenericMethodDefinition();
+		private static readonly MethodInfo IncludeMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Include(default(Expression<Func<string, string>>))).GetGenericMethodDefinition();
+		
 		internal static IQueryable<T> InsertHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated, bool requiresIdentityInsert)
 		{
-			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
+			return source.Provider.CreateQuery<T>(Expression.Call(null, InsertHelperMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
 		}
 
 		internal static IQueryable<T> UpdateHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated, bool requiresIdentityInsert)
 		{
-			return source.Provider.CreateQuery<T>(Expression.Call(null,((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
+			return source.Provider.CreateQuery<T>(Expression.Call(null, UpdateHelperMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]
@@ -554,20 +560,20 @@ namespace Shaolinq
 
 		public static IQueryable<T> ForUpdate<T>(this IQueryable<T> source)
 		{
-			return source.Provider.CreateQuery<T>(Expression.Call(null, ((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression));
+			return source.Provider.CreateQuery<T>(Expression.Call(null, ForUpdateMethod.MakeGenericMethod(typeof(T)), source.Expression));
 		}
 		
 		public static T IncludedItems<T>(this IQueryable<T> source)
 			where T : DataAccessObject
 		{
-			Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)), source.Expression);
+			Expression expression = Expression.Call(IncludedItemsMethod.MakeGenericMethod(typeof(T)), source.Expression);
 
 			return source.Provider.Execute<T>(expression);
 		}
 
 		public static IQueryable<T> Include<T, U>(this IQueryable<T> source, Expression<Func<T, U>> include)
 		{
-			Expression expression = Expression.Call(((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T), typeof(U)), new[] { source.Expression, Expression.Quote(include) });
+			Expression expression = Expression.Call(IncludeMethod.MakeGenericMethod(typeof(T), typeof(U)), new[] { source.Expression, Expression.Quote(include) });
 
 			return source.Provider.CreateQuery<T>(expression);
 		}

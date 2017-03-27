@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
@@ -8,7 +9,7 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 	public abstract class Child
 		: DataAccessObject<Guid>
 	{
-		[PersistedMember]
+		[PersistedMember, DefaultValue(true)]
 		public abstract bool Good { get; set; }
 
 		[PersistedMember]

@@ -75,11 +75,9 @@ namespace Shaolinq.Persistence.Linq
 					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.Unique));
 				}
 				
-				var defaultValueAttribute = propertyDescriptor.DefaultValueAttribute;
-
-				if (defaultValueAttribute != null)
+				if (propertyDescriptor.DefaultValueAttribute != null)
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.DefaultValue, constraintName: this.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(defaultValueAttribute.Value)));
+					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.DefaultValue, constraintName: this.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
 				}
 			}
 

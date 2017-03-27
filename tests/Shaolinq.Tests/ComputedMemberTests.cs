@@ -30,9 +30,12 @@ namespace Shaolinq.Tests
 			
 			using (var scope = this.NewTransactionScope())
 			{
+				var cat0 = this.model.Cats.Create();
+		
 				cat = this.model.Cats.Create();
-
+		
 				scope.Flush();
+				Assert.AreEqual(cat0.Id + 1, cat.Id);
 
 				id = cat.Id;
 

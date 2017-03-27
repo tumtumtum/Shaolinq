@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
@@ -21,7 +22,7 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[BackReference]
 		public abstract Mall Mall3 { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue("0001-01-01 00:00:00")]
 		public abstract DateTime OpeningDate { get; set; }
 
 		[PersistedMember]
@@ -29,8 +30,8 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		[PersistedMember]
 		public abstract string Name { get; set; }
-
-		[PersistedMember]
+		
+		[PersistedMember, DefaultValue(ShopType.Unknown)]
 		public abstract ShopType ShopType { get; set; }
 
 		[PersistedMember]

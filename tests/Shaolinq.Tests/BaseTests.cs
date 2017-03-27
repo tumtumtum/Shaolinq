@@ -39,13 +39,13 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
 		{
-		    var host = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER") ?? ".\\SQLEXPRESS";
+			var host = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER") ?? ".\\SQLEXPRESS";
 
-            var retval = SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
+			var retval = SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
 
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
-		    return retval;
+			return retval;
 		}
 
 		protected DataAccessModelConfiguration CreateMySqlConfiguration(string databaseName)

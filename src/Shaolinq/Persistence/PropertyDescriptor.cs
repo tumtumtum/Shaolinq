@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,6 +10,7 @@ using Platform;
 using Platform.Reflection;
 using Platform.Validation;
 using Shaolinq.Persistence.Linq;
+using DefaultValueAttribute = Platform.Validation.DefaultValueAttribute;
 
 namespace Shaolinq.Persistence
 {
@@ -36,6 +38,7 @@ namespace Shaolinq.Persistence
 		public ComputedMemberAttribute ComputedMemberAttribute { get; }
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; }
+		public object DefaultValue { get; }
 		public string PropertyName => this.PropertyInfo.Name;
 		public Type PropertyType => this.PropertyInfo?.PropertyType;
 		public bool HasUniqueAttribute => this.UniqueAttribute != null;
@@ -67,6 +70,29 @@ namespace Shaolinq.Persistence
 			this.ComputedMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedMemberAttribute>(true);
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 			this.ForeignObjectConstraintAttribute = propertyInfo.GetFirstCustomAttribute<ForeignObjectConstraintAttribute>(true);
+
+			if (this.DefaultValueAttribute != null)
+			{
+				this.DefaultValue = this.DefaultValueAttribute.Value;
+
+				try
+				{
+					try
+					{
+						this.DefaultValue = Convert.ChangeType(this.DefaultValue, this.PropertyType);
+					}
+					catch (InvalidCastException)
+					{
+						var converter = System.ComponentModel.TypeDescriptor.GetConverter(this.PropertyType);
+
+						this.DefaultValue = converter.ConvertFrom(this.DefaultValue);
+					}
+				}
+				catch (InvalidCastException)
+				{
+					throw new InvalidDataAccessObjectModelDefinition($"The property '{propertyInfo.DeclaringType.Name}.{this.PropertyName}' has an incompatible default value");
+				}
+			}
 
 			if (this.PersistedMemberAttribute == null)
 			{

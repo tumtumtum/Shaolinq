@@ -22,19 +22,19 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract string Nickname { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract double Height { get; set; }
 
 		[PersistedMember]
 		public abstract double? Weight { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract decimal BankBalance { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public abstract int FavouriteNumber { get; set; }
 		
-		[ComputedMember("Height + (Weight ?? 0)")]
+		[ComputedMember("Height + (Weight ?? 0)"), DefaultValue(0)]
 		public abstract long HeightAndWeight { get; set; }
 		
 		[ComputedMember("CalculateHeightAndWeight()")]
@@ -53,7 +53,7 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract DateTime? Birthdate { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue("00:00")]
 		public abstract TimeSpan TimeSinceLastSlept { get; set; }
 
 		[DependsOnProperty(nameof(Id))]

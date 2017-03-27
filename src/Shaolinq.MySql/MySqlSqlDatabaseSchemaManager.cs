@@ -14,8 +14,8 @@ namespace Shaolinq.MySql
 		{
 		}
 
-        [RewriteAsync]
-        protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		[RewriteAsync]
+		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			var retval = false;
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
@@ -54,22 +54,22 @@ namespace Shaolinq.MySql
 						if (drop)
 						{
 							command.CommandText = $"DROP DATABASE {this.SqlDatabaseContext.DatabaseName}";
-                            command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
-                        }
+							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+						}
 
 						command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
-                        command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-                        retval = true;
+						retval = true;
 					}
 					else
 					{
 						try
 						{
 							command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
-                            command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-                            retval = true;
+							retval = true;
 						}
 						catch
 						{

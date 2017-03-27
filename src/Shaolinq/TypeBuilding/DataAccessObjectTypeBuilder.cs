@@ -324,32 +324,6 @@ namespace Shaolinq.TypeBuilding
 						constructorGenerator.Emit(OpCodes.Ldloc, guidLocal);
 						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
 					}
-					else if (propertyDescriptor.PropertyType.IsValueType 
-						&& Nullable.GetUnderlyingType(propertyDescriptor.PropertyType) == null 
-						&& !propertyDescriptor.IsPrimaryKey
-						&& !propertyDescriptor.IsAutoIncrement
-						&& !propertyDescriptor.IsComputedMember)
-					{
-						constructorGenerator.Emit(OpCodes.Ldarg_0);
-						constructorGenerator.EmitDefaultValue(propertyDescriptor.PropertyType);
-						constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
-					}
-					else if (propertyDescriptor.PropertyType == typeof(string)
-						&& !propertyDescriptor.IsComputedMember
-						&& !propertyDescriptor.IsComputedTextMember)
-					{
-						constructorGenerator.Emit(OpCodes.Ldarg_0);
-						constructorGenerator.Emit(OpCodes.Ldnull);
-
-						if (this.propertyBuilders.ContainsKey(ForceSetPrefix + propertyDescriptor.PropertyName))
-						{
-							constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[ForceSetPrefix + propertyDescriptor.PropertyName].GetSetMethod());
-						}
-						else
-						{
-							constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
-						}
-					}
 				}
 
 				constructorGenerator.MarkLabel(skipSetDefault);

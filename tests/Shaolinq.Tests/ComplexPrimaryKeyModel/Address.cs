@@ -1,4 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Validation;
+
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
@@ -12,7 +15,7 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public virtual Region Region2 { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue(0)]
 		public virtual int Number { get; set; }
 
 		[Index]
