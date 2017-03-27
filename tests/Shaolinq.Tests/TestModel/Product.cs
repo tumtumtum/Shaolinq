@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using Platform.Validation;
 
 namespace Shaolinq.Tests.TestModel
 {
@@ -14,7 +15,7 @@ namespace Shaolinq.Tests.TestModel
 		[PersistedMember]
 		public abstract double Price { get; set; }
 
-		[PersistedMember]
+		[PersistedMember, DefaultValue("00:00")]
 		public abstract TimeSpan ShelfLife { get; set; }
 	}
 }
