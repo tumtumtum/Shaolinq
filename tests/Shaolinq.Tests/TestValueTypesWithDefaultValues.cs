@@ -55,17 +55,19 @@ namespace Shaolinq.Tests
 				paper.Id = "COSC-110";
 				paper.Points = 100;
 
-				bool predicated;
-				Console.WriteLine(string.Join(",", paper.ToObjectInternal().GetChangedPropertiesFlattened(out predicated).Select(c => c.PropertyName)));
 				Assert.That(paper.GetAdvanced().GetChangedProperties().Count, Is.EqualTo(3));
-				
+
+				paper.ExtraPoints2 = 10;
+
+				Assert.That(paper.GetAdvanced().GetChangedProperties().Count, Is.EqualTo(4));
+
 				scope.Flush();
-				
+
 				var paper2 = this.model.Papers.FirstOrDefault(c => c.Points == 100);
 
 				Assert.AreEqual(paper.Id, paper2.Id);
-				Assert.AreEqual(0, paper.ExttraPoints1);
-				Assert.AreEqual(10, paper.ExttraPoints2);
+				Assert.AreEqual(0, paper.ExtraPoints1);
+				Assert.AreEqual(10, paper.ExtraPoints2);
 
 				scope.Complete();
 			}

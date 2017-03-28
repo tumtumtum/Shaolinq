@@ -15,10 +15,10 @@ namespace Shaolinq.Tests.TestModel
 		public abstract int Points { get; set; }
 
 		[PersistedMember, DefaultValue(0)]
-		public abstract int ExttraPoints1 { get; set; }
+		public abstract int ExtraPoints1 { get; set; }
 
 		[PersistedMember, DefaultValue(10)]
-		public abstract int ExttraPoints2 { get; set; }
+		public abstract int ExtraPoints2 { get; set; }
 
 		[PersistedMember]
 		public abstract int? MaximumClassSize { get; set; }
