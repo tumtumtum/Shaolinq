@@ -22,10 +22,11 @@ namespace Shaolinq.TypeBuilding
 		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
 		bool EqualsAccountForServerGenerated(object dataAccessObject);
 		bool ComputeServerGeneratedIdDependentComputedTextProperties();
+		bool ComputeNonServerGeneratedIdDependentComputedTextProperties();
 		ObjectPropertyValue[] GetPrimaryKeysFlattened(out bool predicated);
 		void SwapData(DataAccessObject source, bool transferChangedProperties);
 		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened(out bool predicated);
 		List<ObjectPropertyValue> GetChangedPropertiesFlattened(out bool predicated);
 		bool ValidateServerSideGeneratedIds();
 	}
-}
+}	

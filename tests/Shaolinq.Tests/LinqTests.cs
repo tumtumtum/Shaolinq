@@ -94,10 +94,9 @@ namespace Shaolinq.Tests
 				school.Name = "Brandon's Kung Fu School";
 
 				var chuck1 = school.Students.Create();
-
-
+				
 				scope.Flush();
-
+				
 				var address2 = this.model.Address.Create();
 				address2.Number = 1799;
 				address2.Street = "Fake Street";
@@ -1517,29 +1516,50 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Check_Has_Changed2()
 		{
+			var studentId = Guid.Empty;
+
 			using (var scope = this.NewTransactionScope())
 			{
-				var student = this.model.Students.First();
+				var student = this.model.Schools.SingleOrDefault(c => c.Name == "Bruce's Kung Fu School").Students.Create();
 
-				Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
+				scope.Flush();
 
-				student.Sex = student.Sex;	
-				student.School = student.School;
-				student.Fraternity = student.Fraternity;
-				student.BestFriend = student.BestFriend;
-				student.Address = student.Address;
+				studentId = student.Id;
 
-				student.Firstname = student.Firstname;
-				student.Email = student.Email;
-				student.Lastname = student.Lastname;
-				student.Nickname = student.Nickname;
-				student.Height = student.Height;
-				student.Weight = student.Weight;
-				student.FavouriteNumber = student.FavouriteNumber;
-				student.Birthdate = student.Birthdate;
+				scope.Complete();
+			}
 
-				Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
-				Assert.IsFalse(((IDataAccessObjectAdvanced)student).HasObjectChanged);
+			using (var scope = this.NewTransactionScope())
+			{
+				foreach (var student in this.model.Students.OrderBy(c => c.Firstname))
+				{
+					Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
+
+					student.Sex = student.Sex;
+					student.School = student.School;
+					student.Fraternity = student.Fraternity;
+					student.BestFriend = student.BestFriend;
+					student.Address = student.Address;
+
+					student.Firstname = student.Firstname;
+					student.Email = student.Email;
+					student.Lastname = student.Lastname;
+					student.Nickname = student.Nickname;
+					student.Height = student.Height;
+					student.Weight = student.Weight;
+					student.FavouriteNumber = student.FavouriteNumber;
+					student.Birthdate = student.Birthdate;
+
+					Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
+					Assert.IsFalse(((IDataAccessObjectAdvanced)student).HasObjectChanged);
+				}
+			}
+
+			using (var scope = this.NewTransactionScope())
+			{
+				this.model.Students.Delete(c => c.Id == studentId);
+
+				scope.Complete();
 			}
 		}
 

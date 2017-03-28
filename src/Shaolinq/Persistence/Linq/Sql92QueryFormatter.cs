@@ -1406,8 +1406,7 @@ namespace Shaolinq.Persistence.Linq
 					this.WriteInsertIntoReturning(expression);
 					this.Write(" ");
 				}
-
-
+				
 				if (expression.ValuesExpression != null)
 				{
 					this.Visit(expression.ValuesExpression);
