@@ -7,7 +7,15 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
+	[TestFixture("MySql:DataAccessScope")]
+	[TestFixture("Postgres:DataAccessScope")]
+	[TestFixture("Postgres.DotConnect:DataAccessScope")]
+	[TestFixture("Postgres.DotConnect.Unprepared:DataAccessScope")]
 	[TestFixture("Sqlite")]
+	[TestFixture("Sqlite:DataAccessScope")]
+	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
+	[TestFixture("SqliteInMemory:DataAccessScope")]
+	[TestFixture("SqliteClassicInMemory:DataAccessScope")]
 	public class TestValueTypesWithDefaultValues
 		: BaseTests<TestDataAccessModel>
 	{
@@ -27,7 +35,8 @@ namespace Shaolinq.Tests
 					var paper = lecturer.Papers.Create();
 
 					paper.Id = "COSC-230";
-					
+					Assert.That(paper.GetAdvanced().GetChangedProperties().Count, Is.EqualTo(2));
+
 					scope.Flush();
 
 					scope.Complete();
@@ -43,7 +52,7 @@ namespace Shaolinq.Tests
 				var lecturer = this.model.Lecturers.Create();
 				var paper = lecturer.Papers.Create();
 
-				paper.Id = "COSC-110_" + nameof(Test_Points_Not_MissingPropertyValue);
+				paper.Id = "COSC-110";
 				paper.Points = 100;
 
 				bool predicated;
