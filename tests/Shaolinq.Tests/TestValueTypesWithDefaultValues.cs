@@ -27,7 +27,7 @@ namespace Shaolinq.Tests
 					var paper = lecturer.Papers.Create();
 
 					paper.Id = "COSC-230";
-
+					
 					scope.Flush();
 
 					scope.Complete();
@@ -46,8 +46,12 @@ namespace Shaolinq.Tests
 				paper.Id = "COSC-110_" + nameof(Test_Points_Not_MissingPropertyValue);
 				paper.Points = 100;
 
+				bool predicated;
+				Console.WriteLine(string.Join(",", paper.ToObjectInternal().GetChangedPropertiesFlattened(out predicated).Select(c => c.PropertyName)));
+				Assert.That(paper.GetAdvanced().GetChangedProperties().Count, Is.EqualTo(3));
+				
 				scope.Flush();
-
+				
 				var paper2 = this.model.Papers.FirstOrDefault(c => c.Points == 100);
 
 				Assert.AreEqual(paper.Id, paper2.Id);

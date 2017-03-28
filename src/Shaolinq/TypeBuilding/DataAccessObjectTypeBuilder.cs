@@ -314,6 +314,16 @@ namespace Shaolinq.TypeBuilding
 					constructorGenerator.Emit(OpCodes.Ldarg_0);
 					this.EmitValue(constructorGenerator, propertyDescriptor.PropertyType, propertyDescriptor.DefaultValue);
 					constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
+
+					constructorGenerator.Emit(OpCodes.Ldarg_0);
+					constructorGenerator.Emit(OpCodes.Ldfld, this.dataObjectField);
+					constructorGenerator.Emit(OpCodes.Ldc_I4_0);
+					constructorGenerator.Emit(OpCodes.Stfld, this.valueChangedFields[propertyDescriptor.PropertyName]);
+
+					constructorGenerator.Emit(OpCodes.Ldarg_0);
+					constructorGenerator.Emit(OpCodes.Ldfld, this.dataObjectField);
+					constructorGenerator.Emit(OpCodes.Ldc_I4_0);
+					constructorGenerator.Emit(OpCodes.Stfld, this.valueIsSetFields[propertyDescriptor.PropertyName]);
 				}
 
 				foreach (var propertyDescriptor in this
@@ -2711,15 +2721,9 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 				generator.Emit(OpCodes.Ldfld, valueChangedField);
-				generator.Emit(OpCodes.Brtrue, label2);
 
-				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-				generator.Emit(OpCodes.Ldfld, this.partialObjectStateField);
-				generator.Emit(OpCodes.Ldc_I4, (int)DataAccessObjectState.New);
-				generator.Emit(OpCodes.And);
 				generator.Emit(OpCodes.Brfalse, label);
-
+				
 				generator.MarkLabel(label2);
 
 				this.EmitPropertyValue(generator, listLocal, propertyDescriptor.PropertyType, propertyDescriptor.PropertyName, propertyDescriptor.PersistedName, index++, () =>

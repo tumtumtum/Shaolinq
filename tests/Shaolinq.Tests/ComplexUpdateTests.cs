@@ -100,7 +100,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Incomplete_Complex_Primary_Key()
 		{
-			Assert.Catch<MissingOrInvalidPrimaryKeyException>(() =>
+			Assert.Throws<MissingOrInvalidPrimaryKeyException>(() =>
 			{
 				try
 				{
@@ -113,11 +113,10 @@ namespace Shaolinq.Tests
 						address.Region2 = null;
 
 						var changedProperties = address.GetChangedProperties();
-						var changedPropesrtiesFlattened = address.GetAdvanced().GetChangedPropertiesFlattened();
-
+					
 						Assert.IsTrue(address.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys);
 						Assert.IsFalse(address.GetAdvanced().PrimaryKeyIsCommitReady);
-						Assert.AreEqual(changedProperties.Count, address.GetAllProperties().Length);
+						Assert.AreEqual(2, changedProperties.Count);
 
 						scope.Complete();
 					}
