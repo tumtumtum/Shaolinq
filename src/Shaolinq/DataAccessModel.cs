@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
@@ -14,6 +15,8 @@ using Shaolinq.Analytics;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
+
+// ReSharper disable InconsistentlySynchronizedField
 
 namespace Shaolinq
 {
@@ -76,9 +79,46 @@ namespace Shaolinq
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>> inflateAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>();
 		private Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>();
+		internal readonly object hooksLock = new object();
+		internal IReadOnlyList<IDataAccessModelHook> hooks = null;
 
 		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
-		
+
+		public void AddHook(IDataAccessModelHook hook)
+		{
+			lock (this.hooksLock)
+			{
+				if (this.hooks?.Contains(hook) == true)
+				{
+					return;
+				}
+
+				if (this.hooks == null)
+				{
+					this.hooks = new ReadOnlyCollection<IDataAccessModelHook>(new List<IDataAccessModelHook> { hook });
+				}
+				else
+				{
+					this.hooks = new ReadOnlyCollection<IDataAccessModelHook>(new List<IDataAccessModelHook>(this.hooks) { hook });
+				}
+			}
+		}
+
+		public void RemoveHook(IDataAccessModelHook hook)
+		{
+			lock (this.hooksLock)
+			{
+				var newHooks = hooks?.Where(c => c != hook).ToList() ?? new List<IDataAccessModelHook> { hook };
+
+				if (newHooks.Count == this.hooks.Count)
+				{
+					return;
+				}
+
+				this.hooks = new ReadOnlyCollection<IDataAccessModelHook>(newHooks);
+			}
+		}
+
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
 			where T : DataAccessObject
 		{
@@ -253,7 +293,7 @@ namespace Shaolinq
 
 			if (configuration == null)
 			{
-				throw new InvalidOperationException("No configuration specified or declaredd");
+				throw new InvalidOperationException("No configuration specified or declared");
 			}
 
 			var buildInfo = CachingDataAccessModelAssemblyProvider.Default.GetDataAccessModelAssembly(dataAccessModelType, configuration);
@@ -347,15 +387,68 @@ namespace Shaolinq
 			{
 				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, false);
 
-				var internalDataAccessObject = retval.ToObjectInternal();
+				retval.ToObjectInternal()
+					.SetIsDeflatedReference(true)
+					.SetPrimaryKeys(objectPropertyAndValues)
+					.ResetModified()
+					.FinishedInitializing()
+					.SubmitToCache();
 
-				internalDataAccessObject.SetIsDeflatedReference(true);
-				internalDataAccessObject.SetPrimaryKeys(objectPropertyAndValues);
-				internalDataAccessObject.ResetModified();
-				internalDataAccessObject.FinishedInitializing();
-				internalDataAccessObject.SubmitToCache();
+				this.OnHookCreate(retval);
 
 				return retval;
+			}
+		}
+
+		internal void OnHookCreate(DataAccessObject obj)
+		{
+			var localHooks = this.hooks;
+
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					hook.Create(obj);
+				}
+			}
+		}
+
+		internal void OnHookRead(DataAccessObject obj)
+		{
+			var localHooks = this.hooks;
+
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					hook.Read(obj);
+				}
+			}
+		}
+
+		internal void OnHookBeforeSubmit(DataAccessModelHookSubmitContext context)
+		{
+			var localHooks = this.hooks;
+
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					hook.BeforeSubmit(context);
+				}
+			}
+		}
+
+		internal void OnHookAfterSubmit(DataAccessModelHookSubmitContext context)
+		{
+			var localHooks = this.hooks;
+
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					hook.AfterSubmit(context);
+				}
 			}
 		}
 
@@ -377,13 +470,15 @@ namespace Shaolinq
 			{
 				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, false);
 
-				var internalDataAccessObject = retval.ToObjectInternal();
+				retval
+					.ToObjectInternal()
+					.SetIsDeflatedReference(true)
+					.SetDeflatedPredicate(predicate)
+					.ResetModified()
+					.FinishedInitializing()
+					.SubmitToCache();
 
-				internalDataAccessObject.SetIsDeflatedReference(true);
-				internalDataAccessObject.SetDeflatedPredicate(predicate);
-				internalDataAccessObject.ResetModified();
-				internalDataAccessObject.FinishedInitializing();
-				internalDataAccessObject.SubmitToCache();
+				this.OnHookCreate(retval);
 
 				return retval;
 			}
@@ -587,18 +682,23 @@ namespace Shaolinq
 		public virtual DataAccessObject CreateDataAccessObject(Type type)
 		{
 			var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, true);
+			var retvalInternal = retval.ToObjectInternal();
 
-			retval.ToObjectInternal().FinishedInitializing().SubmitToCache();
+			retvalInternal
+				.FinishedInitializing()
+				.SubmitToCache();
+
+			this.OnHookCreate(retval);
 
 			return retval;
 		}
 
-		public virtual IDataAccessObjectAdvanced CreateDataAccessObject<K>(Type type, K primaryKey)
+		public virtual DataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey)
 		{
 			return this.CreateDataAccessObject(type, primaryKey, PrimaryKeyType.Auto);
 		}
 
-		public virtual IDataAccessObjectAdvanced CreateDataAccessObject<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
+		public virtual DataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
 		{
 			if (!typeof(IDataAccessObjectAdvanced).IsAssignableFrom(type)
 				|| !typeof(DataAccessObject<>).IsAssignableFromIgnoreGenericParameters(type))
@@ -627,9 +727,12 @@ namespace Shaolinq
 			{
 				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject(type, this, true);
 
-				retval.ToObjectInternal().SetPrimaryKeys(objectPropertyAndValues);
-				retval.ToObjectInternal().FinishedInitializing();
-				retval.ToObjectInternal().SubmitToCache();
+				retval.ToObjectInternal()
+					.SetPrimaryKeys(objectPropertyAndValues)
+					.FinishedInitializing()
+					.SubmitToCache();
+
+				this.OnHookCreate(retval);
 
 				return retval;
 			}
@@ -639,9 +742,10 @@ namespace Shaolinq
 			where T : DataAccessObject
 		{
 			var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject<T>(this, true);
+			var retvalInternal = retval.ToObjectInternal();
 
-			retval.ToObjectInternal().FinishedInitializing();
-			retval.ToObjectInternal().SubmitToCache();
+			retvalInternal.FinishedInitializing();
+			retvalInternal.SubmitToCache();
 
 			return retval;
 		}
@@ -676,9 +780,10 @@ namespace Shaolinq
 			{
 				var retval = this.RuntimeDataAccessModelInfo.CreateDataAccessObject<T>(this, true);
 
-				retval.ToObjectInternal().SetPrimaryKeys(objectPropertyAndValues);
-				retval.ToObjectInternal().FinishedInitializing();
-				retval.ToObjectInternal().SubmitToCache();
+				retval.ToObjectInternal()
+					.SetPrimaryKeys(objectPropertyAndValues)
+					.FinishedInitializing()
+					.SubmitToCache();
 
 				return retval;
 			}

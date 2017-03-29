@@ -545,7 +545,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Stfld, this.predicateField);
-
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -1499,6 +1499,7 @@ namespace Shaolinq.TypeBuilding
 				i++;
 			}
 
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2051,6 +2052,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Stfld, this.isDeflatedReferenceField);
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ret);
 		}
 

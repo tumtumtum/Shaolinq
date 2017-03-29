@@ -270,20 +270,15 @@ namespace Shaolinq.Persistence
 
 			foreach (var updated in updatedProperties)
 			{
-				var value = updated.Value;
-				var placeholder = updated.Value as Expression;
-
-				if (placeholder == null)
-				{
-					placeholder = (Expression)new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(updated.Value, updated.PropertyType.CanBeNull() ? updated.PropertyType : updated.PropertyType.MakeNullable()));
-				}
+				var placeholder = updated.Value as Expression ?? new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(updated.Value, updated.PropertyType.CanBeNull() ? updated.PropertyType : updated.PropertyType.MakeNullable()));
 
 				if (placeholder.Type != updated.PropertyType)
 				{
 					placeholder = Expression.Convert(placeholder, updated.PropertyType);
 				}
 
-				var m = TypeUtils.GetMethod(() => default(DataAccessObject).SetColumnValue(default(string), default(int)))
+				var m = TypeUtils.GetMethod(() => default(DataAccessObject)
+					.SetColumnValue(default(string), default(int)))
 					.GetGenericMethodDefinition()
 					.MakeGenericMethod(typeDescriptor.Type, updated.PropertyType);
 

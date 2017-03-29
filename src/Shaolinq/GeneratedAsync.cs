@@ -2042,10 +2042,13 @@ namespace Shaolinq
 
 			try
 			{
+				var context = new DataAccessModelHookSubmitContext(this, forFlush);
+				this.DataAccessModel.OnHookBeforeSubmit(context);
 				this.isCommiting = true;
 				await this.CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
+				this.DataAccessModel.OnHookAfterSubmit(context);
 			}
 			finally
 			{
@@ -2265,6 +2268,7 @@ namespace Shaolinq
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;
 	using System.Collections.Generic;
+	using System.Collections.ObjectModel;
 	using Platform;
 	using Shaolinq.Analytics;
 	using Shaolinq.Persistence;

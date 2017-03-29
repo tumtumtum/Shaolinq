@@ -10,16 +10,16 @@ namespace Shaolinq.TypeBuilding
 		void SetIsNew(bool value);
 		void SetIsDeleted(bool value);
 		object CompositePrimaryKey { get; }
-		void SetIsDeflatedReference(bool value);
 		void MarkServerSidePropertiesAsApplied();
 		IDataAccessObjectInternal SubmitToCache();
 		IDataAccessObjectInternal ResetModified();
 		int GetHashCodeAccountForServerGenerated();
 		LambdaExpression DeflatedPredicate { get; }
 		IDataAccessObjectInternal FinishedInitializing();
-		void SetDeflatedPredicate(LambdaExpression value);
-		void SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
+		IDataAccessObjectInternal SetDeflatedPredicate(LambdaExpression value);
+		IDataAccessObjectInternal SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);
 		bool HasAnyChangedPrimaryKeyServerSideProperties { get; }
+		IDataAccessObjectInternal SetIsDeflatedReference(bool value);
 		bool EqualsAccountForServerGenerated(object dataAccessObject);
 		bool ComputeServerGeneratedIdDependentComputedTextProperties();
 		bool ComputeNonServerGeneratedIdDependentComputedTextProperties();

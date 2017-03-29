@@ -140,7 +140,7 @@ namespace Shaolinq
 
 		#region ObjectsByIdCache
 
-		private interface IObjectsByIdCache
+		internal interface IObjectsByIdCache
 		{
 			Type Type { get; }
 			void ProcessAfterCommit();
@@ -435,7 +435,7 @@ namespace Shaolinq
 
 		#endregion
 		
-		private readonly Dictionary<RuntimeTypeHandle, IObjectsByIdCache> cachesByType = new Dictionary<RuntimeTypeHandle, IObjectsByIdCache>();
+		internal readonly Dictionary<RuntimeTypeHandle, IObjectsByIdCache> cachesByType = new Dictionary<RuntimeTypeHandle, IObjectsByIdCache>();
 		
 		private bool isCommiting;
 		public DataAccessModel DataAccessModel { get; }
@@ -590,11 +590,17 @@ namespace Shaolinq
 			
 			try
 			{
-				this.isCommiting = true;
+				var context = new DataAccessModelHookSubmitContext(this, forFlush);
 
+				this.DataAccessModel.OnHookBeforeSubmit(context);
+
+				this.isCommiting = true;
+				
 				this.CommitNew(commandsContext);
 				this.CommitUpdated(commandsContext);
 				this.CommitDeleted(commandsContext);
+
+				this.DataAccessModel.OnHookAfterSubmit(context);
 			}
 			finally
 			{

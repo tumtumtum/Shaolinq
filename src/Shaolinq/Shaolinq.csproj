@@ -139,6 +139,7 @@
     <Compile Include="ConcurrencyException.cs" />
     <Compile Include="ConstraintDefaultsConfiguration.cs" />
     <Compile Include="DataAccessIsolationLevel.cs" />
+    <Compile Include="DataAccessModelHookSubmitContext.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DataAccessObjectHelpersInternal.cs" />
     <Compile Include="DataAccessScope.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="GeneratedSqlExpressionHasher.cs" />
     <Compile Include="IAsyncEnumerator.cs" />
     <Compile Include="IAsyncEnumerable.cs" />
+    <Compile Include="IDataAccessModelHook.cs" />
     <Compile Include="IDataAccessModelInternal.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
