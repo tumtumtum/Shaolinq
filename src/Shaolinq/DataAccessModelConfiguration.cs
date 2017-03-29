@@ -26,11 +26,7 @@ namespace Shaolinq
 		[XmlElement("ReferencedTypes")]
 		[XmlListElement("Type", ItemType = typeof(Type), SerializeAsValueNode = true, ValueNodeAttributeName = "Name")]
 		public List<Type> ReferencedTypes { get; set; }
-
-		[XmlElement("Hooks")]
-		[XmlListElement("Type", ItemType = typeof(Type), SerializeAsValueNode = true, ValueNodeAttributeName = "Name")]
-		public List<Type> Hooks { get; set; }
-
+		
 		[XmlAttribute]
 		public bool? SaveAndReuseGeneratedAssemblies { get; set; } = true;
 
