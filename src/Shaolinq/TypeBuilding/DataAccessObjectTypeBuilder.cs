@@ -266,96 +266,7 @@ namespace Shaolinq.TypeBuilding
 			
 				this.cctorGenerator.Emit(OpCodes.Ret);
 
-				var baseConstructorWithDataAccessModel = this.baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(DataAccessModel) }, null);
-				var constructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(DataAccessModel), typeof(bool) });
-				var constructorGenerator = constructorBuilder.GetILGenerator();
-
-				if (baseConstructorWithDataAccessModel != null)
-				{
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					constructorGenerator.Emit(OpCodes.Ldarg_1);
-					constructorGenerator.Emit(OpCodes.Call, baseConstructorWithDataAccessModel);
-				}
-				else
-				{
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					constructorGenerator.Emit(OpCodes.Call, this.baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null));
-				}
-
-				constructorGenerator.Emit(OpCodes.Ldarg_0);
-				constructorGenerator.Emit(OpCodes.Newobj, this.dataConstructorBuilder);
-				constructorGenerator.Emit(OpCodes.Stfld, this.dataObjectField);
-
-				if (baseConstructorWithDataAccessModel == null)
-				{
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					constructorGenerator.Emit(OpCodes.Ldarg_1);
-					constructorGenerator.Emit(OpCodes.Stfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
-				}
-
-				constructorGenerator.Emit(OpCodes.Ldarg_0);
-				constructorGenerator.Emit(OpCodes.Ldarg_2);
-				constructorGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.SetIsNew(default(bool))));
-
-				var skipSetDefault = constructorGenerator.DefineLabel();
-				constructorGenerator.Emit(OpCodes.Ldarg_2);
-				constructorGenerator.Emit(OpCodes.Brfalse, skipSetDefault);
-
-				foreach (var propertyDescriptor in this
-					.typeDescriptor
-					.PersistedPropertiesWithoutBackreferences
-					.Where(c => !c.IsAutoIncrement)
-					.Where(c => !c.IsPrimaryKey)
-					.Where(c => !c.IsComputedMember)
-					.Where(c => !c.IsComputedTextMember)
-					.Where(c => c.PropertyType == typeof(string) || c.PropertyType.GetUnwrappedNullableType().IsPrimitive)
-					.Where(c => c.DefaultValueAttribute != null))
-				{
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					this.EmitValue(constructorGenerator, propertyDescriptor.PropertyType, propertyDescriptor.DefaultValue);
-					constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
-
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					constructorGenerator.Emit(OpCodes.Ldfld, this.dataObjectField);
-					constructorGenerator.Emit(OpCodes.Ldc_I4_0);
-					constructorGenerator.Emit(OpCodes.Stfld, this.valueChangedFields[propertyDescriptor.PropertyName]);
-
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					constructorGenerator.Emit(OpCodes.Ldfld, this.dataObjectField);
-					constructorGenerator.Emit(OpCodes.Ldc_I4_0);
-					constructorGenerator.Emit(OpCodes.Stfld, this.valueIsSetFields[propertyDescriptor.PropertyName]);
-				}
-
-				foreach (var propertyDescriptor in this
-					.typeDescriptor
-					.PersistedPropertiesWithoutBackreferences
-					.Where(c => c.IsAutoIncrement && c.PropertyType.GetUnwrappedNullableType() == typeof(Guid)))
-				{
-					var guidLocal = constructorGenerator.DeclareLocal(propertyDescriptor.PropertyType);
-						
-					if (propertyDescriptor.PropertyType.IsNullableType())
-					{
-						constructorGenerator.Emit(OpCodes.Ldloca, guidLocal);
-						constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
-						constructorGenerator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(Guid.Empty)));
-					}
-					else
-					{
-						constructorGenerator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
-						constructorGenerator.Emit(OpCodes.Stloc, guidLocal);
-					}
-
-					constructorGenerator.Emit(OpCodes.Ldarg_0);
-					constructorGenerator.Emit(OpCodes.Ldloc, guidLocal);
-					constructorGenerator.Emit(OpCodes.Callvirt, this.propertyBuilders[propertyDescriptor.PropertyName].GetSetMethod());
-				}
-
-				constructorGenerator.MarkLabel(skipSetDefault);
-
-				constructorGenerator.Emit(OpCodes.Ldarg_0);
-				constructorGenerator.Emit(OpCodes.Ldc_I4_1);
-				constructorGenerator.Emit(OpCodes.Stfld, this.constructorFinishedField);
-				constructorGenerator.Emit(OpCodes.Ret);
+				this.BuildConstructor();
 
 				this.dataObjectTypeTypeBuilder.CreateType();
 
@@ -365,69 +276,101 @@ namespace Shaolinq.TypeBuilding
 			}
 		}
 
-		private void EmitValue(ILGenerator generator, Type type, object value)
+		private void BuildConstructor()
 		{
-			var nullableType = Nullable.GetUnderlyingType(type);
-			LocalBuilder variable = null;
+			var baseConstructorWithDataAccessModel = this.baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(DataAccessModel) }, null);
+			var constructorBuilder = this.typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new[] { typeof(DataAccessModel), typeof(bool) });
+			var generator = constructorBuilder.GetILGenerator();
 
-			if (nullableType != null)
+			if (baseConstructorWithDataAccessModel != null)
 			{
-				type = nullableType;
-				variable = generator.DeclareLocal(type);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldarg_1);
+				generator.Emit(OpCodes.Call, baseConstructorWithDataAccessModel);
+			}
+			else
+			{
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Call, this.baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null));
+			}
 
-				generator.Emit(OpCodes.Ldloca, variable);
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Newobj, this.dataConstructorBuilder);
+			generator.Emit(OpCodes.Stfld, this.dataObjectField);
 
-				if (value == null)
+			if (baseConstructorWithDataAccessModel == null)
+			{
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldarg_1);
+				generator.Emit(OpCodes.Stfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+			}
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldarg_2);
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.SetIsNew(default(bool))));
+
+			var skipSetDefault = generator.DefineLabel();
+			generator.Emit(OpCodes.Ldarg_2);
+			generator.Emit(OpCodes.Brfalse, skipSetDefault);
+
+			foreach (var property in this
+				.typeDescriptor
+				.PersistedPropertiesWithoutBackreferences
+				.Where(c => !c.IsAutoIncrement)
+				.Where(c => !c.IsPrimaryKey)
+				.Where(c => !c.IsComputedMember)
+				.Where(c => !c.IsComputedTextMember)
+				.Where(c => c.PropertyType == typeof(string) || (c.PropertyType.IsIntegralType() && c.PropertyType != typeof(byte[])))
+				.Where(c => c.HasDefaultValue || typeDescriptorProvider.Configuration.AlwaysSubmitDefaultValues))
+			{
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.EmitValue(property.PropertyType, property.DefaultValue);
+				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[property.PropertyName].GetSetMethod());
+
+				//if (!typeDescriptorProvider.Configuration.AlwaysSubmitDefaultValues)
 				{
-					generator.Emit(OpCodes.Call, typeof(Nullable<>).MakeGenericType(type).GetConstructor(new Type[0]));
-					generator.Emit(OpCodes.Ldloc, variable);
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+					generator.Emit(OpCodes.Ldc_I4_0);
+					generator.Emit(OpCodes.Stfld, this.valueChangedFields[property.PropertyName]);
 
-					return;
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+					generator.Emit(OpCodes.Ldc_I4_0);
+					generator.Emit(OpCodes.Stfld, this.valueIsSetFields[property.PropertyName]);
 				}
 			}
 
-			switch (Type.GetTypeCode(type))
+			foreach (var property in this
+				.typeDescriptor
+				.PersistedPropertiesWithoutBackreferences
+				.Where(c => c.IsAutoIncrement && c.PropertyType.GetUnwrappedNullableType() == typeof(Guid)))
 			{
-			case TypeCode.Boolean:
-				generator.Emit(OpCodes.Ldc_I4, ((bool)value) ? 1 : 0);
-				break;
-			case TypeCode.Int16:
-				generator.Emit(OpCodes.Ldc_I4, (int)(short)value);
-				break;
-			case TypeCode.UInt16:
-				generator.Emit(OpCodes.Ldc_I4, (int)(ushort)value);
-				break;
-			case TypeCode.Int32:
-				generator.Emit(OpCodes.Ldc_I4, (int)value);
-				break;
-			case TypeCode.UInt32:
-				generator.Emit(OpCodes.Ldc_I4, unchecked((int)(uint)value));
-				break;
-			case TypeCode.Int64:
-				generator.Emit(OpCodes.Ldc_I8, (long)value);
-				break;
-			case TypeCode.UInt64:
-				generator.Emit(OpCodes.Ldc_I8, unchecked((long)(ulong)value));
-				break;
-			case TypeCode.Single:
-				generator.Emit(OpCodes.Ldc_R4, (float)value);
-				break;
-			case TypeCode.Double:
-				generator.Emit(OpCodes.Ldc_R8, (double)value);
-				break;
-			case TypeCode.String:
-				generator.Emit(OpCodes.Ldstr, (string)value);
-				break;
-			default:
-				Console.WriteLine();
-				break;
+				var guidLocal = generator.DeclareLocal(property.PropertyType);
+
+				if (property.PropertyType.IsNullableType())
+				{
+					generator.Emit(OpCodes.Ldloca, guidLocal);
+					generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
+					generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(default(Guid))));
+				}
+				else
+				{
+					generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
+					generator.Emit(OpCodes.Stloc, guidLocal);
+				}
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldloc, guidLocal);
+				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[property.PropertyName].GetSetMethod());
 			}
 
-			if (variable != null)
-			{
-				generator.Emit(OpCodes.Call, typeof(Nullable<>).MakeGenericType(type).GetConstructor(new [] { type }));
-				generator.Emit(OpCodes.Ldloc, variable);
-			}
+			generator.MarkLabel(skipSetDefault);
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldc_I4_1);
+			generator.Emit(OpCodes.Stfld, this.constructorFinishedField);
+			generator.Emit(OpCodes.Ret);
 		}
 
 		private void BuildAbstractMethods()

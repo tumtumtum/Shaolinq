@@ -39,6 +39,7 @@ namespace Shaolinq.Persistence
 		public ComputedTextMemberAttribute ComputedTextMemberAttribute { get; }
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; }
 		public object DefaultValue { get; }
+		public bool HasDefaultValue { get; }
 		public string PropertyName => this.PropertyInfo.Name;
 		public Type PropertyType => this.PropertyInfo?.PropertyType;
 		public bool HasUniqueAttribute => this.UniqueAttribute != null;
@@ -71,9 +72,17 @@ namespace Shaolinq.Persistence
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 			this.ForeignObjectConstraintAttribute = propertyInfo.GetFirstCustomAttribute<ForeignObjectConstraintAttribute>(true);
 
-			if (this.DefaultValueAttribute != null)
+			var implicitDefault = this.PropertyType.IsValueType && this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
+
+			if (this.DefaultValueAttribute != null || implicitDefault)
 			{
-				this.DefaultValue = this.DefaultValueAttribute.Value;
+				this.DefaultValue = this.DefaultValueAttribute?.Value;
+				this.HasDefaultValue = true;
+
+				if (implicitDefault)
+				{
+					this.DefaultValue = this.PropertyType.GetDefaultValue();
+				}
 
 				try
 				{
