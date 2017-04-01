@@ -327,7 +327,7 @@ namespace Shaolinq.TypeBuilding
 				generator.EmitValue(property.PropertyType, property.DefaultValue);
 				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[property.PropertyName].GetSetMethod());
 
-				//if (!typeDescriptorProvider.Configuration.AlwaysSubmitDefaultValues)
+				if (!typeDescriptorProvider.Configuration.AlwaysSubmitDefaultValues)
 				{
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);

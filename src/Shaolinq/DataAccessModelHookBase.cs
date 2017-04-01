@@ -2,26 +2,26 @@ using System;
 
 namespace Shaolinq
 {
-	public class DataAccessModelHookBase : IDataAccessModelHook
+	public abstract class DataAccessModelHookBase : IDataAccessModelHook
 	{
-		public Guid? CreateGuid()
+		public virtual Guid? CreateGuid()
 		{
 			return null;
 		}
 
-		public void Create(DataAccessObject dataAccessObject)
+		public virtual void Create(DataAccessObject dataAccessObject)
 		{
 		}
 
-		public void Read(DataAccessObject dataAccessObject)
+		public virtual void Read(DataAccessObject dataAccessObject)
 		{
 		}
 
-		public void BeforeSubmit(DataAccessModelHookSubmitContext context)
+		public virtual void BeforeSubmit(DataAccessModelHookSubmitContext context)
 		{
 		}
 
-		public void AfterSubmit(DataAccessModelHookSubmitContext context)
+		public virtual void AfterSubmit(DataAccessModelHookSubmitContext context)
 		{
 		}
 	}
