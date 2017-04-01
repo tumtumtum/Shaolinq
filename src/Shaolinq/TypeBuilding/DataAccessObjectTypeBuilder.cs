@@ -352,14 +352,14 @@ namespace Shaolinq.TypeBuilding
 				{
 					generator.Emit(OpCodes.Ldloca, guidLocal);
 					generator.Emit(OpCodes.Ldloc_0);
-					generator.Emit(OpCodes.Ldfld, TypeUtils.GetMethod<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
 					generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(default(Guid))));
 				}
 				else
 				{
 					generator.Emit(OpCodes.Ldloc_0);
-					generator.Emit(OpCodes.Ldfld, TypeUtils.GetMethod<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
 					generator.Emit(OpCodes.Stloc, guidLocal);
 				}
@@ -585,7 +585,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 
 			//generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
-			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
+			generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 			
 			// Load "this"
 			generator.Emit(OpCodes.Ldarg_0);
@@ -656,7 +656,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Call, TypeUtils.GetMethod<MemberInfo>(c => c.GetFirstCustomAttribute<AutoIncrementAttribute>(default(bool))));
 				
 				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
+				generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.Configuration).GetGetMethod());
 
 				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
@@ -729,7 +729,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Call, typeof(MemberInfoUtils).GetMethod("GetFirstCustomAttribute", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(typeof(ComputedMemberAttribute)));
 
 				generator.Emit(OpCodes.Ldarg_0);
-				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
+				generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.Configuration).GetGetMethod());
 
 				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
@@ -1948,7 +1948,7 @@ namespace Shaolinq.TypeBuilding
 			var local = generator.DeclareLocal(typeof(DataAccessObjectDataContext));
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObject>(c => c.GetDataAccessModel()));
+			generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.GetCurrentDataContext(default(bool))));
 			generator.Emit(OpCodes.Stloc, local);
