@@ -351,14 +351,14 @@ namespace Shaolinq.TypeBuilding
 				if (property.PropertyType.IsNullableType())
 				{
 					generator.Emit(OpCodes.Ldloca, guidLocal);
-					generator.Emit(OpCodes.Ldloc_0);
+					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
 					generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(default(Guid))));
 				}
 				else
 				{
-					generator.Emit(OpCodes.Ldloc_0);
+					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
 					generator.Emit(OpCodes.Stloc, guidLocal);
@@ -581,10 +581,8 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Brtrue, returnLabel);
 
-			// Load "this.DataAccessModel"
+			// Load "this.dataAccessModel"
 			generator.Emit(OpCodes.Ldarg_0);
-
-			//generator.Emit(OpCodes.Callvirt, typeBuilder.BaseType.GetProperty("DataAccessModel", BindingFlags.Instance | BindingFlags.Public).GetGetMethod());
 			generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 			
 			// Load "this"
