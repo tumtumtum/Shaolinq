@@ -80,45 +80,9 @@ namespace Shaolinq
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>> inflateAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>();
 		private Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>();
 		internal readonly object hooksLock = new object();
-		internal IReadOnlyList<IDataAccessModelHook> hooks = null;
-
+		
 		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
-
-		public void AddHook(IDataAccessModelHook hook)
-		{
-			lock (this.hooksLock)
-			{
-				if (this.hooks?.Contains(hook) == true)
-				{
-					return;
-				}
-
-				if (this.hooks == null)
-				{
-					this.hooks = new ReadOnlyCollection<IDataAccessModelHook>(new List<IDataAccessModelHook> { hook });
-				}
-				else
-				{
-					this.hooks = new ReadOnlyCollection<IDataAccessModelHook>(new List<IDataAccessModelHook>(this.hooks) { hook });
-				}
-			}
-		}
-
-		public void RemoveHook(IDataAccessModelHook hook)
-		{
-			lock (this.hooksLock)
-			{
-				var newHooks = hooks?.Where(c => c != hook).ToList() ?? new List<IDataAccessModelHook> { hook };
-
-				if (newHooks.Count == this.hooks.Count)
-				{
-					return;
-				}
-
-				this.hooks = new ReadOnlyCollection<IDataAccessModelHook>(newHooks);
-			}
-		}
-
+		
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
 			where T : DataAccessObject
 		{
@@ -397,58 +361,6 @@ namespace Shaolinq
 				this.OnHookCreate(retval);
 
 				return retval;
-			}
-		}
-
-		internal void OnHookCreate(DataAccessObject obj)
-		{
-			var localHooks = this.hooks;
-
-			if (localHooks != null)
-			{
-				foreach (var hook in localHooks)
-				{
-					hook.Create(obj);
-				}
-			}
-		}
-
-		internal void OnHookRead(DataAccessObject obj)
-		{
-			var localHooks = this.hooks;
-
-			if (localHooks != null)
-			{
-				foreach (var hook in localHooks)
-				{
-					hook.Read(obj);
-				}
-			}
-		}
-
-		internal void OnHookBeforeSubmit(DataAccessModelHookSubmitContext context)
-		{
-			var localHooks = this.hooks;
-
-			if (localHooks != null)
-			{
-				foreach (var hook in localHooks)
-				{
-					hook.BeforeSubmit(context);
-				}
-			}
-		}
-
-		internal void OnHookAfterSubmit(DataAccessModelHookSubmitContext context)
-		{
-			var localHooks = this.hooks;
-
-			if (localHooks != null)
-			{
-				foreach (var hook in localHooks)
-				{
-					hook.AfterSubmit(context);
-				}
 			}
 		}
 

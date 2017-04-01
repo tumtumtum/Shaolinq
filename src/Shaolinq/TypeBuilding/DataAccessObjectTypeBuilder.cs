@@ -351,12 +351,16 @@ namespace Shaolinq.TypeBuilding
 				if (property.PropertyType.IsNullableType())
 				{
 					generator.Emit(OpCodes.Ldloca, guidLocal);
-					generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
+					generator.Emit(OpCodes.Ldloc_0);
+					generator.Emit(OpCodes.Ldfld, TypeUtils.GetMethod<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
 					generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(default(Guid))));
 				}
 				else
 				{
-					generator.Emit(OpCodes.Call, MethodInfoFastRef.GuidNewGuidMethod);
+					generator.Emit(OpCodes.Ldloc_0);
+					generator.Emit(OpCodes.Ldfld, TypeUtils.GetMethod<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
 					generator.Emit(OpCodes.Stloc, guidLocal);
 				}
 

@@ -1,9 +1,17 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
+
 namespace Shaolinq
 {
 	public interface IDataAccessModelHook
 	{
+		/// <summary>
+		/// Called when the model needs to create a Guid
+		/// </summary>
+		/// <returns>A Guid or null if the hook wants to defer creation to another hook or default</returns>
+		Guid? CreateGuid();
+
 		/// <summary>
 		/// Called after a new object has been created
 		/// </summary>

@@ -36,7 +36,6 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo DataAccessModelGenericInflateHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateHelper<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessModelGenericInflateAsyncHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateAsyncHelper<DataAccessObject>(default(DataAccessObject), CancellationToken.None)).GetGenericMethodDefinition();
 		public static readonly MethodInfo GuidEqualsMethod = TypeUtils.GetMethod<Guid>(c => c.Equals(Guid.Empty));
-		public static readonly MethodInfo GuidNewGuidMethod = TypeUtils.GetMethod(() => Guid.NewGuid());
 		public static readonly MethodInfo StringExtensionsIsLikeMethod = TypeUtils.GetMethod(() => string.Empty.IsLike(default(string)));
 		public static readonly MethodInfo ObjectToStringMethod = TypeUtils.GetMethod<object>(c => c.ToString());
 		public static readonly MethodInfo EnumToObjectMethod = TypeUtils.GetMethod(() => Enum.ToObject(typeof(Enum), 0));

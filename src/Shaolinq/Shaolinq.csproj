@@ -139,6 +139,8 @@
     <Compile Include="ConcurrencyException.cs" />
     <Compile Include="ConstraintDefaultsConfiguration.cs" />
     <Compile Include="DataAccessIsolationLevel.cs" />
+    <Compile Include="DataAccessModel+Hooks.cs" />
+    <Compile Include="DataAccessModelHookBase.cs" />
     <Compile Include="DataAccessModelHookSubmitContext.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DataAccessObjectHelpersInternal.cs" />
