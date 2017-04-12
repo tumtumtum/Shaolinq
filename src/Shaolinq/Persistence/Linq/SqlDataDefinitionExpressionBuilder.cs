@@ -41,12 +41,12 @@ namespace Shaolinq.Persistence.Linq
 
 				if (foreignKeyReferencingProperty.HasUniqueAttribute && foreignKeyReferencingProperty.UniqueAttribute.Unique)
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.Unique));
+					retval.Add(new SqlConstraintExpression(ConstraintType.Unique));
 				}
 
 				if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
+					retval.Add(new SqlConstraintExpression(ConstraintType.NotNull));
 				}
 			}
 			else
@@ -57,27 +57,27 @@ namespace Shaolinq.Persistence.Linq
 
 					if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
 					{
-						retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
+						retval.Add(new SqlConstraintExpression(ConstraintType.NotNull));
 					}
 				}
 				else
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
+					retval.Add(new SqlConstraintExpression(ConstraintType.NotNull));
 				}
 
 				if (propertyDescriptor.IsAutoIncrement && propertyDescriptor.PropertyType.IsIntegerType(true))
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.AutoIncrement, new object[] { propertyDescriptor.AutoIncrementAttribute.Seed, propertyDescriptor.AutoIncrementAttribute.Step }));
+					retval.Add(new SqlConstraintExpression(ConstraintType.AutoIncrement, null, new object[] { propertyDescriptor.AutoIncrementAttribute.Seed, propertyDescriptor.AutoIncrementAttribute.Step }));
 				}
 
 				if (propertyDescriptor.HasUniqueAttribute && propertyDescriptor.UniqueAttribute.Unique)
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.Unique));
+					retval.Add(new SqlConstraintExpression(ConstraintType.Unique));
 				}
 				
 				if (propertyDescriptor.HasDefaultValue)
 				{
-					retval.Add(new SqlConstraintExpression(SqlSimpleConstraint.DefaultValue, constraintName: this.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
+					retval.Add(new SqlConstraintExpression(ConstraintType.DefaultValue, constraintName: this.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
 				}
 			}
 
@@ -293,12 +293,12 @@ namespace Shaolinq.Persistence.Linq
 			if (primaryKeys.Length > 0)
 			{
 				var columnNames = primaryKeys.Select(c => c.ColumnName);
-				var compositePrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, columnNames, this.GetPrimaryKeyConstraintName(typeDescriptor, typeDescriptor.PrimaryKeyProperties.ToArray()));
+				var compositePrimaryKeyConstraint = new SqlConstraintExpression(ConstraintType.PrimaryKey, this.GetPrimaryKeyConstraintName(typeDescriptor, typeDescriptor.PrimaryKeyProperties.ToArray()), columnNames.ToReadOnlyCollection());
 
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}
 
-			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, Enumerable.Empty<SqlTableOption>().ToReadOnlyCollection());
+			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, null);
 		}
 
 		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)
@@ -311,7 +311,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var indexedColumns = new List<SqlIndexedColumnExpression>();
 
-			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.DontIndexButIncludeValue))
+			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.DontIndexButIncludeValue)) 
 			{
 				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
 				{

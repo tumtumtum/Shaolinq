@@ -51,7 +51,7 @@ namespace Shaolinq.SqlServer
 		{
 			base.VisitConstraint(expression);
 
-			if (expression.SimpleConstraint != SqlSimpleConstraint.AutoIncrement)
+			if (!expression.AutoIncrement)
 			{
 				return expression;
 			}

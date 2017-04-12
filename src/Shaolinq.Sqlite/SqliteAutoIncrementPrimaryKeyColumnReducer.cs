@@ -32,14 +32,14 @@ namespace Shaolinq.Sqlite
 		{
 			var primaryKeyConstraint = createTableExpression
 				.TableConstraints
-				.SingleOrDefault(c => c.SimpleConstraint == SqlSimpleConstraint.PrimaryKey);
+				.SingleOrDefault(c => c.PrimaryKey);
 
 			if (primaryKeyConstraint != null)
 			{
 				var autoIncrementColumns = createTableExpression
 					.ColumnDefinitionExpressions
 					.SelectMany(c => c.ConstraintExpressions.Select(d => new { Constraint = d, ColumnDefinition = c}))
-					.Where(c => c.Constraint.SimpleConstraint == SqlSimpleConstraint.AutoIncrement)
+					.Where(c => c.Constraint.AutoIncrement)
 					.ToList();
 
 				if (autoIncrementColumns.Count > 1)
@@ -56,9 +56,9 @@ namespace Shaolinq.Sqlite
 						.Where(c => c != primaryKeyConstraint);
 
 					if (primaryKeyConstraint.ColumnNames.Count > 1
-						|| autoIncrementColumn.ColumnDefinition.ConstraintExpressions.All(c => c.SimpleConstraint != SqlSimpleConstraint.PrimaryKey))
+						|| autoIncrementColumn.ColumnDefinition.ConstraintExpressions.All(c => !c.PrimaryKey))
 					{
-						var uniqueConstraint = new SqlConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames);
+						var uniqueConstraint = new SqlConstraintExpression(ConstraintType.Unique, /* TODO: name */ null, primaryKeyConstraint.ColumnNames);
 
 						newTableConstraints = newTableConstraints.Concat(uniqueConstraint);
 					}
@@ -77,7 +77,8 @@ namespace Shaolinq.Sqlite
 						createTableExpression.Table,
 						createTableExpression.IfNotExist,
 						this.VisitExpressionList(createTableExpression.ColumnDefinitionExpressions),
-						newTableConstraints.ToReadOnlyCollection()
+						newTableConstraints.ToReadOnlyCollection(),
+						null
 					);
 
 					this.columnsToMakeNotNull.Clear();
@@ -93,21 +94,21 @@ namespace Shaolinq.Sqlite
 		{
 			var autoIncrement = columnDefinitionExpression
 				.ConstraintExpressions
-				.Any(c => c.SimpleConstraint == SqlSimpleConstraint.AutoIncrement);
+				.Any(c => c.AutoIncrement);
 
 			IEnumerable<SqlConstraintExpression> newConstraints = columnDefinitionExpression.ConstraintExpressions;
 
 			if (this.columnsToMakeNotNull.Contains(columnDefinitionExpression.ColumnName))
 			{
 				newConstraints = newConstraints
-					.Concat(new SqlConstraintExpression(SqlSimpleConstraint.NotNull));
+					.Concat(new SqlConstraintExpression(ConstraintType.NotNull));
 			}
 
 			if (autoIncrement)
 			{
 				newConstraints = newConstraints
-					.Where(c => c.SimpleConstraint != SqlSimpleConstraint.NotNull)
-					.Prepend(new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey));
+					.Where(c => !c.NotNull)
+					.Prepend(new SqlConstraintExpression(ConstraintType.PrimaryKey));
 			}
 
 			if (ReferenceEquals(newConstraints, columnDefinitionExpression.ConstraintExpressions))

@@ -1185,53 +1185,43 @@ namespace Shaolinq.Persistence.Linq
 				this.Write(" ");
 			}
 
-			if (expression.SimpleConstraint != null)
+			if (expression.PrimaryKey)
 			{
-				switch (expression.SimpleConstraint.Value)
+				this.Write("PRIMARY KEY");
+				if (expression.ColumnNames != null)
 				{
-				case SqlSimpleConstraint.DefaultValue:
-					if (expression.DefaultValue != null)
-					{
-						this.Write("DEFAULT");
-						this.Write(" ");
-						this.Visit(expression.DefaultValue);
-					}
-					break;
-				case SqlSimpleConstraint.NotNull:
-					this.Write("NOT NULL");
-					break;
-				case SqlSimpleConstraint.AutoIncrement:
-				{
-					var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement);
-
-					if (!string.IsNullOrEmpty(s))
-					{
-						this.Write(s);
-					}
-
-					break;
-				}
-				case SqlSimpleConstraint.PrimaryKey:
-					this.Write("PRIMARY KEY");
-					if (expression.ColumnNames != null)
-					{
-						this.Write("(");
-						this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
-						this.Write(")");
-					}
-					break;
-				case SqlSimpleConstraint.Unique:
-					this.Write("UNIQUE");
-					if (expression.ColumnNames != null)
-					{
-						this.Write("(");
-						this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
-						this.Write(")");
-					}
-					break;
+					this.Write("(");
+					this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
+					this.Write(")");
 				}
 			}
-			else if (expression.ReferencesExpression != null)
+			else if (expression.Unique)
+			{
+				this.Write("UNIQUE");
+				if (expression.ColumnNames != null)
+				{
+					this.Write("(");
+					this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
+					this.Write(")");
+				}
+			}
+			
+			if (expression.NotNull)
+			{
+				this.Write("NOT NULL");
+			}
+
+			if (expression.AutoIncrement)
+			{
+				var s = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.AutoIncrement);
+
+				if (!string.IsNullOrEmpty(s))
+				{
+					this.Write(s);
+				}
+			}
+
+			if (expression.ReferencesExpression != null)
 			{
 				if (expression.ColumnNames != null)
 				{
@@ -1241,8 +1231,15 @@ namespace Shaolinq.Persistence.Linq
 					this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
 					this.Write(") ");
 				}
-				
+
 				this.Visit(expression.ReferencesExpression);
+			}
+
+			if (expression.DefaultValue != null)
+			{
+				this.Write("DEFAULT");
+				this.Write(" ");
+				this.Visit(expression.DefaultValue);
 			}
 
 			return expression;
@@ -1261,8 +1258,7 @@ namespace Shaolinq.Persistence.Linq
 			this.Write(value);
 			this.Write(this.stringQuote);
 		}
-
-
+		
 		public virtual void WriteQuotedStringOrObject(object value)
 		{
 			var s = value as string;

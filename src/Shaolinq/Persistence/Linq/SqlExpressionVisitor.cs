@@ -96,9 +96,24 @@ namespace Shaolinq.Persistence.Linq
 				return this.VisitVariableDeclaration((SqlVariableDeclarationExpression)expression);
 			case SqlExpressionType.Declare:
 				return this.VisitDeclare((SqlDeclareExpression)expression);
+			case SqlExpressionType.OrganizationIndex:
+			return this.VisitOrganizationIndex((SqlOrganizationIndexExpression)expression);
 			default:
 				return base.Visit(expression);
 			}
+		}
+
+		protected virtual Expression VisitOrganizationIndex(SqlOrganizationIndexExpression expression)
+		{
+			var columns = this.VisitExpressionList(expression.Columns);
+			var includedColumns = this.VisitExpressionList(expression.IncludedColumns);
+
+			if (columns != expression.Columns || includedColumns != expression.IncludedColumns)
+			{
+				return expression.ChangeColumns(columns, includedColumns);
+			}
+
+			return expression;
 		}
 
 		protected virtual Expression VisitReferences(SqlReferencesExpression expression)
@@ -501,10 +516,11 @@ namespace Shaolinq.Persistence.Linq
 			var newTable = (SqlTableExpression)this.Visit(createTableExpression.Table);
 			var constraints = this.VisitExpressionList(createTableExpression.TableConstraints);
 			var columnDefinitions = this.VisitExpressionList(createTableExpression.ColumnDefinitionExpressions);
+			var organizationIndex = (SqlOrganizationIndexExpression)this.Visit(createTableExpression.OrganizationIndex);
 
-			if (newTable != createTableExpression.Table || createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions)
+			if (newTable != createTableExpression.Table || createTableExpression.TableConstraints != constraints || createTableExpression.ColumnDefinitionExpressions != columnDefinitions || createTableExpression.OrganizationIndex != organizationIndex)
 			{
-				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints, Enumerable.Empty<SqlTableOption>().ToReadOnlyCollection());
+				return new SqlCreateTableExpression(newTable, false, columnDefinitions, constraints, organizationIndex, createTableExpression.TableOptions);
 			}
 			else
 			{

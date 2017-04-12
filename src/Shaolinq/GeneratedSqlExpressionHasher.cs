@@ -169,7 +169,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
         protected override Expression VisitConstraint(SqlConstraintExpression expression)
         {
             this.hashCode ^= expression.ConstraintName?.GetHashCode() ?? 0;
-            this.hashCode ^= expression.SimpleConstraint.GetHashCode();
+            this.hashCode ^= expression.ConstraintType.GetHashCode();
+            this.hashCode ^= expression.NotNull ? 539833539 : 0;
+            this.hashCode ^= expression.AutoIncrement ? 1811025211 : 0;
+            this.hashCode ^= expression.Unique ? 379717795 : 0;
+            this.hashCode ^= expression.PrimaryKey ? -1200056272 : 0;
             return base.VisitConstraint(expression);
         }
 

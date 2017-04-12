@@ -134,6 +134,7 @@
     <Compile Include="ByRefContainer.cs" />
     <Compile Include="ByValueContainer.cs" />
     <Compile Include="CallContextNativeAsyncLocal.cs" />
+    <Compile Include="IndexAttributeBase.cs" />
     <Compile Include="ComputedMemberAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
@@ -200,9 +201,12 @@
     <Compile Include="Persistence\Linq\AlwaysReadFirstObjectProjector.cs" />
     <Compile Include="Persistence\Linq\ComplexDataAccessObjectProjector.cs" />
     <Compile Include="Persistence\Linq\Expressions\BinaryOperations.cs" />
+    <Compile Include="Persistence\Linq\Expressions\ConstraintType.cs" />
     <Compile Include="Persistence\Linq\Expressions\ISqlExposesAliases.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlDeclareExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlIndexExpressionBase.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlKeywordExpression.cs" />
+    <Compile Include="Persistence\Linq\Expressions\SqlOrganizationIndexExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTableHintExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlUnionExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlVariableDeclarationExpression.cs" />
@@ -300,7 +304,6 @@
     <Compile Include="Persistence\Linq\Expressions\SqlReferencesExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlCreateIndexExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlCreateTableExpression.cs" />
-    <Compile Include="Persistence\Linq\Expressions\SqlSimpleConstraint.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlStatementListExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTupleExpression.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlTypeExpression.cs" />
@@ -427,7 +430,7 @@
     <Compile Include="PersistedMemberAttribute.cs" />
     <Compile Include="Persistence\Linq\SqlQueryProvider.cs" />
     <Compile Include="Persistence\SqlDatabaseCreationException.cs" />
-    <Compile Include="PrimaryKeyAttribute.cs" />
+    <Compile Include="PrimaryKeyAttributeBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataAccessObjectsAttribute.cs" />
     <Compile Include="RelatedDataAccessObjects.cs" />

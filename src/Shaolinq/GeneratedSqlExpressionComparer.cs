@@ -8,6 +8,42 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionComparer
     {
+        protected override Expression VisitOrganizationIndex(SqlOrganizationIndexExpression expression)
+        {
+            SqlOrganizationIndexExpression current;
+            if (!TryGetCurrent(expression, out current))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.NodeType == expression.NodeType))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.Type == expression.Type))
+            {
+                return expression;
+            }
+
+            this.currentObject = current.Columns;
+            this.VisitExpressionList(expression.Columns);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current.IncludedColumns;
+            this.VisitExpressionList(expression.IncludedColumns);
+            if (!this.result)
+            {
+                return expression;
+            }
+
+            this.currentObject = current;
+            return expression;
+        }
+
         protected override Expression VisitReferences(SqlReferencesExpression expression)
         {
             SqlReferencesExpression current;
@@ -565,12 +601,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= current.Type == expression.Type))
+            if (!(this.result &= current.NodeType == expression.NodeType))
             {
                 return expression;
             }
 
-            if (!(this.result &= current.NodeType == expression.NodeType))
+            if (!(this.result &= current.Type == expression.Type))
             {
                 return expression;
             }
@@ -1229,6 +1265,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            this.currentObject = current.OrganizationIndex;
+            this.VisitOrganizationIndex(expression.OrganizationIndex);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current.TableOptions;
             this.VisitObjectList(expression.TableOptions);
             if (!this.result)
@@ -1448,12 +1491,32 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= current.SimpleConstraint == expression.SimpleConstraint))
+            if (!(this.result &= current.ConstraintType == expression.ConstraintType))
             {
                 return expression;
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.NotNull == expression.NotNull))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.AutoIncrement == expression.AutoIncrement))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.Unique == expression.Unique))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.PrimaryKey == expression.PrimaryKey))
             {
                 return expression;
             }

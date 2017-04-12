@@ -52,16 +52,16 @@ namespace Shaolinq.Tests
 		{
 			var columnDefinitions = new []
 			{
-				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<SqlConstraintExpression> { new SqlConstraintExpression(SqlSimpleConstraint.Unique),  new SqlConstraintExpression(null, new SqlReferencesExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull))})
+				new SqlColumnDefinitionExpression("Column1", new SqlTypeExpression("INTEGER"), new List<SqlConstraintExpression> { new SqlConstraintExpression(ConstraintType.Unique),  new SqlConstraintExpression(new SqlReferencesExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.SetNull))})
 			};
 
 			var constraints = new []
 			{
-				new SqlConstraintExpression(SqlSimpleConstraint.Unique),
+				new SqlConstraintExpression(ConstraintType.Unique),
 				new SqlConstraintExpression(new SqlReferencesExpression(new SqlTableExpression("Table2"), SqlColumnReferenceDeferrability.InitiallyDeferred, new [] { "Id"}, SqlColumnReferenceAction.NoAction, SqlColumnReferenceAction.NoAction), columnNames: new [] {"Column1"}, constraintName: "fck")
 			};
 
-			var createTableExpression = new SqlCreateTableExpression(new SqlTableExpression("Table1"), false, columnDefinitions.ToReadOnlyCollection(), constraints.ToReadOnlyCollection());
+			var createTableExpression = new SqlCreateTableExpression(new SqlTableExpression("Table1"), false, columnDefinitions.ToReadOnlyCollection(), constraints.ToReadOnlyCollection(), null);
 
 			var formatter = new Sql92QueryFormatter();
 

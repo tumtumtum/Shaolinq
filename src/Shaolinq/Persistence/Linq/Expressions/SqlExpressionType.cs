@@ -26,6 +26,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		CreateTable,
 		CreateType, 
 		CreateIndex,
+		OrganizationIndex,
 		IndexedColumn,
 		EnumDefinition,
 		Constraint,

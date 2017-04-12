@@ -15,6 +15,11 @@ namespace Shaolinq.SqlServer
 		{
 		}
 
+		protected override Expression BuildDataDefinitonExpressions(DatabaseCreationOptions options)
+		{
+			return base.BuildDataDefinitonExpressions(options);
+		}
+
 		[RewriteAsync]
 		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
@@ -90,12 +95,12 @@ namespace Shaolinq.SqlServer
 						}
 
 						command.CommandText = $"ALTER DATABASE [{databaseName}] SET ALLOW_SNAPSHOT_ISOLATION {(context.AllowSnapshotIsolation ? "ON" : "OFF")};";
-                        command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-                        command.CommandText = $"ALTER DATABASE [{databaseName}] SET READ_COMMITTED_SNAPSHOT {(context.ReadCommittedSnapshop ? "ON" : "OFF")};";
-                        command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+						command.CommandText = $"ALTER DATABASE [{databaseName}] SET READ_COMMITTED_SNAPSHOT {(context.ReadCommittedSnapshop ? "ON" : "OFF")};";
+						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 
-                        return true;
+						return true;
 					}
 				}
 				catch (Exception e)

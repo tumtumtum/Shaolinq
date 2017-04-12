@@ -4,9 +4,18 @@ using System;
 
 namespace Shaolinq
 {
+	/// <summary>
+	/// Aplpy this property to one or more properties to define indexes for the properties.
+	/// </summary>
+	/// <remarks>
+	/// Applying this property to multiple properties will create a composite index. You can
+	/// define the order of the columns of a compiosite index by setting the <see cref="IndexAttributeBase.CompositeOrder"/>
+	/// property. By default properties no no explicitly defined <see cref="IndexAttributeBase.CompositeOrder"/> come last
+	/// in source code order.
+	/// </remarks>
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
 	public class IndexAttribute
-		: Attribute, ICloneable
+		: IndexAttributeBase
 	{
 		/// <summary>
 		/// The index should be a unique index
@@ -20,16 +29,10 @@ namespace Shaolinq
 		public bool DontIndexButIncludeValue { get; set; }
 
 		/// <summary>
-		/// The value of strings will be lower cased before creating the index
+		/// If supported, the value of strings will be lower cased before creating the index
 		/// </summary>
 		public bool LowercaseIndex { get; set; }
-
-		/// <summary>
-		/// An integer representing the relative order of the current property in the index.
-		/// Order is undefined if multiple properties have the same <c>IndexName</c> and <c>CompositeOrder</c>
-		/// </summary>
-		public int CompositeOrder { get; set; }
-
+			
 		/// <summary>
 		/// The name of the index. Some databases require index names to be server-unique rather than
 		/// database-unique. Use the same <c>IndexName</c> across multiple properties to create
@@ -46,32 +49,21 @@ namespace Shaolinq
 		public IndexType IndexType { get; set; }
 
 		/// <summary>
-		/// Whether the current property will be ordered in ascending or descending order in the index
+		/// Creates an index for this property.
 		/// </summary>
-		/// <remarks>
-		/// <seealso cref="SortOrder"/>
-		/// </remarks>
-		public SortOrder SortOrder { get; set; }
-
 		public IndexAttribute()
-			: this(null, false)
+			: this(null)
 		{
 		}
 
+		/// <summary>
+		/// Create a new index with the given name. Multiple properties when the same index name define
+		/// a composite index.
+		/// </summary>
+		/// <param name="indexName">The name of the index</param>
 		public IndexAttribute(string indexName)
-			: this(indexName, false)
-		{
-		}
-
-		public IndexAttribute(string indexName, bool unique)
 		{
 			this.IndexName = indexName;
-			this.Unique = unique;
-		}
-
-		public object Clone()
-		{
-			return this.MemberwiseClone();
 		}
 	}
 }

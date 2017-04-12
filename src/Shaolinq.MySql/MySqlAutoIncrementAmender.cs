@@ -19,27 +19,27 @@ namespace Shaolinq.MySql
 		{
 			var autoIncrementColumn = createTableExpression
 				.ColumnDefinitionExpressions
-				.SingleOrDefault(c => c.ConstraintExpressions.Any(d => d.SimpleConstraint == SqlSimpleConstraint.AutoIncrement));
+				.SingleOrDefault(c => c.ConstraintExpressions.Any(d => (d.ConstraintType & ConstraintType.AutoIncrement) != 0));
 
 			if (autoIncrementColumn != null)
 			{
 				var primaryKeyConstraint = createTableExpression
 					.TableConstraints
-					.SingleOrDefault(c => c.SimpleConstraint == SqlSimpleConstraint.PrimaryKey);
+					.SingleOrDefault(c => (c.ConstraintType & ConstraintType.PrimaryKey) != 0);
 
 				if (primaryKeyConstraint != null)
 				{
 					if (!primaryKeyConstraint.ColumnNames.Contains(autoIncrementColumn.ColumnName))
 					{
-						var newPrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName }.ToReadOnlyCollection());
-						var newUniqueConstraint = new SqlConstraintExpression(SqlSimpleConstraint.Unique, primaryKeyConstraint.ColumnNames.Concat(autoIncrementColumn.ColumnName).ToReadOnlyCollection());
+						var newPrimaryKeyConstraint = new SqlConstraintExpression(ConstraintType.PrimaryKey, /* TODO: name */ null, new [] { autoIncrementColumn.ColumnName }.ToReadOnlyCollection());
+						var newUniqueConstraint = new SqlConstraintExpression(ConstraintType.Unique, /* TODO: name */ null, primaryKeyConstraint.ColumnNames.Concat(autoIncrementColumn.ColumnName).ToReadOnlyCollection());
 
 						return createTableExpression.ChangeConstraints(createTableExpression.TableConstraints.Where(c => c != primaryKeyConstraint).Concat(newPrimaryKeyConstraint).Concat(newUniqueConstraint).ToReadOnlyCollection());
 					}
 				}
 				else
 				{
-					var newPrimaryKeyConstraint = new SqlConstraintExpression(SqlSimpleConstraint.PrimaryKey, new [] { autoIncrementColumn.ColumnName }.ToReadOnlyCollection());
+					var newPrimaryKeyConstraint = new SqlConstraintExpression(ConstraintType.PrimaryKey, /* TODO: name */ null, new[] { autoIncrementColumn.ColumnName }.ToReadOnlyCollection());
 
 					return createTableExpression.ChangeConstraints(new [] { newPrimaryKeyConstraint }.ToReadOnlyCollection());
 				}

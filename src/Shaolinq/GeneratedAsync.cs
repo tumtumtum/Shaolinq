@@ -42,6 +42,28 @@ namespace Shaolinq
 			}
 		}
 
+		public Task<T> CompleteAsync<T>(Func<T> result)
+		{
+			return CompleteAsync<T>(result, CancellationToken.None);
+		}
+
+		public async Task<T> CompleteAsync<T>(Func<T> result, CancellationToken cancellationToken)
+		{
+			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
+			return result();
+		}
+
+		public Task<T> CompleteAsync<T>(Func<T> result, ScopeCompleteOptions options)
+		{
+			return CompleteAsync<T>(result, options, CancellationToken.None);
+		}
+
+		public async Task<T> CompleteAsync<T>(Func<T> result, ScopeCompleteOptions options, CancellationToken cancellationToken)
+		{
+			await this.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
+			return result();
+		}
+
 		public Task CompleteAsync()
 		{
 			return CompleteAsync(CancellationToken.None);

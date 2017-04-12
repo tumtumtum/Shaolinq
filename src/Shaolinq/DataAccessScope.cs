@@ -196,8 +196,39 @@ namespace Shaolinq
 		/// </summary>
 		/// <remarks>
 		/// <para>
-		/// Flushing a scope commits 
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref="Complete(ScopeCompleteOptions)"/>
 		/// </para>
+		/// </remarks>
+		[RewriteAsync]
+		public T Complete<T>(Func<T> result)
+		{
+			this.Complete(ScopeCompleteOptions.Default);
+
+			return result();
+		}
+
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref="Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
+		[RewriteAsync]
+		public T Complete<T>(Func<T> result, ScopeCompleteOptions options)
+		{
+			this.Complete(options);
+
+			return result();
+		}
+
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
 		/// <para>
 		/// By default all nested scopes auto-flush without commiting the transaction. You can
 		/// disable auto-flush by calling <see cref="Complete(ScopeCompleteOptions)"/>

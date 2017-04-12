@@ -15,30 +15,27 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public IReadOnlyList<SqlConstraintExpression> TableConstraints { get; }
 		public IReadOnlyList<SqlColumnDefinitionExpression> ColumnDefinitionExpressions { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateTable;
+		public SqlOrganizationIndexExpression OrganizationIndex { get; }
 
-		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IEnumerable<SqlColumnDefinitionExpression> columnExpressions, IEnumerable<SqlConstraintExpression> tableConstraintExpressions, IReadOnlyList<SqlTableOption> tableOptions = null)
-			: this(table, ifNotExist, columnExpressions.ToReadOnlyCollection(), tableConstraintExpressions.ToReadOnlyCollection(), tableOptions)
-		{
-		}
-
-		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IReadOnlyList<SqlColumnDefinitionExpression> columnExpressions, IReadOnlyList<SqlConstraintExpression> tableConstraintExpressions, IReadOnlyList<SqlTableOption> tableOptions = null)
+		public SqlCreateTableExpression(SqlTableExpression table, bool ifNotExist, IReadOnlyList<SqlColumnDefinitionExpression> columnExpressions, IReadOnlyList<SqlConstraintExpression> tableConstraintExpressions, SqlOrganizationIndexExpression organizationIndex, IReadOnlyList<SqlTableOption> tableOptions = null)
 			: base(typeof(void))
 		{
 			this.Table = table;
 			this.IfNotExist = ifNotExist;
 			this.TableOptions = tableOptions ?? Enumerable.Empty<SqlTableOption>().ToReadOnlyCollection();
 			this.TableConstraints = tableConstraintExpressions;
+			this.OrganizationIndex = organizationIndex;
 			this.ColumnDefinitionExpressions = columnExpressions;
 		}
 
 		public SqlCreateTableExpression ChangeConstraints(IReadOnlyList<SqlConstraintExpression> constraints)
 		{
-			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, constraints, this.TableOptions);
+			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, constraints, this.OrganizationIndex, this.TableOptions);
 		}
 
 		public SqlCreateTableExpression UpdateOptions(IReadOnlyList<SqlTableOption> tableOptions)
 		{
-			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, this.TableConstraints, tableOptions);
+			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, this.TableConstraints, this.OrganizationIndex, tableOptions);
 		}
 	}
 }

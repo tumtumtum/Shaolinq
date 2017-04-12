@@ -1,12 +1,13 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
 	public class SqlCreateIndexExpression
-		: SqlBaseExpression
+		: SqlIndexExpressionBase
 	{
 		public bool Unique { get; }
 		public string IndexName { get; }
@@ -15,8 +16,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public IndexType IndexType { get; }
 		public SqlTableExpression Table { get; }
 		public Expression Where { get; }
-		public IReadOnlyList<SqlIndexedColumnExpression> Columns { get; }
-		public IReadOnlyList<SqlColumnExpression> IncludedColumns { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateIndex;
 
 		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IEnumerable<SqlIndexedColumnExpression> columns, IEnumerable<SqlColumnExpression> includedColumns, Expression where = null)
@@ -25,7 +24,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlColumnExpression>  includedColumns, Expression where = null)
-			: base(typeof(void))
+			: base(columns, includedColumns)
 		{
 			this.IndexName = indexName;
 			this.Table = table;
@@ -33,8 +32,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.LowercaseIndex = lowercaseIndex;
 			this.IndexType = indexType;
 			this.IfNotExist = ifNotExist;
-			this.Columns = columns;
-			this.IncludedColumns = includedColumns;
 			this.Where = where;
 		}
 

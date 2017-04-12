@@ -28,7 +28,7 @@ namespace Shaolinq.Postgres
 		
 		protected override Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			if (this.currentIsPrimaryKey && expression.SimpleConstraint == SqlSimpleConstraint.AutoIncrement)
+			if (this.currentIsPrimaryKey && (expression.ConstraintType & ConstraintType.AutoIncrement) != 0)
 			{
 				return null;
 			}
@@ -39,10 +39,10 @@ namespace Shaolinq.Postgres
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
 		{
 			this.currentIsPrimaryKey = columnDefinitionExpression.ConstraintExpressions
-				.Any(c => c.SimpleConstraint == SqlSimpleConstraint.PrimaryKey);
+				.Any(c => (c.ConstraintType & ConstraintType.PrimaryKey) != 0);
 
 			var isAutoIncrement = columnDefinitionExpression.ConstraintExpressions
-				.Any(c => c.SimpleConstraint == SqlSimpleConstraint.AutoIncrement);
+				.Any(c => (c.ConstraintType & ConstraintType.AutoIncrement) != 0);
 
 			var retval = (SqlColumnDefinitionExpression)base.VisitColumnDefinition(columnDefinitionExpression);
 

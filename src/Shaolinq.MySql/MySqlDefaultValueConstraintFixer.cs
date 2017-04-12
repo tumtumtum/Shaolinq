@@ -16,7 +16,7 @@ namespace Shaolinq.MySql
 
 		protected override Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			if (expression.SimpleConstraint == SqlSimpleConstraint.DefaultValue && expression.ConstraintName != null)
+			if (expression.ConstraintType == ConstraintType.DefaultValue && expression.ConstraintName != null)
 			{
 				return expression.ChangeConstraintName(null);
 			}
