@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			return SubtreeEvaluator.Eval(new EvaluatorNominator(fnCanBeEvaluated).Nominate(expression), expression, ref placeholderCount);
 		}
-		
+
 		public static Expression PartialEval(Expression expression)
 		{
 			var placeholderCount = -1;
@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (expression.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 			{
-				return true;	
+				return true;
 			}
 
 			if (expression.NodeType == ExpressionType.Constant)
@@ -128,14 +128,12 @@ namespace Shaolinq.Persistence.Linq
 
 				return base.Visit(expression);
 			}
-			
+
 			private Expression Evaluate(Expression e)
 			{
-				object value;
-
 				if (e.NodeType == ExpressionType.Constant)
 				{
-					return e.Type.IsPrimitive || ((ConstantExpression)e).Value == null ? e : new SqlConstantPlaceholderExpression(this.index++, (ConstantExpression) e);
+					return e.Type.IsPrimitive || ((ConstantExpression)e).Value == null ? e : new SqlConstantPlaceholderExpression(this.index++, (ConstantExpression)e);
 				}
 
 				var unaryExpression = e as UnaryExpression;
@@ -147,18 +145,23 @@ namespace Shaolinq.Persistence.Linq
 						return this.Visit(unaryExpression.Operand);
 					}
 
-					if ((unaryExpression.Operand.NodeType == ExpressionType.Constant || (unaryExpression.Operand.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)))
+					if (unaryExpression.Operand.NodeType == ExpressionType.Constant || unaryExpression.Operand.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 					{
 						var constantValue = (unaryExpression.Operand as ConstantExpression)?.Value ?? (unaryExpression.Operand as SqlConstantPlaceholderExpression)?.ConstantExpression.Value;
 
 						if (constantValue == null)
 						{
+							if (unaryExpression.Type.IsValueType && !unaryExpression.Type.IsNullableType())
+							{
+								throw new InvalidOperationException($"Unable to convert value null to type {unaryExpression.Type}");
+							}
+
 							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(null, unaryExpression.Type));
 						}
 
 						if (unaryExpression.Type.IsNullableType())
 						{
-							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(Convert.ChangeType(constantValue, Nullable.GetUnderlyingType(unaryExpression.Type)), unaryExpression.Type));
+							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type.GetUnwrappedNullableType()), unaryExpression.Type));
 						}
 
 						if (unaryExpression.Type.IsInstanceOfType(constantValue))
@@ -170,7 +173,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (typeof(IConvertible).IsAssignableFrom(unaryExpression.Type))
 						{
-							var constantExpression = Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type));
+							var constantExpression = Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type), unaryExpression.Type);
 
 							return unaryExpression.Type.IsValueType ? constantExpression : (Expression)new SqlConstantPlaceholderExpression(this.index++, constantExpression);
 						}
@@ -179,24 +182,22 @@ namespace Shaolinq.Persistence.Linq
 					}
 				}
 
-				if (e.NodeType == ExpressionType.Convert && ((UnaryExpression)e).Operand.Type.GetUnwrappedNullableType().IsEnum)
-				{
-					value = ExpressionInterpreter.Interpret(e);
-
-					return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
-				}
-
 				if (e.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 				{
 					return e;
 				}
-				
-				value = ExpressionInterpreter.Interpret(e);
+
+				var value = ExpressionInterpreter.Interpret(e);
+
+				if (!e.Type.IsInstanceOfType(value))
+				{
+					throw new InvalidOperationException($"Unable to convert value {value} of type {value?.GetType().Name} to type {e.Type.Name}");
+				}
 
 				return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
 			}
 		}
-		
+
 		internal class EvaluatorNominator
 			: SqlExpressionVisitor
 		{
