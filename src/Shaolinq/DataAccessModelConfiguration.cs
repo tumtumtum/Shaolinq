@@ -10,6 +10,9 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
+	/// <summary>
+	/// Represents the configuration of a model
+	/// </summary>
 	[XmlElement]
 	public class DataAccessModelConfiguration
 	{
@@ -52,10 +55,11 @@ namespace Shaolinq
 		public bool? SaveAndReuseGeneratedAssemblies { get; set; } = true;
 
 		/// <summary>
-		/// By default value types are not set to <c>default(T)</c> and will cause
+		/// By default value types are set to <c>default(T)</c> as is the case with C#.
+		/// Set this property to false to disable this behaviour and require defaults to be set.
 		/// </summary>
 		[XmlAttribute]
-		public bool ValueTypesAutoImplicitDefault { get; set; } = false;
+		public bool ValueTypesAutoImplicitDefault { get; set; } = true;
 
 		/// <summary>
 		/// By default properties with declared default values that are not set are not submitted to 
@@ -72,6 +76,10 @@ namespace Shaolinq
 		/// <summary>
 		/// Path to the folder to store generated assemblies if <see cref="SaveAndReuseGeneratedAssemblies"/> is <c>true</c>.
 		/// </summary>
+		/// <remarks>
+		/// If not configured, the directory containing the <c>Shaolinq.dll</c> assembly.
+		/// Use <c>$(env.TEMP)</c> if you want to use the system defined TEMP directory (on Azure WebApps for example)
+		/// </remarks>
 		[XmlAttribute]
 		public string GeneratedAssembliesSaveDirectory { get; set; }
 

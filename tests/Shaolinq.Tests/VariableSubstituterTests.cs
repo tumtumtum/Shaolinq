@@ -13,7 +13,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test()
 		{
-			var s = VariableSubstituter.SedTransform("Pokwer22", "s/^.*$/$(env_USERNAME)$0/g");
+			var s = VariableSubstituter.SedTransform("Pokwer22", "s/^.*$/$(env.USERNAME)$0/g");
 
 			Assert.AreEqual(Environment.GetEnvironmentVariable("USERNAME") + "Pokwer22", s);
 

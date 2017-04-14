@@ -72,37 +72,6 @@ namespace Shaolinq.Persistence
 			this.ComputedTextMemberAttribute = propertyInfo.GetFirstCustomAttribute<ComputedTextMemberAttribute>(true);
 			this.ForeignObjectConstraintAttribute = propertyInfo.GetFirstCustomAttribute<ForeignObjectConstraintAttribute>(true);
 
-			var implicitDefault = this.PropertyType.IsValueType && this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
-
-			if (this.DefaultValueAttribute != null || implicitDefault)
-			{
-				this.DefaultValue = this.DefaultValueAttribute?.Value;
-				this.HasDefaultValue = true;
-
-				if (implicitDefault)
-				{
-					this.DefaultValue = this.PropertyType.GetDefaultValue();
-				}
-
-				try
-				{
-					try
-					{
-						this.DefaultValue = Convert.ChangeType(this.DefaultValue, this.PropertyType);
-					}
-					catch (InvalidCastException)
-					{
-						var converter = System.ComponentModel.TypeDescriptor.GetConverter(this.PropertyType);
-
-						this.DefaultValue = converter.ConvertFrom(this.DefaultValue);
-					}
-				}
-				catch (InvalidCastException)
-				{
-					throw new InvalidDataAccessObjectModelDefinition($"The property '{propertyInfo.DeclaringType.Name}.{this.PropertyName}' has an incompatible default value");
-				}
-			}
-
 			if (this.PersistedMemberAttribute == null)
 			{
 				this.PersistedMemberAttribute = (PersistedMemberAttribute)this.ComputedMemberAttribute ?? this.ComputedTextMemberAttribute;
@@ -139,6 +108,37 @@ namespace Shaolinq.Persistence
 
 					this.ComputedMemberAssignTarget = memberAccess.Member as PropertyInfo;
 					this.ComputedMemberAssignmentValue = assignmentExpression.Right;
+				}
+			}
+			
+			var implicitDefault = this.PropertyType.IsValueType && this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
+
+			if (this.DefaultValueAttribute != null || (implicitDefault && !(this.IsAutoIncrement && this.PropertyType.IsIntegerType())))
+			{
+				this.DefaultValue = this.DefaultValueAttribute?.Value;
+				this.HasDefaultValue = true;
+
+				if (implicitDefault)
+				{
+					this.DefaultValue = this.PropertyType.GetDefaultValue();
+				}
+
+				try
+				{
+					try
+					{
+						this.DefaultValue = Convert.ChangeType(this.DefaultValue, this.PropertyType);
+					}
+					catch (InvalidCastException)
+					{
+						var converter = System.ComponentModel.TypeDescriptor.GetConverter(this.PropertyType);
+
+						this.DefaultValue = converter.ConvertFrom(this.DefaultValue);
+					}
+				}
+				catch (InvalidCastException)
+				{
+					throw new InvalidDataAccessObjectModelDefinition($"The property '{propertyInfo.DeclaringType.Name}.{this.PropertyName}' has an incompatible default value");
 				}
 			}
 		}
