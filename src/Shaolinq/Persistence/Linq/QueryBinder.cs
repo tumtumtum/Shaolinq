@@ -2059,7 +2059,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (constantValue != null && parentExpression.Type.IsDataAccessObjectType())
 					{
-						var parentValue = ExpressionFastCompiler.CompileAndRun(parentExpression) as DataAccessObject;
+						var parentValue = ExpressionInterpreter.Interpret(parentExpression) as DataAccessObject;
 
 						if (parentValue.ToObjectInternal().DeflatedPredicate != null)
 						{

@@ -58,7 +58,7 @@ namespace Shaolinq
 		public bool ValueTypesAutoImplicitDefault { get; set; } = false;
 
 		/// <summary>
-		/// By default properties with declared default values that nare not set are not submitted to 
+		/// By default properties with declared default values that are not set are not submitted to 
 		/// the database and the database is expected to apply the <c>DEFAULT VALUE</c> constraint
 		/// </summary>
 		/// <remarks>

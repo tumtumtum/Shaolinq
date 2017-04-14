@@ -10,13 +10,13 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	//[TestFixture("MySql")]
-	//[TestFixture("Postgres")]
-	//[TestFixture("Postgres.DotConnect")]
-	//[TestFixture("Postgres.DotConnect.Unprepared")]
+	[TestFixture("MySql")]
+	[TestFixture("Postgres")]
+	[TestFixture("Postgres.DotConnect")]
+	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite", Category = "IgnoreOnMono")]
-	//[TestFixture("SqliteInMemory")]
-	//[TestFixture("SqliteClassicInMemory")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	public class SqlFormatterTests
 		: BaseTests<TestDataAccessModel>
 	{

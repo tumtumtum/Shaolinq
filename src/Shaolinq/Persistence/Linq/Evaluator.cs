@@ -33,7 +33,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (expression.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 			{
-				return true;
+				return false;
 			}
 
 			if (expression.NodeType == ExpressionType.Constant)
@@ -135,65 +135,14 @@ namespace Shaolinq.Persistence.Linq
 				{
 					return e.Type.IsPrimitive || ((ConstantExpression)e).Value == null ? e : new SqlConstantPlaceholderExpression(this.index++, (ConstantExpression)e);
 				}
-
-				var unaryExpression = e as UnaryExpression;
-
-				if (unaryExpression != null && unaryExpression.NodeType == ExpressionType.Convert)
-				{
-					if (unaryExpression.Operand.Type == e.Type || (unaryExpression.Type.IsAssignableFrom(unaryExpression.Operand.Type) && !(unaryExpression.Type.IsNullableType() || unaryExpression.Operand.Type.IsNullableType())))
-					{
-						return this.Visit(unaryExpression.Operand);
-					}
-
-					if (unaryExpression.Operand.NodeType == ExpressionType.Constant || unaryExpression.Operand.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
-					{
-						var constantValue = (unaryExpression.Operand as ConstantExpression)?.Value ?? (unaryExpression.Operand as SqlConstantPlaceholderExpression)?.ConstantExpression.Value;
-
-						if (constantValue == null)
-						{
-							if (unaryExpression.Type.IsValueType && !unaryExpression.Type.IsNullableType())
-							{
-								throw new InvalidOperationException($"Unable to convert value null to type {unaryExpression.Type}");
-							}
-
-							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(null, unaryExpression.Type));
-						}
-
-						if (unaryExpression.Type.IsNullableType())
-						{
-							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type.GetUnwrappedNullableType()), unaryExpression.Type));
-						}
-
-						if (unaryExpression.Type.IsInstanceOfType(constantValue))
-						{
-							var constantExpression = Expression.Constant(constantValue, unaryExpression.Type);
-
-							return unaryExpression.Type.IsValueType ? constantExpression : (Expression)new SqlConstantPlaceholderExpression(this.index++, constantExpression);
-						}
-
-						if (typeof(IConvertible).IsAssignableFrom(unaryExpression.Type))
-						{
-							var constantExpression = Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type), unaryExpression.Type);
-
-							return unaryExpression.Type.IsValueType ? constantExpression : (Expression)new SqlConstantPlaceholderExpression(this.index++, constantExpression);
-						}
-
-						return unaryExpression;
-					}
-				}
-
+				
 				if (e.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 				{
 					return e;
 				}
 
 				var value = ExpressionInterpreter.Interpret(e);
-
-				if (!e.Type.IsInstanceOfType(value))
-				{
-					throw new InvalidOperationException($"Unable to convert value {value} of type {value?.GetType().Name} to type {e.Type.Name}");
-				}
-
+				
 				return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
 			}
 		}
