@@ -13,21 +13,18 @@ namespace Shaolinq.Persistence.Linq
 	{
 		private readonly SqlDialect sqlDialect;
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
+		private readonly SqlQueryFormatterManager formatterManager;
 		private readonly DataAccessModel model;
-		private readonly DatabaseCreationOptions options;
-		private readonly string tableNamePrefix;
 		private List<SqlConstraintExpression> currentTableConstraints;
 		private readonly SqlDataDefinitionBuilderFlags flags;
 		
-		private SqlDataDefinitionExpressionBuilder(SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		private SqlDataDefinitionExpressionBuilder(SqlQueryFormatterManager formatterManager, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
 		{
+			this.formatterManager = formatterManager;
 			this.model = model;
-			this.options = options;
 			this.sqlDialect = sqlDialect;
-			this.tableNamePrefix = tableNamePrefix;
 			this.flags = flags;
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
-
 			this.currentTableConstraints = new List<SqlConstraintExpression>();
 		}
 
@@ -77,7 +74,7 @@ namespace Shaolinq.Persistence.Linq
 				
 				if (propertyDescriptor.HasDefaultValue)
 				{
-					retval.Add(new SqlConstraintExpression(ConstraintType.DefaultValue, constraintName: this.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
+					retval.Add(new SqlConstraintExpression(ConstraintType.DefaultValue, constraintName: this.formatterManager.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
 				}
 			}
 
@@ -151,7 +148,7 @@ namespace Shaolinq.Persistence.Linq
 						names, this.FixAction(foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 					);
 
-					newConstraints.Add(new SqlConstraintExpression(referencesColumnExpression, this.GetForeignKeyConstraintName(referencingProperty)));
+					newConstraints.Add(new SqlConstraintExpression(referencesColumnExpression, this.formatterManager.GetForeignKeyConstraintName(referencingProperty)));
 
 					retval = new SqlColumnDefinitionExpression(retval.ColumnName, retval.ColumnType, newConstraints);
 				}
@@ -171,49 +168,10 @@ namespace Shaolinq.Persistence.Linq
 					referencedTableColumnNames, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
 				
-				var foreignKeyConstraint = new SqlConstraintExpression(referencesExpression, this.GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames);
+				var foreignKeyConstraint = new SqlConstraintExpression(referencesExpression, this.formatterManager.GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames);
 
 				this.currentTableConstraints.Add(foreignKeyConstraint);
 			}
-		}
-
-		protected string GetDefaultValueConstraintName(PropertyDescriptor propertyDescriptor)
-		{
-			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultDefaultValueConstraintName, propertyDescriptor);
-			var namingTransformsConfiguration = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
-
-			if (namingTransformsConfiguration?.DefaultValueConstraintName == null)
-			{
-				return defaultName;
-			}
-
-			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.DefaultValueConstraintName);
-		}
-
-		protected string GetForeignKeyConstraintName(PropertyDescriptor propertyDescriptor)
-		{
-			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultForeignKeyConstraintName, propertyDescriptor);
-			var namingTransformsConfiguration = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
-
-			if (namingTransformsConfiguration?.ForeignKeyConstraintName == null)
-			{
-				return defaultName;
-			}
-
-			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.ForeignKeyConstraintName);
-		}
-
-		protected string GetPrimaryKeyConstraintName(TypeDescriptor declaringTypeDescriptor, PropertyDescriptor[] primaryKeys)
-		{
-			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultPrimaryKeyConstraintName, primaryKeys);
-			var namingTransformsConfiguration = declaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
-
-			if (namingTransformsConfiguration?.PrimaryKeyConstraintName == null)
-			{
-				return defaultName;
-			}
-
-			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.PrimaryKeyConstraintName);
 		}
 
 		private SqlColumnDefinitionExpression BuildColumnDefinition(ColumnInfo columnInfo)
@@ -293,7 +251,7 @@ namespace Shaolinq.Persistence.Linq
 			if (primaryKeys.Length > 0)
 			{
 				var columnNames = primaryKeys.Select(c => c.ColumnName);
-				var compositePrimaryKeyConstraint = new SqlConstraintExpression(ConstraintType.PrimaryKey, this.GetPrimaryKeyConstraintName(typeDescriptor, typeDescriptor.PrimaryKeyProperties.ToArray()), columnNames.ToReadOnlyCollection());
+				var compositePrimaryKeyConstraint = new SqlConstraintExpression(ConstraintType.PrimaryKey, this.formatterManager.GetPrimaryKeyConstraintName(typeDescriptor, typeDescriptor.PrimaryKeyProperties.ToArray()), columnNames.ToReadOnlyCollection());
 
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}
@@ -311,7 +269,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var indexedColumns = new List<SqlIndexedColumnExpression>();
 
-			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.DontIndexButIncludeValue)) 
+			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.IncludeOnly)) 
 			{
 				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
 				{
@@ -321,7 +279,7 @@ namespace Shaolinq.Persistence.Linq
 
 			var includedColumns = new List<SqlColumnExpression>();
 
-			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.DontIndexButIncludeValue))
+			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.IncludeOnly))
 			{
 				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
 				{
@@ -405,9 +363,9 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlCreateTypeExpression(sqlTypeExpression, asExpression, true);
 		}
 
-		public static Expression Build(SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		public static Expression Build(SqlQueryFormatterManager formatterManager, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
 		{
-			var builder = new SqlDataDefinitionExpressionBuilder(sqlDialect, sqlDataTypeProvider, model, options, tableNamePrefix, flags);
+			var builder = new SqlDataDefinitionExpressionBuilder(formatterManager, sqlDialect, sqlDataTypeProvider, model, options, tableNamePrefix, flags);
 
 			var retval = builder.Build();
 

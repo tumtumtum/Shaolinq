@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
@@ -502,21 +503,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return Expression.Constant(null, expression.Type);
 			}
 
-			var underlyingType = expression.Operand.Type.GetUnwrappedNullableType();
+			var converter = System.ComponentModel.TypeDescriptor.GetConverter(expression.Operand.Type);
 
-			if (expression.Type == underlyingType)
+			if (converter.CanConvertTo(expression.Type))
 			{
-				return result;
+				return converter.ConvertTo(result, expression.Type);
 			}
 
-			try
-			{
-				return Convert.ChangeType(result, expression.Type.GetUnwrappedNullableType());
-			}
-			catch (InvalidCastException)
-			{
-				return InterpretFailed;
-			}
+			return InterpretFailed;
 		}
 	}
 }

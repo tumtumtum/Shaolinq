@@ -5,6 +5,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 {
     public partial class SqlExpressionHasher
     {
+        protected override Expression VisitOrganizationIndex(SqlOrganizationIndexExpression expression)
+        {
+            this.hashCode ^= expression.IndexName?.GetHashCode() ?? 0;
+            return base.VisitOrganizationIndex(expression);
+        }
+
         protected override Expression VisitReferences(SqlReferencesExpression expression)
         {
             this.hashCode ^= expression.Deferrability.GetHashCode();
@@ -159,10 +165,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
         protected override Expression VisitCreateIndex(SqlCreateIndexExpression expression)
         {
             this.hashCode ^= expression.Unique ? 379717795 : 0;
-            this.hashCode ^= expression.IndexName?.GetHashCode() ?? 0;
             this.hashCode ^= expression.IfNotExist ? 1286760945 : 0;
             this.hashCode ^= expression.LowercaseIndex ? -692148566 : 0;
             this.hashCode ^= expression.IndexType.GetHashCode();
+            this.hashCode ^= expression.IndexName?.GetHashCode() ?? 0;
             return base.VisitCreateIndex(expression);
         }
 

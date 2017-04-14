@@ -147,12 +147,17 @@ namespace Shaolinq.Persistence.Linq
 						return this.Visit(unaryExpression.Operand);
 					}
 
-					if ((unaryExpression.Operand.NodeType == ExpressionType.Constant || (unaryExpression.Operand.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)))
+					if (unaryExpression.Operand.NodeType == ExpressionType.Constant || unaryExpression.Operand.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 					{
 						var constantValue = (unaryExpression.Operand as ConstantExpression)?.Value ?? (unaryExpression.Operand as SqlConstantPlaceholderExpression)?.ConstantExpression.Value;
 
 						if (constantValue == null)
 						{
+							if (unaryExpression.Type.IsValueType && !unaryExpression.Type.IsNullableType())
+							{
+								throw new InvalidOperationException($"Unable to convert value null to type {unaryExpression.Type}");
+							}
+
 							return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(null, unaryExpression.Type));
 						}
 
@@ -170,7 +175,7 @@ namespace Shaolinq.Persistence.Linq
 
 						if (typeof(IConvertible).IsAssignableFrom(unaryExpression.Type))
 						{
-							var constantExpression = Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type));
+							var constantExpression = Expression.Constant(Convert.ChangeType(constantValue, unaryExpression.Type), unaryExpression.Type);
 
 							return unaryExpression.Type.IsValueType ? constantExpression : (Expression)new SqlConstantPlaceholderExpression(this.index++, constantExpression);
 						}
@@ -179,19 +184,17 @@ namespace Shaolinq.Persistence.Linq
 					}
 				}
 
-				if (e.NodeType == ExpressionType.Convert && ((UnaryExpression)e).Operand.Type.GetUnwrappedNullableType().IsEnum)
-				{
-					value = ExpressionInterpreter.Interpret(e);
-
-					return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
-				}
-
 				if (e.NodeType == (ExpressionType)SqlExpressionType.ConstantPlaceholder)
 				{
 					return e;
 				}
 				
 				value = ExpressionInterpreter.Interpret(e);
+
+				if (!e.Type.IsInstanceOfType(value))
+				{
+					throw new InvalidOperationException($"Unable to convert value {value} of type {value?.GetType().Name} to type {e.Type.Name}");
+				}
 
 				return new SqlConstantPlaceholderExpression(this.index++, Expression.Constant(value, e.Type));
 			}

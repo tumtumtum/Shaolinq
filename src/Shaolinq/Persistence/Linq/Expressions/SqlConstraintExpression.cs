@@ -50,8 +50,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ColumnNames = columnNames;
 			this.DefaultValue = defaultValue;
 		}
-
-		public SqlConstraintExpression(ConstraintType constraintType, SqlReferencesExpression sqlReferencesExpression = null, string constraintName = null, IReadOnlyList<string> columnNames = null, Expression defaultValue = null)
+		
+		public SqlConstraintExpression(ConstraintType constraintType, SqlReferencesExpression sqlReferencesExpression = null, string constraintName = null, IReadOnlyList<string> columnNames = null, Expression defaultValue = null, object[] constraintOptions = null)
 			: base(typeof(void))
 		{
 			this.ConstraintType = constraintType;
@@ -59,6 +59,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ReferencesExpression = sqlReferencesExpression;
 			this.ColumnNames = columnNames;
 			this.DefaultValue = defaultValue;
+			this.ConstraintOptions = constraintOptions;
 		}
 
 		public SqlConstraintExpression ChangeColumnNames(IReadOnlyList<string> columnNames)
@@ -67,8 +68,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				return this;
 			}
-
+		
 			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, this.ConstraintName, columnNames, this.DefaultValue);
+		}
+
+		public SqlConstraintExpression ChangeOptions(object[] options)
+		{
+			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue, options);
 		}
 
 		public SqlConstraintExpression ChangeReferences(SqlReferencesExpression referencesExpression)

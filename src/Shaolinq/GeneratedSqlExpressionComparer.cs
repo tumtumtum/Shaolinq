@@ -21,6 +21,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            if (!(this.result &= object.Equals(current.IndexName, expression.IndexName)))
+            {
+                return expression;
+            }
+
             if (!(this.result &= current.Type == expression.Type))
             {
                 return expression;
@@ -1387,11 +1392,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= object.Equals(current.IndexName, expression.IndexName)))
-            {
-                return expression;
-            }
-
             if (!(this.result &= current.IfNotExist == expression.IfNotExist))
             {
                 return expression;
@@ -1408,6 +1408,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.NodeType == expression.NodeType))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= object.Equals(current.IndexName, expression.IndexName)))
             {
                 return expression;
             }

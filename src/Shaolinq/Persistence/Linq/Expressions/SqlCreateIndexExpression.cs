@@ -10,7 +10,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlIndexExpressionBase
 	{
 		public bool Unique { get; }
-		public string IndexName { get; }
 		public bool IfNotExist { get; }
 		public bool LowercaseIndex { get; }
 		public IndexType IndexType { get; }
@@ -24,9 +23,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		}
 
 		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlColumnExpression>  includedColumns, Expression where = null)
-			: base(columns, includedColumns)
+			: base(indexName, columns, includedColumns)
 		{
-			this.IndexName = indexName;
 			this.Table = table;
 			this.Unique = unique;
 			this.LowercaseIndex = lowercaseIndex;

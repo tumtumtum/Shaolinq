@@ -33,9 +33,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, constraints, this.OrganizationIndex, this.TableOptions);
 		}
 
-		public SqlCreateTableExpression UpdateOptions(IReadOnlyList<SqlTableOption> tableOptions)
+		public SqlCreateTableExpression ChangeOptions(IReadOnlyList<SqlTableOption> tableOptions)
 		{
 			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, this.TableConstraints, this.OrganizationIndex, tableOptions);
+		}
+
+		public SqlCreateTableExpression ChangeOrganizationIndex(SqlOrganizationIndexExpression organizationIndex)
+		{
+			return new SqlCreateTableExpression(this.Table, this.IfNotExist, this.ColumnDefinitionExpressions, this.TableConstraints, organizationIndex, this.TableOptions);
 		}
 	}
 }

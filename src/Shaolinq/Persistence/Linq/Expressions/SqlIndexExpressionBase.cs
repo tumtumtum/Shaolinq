@@ -7,12 +7,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	public class SqlIndexExpressionBase
 		: SqlBaseExpression
 	{
+		public string IndexName { get; }
 		public IReadOnlyList<SqlIndexedColumnExpression> Columns { get; }
 		public IReadOnlyList<SqlColumnExpression> IncludedColumns { get; }
 
-		public SqlIndexExpressionBase(IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlColumnExpression> includedColumns)
+		public SqlIndexExpressionBase(string indexName, IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlColumnExpression> includedColumns)
 			: base(typeof(void))
 		{
+			this.IndexName = indexName;
 			this.Columns = columns;
 			this.IncludedColumns = includedColumns;
 		}

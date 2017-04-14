@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -11,9 +12,34 @@ namespace Shaolinq.SqlServer
 	public class SqlServerClusteredIndexNormalizer
 		: SqlExpressionVisitor
 	{
+		private bool makeUnclustered;
+		private List<Expression> additionalStatements;
+
 		public static Expression Normalize(Expression expression)
 		{
 			return new SqlServerClusteredIndexNormalizer().Visit(expression);
+		}
+
+		protected override Expression VisitStatementList(SqlStatementListExpression statementListExpression)
+		{
+			var retval = (SqlStatementListExpression)base.VisitStatementList(statementListExpression);
+
+			if (additionalStatements != null)
+			{
+				retval = retval.ChangeStatements(retval.Statements.Concat(additionalStatements));
+			}
+
+			return retval;
+		}
+
+		protected override Expression VisitConstraint(SqlConstraintExpression expression)
+		{
+			if (expression.PrimaryKey && makeUnclustered)
+			{
+				return expression.ChangeOptions(expression.ConstraintOptions.Concat("NONCLUSTERED").ToArray());
+			}
+
+			return base.VisitConstraint(expression);
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
@@ -24,17 +50,31 @@ namespace Shaolinq.SqlServer
 			{
 				if (organizationIndex.Columns == null)
 				{
-					var primaryKeyConstraint = createTableExpression.TableConstraints.FirstOrDefault(c => c.PrimaryKey);
-
-					if (primaryKeyConstraint != null)
+					try
 					{
-						//var newPrimaryKeyConstraint = primaryKeyConstraint.
-						//return createTableExpression.ChangeConstraints(newConstraints);
+						this.makeUnclustered = true;
+
+						return ((SqlCreateTableExpression)base.VisitCreateTable(createTableExpression)).ChangeOrganizationIndex(null);
 					}
+					finally
+					{
+						this.makeUnclustered = false;
+					}
+				}
+				else
+				{
+					var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, false, IndexType.Default, true, organizationIndex.Columns, null);
+
+					if (additionalStatements == null)
+					{
+						additionalStatements = new List<Expression>();
+					}
+
+					additionalStatements.Add(indexExpression);
 				}
 			}
 
-			return base.VisitCreateTable(createTableExpression);
+			return createTableExpression;
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace Shaolinq.Tests.TestModel
 		public abstract Student Student { get; set; }
 
 		[PersistedMember]
-		[Index("name_id_idx", DontIndexButIncludeValue = true)]
+		[Index("name_id_idx", IncludeOnly = true)]
 		public abstract string Name { get; set; }
 	}
 }

@@ -134,7 +134,6 @@
     <Compile Include="ByRefContainer.cs" />
     <Compile Include="ByValueContainer.cs" />
     <Compile Include="CallContextNativeAsyncLocal.cs" />
-    <Compile Include="IndexAttributeBase.cs" />
     <Compile Include="ComputedMemberAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
@@ -166,6 +165,7 @@
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="NativeAsyncLocal.cs" />
+    <Compile Include="OrganizationKeyAttribute.cs" />
     <Compile Include="Persistence\Computed\ComputedExpressionKeyword.cs" />
     <Compile Include="Persistence\DbCommandExtensions.cs" />
     <Compile Include="Persistence\DataReaderExtensions.cs" />

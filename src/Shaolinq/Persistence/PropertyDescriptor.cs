@@ -28,6 +28,7 @@ namespace Shaolinq.Persistence
 		public Expression ComputedMemberAssignmentValue { get; }
 		public TypeDescriptor PropertyTypeTypeDescriptor => this.DeclaringTypeDescriptor.TypeDescriptorProvider.GetTypeDescriptor(this.PropertyType);
 		public PrimaryKeyAttribute PrimaryKeyAttribute { get; }
+		public OrganizationKeyAttribute OrganizationKeyAttribute { get; }
 		public DefaultValueAttribute DefaultValueAttribute { get; }
 		public AutoIncrementAttribute AutoIncrementAttribute { get; }
 		public ValueRequiredAttribute ValueRequiredAttribute { get; }
@@ -114,6 +115,7 @@ namespace Shaolinq.Persistence
 			}
 
 			this.PrimaryKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
+			this.OrganizationKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<OrganizationKeyAttribute>(true);
 			this.IsPrimaryKey = this.PrimaryKeyAttribute != null && this.PrimaryKeyAttribute.IsPrimaryKey;
 			this.IndexAttributes = this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToReadOnlyCollection();
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);

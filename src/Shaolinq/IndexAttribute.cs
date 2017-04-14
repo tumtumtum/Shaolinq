@@ -5,18 +5,29 @@ using System;
 namespace Shaolinq
 {
 	/// <summary>
-	/// Aplpy this property to one or more properties to define indexes for the properties.
+	/// Apply this property to one or more properties to define indexes for the properties.
 	/// </summary>
 	/// <remarks>
 	/// Applying this property to multiple properties will create a composite index. You can
-	/// define the order of the columns of a compiosite index by setting the <see cref="IndexAttributeBase.CompositeOrder"/>
-	/// property. By default properties no no explicitly defined <see cref="IndexAttributeBase.CompositeOrder"/> come last
+	/// define the order of the columns of a compiosite index by setting the <see cref="IndexAttribute.CompositeOrder"/>
+	/// property. By default properties no no explicitly defined <see cref="IndexAttribute.CompositeOrder"/> come last
 	/// in source code order.
 	/// </remarks>
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
 	public class IndexAttribute
-		: IndexAttributeBase
+		: Attribute
 	{
+		/// <summary>
+		/// The order of the index. Unspecified is database dependent but usually ascending.
+		/// </summary>
+		public SortOrder SortOrder { get; set; }
+
+		/// <summary>
+		/// An integer representing the relative order of the current property in the index.
+		/// Order is undefined if multiple properties have the same <c>IndexName</c> and <c>CompositeOrder</c>
+		/// </summary>
+		public int CompositeOrder { get; set; } = int.MinValue;
+
 		/// <summary>
 		/// The index should be a unique index
 		/// </summary>
@@ -24,9 +35,9 @@ namespace Shaolinq
 
 		/// <summary>
 		/// The data of this column will be included in the leaf nodes of the index but will not
-		/// actually be indexed. Equivalent to <c>CREATE INDEX INCLUDE</c> on Microsfot SQL Server.
+		/// actually be indexed. Equivalent to <c>CREATE INDEX INCLUDE</c> in MSSQL
 		/// </summary>
-		public bool DontIndexButIncludeValue { get; set; }
+		public bool IncludeOnly { get; set; }
 
 		/// <summary>
 		/// If supported, the value of strings will be lower cased before creating the index
@@ -52,7 +63,6 @@ namespace Shaolinq
 		/// Creates an index for this property.
 		/// </summary>
 		public IndexAttribute()
-			: this(null)
 		{
 		}
 

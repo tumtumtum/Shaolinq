@@ -26,5 +26,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			this.Statements = statements;
 		}
+
+		public SqlStatementListExpression ChangeStatements(IEnumerable<Expression> statements)
+		{
+			return new SqlStatementListExpression(statements);
+		}
 	}
 }

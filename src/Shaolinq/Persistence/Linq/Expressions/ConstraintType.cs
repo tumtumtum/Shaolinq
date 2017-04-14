@@ -11,6 +11,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		AutoIncrement = 8,
 		NotNull = 16,
 		DefaultValue = 32,
+		Custom = 64,
 		PrimaryKeyAutoIncrement = PrimaryKey | AutoIncrement,
 		ForeignKeyNotNull = ForeignKey | NotNull,
 		ForeignKeyUnique = ForeignKey | Unique,

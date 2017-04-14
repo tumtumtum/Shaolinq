@@ -39,10 +39,10 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_DataDefinitionBuilder()
 		{
-			var dbConnection = this.model.GetCurrentSqlDatabaseContext();
-			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(dbConnection.SqlDataTypeProvider, dbConnection.SqlDialect, this.model, DatabaseCreationOptions.DeleteExistingDatabase, string.Empty, SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes);
+			var databaseContext = this.model.GetCurrentSqlDatabaseContext();
+			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(databaseContext.SqlQueryFormatterManager, databaseContext.SqlDataTypeProvider, databaseContext.SqlDialect, this.model, DatabaseCreationOptions.DeleteExistingDatabase, string.Empty, SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes);
 
-			var formatter = dbConnection.SqlQueryFormatterManager.CreateQueryFormatter();
+			var formatter = databaseContext.SqlQueryFormatterManager.CreateQueryFormatter();
 
 			Console.WriteLine(formatter.Format(dataDefinitionExpressions).CommandText);
 		}

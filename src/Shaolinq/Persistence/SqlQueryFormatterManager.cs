@@ -41,7 +41,59 @@ namespace Shaolinq.Persistence
 		{
 			return this.CreateQueryFormatter(options).Format(expression);
 		}
-		
+
+		public virtual string GetDefaultValueConstraintName(PropertyDescriptor propertyDescriptor)
+		{
+			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultDefaultValueConstraintName, propertyDescriptor);
+			var namingTransformsConfiguration = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
+
+			if (namingTransformsConfiguration?.DefaultValueConstraintName == null)
+			{
+				return defaultName;
+			}
+
+			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.DefaultValueConstraintName);
+		}
+
+		public virtual string GetIndexConstraintName(PropertyDescriptor propertyDescriptor)
+		{
+			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultIndexConstraintName, propertyDescriptor);
+			var namingTransformsConfiguration = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
+
+			if (namingTransformsConfiguration?.IndexConstraintName == null)
+			{
+				return defaultName;
+			}
+
+			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.IndexConstraintName);
+		}
+
+		public virtual string GetForeignKeyConstraintName(PropertyDescriptor propertyDescriptor)
+		{
+			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultForeignKeyConstraintName, propertyDescriptor);
+			var namingTransformsConfiguration = propertyDescriptor.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
+
+			if (namingTransformsConfiguration?.ForeignKeyConstraintName == null)
+			{
+				return defaultName;
+			}
+
+			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.ForeignKeyConstraintName);
+		}
+
+		public virtual string GetPrimaryKeyConstraintName(TypeDescriptor declaringTypeDescriptor, PropertyDescriptor[] primaryKeys)
+		{
+			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultPrimaryKeyConstraintName, primaryKeys);
+			var namingTransformsConfiguration = declaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms;
+
+			if (namingTransformsConfiguration?.PrimaryKeyConstraintName == null)
+			{
+				return defaultName;
+			}
+
+			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.PrimaryKeyConstraintName);
+		}
+
 		public virtual string SubstitutedParameterValues(string commandText, Func<string, Func<object, string>, string> paramNameToString)
 		{
 			if (this.formatCommandRegex == null)

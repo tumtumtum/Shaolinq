@@ -7,6 +7,7 @@ namespace Shaolinq
 	[XmlElement]
 	public class NamingTransformsConfiguration
 	{
+		public const string DefaultIndexConstraintName = "s/^.*$/idx_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
 		public const string DefaultForeignKeyConstraintName = "s/^.*$/fk_$(TABLENAME:L)_$(PROPERTYNAME:L)/";
 		public const string DefaultPrimaryKeyConstraintName = "s/^.*$/pk_$(TABLENAME:L)_$(PROPERTYNAME:L)/";
 		public const string DefaultDefaultValueConstraintName = "s/^.*$/$(TABLENAME:L)_$(PROPERTYNAME:L)_def/";
@@ -25,6 +26,9 @@ namespace Shaolinq
 
 		[XmlAttribute]
 		public string ForeignKeyConstraintName { get; set; }
+
+		[XmlAttribute]
+		public string IndexConstraintName { get; set; }
 
 		[XmlAttribute]
 		public string PrimaryKeyConstraintName { get; set; }
