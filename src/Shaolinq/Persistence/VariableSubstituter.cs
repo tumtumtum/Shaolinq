@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence
 {
 	internal static class VariableSubstituter
 	{
-		private static readonly Regex PatternRegex = new Regex(@"(?<prefix>^|[^\\\$]*|[\\\\]+)(\$(?<name>[0-9])+|\$\((?<env>env_)?(?<name>[a-z_A-Z]+?)((?<tolower>_TOLOWER)|(:(?<format>[^\)]+)))?\))", RegexOptions.Compiled | RegexOptions.IgnoreCase); 
+		private static readonly Regex PatternRegex = new Regex(@"(?<prefix>^|[^\\\$]*|[\\\\]+)(\$(?<name>[0-9])+|\$\((?<env>env\.)?(?<name>[a-z_A-Z]+?)((?<tolower>_TOLOWER)|(:(?<format>[^\)]+)))?\))", RegexOptions.Compiled | RegexOptions.IgnoreCase); 
 
 		public static string Substitute(string value, Func<string, object> variableToValue)
 		{

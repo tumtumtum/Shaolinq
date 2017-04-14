@@ -18,9 +18,11 @@ namespace Shaolinq.Persistence
 		{
 			var sqlDatabaseContext = this.SchemaManager.SqlDatabaseContext;
 			
-			using (var connection =  (DbConnection)sqlDatabaseContext.OpenConnection())
+			using (var connection =  sqlDatabaseContext.OpenConnection())
 			{
-				var schema = connection.GetSchema("Columns");
+				var dbConnection = (connection as DbConnection) ?? (connection as DbConnectionWrapper)?.Inner as DbConnection;
+
+				var schema = dbConnection.GetSchema("Columns");
 
 				Console.WriteLine(schema);
 			}

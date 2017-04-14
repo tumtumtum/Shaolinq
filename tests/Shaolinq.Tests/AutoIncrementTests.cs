@@ -6,14 +6,7 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("MySql")]
-	/*[TestFixture("Postgres")]
-	[TestFixture("Postgres.DotConnect")]
-	[TestFixture("Postgres.DotConnect.Unprepared")]
-	[TestFixture("Sqlite")]*/
-	//[TestFixture("SqlServer", Category = "IgnoreOnMono")]
-	/*[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]*/
+	[TestFixture("Sqlite")]
 	public class AutoIncrementTests
 		: BaseTests<TestDataAccessModel>
 	{
