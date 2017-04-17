@@ -1095,6 +1095,18 @@ namespace Shaolinq.Persistence.Linq
 				this.Write("UNIQUE ");
 			}
 
+			if (createIndexExpression.Clustered != null)
+			{
+				if (createIndexExpression.Clustered.Value)
+				{
+					this.Write("CLUSTERED ");
+				}
+				else
+				{
+					this.Write("NONCLUSTERED ");
+				}
+			}
+
 			if (createIndexExpression.IfNotExist)
 			{
 				this.Write("IF NOT EXIST ");
@@ -1106,7 +1118,7 @@ namespace Shaolinq.Persistence.Linq
 			this.Visit(createIndexExpression.Table);
 			this.Write("(");
 			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, c => this.Visit(c));
-			this.WriteLine(")");
+			this.Write(")");
 
 			if (this.sqlDialect.SupportsCapability(SqlCapability.IndexInclude))
 			{
@@ -1188,6 +1200,14 @@ namespace Shaolinq.Persistence.Linq
 			if (expression.PrimaryKey)
 			{
 				this.Write("PRIMARY KEY");
+
+				if (expression.KeyOptions != null)
+				{
+					this.Write(" ");
+					this.WriteDeliminatedListOfItems(expression.KeyOptions, this.Write, " ");
+					this.Write(" ");
+				}
+
 				if (expression.ColumnNames != null)
 				{
 					this.Write("(");
@@ -1198,6 +1218,14 @@ namespace Shaolinq.Persistence.Linq
 			else if (expression.Unique)
 			{
 				this.Write("UNIQUE");
+
+				if (expression.KeyOptions != null)
+				{
+					this.Write(" ");
+					this.WriteDeliminatedListOfItems(expression.KeyOptions, this.Write, " ");
+					this.Write(" ");
+				}
+
 				if (expression.ColumnNames != null)
 				{
 					this.Write("(");

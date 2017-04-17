@@ -8,16 +8,18 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		: SqlBaseExpression
 	{
 		public bool LowercaseIndex { get; }
+		public bool IncludeOnly { get; }
 		public SortOrder SortOrder { get; }
 		public SqlColumnExpression Column { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.IndexedColumn;
 
-		public SqlIndexedColumnExpression(SqlColumnExpression column, SortOrder sortOrder, bool lowercaseIndex)
+		public SqlIndexedColumnExpression(SqlColumnExpression column, SortOrder sortOrder, bool lowercaseIndex, bool includeOnly = false)
 			: base(typeof(void))
 		{
 			this.Column = column;
 			this.SortOrder = sortOrder;
 			this.LowercaseIndex = lowercaseIndex;
+			this.IncludeOnly = includeOnly;
 		}
 	}
 }

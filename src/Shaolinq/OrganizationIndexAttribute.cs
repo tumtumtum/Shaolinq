@@ -3,8 +3,8 @@ using System;
 namespace Shaolinq
 {
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
-	public class OrganizationKeyAttribute
-		: Attribute
+	public class OrganizationIndexAttribute
+		: Attribute, IIndexAttribute
 	{
 		/// <summary>
 		/// The order of the index. Unspecified is database dependent but usually ascending.
@@ -34,5 +34,10 @@ namespace Shaolinq
 		/// a composite index
 		/// </summary>
 		public string IndexName { get; set; }
+
+		/// <summary>
+		/// If supported, the value of strings will be lower cased before creating the index
+		/// </summary>
+		public bool LowercaseIndex { get; set; }
 	}
 }

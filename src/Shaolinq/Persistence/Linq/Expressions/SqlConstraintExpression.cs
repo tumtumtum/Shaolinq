@@ -14,6 +14,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public SqlReferencesExpression ReferencesExpression { get; }
 		public Expression DefaultValue { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.Constraint;
+		public object[] KeyOptions { get; }
 		public object[] ConstraintOptions { get; }
 		public bool NotNull => (this.ConstraintType & ConstraintType.NotNull) != 0;
 		public bool AutoIncrement => (this.ConstraintType & ConstraintType.AutoIncrement) != 0;
@@ -51,7 +52,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.DefaultValue = defaultValue;
 		}
 		
-		public SqlConstraintExpression(ConstraintType constraintType, SqlReferencesExpression sqlReferencesExpression = null, string constraintName = null, IReadOnlyList<string> columnNames = null, Expression defaultValue = null, object[] constraintOptions = null)
+		public SqlConstraintExpression(ConstraintType constraintType, SqlReferencesExpression sqlReferencesExpression = null, string constraintName = null, IReadOnlyList<string> columnNames = null, Expression defaultValue = null, object[] constraintOptions = null, object[] keyOptions = null)
 			: base(typeof(void))
 		{
 			this.ConstraintType = constraintType;
@@ -60,6 +61,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.ColumnNames = columnNames;
 			this.DefaultValue = defaultValue;
 			this.ConstraintOptions = constraintOptions;
+			this.KeyOptions = keyOptions;
 		}
 
 		public SqlConstraintExpression ChangeColumnNames(IReadOnlyList<string> columnNames)
@@ -69,12 +71,17 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return this;
 			}
 		
-			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, this.ConstraintName, columnNames, this.DefaultValue);
+			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, this.ConstraintName, columnNames, this.DefaultValue, this.ConstraintOptions, this.KeyOptions);
 		}
 
-		public SqlConstraintExpression ChangeOptions(object[] options)
+		public SqlConstraintExpression ChangeKeyOptions(object[] keyOptions)
 		{
-			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue, options);
+			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue, this.ConstraintOptions, keyOptions);
+		}
+
+		public SqlConstraintExpression ChangeConstraintOptions(object[] constraintOptions)
+		{
+			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue, constraintOptions, this.KeyOptions);
 		}
 
 		public SqlConstraintExpression ChangeReferences(SqlReferencesExpression referencesExpression)
@@ -84,12 +91,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return this;
 			}
 
-			return new SqlConstraintExpression(this.ConstraintType, referencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue);
+			return new SqlConstraintExpression(this.ConstraintType, referencesExpression, this.ConstraintName, this.ColumnNames, this.DefaultValue, this.ConstraintOptions, this.KeyOptions);
 		}
 
 		public Expression ChangeConstraintName(string value)
 		{
-			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, value, this.ColumnNames, this.DefaultValue);
+			return new SqlConstraintExpression(this.ConstraintType, this.ReferencesExpression, value, this.ColumnNames, this.DefaultValue, this.ConstraintOptions, this.KeyOptions);
 		}
 	}
 }

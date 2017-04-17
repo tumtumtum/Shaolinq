@@ -24,6 +24,11 @@ namespace Shaolinq.Persistence
 					result = ((string)result).ToLowerInvariant();
 				}
 
+				if (result is IEnumerable && !(result is string))
+				{
+					result = string.Join("_", (result as IEnumerable).ToTyped<object>()?.Select(c => c.ToString()).ToArray());
+				}
+
 				var format = match.Groups["format"].Value;
 
 				if (format.Length > 0)
@@ -40,17 +45,12 @@ namespace Shaolinq.Persistence
 						if (result is string)
 						{
 							result = ((string)result).ToUpperInvariant();
-						}	
+						}
 						break;
 					case "_":
 						result = string.Join("_", (result as IEnumerable).ToTyped<object>()?.Select(c => c.ToString()).ToArray());
 						break;
 					}
-				}
-
-				if (result is IEnumerable && !(result is string))
-				{
-					result = string.Join("_", (result as IEnumerable).ToTyped<object>()?.Select(c => c.ToString()).ToArray());
 				}
 
 				return match.Groups["prefix"].Value + result;

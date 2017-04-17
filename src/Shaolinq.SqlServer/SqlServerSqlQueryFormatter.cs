@@ -162,6 +162,7 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression PreProcess(Expression expression)
 		{
+			expression = SqlServerClusteredIndexNormalizer.Normalize(expression);
 			expression = SqlServerIdentityInsertAndUpdateAmender.Amend(this.typeDescriptorProvider, expression);
 			expression = SqlServerSubqueryOrderByFixer.Fix(expression);
 			expression = SqlServerLimitAmender.Amend(expression);

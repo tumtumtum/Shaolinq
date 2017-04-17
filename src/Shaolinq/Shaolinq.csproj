@@ -162,10 +162,11 @@
     <Compile Include="IAsyncEnumerable.cs" />
     <Compile Include="IDataAccessModelHook.cs" />
     <Compile Include="IDataAccessModelInternal.cs" />
+    <Compile Include="IIndexAttribute.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />
     <Compile Include="NativeAsyncLocal.cs" />
-    <Compile Include="OrganizationKeyAttribute.cs" />
+    <Compile Include="OrganizationIndexAttribute.cs" />
     <Compile Include="Persistence\Computed\ComputedExpressionKeyword.cs" />
     <Compile Include="Persistence\DbCommandExtensions.cs" />
     <Compile Include="Persistence\DataReaderExtensions.cs" />

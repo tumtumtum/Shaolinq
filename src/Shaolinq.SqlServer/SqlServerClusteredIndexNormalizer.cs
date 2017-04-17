@@ -24,9 +24,9 @@ namespace Shaolinq.SqlServer
 		{
 			var retval = (SqlStatementListExpression)base.VisitStatementList(statementListExpression);
 
-			if (additionalStatements != null)
+			if (this.additionalStatements != null)
 			{
-				retval = retval.ChangeStatements(retval.Statements.Concat(additionalStatements));
+				retval = retval.ChangeStatements(retval.Statements.Concat(this.additionalStatements));
 			}
 
 			return retval;
@@ -34,9 +34,9 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitConstraint(SqlConstraintExpression expression)
 		{
-			if (expression.PrimaryKey && makeUnclustered)
+			if (expression.PrimaryKey && this.makeUnclustered)
 			{
-				return expression.ChangeOptions(expression.ConstraintOptions.Concat("NONCLUSTERED").ToArray());
+				return expression.ChangeKeyOptions((expression.KeyOptions ?? new object[0]).Concat("NONCLUSTERED").ToArray());
 			}
 
 			return base.VisitConstraint(expression);
@@ -44,37 +44,37 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
+			var retval = createTableExpression;
 			var organizationIndex = createTableExpression.OrganizationIndex;
 			
 			if (organizationIndex != null)
 			{
-				if (organizationIndex.Columns == null)
+				try
 				{
-					try
-					{
-						this.makeUnclustered = true;
+					this.makeUnclustered = true;
 
-						return ((SqlCreateTableExpression)base.VisitCreateTable(createTableExpression)).ChangeOrganizationIndex(null);
-					}
-					finally
-					{
-						this.makeUnclustered = false;
-					}
+					retval = ((SqlCreateTableExpression)base.VisitCreateTable(createTableExpression)).ChangeOrganizationIndex(null);
 				}
-				else
+				finally
 				{
-					var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, false, IndexType.Default, true, organizationIndex.Columns, null);
+					this.makeUnclustered = false;
+				}
 
-					if (additionalStatements == null)
+				if (organizationIndex.Columns != null)
+				{
+				
+					var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, false, IndexType.Default, false, organizationIndex.Columns, null, null, true);
+
+					if (this.additionalStatements == null)
 					{
-						additionalStatements = new List<Expression>();
+						this.additionalStatements = new List<Expression>();
 					}
 
-					additionalStatements.Add(indexExpression);
+					this.additionalStatements.Add(indexExpression);
 				}
 			}
 
-			return createTableExpression;
+			return retval;
 		}
 	}
 }

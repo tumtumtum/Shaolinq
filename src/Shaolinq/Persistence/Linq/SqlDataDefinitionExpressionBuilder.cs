@@ -256,13 +256,50 @@ namespace Shaolinq.Persistence.Linq
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}
 
-			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, null);
+			var organizationAttributes = typeDescriptor
+				.PersistedProperties
+				.Where(c => c.OrganizationIndexAttribute != null)
+				.Where(c => c.OrganizationIndexAttribute.IncludeOnly == false)
+				.Select(c => new Tuple<OrganizationIndexAttribute, PropertyDescriptor>(c.OrganizationIndexAttribute, c))
+				.ToArray();
+			
+			var organizationIndexName = this.formatterManager.GetIndexConstraintName(typeDescriptor.PrimaryKeyProperties);
+			var organizationIndex = this.BuildOrganizationIndexExpression(organizationIndexName, organizationAttributes);
+
+			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, organizationIndex);
+		}
+
+		private SqlOrganizationIndexExpression BuildOrganizationIndexExpression(string indexName, Tuple<OrganizationIndexAttribute, PropertyDescriptor>[] properties)
+		{
+			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
+
+			var indexedColumns = new List<SqlIndexedColumnExpression>();
+
+			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.IncludeOnly))
+			{
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
+				{
+					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName), attributeAndProperty.Item1.SortOrder, attributeAndProperty.Item1.LowercaseIndex));
+				}
+			}
+
+			var includedColumns = new List<SqlColumnExpression>();
+
+			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.IncludeOnly))
+			{
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
+				{
+					includedColumns.Add(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName));
+				}
+			}
+
+			return new SqlOrganizationIndexExpression(indexName, indexedColumns, includedColumns);
 		}
 
 		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)
 		{
 			var unique = properties.Select(c => c.Item1).Any(c => c.Unique);
-			var lowercaseIndex = properties.Select(c => c.Item1).Any(c => c.LowercaseIndex);
+			var lowercaseIndex = properties.Any(c => c.Item1.LowercaseIndex);
 			var indexType = properties.Select(c => c.Item1.IndexType).FirstOrDefault(c => c != IndexType.Default);
 
 			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);

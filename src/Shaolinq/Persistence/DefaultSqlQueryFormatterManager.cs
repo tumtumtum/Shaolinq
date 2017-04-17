@@ -11,8 +11,8 @@ namespace Shaolinq.Persistence
 		public SqlQueryFormatterConstructorMethod ConstructorMethod { get; }
 		public delegate SqlQueryFormatter SqlQueryFormatterConstructorMethod(SqlQueryFormatterOptions options);
 
-		public DefaultSqlQueryFormatterManager(SqlDialect sqlDialect, SqlQueryFormatterConstructorMethod constructorMethod)
-			: base(sqlDialect)
+		public DefaultSqlQueryFormatterManager(SqlDialect sqlDialect, NamingTransformsConfiguration namingTransformsConfiguration, SqlQueryFormatterConstructorMethod constructorMethod)
+			: base(sqlDialect, namingTransformsConfiguration)
 		{
 			this.SqlDialect = sqlDialect;
 			this.ConstructorMethod = constructorMethod;

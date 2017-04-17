@@ -9,9 +9,9 @@ namespace Shaolinq
 	{
 		public const string DefaultIndexConstraintName = "s/^.*$/idx_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
 		public const string DefaultForeignKeyConstraintName = "s/^.*$/fk_$(TABLENAME:L)_$(PROPERTYNAME:L)/";
-		public const string DefaultPrimaryKeyConstraintName = "s/^.*$/pk_$(TABLENAME:L)_$(PROPERTYNAME:L)/";
+		public const string DefaultPrimaryKeyConstraintName = "s/^.*$/pk_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
 		public const string DefaultDefaultValueConstraintName = "s/^.*$/$(TABLENAME:L)_$(PROPERTYNAME:L)_def/";
-
+		
 		[XmlAttribute]
 		public string DataAccessObjectName { get; set; }
 

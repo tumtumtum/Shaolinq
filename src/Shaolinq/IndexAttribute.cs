@@ -15,7 +15,7 @@ namespace Shaolinq
 	/// </remarks>
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
 	public class IndexAttribute
-		: Attribute
+		: Attribute, IIndexAttribute
 	{
 		/// <summary>
 		/// The order of the index. Unspecified is database dependent but usually ascending.

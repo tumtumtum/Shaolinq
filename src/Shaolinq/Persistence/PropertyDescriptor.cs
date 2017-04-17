@@ -28,7 +28,7 @@ namespace Shaolinq.Persistence
 		public Expression ComputedMemberAssignmentValue { get; }
 		public TypeDescriptor PropertyTypeTypeDescriptor => this.DeclaringTypeDescriptor.TypeDescriptorProvider.GetTypeDescriptor(this.PropertyType);
 		public PrimaryKeyAttribute PrimaryKeyAttribute { get; }
-		public OrganizationKeyAttribute OrganizationKeyAttribute { get; }
+		public OrganizationIndexAttribute OrganizationIndexAttribute { get; }
 		public DefaultValueAttribute DefaultValueAttribute { get; }
 		public AutoIncrementAttribute AutoIncrementAttribute { get; }
 		public ValueRequiredAttribute ValueRequiredAttribute { get; }
@@ -84,7 +84,7 @@ namespace Shaolinq.Persistence
 			}
 
 			this.PrimaryKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
-			this.OrganizationKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<OrganizationKeyAttribute>(true);
+			this.OrganizationIndexAttribute = this.PropertyInfo.GetFirstCustomAttribute<OrganizationIndexAttribute>(true);
 			this.IsPrimaryKey = this.PrimaryKeyAttribute != null && this.PrimaryKeyAttribute.IsPrimaryKey;
 			this.IndexAttributes = this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToReadOnlyCollection();
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
@@ -115,7 +115,7 @@ namespace Shaolinq.Persistence
 			
 			var implicitDefault = this.PropertyType.IsValueType && this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
 
-			if (this.DefaultValueAttribute != null || (implicitDefault && !(this.IsAutoIncrement && this.PropertyType.IsIntegerType())))
+			if (this.DefaultValueAttribute != null || (implicitDefault && !this.IsAutoIncrement))
 			{
 				this.DefaultValue = this.DefaultValueAttribute?.Value;
 				this.HasDefaultValue = true;

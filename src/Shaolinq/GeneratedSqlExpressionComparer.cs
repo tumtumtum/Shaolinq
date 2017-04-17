@@ -1407,6 +1407,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            if (!(this.result &= current.Clustered == expression.Clustered))
+            {
+                return expression;
+            }
+
             if (!(this.result &= current.NodeType == expression.NodeType))
             {
                 return expression;
@@ -1552,6 +1557,13 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
+            this.currentObject = current.KeyOptions;
+            this.VisitObjectList(expression.KeyOptions);
+            if (!this.result)
+            {
+                return expression;
+            }
+
             this.currentObject = current.ConstraintOptions;
             this.VisitObjectList(expression.ConstraintOptions);
             if (!this.result)
@@ -1572,6 +1584,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             if (!(this.result &= current.LowercaseIndex == expression.LowercaseIndex))
+            {
+                return expression;
+            }
+
+            if (!(this.result &= current.IncludeOnly == expression.IncludeOnly))
             {
                 return expression;
             }
