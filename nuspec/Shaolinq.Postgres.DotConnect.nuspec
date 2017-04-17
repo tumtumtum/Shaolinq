@@ -30,7 +30,7 @@ Designed to perform super fast and be easy to use, Shaolinq's features also incl
     <tags>shaolinq linq provider orm postgres sql database</tags>
     <dependencies>
       <dependency id="Shaolinq" version="$version$"/>
-      <dependency id="dotConnect.Express.for.PostgreSQL"/>
+      <dependency id="dotConnect.Express.for.PostgreSQL" version="7.8.862"/>
       </dependencies>
   </metadata>
 </package>

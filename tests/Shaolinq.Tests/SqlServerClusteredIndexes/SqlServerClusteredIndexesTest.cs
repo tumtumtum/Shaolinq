@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using NUnit.Framework;
 
 namespace Shaolinq.Tests.SqlServerClusteredIndexes
 {

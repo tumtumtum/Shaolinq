@@ -1,7 +1,6 @@
-﻿using System;
-using System.ComponentModel;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
 using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
 
