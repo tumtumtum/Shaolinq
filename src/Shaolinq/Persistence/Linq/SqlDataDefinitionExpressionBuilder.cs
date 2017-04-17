@@ -256,6 +256,8 @@ namespace Shaolinq.Persistence.Linq
 				this.currentTableConstraints.Add(compositePrimaryKeyConstraint);
 			}
 
+			SqlOrganizationIndexExpression organizationIndex = null;
+
 			var organizationAttributes = typeDescriptor
 				.PersistedProperties
 				.Where(c => c.OrganizationIndexAttribute != null)
@@ -263,8 +265,11 @@ namespace Shaolinq.Persistence.Linq
 				.Select(c => new Tuple<OrganizationIndexAttribute, PropertyDescriptor>(c.OrganizationIndexAttribute, c))
 				.ToArray();
 			
-			var organizationIndexName = this.formatterManager.GetIndexConstraintName(typeDescriptor.PrimaryKeyProperties);
-			var organizationIndex = this.BuildOrganizationIndexExpression(organizationIndexName, organizationAttributes);
+			if (organizationAttributes.Length > 0)
+			{
+				var organizationIndexName = this.formatterManager.GetIndexConstraintName(typeDescriptor.PrimaryKeyProperties);
+				organizationIndex = this.BuildOrganizationIndexExpression(organizationIndexName, organizationAttributes);
+			}
 
 			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, organizationIndex);
 		}

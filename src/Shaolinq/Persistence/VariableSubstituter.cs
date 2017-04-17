@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Platform;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
 {
@@ -126,7 +127,7 @@ namespace Shaolinq.Persistence
 					case "PROPERTYNAMES":
 						return properties.Select(c => c.PropertyName);
 					case "COLUMNNAMES":
-						return properties.Select(c => c.PersistedName);
+						return QueryBinder.GetColumnInfos(property.DeclaringTypeDescriptor.TypeDescriptorProvider, properties);
 					}
 				}
 

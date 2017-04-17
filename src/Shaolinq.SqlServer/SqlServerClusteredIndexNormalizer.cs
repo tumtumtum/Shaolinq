@@ -62,7 +62,6 @@ namespace Shaolinq.SqlServer
 
 				if (organizationIndex.Columns != null)
 				{
-				
 					var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, false, IndexType.Default, false, organizationIndex.Columns, null, null, true);
 
 					if (this.additionalStatements == null)
