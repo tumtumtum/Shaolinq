@@ -43,6 +43,7 @@ namespace Shaolinq.Tests
 
 			var retval = SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -52,6 +53,7 @@ namespace Shaolinq.Tests
 		{
 			var retval = MySqlConfiguration.Create(databaseName, "localhost", "root", "root");
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -61,6 +63,7 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create(databaseName + ".db", null, useMonoData);
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -70,6 +73,7 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -79,6 +83,7 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create(":memory:", null, useMonoData);
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -99,6 +104,7 @@ namespace Shaolinq.Tests
 				MaxPoolSize = 10
 			});
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -116,6 +122,7 @@ namespace Shaolinq.Tests
 				UnpreparedExecute = false
 			});
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -133,6 +140,7 @@ namespace Shaolinq.Tests
 				UnpreparedExecute = false
 			});
 
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
