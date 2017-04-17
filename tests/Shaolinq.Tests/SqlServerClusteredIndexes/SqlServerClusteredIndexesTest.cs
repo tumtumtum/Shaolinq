@@ -2,7 +2,7 @@
 
 namespace Shaolinq.Tests.SqlServerClusteredIndexes
 {
-	[TestFixture("SqlServer")]
+	[TestFixture("SqlServer", "IgnoreOnMono")]
 	public class SqlServerClusteredIndexesTest
 		: BaseTests<SqlServerDataAccessModel>
 	{
