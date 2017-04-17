@@ -67,14 +67,17 @@
     <Compile Include="TestAssignment.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Content Include="TestExplicitInterfaceImplementations.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="TestExplicitAwaitRewrittenAsyncMethod.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <None Include="TestGenericSpecialisedImplementation.cs">
+    <Content Include="TestGenericSpecialisedImplementation.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <EmbeddedResource Include="Bar.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

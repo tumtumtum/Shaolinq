@@ -434,8 +434,8 @@ namespace Shaolinq.AsyncRewriter
 		
 		private MethodDeclarationSyntax RewriteMethodAsync(MethodDeclarationSyntax methodSyntax, SemanticModel semanticModel, bool cancellationVersion)
 		{
+			var asyncMethodName = methodSyntax.Identifier.Text + "Async";
 			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
-			var asyncMethodName = methodSymbol.Name + "Async";
 			var isInterfaceMethod = methodSymbol.ContainingType.TypeKind == TypeKind.Interface;
 			
 			if (((methodSyntax.Parent as TypeDeclarationSyntax)?.Modifiers)?.Any(c => c.Kind() == SyntaxKind.PartialKeyword) != true)
