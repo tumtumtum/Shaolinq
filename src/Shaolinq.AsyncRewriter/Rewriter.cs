@@ -483,25 +483,27 @@ namespace Shaolinq.AsyncRewriter
 			}
 			else
 			{
-				var methodName = asyncMethodName;
-
-				if (methodSymbol.TypeParameters.Length > 0)
-				{
-					var typeParams = string.Join(", ", methodSymbol.TypeParameters.Select(c => c.ToString()));
-
-					methodName += "<" + typeParams + ">";
-				}
-
 				var thisExpression = (ExpressionSyntax)SyntaxFactory.ThisExpression();
 
 				if (methodSymbol.ExplicitInterfaceImplementations.Length > 0)
 				{
-					thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(methodSymbol.ExplicitInterfaceImplementations[0].ContainingType.Name), thisExpression));
+					thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(methodSymbol.ExplicitInterfaceImplementations[0].ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)), thisExpression));
+				}
+
+				SimpleNameSyntax methodName;
+
+				if (methodSymbol.TypeParameters.Length == 0)
+				{
+					methodName = SyntaxFactory.IdentifierName(asyncMethodName);
+				}
+				else
+				{
+					methodName = SyntaxFactory.GenericName(SyntaxFactory.Identifier(asyncMethodName), SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(methodSymbol.TypeParameters.Select(c => SyntaxFactory.ParseTypeName(c.Name)))));
 				}
 
 				var callAsyncWithCancellationToken = SyntaxFactory.InvocationExpression
 				(
-					SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, thisExpression, SyntaxFactory.IdentifierName(methodName)),
+					SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, thisExpression, methodName),
 					SyntaxFactory.ArgumentList
 					(
 						new SeparatedSyntaxList<ArgumentSyntax>()

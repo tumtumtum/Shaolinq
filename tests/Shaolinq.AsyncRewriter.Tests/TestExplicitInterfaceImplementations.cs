@@ -36,11 +36,11 @@ namespace Shaolinq.AsyncRewriter.Tests
 		[RewriteAsync]
 		public void Test()
 		{
-			((IFoo)this).Test1(0);
+			((IFoo<int>)this).Test1(0);
 		}
 
 		[RewriteAsync]
-		void IFoo.Test1(int a1)
+		void IFoo<int>.Test1(int a1)
 		{
 		}
 	}
