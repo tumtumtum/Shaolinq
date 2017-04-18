@@ -620,7 +620,7 @@ namespace Shaolinq.AsyncRewriter
 
 			newAsyncMethod = newAsyncMethod
 				.WithLeadingTrivia(methodSyntax.GetLeadingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia))
-				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia().Where(c => c.Kind() != SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia));
+				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia));
 
 			return newAsyncMethod;
 		}
