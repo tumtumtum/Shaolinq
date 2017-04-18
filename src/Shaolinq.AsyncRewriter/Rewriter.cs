@@ -501,9 +501,16 @@ namespace Shaolinq.AsyncRewriter
 					methodName = SyntaxFactory.GenericName(SyntaxFactory.Identifier(asyncMethodName), SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(methodSymbol.TypeParameters.Select(c => SyntaxFactory.ParseTypeName(c.Name)))));
 				}
 
+				var invocationTarget = (ExpressionSyntax)methodName;
+
+				if (!methodSymbol.IsStatic)
+				{
+					SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, thisExpression, methodName);
+				}
+				
 				var callAsyncWithCancellationToken = SyntaxFactory.InvocationExpression
 				(
-					SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, thisExpression, methodName),
+					invocationTarget,
 					SyntaxFactory.ArgumentList
 					(
 						new SeparatedSyntaxList<ArgumentSyntax>()
@@ -612,8 +619,8 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			newAsyncMethod = newAsyncMethod
-				.WithLeadingTrivia(methodSyntax.GetLeadingTrivia())
-				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia());
+				.WithLeadingTrivia(methodSyntax.GetLeadingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia))
+				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia().Where(c => c.Kind() != SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia));
 
 			return newAsyncMethod;
 		}

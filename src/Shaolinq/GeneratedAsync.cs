@@ -2042,12 +2042,6 @@ namespace Shaolinq
 	using global::Shaolinq.TypeBuilding;
 	using global::Shaolinq.Persistence.Linq.Expressions;
 
-	/// <summary>
-	/// Stores a cache of all objects that have been loaded or created within a context
-	/// of a transaction.
-	/// Code repetition and/or ugliness in this class is due to the need for this
-	/// code to run FAST.
-	/// </summary>
 	public partial class DataAccessObjectDataContext
 	{
 		public virtual Task CommitAsync(SqlTransactionalCommandsContext commandsContext, bool forFlush)
