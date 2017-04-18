@@ -333,15 +333,18 @@ namespace Shaolinq.AsyncRewriter
 								typeGrouping => 
 								typeGrouping.Key is ClassDeclarationSyntax
 								?
-									SyntaxFactory.ClassDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
-									.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
-									.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
-									as TypeDeclarationSyntax
+									(SyntaxFactory.ClassDeclaration(typeGrouping.Key.Identifier)
+										.WithModifiers(typeGrouping.Key.Modifiers)
+										.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
+										.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+										as TypeDeclarationSyntax)
+										.WithLeadingTrivia(new SyntaxTriviaList())
 								:
-									SyntaxFactory.InterfaceDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
-									.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
-									.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
-									as TypeDeclarationSyntax
+									(SyntaxFactory.InterfaceDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
+										.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
+										.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+										as TypeDeclarationSyntax)
+										.WithLeadingTrivia(new SyntaxTriviaList())
 							)
 						))
 					)
@@ -489,9 +492,16 @@ namespace Shaolinq.AsyncRewriter
 					methodName += "<" + typeParams + ">";
 				}
 
+				var thisExpression = (ExpressionSyntax)SyntaxFactory.ThisExpression();
+
+				if (methodSymbol.ExplicitInterfaceImplementations.Length > 0)
+				{
+					thisExpression = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(methodSymbol.ExplicitInterfaceImplementations[0].ContainingType.Name), thisExpression));
+				}
+
 				var callAsyncWithCancellationToken = SyntaxFactory.InvocationExpression
 				(
-					SyntaxFactory.IdentifierName(methodName),
+					SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, thisExpression, SyntaxFactory.IdentifierName(methodName)),
 					SyntaxFactory.ArgumentList
 					(
 						new SeparatedSyntaxList<ArgumentSyntax>()
@@ -598,6 +608,10 @@ namespace Shaolinq.AsyncRewriter
 					newAsyncMethod = newAsyncMethod.WithAccessModifiers(methodAttributes);
 				}
 			}
+
+			newAsyncMethod = newAsyncMethod
+				.WithLeadingTrivia(methodSyntax.GetLeadingTrivia())
+				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia());
 
 			return newAsyncMethod;
 		}

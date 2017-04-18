@@ -6,23 +6,41 @@ using System.Threading.Tasks;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
-	public partial interface IFoo
+	public partial interface IFoo<T>
 	{
+		/// <summary>
+		/// This is a test
+		/// </summary>
+		/// <remarks>
+		/// This is a test remark
+		/// </remarks>
 		[RewriteAsync]
-		void Test1();
+		void Test1(T a1);
 	}
 
+	/// <summary>
+	/// This is a test
+	/// </summary>
+	/// <remarks>
+	/// This is a test remark
+	/// </remarks>
 	public partial class TestExplicitInterfaceImplementations
-		: IFoo
+		: IFoo<int>
 	{
+		/// <summary>
+		/// This is a test
+		/// </summary>
+		/// <remarks>
+		/// This is a test remark
+		/// </remarks>
 		[RewriteAsync]
 		public void Test()
 		{
-			((IFoo)this).Test1();
+			((IFoo)this).Test1(0);
 		}
 
 		[RewriteAsync]
-		void IFoo.Test1()
+		void IFoo.Test1(int a1)
 		{
 		}
 	}
