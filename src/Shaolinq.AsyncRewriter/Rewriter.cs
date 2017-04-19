@@ -505,7 +505,7 @@ namespace Shaolinq.AsyncRewriter
 
 				if (!methodSymbol.IsStatic)
 				{
-					SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, thisExpression, methodName);
+					invocationTarget = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, thisExpression, methodName);
 				}
 				
 				var callAsyncWithCancellationToken = SyntaxFactory.InvocationExpression
