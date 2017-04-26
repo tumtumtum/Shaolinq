@@ -143,7 +143,57 @@ namespace Shaolinq.Tests
 				Assert.That(address2.Street, Is.EqualTo("Street2"));
 			}
 		}
-		
+
+		[Test]
+		[Category("IgnoreOnMono")]
+		public void Test_Insert_And_Nplus1_Query_Async()
+		{
+			Test_Insert_And_Nplus1_Query_Async_Private().Wait();
+		}
+
+		private async Task Test_Insert_And_Nplus1_Query_Async_Private()
+		{
+			long schoolId;
+
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				var school = this.model.Schools.Create();
+
+				var s1 = school.Students.Create();
+				
+				await scope.FlushAsync().ContinueOnAnyContext();
+
+				schoolId = school.Id;
+
+				await scope.CompleteAsync().ContinueOnAnyContext();
+			}
+
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				var school = await this.model.Schools.SingleAsync(c => c.Id == schoolId);
+
+				var x = await school.Students.ToListAsync().ContinueOnAnyContext();
+
+				var newSchool = this.model.Schools.Create();
+
+				var y = await school.Students.ToListAsync();
+
+				Assert.AreEqual(1, y.Count);
+
+				var s1 = await school.Students.FirstAsync();
+
+				school.Name = "Hello";
+
+				await scope.FlushAsync();
+
+				var y2 = await school.Students.ToListAsync().ContinueOnAnyContext();
+				var s2 = await school.Students.SingleAsync().ContinueOnAnyContext();
+				var newSchool2 = this.model.Schools.Create();
+
+				await scope.CompleteAsync().ContinueOnAnyContext();
+			}
+		}
+
 		[Test]
 		[Category("IgnoreOnMono")]
 		public void Test_AsyncSelect()

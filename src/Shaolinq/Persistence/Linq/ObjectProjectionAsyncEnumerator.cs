@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq
 		private C context;
 		private IDataReader dataReader;
 		private readonly ObjectProjector<T, U, C> objectProjector;
-		private readonly TransactionContext.TransactionExecutionContext transactionExecutionContextAcquisition;
+		private TransactionContext.TransactionExecutionContext transactionExecutionContextAcquisition;
 
 		public ObjectProjectionAsyncEnumerator(ObjectProjector<T, U, C> objectProjector)
 		{
@@ -49,9 +49,16 @@ namespace Shaolinq.Persistence.Linq
 
 			this.disposed = true;
 
+			this.Close();
+		}
+
+		private void Close()
+		{
 			// ReSharper disable EmptyGeneralCatchClause
 			try { this.dataReader?.Dispose(); } catch { }
 			try { this.transactionExecutionContextAcquisition?.Dispose(); } catch { }
+			this.dataReader = null;
+			this.transactionExecutionContextAcquisition = null;
 			// ReSharper restore EmptyGeneralCatchClause
 		}
 
@@ -104,6 +111,8 @@ state1:
 			if (this.objectProjector.ProcessLastMoveNext(this.dataReader, ref this.context, out result))
 			{
 				this.Current = result;
+
+				this.Close();
 
 				return true;
 			}

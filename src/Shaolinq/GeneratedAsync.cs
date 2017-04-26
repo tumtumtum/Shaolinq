@@ -11,11 +11,29 @@ namespace Shaolinq
 
 	public partial class DataAccessScope
 	{
+		/// <summary>
+		/// Flushes the current transaction for all <see cref = "DataAccessModel"/> that have
+		/// participated in the current transaction
+		/// </summary>
+		/// <remarks>
+		/// Flushing a transaction writes any pending INSERTs, UPDATES and DELETES to the database
+		/// but does not commit the transaction. To commit the transaction you must call 
+		/// <see cref = "Complete(ScopeCompleteOptions)"/>.
+		/// </remarks>
 		public Task FlushAsync()
 		{
-			return FlushAsync(CancellationToken.None);
+			return this.FlushAsync(CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Flushes the current transaction for all <see cref = "DataAccessModel"/> that have
+		/// participated in the current transaction
+		/// </summary>
+		/// <remarks>
+		/// Flushing a transaction writes any pending INSERTs, UPDATES and DELETES to the database
+		/// but does not commit the transaction. To commit the transaction you must call 
+		/// <see cref = "Complete(ScopeCompleteOptions)"/>.
+		/// </remarks>
 		public async Task FlushAsync(CancellationToken cancellationToken)
 		{
 			this.transaction.CheckAborted();
@@ -28,11 +46,35 @@ namespace Shaolinq
 			}
 		}
 
+		/// <summary>
+		/// Flushes the current transaction for the given <paramref name = "dataAccessModel"/>
+		/// </summary>
+		/// <remarks>
+		/// Flushing a transaction writes any pending INSERTs, UPDATES and DELETES to the database
+		/// but does not commit the transaction. To commit the transaction you must call 
+		/// <see cref = "Complete(ScopeCompleteOptions)"/>.
+		/// </remarks>
+		/// <param name = "dataAccessModel">
+		/// The <see cref = "DataAccessModel"/> to flush if you only want to flush a single
+		/// DataAccessModel
+		/// </param>
 		public Task FlushAsync(DataAccessModel dataAccessModel)
 		{
-			return FlushAsync(dataAccessModel, CancellationToken.None);
+			return this.FlushAsync(dataAccessModel, CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Flushes the current transaction for the given <paramref name = "dataAccessModel"/>
+		/// </summary>
+		/// <remarks>
+		/// Flushing a transaction writes any pending INSERTs, UPDATES and DELETES to the database
+		/// but does not commit the transaction. To commit the transaction you must call 
+		/// <see cref = "Complete(ScopeCompleteOptions)"/>.
+		/// </remarks>
+		/// <param name = "dataAccessModel">
+		/// The <see cref = "DataAccessModel"/> to flush if you only want to flush a single
+		/// DataAccessModel
+		/// </param>
 		public async Task FlushAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
 		{
 			this.transaction.CheckAborted();
@@ -42,43 +84,131 @@ namespace Shaolinq
 			}
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
 		public Task<T> CompleteAsync<T>(Func<T> result)
 		{
-			return CompleteAsync<T>(result, CancellationToken.None);
+			return this.CompleteAsync<T>(result, CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
 		public async Task<T> CompleteAsync<T>(Func<T> result, CancellationToken cancellationToken)
 		{
 			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
 			return result();
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
 		public Task<T> CompleteAsync<T>(Func<T> result, ScopeCompleteOptions options)
 		{
-			return CompleteAsync<T>(result, options, CancellationToken.None);
+			return this.CompleteAsync<T>(result, options, CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
 		public async Task<T> CompleteAsync<T>(Func<T> result, ScopeCompleteOptions options, CancellationToken cancellationToken)
 		{
 			await this.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
 			return result();
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
 		public Task CompleteAsync()
 		{
-			return CompleteAsync(CancellationToken.None);
+			return this.CompleteAsync(CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
 		public async Task CompleteAsync(CancellationToken cancellationToken)
 		{
 			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// Flushing a scope commits 
+		/// </para>
+		/// <para>
+		/// A scope is considered to have aborted if Complete is not called before the scope is disposed
+		/// The outer most scope flushes and commits the transaction when it is completed.
+		/// </para>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
+		/// <param name = "options">Set to <a cref = "ScopeCompleteOptions.SuppressAutoFlush"/> to suppress auto-flush</param>
 		public Task CompleteAsync(ScopeCompleteOptions options)
 		{
-			return CompleteAsync(options, CancellationToken.None);
+			return this.CompleteAsync(options, CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Flushes the current transaction and marks the scope as completed
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// Flushing a scope commits 
+		/// </para>
+		/// <para>
+		/// A scope is considered to have aborted if Complete is not called before the scope is disposed
+		/// The outer most scope flushes and commits the transaction when it is completed.
+		/// </para>
+		/// <para>
+		/// By default all nested scopes auto-flush without commiting the transaction. You can
+		/// disable auto-flush by calling <see cref = "Complete(ScopeCompleteOptions)"/>
+		/// </para>
+		/// </remarks>
+		/// <param name = "options">Set to <a cref = "ScopeCompleteOptions.SuppressAutoFlush"/> to suppress auto-flush</param>
 		public async Task CompleteAsync(ScopeCompleteOptions options, CancellationToken cancellationToken)
 		{
 			this.complete = true;
@@ -134,7 +264,7 @@ namespace Shaolinq
 	{
 		public Task CommitAsync()
 		{
-			return CommitAsync(CancellationToken.None);
+			return this.CommitAsync(CancellationToken.None);
 		}
 
 		public async Task CommitAsync(CancellationToken cancellationToken)
@@ -152,7 +282,7 @@ namespace Shaolinq
 
 		public Task RollbackAsync()
 		{
-			return RollbackAsync(CancellationToken.None);
+			return this.RollbackAsync(CancellationToken.None);
 		}
 
 		public async Task RollbackAsync(CancellationToken cancellationToken)
@@ -185,7 +315,7 @@ namespace Shaolinq
 	{
 		public Task<bool> MoveNextAsync()
 		{
-			return MoveNextAsync(CancellationToken.None);
+			return this.MoveNextAsync(CancellationToken.None);
 		}
 
 		public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
@@ -237,7 +367,7 @@ namespace Shaolinq
 	{
 		public Task<bool> MoveNextAsync()
 		{
-			return MoveNextAsync(CancellationToken.None);
+			return this.MoveNextAsync(CancellationToken.None);
 		}
 
 		public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
@@ -301,7 +431,7 @@ namespace Shaolinq
 	{
 		public Task<bool> MoveNextAsync()
 		{
-			return MoveNextAsync(CancellationToken.None);
+			return this.MoveNextAsync(CancellationToken.None);
 		}
 
 		public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
@@ -723,7 +853,7 @@ namespace Shaolinq.Persistence
 	{
 		public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters)
 		{
-			return ExecuteReaderAsync(sql, parameters, CancellationToken.None);
+			return this.ExecuteReaderAsync(sql, parameters, CancellationToken.None);
 		}
 
 		public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
@@ -756,7 +886,7 @@ namespace Shaolinq.Persistence
 
 		public override Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			return UpdateAsync(type, dataAccessObjects, CancellationToken.None);
+			return this.UpdateAsync(type, dataAccessObjects, CancellationToken.None);
 		}
 
 		public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
@@ -766,7 +896,7 @@ namespace Shaolinq.Persistence
 
 		private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
 		{
-			return UpdateAsync(type, dataAccessObjects, resetModified, CancellationToken.None);
+			return this.UpdateAsync(type, dataAccessObjects, resetModified, CancellationToken.None);
 		}
 
 		private async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified, CancellationToken cancellationToken)
@@ -820,7 +950,7 @@ namespace Shaolinq.Persistence
 
 		public override Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			return InsertAsync(type, dataAccessObjects, CancellationToken.None);
+			return this.InsertAsync(type, dataAccessObjects, CancellationToken.None);
 		}
 
 		public override async Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
@@ -914,7 +1044,7 @@ namespace Shaolinq.Persistence
 
 		public override Task DeleteAsync(SqlDeleteExpression deleteExpression)
 		{
-			return DeleteAsync(deleteExpression, CancellationToken.None);
+			return this.DeleteAsync(deleteExpression, CancellationToken.None);
 		}
 
 		public override async Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
@@ -948,7 +1078,7 @@ namespace Shaolinq.Persistence
 
 		public override Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			return DeleteAsync(type, dataAccessObjects, CancellationToken.None);
+			return this.DeleteAsync(type, dataAccessObjects, CancellationToken.None);
 		}
 
 		public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
@@ -981,7 +1111,7 @@ namespace Shaolinq.Persistence.Linq
 	{
 		public virtual Task<bool> MoveNextAsync()
 		{
-			return MoveNextAsync(CancellationToken.None);
+			return this.MoveNextAsync(CancellationToken.None);
 		}
 
 		public virtual async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
@@ -1019,6 +1149,26 @@ namespace Shaolinq.Persistence.Linq
 			if (this.objectProjector.ProcessLastMoveNext(this.dataReader, ref this.context, out result))
 			{
 				this.Current = result;
+				// ReSharper disable EmptyGeneralCatchClause
+				try
+				{
+					this.dataReader?.Dispose();
+				}
+				catch
+				{
+				}
+
+				try
+				{
+					this.transactionExecutionContextAcquisition?.Dispose();
+				}
+				catch
+				{
+				}
+
+				this.dataReader = null;
+				this.transactionExecutionContextAcquisition = null;
+				// ReSharper restore EmptyGeneralCatchClause
 				return true;
 			}
 
@@ -1044,7 +1194,7 @@ namespace Shaolinq.Persistence
 	{
 		public Task BufferAllAsync()
 		{
-			return BufferAllAsync(CancellationToken.None);
+			return this.BufferAllAsync(CancellationToken.None);
 		}
 
 		public async Task BufferAllAsync(CancellationToken cancellationToken)
@@ -1149,7 +1299,7 @@ namespace Shaolinq.Persistence
 	{
 		public virtual Task<int> ExecuteNonQueryAsync()
 		{
-			return ExecuteNonQueryAsync(CancellationToken.None);
+			return this.ExecuteNonQueryAsync(CancellationToken.None);
 		}
 
 		public async virtual Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
@@ -1172,7 +1322,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Task<object> ExecuteScalarAsync()
 		{
-			return ExecuteScalarAsync(CancellationToken.None);
+			return this.ExecuteScalarAsync(CancellationToken.None);
 		}
 
 		public async virtual Task<object> ExecuteScalarAsync(CancellationToken cancellationToken)
@@ -1195,7 +1345,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Task<IDataReader> ExecuteReaderAsync()
 		{
-			return ExecuteReaderAsync(CancellationToken.None);
+			return this.ExecuteReaderAsync(CancellationToken.None);
 		}
 
 		public async virtual Task<IDataReader> ExecuteReaderAsync(CancellationToken cancellationToken)
@@ -1218,7 +1368,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior)
 		{
-			return ExecuteReaderAsync(behavior, CancellationToken.None);
+			return this.ExecuteReaderAsync(behavior, CancellationToken.None);
 		}
 
 		public async virtual Task<IDataReader> ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
@@ -1259,7 +1409,7 @@ namespace Shaolinq.Persistence
 	{
 		public virtual Task CommitAsync()
 		{
-			return CommitAsync(CancellationToken.None);
+			return this.CommitAsync(CancellationToken.None);
 		}
 
 		public virtual async Task CommitAsync(CancellationToken cancellationToken)
@@ -1292,7 +1442,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Task RollbackAsync()
 		{
-			return RollbackAsync(CancellationToken.None);
+			return this.RollbackAsync(CancellationToken.None);
 		}
 
 		public virtual async Task RollbackAsync(CancellationToken cancellationToken)
@@ -1330,7 +1480,7 @@ namespace Shaolinq.Persistence
 	{
 		public virtual Task CreateDatabaseAndSchemaAsync(DatabaseCreationOptions options)
 		{
-			return CreateDatabaseAndSchemaAsync(options, CancellationToken.None);
+			return this.CreateDatabaseAndSchemaAsync(options, CancellationToken.None);
 		}
 
 		public virtual async Task CreateDatabaseAndSchemaAsync(DatabaseCreationOptions options, CancellationToken cancellationToken)
@@ -1344,7 +1494,7 @@ namespace Shaolinq.Persistence
 		protected abstract Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken);
 		protected virtual Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
-			return CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, CancellationToken.None);
+			return this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
 		protected virtual async Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
@@ -2046,7 +2196,7 @@ namespace Shaolinq
 	{
 		public virtual Task CommitAsync(SqlTransactionalCommandsContext commandsContext, bool forFlush)
 		{
-			return CommitAsync(commandsContext, forFlush, CancellationToken.None);
+			return this.CommitAsync(commandsContext, forFlush, CancellationToken.None);
 		}
 
 		public virtual async Task CommitAsync(SqlTransactionalCommandsContext commandsContext, bool forFlush, CancellationToken cancellationToken)
@@ -2089,7 +2239,7 @@ namespace Shaolinq
 
 		private Task CommitDeletedAsync(SqlTransactionalCommandsContext commandsContext)
 		{
-			return CommitDeletedAsync(commandsContext, CancellationToken.None);
+			return this.CommitDeletedAsync(commandsContext, CancellationToken.None);
 		}
 
 		private async Task CommitDeletedAsync(SqlTransactionalCommandsContext commandsContext, CancellationToken cancellationToken)
@@ -2113,7 +2263,7 @@ namespace Shaolinq
 
 		private Task CommitUpdatedAsync(SqlTransactionalCommandsContext commandsContext)
 		{
-			return CommitUpdatedAsync(commandsContext, CancellationToken.None);
+			return this.CommitUpdatedAsync(commandsContext, CancellationToken.None);
 		}
 
 		private async Task CommitUpdatedAsync(SqlTransactionalCommandsContext commandsContext, CancellationToken cancellationToken)
@@ -2146,7 +2296,7 @@ namespace Shaolinq
 
 		private Task CommitNewAsync(SqlTransactionalCommandsContext commandsContext)
 		{
-			return CommitNewAsync(commandsContext, CancellationToken.None);
+			return this.CommitNewAsync(commandsContext, CancellationToken.None);
 		}
 
 		private async Task CommitNewAsync(SqlTransactionalCommandsContext commandsContext, CancellationToken cancellationToken)
@@ -2217,7 +2367,7 @@ namespace Shaolinq.Persistence
 	{
 		public Task<SqlTransactionalCommandsContext> CreateSqlTransactionalCommandsContextAsync(TransactionContext transactionContext)
 		{
-			return CreateSqlTransactionalCommandsContextAsync(transactionContext, CancellationToken.None);
+			return this.CreateSqlTransactionalCommandsContextAsync(transactionContext, CancellationToken.None);
 		}
 
 		public async Task<SqlTransactionalCommandsContext> CreateSqlTransactionalCommandsContextAsync(TransactionContext transactionContext, CancellationToken cancellationToken)
@@ -2236,7 +2386,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Task<IDbConnection> OpenConnectionAsync()
 		{
-			return OpenConnectionAsync(CancellationToken.None);
+			return this.OpenConnectionAsync(CancellationToken.None);
 		}
 
 		public virtual async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
@@ -2254,7 +2404,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Task<IDbConnection> OpenServerConnectionAsync()
 		{
-			return OpenServerConnectionAsync(CancellationToken.None);
+			return this.OpenServerConnectionAsync(CancellationToken.None);
 		}
 
 		public virtual async Task<IDbConnection> OpenServerConnectionAsync(CancellationToken cancellationToken)
@@ -2300,7 +2450,7 @@ namespace Shaolinq
 	{
 		public virtual Task CreateAsync(DatabaseCreationOptions options)
 		{
-			return CreateAsync(options, CancellationToken.None);
+			return this.CreateAsync(options, CancellationToken.None);
 		}
 
 		public virtual async Task CreateAsync(DatabaseCreationOptions options, CancellationToken cancellationToken)
@@ -2314,7 +2464,7 @@ namespace Shaolinq
 
 		public virtual Task FlushAsync()
 		{
-			return FlushAsync(CancellationToken.None);
+			return this.FlushAsync(CancellationToken.None);
 		}
 
 		public virtual async Task FlushAsync(CancellationToken cancellationToken)
@@ -2345,7 +2495,7 @@ namespace Shaolinq
 	{
 		public virtual Task<SqlTransactionalCommandsContext> GetSqlTransactionalCommandsContextAsync()
 		{
-			return GetSqlTransactionalCommandsContextAsync(CancellationToken.None);
+			return this.GetSqlTransactionalCommandsContextAsync(CancellationToken.None);
 		}
 
 		public virtual async Task<SqlTransactionalCommandsContext> GetSqlTransactionalCommandsContextAsync(CancellationToken cancellationToken)
@@ -2360,7 +2510,7 @@ namespace Shaolinq
 
 		public Task CommitAsync()
 		{
-			return CommitAsync(CancellationToken.None);
+			return this.CommitAsync(CancellationToken.None);
 		}
 
 		public async Task CommitAsync(CancellationToken cancellationToken)
@@ -2392,7 +2542,7 @@ namespace Shaolinq
 
 		internal Task RollbackAsync()
 		{
-			return RollbackAsync(CancellationToken.None);
+			return this.RollbackAsync(CancellationToken.None);
 		}
 
 		internal async Task RollbackAsync(CancellationToken cancellationToken)

@@ -16,7 +16,7 @@ namespace Shaolinq.MySql
 	{
 		public override Task<IDbConnection> OpenConnectionAsync()
 		{
-			return OpenConnectionAsync(CancellationToken.None);
+			return this.OpenConnectionAsync(CancellationToken.None);
 		}
 
 		public override async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
@@ -56,7 +56,7 @@ namespace Shaolinq.MySql
 	{
 		public override Task CommitAsync()
 		{
-			return CommitAsync(CancellationToken.None);
+			return this.CommitAsync(CancellationToken.None);
 		}
 
 		public override async Task CommitAsync(CancellationToken cancellationToken)
@@ -98,7 +98,7 @@ namespace Shaolinq.MySql
 	{
 		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
-			return CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
+			return this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
 		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)

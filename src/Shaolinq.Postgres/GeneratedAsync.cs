@@ -16,7 +16,7 @@ namespace Shaolinq.Postgres
 	{
 		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
-			return CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
+			return this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
 		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
@@ -110,7 +110,7 @@ namespace Shaolinq.Postgres
 	{
 		public override Task CommitAsync()
 		{
-			return CommitAsync(CancellationToken.None);
+			return this.CommitAsync(CancellationToken.None);
 		}
 
 		public override async Task CommitAsync(CancellationToken cancellationToken)
@@ -129,7 +129,7 @@ namespace Shaolinq.Postgres
 
 		public override Task RollbackAsync()
 		{
-			return RollbackAsync(CancellationToken.None);
+			return this.RollbackAsync(CancellationToken.None);
 		}
 
 		public override async Task RollbackAsync(CancellationToken cancellationToken)

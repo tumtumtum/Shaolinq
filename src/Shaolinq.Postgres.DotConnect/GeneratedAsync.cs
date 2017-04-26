@@ -16,7 +16,7 @@ namespace Shaolinq.Postgres
 	{
 		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
-			return CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
+			return this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
 		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)

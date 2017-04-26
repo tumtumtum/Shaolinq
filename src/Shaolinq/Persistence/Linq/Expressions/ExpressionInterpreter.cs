@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
-using Platform;
 
 namespace Shaolinq.Persistence.Linq.Expressions
 {
@@ -17,14 +15,21 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		{
 			var interpreter = new ExpressionInterpreter();
 
-			var result = interpreter.Visit(expression);
-			
-			if (result == InterpretFailed)
+			try
 			{
-				result = ExpressionFastCompiler.CompileAndRun(expression);
-			}
+				var result = interpreter.Visit(expression);
+				
+				if (result == InterpretFailed)
+				{
+					result = ExpressionFastCompiler.CompileAndRun(expression);
+				}
 
-			return result;
+				return result;
+			}
+			catch (TargetInvocationException e)
+			{
+				throw e.InnerException;
+			}
 		}
 
 		protected object Visit(Expression expression)
