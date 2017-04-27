@@ -1,10 +1,16 @@
 using System;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
 	public abstract class DataAccessModelHookBase : IDataAccessModelHook
 	{
-		public virtual Guid? CreateGuid()
+		public Guid? CreateGuid()
+		{
+			return CreateGuid(null);
+		}
+
+		public virtual Guid? CreateGuid(PropertyDescriptor propertyDescriptor)
 		{
 			return null;
 		}

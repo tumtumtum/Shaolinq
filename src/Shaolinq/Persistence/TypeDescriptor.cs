@@ -262,7 +262,7 @@ namespace Shaolinq.Persistence
 				{
 					if (!typeof(RelatedDataAccessObjects<>).IsAssignableFromIgnoreGenericParameters(propertyInfo.PropertyType.GetGenericTypeDefinition()))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is decorated with a RelatedDataAccessObjectsAttribute but the property type does not extend RelatedDataAccessObjects<OBJECT_TYPE>", this.Type.Name, propertyInfo.Name);
+						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is decorated with a RelatedDataAccessObjectsAttribute but the property type does not extend RelatedDataAccessObjects<T>", this.Type.Name, propertyInfo.Name);
 					}
 
 					if (propertyInfo.GetSetMethod() != null)

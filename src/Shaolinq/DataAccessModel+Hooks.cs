@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -56,7 +57,7 @@ namespace Shaolinq
 			}
 		}
 
-		public Guid CreateGuid()
+		public Guid CreateGuid(PropertyDescriptor propertyDescriptor = null)
 		{
 			var localHooks = this.hooks;
 
@@ -67,12 +68,12 @@ namespace Shaolinq
 
 			if (localHooks.Length == 1)
 			{
-				return localHooks[0].CreateGuid() ?? Guid.NewGuid();
+				return localHooks[0].CreateGuid(propertyDescriptor) ?? Guid.NewGuid();
 			}
 
 			foreach (var hook in localHooks)
 			{
-				var result = hook.CreateGuid();
+				var result = hook.CreateGuid(propertyDescriptor);
 
 				if (result != null)
 				{

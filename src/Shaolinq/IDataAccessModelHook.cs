@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
@@ -11,6 +12,13 @@ namespace Shaolinq
 		/// </summary>
 		/// <returns>A Guid or null if the hook wants to defer creation to another hook or default</returns>
 		Guid? CreateGuid();
+
+		/// <summary>
+		/// Called when the model needs to create a Guid
+		/// </summary>
+		/// <param name="propertyDescriptor">The property descriptor related to the GUID if applicable</param>
+		/// <returns>A Guid or null if the hook wants to defer creation to another hook or default</returns>
+		Guid? CreateGuid(PropertyDescriptor propertyDescriptor);
 
 		/// <summary>
 		/// Called after a new object has been created

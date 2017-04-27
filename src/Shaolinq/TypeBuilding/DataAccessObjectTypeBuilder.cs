@@ -353,17 +353,23 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldloca, guidLocal);
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
-					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, property.PropertyName)]);
+					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid(default(PropertyDescriptor))));
 					generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(default(Guid))));
 				}
 				else
 				{
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
-					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid()));
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, property.PropertyName)]);
+					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid(default(PropertyDescriptor))));
 					generator.Emit(OpCodes.Stloc, guidLocal);
 				}
-
+				
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldloc, guidLocal);
 				generator.Emit(OpCodes.Callvirt, this.propertyBuilders[property.PropertyName].GetSetMethod());
@@ -903,6 +909,10 @@ namespace Shaolinq.TypeBuilding
 				propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyType, null, null, null, null, null);
 				
 				this.propertyBuilders[propertyInfo.Name] = propertyBuilder;
+
+				var field = this.AssemblyBuildContext.DataAccessModelTypeBuilder.DefineField($"property_{typeBuilder.Name}_{propertyInfo.Name}_{Guid.NewGuid():N}", typeof(PropertyDescriptor), FieldAttributes.Public);
+
+				this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, propertyInfo.Name)] = field;
 			}
 			else
 			{

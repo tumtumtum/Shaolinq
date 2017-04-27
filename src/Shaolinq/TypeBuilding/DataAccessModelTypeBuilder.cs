@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Threading;
 using Platform;
 using Platform.Reflection;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
@@ -107,6 +108,18 @@ namespace Shaolinq.TypeBuilding
 						throw new InvalidOperationException($"The property '{baseType.Name}.{propertyInfo.Name}' should not have a setter because it is a [DataAccessObjects] property");
 					}
 				}
+			}
+
+			foreach (var item in this.AssemblyBuildContext.PropertyDescriptors.Keys.OrderBy(c => c.Item2))
+			{
+				initialiseGenerator.Emit(OpCodes.Ldarg_0);
+				initialiseGenerator.Emit(OpCodes.Ldarg_0);
+				initialiseGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.TypeDescriptorProvider).GetGetMethod());
+				initialiseGenerator.Emit(OpCodes.Ldtoken, item.Item1);
+				initialiseGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptorProvider>(c => c.GetTypeDescriptor(default(Type))));
+				initialiseGenerator.Emit(OpCodes.Ldstr, item.Item2);
+				initialiseGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptor>(c => c.GetPropertyDescriptorByPropertyName(default(string))));
+				initialiseGenerator.Emit(OpCodes.Stfld, this.AssemblyBuildContext.PropertyDescriptors[item]);
 			}
 
 			initialiseGenerator.Emit(OpCodes.Ret);

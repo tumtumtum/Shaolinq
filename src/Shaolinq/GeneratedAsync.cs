@@ -1149,26 +1149,7 @@ namespace Shaolinq.Persistence.Linq
 			if (this.objectProjector.ProcessLastMoveNext(this.dataReader, ref this.context, out result))
 			{
 				this.Current = result;
-				// ReSharper disable EmptyGeneralCatchClause
-				try
-				{
-					this.dataReader?.Dispose();
-				}
-				catch
-				{
-				}
-
-				try
-				{
-					this.transactionExecutionContextAcquisition?.Dispose();
-				}
-				catch
-				{
-				}
-
-				this.dataReader = null;
-				this.transactionExecutionContextAcquisition = null;
-				// ReSharper restore EmptyGeneralCatchClause
+				this.Close();
 				return true;
 			}
 

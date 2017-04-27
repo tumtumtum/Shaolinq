@@ -18,6 +18,7 @@ namespace Shaolinq.TypeBuilding
 		public Dictionary<Type, DataAccessObjectTypeBuilder> TypeBuilders { get; }
 		public TypeBuilder ConstantsContainer { get; }
 		public Dictionary<string, FieldBuilder> FieldsByValue { get; }
+		public Dictionary<Tuple<Type, string>, FieldBuilder> PropertyDescriptors { get; }
 
 		public AssemblyBuildContext(Assembly targetAssembly, ModuleBuilder moduleBuilder, TypeBuilder dataAccessModelPropertiesTypeBuilder)
 		{
@@ -26,7 +27,8 @@ namespace Shaolinq.TypeBuilding
 			this.DataAccessModelPropertiesTypeBuilder = dataAccessModelPropertiesTypeBuilder;
 			this.TypeBuilders = new Dictionary<Type, DataAccessObjectTypeBuilder>();
 			this.FieldsByValue = new Dictionary<string, FieldBuilder>();
-			this.ConstantsContainer = this.ModuleBuilder.DefineType("___STRINGHASHCODES___");	
+			this.ConstantsContainer = this.ModuleBuilder.DefineType("___STRINGHASHCODES___");
+			this.PropertyDescriptors = new Dictionary<Tuple<Type, string>, FieldBuilder>();
 		}
 
 		public FieldBuilder GetHashCodeField(string value, string prefix = "__hash")
