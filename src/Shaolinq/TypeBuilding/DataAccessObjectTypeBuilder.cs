@@ -355,6 +355,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Castclass, this.AssemblyBuildContext.DataAccessModelTypeBuilder);
 					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, property.PropertyName)]);
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid(default(PropertyDescriptor))));
 					generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(default(Guid))));
@@ -365,6 +366,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+					generator.Emit(OpCodes.Castclass, this.AssemblyBuildContext.DataAccessModelTypeBuilder);
 					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, property.PropertyName)]);
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid(default(PropertyDescriptor))));
 					generator.Emit(OpCodes.Stloc, guidLocal);
