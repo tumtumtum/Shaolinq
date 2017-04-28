@@ -17,7 +17,7 @@ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.TypeBuilding
 {
-	public sealed class DataAccessObjectTypeBuilder
+	internal sealed class DataAccessObjectTypeBuilder
 	{
 		internal const string ForceSetPrefix = "$$force_set";
 		internal const string IsSetSuffix = "$$is_set";
@@ -356,7 +356,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Castclass, this.AssemblyBuildContext.DataAccessModelTypeBuilder);
-					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, property.PropertyName)]);
+					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.GetPropertyDescriptorField(this.typeBuilder.BaseType, property.PropertyName));
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid(default(PropertyDescriptor))));
 					generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new Guid?(default(Guid))));
 				}
@@ -367,7 +367,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
 					generator.Emit(OpCodes.Castclass, this.AssemblyBuildContext.DataAccessModelTypeBuilder);
-					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, property.PropertyName)]);
+					generator.Emit(OpCodes.Ldfld, this.AssemblyBuildContext.GetPropertyDescriptorField(this.typeBuilder.BaseType, property.PropertyName));
 					generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessModel>(c => c.CreateGuid(default(PropertyDescriptor))));
 					generator.Emit(OpCodes.Stloc, guidLocal);
 				}
@@ -911,10 +911,6 @@ namespace Shaolinq.TypeBuilding
 				propertyBuilder = this.typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyType, null, null, null, null, null);
 				
 				this.propertyBuilders[propertyInfo.Name] = propertyBuilder;
-
-				var field = this.AssemblyBuildContext.DataAccessModelTypeBuilder.DefineField($"property_{typeBuilder.Name}_{propertyInfo.Name}_{Guid.NewGuid():N}", typeof(PropertyDescriptor), FieldAttributes.Public);
-
-				this.AssemblyBuildContext.PropertyDescriptors[new Tuple<Type, string>(this.typeBuilder.BaseType, propertyInfo.Name)] = field;
 			}
 			else
 			{
@@ -926,22 +922,7 @@ namespace Shaolinq.TypeBuilding
 			this.BuildPropertyMethod(PropertyMethodType.Set, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, typeBuildContext);
 			this.BuildPropertyMethod(PropertyMethodType.Get, null, propertyInfo, propertyBuilder, currentFieldInDataObject, valueChangedFieldInDataObject, typeBuildContext);
 		}
-
-		public static readonly MethodInfo GenericStaticAreEqualMethod = typeof(DataAccessObjectTypeBuilder).GetMethod("AreEqual");
-		public static readonly MethodInfo GenericStaticNullableAreEqualMethod = typeof(DataAccessObjectTypeBuilder).GetMethod("NullableAreEqual");
-
-		public static bool AreEqual<T>(T left, T right)
-			where T : class
-		{
-			return Equals(left, right);
-		}
-
-		public static bool NullableAreEqual<T>(T? left, T? right)
-			where T : struct
-		{
-			return left.Equals(right);
-		}
-
+		
 		private static void EmitCompareEquals(ILGenerator generator, Type operandType)
 		{
 			if (operandType.IsPrimitive || operandType.IsEnum)
@@ -962,13 +943,13 @@ namespace Shaolinq.TypeBuilding
 				}
 				else
 				{
-					if (Nullable.GetUnderlyingType(operandType) != null)
+					if (operandType.IsNullableType())
 					{
-						generator.Emit(OpCodes.Call, GenericStaticNullableAreEqualMethod.MakeGenericMethod(Nullable.GetUnderlyingType(operandType)));
+						generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => ComparisonHelper.NullableAreEqual(default(int?), default(int?))).GetGenericMethodDefinition().MakeGenericMethod(Nullable.GetUnderlyingType(operandType)));
 					}
 					else
 					{
-						generator.Emit(OpCodes.Call, GenericStaticAreEqualMethod.MakeGenericMethod(operandType));
+						generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => ComparisonHelper.AreEqual(default(object), default(object))).GetGenericMethodDefinition().MakeGenericMethod(operandType));
 					}
 				}
 			}

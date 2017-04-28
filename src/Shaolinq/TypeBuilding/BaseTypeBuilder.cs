@@ -4,7 +4,7 @@ using System.Reflection.Emit;
 
 namespace Shaolinq.TypeBuilding
 {
-	public abstract class BaseTypeBuilder
+	internal abstract class BaseTypeBuilder
 	{
 		public ModuleBuilder ModuleBuilder { get; protected set; }
 		public AssemblyBuildContext AssemblyBuildContext { get; protected set; }

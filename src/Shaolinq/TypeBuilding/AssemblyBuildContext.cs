@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using Platform;
+using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
-	public class AssemblyBuildContext
+	internal class AssemblyBuildContext
 	{
 		public Assembly TargetAssembly { get; }
 		public ModuleBuilder ModuleBuilder { get; }
@@ -18,7 +19,7 @@ namespace Shaolinq.TypeBuilding
 		public Dictionary<Type, DataAccessObjectTypeBuilder> TypeBuilders { get; }
 		public TypeBuilder ConstantsContainer { get; }
 		public Dictionary<string, FieldBuilder> FieldsByValue { get; }
-		public Dictionary<Tuple<Type, string>, FieldBuilder> PropertyDescriptors { get; }
+		public readonly Dictionary<Tuple<Type, string>, FieldBuilder> propertyDescriptors;
 
 		public AssemblyBuildContext(Assembly targetAssembly, ModuleBuilder moduleBuilder, TypeBuilder dataAccessModelPropertiesTypeBuilder)
 		{
@@ -28,7 +29,22 @@ namespace Shaolinq.TypeBuilding
 			this.TypeBuilders = new Dictionary<Type, DataAccessObjectTypeBuilder>();
 			this.FieldsByValue = new Dictionary<string, FieldBuilder>();
 			this.ConstantsContainer = this.ModuleBuilder.DefineType("___STRINGHASHCODES___");
-			this.PropertyDescriptors = new Dictionary<Tuple<Type, string>, FieldBuilder>();
+			this.propertyDescriptors = new Dictionary<Tuple<Type, string>, FieldBuilder>();
+		}
+		
+		public FieldInfo GetPropertyDescriptorField(Type typeDescriptorType, string propertyName)
+		{
+			FieldBuilder retval;
+			var key = new Tuple<Type, string>(typeDescriptorType, propertyName);
+
+			if (!this.propertyDescriptors.TryGetValue(key, out retval))
+			{
+				retval = this.DataAccessModelTypeBuilder.DefineField($"property_{typeDescriptorType.Name}_{propertyName}_{Guid.NewGuid():N}", typeof(PropertyDescriptor), FieldAttributes.Public);
+
+				this.propertyDescriptors[key] = retval;
+			}
+
+			return retval;
 		}
 
 		public FieldBuilder GetHashCodeField(string value, string prefix = "__hash")

@@ -13,7 +13,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.TypeBuilding
 {
-	public class DataAccessModelTypeBuilder
+	internal class DataAccessModelTypeBuilder
 		: BaseTypeBuilder
 	{
 		private FieldBuilder dictionaryFieldBuilder;
@@ -110,7 +110,7 @@ namespace Shaolinq.TypeBuilding
 				}
 			}
 
-			foreach (var item in this.AssemblyBuildContext.PropertyDescriptors.Keys.OrderBy(c => c.Item2))
+			foreach (var item in this.AssemblyBuildContext.propertyDescriptors.Keys.OrderBy(c => c.Item2))
 			{
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldarg_0);
@@ -120,7 +120,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptorProvider>(c => c.GetTypeDescriptor(default(Type))));
 				generator.Emit(OpCodes.Ldstr, item.Item2);
 				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptor>(c => c.GetPropertyDescriptorByPropertyName(default(string))));
-				generator.Emit(OpCodes.Stfld, this.AssemblyBuildContext.PropertyDescriptors[item]);
+				generator.Emit(OpCodes.Stfld, this.AssemblyBuildContext.propertyDescriptors[item]);
 			}
 
 			generator.Emit(OpCodes.Ret);
