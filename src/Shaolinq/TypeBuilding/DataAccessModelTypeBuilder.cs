@@ -49,14 +49,14 @@ namespace Shaolinq.TypeBuilding
 			methodAttributes |= methodInfo.Attributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family);
 
 			var initialiseMethodBuilder = typeBuilder.DefineMethod(methodInfo.Name, methodAttributes, methodInfo.CallingConvention, methodInfo.ReturnType, Type.EmptyTypes);
-			var initialiseGenerator = initialiseMethodBuilder.GetILGenerator();
+			var generator = initialiseMethodBuilder.GetILGenerator();
 
 			this.dictionaryFieldBuilder = typeBuilder.DefineField("$$$dataAccessObjectsByType", typeof(Dictionary<Type,IQueryable>), FieldAttributes.Private);
 
-			initialiseGenerator.Emit(OpCodes.Ldarg_0);
-			initialiseGenerator.Emit(OpCodes.Ldc_I4, baseType.GetProperties().Count());
-			initialiseGenerator.Emit(OpCodes.Newobj, this.dictionaryFieldBuilder.FieldType.GetConstructor(new Type[] { typeof(int) }));
-			initialiseGenerator.Emit(OpCodes.Stfld, this.dictionaryFieldBuilder);
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldc_I4, baseType.GetProperties().Count());
+			generator.Emit(OpCodes.Newobj, this.dictionaryFieldBuilder.FieldType.GetConstructor(new Type[] { typeof(int) }));
+			generator.Emit(OpCodes.Stfld, this.dictionaryFieldBuilder);
 
 			foreach (var propertyInfo in baseType.GetProperties())
 			{
@@ -77,20 +77,20 @@ namespace Shaolinq.TypeBuilding
 					// Generate the field for the queryable
 					var fieldBuilder = typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
 
-					initialiseGenerator.Emit(OpCodes.Ldarg_0);
-					initialiseGenerator.Emit(OpCodes.Ldarg_0);
-					initialiseGenerator.Emit(OpCodes.Ldnull);
-					initialiseGenerator.Emit(OpCodes.Newobj, propertyInfo.PropertyType.GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression)}));
-					initialiseGenerator.Emit(OpCodes.Stfld, fieldBuilder);
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldnull);
+					generator.Emit(OpCodes.Newobj, propertyInfo.PropertyType.GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression)}));
+					generator.Emit(OpCodes.Stfld, fieldBuilder);
 					
 					// Add to dictionary
-					initialiseGenerator.Emit(OpCodes.Ldarg_0);
-					initialiseGenerator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
-					initialiseGenerator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType.GetGenericArguments()[0]);
-					initialiseGenerator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
-					initialiseGenerator.Emit(OpCodes.Ldarg_0);
-					initialiseGenerator.Emit(OpCodes.Ldfld, fieldBuilder);
-					initialiseGenerator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
+					generator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType.GetGenericArguments()[0]);
+					generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
+					generator.Emit(OpCodes.Ldarg_0);
+					generator.Emit(OpCodes.Ldfld, fieldBuilder);
+					generator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
 					
 					var propertyBuilder = typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
 
@@ -112,17 +112,18 @@ namespace Shaolinq.TypeBuilding
 
 			foreach (var item in this.AssemblyBuildContext.PropertyDescriptors.Keys.OrderBy(c => c.Item2))
 			{
-				initialiseGenerator.Emit(OpCodes.Ldarg_0);
-				initialiseGenerator.Emit(OpCodes.Ldarg_0);
-				initialiseGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.TypeDescriptorProvider).GetGetMethod());
-				initialiseGenerator.Emit(OpCodes.Ldtoken, item.Item1);
-				initialiseGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptorProvider>(c => c.GetTypeDescriptor(default(Type))));
-				initialiseGenerator.Emit(OpCodes.Ldstr, item.Item2);
-				initialiseGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptor>(c => c.GetPropertyDescriptorByPropertyName(default(string))));
-				initialiseGenerator.Emit(OpCodes.Stfld, this.AssemblyBuildContext.PropertyDescriptors[item]);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<DataAccessModel>(c => c.TypeDescriptorProvider).GetGetMethod());
+				generator.Emit(OpCodes.Ldtoken, item.Item1);
+				generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => Type.GetTypeFromHandle(default(RuntimeTypeHandle))));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptorProvider>(c => c.GetTypeDescriptor(default(Type))));
+				generator.Emit(OpCodes.Ldstr, item.Item2);
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<TypeDescriptor>(c => c.GetPropertyDescriptorByPropertyName(default(string))));
+				generator.Emit(OpCodes.Stfld, this.AssemblyBuildContext.PropertyDescriptors[item]);
 			}
 
-			initialiseGenerator.Emit(OpCodes.Ret);
+			generator.Emit(OpCodes.Ret);
 
 			this.BuildGetDataAccessObjectsMethod();
 			
