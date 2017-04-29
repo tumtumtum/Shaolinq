@@ -2020,8 +2020,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
 			generator.Emit(OpCodes.Ldfld, this.predicateField);
 			generator.Emit(OpCodes.Ldnull);
-			generator.Emit(OpCodes.Ceq);
-			generator.Emit(OpCodes.Neg);
+			generator.Emit(OpCodes.Cgt_Un);
 			generator.Emit(OpCodes.Ret);
 		}
 
