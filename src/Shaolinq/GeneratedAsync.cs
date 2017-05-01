@@ -109,8 +109,9 @@ namespace Shaolinq
 		/// </remarks>
 		public async Task<T> CompleteAsync<T>(Func<T> result, CancellationToken cancellationToken)
 		{
+			var retval = result();
 			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
-			return result();
+			return retval;
 		}
 
 		/// <summary>
@@ -138,8 +139,9 @@ namespace Shaolinq
 		/// </remarks>
 		public async Task<T> CompleteAsync<T>(Func<T> result, ScopeCompleteOptions options, CancellationToken cancellationToken)
 		{
+			var retval = result();
 			await this.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
-			return result();
+			return retval;
 		}
 
 		/// <summary>

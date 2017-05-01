@@ -203,9 +203,11 @@ namespace Shaolinq
 		[RewriteAsync]
 		public T Complete<T>(Func<T> result)
 		{
+			var retval = result();
+
 			this.Complete(ScopeCompleteOptions.Default);
 
-			return result();
+			return retval;
 		}
 
 		/// <summary>
@@ -220,9 +222,11 @@ namespace Shaolinq
 		[RewriteAsync]
 		public T Complete<T>(Func<T> result, ScopeCompleteOptions options)
 		{
+			var retval = result();
+
 			this.Complete(options);
 
-			return result();
+			return retval;
 		}
 
 		/// <summary>
