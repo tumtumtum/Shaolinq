@@ -19,6 +19,8 @@ namespace Shaolinq.AsyncRewriter
 
 		public ITaskItem[] Assemblies { get; set; }
 
+		public bool DontWriteIfNoChanges { get; set; }
+
 		private readonly Rewriter rewriter;
 		
 		private static IEnumerable<string> GetDlls(string parentDirectory)
@@ -105,6 +107,7 @@ namespace Shaolinq.AsyncRewriter
 
 		public override bool Execute()
 		{
+			var changed = true;
 			var filename = this.OutputFile.ItemSpec;
 			var code = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
 
@@ -115,12 +118,19 @@ namespace Shaolinq.AsyncRewriter
 					if (Equal(left, right))
 					{
 						this.Log.LogMessage($"{filename} has not changed");
+
+						changed = false;
 					}
 				}
 			}
 			catch (Exception e)
 			{
 				this.Log.LogErrorFromException(e);
+			}
+
+			if (!changed && this.DontWriteIfNoChanges)
+			{
+				return true;
 			}
 
 			File.WriteAllText(filename, code);

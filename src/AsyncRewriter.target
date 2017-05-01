@@ -11,7 +11,7 @@
     </SourceWithoutGenerated>
   </ItemGroup>
   <Target Name="GenerateAsyncSource" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
-    <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
+    <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" DontWriteIfNoChanges="True" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs" />
   </Target>
   <Target Name="GenerateAsyncSourceBeforeBuild" AfterTargets="ResolveReferences" BeforeTargets="CoreResGen">
     <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateAsyncSource" WorkingDirectory="." />
