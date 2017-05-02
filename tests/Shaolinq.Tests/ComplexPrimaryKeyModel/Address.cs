@@ -15,11 +15,15 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember]
 		public virtual Region Region2 { get; set; }
 
+		[PersistedMember, DefaultValue(false)]
+		public virtual bool Verified { get; set; }
+
 		[PersistedMember, DefaultValue(0)]
 		public virtual int Number { get; set; }
 
-		[Index]
+		[Index(Where = "Number != 100 && Street != null && Verified")]
 		[PersistedMember]
 		public virtual string Street { get; set; }
 	}
 }
+

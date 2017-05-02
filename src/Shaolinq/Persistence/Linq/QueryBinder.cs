@@ -539,7 +539,7 @@ namespace Shaolinq.Persistence.Linq
 			var newExpression = Expression.New(returnType);
 
 			var bindings = new List<MemberBinding>();
-			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(objectType);
+			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(objectType);
 
 			var itemNumber = 1;
 
@@ -887,10 +887,13 @@ namespace Shaolinq.Persistence.Linq
 					this.selectorPredicateStack.Pop();
 					return result;
 				case "UpdateHelper":
-					result = this.BindUpdateHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
+					result = this.BindUpdateHelper(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
 					return result;
 				case "InsertHelper":
-					result = this.BindInsertHelper(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
+					result = this.BindInsertHelper(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
+					return result;
+				case "CreateIndexHelper":
+					result = this.BindInsertHelper(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), (bool)methodCallExpression.Arguments[2].StripAndGetConstant().Value);
 					return result;
 				case "ForUpdate":
 					return this.BindForUpdate(methodCallExpression.Arguments[0]);
@@ -1139,7 +1142,7 @@ namespace Shaolinq.Persistence.Linq
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
-		private Expression BindUpdateHelper(Type type, Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
+		private Expression BindUpdateHelper(Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
 		{
 			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
 			var assignments = new List<Expression>();
@@ -1174,7 +1177,7 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
 		}
 
-		private Expression BindInsertHelper(Type type, Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
+		private Expression BindInsertHelper(Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
 		{
 			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
 			var values = new List<Expression>();
@@ -1215,7 +1218,7 @@ namespace Shaolinq.Persistence.Linq
 
 			return new SqlProjectionExpression(select, new SqlFunctionCallExpression(typeof(int), SqlFunction.RecordsAffected), aggregator, false);
 		}
-
+		
 		private Expression BindStringMethod(MethodCallExpression methodCallExpression)
 		{
 			Expression operand0, operand1;
@@ -1531,8 +1534,8 @@ namespace Shaolinq.Persistence.Linq
 
 				if (expression.Type.GetGenericTypeDefinitionOrNull() == TypeHelper.RelatedDataAccessObjectsType)
 				{
-					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(expression.Type.GetGenericArguments()[0]);
-					var parentTypeDescriptor = this.DataAccessModel.GetTypeDescriptor(memberAccessExpression.Expression.Type);
+					var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(expression.Type.GetGenericArguments()[0]);
+					var parentTypeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(memberAccessExpression.Expression.Type);
 					var source = Expression.Constant(null, this.DataAccessModel.RuntimeDataAccessModelInfo.GetDataAccessObjectsType(typeDescriptor.Type));
 					var concreteType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(typeDescriptor.Type);
 					var parameter = Expression.Parameter(typeDescriptor.Type, "relatedObject");

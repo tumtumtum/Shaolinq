@@ -326,7 +326,7 @@ namespace Shaolinq.Persistence
 			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector), Expression.Constant(requiresIdentityInsert));
 
 			expression = SqlQueryProvider.Bind(this.DataAccessModel, this.sqlDataTypeProvider, expression);
-			expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+			expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression);
 			var projectionExpression = expression as SqlProjectionExpression;
 
 			expression = projectionExpression.Select.From;
@@ -519,7 +519,7 @@ namespace Shaolinq.Persistence
 			var expression = (Expression)Expression.Call(null, method, source, Expression.Quote(selector), Expression.Constant(requiresIdentityInsert));
 
 			expression = SqlQueryProvider.Bind(this.DataAccessModel, this.sqlDataTypeProvider, expression);
-			expression = SqlQueryProvider.Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+			expression = SqlQueryProvider.Optimize(this.DataAccessModel, expression);
 			var projectionExpression = expression as SqlProjectionExpression;
 
 			expression = projectionExpression.Select.From;

@@ -10,7 +10,7 @@ namespace Shaolinq
 	/// <remarks>
 	/// Applying this property to multiple properties will create a composite index. You can
 	/// define the order of the columns of a compiosite index by setting the <see cref="IndexAttribute.CompositeOrder"/>
-	/// property. By default properties no no explicitly defined <see cref="IndexAttribute.CompositeOrder"/> come last
+	/// property. By default properties with no explicitly defined <see cref="IndexAttribute.CompositeOrder"/> come last
 	/// in source code order.
 	/// </remarks>
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
@@ -60,15 +60,26 @@ namespace Shaolinq
 		public IndexType IndexType { get; set; }
 
 		/// <summary>
-		/// Creates an index for this property.
+		/// A string containing a conditional expression for determining what rows to include in the index
+		/// </summary>
+		/// <remarks>
+		/// This property is useful for <see cref="Unique"/> composite indexes where you may only want to include rows
+		/// in the index when certain columns are of a certain value.
+		/// </remarks>
+		/// <example>
+		/// [IndexAttribute(Where = "Master == true")]
+		/// </example>
+		public string Where { get; set; }
+
+		/// <summary>
+		/// Creates a single column index for this property.
 		/// </summary>
 		public IndexAttribute()
 		{
 		}
 
 		/// <summary>
-		/// Create a new index with the given name. Multiple properties when the same index name define
-		/// a composite index.
+		/// Create a new index with the given name. Using the same name across different properties creates a composite index.
 		/// </summary>
 		/// <param name="indexName">The name of the index</param>
 		public IndexAttribute(string indexName)

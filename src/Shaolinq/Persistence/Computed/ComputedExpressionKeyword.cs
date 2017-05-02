@@ -6,6 +6,7 @@ namespace Shaolinq.Persistence.Computed
 		None,
 		@this,
 		@true,
-		@false
+		@false,
+		@null,
 	}
 }

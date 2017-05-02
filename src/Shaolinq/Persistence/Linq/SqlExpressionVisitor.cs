@@ -548,6 +548,19 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
+			var table = (SqlTableExpression)this.Visit(createIndexExpression.Table);
+			var columns = this.VisitExpressionList(createIndexExpression.Columns);
+			var includedColumns = this.VisitExpressionList(createIndexExpression.IncludedColumns);
+			var where = this.Visit(createIndexExpression.Where);
+
+			if (columns != createIndexExpression.Columns
+				|| includedColumns != createIndexExpression.IncludedColumns
+				|| table != createIndexExpression.Table
+				|| where != createIndexExpression.Where)
+			{
+				return new SqlCreateIndexExpression(createIndexExpression.IndexName, table, createIndexExpression.Unique, createIndexExpression.LowercaseIndex, createIndexExpression.IndexType, createIndexExpression.IfNotExist, columns, includedColumns, where, createIndexExpression.Clustered);
+			}
+
 			return createIndexExpression;
 		}
 

@@ -20,7 +20,7 @@ namespace Shaolinq.Persistence.Computed
 		private readonly ComputedExpressionTokenizer tokenizer;
 		private readonly Dictionary<string, Type> referencedTypesByName;
 
-		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes = null, Type coersionType = null)
+		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo, ParameterExpression target, Type[] referencedTypes = null, Type coersionType = null)
 		{
 			if (propertyInfo.DeclaringType == null)
 			{
@@ -32,11 +32,20 @@ namespace Shaolinq.Persistence.Computed
 			this.referencedTypesByName = (referencedTypes ?? new Type[0]).ToDictionary(c => c.Name, c => c);
 			this.referencedAssemblies = new HashSet<Assembly>(referencedTypes?.Select(c => c.Assembly) ?? new Assembly[0]).ToList();
 			this.tokenizer = new ComputedExpressionTokenizer(reader);
-			this.targetObject = Expression.Parameter(propertyInfo.DeclaringType, "object");
+			this.targetObject = target;
 		}
 
-		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes, Type coersionType) => new ComputedExpressionParser(reader, propertyInfo, referencedTypes, coersionType).Parse();
-		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo, Type[] referencedTypes, Type coersionType) => Parse(new StringReader(expressionText), propertyInfo, referencedTypes, coersionType);
+		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo, ParameterExpression target, Type[] referencedTypes, Type coersionType)
+			=> new ComputedExpressionParser(reader, propertyInfo, target, referencedTypes, coersionType).Parse();
+
+		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo, ParameterExpression target, Type[] referencedTypes, Type coersionType)
+			=> new ComputedExpressionParser(new StringReader(expressionText), propertyInfo, target, referencedTypes, coersionType).Parse();
+
+		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes, Type coersionType)
+			=> Parse(reader, propertyInfo, Expression.Parameter(propertyInfo.DeclaringType, "targetObject"), referencedTypes, coersionType);
+
+		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo, Type[] referencedTypes, Type coersionType)
+			=> Parse(new StringReader(expressionText), propertyInfo, referencedTypes, coersionType);
 
 		public void Consume()
 		{
@@ -49,6 +58,11 @@ namespace Shaolinq.Persistence.Computed
 			this.Consume();
 
 			var body = this.ParseExpression();
+
+			if (body == null)
+			{
+				return null;
+			}
 
 			if (this.coersionType != null && body.Type != this.coersionType)
 			{
@@ -67,14 +81,14 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseAssignment()
 		{
-			var leftOperand = this.ParseNullCoalescing();
+			var leftOperand = this.ParseAndOr();
 			var retval = leftOperand;
 
 			while (this.token == ComputedExpressionToken.Assign)
 			{
 				this.Consume();
 
-				var rightOperand = this.ParseNullCoalescing();
+				var rightOperand = this.ParseAndOr();
 
 				if (rightOperand.Type != retval.Type)
 				{
@@ -82,6 +96,34 @@ namespace Shaolinq.Persistence.Computed
 				}
 
 				retval = Expression.Assign(retval, rightOperand);
+			}
+
+			return retval;
+		}
+
+		protected Expression ParseAndOr()
+		{
+			var leftOperand = this.ParseNullCoalescing();
+			var retval = leftOperand;
+
+			while (this.token == ComputedExpressionToken.LogicalAnd || this.token == ComputedExpressionToken.LogicalOr)
+			{
+				var operationToken = this.token;
+
+				this.Consume();
+
+				var rightOperand = this.ParseNullCoalescing();
+
+				this.NormalizeOperands(ref leftOperand, ref rightOperand);
+
+				if (operationToken == ComputedExpressionToken.LogicalAnd)
+				{
+					retval = Expression.And(leftOperand, rightOperand);
+				}
+				else if (operationToken == ComputedExpressionToken.LogicalOr)
+				{
+					retval = Expression.Or(leftOperand, rightOperand);
+				}
 			}
 
 			return retval;
@@ -112,6 +154,8 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseAddOrSubtract();
 
+				NormalizeOperands(ref leftOperand, ref rightOperand);
+
 				switch (operationToken)
 				{
 				case ComputedExpressionToken.Equals:
@@ -133,8 +177,6 @@ namespace Shaolinq.Persistence.Computed
 					retval = Expression.LessThanOrEqual(leftOperand, rightOperand);
 					break;
 				}
-
-				this.Consume();
 			}
 
 			return retval;
@@ -208,7 +250,7 @@ namespace Shaolinq.Persistence.Computed
 				right = Expression.Convert(right, left.Type);
 			}
 			else if (right.Type == typeof(long) &&
-				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+					(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
 			{
 				right = Expression.Convert(right, left.Type);
 			}
@@ -460,7 +502,13 @@ namespace Shaolinq.Persistence.Computed
 
 				return Expression.Constant(true);
 			}
-			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@true)
+			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@null)
+			{
+				this.Consume();
+
+				return Expression.Constant(null);
+			}
+			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@false)
 			{
 				this.Consume();
 
@@ -560,25 +608,38 @@ namespace Shaolinq.Persistence.Computed
 					return current;
 				}
 			}
-			
-			if (this.token == ComputedExpressionToken.IntegerLiteral)
+
+			var multiplier = 1;
+
+			if (this.token == ComputedExpressionToken.Subtract)
 			{
+				multiplier = -1;
+			}
+			
+			switch (this.token)
+			{
+			case ComputedExpressionToken.IntegerLiteral:
 				this.Consume();
 
-				return Expression.Constant(this.tokenizer.CurrentInteger);
-			}
-			else if (this.token == ComputedExpressionToken.StringLiteral)
-			{
+				return Expression.Constant(multiplier * (int)this.tokenizer.CurrentInteger);
+			case ComputedExpressionToken.LongLiteral:
+				this.Consume();
+
+				return Expression.Constant(multiplier * this.tokenizer.CurrentInteger);
+			case ComputedExpressionToken.StringLiteral:
 				this.Consume();
 
 				return Expression.Constant(this.tokenizer.CurrentString);
-			}
-			else if (current != null)
-			{
-				return current;
+			default:
+				if (current != null)
+				{
+					return current;
+				}
+				break;
 			}
 			
 			throw new InvalidOperationException();
 		}
 	}
 }
+

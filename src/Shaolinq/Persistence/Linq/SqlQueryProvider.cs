@@ -58,7 +58,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			expression = (SqlProjectionExpression)Bind(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, expression);
 
-			var projectionExpression = Optimize(this.DataAccessModel, this.SqlDatabaseContext, expression);
+			var projectionExpression = Optimize(this.DataAccessModel, expression);
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
 			return this.GetQueryText(formatResult);
@@ -129,7 +129,7 @@ namespace Shaolinq.Persistence.Linq
 			return this.BuildExecution(expression).EvaluateAsyncEnumerable<T>(CancellationToken.None);
 		}
 
-		public static Expression Optimize(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, Expression expression)
+		public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression)
 		{
 			expression = SqlGroupByCollator.Collate(expression);
 			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
@@ -193,7 +193,7 @@ namespace Shaolinq.Persistence.Linq
 				if (expression != projectionExpression)
 				{
 					placeholderValues = SqlConstantPlaceholderValuesCollector.CollectValues(projectionExpression);
-					projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, this.SqlDatabaseContext, projectionExpression);
+					projectionExpression = (SqlProjectionExpression)Optimize(this.DataAccessModel, projectionExpression);
 					skipFormatResultSubstitution = true;
 				}
 
@@ -259,7 +259,7 @@ namespace Shaolinq.Persistence.Linq
 			if (cacheInfo.formatResult == null)
 			{
 				var projector = SqlConstantPlaceholderReplacer.Replace(cacheInfo.projectionExpression, placeholderValues);
-				var optimizedProjector = Optimize(this.DataAccessModel, this.SqlDatabaseContext, projector);
+				var optimizedProjector = Optimize(this.DataAccessModel, projector);
 
 				cacheInfo.formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(optimizedProjector);
 			}

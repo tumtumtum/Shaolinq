@@ -12,7 +12,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		private SqlNullComparisonCoalescer(SqlProjectionExpression rootProjection)
 		{
-			this.ignoreExpression = rootProjection.Projector;
+			this.ignoreExpression = rootProjection?.Projector;
 		}
 
 		public static Expression Coalesce(Expression expression)
