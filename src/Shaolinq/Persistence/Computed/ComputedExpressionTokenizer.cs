@@ -101,6 +101,40 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			}
+			else if (this.currentChar == '&')
+			{
+				this.ConsumeChar();
+
+				if (this.currentChar == '&')
+				{
+					this.ConsumeChar();
+
+					this.CurrentToken = ComputedExpressionToken.LogicalAnd;
+				}
+				else
+				{
+					this.CurrentToken = ComputedExpressionToken.BitwiseAnd;
+				}
+
+				return this.CurrentToken;
+			}
+			else if (this.currentChar == '|')
+			{
+				this.ConsumeChar();
+
+				if (this.currentChar == '|')
+				{
+					this.ConsumeChar();
+
+					this.CurrentToken = ComputedExpressionToken.LogicalOr;
+				}
+				else
+				{
+					this.CurrentToken = ComputedExpressionToken.BitwiseOr;
+				}
+
+				return this.CurrentToken;
+			}
 			else if (this.currentChar == '<')
 			{
 				this.ConsumeChar();
@@ -215,21 +249,25 @@ namespace Shaolinq.Persistence.Computed
 
 					this.ConsumeChar();
 				}
-
+				
 				if (this.currentChar == 'l' || this.currentChar == 'L')
 				{
+					this.CurrentToken = ComputedExpressionToken.LongLiteral;
 
 					this.ConsumeChar();
+				}
+				else
+				{
+					this.CurrentToken = ComputedExpressionToken.IntegerLiteral;
 				}
 
 				var s = this.stringBuilder.ToString();
 
-				this.CurrentToken = ComputedExpressionToken.IntegerLiteral;
 				this.CurrentInteger = Convert.ToInt64(s);
 
-				if (this.CurrentInteger <= int.MaxValue && this.CurrentInteger > int.MinValue)
+				if (this.CurrentToken == ComputedExpressionToken.IntegerLiteral && (this.CurrentInteger <= int.MinValue || this.CurrentInteger > int.MaxValue))
 				{
-					this.CurrentInteger = (int)this.CurrentInteger;
+					throw new InvalidOperationException($"The integer {s} exceeds the maximum size of an integer");
 				}
 
 				return this.CurrentToken;
@@ -299,8 +337,10 @@ namespace Shaolinq.Persistence.Computed
 					this.ConsumeChar();
 				}
 
+				var s = this.stringBuilder.ToString();
+
 				this.CurrentToken = ComputedExpressionToken.StringLiteral;
-				this.CurrentString = this.stringBuilder.ToString();
+				this.CurrentString = s;
 
 				return this.CurrentToken;
 			}

@@ -37,6 +37,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public SqlCreateIndexExpression ChangeWhere(Expression where)
 		{
+			if (where == this.Where)
+			{
+				return this;
+			}
+
 			return new SqlCreateIndexExpression(this.IndexName, this.Table, this.Unique, this.LowercaseIndex, this.IndexType, this.IfNotExist, this.Columns, this.IncludedColumns, where);
 		}
 	}

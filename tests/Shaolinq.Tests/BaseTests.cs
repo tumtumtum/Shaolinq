@@ -55,6 +55,7 @@ namespace Shaolinq.Tests
 
 			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
+			((MySqlSqlDatabaseContextInfo)retval.SqlDatabaseContextInfos[0]).SilentlyIgnoreIndexConditions = true;
 
 			return retval;
 		}

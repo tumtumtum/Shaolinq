@@ -19,6 +19,7 @@ namespace Shaolinq.MySql
 		public string Password { get; }
 		public string ServerName { get; }
 		public string SqlMode { get; }
+		public bool SilentlyIgnoreIndexConditions { get; }
 
 		public static MySqlSqlDatabaseContext Create(MySqlSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
@@ -26,7 +27,7 @@ namespace Shaolinq.MySql
 			var sqlDialect = new MySqlSqlDialect();
 			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
 			var typeDescriptorProvider = model.TypeDescriptorProvider;
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, options => new MySqlSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, options => new MySqlSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.SilentlyIgnoreIndexConditions));
 
 			return new MySqlSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}
@@ -38,6 +39,7 @@ namespace Shaolinq.MySql
 			this.ServerName = contextInfo.ServerName;
 			this.Username = contextInfo.UserName;
 			this.Password = contextInfo.Password;
+			this.SilentlyIgnoreIndexConditions = contextInfo.SilentlyIgnoreIndexConditions;
 
 			this.ConnectionString = $"Server={this.ServerName}; Database={this.DatabaseName}; Uid={this.Username}; Pwd={this.Password}; Pooling={contextInfo.PoolConnections}; AutoEnlist=false; charset=utf8; Convert Zero Datetime={(contextInfo.ConvertZeroDateTime ? "true" : "false")}; Allow Zero Datetime={(contextInfo.AllowConvertZeroDateTime ? "true" : "false")};";
 			this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;$]+[;$]", "");

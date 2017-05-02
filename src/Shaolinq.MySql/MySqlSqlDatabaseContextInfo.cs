@@ -33,6 +33,9 @@ namespace Shaolinq.MySql
 		[XmlAttribute]
 		public string SqlMode { get; set; }
 
+		[XmlAttribute]
+		public bool SilentlyIgnoreIndexConditions { get; set; }
+
 		public MySqlSqlDatabaseContextInfo()
 		{
 			this.PoolConnections = true;
@@ -44,3 +47,4 @@ namespace Shaolinq.MySql
 		}
 	}
 }
+

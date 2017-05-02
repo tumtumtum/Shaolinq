@@ -34,26 +34,16 @@ namespace Shaolinq.TypeBuilding
 
 			var concreteDataAccessModelType = concreteAssembly.GetType(this.dataAccessModelType.Namespace + "." + this.dataAccessModelType.Name);
 
-			try
+			this.dataAccessModelConstructor = Expression.Lambda<Func<DataAccessModel>>(Expression.Convert(Expression.New(concreteDataAccessModelType), this.dataAccessModelType)).Compile();
+
+			foreach (var type in this.TypeDescriptorProvider.GetTypeDescriptors())
 			{
-				this.dataAccessModelConstructor = Expression.Lambda<Func<DataAccessModel>>(Expression.Convert(Expression.New(concreteDataAccessModelType), this.dataAccessModelType)).Compile();
+				var concreteType = concreteAssembly.GetType(type.Type.Namespace + "." + type.Type.Name);
 
-				foreach (var type in this.TypeDescriptorProvider.GetTypeDescriptors())
-				{
-					var concreteType = concreteAssembly.GetType(type.Type.Namespace + "." + type.Type.Name);
+				this.concreteTypesByType[type.Type] = concreteType;
+				this.typesByConcreteType[concreteType] = type.Type;
 
-					this.concreteTypesByType[type.Type] = concreteType;
-					this.typesByConcreteType[concreteType] = type.Type;
-
-					this.dataAccessObjectsTypes[type.Type] = TypeHelper.DataAccessObjectsType.MakeGenericType(type.Type);
-				}
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine("####: " + e);
-				Console.WriteLine($"{concreteDataAccessModelType} | ${this.dataAccessModelType}");
-
-				throw e;
+				this.dataAccessObjectsTypes[type.Type] = TypeHelper.DataAccessObjectsType.MakeGenericType(type.Type);
 			}
 		}
 		

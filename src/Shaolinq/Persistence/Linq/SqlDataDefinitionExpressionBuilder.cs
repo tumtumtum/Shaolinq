@@ -2,10 +2,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
+using Shaolinq.Persistence.Computed;
 using Shaolinq.Persistence.Linq.Expressions;
+using Shaolinq.Persistence.Linq.Optimizers;
+using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
@@ -13,13 +17,15 @@ namespace Shaolinq.Persistence.Linq
 	{
 		private readonly SqlDialect sqlDialect;
 		private readonly SqlDataTypeProvider sqlDataTypeProvider;
+		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlQueryFormatterManager formatterManager;
 		private readonly DataAccessModel model;
 		private List<SqlConstraintExpression> currentTableConstraints;
 		private readonly SqlDataDefinitionBuilderFlags flags;
 		
-		private SqlDataDefinitionExpressionBuilder(SqlQueryFormatterManager formatterManager, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		private SqlDataDefinitionExpressionBuilder(DataAccessModel dataAccessModel, SqlQueryFormatterManager formatterManager, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
 		{
+			this.dataAccessModel = dataAccessModel;
 			this.formatterManager = formatterManager;
 			this.model = model;
 			this.sqlDialect = sqlDialect;
@@ -303,10 +309,10 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)
 		{
+			Expression where = null;
 			var unique = properties.Select(c => c.Item1).Any(c => c.Unique);
 			var lowercaseIndex = properties.Any(c => c.Item1.LowercaseIndex);
 			var indexType = properties.Select(c => c.Item1.IndexType).FirstOrDefault(c => c != IndexType.Default);
-
 			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
 
 			var indexedColumns = new List<SqlIndexedColumnExpression>();
@@ -329,7 +335,36 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, indexedColumns, includedColumns);
+			Debug.Assert(properties.Select(c => c.Item2.PropertyInfo.DeclaringType).Distinct().Count() == 1);
+
+			var parameterExpression = Expression.Parameter(properties.First().Item2.PropertyInfo.DeclaringType);
+
+			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.Where.IsNullOrEmpty()))
+			{
+				var expression = ComputedExpressionParser.Parse(attributeAndProperty.Item1.Where, attributeAndProperty.Item2, parameterExpression, null, typeof(bool));
+
+				if (expression == null)
+				{
+					continue;
+				}
+
+				where = where == null ? expression.Body : Expression.And(where, expression.Body);
+			}
+
+			if (where != null)
+			{
+				where = Expression.Lambda(where, parameterExpression);
+
+				var call = Expression.Call(null, MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(parameterExpression.Type), Expression.Constant(null, typeof(DataAccessObjects<>).MakeGenericType(parameterExpression.Type)), where);
+
+				var projection = (SqlProjectionExpression)SqlQueryProvider.Optimize(this.dataAccessModel, SqlQueryProvider.Bind(this.dataAccessModel, this.sqlDataTypeProvider, call));
+
+				where = projection.Select.Where;
+
+				where = AliasReferenceReplacer.Replace(where, ((SqlTableExpression)projection.Select.From).Alias, null);
+			}
+
+			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, indexedColumns, includedColumns, where);
 		}
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
@@ -405,9 +440,9 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlCreateTypeExpression(sqlTypeExpression, asExpression, true);
 		}
 
-		public static Expression Build(SqlQueryFormatterManager formatterManager, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		public static Expression Build(DataAccessModel dataAccessModel, SqlQueryFormatterManager formatterManager, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
 		{
-			var builder = new SqlDataDefinitionExpressionBuilder(formatterManager, sqlDialect, sqlDataTypeProvider, model, options, tableNamePrefix, flags);
+			var builder = new SqlDataDefinitionExpressionBuilder(dataAccessModel, formatterManager, sqlDialect, sqlDataTypeProvider, model, options, tableNamePrefix, flags);
 
 			var retval = builder.Build();
 

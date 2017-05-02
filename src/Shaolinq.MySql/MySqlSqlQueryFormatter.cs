@@ -10,9 +10,12 @@ namespace Shaolinq.MySql
 	public class MySqlSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		public MySqlSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider)
+		private readonly bool silentlyIgnoreIndexConditions;
+
+		public MySqlSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, bool silentlyIgnoreIndexConditions)
 			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
+			this.silentlyIgnoreIndexConditions = silentlyIgnoreIndexConditions;
 		}
 
 		protected override Expression PreProcess(Expression expression)
@@ -22,6 +25,11 @@ namespace Shaolinq.MySql
 			expression = MySqlInsertIntoAutoIncrementAmender.Amend(SqlReferencesColumnDeferrabilityRemover.Remove(expression));
 			expression = MySqlNestedTableReferenceInUpdateFixer.Fix(expression);
 			expression = MySqlDefaultValueConstraintFixer.Fix(expression);
+
+			if (this.silentlyIgnoreIndexConditions)
+			{
+				expression = MySqlIndexConditionRemover.Remove(expression);
+			}
 
 			return expression;
 		}

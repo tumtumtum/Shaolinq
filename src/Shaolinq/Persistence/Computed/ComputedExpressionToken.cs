@@ -4,6 +4,7 @@ namespace Shaolinq.Persistence.Computed
 	public enum ComputedExpressionToken
 	{
 		IntegerLiteral,
+		LongLiteral,
 		StringLiteral,
 		Keyword,
 		Semicolon,
@@ -27,6 +28,10 @@ namespace Shaolinq.Persistence.Computed
 		NotEquals,
 		CompareEnd,
 		LogicalNot,
+		LogicalAnd,
+		LogicalOr,
+		BitwiseAnd,
+		BitwiseOr,
 		QuestionMark,
 		DoubleQuestionMark,
 		Eof
