@@ -53,7 +53,7 @@ namespace Shaolinq.Tests
 		{
 			var retval = MySqlConfiguration.Create(databaseName, "localhost", "root", "root");
 
-			retval.ValueTypesAutoImplicitDefault = true;
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 			((MySqlSqlDatabaseContextInfo)retval.SqlDatabaseContextInfos[0]).SilentlyIgnoreIndexConditions = true;
 
@@ -64,7 +64,7 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create(databaseName + ".db", null, useMonoData);
 
-			retval.ValueTypesAutoImplicitDefault = true;
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -74,7 +74,7 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
 
-			retval.ValueTypesAutoImplicitDefault = true;
+			retval.ValueTypesAutoImplicitDefault = false;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
