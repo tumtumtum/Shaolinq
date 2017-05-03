@@ -78,7 +78,7 @@ namespace Shaolinq.Persistence.Linq
 					retval.Add(new SqlConstraintExpression(ConstraintType.Unique));
 				}
 				
-				if (propertyDescriptor.HasDefaultValue)
+				if (propertyDescriptor.HasDefaultValue && !propertyDescriptor.HasImplicitDefaultValue)
 				{
 					retval.Add(new SqlConstraintExpression(ConstraintType.DefaultValue, constraintName: this.formatterManager.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
 				}
@@ -339,9 +339,9 @@ namespace Shaolinq.Persistence.Linq
 
 			var parameterExpression = Expression.Parameter(properties.First().Item2.PropertyInfo.DeclaringType);
 
-			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.Where.IsNullOrEmpty()))
+			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.Condition.IsNullOrEmpty()))
 			{
-				var expression = ComputedExpressionParser.Parse(attributeAndProperty.Item1.Where, attributeAndProperty.Item2, parameterExpression, null, typeof(bool));
+				var expression = ComputedExpressionParser.Parse(attributeAndProperty.Item1.Condition, attributeAndProperty.Item2, parameterExpression, null, typeof(bool));
 
 				if (expression == null)
 				{

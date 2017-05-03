@@ -41,6 +41,7 @@ namespace Shaolinq.Persistence
 		public RelatedDataAccessObjectsAttribute RelatedDataAccessObjectsAttribute { get; }
 		public object DefaultValue { get; }
 		public bool HasDefaultValue { get; }
+		public bool HasImplicitDefaultValue { get; }
 		public string PropertyName => this.PropertyInfo.Name;
 		public Type PropertyType => this.PropertyInfo?.PropertyType;
 		public bool HasUniqueAttribute => this.UniqueAttribute != null;
@@ -117,11 +118,15 @@ namespace Shaolinq.Persistence
 
 			if (this.DefaultValueAttribute != null || (implicitDefault && !this.IsAutoIncrement))
 			{
-				this.DefaultValue = this.DefaultValueAttribute?.Value;
 				this.HasDefaultValue = true;
 
-				if (implicitDefault)
+				if (this.DefaultValueAttribute != null)
 				{
+					this.DefaultValue = this.DefaultValueAttribute.Value;
+				}
+				else
+				{
+					this.HasImplicitDefaultValue = true;
 					this.DefaultValue = this.PropertyType.GetDefaultValue();
 				}
 

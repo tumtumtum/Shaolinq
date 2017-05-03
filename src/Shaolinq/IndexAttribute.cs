@@ -65,11 +65,13 @@ namespace Shaolinq
 		/// <remarks>
 		/// This property is useful for <see cref="Unique"/> composite indexes where you may only want to include rows
 		/// in the index when certain columns are of a certain value.
+		/// Multiple conditions can be added bvy using the <c>&&</c> operator. If <see cref="Condition"/> is defined on 
+		/// more than one related <see cref="IndexAttribute"/> then they are all included.
 		/// </remarks>
 		/// <example>
-		/// [IndexAttribute(Where = "Master == true")]
+		/// [IndexAttribute(Condition = "Master == true")]
 		/// </example>
-		public string Where { get; set; }
+		public string Condition { get; set; }
 
 		/// <summary>
 		/// Creates a single column index for this property.

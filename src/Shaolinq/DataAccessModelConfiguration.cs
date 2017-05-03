@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using Platform.Text;
+using Platform.Validation;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
@@ -62,16 +63,34 @@ namespace Shaolinq
 		public bool ValueTypesAutoImplicitDefault { get; set; } = true;
 
 		/// <summary>
-		/// By default properties with declared default values that are not set are not submitted to 
-		/// the database and the database is expected to apply the <c>DEFAULT VALUE</c> constraint
+		/// By default, properties with declared default values that are not explicitly set are will besubmitted to 
+		/// the database. Set this to false to not send default values and have the database apply the default value
+		/// basded upon the <c>DEFAULT VALUE</c> constraint.
 		/// </summary>
 		/// <remarks>
-		/// Set this propertuy to true if you want values to always be submitted on new objects even
-		/// if they are the default value - potentially overriding the <c>DEFAULT VALUE</c> constraint
-		/// on the declared database schema if there is a mismatch
+		/// The default for this property is L<c>true</c>.
+		/// Set this propertuy to false if you want default values to be ommitted when submitting new objects.
+		/// When this property is true (default) then the default value that is configured on the DataAccessModel
+		/// will override the <c>DEFAULT VALUE</c> constraint declared database schema if there is a schema mismatch.
+		/// <para>
+		/// This property is ignored if <see cref="IncludeImplicitDefaultsInSchema"/> is false.
+		/// </para>
 		/// </remarks>
 		[XmlAttribute]
-		public bool AlwaysSubmitDefaultValues { get; set; } = false;
+		public bool AlwaysSubmitDefaultValues { get; set; } = true;
+
+		/// <summary>
+		/// Include the implict default values into the database schema.
+		/// </summary>
+		/// <remarks>
+		/// The default value for this property is false which means implicit default values are not included in the
+		/// database schema as a <c>DEFAULT VALUE</c> directive. Explicitly declared default values (values declared
+		/// using the <see cref="DefaultValueAttribute"/>) are always included in the schema.
+		/// <para>
+		/// This property only has an effect if <see cref="ValueTypesAutoImplicitDefault"/> is <c>true</c></para>
+		/// </remarks>
+		[XmlAttribute]
+		public bool IncludeImplicitDefaultsInSchema { get; set; } = false;
 
 		/// <summary>
 		/// Path to the folder to store generated assemblies if <see cref="SaveAndReuseGeneratedAssemblies"/> is <c>true</c>.
@@ -96,7 +115,7 @@ namespace Shaolinq
 		{
 			return SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this)));
 		}
-
+			  
 		/// <summary>
 		/// Gets the SHA1 hash of the configuration has a series of hex encoded bytes.
 		/// </summary>
