@@ -63,7 +63,7 @@ namespace Shaolinq
 		public bool ValueTypesAutoImplicitDefault { get; set; } = true;
 
 		/// <summary>
-		/// By default, properties with declared default values that are not explicitly set are will besubmitted to 
+		/// By default, properties with declared default values that are not explicitly set are will be submitted to 
 		/// the database. Set this to false to not send default values and have the database apply the default value
 		/// basded upon the <c>DEFAULT VALUE</c> constraint.
 		/// </summary>

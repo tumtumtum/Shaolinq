@@ -16,6 +16,8 @@ namespace Shaolinq.Tests
 	public class BaseTests<T>
 		where T : DataAccessModel
 	{
+		private readonly bool valueTypesAutoImplicitDefault;
+		private readonly bool alwaysSubmitDefaultValues;
 		protected T model;
 		protected internal static readonly bool useMonoData;
 		private readonly bool useDataAccessScope;
@@ -43,7 +45,8 @@ namespace Shaolinq.Tests
 
 			var retval = SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -53,7 +56,8 @@ namespace Shaolinq.Tests
 		{
 			var retval = MySqlConfiguration.Create(databaseName, "localhost", "root", "root");
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 			((MySqlSqlDatabaseContextInfo)retval.SqlDatabaseContextInfos[0]).SilentlyIgnoreIndexConditions = true;
 
@@ -64,7 +68,8 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create(databaseName + ".db", null, useMonoData);
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -74,7 +79,8 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create("file:" + databaseName + "?mode=memory&cache=shared", null, useMonoData);
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -84,7 +90,8 @@ namespace Shaolinq.Tests
 		{
 			var retval = SqliteConfiguration.Create(":memory:", null, useMonoData);
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -105,7 +112,8 @@ namespace Shaolinq.Tests
 				MaxPoolSize = 10
 			});
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -123,7 +131,8 @@ namespace Shaolinq.Tests
 				UnpreparedExecute = false
 			});
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -141,7 +150,8 @@ namespace Shaolinq.Tests
 				UnpreparedExecute = false
 			});
 
-			retval.ValueTypesAutoImplicitDefault = false;
+			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
+			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
 
 			return retval;
@@ -156,8 +166,11 @@ namespace Shaolinq.Tests
 
 		protected string ProviderName { get; }
 
-		public BaseTests(string providerName)
+		public BaseTests(string providerName, bool alwaysSubmitDefaultValues = false, bool valueTypesAutoImplicitDefault = true)
 		{
+			this.valueTypesAutoImplicitDefault = valueTypesAutoImplicitDefault;
+			this.alwaysSubmitDefaultValues = alwaysSubmitDefaultValues;
+
 			var ss = providerName.Split(':');
 
 			if (ss.Length <= 1)

@@ -19,7 +19,7 @@ namespace Shaolinq.Tests
 		: BaseTests<TestDataAccessModel>
 	{
 		public TestValueTypesWithDefaultValues(string providerName)
-			: base(providerName)
+			: base(providerName, alwaysSubmitDefaultValues: false, valueTypesAutoImplicitDefault: false)
 		{
 		}
 

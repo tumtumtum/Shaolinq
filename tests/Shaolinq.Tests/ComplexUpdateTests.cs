@@ -116,7 +116,7 @@ namespace Shaolinq.Tests
 					
 						Assert.IsTrue(address.GetAdvanced().IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys);
 						Assert.IsFalse(address.GetAdvanced().PrimaryKeyIsCommitReady);
-						Assert.AreEqual(5, changedProperties.Count);
+						Assert.AreEqual(2, changedProperties.Count);
 
 						scope.Complete();
 					}
