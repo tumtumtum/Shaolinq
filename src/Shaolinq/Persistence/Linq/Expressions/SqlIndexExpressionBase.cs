@@ -9,9 +9,9 @@ namespace Shaolinq.Persistence.Linq.Expressions
 	{
 		public string IndexName { get; }
 		public IReadOnlyList<SqlIndexedColumnExpression> Columns { get; }
-		public IReadOnlyList<SqlColumnExpression> IncludedColumns { get; }
+		public IReadOnlyList<SqlIndexedColumnExpression> IncludedColumns { get; }
 
-		public SqlIndexExpressionBase(string indexName, IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlColumnExpression> includedColumns)
+		public SqlIndexExpressionBase(string indexName, IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlIndexedColumnExpression> includedColumns)
 			: base(typeof(void))
 		{
 			this.IndexName = indexName;

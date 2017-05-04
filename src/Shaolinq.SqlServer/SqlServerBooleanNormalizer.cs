@@ -17,6 +17,22 @@ namespace Shaolinq.SqlServer
 			return new SqlServerBooleanNormalizer().Visit(expression);
 		}
 
+		protected override Expression VisitIndexedColumn(SqlIndexedColumnExpression indexedColumnExpression)
+		{
+			return indexedColumnExpression;
+		}
+
+		protected override Expression VisitAssign(SqlAssignExpression expression)
+		{
+			var newValue = this.Visit(expression.Value);
+
+			if (newValue != expression.Value)
+			{
+				return new SqlAssignExpression(expression.Target, newValue);
+			}
+
+			return expression;
+		}
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
 		{
 			var result = base.VisitConstant(constantPlaceholder.ConstantExpression);

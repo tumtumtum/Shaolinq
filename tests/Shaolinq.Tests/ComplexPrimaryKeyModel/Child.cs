@@ -9,9 +9,11 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 	public abstract class Child
 		: DataAccessObject<Guid>
 	{
+		[Index("test")]
 		[PersistedMember, DefaultValue(true)]
 		public abstract bool Good { get; set; }
 
+		[Index("test")]
 		[PersistedMember]
 		public abstract string Nickname { get; set; }
 

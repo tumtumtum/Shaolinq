@@ -13,7 +13,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public Expression Column { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.IndexedColumn;
 
-		public SqlIndexedColumnExpression(Expression column, SortOrder sortOrder, bool lowercaseIndex, bool includeOnly = false)
+		public SqlIndexedColumnExpression(Expression column, SortOrder sortOrder = default(SortOrder), bool lowercaseIndex = default(bool), bool includeOnly = false)
 			: base(typeof(void))
 		{
 			this.Column = column;

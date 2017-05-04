@@ -226,7 +226,7 @@ namespace Shaolinq.Persistence.Linq
 			var newTarget = this.Visit(expression.Target);
 			var newValue = this.Visit(expression.Value);
 
-			if (newValue != expression.Value)
+			if (newTarget != expression.Target || newValue != expression.Value)
 			{
 				return new SqlAssignExpression(newTarget, newValue);
 			}

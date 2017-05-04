@@ -294,13 +294,13 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			var includedColumns = new List<SqlColumnExpression>();
+			var includedColumns = new List<SqlIndexedColumnExpression>();
 
 			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.IncludeOnly))
 			{
 				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
 				{
-					includedColumns.Add(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName));
+					includedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName)));
 				}
 			}
 
@@ -325,13 +325,13 @@ namespace Shaolinq.Persistence.Linq
 				}
 			}
 
-			var includedColumns = new List<SqlColumnExpression>();
+			var includedColumns = new List<SqlIndexedColumnExpression>();
 
 			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.IncludeOnly))
 			{
 				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
 				{
-					includedColumns.Add(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName));
+					includedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName)));
 				}
 			}
 

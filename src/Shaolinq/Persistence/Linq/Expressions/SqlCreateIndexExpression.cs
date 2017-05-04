@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -18,12 +17,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public bool? Clustered { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.CreateIndex;
 
-		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IEnumerable<SqlIndexedColumnExpression> columns, IEnumerable<SqlColumnExpression> includedColumns)
+		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IEnumerable<SqlIndexedColumnExpression> columns, IEnumerable<SqlIndexedColumnExpression> includedColumns)
 			: this(indexName, table, unique, lowercaseIndex, indexType, ifNotExist, columns.ToReadOnlyCollection(), includedColumns.ToReadOnlyCollection())
 		{
 		}
 
-		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlColumnExpression>  includedColumns, Expression where = null, bool? clustered =  null)
+		public SqlCreateIndexExpression(string indexName, SqlTableExpression table, bool unique, bool lowercaseIndex, IndexType indexType, bool ifNotExist, IReadOnlyList<SqlIndexedColumnExpression> columns, IReadOnlyList<SqlIndexedColumnExpression>  includedColumns, Expression where = null, bool? clustered =  null)
 			: base(indexName, columns, includedColumns)
 		{
 			this.Table = table;
