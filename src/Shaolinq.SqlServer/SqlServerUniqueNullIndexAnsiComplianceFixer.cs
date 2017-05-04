@@ -11,19 +11,26 @@ namespace Shaolinq.SqlServer
 		: SqlExpressionVisitor
 	{
 		private readonly bool fixNonUniqueIndexesAsWell;
+		private readonly bool explicitIndexConditionAlwaysOverrides;
 
-		private SqlServerUniqueNullIndexAnsiComplianceFixer(bool fixNonUniqueIndexesAsWell)
+		private SqlServerUniqueNullIndexAnsiComplianceFixer(bool fixNonUniqueIndexesAsWell, bool explicitIndexConditionAlwaysOverrides)
 		{
 			this.fixNonUniqueIndexesAsWell = fixNonUniqueIndexesAsWell;
+			this.explicitIndexConditionAlwaysOverrides = explicitIndexConditionAlwaysOverrides;
 		}
 
-		public static Expression Fix(Expression expression, bool fixNonUniqueIndexesAsWell = false)
+		public static Expression Fix(Expression expression, bool fixNonUniqueIndexesAsWell = false, bool explicitIndexConditionAlwaysOverrides = false)
 		{
-			return new SqlServerUniqueNullIndexAnsiComplianceFixer(fixNonUniqueIndexesAsWell).Visit(expression);
+			return new SqlServerUniqueNullIndexAnsiComplianceFixer(fixNonUniqueIndexesAsWell, explicitIndexConditionAlwaysOverrides).Visit(expression);
 		}
 
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
+			if (createIndexExpression.Where != null && this.explicitIndexConditionAlwaysOverrides)
+			{
+				return createIndexExpression;
+			}
+
 		    if (!(createIndexExpression.Unique || this.fixNonUniqueIndexesAsWell))
 		    {
 		        return createIndexExpression;

@@ -31,6 +31,16 @@ namespace Shaolinq.SqlServer
 		public bool TrustedConnection { get; set; } = false;
 
 		/// <summary>
+		/// When true, explicitly specified index condition overrides the conditions implicitly added
+		/// by <see cref="SqlServerUniqueNullIndexAnsiComplianceFixer"/>
+		/// </summary>
+		/// <remarks>
+		/// This property defaults to false
+		/// </remarks>
+		[XmlAttribute]
+		public bool ExplicitIndexConditionAlwaysOverrides { get; set; }
+
+		/// <summary>
 		/// Determines whether deleting an existing database via <see cref="DataAccessModel.Create(DatabaseCreationOptions)"/>
 		/// should only drop the tables rather than the entire database.
 		/// </summary>
