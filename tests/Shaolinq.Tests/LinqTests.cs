@@ -28,6 +28,7 @@ namespace Shaolinq.Tests
 		public LinqTests(string providerName)
 			: base(providerName)
 		{
+			decimal d = 10m;
 		}
 
 		[OneTimeSetUp]

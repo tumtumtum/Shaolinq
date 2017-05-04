@@ -22,7 +22,7 @@ namespace Shaolinq.Tests.TestModel
 
 		[PersistedMember]
 		public abstract int? MaximumClassSize { get; set; }
-
+		
 		[BackReference]
 		public abstract Lecturer Lecturer { get; set; }
 

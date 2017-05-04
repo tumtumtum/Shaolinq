@@ -72,7 +72,7 @@ namespace Shaolinq.TypeBuilding
 				var bits = decimal.GetBits((decimal)value);
 
 				generator.Emit(OpCodes.Ldc_I4, bits.Length);
-				generator.Emit(OpCodes.Newarr);
+				generator.Emit(OpCodes.Newarr, typeof(int));
 				generator.Emit(OpCodes.Stloc, local);
 
 				for (var i = 0; i < bits.Length; i++)
@@ -82,9 +82,10 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldc_I4, bits[i]);
 					generator.Emit(OpCodes.Stelem_I4);
 				}
-
+				
 				generator.Emit(OpCodes.Ldloc, local);
-				generator.Emit(OpCodes.Call, TypeUtils.GetConstructor(() => new decimal(default(int[]))));
+				generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new decimal(default(int[]))));
+
 				break;
 			case TypeCode.DateTime:
 				generator.Emit(OpCodes.Ldc_I8, ((DateTime)value).Ticks);

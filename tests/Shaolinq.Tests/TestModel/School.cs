@@ -1,4 +1,7 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using Platform.Validation;
+
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
@@ -20,5 +23,8 @@ namespace Shaolinq.Tests.TestModel
 
 		[PersistedMember]
 		public abstract Address Address { get; set; }
+		
+		[PersistedMember, DefaultValue(500)]
+		public abstract decimal SalePrice { get; set; }
 	}
 }
