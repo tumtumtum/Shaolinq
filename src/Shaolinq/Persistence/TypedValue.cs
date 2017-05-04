@@ -7,7 +7,7 @@ namespace Shaolinq.Persistence
 	public struct TypedValue
 	{
 		public Type Type {get; }
-		public object Value { get; private set; }
+		public object Value { get; }
 		public Func<object, object> Converter { get; }
 
 		public TypedValue(Type type, object value, Func<object, object> converter = null)

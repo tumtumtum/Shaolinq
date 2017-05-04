@@ -137,7 +137,7 @@ namespace Shaolinq.SqlServer
 				return base.VisitConstant(constantExpression);
 			}
 
-			var type = constantExpression.Value.GetType();
+			var type = constantExpression.Value.GetType().GetUnwrappedNullableType();
 
 			switch (Type.GetTypeCode(type))
 			{

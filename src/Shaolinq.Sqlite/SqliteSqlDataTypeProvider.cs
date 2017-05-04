@@ -26,7 +26,6 @@ namespace Shaolinq.Sqlite
 			this.DefineSqlDataType(typeof(float), "REAL", "GetFloat");
 			this.DefineSqlDataType(typeof(double), "REAL", "GetDouble");
 			this.DefineSqlDataType(typeof(decimal), "TEXT", "GetDecimal");
-			this.DefineSqlDataType(new SqliteBooleanType(constraintDefaultsConfiguration, typeof(bool), "INTEGER", TypeUtils.GetMethod<IDataReader>(c => c.GetBoolean(default(int)))));
 		}
 	}
 }

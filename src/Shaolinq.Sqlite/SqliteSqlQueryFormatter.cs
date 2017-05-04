@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -159,6 +161,36 @@ namespace Shaolinq.Sqlite
 		protected override void WriteInsertDefaultValuesSuffix()
 		{
 			this.Write(" DEFAULT VALUES");
+		}
+
+		protected override Expression VisitConstant(ConstantExpression constantExpression)
+		{
+			if (constantExpression.Value == null)
+			{
+				return base.VisitConstant(constantExpression);
+			}
+
+			var type = constantExpression.Value.GetType().GetUnwrappedNullableType();
+
+			switch (Type.GetTypeCode(type))
+			{
+			case TypeCode.Boolean:
+				if ((this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
+				{
+					this.Write(this.FormatConstant(Convert.ToInt32(constantExpression.Value)));
+				}
+				else
+				{
+					this.Write(this.ParameterIndicatorPrefix);
+					this.Write(ParamNamePrefix);
+					this.Write(this.parameterValues.Count);
+					this.parameterValues.Add(new TypedValue(typeof(int), constantExpression.Value, c => Convert.ToInt32(c)));
+				}
+
+				return constantExpression;
+			}
+
+			return base.VisitConstant(constantExpression);
 		}
 	}
 }
