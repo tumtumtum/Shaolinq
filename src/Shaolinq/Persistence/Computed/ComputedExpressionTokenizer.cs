@@ -276,7 +276,7 @@ namespace Shaolinq.Persistence.Computed
 			{
 				this.stringBuilder.Length = 0;
 
-				while (this.currentChar != -1 && (Char.IsLetterOrDigit((char)this.currentChar) ))
+				while (this.currentChar != -1 && char.IsLetterOrDigit((char)this.currentChar))
 				{
 					this.stringBuilder.Append((char)this.currentChar);
 

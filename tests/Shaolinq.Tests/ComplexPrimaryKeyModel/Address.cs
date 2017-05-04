@@ -22,6 +22,7 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		public virtual int Number { get; set; }
 
 		[Index(Condition = "Number != 100 && Street != null && Verified")]
+		[Index("Street2_idx", Condition = "Verified == true")]
 		[PersistedMember]
 		public virtual string Street { get; set; }
 	}

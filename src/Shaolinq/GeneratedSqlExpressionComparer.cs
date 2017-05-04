@@ -1609,7 +1609,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
             }
 
             this.currentObject = current.Column;
-            this.VisitColumn(expression.Column);
+            this.Visit(expression.Column);
             if (!this.result)
             {
                 return expression;

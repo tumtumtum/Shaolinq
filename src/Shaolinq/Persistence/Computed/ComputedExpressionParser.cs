@@ -502,17 +502,18 @@ namespace Shaolinq.Persistence.Computed
 
 				return Expression.Constant(true);
 			}
-			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@null)
-			{
-				this.Consume();
-
-				return Expression.Constant(null);
-			}
 			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@false)
 			{
 				this.Consume();
 
 				return Expression.Constant(false);
+			}
+
+			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@null)
+			{
+				this.Consume();
+
+				return Expression.Constant(null);
 			}
 
 			if (this.token == ComputedExpressionToken.Identifier)

@@ -1,6 +1,8 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Data;
+using Platform;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
@@ -24,6 +26,7 @@ namespace Shaolinq.Sqlite
 			this.DefineSqlDataType(typeof(float), "REAL", "GetFloat");
 			this.DefineSqlDataType(typeof(double), "REAL", "GetDouble");
 			this.DefineSqlDataType(typeof(decimal), "TEXT", "GetDecimal");
+			this.DefineSqlDataType(new SqliteBooleanType(constraintDefaultsConfiguration, typeof(bool), "INTEGER", TypeUtils.GetMethod<IDataReader>(c => c.GetBoolean(default(int)))));
 		}
 	}
 }

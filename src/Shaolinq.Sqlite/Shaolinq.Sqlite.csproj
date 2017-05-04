@@ -132,6 +132,7 @@
     <Compile Include="GeneratedAsync.cs" />
     <Compile Include="RewriteAsyncAttribute.cs" />
     <Compile Include="SqliteAutoIncrementPrimaryKeyColumnReducer.cs" />
+    <Compile Include="SqliteBooleanType.cs" />
     <Compile Include="SqliteConfiguration.cs" />
     <Compile Include="SqliteErrorCodes.cs" />
     <Compile Include="SqliteForeignKeyConstraintReducer.cs" />
