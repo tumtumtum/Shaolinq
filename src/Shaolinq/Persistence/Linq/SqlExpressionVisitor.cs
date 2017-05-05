@@ -585,10 +585,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 				}
 
-				if (newStatements != null)
-				{
-					newStatements.Add(expression);
-				}
+				newStatements?.Add(expression);
 			}
 
 			return newStatements == null ? statementListExpression : new SqlStatementListExpression(newStatements);

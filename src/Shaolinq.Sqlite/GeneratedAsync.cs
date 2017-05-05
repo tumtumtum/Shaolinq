@@ -195,3 +195,45 @@ namespace Shaolinq.Sqlite
 		}
 	}
 }
+
+namespace Shaolinq.Sqlite
+{
+#pragma warning disable
+	using System;
+	using System.Data;
+	using System.Linq;
+	using System.Threading;
+	using System.Data.Common;
+	using System.Data.SQLite;
+	using System.Threading.Tasks;
+	using System.Collections.Generic;
+	using System.Text.RegularExpressions;
+	using Shaolinq;
+	using Shaolinq.Sqlite;
+	using Shaolinq.Logging;
+	using Shaolinq.Persistence;
+
+	public partial class SqliteOfficialSqlDatabaseContext
+	{
+		public override Task BackupAsync(SqlDatabaseContext sqlDatabaseContext)
+		{
+			return this.BackupAsync(sqlDatabaseContext, CancellationToken.None);
+		}
+
+		public override async Task BackupAsync(SqlDatabaseContext sqlDatabaseContext, CancellationToken cancellationToken)
+		{
+			if (!(sqlDatabaseContext is SqliteOfficialSqlDatabaseContext))
+			{
+				throw new ArgumentException($"Needs to be a {nameof(SqliteOfficialSqlDatabaseContext)}", nameof(sqlDatabaseContext));
+			}
+
+			using (var connection = (await this.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
+			{
+				using (var otherConnection = (await sqlDatabaseContext.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
+				{
+					this.GetSqliteConnection(connection).BackupDatabase(this.GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
+				}
+			}
+		}
+	}
+}
