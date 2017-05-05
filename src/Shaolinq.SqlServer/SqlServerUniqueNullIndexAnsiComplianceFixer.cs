@@ -11,22 +11,22 @@ namespace Shaolinq.SqlServer
 		: SqlExpressionVisitor
 	{
 		private readonly bool fixNonUniqueIndexesAsWell;
-		private readonly bool explicitIndexConditionAlwaysOverrides;
+		private readonly bool explicitIndexConditionOverridesNullAnsiCompliance;
 
-		private SqlServerUniqueNullIndexAnsiComplianceFixer(bool fixNonUniqueIndexesAsWell, bool explicitIndexConditionAlwaysOverrides)
+		private SqlServerUniqueNullIndexAnsiComplianceFixer(bool fixNonUniqueIndexesAsWell, bool explicitIndexConditionOverridesNullAnsiCompliance)
 		{
 			this.fixNonUniqueIndexesAsWell = fixNonUniqueIndexesAsWell;
-			this.explicitIndexConditionAlwaysOverrides = explicitIndexConditionAlwaysOverrides;
+			this.explicitIndexConditionOverridesNullAnsiCompliance = explicitIndexConditionOverridesNullAnsiCompliance;
 		}
 
-		public static Expression Fix(Expression expression, bool fixNonUniqueIndexesAsWell = false, bool explicitIndexConditionAlwaysOverrides = false)
+		public static Expression Fix(Expression expression, bool fixNonUniqueIndexesAsWell = false, bool explicitIndexConditionOverridesNullAnsiCompliance = false)
 		{
-			return new SqlServerUniqueNullIndexAnsiComplianceFixer(fixNonUniqueIndexesAsWell, explicitIndexConditionAlwaysOverrides).Visit(expression);
+			return new SqlServerUniqueNullIndexAnsiComplianceFixer(fixNonUniqueIndexesAsWell, explicitIndexConditionOverridesNullAnsiCompliance).Visit(expression);
 		}
 
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
-			if (createIndexExpression.Where != null && this.explicitIndexConditionAlwaysOverrides)
+			if (createIndexExpression.Where != null && this.explicitIndexConditionOverridesNullAnsiCompliance)
 			{
 				return createIndexExpression;
 			}

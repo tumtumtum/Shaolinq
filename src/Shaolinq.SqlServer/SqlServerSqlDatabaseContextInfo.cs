@@ -38,7 +38,7 @@ namespace Shaolinq.SqlServer
 		/// This property defaults to false
 		/// </remarks>
 		[XmlAttribute]
-		public bool ExplicitIndexConditionAlwaysOverrides { get; set; }
+		public bool ExplicitIndexConditionOverridesNullAnsiCompliance { get; set; }
 
 		/// <summary>
 		/// Determines whether deleting an existing database via <see cref="DataAccessModel.Create(DatabaseCreationOptions)"/>

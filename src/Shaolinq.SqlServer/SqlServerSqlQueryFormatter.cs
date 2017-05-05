@@ -168,7 +168,7 @@ namespace Shaolinq.SqlServer
 			expression = SqlServerLimitAmender.Amend(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
 			expression = SqlServerDateTimeFunctionsAmender.Amend(expression);
-			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression, this.contextInfo.UniqueNullIndexAnsiComplianceFixerClassicBehaviour);
+			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression, this.contextInfo.UniqueNullIndexAnsiComplianceFixerClassicBehaviour, this.contextInfo.ExplicitIndexConditionOverridesNullAnsiCompliance);
 			
 			return base.PreProcess(expression);
 		}
