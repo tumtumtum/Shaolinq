@@ -46,32 +46,68 @@ namespace Shaolinq.SqlServer
 		{
 			var retval = createTableExpression;
 			var organizationIndex = createTableExpression.OrganizationIndex;
-			
-			if (organizationIndex != null)
+
+			if (organizationIndex == null)
+			{
+				return organizationIndex;
+			}
+
+			// No organization index - remove from primary key
+
+			if (organizationIndex.Columns == null)
 			{
 				try
 				{
 					this.makeUnclustered = true;
 
-					retval = ((SqlCreateTableExpression)base.VisitCreateTable(createTableExpression)).ChangeOrganizationIndex(null);
+					retval = ((SqlCreateTableExpression)base.VisitCreateTable(createTableExpression))
+						.ChangeOrganizationIndex(null);
+
+					return retval;
 				}
 				finally
 				{
 					this.makeUnclustered = false;
 				}
-
-				if (organizationIndex.Columns != null)
-				{
-					var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, false, IndexType.Default, false, organizationIndex.Columns, null, null, true);
-
-					if (this.additionalStatements == null)
-					{
-						this.additionalStatements = new List<Expression>();
-					}
-
-					this.additionalStatements.Add(indexExpression);
-				}
 			}
+
+			// Organization index the same as primary key so just leave with SQL server default
+
+			if (createTableExpression
+				.TableConstraints
+				.Where(c => c.PrimaryKey)
+				.SelectMany(c => c.ColumnNames)
+				.OrderBy(c => c)
+				.SequenceEqual(organizationIndex.Columns.Select(c => c.Column.Name).OrderBy(c => c)))
+			{
+				retval = ((SqlCreateTableExpression)base.VisitCreateTable(createTableExpression))
+					.ChangeOrganizationIndex(null);
+
+				return retval;
+			}
+
+			// Custom organization index
+
+			try
+			{
+				this.makeUnclustered = true;
+
+				retval = ((SqlCreateTableExpression)base.VisitCreateTable(createTableExpression))
+					.ChangeOrganizationIndex(null);
+			}
+			finally
+			{
+				this.makeUnclustered = false;
+			}
+
+			var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, false, IndexType.Default, false, organizationIndex.Columns, null, null, true);
+
+			if (this.additionalStatements == null)
+			{
+				this.additionalStatements = new List<Expression>();
+			}
+
+			this.additionalStatements.Add(indexExpression);
 
 			return retval;
 		}

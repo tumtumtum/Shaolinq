@@ -610,7 +610,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual Expression VisitIndexedColumn(SqlIndexedColumnExpression indexedColumnExpression)
 		{
-			var newColumn = this.Visit(indexedColumnExpression.Column);
+			var newColumn = (SqlColumnExpression)this.Visit(indexedColumnExpression.Column);
 
 			if (newColumn != indexedColumnExpression.Column)
 			{

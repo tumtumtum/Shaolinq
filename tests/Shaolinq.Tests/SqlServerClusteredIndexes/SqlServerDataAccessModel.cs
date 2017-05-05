@@ -10,5 +10,8 @@ namespace Shaolinq.Tests.SqlServerClusteredIndexes
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<DatabaseServer> Servers { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<Directory> Directories { get; }
 	}
 }

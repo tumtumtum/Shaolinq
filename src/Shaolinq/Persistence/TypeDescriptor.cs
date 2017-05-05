@@ -304,6 +304,25 @@ namespace Shaolinq.Persistence
 			{
 				throw new InvalidDataAccessObjectModelDefinition("An object can only define one integer auto increment property");
 			}
+
+			var organizationIdexes = this.PersistedProperties
+				.Where(c => c.OrganizationIndexAttribute != null)
+				.ToList();
+
+			if (organizationIdexes.Count == 1)
+			{
+				if (organizationIdexes[0].OrganizationIndexAttribute.Disable && !organizationIdexes[0].IsPrimaryKey)
+				{
+					throw new InvalidDataAccessObjectModelDefinition($"Disabling an organization/clustered requires {nameof(OrganizationIndexAttribute)} to be applied to a primary key property but is instead applied to the property '{organizationIdexes[0].PropertyName}'");
+				}
+			}
+			else if (organizationIdexes.Count > 1)
+			{
+				if (organizationIdexes.Any(c => c.OrganizationIndexAttribute.Disable))
+				{
+					throw new InvalidDataAccessObjectModelDefinition($"You have defined and/or disabled the organization/clustered index on {this.TypeName} multiple times. Remove one or more of the [{nameof(OrganizationIndexAttribute)}] attributes.");
+				}
+			}
 		}
 
 		public override string ToString()

@@ -2,7 +2,7 @@ using System;
 
 namespace Shaolinq
 {
-	[AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
+	[AttributeUsage(AttributeTargets.Property)]
 	public class OrganizationIndexAttribute
 		: Attribute, IIndexAttribute
 	{

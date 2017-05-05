@@ -15,11 +15,6 @@ namespace Shaolinq.SqlServer
 		{
 		}
 
-		protected override Expression BuildDataDefinitonExpressions(DatabaseCreationOptions options)
-		{
-			return base.BuildDataDefinitonExpressions(options);
-		}
-
 		[RewriteAsync]
 		protected override bool CreateDatabaseOnly(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{

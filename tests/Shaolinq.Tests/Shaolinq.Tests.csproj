@@ -240,6 +240,7 @@
     <Compile Include="SqlServerClusteredIndexes\DatabaseServer.cs" />
     <Compile Include="SqlServerClusteredIndexes\SqlServerClusteredIndexesTest.cs" />
     <Compile Include="SqlServerClusteredIndexes\SqlServerDataAccessModel.cs" />
+    <Compile Include="SqlServerClusteredIndexes\Directory.cs" />
     <Compile Include="TestModel\Address.cs" />
     <Compile Include="AutoIncrementTests.cs" />
     <Compile Include="TestModel\BaseGenericDao.cs" />

@@ -10,10 +10,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public bool LowercaseIndex { get; }
 		public bool IncludeOnly { get; }
 		public SortOrder SortOrder { get; }
-		public Expression Column { get; }
+		public SqlColumnExpression Column { get; }
 		public override ExpressionType NodeType => (ExpressionType)SqlExpressionType.IndexedColumn;
 
-		public SqlIndexedColumnExpression(Expression column, SortOrder sortOrder = default(SortOrder), bool lowercaseIndex = default(bool), bool includeOnly = false)
+		public SqlIndexedColumnExpression(SqlColumnExpression column, SortOrder sortOrder = default(SortOrder), bool lowercaseIndex = default(bool), bool includeOnly = false)
 			: base(typeof(void))
 		{
 			this.Column = column;

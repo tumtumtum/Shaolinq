@@ -269,11 +269,13 @@ namespace Shaolinq.Persistence.Linq
 				.Where(c => c.OrganizationIndexAttribute != null)
 				.Where(c => c.OrganizationIndexAttribute.IncludeOnly == false)
 				.Select(c => new Tuple<OrganizationIndexAttribute, PropertyDescriptor>(c.OrganizationIndexAttribute, c))
+				.OrderBy(c => c.Item1.CompositeOrder)
 				.ToArray();
 			
 			if (organizationAttributes.Length > 0)
 			{
-				var organizationIndexName = this.formatterManager.GetIndexConstraintName(typeDescriptor.PrimaryKeyProperties);
+				var organizationIndexName = this.formatterManager.GetIndexConstraintName(organizationAttributes.Select(c => c.Item2));
+
 				organizationIndex = this.BuildOrganizationIndexExpression(organizationIndexName, organizationAttributes);
 			}
 
@@ -283,6 +285,11 @@ namespace Shaolinq.Persistence.Linq
 		private SqlOrganizationIndexExpression BuildOrganizationIndexExpression(string indexName, Tuple<OrganizationIndexAttribute, PropertyDescriptor>[] properties)
 		{
 			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
+
+			if (properties.Select(c => c.Item1).Any(c => c.Disable))
+			{
+				return new SqlOrganizationIndexExpression(indexName, null, null);
+			}
 
 			var indexedColumns = new List<SqlIndexedColumnExpression>();
 
