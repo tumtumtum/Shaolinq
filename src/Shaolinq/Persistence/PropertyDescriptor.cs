@@ -118,10 +118,6 @@ namespace Shaolinq.Persistence
 
 			if (this.DefaultValueAttribute != null || (implicitDefault && !this.IsAutoIncrement))
 			{
-				if (this.PropertyName == "SalePrice")
-				{
-					;
-				}
 				this.HasDefaultValue = true;
 
 				if (this.DefaultValueAttribute != null)

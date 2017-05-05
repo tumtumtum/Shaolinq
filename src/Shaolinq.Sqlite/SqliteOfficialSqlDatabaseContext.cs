@@ -192,10 +192,8 @@ namespace Shaolinq.Sqlite
 			return new DataAccessException(exception, relatedQuery);
 		}
 
-		private SQLiteConnection OpenSqliteConnection()
+		private SQLiteConnection GetSqliteConnection(IDbConnection connection)
 		{
-			var connection = this.OpenConnection();
-
 			if (connection is SqlitePersistentDbConnection)
 			{
 				connection = ((SqlitePersistentDbConnection)connection).Inner;
@@ -212,11 +210,11 @@ namespace Shaolinq.Sqlite
 				throw new ArgumentException($"Needs to be a {nameof(SqliteOfficialSqlDatabaseContext)}", nameof(sqlDatabaseContext));
 			}
 
-			using (var connection = this.OpenSqliteConnection())
+			using (var connection = this.OpenConnection())
 			{
-				using (var otherConnection = ((SqliteOfficialSqlDatabaseContext)sqlDatabaseContext).OpenSqliteConnection())
+				using (var otherConnection = sqlDatabaseContext.OpenConnection())
 				{
-					connection.BackupDatabase(otherConnection, "main", "Main", -1, null, 0);
+					this.GetSqliteConnection(connection).BackupDatabase(this.GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
 				}
 			}
 		}

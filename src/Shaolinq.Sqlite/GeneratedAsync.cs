@@ -227,11 +227,11 @@ namespace Shaolinq.Sqlite
 				throw new ArgumentException($"Needs to be a {nameof(SqliteOfficialSqlDatabaseContext)}", nameof(sqlDatabaseContext));
 			}
 
-			using (var connection = this.OpenSqliteConnection())
+			using (var connection = (await this.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
 			{
-				using (var otherConnection = ((SqliteOfficialSqlDatabaseContext)sqlDatabaseContext).OpenSqliteConnection())
+				using (var otherConnection = (await sqlDatabaseContext.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
 				{
-					connection.BackupDatabase(otherConnection, "main", "Main", -1, null, 0);
+					this.GetSqliteConnection(connection).BackupDatabase(this.GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
 				}
 			}
 		}

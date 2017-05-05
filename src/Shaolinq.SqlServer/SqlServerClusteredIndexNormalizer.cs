@@ -49,7 +49,7 @@ namespace Shaolinq.SqlServer
 
 			if (organizationIndex == null)
 			{
-				return organizationIndex;
+				return createTableExpression;
 			}
 
 			// No organization index - remove from primary key

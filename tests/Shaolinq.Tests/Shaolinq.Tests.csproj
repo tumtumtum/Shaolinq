@@ -236,6 +236,7 @@
     <Compile Include="LoadTests.cs" />
     <Compile Include="NonPrimaryAutoIncrement.cs" />
     <Compile Include="ReflectionPerformanceTests.cs" />
+    <Compile Include="SqliteBackupTests.cs" />
     <Compile Include="SqlServerClusteredIndexes\Administrator.cs" />
     <Compile Include="SqlServerClusteredIndexes\DatabaseServer.cs" />
     <Compile Include="SqlServerClusteredIndexes\SqlServerClusteredIndexesTest.cs" />
