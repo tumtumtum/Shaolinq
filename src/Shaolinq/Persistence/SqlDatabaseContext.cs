@@ -140,5 +140,11 @@ namespace Shaolinq.Persistence
 
 			GC.SuppressFinalize(this);
 		}
+
+		[RewriteAsync]
+		public virtual void Backup(SqlDatabaseContext sqlDatabaseContext)
+		{
+			throw new NotSupportedException();
+		}
 	}
 }

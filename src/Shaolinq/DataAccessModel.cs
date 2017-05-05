@@ -931,6 +931,17 @@ namespace Shaolinq
 			return null;
 		}
 
+		[RewriteAsync]
+		public virtual void Backup(DataAccessModel dataAccessModel)
+		{
+			if (dataAccessModel == this)
+			{
+				throw new InvalidOperationException("Cannot backup to self");
+			}
+
+			this.GetCurrentSqlDatabaseContext().Backup(dataAccessModel.GetCurrentSqlDatabaseContext());
+		}
+
 		protected virtual void Initialise()
 		{
 			throw new NotImplementedException();

@@ -2402,6 +2402,16 @@ namespace Shaolinq.Persistence
 			await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
 			return retval;
 		}
+
+		public virtual Task BackupAsync(SqlDatabaseContext sqlDatabaseContext)
+		{
+			return this.BackupAsync(sqlDatabaseContext, CancellationToken.None);
+		}
+
+		public virtual async Task BackupAsync(SqlDatabaseContext sqlDatabaseContext, CancellationToken cancellationToken)
+		{
+			throw new NotSupportedException();
+		}
 	}
 }
 
@@ -2457,6 +2467,21 @@ namespace Shaolinq
 			{
 				await transactionContext.GetCurrentDataContext().CommitAsync((await transactionContext.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false)), true, cancellationToken).ConfigureAwait(false);
 			}
+		}
+
+		public virtual Task BackupAsync(DataAccessModel dataAccessModel)
+		{
+			return this.BackupAsync(dataAccessModel, CancellationToken.None);
+		}
+
+		public virtual async Task BackupAsync(DataAccessModel dataAccessModel, CancellationToken cancellationToken)
+		{
+			if (dataAccessModel == this)
+			{
+				throw new InvalidOperationException("Cannot backup to self");
+			}
+
+			await this.GetCurrentSqlDatabaseContext().BackupAsync(dataAccessModel.GetCurrentSqlDatabaseContext(), cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

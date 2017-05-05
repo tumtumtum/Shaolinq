@@ -23,7 +23,7 @@ namespace Shaolinq.Sqlite
 			}
 			else
 			{
-				return SqliteOfficialsSqlDatabaseContext.Create(this, model);
+				return SqliteOfficialSqlDatabaseContext.Create(this, model);
 			}
 		}
 	}

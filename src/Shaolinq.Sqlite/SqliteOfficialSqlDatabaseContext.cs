@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.Linq;
@@ -11,7 +12,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
 {
-	public class SqliteOfficialsSqlDatabaseContext
+	public partial class SqliteOfficialSqlDatabaseContext
 		: SqliteSqlDatabaseContext
 	{
 		public static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
@@ -98,10 +99,10 @@ namespace Shaolinq.Sqlite
 			var sqlDataTypeProvider = new SqliteSqlDataTypeProvider(constraintDefaults);
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, options => new SqliteSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider));
 
-			return new SqliteOfficialsSqlDatabaseContext(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
+			return new SqliteOfficialSqlDatabaseContext(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager);
 		}
 
-		public SqliteOfficialsSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
+		public SqliteOfficialSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager)
 		{
 			Version version;
@@ -189,6 +190,35 @@ namespace Shaolinq.Sqlite
 			}
 
 			return new DataAccessException(exception, relatedQuery);
+		}
+
+		private SQLiteConnection OpenSqliteConnection()
+		{
+			var connection = this.OpenConnection();
+
+			if (connection is SqlitePersistentDbConnection)
+			{
+				connection = ((SqlitePersistentDbConnection)connection).Inner;
+			}
+
+			return connection as SQLiteConnection;
+		}
+
+		[RewriteAsync]
+		public override void Backup(SqlDatabaseContext sqlDatabaseContext)
+		{
+			if (!(sqlDatabaseContext is SqliteOfficialSqlDatabaseContext))
+			{
+				throw new ArgumentException($"Needs to be a {nameof(SqliteOfficialSqlDatabaseContext)}", nameof(sqlDatabaseContext));
+			}
+
+			using (var connection = this.OpenSqliteConnection())
+			{
+				using (var otherConnection = ((SqliteOfficialSqlDatabaseContext)sqlDatabaseContext).OpenSqliteConnection())
+				{
+					connection.BackupDatabase(otherConnection, "main", "Main", -1, null, 0);
+				}
+			}
 		}
 	}
 }
