@@ -4,7 +4,7 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("SqliteInMemory:DataAccessScope")]
+	[TestFixture("SqliteInMemory:DataAccessScope", Category = "IgnoreOnMono")]
 	public class SqliteBackupTests
 		: BaseTests<TestDataAccessModel>
 	{
