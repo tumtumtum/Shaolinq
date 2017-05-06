@@ -505,7 +505,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if (result == null)
 			{
-				return Expression.Constant(null, expression.Type);
+				return null;
 			}
 
 			var converter = System.ComponentModel.TypeDescriptor.GetConverter(expression.Operand.Type);

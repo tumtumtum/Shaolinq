@@ -19,9 +19,9 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect.Unprepared:DataAccessScope")]
 	[TestFixture("Sqlite")]
 	[TestFixture("Sqlite:DataAccessScope")]
-	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
 	[TestFixture("SqliteInMemory:DataAccessScope")]
 	[TestFixture("SqliteClassicInMemory:DataAccessScope")]
+	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
 	public class LinqTests
 		: BaseTests<TestDataAccessModel>
 	{

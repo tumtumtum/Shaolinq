@@ -512,8 +512,9 @@ namespace Shaolinq
 						c => c.ComputedMemberAssignTarget.Name, 
 						c => MemberAccessReplacer.Replace
 						(
-							c.ComputedMemberAssignmentValue, c.PropertyInfo,
-							Expression.Property(typedParameter, typedParameter.Type.GetMostDerivedProperty(c.PropertyName))
+							c.ComputedMemberAssignmentValue,
+							c.PropertyInfo,
+							Expression.Convert(Expression.Property(typedParameter, typedParameter.Type.GetMostDerivedProperty(c.PropertyName)), c.PropertyInfo.PropertyType)
 						)
 					);
 				}

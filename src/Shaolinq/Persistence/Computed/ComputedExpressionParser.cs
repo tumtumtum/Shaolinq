@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Platform;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence.Computed
@@ -114,7 +115,7 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseNullCoalescing();
 
-				this.NormalizeOperands(ref leftOperand, ref rightOperand);
+				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				if (operationToken == ComputedExpressionToken.LogicalAnd)
 				{
@@ -154,7 +155,7 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseAddOrSubtract();
 
-				NormalizeOperands(ref leftOperand, ref rightOperand);
+				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				switch (operationToken)
 				{
@@ -199,58 +200,70 @@ namespace Shaolinq.Persistence.Computed
 			return retval;
 		}
 
-		protected void NormalizeOperands(ref Expression left, ref Expression right)
+		protected void NormalizeOperandsForArithmatic(ref Expression left, ref Expression right)
 		{
-			left = left.UnwrapNullable();
-			right = right.UnwrapNullable();
+			var leftUnwrappedType = left.Type.GetUnwrappedNullableType();
+			var rightUnwrappedType = right.Type.GetUnwrappedNullableType();
 
-			if (left.Type == typeof(byte) &&
-				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			if (leftUnwrappedType == rightUnwrappedType && (left.Type != right.Type) && (left.Type.IsNullableType() || right.Type.IsNullableType()))
+			{
+				if (right.Type.IsNullableType())
+				{
+					left = Expression.Convert(left, right.Type);
+				}
+				else
+				{
+					right = Expression.Convert(right, left.Type);
+				}
+			}
+
+			if (leftUnwrappedType == typeof(byte) &&
+				(rightUnwrappedType == typeof(short) || rightUnwrappedType == typeof(int) || rightUnwrappedType == typeof(long) || rightUnwrappedType == typeof(double) || rightUnwrappedType == typeof(decimal)))
 			{
 				left = Expression.Convert(left, right.Type);
 			}
-			else if (left.Type == typeof(char) && 
-				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			else if (leftUnwrappedType == typeof(char) && 
+				(rightUnwrappedType == typeof(short) || rightUnwrappedType == typeof(int) || rightUnwrappedType == typeof(long) || rightUnwrappedType == typeof(double) || rightUnwrappedType == typeof(decimal)))
 			{
 				left = Expression.Convert(left, right.Type);
 			}
-			else if (left.Type == typeof(short) &&
-				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			else if (leftUnwrappedType == typeof(short) &&
+				(rightUnwrappedType == typeof(long) || rightUnwrappedType == typeof(double) || rightUnwrappedType == typeof(decimal)))
 			{
 				left = Expression.Convert(left, right.Type);
 			}
-			else if (left.Type == typeof(int) &&
-				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			else if (leftUnwrappedType == typeof(int) &&
+				(rightUnwrappedType == typeof(long) || rightUnwrappedType == typeof(double) || rightUnwrappedType == typeof(decimal)))
 			{
 				left = Expression.Convert(left, right.Type);
 			}
-			else if (left.Type == typeof(long) &&
-				(right.Type == typeof(long) || right.Type == typeof(double) || right.Type == typeof(decimal)))
+			else if (leftUnwrappedType == typeof(long) &&
+				(rightUnwrappedType == typeof(double) || rightUnwrappedType == typeof(decimal)))
 			{
 				left = Expression.Convert(left, right.Type);
 			}
-			else if (right.Type == typeof(byte) &&
-				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			else if (rightUnwrappedType == typeof(byte) &&
+				(leftUnwrappedType == typeof(short) || leftUnwrappedType == typeof(int) || leftUnwrappedType == typeof(long) || leftUnwrappedType == typeof(double) || leftUnwrappedType == typeof(decimal)))
 			{
 				right = Expression.Convert(right, left.Type);
 			}
-			else if (right.Type == typeof(char) &&
-				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			else if (rightUnwrappedType == typeof(char) &&
+				(leftUnwrappedType == typeof(short) || leftUnwrappedType == typeof(int) || leftUnwrappedType == typeof(long) || leftUnwrappedType == typeof(double) || leftUnwrappedType == typeof(decimal)))
 			{
 				right = Expression.Convert(right, left.Type);
 			}
-			else if (right.Type == typeof(short) &&
-				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			else if (rightUnwrappedType == typeof(short) &&
+				(leftUnwrappedType == typeof(int) || leftUnwrappedType == typeof(long) || leftUnwrappedType == typeof(double) || leftUnwrappedType == typeof(decimal)))
 			{
 				right = Expression.Convert(right, left.Type);
 			}
-			else if (right.Type == typeof(int) &&
-				(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			else if (rightUnwrappedType == typeof(int) &&
+				(leftUnwrappedType == typeof(long) || leftUnwrappedType == typeof(double) || leftUnwrappedType == typeof(decimal)))
 			{
 				right = Expression.Convert(right, left.Type);
 			}
-			else if (right.Type == typeof(long) &&
-					(left.Type == typeof(long) || left.Type == typeof(double) || left.Type == typeof(decimal)))
+			else if (rightUnwrappedType == typeof(long) &&
+				(leftUnwrappedType == typeof(double) || leftUnwrappedType == typeof(decimal)))
 			{
 				right = Expression.Convert(right, left.Type);
 			}
@@ -269,7 +282,7 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseMultiplyOrDivide();
 
-				this.NormalizeOperands(ref leftOperand, ref rightOperand);
+				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				if (operationToken == ComputedExpressionToken.Add)
 				{
@@ -282,7 +295,7 @@ namespace Shaolinq.Persistence.Computed
 
 				this.Consume();
 			}
-
+			
 			return retval;
 		}
 
@@ -299,7 +312,7 @@ namespace Shaolinq.Persistence.Computed
 
 				var rightOperand = this.ParseUnary();
 
-				this.NormalizeOperands(ref leftOperand, ref rightOperand);
+				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				switch (operationToken)
 				{
