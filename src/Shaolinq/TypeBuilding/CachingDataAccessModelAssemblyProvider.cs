@@ -2,7 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
+using Platform.Text;
 using Platform.Xml.Serialization;
 
 namespace Shaolinq.TypeBuilding
@@ -17,14 +20,12 @@ namespace Shaolinq.TypeBuilding
 			private readonly string configurationXml;
 			private readonly string configurationHash;
 			private readonly Type dataAccessModelType;
-			private readonly DataAccessModelConfiguration configuration;
-
-			public AssemblyKey(Type dataAccessModelType, DataAccessModelConfiguration configuration)
+			
+			public AssemblyKey(Type dataAccessModelType, DataAccessModelConfigurationUniqueKey configurationUniqueKey)
 			{
-				this.configuration = configuration;
 				this.dataAccessModelType = dataAccessModelType;
-				this.configurationHash = configuration.GetSha1Hex();
-				this.configurationXml = XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(configuration);
+				this.configurationXml = XmlSerializer<DataAccessModelConfigurationUniqueKey>.New().SerializeToString(configurationUniqueKey);
+				this.configurationHash = TextConversion.ToHexString(MD5.Create().ComputeHash(Encoding.UTF8.GetBytes(this.configurationXml)));
 			}
 
 			public override int GetHashCode()
@@ -40,12 +41,10 @@ namespace Shaolinq.TypeBuilding
 				{
 					return false;
 				}
-
-				var serializer = XmlSerializer<DataAccessModelConfiguration>.New();
-
+				
 				return other.Value.configurationHash == this.configurationHash
 						&& other.Value.dataAccessModelType == this.dataAccessModelType
-						&& (this.configurationXml == serializer.SerializeToString(other.Value.configuration));
+						&& this.configurationXml == other.Value.configurationXml;
 			}
 		}
 
@@ -60,7 +59,7 @@ namespace Shaolinq.TypeBuilding
 
 		public override RuntimeDataAccessModelInfo GetDataAccessModelAssembly(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
-			var key = new AssemblyKey(dataAccessModelType, configuration);
+			var key = new AssemblyKey(dataAccessModelType, new DataAccessModelConfigurationUniqueKey(configuration));
 
 			lock (this.buildingSet)
 			{

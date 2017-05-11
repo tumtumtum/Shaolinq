@@ -47,9 +47,9 @@ namespace Shaolinq.TypeBuilding
 		{
 			string fullhash;
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
-			var serializedConfiguration = XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(configuration);
+			var serializedConfiguration = XmlSerializer<DataAccessModelConfigurationUniqueKey>.New().SerializeToString(new DataAccessModelConfigurationUniqueKey(configuration));
 			
-			var filename = GetFileName(typeDescriptorProvider, configuration, serializedConfiguration, out fullhash);
+			var filename = GetFileName(typeDescriptorProvider, configuration.GeneratedAssembliesSaveDirectory, serializedConfiguration, out fullhash);
 
 			if (configuration.SaveAndReuseGeneratedAssemblies ?? false)
 			{
@@ -117,7 +117,7 @@ namespace Shaolinq.TypeBuilding
 			return assemblyBuilder;
 		}
 
-		private static string GetFileName(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration, string serializedConfiguration, out string fullhash)
+		private static string GetFileName(TypeDescriptorProvider typeDescriptorProvider, string cacheDirectory, string serializedConfiguration, out string fullhash)
 		{
 			var sha1 = SHA1.Create();
 			var modelAssembly = typeDescriptorProvider.DataAccessModelType.Assembly;
@@ -165,7 +165,7 @@ namespace Shaolinq.TypeBuilding
 			sha1.TransformFinalBlock(bytes, 0, 0);
 
 			var fileName = modelAssembly.Location == null ? modelAssembly.GetName().Name : Path.GetFileNameWithoutExtension(modelAssembly.Location);
-			var cacheDirectory = configuration.GeneratedAssembliesSaveDirectory?.Trim();
+			cacheDirectory = cacheDirectory?.Trim();
 			var codebaseUri = new Uri(modelAssembly.CodeBase);
 
 			var modelName = typeDescriptorProvider.DataAccessModelType.Name;

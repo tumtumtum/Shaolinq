@@ -265,6 +265,7 @@
     <Compile Include="SqlQueryProviderExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="TypeBuilding\ComparisonHelper.cs" />
+    <Compile Include="TypeBuilding\DataAccessModelConfigurationUniqueKey.cs" />
     <Compile Include="TypeBuilding\FieldInfoFastRef.cs" />
     <Compile Include="Persistence\Linq\ExpandedJoinSelectKey.cs" />
     <Compile Include="Persistence\Linq\ExpressionExtensions.cs" />

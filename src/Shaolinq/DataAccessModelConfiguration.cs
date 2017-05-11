@@ -107,21 +107,5 @@ namespace Shaolinq
 			this.SqlDatabaseContextInfos = new List<SqlDatabaseContextInfo>();
 			this.ConstraintDefaultsConfiguration = new ConstraintDefaultsConfiguration();
 		}
-
-		/// <summary>
-		/// Get a SHA1 hash of the configuration
-		/// </summary>
-		public byte[] GetSha1Bytes()
-		{
-			return SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(XmlSerializer<DataAccessModelConfiguration>.New().SerializeToString(this)));
-		}
-			  
-		/// <summary>
-		/// Gets the SHA1 hash of the configuration has a series of hex encoded bytes.
-		/// </summary>
-		public string GetSha1Hex()
-		{
-			return TextConversion.ToHexString(this.GetSha1Bytes());
-		}
 	}
 }
