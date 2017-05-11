@@ -9,6 +9,7 @@ namespace Shaolinq.Sqlite
 	public class SqliteSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
+		[XmlAttribute]
 		public string FileName { get; set; }
 
 		[XmlAttribute]
