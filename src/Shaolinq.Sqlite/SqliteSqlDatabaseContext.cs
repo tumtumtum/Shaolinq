@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -62,9 +63,15 @@ namespace Shaolinq.Sqlite
 		protected SqliteSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, new SqliteSqlDialect(), sqlDataTypeProvider, sqlQueryFormatterManager, Path.GetFileNameWithoutExtension(contextInfo.FileName), contextInfo)
 		{
+			if (contextInfo.FileName == null && contextInfo.ConnectionString == null)
+			{
+				throw new ArgumentException($"Must supply {nameof(contextInfo.FileName)} or {nameof(contextInfo.ConnectionString)}", nameof(contextInfo));
+			}
+
 			this.FileName = contextInfo.FileName;
-			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName);
-			this.IsInMemoryConnection = IsMemoryConnectionRegex.IsMatch(this.FileName);
+
+			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName ?? contextInfo.ConnectionString);
+			this.IsInMemoryConnection = IsMemoryConnectionRegex.IsMatch(this.FileName ?? contextInfo.ConnectionString);
 		}
 		
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)

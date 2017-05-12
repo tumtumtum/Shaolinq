@@ -9,14 +9,14 @@ namespace Shaolinq.Sqlite
 {
 	public static class SqliteConfiguration
 	{
-		private static readonly Regex connectionStringRegex = new Regex(@"\s*Data Source\s*=", RegexOptions.Compiled);
+		private static readonly Regex connectionStringRegex = new Regex(@"\s*Data Source\s*=", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		
 		public static DataAccessModelConfiguration Create(string connectionStringOrFileName, string categories = null, bool useMonoData = false)
 		{
 			string fileName = null;
 			string connectionString = null;
 
-			if (connectionStringRegex.IsMatch(connectionStringOrFileName) || connectionStringOrFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+			if (connectionStringRegex.IsMatch(connectionStringOrFileName))
 			{
 				connectionString = connectionStringOrFileName;
 			}

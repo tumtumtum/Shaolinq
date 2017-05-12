@@ -105,38 +105,46 @@ namespace Shaolinq.Sqlite
 		public SqliteOfficialSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, contextInfo, sqlDataTypeProvider, sqlQueryFormatterManager)
 		{
-			Version version;
-			var versionString = SQLiteConnection.SQLiteVersion;
-
-			if (Version.TryParse(versionString, out version))
+			if (this.FileName != null)
 			{
-				if (version < new Version(3, 7, 7))
+				Version version;
+				var versionString = SQLiteConnection.SQLiteVersion;
+
+				if (Version.TryParse(versionString, out version))
 				{
-					bool isInMemory;
-					var uri = contextInfo.FileName;
+					if (version < new Version(3, 7, 7))
+					{
+						bool isInMemory;
+						var uri = contextInfo.FileName;
 
-					Logger.WarnFormat("Sqlite version {0} does not support URIs", versionString);
+						Logger.WarnFormat("Sqlite version {0} does not support URIs", versionString);
 
-					uri = ConvertNewStyleUriToOldStyleUri(uri, out isInMemory);
+						uri = ConvertNewStyleUriToOldStyleUri(uri, out isInMemory);
 
-					this.IsInMemoryConnection = isInMemory;
-					this.IsSharedCacheConnection = false;
-					this.FileName = uri;
+						this.IsInMemoryConnection = isInMemory;
+						this.IsSharedCacheConnection = false;
+						this.FileName = uri;
+					}
 				}
+				else
+				{
+					Logger.WarnFormat("Cannot parse sqlite version: {0}", versionString);
+				}
+
+				var connectionStringBuilder = new SQLiteConnectionStringBuilder
+				{
+					FullUri = this.FileName,
+					Enlist = false,
+					ForeignKeys = true
+				};
+
+				this.ConnectionString = connectionStringBuilder.ConnectionString;
 			}
 			else
 			{
-				Logger.WarnFormat("Cannot parse sqlite version: {0}", versionString);
+				this.ConnectionString = contextInfo.ConnectionString;
 			}
-
-			var connectionStringBuilder = new SQLiteConnectionStringBuilder
-			{
-				FullUri = this.FileName,
-				Enlist = false,
-				ForeignKeys = true
-			};
 			
-			this.ConnectionString = connectionStringBuilder.ConnectionString;
 			this.ServerConnectionString = this.ConnectionString;
 
 			this.SchemaManager = new SqliteOfficialSqlDatabaseSchemaManager(this);
