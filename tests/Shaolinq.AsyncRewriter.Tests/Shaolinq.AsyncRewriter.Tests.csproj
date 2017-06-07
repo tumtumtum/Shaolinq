@@ -70,6 +70,9 @@
     <Compile Include="TestExplicitInterfaceImplementations.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
+    <Content Include="TestExpressionBody.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="TestExplicitAwaitRewrittenAsyncMethod.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

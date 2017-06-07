@@ -453,16 +453,22 @@ namespace Shaolinq.AsyncRewriter
 				}
 			}
 
-			var newAsyncMethod = MethodInvocationAsyncRewriter.Rewrite(this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol, methodSyntax);
 			var returnTypeName = methodSyntax.ReturnType.ToString();
-
-			newAsyncMethod = newAsyncMethod
+			
+			var newAsyncMethod = methodSyntax
 				.WithIdentifier(SyntaxFactory.Identifier(asyncMethodName))
 				.WithAttributeLists(new SyntaxList<AttributeListSyntax>())
 				.WithReturnType(SyntaxFactory.ParseTypeName(returnTypeName == "void" ? "Task" : $"Task<{returnTypeName}>"));
 
 			if (cancellationVersion)
 			{
+				newAsyncMethod = MethodInvocationAsyncRewriter.Rewrite(this.log, this.lookup, semanticModel, this.excludedTypes, this.cancellationTokenSymbol, methodSyntax);
+
+				newAsyncMethod = newAsyncMethod
+					.WithIdentifier(SyntaxFactory.Identifier(asyncMethodName))
+					.WithAttributeLists(new SyntaxList<AttributeListSyntax>())
+					.WithReturnType(SyntaxFactory.ParseTypeName(returnTypeName == "void" ? "Task" : $"Task<{returnTypeName}>"));
+				
 				newAsyncMethod = newAsyncMethod.WithParameterList(SyntaxFactory.ParameterList(methodSyntax.ParameterList.Parameters.Insert
 				(
 					methodSyntax.ParameterList.Parameters.TakeWhile(p => p.Default == null && !p.Modifiers.Any(m => m.IsKind(SyntaxKind.ParamsKeyword))).Count(),
@@ -522,7 +528,14 @@ namespace Shaolinq.AsyncRewriter
 
 				if (!(isInterfaceMethod || methodSymbol.IsAbstract))
 				{
-					newAsyncMethod = newAsyncMethod.WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(callAsyncWithCancellationToken)));
+					if (newAsyncMethod.ExpressionBody != null)
+					{
+						newAsyncMethod = newAsyncMethod.WithExpressionBody(SyntaxFactory.ArrowExpressionClause(callAsyncWithCancellationToken));
+					}
+					else
+					{
+						newAsyncMethod = newAsyncMethod.WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(callAsyncWithCancellationToken)));
+					}
 				}
 			}
 
@@ -619,8 +632,8 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			newAsyncMethod = newAsyncMethod
-				.WithLeadingTrivia(methodSyntax.GetLeadingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia))
-				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia));
+				.WithLeadingTrivia(methodSyntax.GetLeadingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.EndOfLineTrivia || c.Kind() == SyntaxKind.WhitespaceTrivia))
+				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.EndOfLineTrivia || c.Kind() == SyntaxKind.WhitespaceTrivia));
 
 			return newAsyncMethod;
 		}
