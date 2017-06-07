@@ -84,6 +84,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics3()
 		{
+
 			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
 
 			tester.Query1();

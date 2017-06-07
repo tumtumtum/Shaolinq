@@ -34,6 +34,7 @@ namespace Shaolinq.Sqlite
 				{
 					Enlist = false,
 					DataSource = contextInfo.FileName
+
 				};
 
 				connectionStringBuilder.Add("foreign keys", 1);
