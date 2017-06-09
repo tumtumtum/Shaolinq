@@ -146,7 +146,8 @@ namespace Shaolinq.SqlServer
 			{
 				switch (sqlException.Number)
 				{
-				case 2627:
+				case 2601: // Unique index
+				case 2627: // Unique constraint
 					return new UniqueConstraintException(exception, relatedQuery);
 				case 547:
 					return new MissingRelatedDataAccessObjectException(null, dataAccessObject, exception, relatedQuery);
