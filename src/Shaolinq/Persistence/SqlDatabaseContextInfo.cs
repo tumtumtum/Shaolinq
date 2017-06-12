@@ -34,6 +34,7 @@ namespace Shaolinq.Persistence
 		public Type SqlDataTypeProvider { get; set; }
 
 		[XmlElement]
+		[XmlListElement("Type", ItemType = typeof(Type), SerializeAsValueNode = true, ValueNodeAttributeName = "Name")]
 		public List<Type> SqlDataTypes { get; set; }
 
 		public const int DefaultCommandTimeout = 120;
