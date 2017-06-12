@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Shaolinq.Postgres
 {
 	[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Interface)]
-	internal class RewriteAsyncAttribute
+	public class RewriteAsyncAttribute
 		: Attribute
 	{
 		public bool ContinueOnCapturedContext { get; set; }

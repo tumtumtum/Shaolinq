@@ -4,7 +4,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
 {
-	internal class PostgresSqlDialect
+	public class PostgresSqlDialect
 		: SqlDialect
 	{
 		public override bool SupportsCapability(SqlCapability capability)

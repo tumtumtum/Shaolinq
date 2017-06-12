@@ -22,7 +22,7 @@ namespace Shaolinq.Postgres.DotConnect
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDialect = new PostgresDotConnectSqlDialect();
-			var sqlDataTypeProvider = new PostgresSqlDataTypeProvider(model.TypeDescriptorProvider, constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums);
+			var sqlDataTypeProvider = CreateSqlDataTypeProvider(model, contextInfo, () => new PostgresSqlDataTypeProvider(model.TypeDescriptorProvider, constraintDefaults, contextInfo.NativeUuids, contextInfo.NativeEnums));
 			var typeDescriptorProvider = model.TypeDescriptorProvider;
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, (options) => new PostgresDotConnectSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.SchemaName, false));
 

@@ -12,7 +12,7 @@ namespace Shaolinq.Postgres
 	using Shaolinq.Persistence;
 	using Shaolinq.Persistence.Linq;
 
-	internal partial class PostgresSqlDatabaseSchemaManager
+	public partial class PostgresSqlDatabaseSchemaManager
 	{
 		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{

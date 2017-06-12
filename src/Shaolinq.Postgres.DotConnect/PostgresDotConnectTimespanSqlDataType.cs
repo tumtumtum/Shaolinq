@@ -6,7 +6,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres.DotConnect
 {
-	internal class PostgresDotConnectTimespanSqlDataType
+	public class PostgresDotConnectTimespanSqlDataType
 		: PostgresTimespanSqlDataType
 	{
 		public PostgresDotConnectTimespanSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType) : base(constraintDefaultsConfiguration, supportedType)

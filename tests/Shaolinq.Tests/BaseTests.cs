@@ -109,7 +109,8 @@ namespace Shaolinq.Tests
 				Categories = null,
 				Pooling = true,
 				MinPoolSize = 10,
-				MaxPoolSize = 10
+				MaxPoolSize = 10,
+				SqlDataTypeProvider = Type.GetType("Shaolinq.Postgres.PostgresSqlDataTypeProvider, Shaolinq.Postgres")
 			});
 
 			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Reflection;
 using Platform;
 using Shaolinq.Persistence.Linq;
 
@@ -36,6 +37,63 @@ namespace Shaolinq.Persistence
 
 		public abstract DbProviderFactory CreateDbProviderFactory();
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
+
+		protected static SqlDataTypeProvider CreateSqlDataTypeProvider(DataAccessModel model, SqlDatabaseContextInfo contextInfo, Func<SqlDataTypeProvider> defaultProviderFactoryMethod)
+		{
+			var typeDescriptorProvider = model.TypeDescriptorProvider;
+			var constraintsDefaultConfiguration = model.Configuration.ConstraintDefaultsConfiguration;
+
+			if (contextInfo.SqlDataTypeProvider == null)
+			{
+				return defaultProviderFactoryMethod();
+			}
+
+			var constructorInfo = contextInfo.SqlDataTypeProvider.GetConstructor(new [] { typeof(SqlDataTypeProvider) });
+
+			if (constructorInfo != null)
+			{
+				return (SqlDataTypeProvider)constructorInfo.Invoke(new object[] { defaultProviderFactoryMethod() });
+			}
+
+			constructorInfo = contextInfo.SqlDataTypeProvider.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
+
+			if (constructorInfo != null)
+			{
+				var parameterInfos = constructorInfo.GetParameters();
+				var args = new object[parameterInfos.Length];
+
+				foreach (var parameterInfo in parameterInfos)
+				{
+					if (parameterInfo.ParameterType == typeof(ConstraintDefaultsConfiguration))
+					{
+						args[parameterInfo.Position] = constraintsDefaultConfiguration;
+					}
+					else if (parameterInfo.ParameterType == typeof(SqlDataTypeProvider))
+					{
+						args[parameterInfo.Position] = defaultProviderFactoryMethod();
+					}
+					else if (parameterInfo.ParameterType == typeof(TypeDescriptorProvider))
+					{
+						args[parameterInfo.Position] = typeDescriptorProvider;
+					}
+					else
+					{
+						var property = contextInfo.GetType().GetProperty(parameterInfo.Name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+						if (property == null)
+						{
+							throw new InvalidOperationException($"Unable to create {nameof(SqlDataTypeProvider)} as unable to resolve value for constructor argument {parameterInfo.Name}");
+						}
+
+						args[parameterInfo.Position] = Convert.ChangeType(property.GetValue(contextInfo), parameterInfo.ParameterType);
+					}
+				}
+
+				return (SqlDataTypeProvider)constructorInfo.Invoke(args);
+			}
+
+			return defaultProviderFactoryMethod();
+		}
 
 		[RewriteAsync]
 		public SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(TransactionContext transactionContext)

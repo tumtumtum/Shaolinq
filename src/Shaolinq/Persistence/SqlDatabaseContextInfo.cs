@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using Platform.Xml.Serialization;
 
 namespace Shaolinq.Persistence
@@ -24,9 +25,12 @@ namespace Shaolinq.Persistence
 
 		[XmlAttribute]
 		public string TableNamePrefix { get; set; }
-
+		
 		[XmlAttribute]
 		public string SchemaName { get; set; }
+		
+		[XmlAttribute]
+		public Type SqlDataTypeProvider { get; set; }
 
 		public const int DefaultCommandTimeout = 120;
 		public const int DefaultConnectionTimeout = 60;

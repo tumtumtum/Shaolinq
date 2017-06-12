@@ -7,7 +7,7 @@ using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Postgres
 {
-	internal partial class PostgresSqlDatabaseSchemaManager
+	public partial class PostgresSqlDatabaseSchemaManager
 		: SqlDatabaseSchemaManager
 	{
 		public PostgresSqlDatabaseSchemaManager(SqlDatabaseContext sqlDatabaseContext)

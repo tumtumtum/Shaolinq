@@ -8,7 +8,7 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Postgres
 {
-	internal class PostgresEnumSqlDataType
+	public class PostgresEnumSqlDataType
 		: SqlDataType
 	{
 		private readonly TypeDescriptorProvider typeDescriptorProvider;

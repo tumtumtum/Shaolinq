@@ -25,7 +25,7 @@ namespace Shaolinq.MySql
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
 			var sqlDialect = new MySqlSqlDialect();
-			var sqlDataTypeProvider = new MySqlSqlDataTypeProvider(constraintDefaults);
+			var sqlDataTypeProvider = CreateSqlDataTypeProvider(model, contextInfo, () => new MySqlSqlDataTypeProvider(constraintDefaults));
 			var typeDescriptorProvider = model.TypeDescriptorProvider;
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, options => new MySqlSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.SilentlyIgnoreIndexConditions));
 

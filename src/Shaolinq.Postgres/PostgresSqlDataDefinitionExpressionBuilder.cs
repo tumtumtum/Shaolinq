@@ -8,7 +8,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
 {
-	internal class PostgresSqlDataDefinitionExpressionBuilder
+	public class PostgresSqlDataDefinitionExpressionBuilder
 	{
 		public SqlDialect SqlDialect { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }

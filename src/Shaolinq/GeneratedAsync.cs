@@ -2338,6 +2338,7 @@ namespace Shaolinq.Persistence
 	using System.Data;
 	using System.Linq;
 	using System.Threading;
+	using System.Reflection;
 	using System.Data.Common;
 	using System.Threading.Tasks;
 	using System.Collections.Generic;

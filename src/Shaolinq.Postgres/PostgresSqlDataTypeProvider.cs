@@ -5,7 +5,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
 {
-	internal class PostgresSqlDataTypeProvider
+	public class PostgresSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
 		private readonly TypeDescriptorProvider typeDescriptorProvider;

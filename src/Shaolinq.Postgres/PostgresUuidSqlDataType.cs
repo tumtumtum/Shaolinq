@@ -8,7 +8,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq.Postgres
 {
-	internal class PostgresUuidSqlDataType
+	public class PostgresUuidSqlDataType
 		: SqlDataType
 	{
 		private static readonly ConstructorInfo NullableGuidConstructor = typeof(Guid?).GetConstructor(new[] { typeof(Guid) });
