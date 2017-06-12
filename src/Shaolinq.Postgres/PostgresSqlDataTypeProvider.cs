@@ -39,18 +39,18 @@ namespace Shaolinq.Postgres
 			
 			this.blobSqlDataType = new DefaultBlobSqlDataType(constraintDefaultsConfiguration, "BYTEA");
 
-			this.DefineSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
-			this.DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
-			this.DefineSqlDataType(typeof(int), "INTEGER", "GetInt32");
+			this.DefinePrimitiveSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
+			this.DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
+			this.DefinePrimitiveSqlDataType(typeof(int), "INTEGER", "GetInt32");
 
-			this.DefineSqlDataType(typeof(ushort), "SMALLINT", "GetUInt16");
-			this.DefineSqlDataType(typeof(uint), "INTEGER", "GetUInt32");
-			this.DefineSqlDataType(typeof(ulong), "BIGINT", "GetUInt64");
+			this.DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT", "GetUInt16");
+			this.DefinePrimitiveSqlDataType(typeof(uint), "INTEGER", "GetUInt32");
+			this.DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT", "GetUInt64");
 
-			this.DefineSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
-			this.DefineSqlDataType(typeof(byte), "SMALLINT", "GetByte");
-			this.DefineSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
-			this.DefineSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
+			this.DefinePrimitiveSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
+			this.DefinePrimitiveSqlDataType(typeof(byte), "SMALLINT", "GetByte");
+			this.DefinePrimitiveSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
+			this.DefinePrimitiveSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
 
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", false));
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", true));

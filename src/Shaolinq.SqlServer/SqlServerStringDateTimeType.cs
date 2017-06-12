@@ -12,12 +12,7 @@ namespace Shaolinq.SqlServer
 			: base(constraintDefaultsConfiguration)
 		{
 		}
-
-		public SqlServerStringSqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type)
-			: base(constraintDefaultsConfiguration, type)
-		{
-		}
-
+		
 		protected override string CreateVariableName(int maximumLength)
 		{
 			if (maximumLength == int.MaxValue)

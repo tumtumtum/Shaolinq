@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Transactions;
 using log4net.Config;
@@ -48,6 +49,7 @@ namespace Shaolinq.Tests
 			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
 			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
+			retval.SqlDatabaseContextInfos[0].SqlDataTypes = new List<Type> { typeof(SqlServerStringSqlDataType) };
 
 			return retval;
 		}

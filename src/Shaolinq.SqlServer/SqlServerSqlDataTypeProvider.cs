@@ -10,18 +10,18 @@ namespace Shaolinq.SqlServer
 		public SqlServerSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
 			: base(constraintDefaultsConfiguration)
 		{
-			this.DefineSqlDataType(typeof(bool), "BIT", "GetBoolean");
-			this.DefineSqlDataType(typeof(byte), "TINYINT", "GetByte");
-			this.DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
-			this.DefineSqlDataType(typeof(char), "CHAR", "GetChar");
-			this.DefineSqlDataType(typeof(int), "INT", "GetInt32");
-			this.DefineSqlDataType(typeof(uint), "NUMERIC(10)", "GetUInt32");
-			this.DefineSqlDataType(typeof(short), "SMALLINT", "GetInt16");
-			this.DefineSqlDataType(typeof(ushort), "NUMERIC(5)", "GetUInt16");
-			this.DefineSqlDataType(typeof(long), "BIGINT", "GetInt64");
-			this.DefineSqlDataType(typeof(ulong), "NUMERIC(20)", "GetUInt64");
-			this.DefineSqlDataType(typeof(float), "FLOAT(24)", "GetFloat");
-			this.DefineSqlDataType(typeof(double), "FLOAT(53)", "GetDouble");
+			this.DefinePrimitiveSqlDataType(typeof(bool), "BIT", "GetBoolean");
+			this.DefinePrimitiveSqlDataType(typeof(byte), "TINYINT", "GetByte");
+			this.DefinePrimitiveSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
+			this.DefinePrimitiveSqlDataType(typeof(char), "CHAR", "GetChar");
+			this.DefinePrimitiveSqlDataType(typeof(int), "INT", "GetInt32");
+			this.DefinePrimitiveSqlDataType(typeof(uint), "NUMERIC(10)", "GetUInt32");
+			this.DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
+			this.DefinePrimitiveSqlDataType(typeof(ushort), "NUMERIC(5)", "GetUInt16");
+			this.DefinePrimitiveSqlDataType(typeof(long), "BIGINT", "GetInt64");
+			this.DefinePrimitiveSqlDataType(typeof(ulong), "NUMERIC(20)", "GetUInt64");
+			this.DefinePrimitiveSqlDataType(typeof(float), "FLOAT(24)", "GetFloat");
+			this.DefinePrimitiveSqlDataType(typeof(double), "FLOAT(53)", "GetDouble");
 			
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", false));
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", true));

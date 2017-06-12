@@ -38,61 +38,138 @@ namespace Shaolinq.Persistence
 		public abstract DbProviderFactory CreateDbProviderFactory();
 		public abstract IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext);
 
+		internal class InjectionContext
+		{
+			private readonly DataAccessModel model;
+			private readonly SqlDatabaseContextInfo contextInfo;
+			private readonly Func<SqlDataTypeProvider> defaultProviderFactoryMethod;
+			private readonly TypeDescriptorProvider typeDescriptorProvider;
+			private readonly ConstraintDefaultsConfiguration constraintsDefaultConfiguration;
+
+			public InjectionContext(DataAccessModel model, SqlDatabaseContextInfo contextInfo, Func<SqlDataTypeProvider> defaultProviderFactoryMethod)
+			{
+				this.model = model;
+				this.contextInfo = contextInfo;
+				this.defaultProviderFactoryMethod = defaultProviderFactoryMethod;
+				this.typeDescriptorProvider = this.model.TypeDescriptorProvider;
+				this.constraintsDefaultConfiguration = this.model.Configuration.ConstraintDefaultsConfiguration;
+			}
+
+			public virtual object[] GetArguments(ParameterInfo[] parameterInfos)
+			{
+				var retval = new object[parameterInfos.Length];
+
+				foreach (var parameter in parameterInfos)
+				{
+					retval[parameter.Position] = GetArgument(parameter);
+				}
+
+				return retval;
+			}
+
+			public virtual object GetArgument(ParameterInfo parameterInfo)
+			{
+				if (parameterInfo.ParameterType == typeof(ConstraintDefaultsConfiguration))
+				{
+					return this.constraintsDefaultConfiguration;
+				}
+
+				if (parameterInfo.ParameterType == typeof(SqlDataTypeProvider))
+				{
+					return this.defaultProviderFactoryMethod();
+				}
+
+				if (parameterInfo.ParameterType == typeof(TypeDescriptorProvider))
+				{
+					return this.typeDescriptorProvider;
+				}
+
+				var property = this.contextInfo.GetType().GetProperty(parameterInfo.Name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+				if (property == null)
+				{
+					throw new InvalidOperationException($"Unable to create resolve value for parameter {parameterInfo.Name} for {parameterInfo.Member.DeclaringType.Name}.{parameterInfo.Member.Name}");
+				}
+
+				return Convert.ChangeType(property.GetValue(this.contextInfo), parameterInfo.ParameterType);
+			}
+		}
+
 		protected static SqlDataTypeProvider CreateSqlDataTypeProvider(DataAccessModel model, SqlDatabaseContextInfo contextInfo, Func<SqlDataTypeProvider> defaultProviderFactoryMethod)
 		{
-			var typeDescriptorProvider = model.TypeDescriptorProvider;
-			var constraintsDefaultConfiguration = model.Configuration.ConstraintDefaultsConfiguration;
+			SqlDataTypeProvider retval = null;
 
-			if (contextInfo.SqlDataTypeProvider == null)
+			if (contextInfo.SqlDataTypeProvider != null)
 			{
-				return defaultProviderFactoryMethod();
-			}
-
-			var constructorInfo = contextInfo.SqlDataTypeProvider.GetConstructor(new [] { typeof(SqlDataTypeProvider) });
-
-			if (constructorInfo != null)
-			{
-				return (SqlDataTypeProvider)constructorInfo.Invoke(new object[] { defaultProviderFactoryMethod() });
-			}
-
-			constructorInfo = contextInfo.SqlDataTypeProvider.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
-
-			if (constructorInfo != null)
-			{
-				var parameterInfos = constructorInfo.GetParameters();
-				var args = new object[parameterInfos.Length];
-
-				foreach (var parameterInfo in parameterInfos)
+				if (retval == null)
 				{
-					if (parameterInfo.ParameterType == typeof(ConstraintDefaultsConfiguration))
-					{
-						args[parameterInfo.Position] = constraintsDefaultConfiguration;
-					}
-					else if (parameterInfo.ParameterType == typeof(SqlDataTypeProvider))
-					{
-						args[parameterInfo.Position] = defaultProviderFactoryMethod();
-					}
-					else if (parameterInfo.ParameterType == typeof(TypeDescriptorProvider))
-					{
-						args[parameterInfo.Position] = typeDescriptorProvider;
-					}
-					else
-					{
-						var property = contextInfo.GetType().GetProperty(parameterInfo.Name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+					var constructorInfo = contextInfo.SqlDataTypeProvider.GetConstructor(new[] { typeof(SqlDataTypeProvider) });
 
-						if (property == null)
-						{
-							throw new InvalidOperationException($"Unable to create {nameof(SqlDataTypeProvider)} as unable to resolve value for constructor argument {parameterInfo.Name}");
-						}
-
-						args[parameterInfo.Position] = Convert.ChangeType(property.GetValue(contextInfo), parameterInfo.ParameterType);
+					if (constructorInfo != null)
+					{
+						retval = (SqlDataTypeProvider)constructorInfo.Invoke(new object[] { defaultProviderFactoryMethod() });
 					}
 				}
 
-				return (SqlDataTypeProvider)constructorInfo.Invoke(args);
+				if (retval == null)
+				{
+					var constructorInfo = contextInfo.SqlDataTypeProvider.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
+
+					if (constructorInfo != null)
+					{
+						var context = new InjectionContext(model, contextInfo, defaultProviderFactoryMethod);
+						var args = context.GetArguments(constructorInfo.GetParameters());
+
+						retval = (SqlDataTypeProvider)constructorInfo.Invoke(args);
+					}
+				}
 			}
 
-			return defaultProviderFactoryMethod();
+			if (retval == null)
+			{
+				retval = defaultProviderFactoryMethod();
+			}
+
+			var defaultSqlDataTypeProvider = retval as DefaultSqlDataTypeProvider;
+
+			if (defaultSqlDataTypeProvider != null && contextInfo.SqlDataTypes?.Count > 0)
+			{
+				var sqlDataTypeContext = new InjectionContext(model, contextInfo, () => retval);
+
+				foreach (var type in contextInfo.SqlDataTypes)
+				{
+					var constructors = type.GetConstructors().OrderByDescending(c => c.GetParameters().Length).ToList();
+
+					for (var i = 0; i < constructors.Count; i++)
+					{
+						var constructorInfo = constructors[i];
+
+						var args = sqlDataTypeContext.GetArguments(constructorInfo.GetParameters());
+
+						try
+						{
+							var sqlDataType = (SqlDataType)constructorInfo.Invoke(args);
+
+							defaultSqlDataTypeProvider.DefineSqlDataType(sqlDataType);
+
+							break;
+						}
+						catch (InvalidOperationException)
+						{
+							if (i == constructors.Count - 1)
+							{
+								throw;
+							}
+						}
+					}
+				}
+			}
+			else if (contextInfo.SqlDataTypes?.Count > 0)
+			{
+				throw new InvalidOperationException($"Unable to define configured SqlDataTypes because {retval?.GetType().Name} does not extend {nameof(DefaultSqlDataTypeProvider)}");
+			}
+
+			return retval;
 		}
 
 		[RewriteAsync]

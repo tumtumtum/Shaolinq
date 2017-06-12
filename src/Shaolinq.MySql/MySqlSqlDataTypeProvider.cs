@@ -15,9 +15,9 @@ namespace Shaolinq.MySql
 		public MySqlSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
 			: base(constraintDefaultsConfiguration)
 		{
-			this.DefineSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
-			this.DefineSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
-			this.DefineSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
+			this.DefinePrimitiveSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
+			this.DefinePrimitiveSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
+			this.DefinePrimitiveSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
 
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", false));
 			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", true));

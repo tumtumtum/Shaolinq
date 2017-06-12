@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using Platform.Xml.Serialization;
 
 namespace Shaolinq.Persistence
@@ -31,6 +32,9 @@ namespace Shaolinq.Persistence
 		
 		[XmlAttribute]
 		public Type SqlDataTypeProvider { get; set; }
+
+		[XmlElement]
+		public List<Type> SqlDataTypes { get; set; }
 
 		public const int DefaultCommandTimeout = 120;
 		public const int DefaultConnectionTimeout = 60;
