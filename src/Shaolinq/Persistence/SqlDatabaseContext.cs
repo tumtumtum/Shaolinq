@@ -43,14 +43,16 @@ namespace Shaolinq.Persistence
 			private readonly DataAccessModel model;
 			private readonly SqlDatabaseContextInfo contextInfo;
 			private readonly Func<SqlDataTypeProvider> defaultProviderFactoryMethod;
+			private readonly Func<string, Tuple<bool, object>> parameterNameToValue;
 			private readonly TypeDescriptorProvider typeDescriptorProvider;
 			private readonly ConstraintDefaultsConfiguration constraintsDefaultConfiguration;
 
-			public InjectionContext(DataAccessModel model, SqlDatabaseContextInfo contextInfo, Func<SqlDataTypeProvider> defaultProviderFactoryMethod)
+			public InjectionContext(DataAccessModel model, SqlDatabaseContextInfo contextInfo, Func<SqlDataTypeProvider> defaultProviderFactoryMethod, Func<string, Tuple<bool, object>> parameterNameToValue = null)
 			{
 				this.model = model;
 				this.contextInfo = contextInfo;
 				this.defaultProviderFactoryMethod = defaultProviderFactoryMethod;
+				this.parameterNameToValue = parameterNameToValue;
 				this.typeDescriptorProvider = this.model.TypeDescriptorProvider;
 				this.constraintsDefaultConfiguration = this.model.Configuration.ConstraintDefaultsConfiguration;
 			}
@@ -82,6 +84,16 @@ namespace Shaolinq.Persistence
 				if (parameterInfo.ParameterType == typeof(TypeDescriptorProvider))
 				{
 					return this.typeDescriptorProvider;
+				}
+
+				if (parameterNameToValue != null)
+				{
+					var result = parameterNameToValue(parameterInfo.Name);
+
+					if (result.Item1)
+					{
+						return Convert.ChangeType(result.Item2, parameterInfo.ParameterType);
+					}
 				}
 
 				var property = this.contextInfo.GetType().GetProperty(parameterInfo.Name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
@@ -134,7 +146,7 @@ namespace Shaolinq.Persistence
 
 			if (defaultSqlDataTypeProvider != null && contextInfo.SqlDataTypes?.Count > 0)
 			{
-				var sqlDataTypeContext = new InjectionContext(model, contextInfo, () => retval);
+				var sqlDataTypeContext = new InjectionContext(model, contextInfo, () => retval, c => c == "nullable" ? new Tuple<bool, object>(true, false) : new Tuple<bool, object>(false, false));
 
 				foreach (var type in contextInfo.SqlDataTypes)
 				{
@@ -148,9 +160,25 @@ namespace Shaolinq.Persistence
 
 						try
 						{
-							var sqlDataType = (SqlDataType)constructorInfo.Invoke(args);
+							var parameters = constructorInfo.GetParameters();
 
-							defaultSqlDataTypeProvider.DefineSqlDataType(sqlDataType);
+							var index = parameters.IndexOfAny(c => c.Name == "nullable");
+
+							if (index >= 0)
+							{
+								args[index] = false;
+								var sqlDataType = (SqlDataType)constructorInfo.Invoke(args);
+								defaultSqlDataTypeProvider.DefineSqlDataType(sqlDataType);
+
+								args[index] = true;
+								sqlDataType = (SqlDataType)constructorInfo.Invoke(args);
+								defaultSqlDataTypeProvider.DefineSqlDataType(sqlDataType);
+							}
+							else
+							{
+								var sqlDataType = (SqlDataType)constructorInfo.Invoke(args);
+								defaultSqlDataTypeProvider.DefineSqlDataType(sqlDataType);
+							}
 
 							break;
 						}

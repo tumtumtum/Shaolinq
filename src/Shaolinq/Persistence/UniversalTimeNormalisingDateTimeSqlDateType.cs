@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.ComponentModel;
+using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
@@ -10,27 +12,49 @@ namespace Shaolinq.Persistence
 	public class UniversalTimeNormalisingDateTimeSqlDateType
 		: PrimitiveSqlDataType
 	{
-		private static readonly MethodInfo SpecifyKindIfUnspecifiedMethod = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime), default(DateTimeKind)));
-		private static readonly MethodInfo SpecifyKindIfUnspecifiedMethodNullable = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime?), default(DateTimeKind)));
-		
+		private static readonly MethodInfo specifyKindIfUnspecifiedMethod = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime), default(DateTimeKind)));
+		private static readonly MethodInfo specifyKindIfUnspecifiedMethodNullable = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime?), default(DateTimeKind)));
+		private static readonly MethodInfo typeConverterConvertFromMethod = TypeUtils.GetMethod<TypeConverter>(c => c.ConvertFrom(default(object)));
+
+		private readonly TypeConverter typeConverter;
 		private readonly MethodInfo specifyKindMethod;
 
 		public UniversalTimeNormalisingDateTimeSqlDateType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, string typeName, bool nullable)
-			: base(constraintDefaultsConfiguration, nullable ? typeof(DateTime?) : typeof(DateTime), typeName, DataRecordMethods.GetMethod("GetDateTime"))
+			: this(constraintDefaultsConfiguration, nullable ? typeof(DateTime?) : typeof(DateTime), typeName)
 		{
-			this.specifyKindMethod = nullable ? SpecifyKindIfUnspecifiedMethodNullable : SpecifyKindIfUnspecifiedMethod;
+		}
+
+		public UniversalTimeNormalisingDateTimeSqlDateType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type, string typeName)
+			: base(constraintDefaultsConfiguration, type, typeName, DataRecordMethods.GetMethod(nameof(IDataRecord.GetDateTime)))
+		{
+			this.specifyKindMethod = type.IsNullableType() ? specifyKindIfUnspecifiedMethodNullable : specifyKindIfUnspecifiedMethod;
+
+			if (this.SupportedType.GetUnwrappedNullableType() != typeof(DateTime))
+			{
+				this.typeConverter = System.ComponentModel.TypeDescriptor.GetConverter(this.SupportedType);
+			}
 		}
 
 		public override TypedValue ConvertForSql(object value)
 		{
 			if (this.UnderlyingType != null)
 			{
+				if (this.typeConverter != null)
+				{
+					value = this.typeConverter.ConvertTo(value, typeof(DateTime?));
+				}
+
 				value = ((DateTime?)value)?.ToUniversalTime();
 
 				return new TypedValue(this.UnderlyingType, value);
 			}
 			else
 			{
+				if (this.typeConverter != null)
+				{
+					value = this.typeConverter.ConvertTo(value, typeof(DateTime));
+				}
+
 				value = ((DateTime)value).ToUniversalTime();
 
 				return new TypedValue(this.SupportedType, value);
@@ -56,7 +80,14 @@ namespace Shaolinq.Persistence
 		{
 			var expression = base.GetReadExpression(dataReader, ordinal);
 
-			return Expression.Call(this.specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+			expression = Expression.Call(this.specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+
+			if (this.typeConverter != null)
+			{
+				expression = Expression.Call(Expression.Constant(this.typeConverter), typeConverterConvertFromMethod, expression);
+			}
+
+			return expression;
 		}
 	}
 }

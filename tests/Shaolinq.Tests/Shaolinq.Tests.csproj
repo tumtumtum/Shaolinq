@@ -219,6 +219,7 @@
     <Compile Include="ComputedMemberTests.cs" />
     <Compile Include="ConfigurationTests.cs" />
     <Compile Include="ConstraintTests.cs" />
+    <Compile Include="Date.cs" />
     <Compile Include="DirectAccessTests.cs" />
     <Compile Include="GenericModel\DbUser.cs" />
     <Compile Include="GenericModel\DbUserClaim.cs" />

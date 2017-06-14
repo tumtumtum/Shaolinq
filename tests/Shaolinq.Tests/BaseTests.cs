@@ -49,8 +49,8 @@ namespace Shaolinq.Tests
 			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
 			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
-			retval.SqlDatabaseContextInfos[0].SqlDataTypes = new List<Type> { typeof(SqlServerStringSqlDataType) };
-
+			retval.SqlDatabaseContextInfos[0].SqlDataTypes = new List<Type> { typeof(SqlDateDataType) };
+			
 			return retval;
 		}
 
