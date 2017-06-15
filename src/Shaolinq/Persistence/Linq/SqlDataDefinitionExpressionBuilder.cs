@@ -184,7 +184,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(columnInfo.DefinitionProperty.PropertyType);
 			var columnDataTypeName = sqlDataType.GetSqlName(columnInfo.DefinitionProperty);
-			var constraints = this.BuildColumnConstraints(columnInfo.DefinitionProperty,  columnInfo.VisitedProperties.FirstOrDefault());
+			var constraints = this.BuildColumnConstraints(columnInfo.DefinitionProperty, columnInfo.VisitedProperties.FirstOrDefault());
 
 			return new SqlColumnDefinitionExpression(columnInfo.ColumnName, new SqlTypeExpression(columnDataTypeName, sqlDataType.IsUserDefinedType), constraints);
 		}

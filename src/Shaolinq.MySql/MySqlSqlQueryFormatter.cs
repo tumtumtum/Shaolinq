@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
@@ -75,7 +76,7 @@ namespace Shaolinq.MySql
 						functionSuffix = " DAY",
 						excludeParenthesis = true
 					};
-				case SqlFunction.DateTimeAddTimeSpan:
+			case SqlFunction.DateTimeAddTimeSpan:
 					return new FunctionResolveResult("DATE_ADD", false, arguments);
 			}
 
@@ -92,6 +93,33 @@ namespace Shaolinq.MySql
 					this.Write(") - 1)");
 
 					return functionCallExpression;
+			case SqlFunction.DateTimeAddDays:
+				this.Write("(");
+				this.Write("DATE_ADD(");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(", INTERVAL ");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" DAY))");
+
+				return functionCallExpression;
+			case SqlFunction.DateTimeAddMonths:
+				this.Write("(");
+				this.Write("DATE_ADD(");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(", INTERVAL ");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" MONTH))");
+
+				return functionCallExpression;
+			case SqlFunction.DateTimeAddYears:
+				this.Write("(");
+				this.Write("DATE_ADD(");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(", INTERVAL ");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" YEAR))");
+
+				return functionCallExpression;
 			}
 
 			return base.VisitFunctionCall(functionCallExpression);

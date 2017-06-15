@@ -51,8 +51,11 @@ namespace Shaolinq.Tests.TestModel
 		[ComputedTextMember("{Firstname} {Lastname}")]
 		public abstract string Fullname { get; set; }
 
+		[PersistedMember, DefaultValue("2016-01-01")]
+		public abstract FixedDate Birthdate { get; set; }
+
 		[PersistedMember]
-		public abstract DateTime? Birthdate { get; set; }
+		public abstract DateTime? SpecialDate { get; set; }
 
 		[PersistedMember, DefaultValue("00:00")]
 		public abstract TimeSpan TimeSinceLastSlept { get; set; }

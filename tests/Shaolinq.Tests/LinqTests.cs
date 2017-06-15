@@ -69,8 +69,9 @@ namespace Shaolinq.Tests
 				tum.FavouriteNumber = 36;
 				tum.Address = address;
 				tum.TimeSinceLastSlept = TimeSpan.FromHours(7.5);
+				tum.SpecialDate = new DateTime(1979, 12, 24, 04, 00, 00);
 				tum.Birthdate = new DateTime(1979, 12, 24, 04, 00, 00);
-				
+
 				var mars = school.Students.Create();
 
 				mars.Firstname = "Mars";
@@ -80,7 +81,7 @@ namespace Shaolinq.Tests
 				mars.Address = address;
 				mars.Sex = Sex.Female;
 				mars.BestFriend = tum;
-				mars.Birthdate = new DateTime(2003, 11, 2);
+				mars.SpecialDate = new DateTime(2003, 11, 2);
 				mars.FavouriteNumber = 1;
 
 				var cat1 = tum.Cats.Create();
@@ -460,15 +461,15 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var results1 = from student in this.model.Students
-							  group student by new { student.Firstname, student.Birthdate}
+							  group student by new { student.Firstname, student.SpecialDate}
 								  into g
-								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
+								  select new { Count = g.Count(), g.Key, Name = g.Key.Firstname };
 
 
 				var results2 = from student in this.model.Students.ToList()
-							  group student by new { student.Firstname, student.Birthdate }
+							  group student by new { student.Firstname, student.SpecialDate }
 												  into g
-							  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
+							  select new { Count = g.Count(), g.Key, Name = g.Key.Firstname };
 
 				var resultsArray1 = results1.OrderBy(c => c.Key.Firstname).ToArray();
 				var resultsArray2 = results2.OrderBy(c => c.Key.Firstname).ToArray();
@@ -485,12 +486,12 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var results1 = from student in this.model.Students
-							  group student by new Tuple<string, DateTime?>(student.Firstname, student.Birthdate)
+							  group student by new Tuple<string, DateTime?>(student.Firstname, student.SpecialDate)
 								  into g
 								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Item1 };
 
 				var results2 = from student in this.model.Students.ToList()
-							  group student by new Tuple<string, DateTime?>(student.Firstname, student.Birthdate)
+							  group student by new Tuple<string, DateTime?>(student.Firstname, student.SpecialDate)
 								  into g
 							  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Item1 };
 
@@ -509,17 +510,17 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var results1 = from student in this.model.Students
-							  group student by new { student.Firstname, student.Birthdate }
+							  group student by new { student.Firstname, student.SpecialDate }
 								  into g
-								  select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
+								  select new { Count = g.Count(), g.Key, Name = g.Key.Firstname };
 
 				var results2 = from student in this.model.Students.ToList()
-							   group student by new { student.Firstname, student.Birthdate }
+							   group student by new { student.Firstname, student.SpecialDate }
 								  into g
-							   select new { Count = g.Count(), Key = g.Key, Name = g.Key.Firstname };
+							   select new { Count = g.Count(), g.Key, Name = g.Key.Firstname };
 
 				var resultsArray1 = results1.OrderBy(c => c.Key).ToArray();
-				var resultsArray2 = results2.OrderBy(c => c.Key.Firstname + "," + c.Key.Birthdate?.Ticks).ToArray();
+				var resultsArray2 = results2.OrderBy(c => c.Key.Firstname + "," + c.Key.SpecialDate?.Ticks).ToArray();
 
 				Assert.IsTrue(resultsArray1.SequenceEqual(resultsArray2));
 
@@ -900,28 +901,28 @@ namespace Shaolinq.Tests
 
 			using (var scope = this.NewTransactionScope())
 			{
-				var count = this.model.Students.Count(c => c.Birthdate <= ServerDateTime.Now);
+				var count = this.model.Students.Count(c => c.SpecialDate <= ServerDateTime.Now);
 			}
 
 			using (var scope = this.NewTransactionScope())
 			{
-				var count = this.model.Students.Count(c => c.Birthdate <= ServerDateTime.UtcNow.AddMinutes(c.Height));
+				var count = this.model.Students.Count(c => c.SpecialDate <= ServerDateTime.UtcNow.AddMinutes(c.Height));
 			}
 
 			using (var scope = this.NewTransactionScope())
 			{
-				var count = this.model.Students.Count(c => c.Birthdate <= ServerDateTime.UtcNow.AddMilliseconds(c.Height));
+				var count = this.model.Students.Count(c => c.SpecialDate <= ServerDateTime.UtcNow.AddMilliseconds(c.Height));
 			}
 
 			using (var scope = this.NewTransactionScope())
 			{
 				this.model
 					.Students
-					.Where(c => c.Birthdate != null)
+					.Where(c => c.SpecialDate != null)
 					.Select(c => new
 					{
-						Original = c.Birthdate.Value,
-						Added = c.Birthdate.Value.AddMilliseconds(1000)
+						Original = c.SpecialDate.Value,
+						Added = c.SpecialDate.Value.AddMilliseconds(1000)
 					}).ToList()
 					.ForEach(c => Assert.AreEqual(c.Original.AddMilliseconds(1000), c.Added));
 			}
@@ -1548,7 +1549,7 @@ namespace Shaolinq.Tests
 					student.Height = student.Height;
 					student.Weight = student.Weight;
 					student.FavouriteNumber = student.FavouriteNumber;
-					student.Birthdate = student.Birthdate;
+					student.SpecialDate = student.SpecialDate;
 
 					Assert.That(((IDataAccessObjectAdvanced)student).GetChangedPropertiesFlattened(), Is.Empty);
 					Assert.IsFalse(((IDataAccessObjectAdvanced)student).HasObjectChanged);
@@ -2133,6 +2134,82 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Custom_Type_Comparison1()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
+				var student1 = school.Students.First(c => c.Firstname == "Tum" && c.Birthdate < DateTime.Now);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Custom_Type_Comparison2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
+
+				var students = school.Students
+					.Select(c => new { c.Firstname, Birthdate = c.Birthdate.ToDateTime() })
+					.ToList();
+
+				Assert.Greater(students.Count, 0);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Custom_Type_Operations1()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
+
+				var students = school.Students
+					.Where(c => c.Birthdate.ToDateTime().Year == 1979)
+					.Where(c => c.Birthdate.ToDateTime().AddYears(10) < DateTime.Now)
+					.Select(c => new { c.Firstname })
+					.ToList();
+
+				Assert.Greater(students.Count, 0);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Custom_Type_Operations2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
+
+				var students = school.Students
+					.Where(c => c.Birthdate.ToDateTime().Year == 1979)
+					.Where(c => c.Birthdate.ToDateTime().AddMonths(10) < DateTime.Now)
+					.Select(c => new { c.Firstname })
+					.ToList();
+
+				Assert.Greater(students.Count, 0);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Custom_Type_Operations3()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
+
+				var students = school.Students
+					.Where(c => c.Birthdate.ToDateTime().Year == 1979)
+					.Where(c => c.Birthdate.ToDateTime().AddDays(10) < DateTime.Now)
+					.Select(c => new { c.Firstname })
+					.ToList();
+
+				Assert.Greater(students.Count, 0);
+			}
+		}
+
+		[Test]
 		public virtual void Test_GroupBy_Date()
 		{
 			using (var scope = this.NewTransactionScope())
@@ -2143,12 +2220,12 @@ namespace Shaolinq.Tests
 				tum2.Lastname = "Nguyen";
 				tum2.Height = 177;
 				tum2.FavouriteNumber = 36;
-				tum2.Birthdate = new DateTime(1979, 12, 24, 05, 00, 00);
+				tum2.SpecialDate = new DateTime(1979, 12, 24, 05, 00, 00);
 
 				scope.Flush();
 
 				var group = (from student in this.model.Students
-							 group student by student.Birthdate
+							 group student by student.SpecialDate
 								 into g
 								 select new
 								 {
@@ -2160,7 +2237,7 @@ namespace Shaolinq.Tests
 
 				group = (from student in this.model.Students
 						 where student.Firstname == "Tum"
-						 group student by student.Birthdate
+						 group student by student.SpecialDate
 							 into g
 							 select new
 							 {
@@ -2192,12 +2269,12 @@ namespace Shaolinq.Tests
 				tum2.Lastname = "Nguyen";
 				tum2.Height = 177;
 				tum2.FavouriteNumber = 36;
-				tum2.Birthdate = new DateTime(1979, 12, 24, 05, 00, 00);
+				tum2.SpecialDate = new DateTime(1979, 12, 24, 05, 00, 00);
 
 				scope.Flush();
 
 				var group = (from student in this.model.Students
-							 group student by student.Birthdate.GetValueOrDefault().Date
+							 group student by student.SpecialDate.GetValueOrDefault().Date
 							 into g
 							 select new
 							 {
@@ -2209,7 +2286,7 @@ namespace Shaolinq.Tests
 
 				group = (from student in this.model.Students
 						 where student.Firstname == "Tum"
-						 group student by student.Birthdate.GetValueOrDefault().Date
+						 group student by student.SpecialDate.GetValueOrDefault().Date
 						 into g
 						 select new
 						 {
@@ -2369,7 +2446,7 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var results = from student in this.model.Students
-							  group student by student.Birthdate.Value.Date
+							  group student by student.SpecialDate.Value.Date
 								  into g
 								  select new KeyCount
 								  {
@@ -2389,7 +2466,7 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var results = from student in this.model.Students
-					where student.Birthdate.Value.Date.Year == 12
+					where student.SpecialDate.Value.Date.Year == 12
 							  select student;
 
 
@@ -2406,7 +2483,7 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var results = from student in this.model.Students
-							  group student by student.Birthdate.Value.Date
+							  group student by student.SpecialDate.Value.Date
 								  into g
 								  select new
 								  {
@@ -2654,13 +2731,13 @@ namespace Shaolinq.Tests
 				var results = from student in this.model.Students
 					group student by student.Sex
 					into g
-					select new { sex = g.Key , date = g.Max(c => c.Birthdate), count = g.Count(), g };
+					select new { sex = g.Key , date = g.Max(c => c.SpecialDate), count = g.Count(), g };
 
 				var students = this.model.Students.ToList();
 				var s2 = from student in students
 						 group student by student.Sex
 					into g
-						 select new { sex = g.Key, date = g.Max(c => c.Birthdate), count = g.Count(), g };
+						 select new { sex = g.Key, date = g.Max(c => c.SpecialDate), count = g.Count(), g };
 
 				var s3 = results.ToList();
 

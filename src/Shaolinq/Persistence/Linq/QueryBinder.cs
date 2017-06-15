@@ -1082,7 +1082,11 @@ namespace Shaolinq.Persistence.Linq
 				case "AddHours":
 					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromHours, this.VisitExpressionList(methodCallExpression.Arguments)));
 				case "AddDays":
-					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddTimeSpan, this.Visit(methodCallExpression.Object), new SqlFunctionCallExpression(typeof(TimeSpan), SqlFunction.TimeSpanFromDays, this.VisitExpressionList(methodCallExpression.Arguments)));
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddDays, this.VisitExpressionList(methodCallExpression.Arguments).Prepend(this.Visit(methodCallExpression.Object)));
+				case "AddMonths":
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddMonths, this.VisitExpressionList(methodCallExpression.Arguments).Prepend(this.Visit(methodCallExpression.Object)));
+				case "AddYears":
+					return new SqlFunctionCallExpression(typeof(DateTime), SqlFunction.DateTimeAddYears, this.VisitExpressionList(methodCallExpression.Arguments).Prepend(this.Visit(methodCallExpression.Object)));
 				}
 			}
 

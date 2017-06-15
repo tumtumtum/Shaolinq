@@ -320,7 +320,7 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.Create();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
+				student.SpecialDate = new DateTime(1940, 11, 27);
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
 
@@ -362,7 +362,8 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.Create();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
+				student.SpecialDate = new DateTime(1940, 11, 27);
+				student.Birthdate = new FixedDate(student.SpecialDate.Value);
 
 				scope.Flush();
 
@@ -400,7 +401,7 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.Create();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
+				student.SpecialDate = new DateTime(1940, 11, 27);
 
 				scope.Flush();
 
@@ -438,7 +439,7 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.Create();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
+				student.SpecialDate = new DateTime(1940, 11, 27);
 
 				scope.Flush();
 
@@ -476,7 +477,7 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.Create();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
+				student.SpecialDate = new DateTime(1940, 11, 27);
 				
 				scope.Flush();
 
@@ -514,7 +515,7 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.Create();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
+				student.SpecialDate = new DateTime(1940, 11, 27);
 				
 				scope.Flush();
 
@@ -553,7 +554,7 @@ namespace Shaolinq.Tests
 
 				var student = school.Students.Create();
 
-				student.Birthdate = new DateTime(1940, 11, 27);
+				student.SpecialDate = new DateTime(1940, 11, 27);
 				student.Firstname = "Bruce";
 				student.Lastname = "Lee";
 

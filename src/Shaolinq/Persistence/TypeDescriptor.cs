@@ -128,15 +128,14 @@ namespace Shaolinq.Persistence
 				return IsValidDataType(underlyingType);
 			}
 
-			return type.IsPrimitive
+			if (type.IsIntegralType()
 				|| type.IsEnum
-				|| type == typeof(Decimal)
-				|| type == typeof(DateTime)
-				|| type.IsDataAccessObjectType()
-				|| type == typeof(Guid)
-				|| type == typeof(TimeSpan)
-				|| type == typeof(string)
-				|| type == typeof(byte[]);
+				|| type.IsDataAccessObjectType())
+			{
+				return true;
+			}
+
+			return type.GetConversionMembers().Any(c => IsValidDataType(c.GetMemberReturnType()));
 		}
 
 		private IEnumerable<PropertyInfo> GetPropertiesInOrder()

@@ -14,6 +14,7 @@ namespace Shaolinq.Persistence
 	{
 		private static readonly MethodInfo specifyKindIfUnspecifiedMethod = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime), default(DateTimeKind)));
 		private static readonly MethodInfo specifyKindIfUnspecifiedMethodNullable = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime?), default(DateTimeKind)));
+		private static readonly MethodInfo typeConverterConvertToMethod = TypeUtils.GetMethod<TypeConverter>(c => c.ConvertTo(default(object), typeof(Type)));
 		private static readonly MethodInfo typeConverterConvertFromMethod = TypeUtils.GetMethod<TypeConverter>(c => c.ConvertFrom(default(object)));
 
 		private readonly TypeConverter typeConverter;
@@ -46,7 +47,7 @@ namespace Shaolinq.Persistence
 
 				value = ((DateTime?)value)?.ToUniversalTime();
 
-				return new TypedValue(this.UnderlyingType, value);
+				return new TypedValue(typeof(DateTime), value);
 			}
 			else
 			{
@@ -57,10 +58,10 @@ namespace Shaolinq.Persistence
 
 				value = ((DateTime)value).ToUniversalTime();
 
-				return new TypedValue(this.SupportedType, value);
+				return new TypedValue(typeof(DateTime), value);
 			}
 		}
-
+		
 		public static DateTime SpecifyKindIfUnspecified(DateTime dateTime, DateTimeKind kind)
 		{
 			return dateTime.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(dateTime, kind) : dateTime;
@@ -80,11 +81,19 @@ namespace Shaolinq.Persistence
 		{
 			var expression = base.GetReadExpression(dataReader, ordinal);
 
-			expression = Expression.Call(this.specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+			if (typeConverter != null)
+			{
+				expression = Expression.Convert(Expression.Call(Expression.Constant(this.typeConverter), typeConverterConvertToMethod, Expression.Convert(expression, typeof(object)), Expression.Constant(typeof(DateTime?))), typeof(DateTime?));
+				expression = Expression.Call(specifyKindIfUnspecifiedMethodNullable, expression, Expression.Constant(DateTimeKind.Utc));
+			}
+			else
+			{
+				expression = Expression.Call(this.specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+			}
 
 			if (this.typeConverter != null)
 			{
-				expression = Expression.Call(Expression.Constant(this.typeConverter), typeConverterConvertFromMethod, expression);
+				expression = Expression.Convert(Expression.Call(Expression.Constant(this.typeConverter), typeConverterConvertFromMethod, Expression.Convert(expression, typeof(object))), this.SupportedType);
 			}
 
 			return expression;

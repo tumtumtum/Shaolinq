@@ -142,6 +142,47 @@ namespace Shaolinq.Postgres
 			return base.ResolveSqlFunction(functionCallExpression);
 		}
 
+		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
+		{
+			switch (functionCallExpression.Function)
+			{
+			case SqlFunction.DateTimeAddDays:
+				this.Write("(");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(" + (");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" || ");
+				this.Visit(Expression.Constant(" day"));
+				this.Write(")");
+				this.Write("::interval");
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.DateTimeAddMonths:
+				this.Write("(");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(" + (");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" || ");
+				this.Visit(Expression.Constant(" month"));
+				this.Write(")");
+				this.Write("::interval");
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.DateTimeAddYears:
+				this.Write("(");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(" + (");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(" || ");
+				this.Visit(Expression.Constant(" year"));
+				this.Write(")");
+				this.Write("::interval");
+				this.Write(")");
+				return functionCallExpression;
+			}
+
+			return base.VisitFunctionCall(functionCallExpression);
+		}
 		protected override void VisitColumn(SqlSelectExpression selectExpression, SqlColumnDeclaration column)
 		{
 			if (column.Expression.Type == typeof(Decimal))

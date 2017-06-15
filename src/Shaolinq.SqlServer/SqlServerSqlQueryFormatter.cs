@@ -82,6 +82,27 @@ namespace Shaolinq.SqlServer
 				this.Visit(functionCallExpression.Arguments[0]);
 				this.Write(")");
 				return functionCallExpression;
+			case SqlFunction.DateTimeAddDays:
+				this.Write("DATEADD(DAY, ");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(", ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.DateTimeAddMonths:
+				this.Write("DATEADD(MONTH, ");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(", ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.DateTimeAddYears:
+				this.Write("DATEADD(YEAR, ");
+				this.Visit(functionCallExpression.Arguments[1]);
+				this.Write(", ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
 			case SqlFunction.DateTimeAddTimeSpan:
 				this.Write("DATEADD(DAY, ");
 				this.Write("CAST(");

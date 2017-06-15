@@ -78,6 +78,12 @@ namespace Shaolinq.Sqlite
 				{
 					excludeParenthesis = true
 				};
+			case SqlFunction.DateTimeAddDays:
+				return new FunctionResolveResult("STRFTIME", false, Expression.Constant("%Y-%m-%d %H:%M:%f0000"), arguments[0], new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant(" days")));
+			case SqlFunction.DateTimeAddMonths:
+				return new FunctionResolveResult("STRFTIME", false, Expression.Constant("%Y-%m-%d %H:%M:%f0000"), arguments[0], new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant(" months")));
+			case SqlFunction.DateTimeAddYears:
+				return new FunctionResolveResult("STRFTIME", false, Expression.Constant("%Y-%m-%d %H:%M:%f0000"), arguments[0], new SqlFunctionCallExpression(typeof(string), SqlFunction.Concat, arguments[1], Expression.Constant(" years")));
 			case SqlFunction.DateTimeAddTimeSpan:
 				return new FunctionResolveResult("STRFTIME", false, Expression.Constant("%Y-%m-%d %H:%M:%f0000"), arguments[0], arguments[1]);
 			case SqlFunction.Year:

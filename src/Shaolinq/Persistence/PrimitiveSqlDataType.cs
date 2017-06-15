@@ -28,7 +28,21 @@ namespace Shaolinq.Persistence
 
 		public static T Read<T>(IDataRecord record, int ordinal)
 		{
-			return (T)Convert.ChangeType(record.GetValue(ordinal), typeof(T));
+			var value = record.GetValue(ordinal);
+
+			if (value is T)
+			{
+				return (T)value;
+			}
+
+			if (typeof(IConvertible).IsAssignableFrom(typeof(T)))
+			{
+				return (T)Convert.ChangeType(value, typeof(T));
+			}
+
+			var typeConverter = System.ComponentModel.TypeDescriptor.GetConverter(typeof(T));
+
+			return (T)typeConverter.ConvertFrom(record.GetValue(ordinal));
 		}
 
 		public override Expression GetReadExpression(Expression dataReader, int ordinal)

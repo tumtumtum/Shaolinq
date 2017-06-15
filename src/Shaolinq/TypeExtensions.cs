@@ -1,10 +1,13 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using Platform;
+using Platform.Reflection;
 
 namespace Shaolinq
 {
@@ -55,6 +58,50 @@ namespace Shaolinq
 				   || type == typeof(TimeSpan)
 				   || type == typeof(bool)
 				   || type == typeof(byte[]);
+		}
+		
+		internal static bool MemberIsConversionMember(this MemberInfo memberInfo)
+		{
+			var returnType = memberInfo.GetMemberReturnType();
+
+			if (memberInfo is MethodInfo)
+			{
+				return memberInfo.Name == "GetValue" || memberInfo.Name == string.Concat("Get", returnType.Name, "Value") || returnType.Name == "ToValue" || memberInfo.Name == string.Concat("To", returnType.Name) || memberInfo.Name == string.Concat("To", returnType.Name, "Value");
+			}
+
+			if (memberInfo is PropertyInfo)
+			{
+				return memberInfo.Name == "Value" || memberInfo.Name == string.Concat(returnType.Name, "Value") || memberInfo.Name == returnType.Name;
+			}
+
+			return false;
+		}
+
+		internal static IEnumerable<MemberInfo> GetConversionMembers(this Type type, Type targetType = null)
+		{
+			foreach (var method in type.GetMethods(BindingFlags.Static | BindingFlags.Public)
+				.Where(c => targetType == null || c.ReturnType == targetType)
+				.Where(c => c.Name == "op_Implicit"))
+			{
+				yield return method;
+			}
+
+			foreach (var member in type.GetMembers(BindingFlags.Instance | BindingFlags.Public)
+				.Where(c => targetType == null || c.GetMemberReturnType() == targetType)
+				.Where(MemberIsConversionMember))
+			{
+				yield return member;
+			}
+		}
+
+		internal static bool IsAssignableFromIncludingConversion(this Type type, Type other)
+		{
+			if (type.IsAssignableFrom(other))
+			{
+				return true;
+			}
+
+			return type.GetConversionMembers(other).Any();
 		}
 
 		public static NewExpression CreateNewExpression(this Type type, params Expression[] arguments)

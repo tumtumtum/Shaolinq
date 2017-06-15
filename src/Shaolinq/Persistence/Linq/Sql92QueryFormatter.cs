@@ -149,6 +149,10 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return this.Visit(methodCallExpression.Arguments[0]);
 			}
+			else if (methodCallExpression.Type.IsIntegralType() && methodCallExpression.Method.MemberIsConversionMember())
+			{
+				return this.Visit(methodCallExpression.Object ?? methodCallExpression.Arguments[0]);
+			}
 
 			throw new NotSupportedException($"The method '{methodCallExpression.Method.Name}' is not supported");
 		}
@@ -214,11 +218,15 @@ namespace Shaolinq.Persistence.Linq
 				{
 					this.Visit(unaryExpression.Operand);
 				}
+				else if (unaryType.IsIntegralType())
+				{
+					this.Visit(unaryExpression.Operand);
+				}
 				else
 				{
 					throw new NotSupportedException($"The unary operator '{unaryExpression.NodeType}' is not supported");
 				}
-				break;
+			break;
 			case ExpressionType.Negate:
 			case ExpressionType.NegateChecked:
 				this.Write("(-(");
@@ -1055,6 +1063,10 @@ namespace Shaolinq.Persistence.Linq
 			var declaringType = memberExpression.Member.DeclaringType;
 
 			if (declaringType != null && Nullable.GetUnderlyingType(declaringType) != null)
+			{
+				return this.Visit(memberExpression.Expression);
+			}
+			else if (memberExpression.Type.IsIntegralType() && memberExpression.Member.MemberIsConversionMember())
 			{
 				return this.Visit(memberExpression.Expression);
 			}
