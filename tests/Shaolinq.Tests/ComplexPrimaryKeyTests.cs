@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Platform;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
 
 namespace Shaolinq.Tests
@@ -67,6 +68,7 @@ namespace Shaolinq.Tests
 			var s = tester.Query1().ToString();
 
 			Assert.IsTrue(s.Contains("JOIN"));
+			Assert.IsFalse(s.Contains("ObjectReference"));
 		}
 
 		[Test]
@@ -74,11 +76,14 @@ namespace Shaolinq.Tests
 		{
 			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
 
-			tester.Query1();
+			var s0 = this.model.Malls.Where(c => c.Address.Number == 0).ToString();
 
 			var s = tester.Query2().ToString();
 
+			Console.WriteLine(s);
+
 			Assert.IsTrue(s.Contains("JOIN"));
+			Assert.IsFalse(s.Contains("ObjectReference"));
 		}
 
 		[Test]
@@ -92,6 +97,7 @@ namespace Shaolinq.Tests
 			var s = tester.Query3().ToString();
 
 			Assert.IsTrue(s.Contains("JOIN"));
+			Assert.IsFalse(s.Contains("ObjectReference"));
 		}
 		
 		public ComplexPrimaryKeyTests(string providerName)
@@ -2369,6 +2375,20 @@ namespace Shaolinq.Tests
 			}
 		}
 
+		[Test]
+		public void Test_Implicit_Include_Using_Interface()
+		{
+			var result = Test_Implicit_Include_Using_Interface_Private(this.model.GetDataAccessObjects<Mall>()).ToList();
+
+			Assert.IsNotEmpty(result);
+		}
+
+		public IQueryable<T> Test_Implicit_Include_Using_Interface_Private<T>(IQueryable<T> queryable)
+			where T: DataAccessObject, INamed
+		{
+			return queryable.Where(c => c.Name == "Seattle City");
+		}
+		
 		[Test]
 		public void Test_Include1()
 		{

@@ -15,7 +15,7 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 	[DataAccessObject]
 	public class Mall
-		: DataAccessObject<Guid>, IAddressed
+		: DataAccessObject<Guid>, IAddressed, INamed
 	{
 		[PersistedMember]
 		public virtual string Name { get; set; }

@@ -144,33 +144,6 @@ namespace Shaolinq.Persistence.Linq
 						return methodCallExpression.Arguments[0].StripForIncludeScanning();
 					}
 				}
-				/* @see Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics1 */
-				else if (c.NodeType == ExpressionType.Convert)
-				{
-					if (((UnaryExpression)expression).Operand.NodeType == ExpressionType.Parameter)
-					{
-						return ((UnaryExpression)expression).Operand.StripForIncludeScanning();
-					}
-				}
-				/* @see Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics1 */
-				else if (c.NodeType == ExpressionType.MemberAccess)
-				{
-					var memberExpression = ((MemberExpression)c);
-
-					var memberExpressionExpression = memberExpression.Expression.StripForIncludeScanning();
-
-					if (memberExpressionExpression.NodeType == ExpressionType.Parameter && !memberExpression.Member.DeclaringType.IsDataAccessObjectType())
-					{
-						var member = memberExpressionExpression.Type.GetMember(memberExpression.Member.Name)[0];
-
-						if (member != memberExpression.Member)
-						{
-							return Expression.MakeMemberAccess(memberExpressionExpression, member);
-						}
-					}
-
-					return null;
-				}
 
 				return null;
 			});

@@ -45,6 +45,7 @@ namespace Shaolinq.Persistence.Linq
 		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression)
 		{
 			expression = SqlPredicateToWhereConverter.Convert(expression);
+			expression = InterfaceAccessNormalizer.Normalize(dataAccessModel.TypeDescriptorProvider, expression);
 			expression = QueryableIncludeExpander.Expand(expression);
 			var joinExpanderResults = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
@@ -2247,7 +2248,7 @@ namespace Shaolinq.Persistence.Linq
 					}
 				}
 			}
-
+			
 			return base.VisitUnary(unaryExpression);
 		}
 

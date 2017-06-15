@@ -214,6 +214,7 @@
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AliasReferenceReplacer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\InterfaceAccessNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\MemberAccessReplacer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAggregateProjectionNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAliasTypeCollector.cs" />
