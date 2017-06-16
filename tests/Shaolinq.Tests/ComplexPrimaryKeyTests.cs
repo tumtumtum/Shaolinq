@@ -24,7 +24,7 @@ namespace Shaolinq.Tests
 		private long shopId;
 		
 		public class SelectorTesterClass<T>
-			where T : IAddressed
+			where T : DataAccessObject<Guid>, IAddressed
 		{
 			private readonly Func<IQueryable<T>> queryable;
 
@@ -36,14 +36,14 @@ namespace Shaolinq.Tests
 			public IQueryable<T> Query1()
 			{
 				// Roslyn turns this into Expression.Member(c, methodof(IAddressed.Address))
-				// Instead of Expression.Member(c, methodof(T.Address))
+				// Instead of Expression.Member(Expression.Convert(c, typeof(IAddressed)), methodof(T.Address))
 
 				return this.queryable().Include(c => c.Address);
 			}
 
 			public IQueryable<T> Query2()
 			{
-				// Roslyn turns this into Expression.Member(c, methodof(IAddressed.Address))
+				// Roslyn turns this into Expression.Member(Expression.Convert(c, typeof(IAddressed)), methodof(IAddressed.Address))
 				// Instead of Expression.Member(c, methodof(T.Address))
 
 				return (this.queryable()).Where(c => c.Address.Number == 0);
@@ -51,10 +51,29 @@ namespace Shaolinq.Tests
 
 			public IQueryable<T> Query3()
 			{
-				// Roslyn turns this into Expression.Member(c, methodof(IAddressed.Address))
+				// Roslyn turns this into Expression.Member(Expression.Convert(c, typeof(IAddressed)), methodof(IAddressed.Address))
 				// Instead of Expression.Member(c, methodof(T.Address))
 
 				return (this.queryable()).Select(c => c.Include(d => d.Address));
+			}
+		}
+
+		public class SelectorTesterClass2<T>
+			where T : IAddressed
+		{
+			private readonly Func<IQueryable<T>> queryable;
+
+			public SelectorTesterClass2(Func<IQueryable<T>> queryable)
+			{
+				this.queryable = queryable;
+			}
+
+			public IQueryable<T> Query()
+			{
+				// Roslyn turns this into Expression.Member(c, methodof(IAddressed.Address))
+				// Instead of Expression.Member(c, methodof(T.Address))
+
+				return (this.queryable()).Where(c => c.Address.Number == 0);
 			}
 		}
 
@@ -72,13 +91,24 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics2()
+		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics2a()
 		{
 			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
 
-			var s0 = this.model.Malls.Where(c => c.Address.Number == 0).ToString();
-
 			var s = tester.Query2().ToString();
+
+			Console.WriteLine(s);
+
+			Assert.IsTrue(s.Contains("JOIN"));
+			Assert.IsFalse(s.Contains("ObjectReference"));
+		}
+
+		[Test]
+		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics2b()
+		{
+			var tester = new SelectorTesterClass2<Mall>(() => this.model.Malls);
+
+			var s = tester.Query().ToString();
 
 			Console.WriteLine(s);
 

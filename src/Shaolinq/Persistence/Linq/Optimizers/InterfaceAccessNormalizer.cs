@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -22,23 +21,26 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			var expression = Visit(memberExpression.Expression);
 
-			if (expression != memberExpression.Expression)
+			// Check if call is made to an interface property rather than DAO virtual property
+			if (memberExpression.Member.DeclaringType != expression.Type && expression.Type.IsDataAccessObjectType())
 			{
-				if (memberExpression.Member.DeclaringType != expression.Type && expression.Type.IsDataAccessObjectType())
+				var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(expression.Type);
+				var member = typeDescriptor?.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name).PropertyInfo;
+
+				if (memberExpression != null)
 				{
-					var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(expression.Type);
-					var member = typeDescriptor?.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name).PropertyInfo;
-
-					if (memberExpression != null)
-					{
-						return Expression.MakeMemberAccess(expression, member);
-					}
+					return Expression.MakeMemberAccess(expression, member);
 				}
-
-				return Expression.MakeMemberAccess(expression, memberExpression.Member);
 			}
 
-			return memberExpression;
+			if (expression == memberExpression.Expression)
+			{
+				return memberExpression;
+			}
+			else
+			{
+				return Expression.MakeMemberAccess(expression, memberExpression.Member);
+			}
 		}
 
 		protected override Expression VisitUnary(UnaryExpression unaryExpression)
