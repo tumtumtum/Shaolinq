@@ -21,15 +21,18 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			var expression = Visit(memberExpression.Expression);
 
-			// Check if call is made to an interface property rather than DAO virtual property
-			if (memberExpression.Member.DeclaringType != expression.Type && expression.Type.IsDataAccessObjectType())
+			if (expression != null)
 			{
-				var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(expression.Type);
-				var member = typeDescriptor?.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name).PropertyInfo;
-
-				if (memberExpression != null)
+				// Check if call is made to an interface property rather than DAO virtual property
+				if (memberExpression.Member.DeclaringType != expression.Type && expression.Type.IsDataAccessObjectType())
 				{
-					return Expression.MakeMemberAccess(expression, member);
+					var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(expression.Type);
+					var member = typeDescriptor?.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name).PropertyInfo;
+
+					if (memberExpression != null)
+					{
+						return Expression.MakeMemberAccess(expression, member);
+					}
 				}
 			}
 
