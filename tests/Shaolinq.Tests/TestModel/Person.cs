@@ -52,7 +52,7 @@ namespace Shaolinq.Tests.TestModel
 		public abstract string Fullname { get; set; }
 
 		[PersistedMember, DefaultValue("2016-01-01")]
-		public abstract FixedDate Birthdate { get; set; }
+		public abstract FixedDate? Birthdate { get; set; }
 
 		[PersistedMember]
 		public abstract DateTime? SpecialDate { get; set; }

@@ -14,7 +14,7 @@ namespace Shaolinq.Persistence
 	{
 		private static readonly MethodInfo specifyKindIfUnspecifiedMethod = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime), default(DateTimeKind)));
 		private static readonly MethodInfo specifyKindIfUnspecifiedMethodNullable = TypeUtils.GetMethod(() => SpecifyKindIfUnspecified(default(DateTime?), default(DateTimeKind)));
-		private static readonly MethodInfo typeConverterConvertToMethod = TypeUtils.GetMethod<TypeConverter>(c => c.ConvertTo(default(object), typeof(Type)));
+		private static readonly MethodInfo typeConverterConvertToMethod = TypeUtils.GetMethod<TypeConverter>(c => c.ConvertToFix(default(object), typeof(Type)));
 		private static readonly MethodInfo typeConverterConvertFromMethod = TypeUtils.GetMethod<TypeConverter>(c => c.ConvertFrom(default(object)));
 
 		private readonly TypeConverter typeConverter;
@@ -42,7 +42,7 @@ namespace Shaolinq.Persistence
 			{
 				if (this.typeConverter != null)
 				{
-					value = this.typeConverter.ConvertTo(value, typeof(DateTime?));
+					value = this.typeConverter.ConvertToFix(value, typeof(DateTime?));
 				}
 
 				value = ((DateTime?)value)?.ToUniversalTime();
@@ -53,7 +53,7 @@ namespace Shaolinq.Persistence
 			{
 				if (this.typeConverter != null)
 				{
-					value = this.typeConverter.ConvertTo(value, typeof(DateTime));
+					value = this.typeConverter.ConvertToFix(value, typeof(DateTime));
 				}
 
 				value = ((DateTime)value).ToUniversalTime();
@@ -83,7 +83,9 @@ namespace Shaolinq.Persistence
 
 			if (typeConverter != null)
 			{
-				expression = Expression.Convert(Expression.Call(Expression.Constant(this.typeConverter), typeConverterConvertToMethod, Expression.Convert(expression, typeof(object)), Expression.Constant(typeof(DateTime?))), typeof(DateTime?));
+				var convertToMethodCall = Expression.Call(null, typeConverterConvertToMethod, Expression.Constant(this.typeConverter), Expression.Convert(expression, typeof(object)), Expression.Constant(typeof(DateTime?)));
+
+				expression = Expression.Convert(convertToMethodCall, typeof(DateTime?));
 				expression = Expression.Call(specifyKindIfUnspecifiedMethodNullable, expression, Expression.Constant(DateTimeKind.Utc));
 			}
 			else

@@ -70,7 +70,7 @@ namespace Shaolinq.Tests
 				tum.Address = address;
 				tum.TimeSinceLastSlept = TimeSpan.FromHours(7.5);
 				tum.SpecialDate = new DateTime(1979, 12, 24, 04, 00, 00);
-				tum.Birthdate = new DateTime(1979, 12, 24, 04, 00, 00);
+				tum.Birthdate = new FixedDate(new DateTime(1979, 12, 24, 04, 00, 00));
 
 				var mars = school.Students.Create();
 
@@ -83,6 +83,7 @@ namespace Shaolinq.Tests
 				mars.BestFriend = tum;
 				mars.SpecialDate = new DateTime(2003, 11, 2);
 				mars.FavouriteNumber = 1;
+				mars.Birthdate = null;
 
 				var cat1 = tum.Cats.Create();
 				var cat2 = tum.Cats.Create();
@@ -2151,7 +2152,7 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
 				var students = school.Students
-					.Select(c => new { c.Firstname, Birthdate = c.Birthdate.ToDateTime() })
+					.Select(c => new { c.Firstname, DateTime = (DateTime?)c.Birthdate })
 					.ToList();
 
 				Assert.Greater(students.Count, 0);
@@ -2166,8 +2167,8 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
 				var students = school.Students
-					.Where(c => c.Birthdate.ToDateTime().Year == 1979)
-					.Where(c => c.Birthdate.ToDateTime().AddYears(10) < DateTime.Now)
+					.Where(c => c.Birthdate.Value.ToDateTime().Year == 1979)
+					.Where(c => c.Birthdate.Value.ToDateTime().AddYears(10) < DateTime.Now)
 					.Select(c => new { c.Firstname })
 					.ToList();
 
@@ -2183,8 +2184,8 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
 				var students = school.Students
-					.Where(c => c.Birthdate.ToDateTime().Year == 1979)
-					.Where(c => c.Birthdate.ToDateTime().AddMonths(10) < DateTime.Now)
+					.Where(c => c.Birthdate.Value.ToDateTime().Year == 1979)
+					.Where(c => c.Birthdate.Value.ToDateTime().AddMonths(10) < DateTime.Now)
 					.Select(c => new { c.Firstname })
 					.ToList();
 
@@ -2200,8 +2201,8 @@ namespace Shaolinq.Tests
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
 				var students = school.Students
-					.Where(c => c.Birthdate.ToDateTime().Year == 1979)
-					.Where(c => c.Birthdate.ToDateTime().AddDays(10) < DateTime.Now)
+					.Where(c => c.Birthdate.Value.ToDateTime().Year == 1979)
+					.Where(c => c.Birthdate.Value.ToDateTime().AddDays(10) < DateTime.Now)
 					.Select(c => new { c.Firstname })
 					.ToList();
 
