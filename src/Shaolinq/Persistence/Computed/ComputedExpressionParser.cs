@@ -7,7 +7,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
-using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence.Computed
 {

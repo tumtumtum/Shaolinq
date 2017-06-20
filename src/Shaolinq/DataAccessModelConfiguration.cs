@@ -2,10 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text;
-using Platform.Text;
-using Platform.Validation;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 

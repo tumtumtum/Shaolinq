@@ -42,11 +42,10 @@ namespace Shaolinq.Postgres
 			this.DefinePrimitiveSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
 			this.DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
 			this.DefinePrimitiveSqlDataType(typeof(int), "INTEGER", "GetInt32");
-
-			this.DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT", "GetUInt16");
-			this.DefinePrimitiveSqlDataType(typeof(uint), "INTEGER", "GetUInt32");
-			this.DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT", "GetUInt64");
-
+			this.DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT", "GetInt32");
+			this.DefinePrimitiveSqlDataType(typeof(uint), "INTEGER", "GetInt64");
+			this.DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT", "GetValue");
+			this.DefinePrimitiveSqlDataType(typeof(float), "FLOAT(8)", "GetFloat");
 			this.DefinePrimitiveSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
 			this.DefinePrimitiveSqlDataType(typeof(byte), "SMALLINT", "GetByte");
 			this.DefinePrimitiveSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");

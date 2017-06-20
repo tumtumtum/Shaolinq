@@ -56,6 +56,7 @@
     <Compile Include="DisabledForeignKeyCheckContext.cs" />
     <Compile Include="GeneratedAsync.cs" />
     <Compile Include="RewriteAsyncAttribute.cs" />
+    <Compile Include="SqlServerAggregateTypeFixer.cs" />
     <Compile Include="SqlServerBooleanNormalizer.cs" />
     <Compile Include="SqlServerClusteredIndexNormalizer.cs" />
     <Compile Include="SqlServerDateTimeFunctionsAmender.cs" />

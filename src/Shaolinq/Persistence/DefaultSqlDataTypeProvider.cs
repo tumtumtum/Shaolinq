@@ -35,15 +35,15 @@ namespace Shaolinq.Persistence
 			this.sqlDataTypesByType = new Dictionary<Type, SqlDataType>();
 
 			this.DefinePrimitiveSqlDataType(typeof(bool), "TINYINT", "GetBoolean");
-			this.DefinePrimitiveSqlDataType(typeof(byte), "BYTE UNSIGNED ", "GetByte");
+			this.DefinePrimitiveSqlDataType(typeof(byte), "BYTE UNSIGNED ", "GetInt32");
 			this.DefinePrimitiveSqlDataType(typeof(sbyte), "BYTE", "GetByte");
 			this.DefinePrimitiveSqlDataType(typeof(char), "CHAR", "GetChar");
 			this.DefinePrimitiveSqlDataType(typeof(int), "INT", "GetInt32");
-			this.DefinePrimitiveSqlDataType(typeof(uint), "INT UNSIGNED ", "GetUInt32");
+			this.DefinePrimitiveSqlDataType(typeof(uint), "INT UNSIGNED ", "GetInt64");
 			this.DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
-			this.DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT UNSIGNED ", "GetUInt16");
+			this.DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT UNSIGNED ", "GetInt32");
 			this.DefinePrimitiveSqlDataType(typeof(long), "BIGINT", "GetInt64");
-			this.DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT UNSIGNED", "GetUInt64");
+			this.DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT UNSIGNED", "GetValue");
 			this.DefinePrimitiveSqlDataType(typeof(DateTime), "DATETIME", "GetDateTime");
 			this.DefinePrimitiveSqlDataType(typeof(float), "FLOAT", "GetFloat");
 			this.DefinePrimitiveSqlDataType(typeof(double), "DOUBLE", "GetDouble");

@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
@@ -26,13 +25,13 @@ namespace Shaolinq.Persistence
 			return this.SqlName;
 		}
 
-		public static T Read<T>(IDataRecord record, int ordinal)
+		public static T Read<T, U>(Func<U> getValueMethod, PrimitiveSqlDataType _this, int ordinal)
 		{
-			var value = record.GetValue(ordinal);
+			var value = getValueMethod();
 
 			if (value is T)
 			{
-				return (T)value;
+				return (T)(object)value;
 			}
 
 			if (typeof(IConvertible).IsAssignableFrom(typeof(T)))
@@ -42,7 +41,7 @@ namespace Shaolinq.Persistence
 
 			var typeConverter = System.ComponentModel.TypeDescriptor.GetConverter(typeof(T));
 
-			return (T)typeConverter.ConvertFrom(record.GetValue(ordinal));
+			return (T)typeConverter.ConvertFrom(value);
 		}
 
 		public override Expression GetReadExpression(Expression dataReader, int ordinal)
@@ -53,7 +52,12 @@ namespace Shaolinq.Persistence
 			(
 				Expression.Call(dataReader, IsDbNullMethod, Expression.Constant(ordinal)),
 				Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
-				Expression.Convert(Expression.Call(typeof(PrimitiveSqlDataType).GetMethod("Read", BindingFlags.Public | BindingFlags.Static).MakeGenericMethod(type), dataReader, Expression.Constant(ordinal)), this.SupportedType)
+				Expression.Convert
+				(
+					Expression.Call(TypeUtils.GetMethod(() => Read<int, int>(default(Func<int>), default(PrimitiveSqlDataType), default(int))).GetGenericMethodDefinition().MakeGenericMethod(type, this.GetMethod.ReturnType), 
+					Expression.Lambda(Expression.Call(dataReader, this.GetMethod, Expression.Constant(ordinal))), Expression.Constant(this), Expression.Constant(ordinal)),
+					this.SupportedType
+				)
 			);
 		}
 	}

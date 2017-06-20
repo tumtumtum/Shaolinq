@@ -2135,6 +2135,19 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Custom_Type_Projection()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
+				var student1 = school.Students.Where(c => c.Firstname == "Tum").ToList();
+
+				Assert.IsNotNull(student1);
+				Assert.AreEqual(1979, student1.First().Birthdate.Value.ToDateTime().Year);
+			}
+		}
+
+		[Test]
 		public virtual void Test_Custom_Type_Comparison1()
 		{
 			using (var scope = this.NewTransactionScope())

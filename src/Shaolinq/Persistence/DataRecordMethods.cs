@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Data;
 using System.Reflection;
 using Platform;
@@ -20,20 +21,27 @@ namespace Shaolinq.Persistence
 		{
 			switch (name)
 			{
-				case "GetBoolean":
-					return GetBooleanMethod;
-				case "GetInt32":
-					return GetInt32Method;
-				case "GetInt64":
-					return GetInt64Method;
-				case "GetString":
-					return GetStringMethod;
-				case "GetValue":
-					return GetValueMethod;
-				case "GetGuid":
-					return GetGuidMethod;
-				default:
-					return typeof(IDataRecord).GetMethod(name);
+			case "GetBoolean":
+				return GetBooleanMethod;
+			case "GetInt32":
+				return GetInt32Method;
+			case "GetInt64":
+				return GetInt64Method;
+			case "GetString":
+				return GetStringMethod;
+			case "GetValue":
+				return GetValueMethod;
+			case "GetGuid":
+				return GetGuidMethod;
+			default:
+				var retval = typeof(IDataRecord).GetMethod(name);
+
+				if (retval == null)
+				{
+					throw new ArgumentException($"Invalid method name {name}", nameof(name));
+				}
+
+				return retval;
 			}
 		}
 	}

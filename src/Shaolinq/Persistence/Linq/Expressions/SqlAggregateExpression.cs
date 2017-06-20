@@ -23,5 +23,10 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			this.Argument = argument;
 			this.IsDistinct = isDistinct;
 		}
+
+		public Expression ChangeArgument(Expression argument)
+		{
+			return new SqlAggregateExpression(this.Type, this.AggregateType, argument, this.IsDistinct);
+		}
 	}
 }

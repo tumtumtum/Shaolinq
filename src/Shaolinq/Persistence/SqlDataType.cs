@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Data;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -33,31 +32,6 @@ namespace Shaolinq.Persistence
 				return new TypedValue(this.SupportedType, value);
 			}
 		}
-
-		/// <summary>
-		/// Converts a value from SQL to a .NET equivalent.  The default implementation
-		/// uses <see cref="Convert.ChangeType(object, Type)"/> and performs <see cref="DBNull"/>
-		/// conversion
-		/// </summary>
-		/// <param name="value">The value to convert</param>
-		/// <returns>The converted value</returns>
-		public virtual object ConvertFromSql(object value)
-		{
-			if (this.UnderlyingType != null)
-			{
-				if (value == null || value == DBNull.Value)
-				{
-					return null;
-				}
-
-				return Convert.ChangeType(value, this.UnderlyingType);
-			}
-			else
-			{
-				return Convert.ChangeType(value, this.SupportedType);
-			}
-		}
-
 
 		protected SqlDataType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type supportedType)
 			: this(constraintDefaultsConfiguration, supportedType, false)

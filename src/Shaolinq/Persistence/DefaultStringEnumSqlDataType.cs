@@ -3,7 +3,6 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Platform;
 using Platform.Reflection;
 using Platform.Validation;
@@ -65,7 +64,7 @@ namespace Shaolinq.Persistence
 					(
 						Expression.Call
 						(
-							typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
+							TypeUtils.GetMethod(() => Enum.Parse(default(Type), default(string))),
 							Expression.Constant(this.SupportedType),
 							Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 						),
@@ -83,7 +82,7 @@ namespace Shaolinq.Persistence
 					(
 						Expression.Call
 						(
-							typeof(Enum).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public, null, new [] { typeof(Type), typeof(string) }, null),
+							TypeUtils.GetMethod(() => Enum.Parse(default(Type), default(string))),
 							Expression.Constant(this.UnderlyingType),
 							Expression.Call(dataReader, DataRecordMethods.GetStringMethod, Expression.Constant(ordinal))
 						),
@@ -103,19 +102,6 @@ namespace Shaolinq.Persistence
 			{
 				return new TypedValue(typeof(string), Enum.GetName(this.SupportedType.GetUnwrappedNullableType(), value));
 			}
-		}
-
-		public override object ConvertFromSql(object value)
-		{
-			if (this.UnderlyingType != null)
-			{
-				if (value == null || value == DBNull.Value)
-				{
-					return null;
-				}
-			}
-
-			return Enum.Parse(this.SupportedType, (string)value);
 		}
 	}
 }

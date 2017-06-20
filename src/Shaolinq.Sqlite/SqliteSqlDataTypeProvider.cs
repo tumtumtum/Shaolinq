@@ -17,11 +17,11 @@ namespace Shaolinq.Sqlite
 			this.DefinePrimitiveSqlDataType(typeof(sbyte), "INTEGER", "GetByte");
 			this.DefinePrimitiveSqlDataType(typeof(char), "TEXT", "GetChar");
 			this.DefinePrimitiveSqlDataType(typeof(int), "INTEGER", "GetInt32");
-			this.DefinePrimitiveSqlDataType(typeof(uint), "INTEGER", "GetInt32");
+			this.DefinePrimitiveSqlDataType(typeof(uint), "INTEGER", "GetInt64");
 			this.DefinePrimitiveSqlDataType(typeof(short), "INTEGER", "GetInt16");
-			this.DefinePrimitiveSqlDataType(typeof(ushort), "INTEGER", "GetUInt16");
+			this.DefinePrimitiveSqlDataType(typeof(ushort), "INTEGER", "GetInt32");
 			this.DefinePrimitiveSqlDataType(typeof(long), "INTEGER", "GetInt64");
-			this.DefinePrimitiveSqlDataType(typeof(ulong), "INTEGER BIGINT", "GetUInt64");
+			this.DefinePrimitiveSqlDataType(typeof(ulong), "INTEGER BIGINT", "GetValue");
 			this.DefinePrimitiveSqlDataType(typeof(DateTime), "TEXT", "GetDateTime");
 			this.DefinePrimitiveSqlDataType(typeof(float), "REAL", "GetFloat");
 			this.DefinePrimitiveSqlDataType(typeof(double), "REAL", "GetDouble");
