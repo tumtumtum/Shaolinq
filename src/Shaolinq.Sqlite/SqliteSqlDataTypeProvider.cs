@@ -1,8 +1,6 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Data;
-using Platform;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.Sqlite
@@ -23,9 +21,9 @@ namespace Shaolinq.Sqlite
 			this.DefinePrimitiveSqlDataType(typeof(long), "INTEGER", "GetInt64");
 			this.DefinePrimitiveSqlDataType(typeof(ulong), "INTEGER BIGINT", "GetValue");
 			this.DefinePrimitiveSqlDataType(typeof(DateTime), "TEXT", "GetDateTime");
-			this.DefinePrimitiveSqlDataType(typeof(float), "REAL", "GetFloat");
-			this.DefinePrimitiveSqlDataType(typeof(double), "REAL", "GetDouble");
-			this.DefinePrimitiveSqlDataType(typeof(decimal), "TEXT", "GetDecimal");
+			this.DefinePrimitiveSqlDataType(typeof(float), "REAL", "GetValue");
+			this.DefinePrimitiveSqlDataType(typeof(double), "REAL", "GetValue");
+			this.DefinePrimitiveSqlDataType(typeof(decimal), "TEXT", "GetValue");
 		}
 	}
 }
