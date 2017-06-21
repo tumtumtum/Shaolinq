@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Data;
+using System;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -24,8 +24,8 @@ namespace Shaolinq.SqlServer
 			this.DefinePrimitiveSqlDataType(typeof(float), "FLOAT(24)", "GetValue");
 			this.DefinePrimitiveSqlDataType(typeof(double), "FLOAT(53)", "GetValue");
 			
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", false));
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", true));
+			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", false, DateTimeKind.Utc));
+			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", true, DateTimeKind.Utc));
 
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaultsConfiguration, typeof(decimal), "DECIMAL(38, 9)"));
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaultsConfiguration, typeof(decimal?), "DECIMAL(38, 9)"));

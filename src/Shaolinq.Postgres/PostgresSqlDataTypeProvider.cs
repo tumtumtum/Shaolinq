@@ -51,8 +51,8 @@ namespace Shaolinq.Postgres
 			this.DefinePrimitiveSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
 			this.DefinePrimitiveSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
 
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", false));
-			this.DefineSqlDataType(new UniversalTimeNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", true));
+			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", false, DateTimeKind.Utc));
+			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", true, DateTimeKind.Utc));
 
 			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan)));
 			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan?)));

@@ -34,8 +34,12 @@ namespace Shaolinq.Sqlite
 				{
 					Enlist = false,
 					DataSource = contextInfo.FileName
-
 				};
+
+				if (contextInfo.DateTimeKind != null)
+				{
+					connectionStringBuilder.Add("DateTimeKind", contextInfo.DateTimeKind.Value);
+				}
 
 				connectionStringBuilder.Add("foreign keys", 1);
 

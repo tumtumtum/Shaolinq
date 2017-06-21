@@ -138,6 +138,11 @@ namespace Shaolinq.Sqlite
 					ForeignKeys = true
 				};
 
+				if (contextInfo.DateTimeKind != null)
+				{
+					connectionStringBuilder.DateTimeKind = contextInfo.DateTimeKind.Value;
+				}
+
 				this.ConnectionString = connectionStringBuilder.ConnectionString;
 			}
 			else

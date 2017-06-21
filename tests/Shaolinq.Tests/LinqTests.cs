@@ -70,7 +70,7 @@ namespace Shaolinq.Tests
 				tum.Address = address;
 				tum.TimeSinceLastSlept = TimeSpan.FromHours(7.5);
 				tum.SpecialDate = new DateTime(1979, 12, 24, 04, 00, 00);
-				tum.Birthdate = new FixedDate(new DateTime(1979, 12, 24, 04, 00, 00));
+				tum.Birthdate = new FixedDate(new DateTime(1979, 12, 24, 00, 00, 00, DateTimeKind.Utc));
 
 				var mars = school.Students.Create();
 
@@ -2144,6 +2144,7 @@ namespace Shaolinq.Tests
 
 				Assert.IsNotNull(student1);
 				Assert.AreEqual(1979, student1.First().Birthdate.Value.ToDateTime().Year);
+				Assert.AreEqual(0, student1.First().Birthdate.Value.ToDateTime().Hour);
 			}
 		}
 

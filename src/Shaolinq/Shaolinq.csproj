@@ -325,7 +325,7 @@
     <Compile Include="Persistence\SqlCreateCommandOptions.cs" />
     <Compile Include="Persistence\SqlCapability.cs" />
     <Compile Include="Persistence\SqlSyntaxSymbol.cs" />
-    <Compile Include="Persistence\UniversalTimeNormalisingDateTimeSqlDateType.cs" />
+    <Compile Include="Persistence\DateTimeKindNormalisingDateTimeSqlDateType.cs" />
     <Compile Include="PrimaryKeyInfoCache.cs" />
     <Compile Include="PrimaryKeyType.cs" />
     <Compile Include="ReadOnlyListUtils.cs" />
