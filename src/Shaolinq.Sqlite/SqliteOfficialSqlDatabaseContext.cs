@@ -135,14 +135,10 @@ namespace Shaolinq.Sqlite
 				{
 					FullUri = this.FileName,
 					Enlist = false,
-					ForeignKeys = true
+					ForeignKeys = true,
+					DateTimeKind = contextInfo.DateTimeKind
 				};
-
-				if (contextInfo.DateTimeKind != null)
-				{
-					connectionStringBuilder.DateTimeKind = contextInfo.DateTimeKind.Value;
-				}
-
+				
 				this.ConnectionString = connectionStringBuilder.ConnectionString;
 			}
 			else

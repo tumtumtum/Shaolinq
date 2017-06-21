@@ -17,7 +17,7 @@ namespace Shaolinq.Sqlite
 		public bool UseMonoData { get; set; }
 
 		[XmlAttribute]
-		public DateTimeKind? DateTimeKind { get; set; }
+		public DateTimeKind DateTimeKind { get; set; }
 
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
