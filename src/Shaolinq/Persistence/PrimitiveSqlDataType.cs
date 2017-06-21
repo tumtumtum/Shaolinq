@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence
 			return this.SqlName;
 		}
 
-		public static T Read<T, U>(Func<U> getValueMethod, PrimitiveSqlDataType _this, int ordinal)
+		public static T Read<T, U>(Func<U> getValueMethod)
 		{
 			var value = getValueMethod();
 
@@ -54,8 +54,11 @@ namespace Shaolinq.Persistence
 				Expression.Convert(Expression.Constant(this.SupportedType.GetDefaultValue()), this.SupportedType),
 				Expression.Convert
 				(
-					Expression.Call(TypeUtils.GetMethod(() => Read<int, int>(default(Func<int>), default(PrimitiveSqlDataType), default(int))).GetGenericMethodDefinition().MakeGenericMethod(type, this.GetMethod.ReturnType), 
-					Expression.Lambda(Expression.Call(dataReader, this.GetMethod, Expression.Constant(ordinal))), Expression.Constant(this), Expression.Constant(ordinal)),
+					Expression.Call
+					(
+						TypeUtils.GetMethod(() => Read<int, int>(default(Func<int>))).GetGenericMethodDefinition().MakeGenericMethod(type, this.GetMethod.ReturnType),
+						Expression.Lambda(Expression.Call(dataReader, this.GetMethod, Expression.Constant(ordinal)))
+					),
 					this.SupportedType
 				)
 			);

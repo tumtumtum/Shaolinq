@@ -81,24 +81,14 @@ namespace Shaolinq.Persistence
 		{
 			var expression = base.GetReadExpression(dataReader, ordinal);
 
-			if (typeConverter != null)
+			if (expression.Type.GetUnwrappedNullableType() == typeof(DateTime))
 			{
-				var convertToMethodCall = Expression.Call(null, typeConverterConvertToMethod, Expression.Constant(this.typeConverter), Expression.Convert(expression, typeof(object)), Expression.Constant(typeof(DateTime?)));
-
-				expression = Expression.Convert(convertToMethodCall, typeof(DateTime?));
-				expression = Expression.Call(specifyKindIfUnspecifiedMethodNullable, expression, Expression.Constant(DateTimeKind.Utc));
+				return Expression.Call(this.specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
 			}
 			else
 			{
-				expression = Expression.Call(this.specifyKindMethod, expression, Expression.Constant(DateTimeKind.Utc));
+				return expression;
 			}
-
-			if (this.typeConverter != null)
-			{
-				expression = Expression.Convert(Expression.Call(Expression.Constant(this.typeConverter), typeConverterConvertFromMethod, Expression.Convert(expression, typeof(object))), this.SupportedType);
-			}
-
-			return expression;
 		}
 	}
 }
