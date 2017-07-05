@@ -71,6 +71,8 @@ namespace Shaolinq.TypeBuilding
 			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndSave, Path.GetDirectoryName(filename));
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule(filenameWithoutExtension, filenameWithoutExtension + ".dll");
 
+			assemblyBuilder.SetCustomAttribute(new CustomAttributeBuilder(TypeUtils.GetConstructor(() => new GeneratedAssemblyAttribute()), Type.EmptyTypes));
+
 			var propertiesBuilder = moduleBuilder.DefineType("$$$DataAccessModelProperties", TypeAttributes.Class, typeof(object));
 			var assemblyBuildContext = new AssemblyBuildContext(assemblyBuilder, moduleBuilder, propertiesBuilder);
 
@@ -142,9 +144,11 @@ namespace Shaolinq.TypeBuilding
 			foreach (var assembly in uniquelyReferencedAssemblies.OrderBy(c => c.FullName))
 			{
 				bytes = Encoding.UTF8.GetBytes(assembly.FullName);
-
 				sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
 				
+				bytes = Encoding.UTF8.GetBytes(assembly.GetName().Version.ToString());
+				sha1.TransformBlock(bytes, 0, bytes.Length, null, 0);
+
 				var path = StringUriUtils.GetScheme(assembly.CodeBase) == "file" ? new Uri(assembly.CodeBase).LocalPath : assembly.Location;
 
 				if (path != null)

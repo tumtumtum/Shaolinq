@@ -314,41 +314,42 @@ namespace Shaolinq.AsyncRewriter
 				{
 					continue;
 				}
-				
+
 				var namespaces = SyntaxFactory.List<MemberDeclarationSyntax>
 				(
 					syntaxTree.GetRoot()
-					.DescendantNodes()
-					.OfType<MethodDeclarationSyntax>()
-					.Where(m => (m.Parent as TypeDeclarationSyntax)?.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync"))  == true || m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
-					.Where(c => (c.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? c.FirstAncestorOrSelf<InterfaceDeclarationSyntax>() as TypeDeclarationSyntax) != null)
-					.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? m.FirstAncestorOrSelf<InterfaceDeclarationSyntax>())
-					.GroupBy(g => g.Key.FirstAncestorOrSelf<NamespaceDeclarationSyntax>())
-					.Select(namespaceGrouping =>
-						SyntaxFactory.NamespaceDeclaration(namespaceGrouping.Key.Name)
-						.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>
-						(
-							namespaceGrouping.Select
-							(
-								typeGrouping => 
-								typeGrouping.Key is ClassDeclarationSyntax
-								?
-									(SyntaxFactory.ClassDeclaration(typeGrouping.Key.Identifier)
-										.WithModifiers(typeGrouping.Key.Modifiers)
-										.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
-										.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
-										as TypeDeclarationSyntax)
-										.WithLeadingTrivia(new SyntaxTriviaList())
-								:
-									(SyntaxFactory.InterfaceDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
-										.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
-										.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
-										as TypeDeclarationSyntax)
-										.WithLeadingTrivia(new SyntaxTriviaList())
-							)
-						))
-					)
+						.DescendantNodes()
+						.OfType<MethodDeclarationSyntax>()
+						.Where(m => (m.Parent as TypeDeclarationSyntax)?.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")) == true || m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
+						.Where(c => (c.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? c.FirstAncestorOrSelf<InterfaceDeclarationSyntax>() as TypeDeclarationSyntax) != null)
+						.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? m.FirstAncestorOrSelf<InterfaceDeclarationSyntax>())
+						.GroupBy(g => g.Key.FirstAncestorOrSelf<NamespaceDeclarationSyntax>())
+						.Select(namespaceGrouping =>
+							SyntaxFactory.NamespaceDeclaration(namespaceGrouping.Key.Name)
+								.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>
+								(
+									namespaceGrouping.Select
+									(
+										typeGrouping =>
+											typeGrouping.Key is ClassDeclarationSyntax
+												?
+												(SyntaxFactory.ClassDeclaration(typeGrouping.Key.Identifier)
+														.WithModifiers(typeGrouping.Key.Modifiers)
+														.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
+														.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+													as TypeDeclarationSyntax)
+												.WithLeadingTrivia(new SyntaxTriviaList())
+												:
+												(SyntaxFactory.InterfaceDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
+														.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
+														.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+													as TypeDeclarationSyntax)
+												.WithLeadingTrivia(new SyntaxTriviaList())
+									)
+								))
+						)
 				);
+
 
 				yield return SyntaxFactory.SyntaxTree
 				(

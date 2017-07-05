@@ -155,6 +155,7 @@
     <Compile Include="DependsOnPropertyAttribute.cs" />
     <Compile Include="EmptyIfFirstIsNullEnumerator.cs" />
     <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="GeneratedAssemblyAttribute.cs" />
     <Compile Include="GeneratedAsync.cs" />
     <Compile Include="GeneratedSqlExpressionComparer.cs" />
     <Compile Include="GeneratedSqlExpressionHasher.cs" />
