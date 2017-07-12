@@ -5,6 +5,7 @@
     <version>$version$</version>
     <title>Shaolinq AsyncRewriter</title>
     <summary>Automatically generates async versions of your methods</summary>
+    <developmentDependency>true</developmentDependency>
     <authors>Thong Nguyen</authors>
     <owners>Thong Nguyen</owners>
     <licenseUrl>https://raw.github.com/tumtumtum/Shaolinq/master/LICENSE.txt</licenseUrl>
