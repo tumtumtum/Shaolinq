@@ -5,6 +5,7 @@ namespace Shaolinq
 	using System.Threading;
 	using System.Transactions;
 	using System.Threading.Tasks;
+	using System.Collections.Generic;
 	using Shaolinq.Persistence;
 	using global::Shaolinq;
 	using global::Shaolinq.Persistence;

@@ -441,7 +441,7 @@ namespace Shaolinq.AsyncRewriter
 			var asyncMethodName = methodSyntax.Identifier.Text + "Async";
 			var methodSymbol = (IMethodSymbol)ModelExtensions.GetDeclaredSymbol(semanticModel, methodSyntax);
 			var isInterfaceMethod = methodSymbol.ContainingType.TypeKind == TypeKind.Interface;
-			
+
 			if (((methodSyntax.Parent as TypeDeclarationSyntax)?.Modifiers)?.Any(c => c.Kind() == SyntaxKind.PartialKeyword) != true)
 			{
 				var name = ((TypeDeclarationSyntax)methodSyntax.Parent).Identifier.ToString();
