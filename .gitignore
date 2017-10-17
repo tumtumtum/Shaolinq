@@ -148,3 +148,4 @@ $RECYCLE.BIN/
 # NuGet Packages
 lib/Packages/
 src/packages/
+/src/.vs/Shaolinq/v15/sqlite3/storage.ide

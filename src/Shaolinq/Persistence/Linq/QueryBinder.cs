@@ -1521,6 +1521,11 @@ namespace Shaolinq.Persistence.Linq
 
 		private SqlProjectionExpression ConvertToSequence(Expression expression)
 		{
+			if (expression is ParameterExpression)
+			{
+				expressionsByParameter.TryGetValue((ParameterExpression)expression, out expression);
+			}
+
 			switch (expression.NodeType)
 			{
 			case (ExpressionType)SqlExpressionType.Projection:
@@ -1573,12 +1578,6 @@ namespace Shaolinq.Persistence.Linq
 			default:
 				throw new Exception($"The expression of type '{expression.Type}' is not a sequence");
 			}
-		}
-
-		public static T? X<T>(T? value)
-			where T : struct
-		{
-			return value ?? default(T);
 		}
 
 		private static readonly HashSet<string> ValuesRequiredAggregateNames = new HashSet<string>(new[] { "Max", "Min", "Average", "Sum" });

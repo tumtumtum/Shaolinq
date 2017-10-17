@@ -67,6 +67,9 @@
     <Compile Include="TestAssignment.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <None Include="TestAttributeOnClass.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Compile Include="TestExplicitInterfaceImplementations.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>

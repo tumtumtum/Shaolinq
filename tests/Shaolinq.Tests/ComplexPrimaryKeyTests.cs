@@ -312,7 +312,19 @@ namespace Shaolinq.Tests
 
 			query.ToList();
 		}
-		
+
+		[Test]
+		public void Test_SelectMany3()
+		{
+			var malls = this.model.Malls;
+
+			var query = malls
+				.Select(c => new object[] {  c.Address })
+				.AsEnumerable()
+				.SelectMany(c => c)
+				.ToList();
+		}
+
 		[Test]
 		public void Test_Implicit_Join_Compare_ObjectReferences()
 		{

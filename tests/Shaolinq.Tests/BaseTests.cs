@@ -60,7 +60,7 @@ namespace Shaolinq.Tests
 
 			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
 			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
-			retval.SaveAndReuseGeneratedAssemblies = true;
+			retval.SaveAndReuseGeneratedAssemblies = false;
 			((MySqlSqlDatabaseContextInfo)retval.SqlDatabaseContextInfos[0]).SilentlyIgnoreIndexConditions = true;
 			retval.SqlDatabaseContextInfos[0].SqlDataTypes = new List<Type> { typeof(SqlFixedDateDataType) };
 

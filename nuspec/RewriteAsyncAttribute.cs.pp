@@ -11,7 +11,8 @@ namespace $rootnamespace$
 	{
 		public bool ContinueOnCapturedContext { get; set; }
 		public MethodAttributes MethodAttributes { get; set; }
-
+		public bool ApplyToDescendents {get; set; }
+		
 		public RewriteAsyncAttribute()
 		  : this(default(MethodAttributes))
 		{

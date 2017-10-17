@@ -268,6 +268,41 @@ namespace Shaolinq.AsyncRewriter
 			);
 		}
 
+		private bool AllMethodsInClassShouldBeAsync(ITypeSymbol type)
+		{
+			var initialType = type;
+
+			while (type != null)
+			{
+				var attributeSyntax = (AttributeSyntax)type.GetAttributes().FirstOrDefault(c => ((AttributeSyntax)c.ApplicationSyntaxReference?.GetSyntax())
+					?.Name.ToString() == "RewriteAsync")?.ApplicationSyntaxReference?.GetSyntax();
+
+				if (attributeSyntax?.ArgumentList?.Arguments.Any(c => c.NameEquals.Name.ToString() == "ApplyToDescendents") == true)
+				{
+					var x = attributeSyntax?.ArgumentList.Arguments.First(c => c.NameEquals.Name.ToString() == "ApplyToDescendents");
+
+					if (x.Expression.ToString().Equals("true", StringComparison.OrdinalIgnoreCase))
+					{
+						return true;	
+					}
+
+					if (x.Expression.ToString().Equals("false", StringComparison.OrdinalIgnoreCase))
+					{
+						return type == initialType;
+					}
+				}
+
+				if (attributeSyntax != null && type == initialType)
+				{
+					return true;
+				}
+				
+				type = type.BaseType;
+			}
+
+			return false;
+		}
+
 		public IEnumerable<SyntaxTree> Rewrite(SyntaxTree[] syntaxTrees, CSharpCompilation compilationNode, string[] excludeTypes = null)
 		{
 			this.methodAttributesSymbol = compilationNode.GetTypeByMetadataName(typeof(MethodAttributes).FullName);
@@ -312,15 +347,18 @@ namespace Shaolinq.AsyncRewriter
 
 				if (syntaxTree.GetRoot().DescendantNodes().All(m => ((m as MethodDeclarationSyntax)?.AttributeLists ?? (m as TypeDeclarationSyntax)?.AttributeLists)?.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")) == null))
 				{
-					continue;
+					if (syntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().All(c => AllMethodsInClassShouldBeAsync(semanticModel.GetDeclaredSymbol(c))))
+					{
+						continue;	
+					}
 				}
-
+				
 				var namespaces = SyntaxFactory.List<MemberDeclarationSyntax>
 				(
 					syntaxTree.GetRoot()
 						.DescendantNodes()
 						.OfType<MethodDeclarationSyntax>()
-						.Where(m => (m.Parent as TypeDeclarationSyntax)?.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")) == true || m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
+						.Where(m => AllMethodsInClassShouldBeAsync(semanticModel.GetDeclaredSymbol(m.Parent as TypeDeclarationSyntax)) || m.AttributeLists.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")))
 						.Where(c => (c.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? c.FirstAncestorOrSelf<InterfaceDeclarationSyntax>() as TypeDeclarationSyntax) != null)
 						.GroupBy(m => m.FirstAncestorOrSelf<ClassDeclarationSyntax>() as TypeDeclarationSyntax ?? m.FirstAncestorOrSelf<InterfaceDeclarationSyntax>())
 						.GroupBy(g => g.Key.FirstAncestorOrSelf<NamespaceDeclarationSyntax>())
@@ -349,8 +387,7 @@ namespace Shaolinq.AsyncRewriter
 								))
 						)
 				);
-
-
+				
 				yield return SyntaxFactory.SyntaxTree
 				(
 					SyntaxFactory.CompilationUnit()
