@@ -13,7 +13,7 @@ namespace Shaolinq.AsyncRewriter
 		public ITaskItem[] InputFiles { get; set; }
 
 		[Required]
-		public ITaskItem OutputFile { get; set; }
+		public ITaskItem[] OutputFile { get; set; }
 
 		public ITaskItem[] Assemblies { get; set; }
 
@@ -47,33 +47,40 @@ namespace Shaolinq.AsyncRewriter
 
 		public override bool Execute()
 		{
-			var changed = true;
-			var filename = this.OutputFile.ItemSpec;
 			var code = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
 
-			try
+			foreach (var outputFile in this.OutputFile)
 			{
-				using (TextReader left = File.OpenText(filename), right = new StringReader(code))
-				{
-					if (Equal(left, right))
-					{
-						this.Log.LogMessage($"{filename} has not changed");
+				var changed = true;
+				var filename = outputFile.ItemSpec;
 
-						changed = false;
+				try
+				{
+					using (TextReader left = File.OpenText(filename), right = new StringReader(code))
+					{
+						if (Equal(left, right))
+						{
+							this.Log.LogMessage($"{filename} has not changed");
+
+							changed = false;
+						}
 					}
 				}
-			}
-			catch (Exception e)
-			{
-				this.Log.LogErrorFromException(e);
-			}
+				catch (Exception)
+				{
+				}
 
-			if (!changed && this.DontWriteIfNoChanges)
-			{
-				return true;
-			}
+				if (!changed && this.DontWriteIfNoChanges)
+				{
+					this.Log.LogMessage($"Skipping writing {filename}");
 
-			File.WriteAllText(filename, code);
+					continue;
+				}
+
+				this.Log.LogMessage($"Writing {filename}");
+
+				File.WriteAllText(filename, code);
+			}
 
 			return true;
 		}
