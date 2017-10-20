@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using NUnit.Framework;
 
 namespace Shaolinq.AsyncRewriter.Tests
@@ -11,140 +13,85 @@ namespace Shaolinq.AsyncRewriter.Tests
 	[TestFixture(Category = "IgnoreOnMono")]
 	public class AsyncRewriterTests
 	{
-		[Test]
-		public void TestRewrite()
+		private static IEnumerable<TestCaseData> GetTestCases()
+		{
+			yield return GetTestCaseData("Rewrite", "Foo.cs", "Bar.cs");
+			yield return GetTestCaseData("Generic Constraints", "IQuery.cs");
+			yield return GetTestCaseData("Interfaces", "ICommand.cs");
+			yield return GetTestCaseData("Extension methods", "ExtensionMethodTests.cs", "Foo.cs");
+			yield return GetTestCaseData("Conditional access", "ConditionalAccess.cs");
+			yield return GetTestCaseData("Assignment", "TestAssignment.cs");
+			yield return GetTestCaseData("Generic specialised implementation", "TestGenericSpecialisedImplementation.cs");
+			yield return GetTestCaseData("Explicit await rewritten async method", "TestExplicitAwaitRewrittenAsyncMethod.cs");
+			yield return GetTestCaseData("Explicit interface implementations", "TestExplicitInterfaceImplementations.cs");
+			yield return GetTestCaseData("Expression body", "TestExpressionBody.cs");
+			yield return GetTestCaseData("Attribute on class", "TestAttributeOnClass.cs");
+		}
+
+		private static TestCaseData GetTestCaseData(string name, params string[] inputFiles)
+		{
+			return new TestCaseData(new object[] {inputFiles}).SetName(name);
+		}
+
+		[TestCaseSource(nameof(GetTestCases))]
+		public void TestRewrite(params string[] inputFiles)
 		{
 			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "Foo.cs", "Bar.cs" };
-			
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
+			var root = Path.Combine(Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
+
+			var result = rewriter.RewriteAndMerge(inputFiles.Select(c => Path.Combine(root, c)).ToArray());
 
 			Console.WriteLine(result);
 		}
 
-		[Test]
-		public void TestWithGenericConstraints()
+		[Explicit]
+		[TestCaseSource(nameof(GetTestCases))]
+		public void TestRewriteCompile(params string[] inputFiles)
 		{
 			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "IQuery.cs" };
+			var root = Path.Combine(Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
+			var files = new List<string>(inputFiles) {"RewriteAsyncAttribute.cs"};
 
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
+			var rewriteResult = rewriter.RewriteAndMerge(files.Select(c => Path.Combine(root, c)).ToArray());
 
-			Console.WriteLine(result);
-		}
+			var syntaxTrees =
+				new List<SyntaxTree>(files.Select(c => CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(root, c)))))
+				{
+					CSharpSyntaxTree.ParseText(rewriteResult)
+				};
 
-		[Test]
-		public void TestWithInterfaces()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "ICommand.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestUsingExtensionMethods()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "ExtensionMethodTests.cs", "Foo.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestConditionalAccess()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "ConditionalAccess.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray(), new[] { typeof(EnumerableExtensions).Assembly.Location }).ToArray();
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestAssignment()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "TestAssignment.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestTestGenericSpecialisedImplementation()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "TestGenericSpecialisedImplementation.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestTestExplicitAwaitRewrittenAsyncMethod()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "TestExplicitAwaitRewrittenAsyncMethod.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-			if (result == null)
+			var assemblyName = Path.GetRandomFileName();
+			var references = new MetadataReference[]
 			{
-				throw new ArgumentNullException(nameof(result));
+				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+				MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+				MetadataReference.CreateFromFile(typeof(DataAccessObject).Assembly.Location)
+			};
+
+			var compilation = CSharpCompilation.Create(
+				assemblyName,
+				syntaxTrees: syntaxTrees,
+				references: references,
+				options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+			using (var ms = new MemoryStream())
+			{
+				var compileResult = compilation.Emit(ms);
+
+				if (!compileResult.Success)
+				{
+					var failures = compileResult.Diagnostics.Where(diagnostic =>
+						diagnostic.IsWarningAsError ||
+						diagnostic.Severity == DiagnosticSeverity.Error);
+
+					foreach (var diagnostic in failures)
+					{
+						Console.Error.WriteLine(diagnostic);
+					}
+
+					Assert.Fail();
+				}
 			}
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestExplicitInterfaceImplementationsMethod()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "TestExplicitInterfaceImplementations.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestExpressionBody()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "TestExpressionBody.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
-		}
-
-		[Test]
-		public void TestAttributeOnClass()
-		{
-			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
-			var paths = new List<string> { "TestAttributeOnClass.cs" };
-
-			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());
-
-			Console.WriteLine(result);
 		}
 	}
 }
