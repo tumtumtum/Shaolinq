@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2016 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Reflection;
@@ -9,13 +9,18 @@ namespace Shaolinq.AsyncRewriter.Tests
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{
-		public bool ContinueOnCapturedContext { get; private set; }
-		public MethodAttributes MethodAttributes { get; private set; }
+		public bool ContinueOnCapturedContext { get; set; }
+		public MethodAttributes MethodAttributes { get; set; }
+		public bool ApplyToDescendents { get; set; }
 
-		public RewriteAsyncAttribute(MethodAttributes methodAttributes = default(MethodAttributes), bool continueOnCapturedContext = false)
+		public RewriteAsyncAttribute()
+			: this(default(MethodAttributes))
+		{
+		}
+
+		public RewriteAsyncAttribute(MethodAttributes methodAttributes)
 		{
 			this.MethodAttributes = methodAttributes;
-			this.ContinueOnCapturedContext = continueOnCapturedContext;
 		}
 	}
 }
