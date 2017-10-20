@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="$(MSBuildThisFileDirectory)Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
   <PropertyGroup>
     <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
-    <WithoutGeneratedExcludePattern>GeneratedAsync.cs</WithoutGeneratedExcludePattern>
+    <WithoutGeneratedExcludePattern>GeneratedAsync.cs;GeneratedSqlExpressionComparer.cs;GeneratedSqlExpressionHasher.cs</WithoutGeneratedExcludePattern>
     <GeneratedAsyncTemp>$(BaseIntermediateOutputPath)\$(Configuration)\GeneratedAsync.cs</GeneratedAsyncTemp>
   </PropertyGroup>
   <ItemGroup>
