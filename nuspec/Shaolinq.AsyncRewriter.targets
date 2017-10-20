@@ -10,11 +10,8 @@
       <InProject>False</InProject>
     </SourceWithoutGenerated>
   </ItemGroup>
-  <Target Name="GenerateAsyncSource" Inputs="@(SourceWithoutGenerated)" Outputs="$(GeneratedAsyncTemp)" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
+  <Target Name="GenerateAsyncSource" Inputs="@(SourceWithoutGenerated)" Outputs="$(GeneratedAsyncTemp)" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences" BeforeTargets="BeforeBuild">
     <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs;$(GeneratedAsyncTemp)" DontWriteIfNoChanges="True" />
-  </Target>
-  <Target Name="GenerateAsyncSourceBeforeBuild" Inputs="@(SourceWithoutGenerated)" Outputs="$(GeneratedAsyncTemp)" AfterTargets="ResolveReferences" BeforeTargets="CoreResGen">
-    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateAsyncSource" WorkingDirectory="." />
     <ItemGroup>
       <FileWrites Include="$(GeneratedAsyncTemp)"/>
     </ItemGroup>
