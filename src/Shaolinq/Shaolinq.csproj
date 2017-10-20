@@ -496,21 +496,17 @@
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
   <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
-  <PropertyGroup>
-    <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
-    <WithoutGeneratedExcludePattern>**\Generated*.cs</WithoutGeneratedExcludePattern>
-  </PropertyGroup>
   <ItemGroup>
-    <SourceWithoutGeneratedExpressions Include="$(WithoutGeneratedIncludePattern)" Exclude="$(WithoutGeneratedExcludePattern)">
+    <SourceWithoutGeneratedExpressions Include="@(Compile)" Exclude="**/GeneratedSqlExpression*.cs">
       <InProject>False</InProject>
     </SourceWithoutGeneratedExpressions>
   </ItemGroup>
-  <Target Name="GenerateAsyncSourceExpressions" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
+  <Target Name="GenerateComparerAndHasher" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
     <ExpressionComparerWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionComparer.cs" />
     <ExpressionHasherWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionHasher.cs" />
   </Target>
-  <Target Name="GenerateAsyncSourceExpressionsBeforeBuild" AfterTargets="ResolveReferences" BeforeTargets="CoreResGen">
-    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateAsyncSourceExpressions" WorkingDirectory="." />
+  <Target Name="GenerateComparerAndHasherBeforeBuild" BeforeTargets="BeforeBuild">
+    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateComparerAndHasher" WorkingDirectory="." />
   </Target>
   <Import Project="../AsyncRewriter.target" />
 </Project>
