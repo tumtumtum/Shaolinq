@@ -12,12 +12,12 @@ namespace Shaolinq.SqlServer
 
 	public partial class SqlServerSqlDatabaseSchemaManager
 	{
-		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		protected virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			return this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
-		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
+		protected async virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
 		{
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
 			var deleteDatabaseDropsTablesOnly = ((SqlServerSqlDatabaseContext)this.SqlDatabaseContext).DeleteDatabaseDropsTablesOnly;
@@ -33,7 +33,7 @@ namespace Shaolinq.SqlServer
 					var databaseName = this.SqlDatabaseContext.DatabaseName.Trim();
 					var context = (SqlServerSqlDatabaseContext)this.SqlDatabaseContext;
 					connection.ConnectionString = deleteDatabaseDropsTablesOnly ? this.SqlDatabaseContext.ConnectionString : this.SqlDatabaseContext.ServerConnectionString;
-					await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+					connection.Open();
 					using (var command = (SqlCommand)connection.CreateCommand())
 					{
 						if (options == DatabaseCreationOptions.DeleteExistingDatabase)
@@ -50,7 +50,7 @@ namespace Shaolinq.SqlServer
 										EXEC (@sql)
 									END
 								";
-								await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 								command.CommandText = @"
 									WHILE(exists(select 1 from INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA != 'sys' AND TABLE_TYPE = 'BASE TABLE'))
 									BEGIN
@@ -60,29 +60,29 @@ namespace Shaolinq.SqlServer
 										EXEC (@sql)
 									END
 								";
-								await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 								command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') CREATE DATABASE [{databaseName}];";
-								await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 							}
 							else
 							{
 								command.CommandText = $"IF EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
-								await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 								command.CommandText = $"CREATE DATABASE [{databaseName}];";
-								await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+								command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 							}
 						}
 						else
 						{
 							command.CommandText = $"IF EXISTS (SELECT 1 FROM sys.databases WHERE NAME = '{databaseName}') DROP DATABASE [{databaseName}];";
 							command.CommandText = $"CREATE DATABASE [{databaseName}];";
-							await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 						}
 
 						command.CommandText = $"ALTER DATABASE [{databaseName}] SET ALLOW_SNAPSHOT_ISOLATION {(context.AllowSnapshotIsolation ? "ON" : "OFF")};";
-						await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 						command.CommandText = $"ALTER DATABASE [{databaseName}] SET READ_COMMITTED_SNAPSHOT {(context.ReadCommittedSnapshot ? "ON" : "OFF")};";
-						await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
+						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
 						return true;
 					}
 				}
