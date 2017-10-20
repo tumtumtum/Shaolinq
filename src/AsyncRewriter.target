@@ -3,7 +3,7 @@
   <UsingTask TaskName="AsyncRewriterTask" AssemblyFile="$(MSBuildThisFileDirectory)Shaolinq.AsyncRewriter/bin/$(Configuration)/Shaolinq.AsyncRewriter.dll" />
   <PropertyGroup>
     <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
-    <WithoutGeneratedExcludePattern>GeneratedAsync.cs</WithoutGeneratedExcludePattern>
+    <WithoutGeneratedExcludePattern>GeneratedAsync.cs;GeneratedSqlExpressionComparer.cs;GeneratedSqlExpressionHasher.cs</WithoutGeneratedExcludePattern>
     <GeneratedAsyncTemp>$(BaseIntermediateOutputPath)\$(Configuration)\GeneratedAsync.cs</GeneratedAsyncTemp>
   </PropertyGroup>
   <ItemGroup>
