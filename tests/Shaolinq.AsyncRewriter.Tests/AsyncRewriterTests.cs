@@ -27,6 +27,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			yield return GetTestCaseData("Expression body", "TestExpressionBody.cs");
 			yield return GetTestCaseData("Attribute on class", "TestAttributeOnClass.cs");
 			yield return GetTestCaseData("Language features", "LanguageFeatures.cs");
+			yield return GetTestCaseData("Nested async methods", "NestedAsync.cs");
 		}
 
 		private static TestCaseData GetTestCaseData(string name, params string[] inputFiles)
