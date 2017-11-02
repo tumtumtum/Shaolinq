@@ -22,8 +22,8 @@ namespace Shaolinq.AsyncRewriter
 		protected int displacement;
 		private MethodDeclarationSyntax methodSyntax;
 		protected readonly CompilationLookup extensionMethodLookup;
-		
-		protected MethodInvocationInspector(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup,  SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol, MethodDeclarationSyntax methodSyntax)
+
+		protected MethodInvocationInspector(IAsyncRewriterLogger log, CompilationLookup extensionMethodLookup, SemanticModel semanticModel, HashSet<ITypeSymbol> excludeTypes, ITypeSymbol cancellationTokenSymbol, MethodDeclarationSyntax methodSyntax)
 		{
 			this.log = log;
 			this.extensionMethodLookup = extensionMethodLookup;
@@ -32,7 +32,7 @@ namespace Shaolinq.AsyncRewriter
 			this.methodSyntax = methodSyntax;
 			this.excludeTypes = excludeTypes;
 		}
-		
+
 		protected ITypeSymbol GetArgumentType(ArgumentSyntax syntax)
 		{
 			var symbol = this.semanticModel.GetSpeculativeSymbolInfo(syntax.Expression.SpanStart + this.displacement, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Symbol;
@@ -43,7 +43,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				return property.GetValue(symbol) as ITypeSymbol;
 			}
-			
+
 			return this.semanticModel.GetSpeculativeTypeInfo(syntax.Expression.SpanStart + this.displacement, syntax.Expression, SpeculativeBindingOption.BindAsExpression).Type;
 		}
 
@@ -103,7 +103,7 @@ namespace Shaolinq.AsyncRewriter
 					return node;
 				}
 			}
-			
+
 			var originalNodeStart = node.SpanStart + this.displacement;
 
 			var explicitExtensionMethodCall = false;
@@ -115,7 +115,7 @@ namespace Shaolinq.AsyncRewriter
 						.Where(c => this.GetArgumentType(c) != this.cancellationTokenSymbol))));
 
 				var visited = this.Visit(node.Expression);
-				
+
 				if (visited is MemberAccessExpressionSyntax)
 				{
 					var memberAccess = (MemberAccessExpressionSyntax)visited;
@@ -152,8 +152,8 @@ namespace Shaolinq.AsyncRewriter
 				}
 
 				IMethodSymbol syncMethod;
-				
-				if (newNode != null 
+
+				if (newNode != null
 					&& (syncMethod = (IMethodSymbol)(this.semanticModel.ParentModel ?? this.semanticModel).GetSpeculativeSymbolInfo(node.SpanStart, newNode, SpeculativeBindingOption.BindAsExpression).Symbol) != null)
 				{
 					if (syncMethod.HasRewriteAsyncApplied())
@@ -168,7 +168,7 @@ namespace Shaolinq.AsyncRewriter
 						this.displacement += -this.methodSyntax.SpanStart - (node.FullSpan.Length - defaultExpression.FullSpan.Length);
 						this.methodSyntax = this.methodSyntax.ReplaceNode(actualNode, defaultExpression);
 						this.displacement += this.methodSyntax.SpanStart;
-						
+
 						return retval;
 					}
 				}
@@ -177,13 +177,13 @@ namespace Shaolinq.AsyncRewriter
 					.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
 					.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 			}
-			
+
 			var methodSymbol = (IMethodSymbol)result.Symbol;
 			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
 
 			IMethodSymbol candidate;
 			int cancellationTokenPos;
-			
+
 			if (methodSymbol.HasRewriteAsyncApplied())
 			{
 				candidate = methodSymbol;
@@ -197,29 +197,27 @@ namespace Shaolinq.AsyncRewriter
 						.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
 						.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 				}
-				
+
 				var expectedParameterTypes = new List<ITypeSymbol>();
-				
+
 				expectedParameterTypes.AddRange(methodParameters.TakeWhile(c => !(c.HasExplicitDefaultValue || c.IsParams)).Select(c => c.Type));
 				expectedParameterTypes.Add(this.cancellationTokenSymbol);
 				expectedParameterTypes.AddRange(methodParameters.SkipWhile(c => !(c.HasExplicitDefaultValue || c.IsParams)).Select(c => c.Type));
-				
-				var asyncCandidates1 = methodSymbol
-					.ContainingType
-					.GetMembers()
-					.Where(c => Regex.IsMatch(c.Name, methodSymbol.Name + "Async" + @"(`[0-9])?"))
+
+				var asyncMethodCandidates = semanticModel
+					.LookupSymbols(node.GetLocation().SourceSpan.Start, methodSymbol.ContainingType, methodSymbol.Name + "Async", true)
 					.OfType<IMethodSymbol>()
 					.ToList();
 
-				candidate = asyncCandidates1.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default))
-					?? asyncCandidates1.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
+				candidate = asyncMethodCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default))
+					?? asyncMethodCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
 
 				if (candidate == null)
 				{
-					var asyncCandidates2 = this.extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", this.GetInvocationTargetType(originalNodeStart, node, methodSymbol)).ToList();
+					var explicitExtensionMethodCallCandidates = this.extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", this.GetInvocationTargetType(originalNodeStart, node, methodSymbol)).ToList();
 
-					candidate = asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default))
-						?? asyncCandidates2.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
+					candidate = explicitExtensionMethodCallCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default))
+						?? explicitExtensionMethodCallCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
 
 					if (candidate != null)
 					{
@@ -251,7 +249,7 @@ namespace Shaolinq.AsyncRewriter
 		}
 
 		private ITypeSymbol GetInvocationTargetType(int pos, InvocationExpressionSyntax node, IMethodSymbol methodSymbol)
-		{ 
+		{
 			ITypeSymbol retval;
 			var notError = false;
 
@@ -311,4 +309,3 @@ namespace Shaolinq.AsyncRewriter
 		protected abstract ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall);
 	}
 }
- 
