@@ -14,14 +14,14 @@ namespace Shaolinq.MySql
 
 	public partial class MySqlSqlDatabaseContext
 	{
-		public virtual Task<IDbConnection> OpenConnectionAsync()
+		public override Task<IDbConnection> OpenConnectionAsync()
 		{
 			return this.OpenConnectionAsync(CancellationToken.None);
 		}
 
-		public async virtual Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+		public override async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
 		{
-			var retval = base.OpenConnection();
+			var retval = (await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
 			using (var command = retval.CreateCommand())
 			{
 				var prefix = this.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
@@ -31,7 +31,7 @@ namespace Shaolinq.MySql
 				parameter.Value = this.SqlMode ?? "STRICT_ALL_TABLES";
 				command.CommandText = $"SET SESSION sql_mode = {prefix}param;";
 				command.Parameters.Add(parameter);
-				command.ExecuteNonQueryEx(this.DataAccessModel, true);
+				await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 			}
 
 			return retval;
@@ -54,12 +54,12 @@ namespace Shaolinq.MySql
 
 	public partial class MySqlSqlTransactionalCommandsContext
 	{
-		public virtual Task CommitAsync()
+		public override Task CommitAsync()
 		{
 			return this.CommitAsync(CancellationToken.None);
 		}
 
-		public async virtual Task CommitAsync(CancellationToken cancellationToken)
+		public override async Task CommitAsync(CancellationToken cancellationToken)
 		{
 			var queue = (IExpressionQueue)this.TransactionContext?.GetAttribute(MySqlSqlDatabaseContext.CommitCleanupQueueKey);
 			if (queue != null)
@@ -68,17 +68,17 @@ namespace Shaolinq.MySql
 				while ((current = queue.Dequeue()) != null)
 				{
 					var formatter = this.SqlDatabaseContext.SqlQueryFormatterManager.CreateQueryFormatter();
-					using (var command = this.TransactionContext.GetSqlTransactionalCommandsContext().CreateCommand())
+					using (var command = (await this.TransactionContext.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false)).CreateCommand())
 					{
 						var formatResult = formatter.Format(current);
 						command.CommandText = formatResult.CommandText;
 						this.FillParameters(command, formatResult);
-						command.ExecuteNonQueryEx(this.DataAccessModel, true);
+						await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 					}
 				}
 			}
 
-			base.Commit();
+			await base.CommitAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
@@ -96,12 +96,12 @@ namespace Shaolinq.MySql
 
 	public partial class MySqlSqlDatabaseSchemaManager
 	{
-		protected virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			return this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
-		protected async virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
+		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
 		{
 			var retval = false;
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
@@ -109,16 +109,16 @@ namespace Shaolinq.MySql
 			using (var dbConnection = factory.CreateConnection())
 			{
 				dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
-				dbConnection.Open();
+				await dbConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
 				using (var command = dbConnection.CreateCommand())
 				{
 					if (overwrite)
 					{
 						var drop = false;
 						command.CommandText = String.Format("SHOW DATABASES;", this.SqlDatabaseContext.DatabaseName);
-						using (var reader = command.ExecuteReader())
+						using (var reader = (await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)))
 						{
-							while (reader.Read())
+							while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
 							{
 								var s = reader.GetString(0);
 								if (s.Equals(this.SqlDatabaseContext.DatabaseName) || s.Equals(this.SqlDatabaseContext.DatabaseName.ToLower()))
@@ -132,11 +132,11 @@ namespace Shaolinq.MySql
 						if (drop)
 						{
 							command.CommandText = $"DROP DATABASE {this.SqlDatabaseContext.DatabaseName}";
-							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+							await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 						}
 
 						command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
-						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+						await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 						retval = true;
 					}
 					else
@@ -144,7 +144,7 @@ namespace Shaolinq.MySql
 						try
 						{
 							command.CommandText = $"CREATE DATABASE {this.SqlDatabaseContext.DatabaseName}\nDEFAULT CHARACTER SET = utf8\nDEFAULT COLLATE = utf8_general_ci;";
-							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+							await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 							retval = true;
 						}
 						catch

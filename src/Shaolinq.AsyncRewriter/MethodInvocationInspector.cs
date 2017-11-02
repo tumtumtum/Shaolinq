@@ -251,7 +251,7 @@ namespace Shaolinq.AsyncRewriter
 		}
 
 		private ITypeSymbol GetInvocationTargetType(int pos, InvocationExpressionSyntax node, IMethodSymbol methodSymbol)
-		{
+		{ 
 			ITypeSymbol retval;
 			var notError = false;
 
@@ -259,7 +259,7 @@ namespace Shaolinq.AsyncRewriter
 			{
 				retval = this.semanticModel.GetSpeculativeTypeInfo(pos, ((MemberAccessExpressionSyntax)node.Expression).Expression, SpeculativeBindingOption.BindAsExpression).Type;
 			}
-			else if (node.Expression is IdentifierNameSyntax)
+			else if (node.Expression is IdentifierNameSyntax || node.Expression is GenericNameSyntax)
 			{
 				notError = true;
 				retval = null;

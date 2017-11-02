@@ -13,12 +13,12 @@ namespace Shaolinq.Sqlite
 
 	public abstract partial class SqliteSqlDatabaseSchemaManager
 	{
-		protected virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			return this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
-		protected async virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
+		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
 		{
 			var retval = false;
 			var sqliteSqlDatabaseContext = (SqliteSqlDatabaseContext)this.SqlDatabaseContext;
@@ -43,7 +43,7 @@ namespace Shaolinq.Sqlite
 							PRAGMA writable_schema = 0;
 							VACUUM;
 						";
-						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+						await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 					}
 				}
 
@@ -151,12 +151,12 @@ namespace Shaolinq.Sqlite
 
 	public abstract partial class SqliteSqlDatabaseContext
 	{
-		public virtual Task<IDbConnection> OpenConnectionAsync()
+		public override Task<IDbConnection> OpenConnectionAsync()
 		{
 			return this.OpenConnectionAsync(CancellationToken.None);
 		}
 
-		public async virtual Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+		public override async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
 		{
 			var retval = (await this.PrivateOpenConnectionAsync(cancellationToken).ConfigureAwait(false));
 			if (retval == null)
@@ -167,7 +167,7 @@ namespace Shaolinq.Sqlite
 			using (var command = retval.CreateCommand())
 			{
 				command.CommandText = "PRAGMA foreign_keys = ON;";
-				command.ExecuteNonQueryEx(this.DataAccessModel, true);
+				await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 			}
 
 			return retval;
@@ -182,15 +182,15 @@ namespace Shaolinq.Sqlite
 		{
 			if (!this.IsInMemoryConnection)
 			{
-				return base.OpenConnection();
+				return await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			if (this.IsSharedCacheConnection)
 			{
-				return base.OpenConnection();
+				return await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
 			}
 
-			return this.connection ?? (this.connection = new SqlitePersistentDbConnection(base.OpenConnection()));
+			return this.connection ?? (this.connection = new SqlitePersistentDbConnection((await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false))));
 		}
 	}
 }
@@ -214,12 +214,12 @@ namespace Shaolinq.Sqlite
 
 	public partial class SqliteOfficialSqlDatabaseContext
 	{
-		public virtual Task BackupAsync(SqlDatabaseContext sqlDatabaseContext)
+		public override Task BackupAsync(SqlDatabaseContext sqlDatabaseContext)
 		{
 			return this.BackupAsync(sqlDatabaseContext, CancellationToken.None);
 		}
 
-		public async virtual Task BackupAsync(SqlDatabaseContext sqlDatabaseContext, CancellationToken cancellationToken)
+		public override async Task BackupAsync(SqlDatabaseContext sqlDatabaseContext, CancellationToken cancellationToken)
 		{
 			if (!(sqlDatabaseContext is SqliteOfficialSqlDatabaseContext))
 			{
@@ -228,7 +228,7 @@ namespace Shaolinq.Sqlite
 
 			using (var connection = (await this.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
 			{
-				using (var otherConnection = sqlDatabaseContext.OpenConnection())
+				using (var otherConnection = (await sqlDatabaseContext.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
 				{
 					this.GetSqliteConnection(connection).BackupDatabase(this.GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
 				}

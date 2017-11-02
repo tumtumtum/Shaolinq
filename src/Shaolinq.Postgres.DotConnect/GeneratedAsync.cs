@@ -14,12 +14,12 @@ namespace Shaolinq.Postgres
 
 	public partial class PostgresSqlDatabaseSchemaManager
 	{
-		protected virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		protected override Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			return this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, CancellationToken.None);
 		}
 
-		protected async virtual Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
+		protected override async Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
 		{
 			var retval = false;
 			var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
@@ -29,7 +29,7 @@ namespace Shaolinq.Postgres
 			using (var dbConnection = factory.CreateConnection())
 			{
 				dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
-				dbConnection.Open();
+				await dbConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
 				IDbCommand command;
 				if (overwrite)
 				{
@@ -37,9 +37,9 @@ namespace Shaolinq.Postgres
 					using (command = dbConnection.CreateCommand())
 					{
 						command.CommandText = "SELECT datname FROM pg_database;";
-						using (var reader = command.ExecuteReaderEx(this.SqlDatabaseContext.DataAccessModel, true))
+						using (var reader = (await command.ExecuteReaderExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false)))
 						{
-							while (reader.ReadEx())
+							while (await reader.ReadExAsync(cancellationToken).ConfigureAwait(false))
 							{
 								var s = reader.GetString(0);
 								if (s.Equals(databaseName))
@@ -56,14 +56,14 @@ namespace Shaolinq.Postgres
 						using (command = dbConnection.CreateCommand())
 						{
 							command.CommandText = $"DROP DATABASE \"{databaseName}\";";
-							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+							await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 						}
 					}
 
 					using (command = dbConnection.CreateCommand())
 					{
 						command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
-						command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+						await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 					}
 
 					retval = true;
@@ -75,7 +75,7 @@ namespace Shaolinq.Postgres
 						using (command = dbConnection.CreateCommand())
 						{
 							command.CommandText = $"CREATE DATABASE \"{databaseName}\" WITH ENCODING 'UTF8';";
-							command.ExecuteNonQueryEx(this.SqlDatabaseContext.DataAccessModel, true);
+							await command.ExecuteNonQueryExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 						}
 
 						retval = true;
