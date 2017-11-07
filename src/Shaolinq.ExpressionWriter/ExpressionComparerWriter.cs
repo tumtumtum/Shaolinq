@@ -28,10 +28,9 @@ namespace Shaolinq.ExpressionWriter
 		{
 			foreach (var member in type.GetMembers())
 			{
-				var property = member as IPropertySymbol;
-				
-				if (property != null && property.ExplicitInterfaceImplementations.Length == 0 && !(alreadyAdded.Contains(property.Name) && (property.IsAbstract || property.IsVirtual || property.IsOverride))
-					&&  property.DeclaredAccessibility == Accessibility.Public)
+
+				if (member is IPropertySymbol property && property.ExplicitInterfaceImplementations.Length == 0 && !(alreadyAdded.Contains(property.Name) && (property.IsAbstract || property.IsVirtual || property.IsOverride))
+					&& property.DeclaredAccessibility == Accessibility.Public)
 				{
 					alreadyAdded.Add(property.Name);
 
@@ -52,9 +51,8 @@ namespace Shaolinq.ExpressionWriter
 		{
 			foreach (var member in type.GetMembers())
 			{
-				var method = member as IMethodSymbol;
 
-				if (method != null)
+				if (member is IMethodSymbol method)
 				{
 					if ((method.IsOverride || method.IsVirtual) && method.Name.StartsWith("Visit") && method.Parameters.Length == 1)
 					{

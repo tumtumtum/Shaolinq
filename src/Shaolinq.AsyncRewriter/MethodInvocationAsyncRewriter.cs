@@ -24,9 +24,8 @@ namespace Shaolinq.AsyncRewriter
 		{
 			InvocationExpressionSyntax rewrittenInvocation;
 
-			var identifierName = node.Expression as IdentifierNameSyntax;
 
-			if (identifierName != null)
+			if (node.Expression is IdentifierNameSyntax identifierName)
 			{
 				rewrittenInvocation = node.WithExpression(identifierName.WithIdentifier(SyntaxFactory.Identifier(identifierName.Identifier.Text + "Async")));
 			}
@@ -34,9 +33,8 @@ namespace Shaolinq.AsyncRewriter
 			{
 				var memberAccessExp = (MemberAccessExpressionSyntax)node.Expression;
 
-				var nestedInvocation = memberAccessExp.Expression as InvocationExpressionSyntax;
 
-				if (nestedInvocation != null)
+				if (memberAccessExp.Expression is InvocationExpressionSyntax nestedInvocation)
 				{
 					memberAccessExp = memberAccessExp.WithExpression(nestedInvocation);
 				}

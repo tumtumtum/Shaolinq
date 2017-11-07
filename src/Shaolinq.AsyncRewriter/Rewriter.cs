@@ -424,9 +424,8 @@ namespace Shaolinq.AsyncRewriter
 
 		private object GetParameterTypeComparisonKey(ITypeSymbol symbol, MethodDeclarationSyntax method = null, TypeSyntax typeSyntax = null)
 		{
-			var typedParameterSymbol = symbol as ITypeParameterSymbol;
 
-			if (typedParameterSymbol != null)
+			if (symbol is ITypeParameterSymbol typedParameterSymbol)
 			{
 				return typedParameterSymbol.Ordinal;
 			}
