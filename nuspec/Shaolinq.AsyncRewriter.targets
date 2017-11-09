@@ -10,7 +10,7 @@
       <InProject>False</InProject>
     </SourceWithoutGenerated>
   </ItemGroup>
-  <Target Name="GenerateAsyncSource" Inputs="@(SourceWithoutGenerated)" Outputs="$(GeneratedAsyncTemp)" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences" BeforeTargets="BeforeBuild">
+  <Target Name="GenerateAsyncSource" Inputs="@(SourceWithoutGenerated)" Outputs="$(GeneratedAsyncTemp)" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences" BeforeTargets="CoreResGen">
     <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs;$(GeneratedAsyncTemp)" DontWriteIfNoChanges="True" />
     <ItemGroup>
       <FileWrites Include="$(GeneratedAsyncTemp)"/>
