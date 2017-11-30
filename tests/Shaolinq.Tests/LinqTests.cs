@@ -854,7 +854,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public virtual void Test_Query_With_OrderBy_And_Skip_Take()
+		public virtual void Test_Query_With_OrderBy_And_Skip_Take1()
 		{
 			using (var scope = this.NewTransactionScope())
 			{
@@ -867,6 +867,40 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(2, results.Count);
 
 				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).ThenBy(c => c.Id).Skip(1).Take(2)));
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_OrderBy_And_Skip_Take2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var students = this.model.Students.Include(c => c.School).ToList();
+
+				var results = ((from student in this.model.Students
+								orderby student.School.Name, student.Id
+								select student).Skip(1).Take(2)).ToList();
+
+				Assert.AreEqual(2, results.Count);
+
+				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.School.Name).ThenBy(c => c.Id).Skip(1).Take(2)));
+			}
+		}
+
+		[Test]
+		public virtual void Test_Query_With_OrderBy_And_Skip_Take3()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var students = this.model.Students.Include(c => c.School).ToList();
+
+				var results = ((from student in this.model.Students
+								orderby student.Firstname, student.School.Name, student.Id
+								select student).Skip(1).Take(2)).ToList();
+
+				Assert.AreEqual(2, results.Count);
+
+				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).ThenBy(c => c.School.Name).ThenBy(c => c.Id).Skip(1).Take(2)));
 			}
 		}
 

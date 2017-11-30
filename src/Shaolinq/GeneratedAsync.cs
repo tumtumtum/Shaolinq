@@ -516,8 +516,7 @@ namespace Shaolinq
 
 		public static async Task<int> CountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			var list = source as ICollection<T>;
-			if (list != null)
+			if (source is ICollection<T> list )
 			{
 				return list.Count;
 			}
@@ -541,8 +540,7 @@ namespace Shaolinq
 
 		public static async Task<long> LongCountAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
-			var list = source as ICollection<T>;
-			if (list != null)
+			if (source is ICollection<T> list )
 			{
 				return list.Count;
 			}

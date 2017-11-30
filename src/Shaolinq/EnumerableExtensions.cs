@@ -62,9 +62,7 @@ namespace Shaolinq
 
 		internal static IAsyncEnumerator<T> GetAsyncEnumeratorOrThrow<T>(this IEnumerable<T> source)
 		{
-			var asyncEnumerable = source as IAsyncEnumerable<T>;
-
-			if (asyncEnumerable == null)
+			if (!(source is IAsyncEnumerable<T> asyncEnumerable))
 			{
 				throw new NotSupportedException($"The given enumerable {source.GetType().Name} does not support {nameof(IAsyncEnumerable<T>)}");
 			}
@@ -75,9 +73,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static int Count<T>(this IEnumerable<T> source)
 		{
-			var list = source as ICollection<T>;
-
-			if (list != null)
+			if (source is ICollection<T> list)
 			{
 				return list.Count;
 			}
@@ -98,9 +94,7 @@ namespace Shaolinq
 		[RewriteAsync(MethodAttributes.Public)]
 		private static long LongCount<T>(this IEnumerable<T> source)
 		{
-			var list = source as ICollection<T>;
-
-			if (list != null)
+			if (source is ICollection<T> list)
 			{
 				return list.Count;
 			}
@@ -329,17 +323,15 @@ namespace Shaolinq
 		public static async Task<List<T>> ToListAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			var queryable = source as ReusableQueryable<T>;
 
-			if (queryable == null)
+			if (!(source is ReusableQueryable<T> queryable))
 			{
 				return source.ToList();
 			}
 
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			var collection = source as ICollection<T>;
 
-			var result = collection == null ? new List<T>() : new List<T>(collection.Count);
+			var result = !(source is ICollection<T> collection) ? new List<T>() : new List<T>(collection.Count);
 
 			using (var enumerator = queryable.GetAsyncEnumerator())
 			{
@@ -362,33 +354,29 @@ namespace Shaolinq
 		public static async Task<ReadOnlyCollection<T>> ToReadOnlyCollectionAsync<T>(this IEnumerable<T> source, CancellationToken cancellationToken)
 		{
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			var queryable = source as ReusableQueryable<T>;
 
-			if (queryable != null)
+			if (source is ReusableQueryable<T> queryable)
 			{
 				return queryable.ToReadOnlyCollection();
 			}
 
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			var readonlyCollection = source as ReadOnlyCollection<T>;
 
-			if (readonlyCollection != null)
+			if (source is ReadOnlyCollection<T> readonlyCollection)
 			{
 				return readonlyCollection;
 			}
 
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			var list = source as IList<T>;
 
-			if (list != null)
+			if (source is IList<T> list)
 			{
 				return new ReadOnlyCollection<T>(list);
 			}
 
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			var collection = source as ICollection<T>;
 
-			var retval = collection == null ? new List<T>() : new List<T>(collection.Count);
+			var retval = !(source is ICollection<T> collection) ? new List<T>() : new List<T>(collection.Count);
 
 			using (var enumerator = source.GetAsyncEnumeratorOrAdapt())
 			{
