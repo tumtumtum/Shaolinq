@@ -299,25 +299,9 @@ namespace Shaolinq.Persistence.Linq
 				
 			switch (methodCallExpression.Method.Name)
 			{
-			case "Select":
-			{
-				var projectionResultType = result.NewSelectors[0].ReturnType;
-				var newParameterType = result.NewSelectors[0].Parameters[0].Type;
-				var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
-
-				newCall = Expression.Call(methodWithElementSelector, new[]
+				case "Select":
 				{
-					result.NewSource,
-					result.NewSelectors[0]
-				});
-
-				break;
-			}
-			case "SelectMany":
-			{
-				if (result.NewSelectors.Count == 1)
-				{
-					var projectionResultType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
+					var projectionResultType = result.NewSelectors[0].ReturnType;
 					var newParameterType = result.NewSelectors[0].Parameters[0].Type;
 					var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
 
@@ -326,154 +310,142 @@ namespace Shaolinq.Persistence.Linq
 						result.NewSource,
 						result.NewSelectors[0]
 					});
-				}
-				else
-				{
-					var collectionType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
-					var newParameterType = result.NewSelectors[0].Parameters[0].Type;
-					var projectionResultType = result.NewSelectors[1].ReturnType;
-					var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
 
-					newCall = Expression.Call(methodWithElementSelector, new[]
+					break;
+				}
+				case "SelectMany":
+				{
+					if (result.NewSelectors.Count == 1)
+					{
+						var projectionResultType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
+						var newParameterType = result.NewSelectors[0].Parameters[0].Type;
+						var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
+
+						newCall = Expression.Call(methodWithElementSelector, new[]
+						{
+							result.NewSource,
+							result.NewSelectors[0]
+						});
+					}
+					else
+					{
+						var collectionType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
+						var newParameterType = result.NewSelectors[0].Parameters[0].Type;
+						var projectionResultType = result.NewSelectors[1].ReturnType;
+						var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
+
+						newCall = Expression.Call(methodWithElementSelector, new[]
+						{
+							result.NewSource,
+							result.NewSelectors[0],
+							result.NewSelectors[1]
+						});
+					}
+
+					break;
+				}
+				case "Where":
+				{
+					var newParameterType = result.NewSelectors[0].Parameters[0].Type;
+					var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType);
+
+					newCall = Expression.Call
+					(methodWithElementSelector, new[]
 					{
 						result.NewSource,
-						result.NewSelectors[0],
-						result.NewSelectors[1]
+						result.NewSelectors[0]
 					});
+
+					break;
 				}
-
-				break;
-			}
-			case "Where":
-			{
-				var newParameterType = result.NewSelectors[0].Parameters[0].Type;
-				var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType);
-
-				newCall = Expression.Call
-				(methodWithElementSelector, new[]
+				case nameof(QueryableExtensions.OrderByThenBysHelper):
 				{
-					result.NewSource,
-					result.NewSelectors[0]
-				});
+					var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
+					var newParameterType = result.NewSource.Type.GetSequenceElementType();
+					var method = methodCallExpression.Method.GetGenericMethodDefinition();
+					var methodWithElementSelector = method.GetGenericArguments().Length == 1
+						? method.MakeGenericMethod(newParameterType)
+						: method.MakeGenericMethod(newParameterType, resultType);
 
-				break;
-			}
-			case nameof(QueryableExtensions.OrderByThenBysHelper):
-			{
-				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
-				var newParameterType = result.NewSource.Type.GetSequenceElementType();
-				var method = methodCallExpression.Method.GetGenericMethodDefinition();
-				var methodWithElementSelector = method.GetGenericArguments().Length == 1
-					? method.MakeGenericMethod(newParameterType)
-					: method.MakeGenericMethod(newParameterType, resultType);
+					var newSource = result.NewSource;
 
-				var newSource = result.NewSource;
+					newCall = Expression.Call
+					(
+						null,
+						methodWithElementSelector,
+						new[] { newSource, Expression.Constant(result.NewSelectors.ToArray()), methodCallExpression.Arguments[2] }
+					);
 
-				newCall = Expression.Call
-				(
-					null,
-					methodWithElementSelector,
-					new[] { newSource, Expression.Constant(result.NewSelectors.ToArray()), methodCallExpression.Arguments[2] }
-				);
-
-				break;
-			}
-			case "Min":
-			case "Max":
-			case "Sum":
-			case "Average":
-			case "Count":
-			case "First":
-			case "FirstOrDefault":
-			case "Single":
-			case "SingleOrDefault":
-			{
-				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
-				var newParameterType = result.NewSource.Type.GetSequenceElementType();
-				var method = methodCallExpression.Method.GetGenericMethodDefinition();
-				var methodWithElementSelector = method.GetGenericArguments().Length == 1
-					? method.MakeGenericMethod(newParameterType)
-					: method.MakeGenericMethod(newParameterType, resultType);
-
-				var newSource = result.NewSource;
-
-				newCall = Expression.Call
-				(
-					null,
-					methodWithElementSelector,
-					result.NewSelectors.Count > 0 ? new[] { newSource, result.NewSelectors[0] } : new[] { result.NewSource }
-				);
-
-				break;
-			}
-			case "GroupBy":
-			{
-				var keyType = result.NewSelectors[0].ReturnType;
-				var newParameterType = result.NewSelectors[0].Parameters[0].Type;
-				var elementType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0].GetGenericArguments()[1];
-
-				var methodWithElementSelector = MethodInfoFastRef
-					.QueryableGroupByWithElementSelectorMethod
-					.MakeGenericMethod(newParameterType, keyType, elementType);
-
-				if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByMethod)
+					break;
+				}
+				case "GroupBy":
 				{
-					if (result.Changed)
+					var keyType = result.NewSelectors[0].ReturnType;
+					var newParameterType = result.NewSelectors[0].Parameters[0].Type;
+					var elementType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0].GetGenericArguments()[1];
+
+					var methodWithElementSelector = MethodInfoFastRef
+						.QueryableGroupByWithElementSelectorMethod
+						.MakeGenericMethod(newParameterType, keyType, elementType);
+
+					if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByMethod)
 					{
-						var elementSelectorParameter = Expression.Parameter(newParameterType);
-						var elementSelectorBody = CreateExpressionForPath(result.ReferencedObjectPaths.Count, PropertyPath.Empty, elementSelectorParameter, result.IndexByPath);
-						var elementSelector = Expression.Lambda(elementSelectorBody, elementSelectorParameter);
+						if (result.Changed)
+						{
+							var elementSelectorParameter = Expression.Parameter(newParameterType);
+							var elementSelectorBody = CreateExpressionForPath(result.ReferencedObjectPaths.Count, PropertyPath.Empty, elementSelectorParameter, result.IndexByPath);
+							var elementSelector = Expression.Lambda(elementSelectorBody, elementSelectorParameter);
 
-						newCall = Expression.Call(methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
+							newCall = Expression.Call(methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
+						}
+						else
+						{
+							newCall = Expression.Call(methodCallExpression.Method, result.NewSource, result.NewSelectors[0]);
+						}
+					}
+					else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByWithElementSelectorMethod)
+					{
+						if (result.Changed)
+						{
+							var existingElementSelector = methodCallExpression.Arguments[2].StripQuotes();
+							var elementSelectorParameter = Expression.Parameter(newParameterType);
+							var pathExpression = CreateExpressionForPath(result.ReferencedObjectPaths.Count, PropertyPath.Empty, elementSelectorParameter, result.IndexByPath);
+							var newBody = SqlExpressionReplacer.Replace(existingElementSelector.Body, existingElementSelector.Parameters[0], pathExpression);
+
+							var elementSelector = Expression.Lambda(newBody, elementSelectorParameter);
+
+							newCall = Expression.Call(methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
+						}
+						else
+						{
+							newCall = Expression.Call(methodCallExpression.Method, result.NewSource, result.NewSelectors[0], result.NewSelectors[1]);
+						}
 					}
 					else
 					{
-						newCall = Expression.Call(methodCallExpression.Method, result.NewSource, result.NewSelectors[0]);
+						throw new NotSupportedException($"Unsupport method when using explicit joins: {methodCallExpression.Method}");
 					}
+
+					break;
 				}
-				else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByWithElementSelectorMethod)
+				default:
 				{
-					if (result.Changed)
-					{
-						var existingElementSelector = methodCallExpression.Arguments[2].StripQuotes();
-						var elementSelectorParameter = Expression.Parameter(newParameterType);
-						var pathExpression = CreateExpressionForPath(result.ReferencedObjectPaths.Count, PropertyPath.Empty, elementSelectorParameter, result.IndexByPath);
-						var newBody = SqlExpressionReplacer.Replace(existingElementSelector.Body, existingElementSelector.Parameters[0], pathExpression);
+					var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
+					var newParameterType = result.NewSource.Type.GetSequenceElementType();
+					var method = methodCallExpression.Method.GetGenericMethodDefinition();
+					var methodWithElementSelector = method.GetGenericArguments().Length == 1
+						? method.MakeGenericMethod(newParameterType)
+						: method.MakeGenericMethod(newParameterType, resultType);
 
-						var elementSelector = Expression.Lambda(newBody, elementSelectorParameter);
+					newCall = Expression.Call
+					(
+						null,
+						methodWithElementSelector,
+						result.NewSelectors.Count > 0 ? new[] { result.NewSource, result.NewSelectors[0] } : new[] { result.NewSource }
+					);
 
-						newCall = Expression.Call(methodWithElementSelector, result.NewSource, result.NewSelectors[0], elementSelector);
-					}
-					else
-					{
-						newCall = Expression.Call(methodCallExpression.Method, result.NewSource, result.NewSelectors[0], result.NewSelectors[1]);
-					}
+					break;
 				}
-				else
-				{
-					throw new NotSupportedException($"Unsupport method when using explicit joins: {methodCallExpression.Method}");
-				}
-
-				break;
-			}
-			default:
-			{
-				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
-				var newParameterType = result.NewSource.Type.GetSequenceElementType();
-				var method = methodCallExpression.Method.GetGenericMethodDefinition();
-				var methodWithElementSelector = method.GetGenericArguments().Length == 1
-					? method.MakeGenericMethod(newParameterType)
-					: method.MakeGenericMethod(newParameterType, resultType);
-
-				newCall = Expression.Call
-				(
-					null,
-					methodWithElementSelector,
-					result.NewSelectors.Count > 0 ? new[] { result.NewSource, result.NewSelectors[0] } : new[] { result.NewSource }
-				);
-
-				break;
-			}
 			}
 
 			this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));

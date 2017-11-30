@@ -33,8 +33,6 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => ((DataAccessObject)null).Include(c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumParseMethod = TypeUtils.GetMethod(() => Enum.Parse(typeof(Enum), default(string)));
 		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(new object[0])).GetGenericMethodDefinition();
-		public static readonly MethodInfo DataAccessModelGenericInflateHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateHelper<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition();
-		public static readonly MethodInfo DataAccessModelGenericInflateAsyncHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateAsyncHelper<DataAccessObject>(default(DataAccessObject), CancellationToken.None)).GetGenericMethodDefinition();
 		public static readonly MethodInfo GuidEqualsMethod = TypeUtils.GetMethod<Guid>(c => c.Equals(Guid.Empty));
 		public static readonly MethodInfo StringExtensionsIsLikeMethod = TypeUtils.GetMethod(() => string.Empty.IsLike(default(string)));
 		public static readonly MethodInfo ObjectToStringMethod = TypeUtils.GetMethod<object>(c => c.ToString());
@@ -71,5 +69,9 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableOrderByDescendingMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).OrderByDescending(c => c.ToString())).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableThenByDescendingMethod = TypeUtils.GetMethod(() => default(IOrderedQueryable<string>).ThenByDescending(c => c.ToString())).GetGenericMethodDefinition();
 		public static readonly MethodInfo ExecutionBuildResultEvaluateMethod = TypeUtils.GetMethod<ExecutionBuildResult>(c => c.Evaluate<int>()).GetGenericMethodDefinition();
+
+		internal static readonly MethodInfo DataAccessModelGenericInflateHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateHelper<DataAccessObject>(default(DataAccessObject))).GetGenericMethodDefinition();
+		internal static readonly MethodInfo DataAccessModelGenericInflateAsyncHelperMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.InflateAsyncHelper<DataAccessObject>(default(DataAccessObject), CancellationToken.None)).GetGenericMethodDefinition();
+		internal static readonly MethodInfo QueryableExtensionsOrderByThenBysHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).OrderByThenBysHelper(default(LambdaExpression[]), default(SortOrder[]))).GetGenericMethodDefinition();
 	}
 }

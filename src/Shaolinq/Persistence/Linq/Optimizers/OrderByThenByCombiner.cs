@@ -47,7 +47,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						this.currentThenBys.Clear();
 					}
 
-					return Expression.Call(null, QueryableExtensions.OrderByThenBysHelperMethod.MakeGenericMethod(methodCallExpression.Method.ReturnType.GetGenericArguments()[0]), this.Visit(methodCallExpression.Arguments[0]), Expression.Constant(orderByThenBys.ToArray()), Expression.Constant(sortBys.ToArray()));
+					return Expression.Call(null, MethodInfoFastRef.QueryableExtensionsOrderByThenBysHelperMethod.MakeGenericMethod(methodCallExpression.Method.ReturnType.GetGenericArguments()[0]), this.Visit(methodCallExpression.Arguments[0]), Expression.Constant(orderByThenBys.ToArray()), Expression.Constant(sortBys.ToArray()));
 				}
 			}
 
