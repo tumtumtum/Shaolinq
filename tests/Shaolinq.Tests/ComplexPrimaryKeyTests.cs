@@ -1154,11 +1154,11 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var query =
-					from
+					(from
 						shop in this.model.Shops
 					orderby shop.Address.Street
 					select
-						shop;
+						shop).GroupBy(c => c.Address.Street);
 
 				var first = query.First();
 			}

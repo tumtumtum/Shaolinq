@@ -68,7 +68,6 @@ namespace Shaolinq.Persistence.Linq
 
 			switch (methodCallExpression.Method.Name)
 			{
-			case "OrderBy":
 			case "GroupBy":
 			case "Where":
 			case "Min":
@@ -81,7 +80,8 @@ namespace Shaolinq.Persistence.Linq
 			case "Single":
 			case "SingleOrDefault":
 			case "SelectMany":
-			case "Include":
+			case nameof(QueryableExtensions.Include):
+			case nameof(QueryableExtensions.OrderByThenBysHelper):
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "Select":
 				return this.RewriteBasicProjection(methodCallExpression, true);
@@ -283,8 +283,8 @@ namespace Shaolinq.Persistence.Linq
 
 			var selectors = methodCallExpression
 				.Arguments
-				.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>))
-				.Select(c => this.Visit(c).StripQuotes())
+				.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>) || c.Type == typeof(LambdaExpression[]))
+				.SelectMany(c => c.Type != typeof(LambdaExpression[]) ? new []{ this.Visit(c).StripQuotes() } : ((LambdaExpression[])c.StripAndGetConstant().Value).Select(this.Visit).Cast<LambdaExpression>())
 				.ToArray();
 
 			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);
@@ -296,18 +296,14 @@ namespace Shaolinq.Persistence.Linq
 					return base.VisitMethodCall(methodCallExpression);
 				}
 			}
-
-			Type newParameterType;
-			MethodInfo methodWithElementSelector;
 				
 			switch (methodCallExpression.Method.Name)
 			{
 			case "Select":
-			case "SelectForUpdate":
 			{
 				var projectionResultType = result.NewSelectors[0].ReturnType;
-				newParameterType = result.NewSelectors[0].Parameters[0].Type;
-				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
+				var newParameterType = result.NewSelectors[0].Parameters[0].Type;
+				var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
 
 				newCall = Expression.Call(methodWithElementSelector, new[]
 				{
@@ -322,8 +318,8 @@ namespace Shaolinq.Persistence.Linq
 				if (result.NewSelectors.Count == 1)
 				{
 					var projectionResultType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
-					newParameterType = result.NewSelectors[0].Parameters[0].Type;
-					methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
+					var newParameterType = result.NewSelectors[0].Parameters[0].Type;
+					var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, projectionResultType);
 
 					newCall = Expression.Call(methodWithElementSelector, new[]
 					{
@@ -334,9 +330,9 @@ namespace Shaolinq.Persistence.Linq
 				else
 				{
 					var collectionType = result.NewSelectors[0].ReturnType.GetSequenceElementType();
-					newParameterType = result.NewSelectors[0].Parameters[0].Type;
+					var newParameterType = result.NewSelectors[0].Parameters[0].Type;
 					var projectionResultType = result.NewSelectors[1].ReturnType;
-					methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
+					var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType, collectionType, projectionResultType);
 
 					newCall = Expression.Call(methodWithElementSelector, new[]
 					{
@@ -349,18 +345,39 @@ namespace Shaolinq.Persistence.Linq
 				break;
 			}
 			case "Where":
-			case "WhereForUpdate":
-				newParameterType = result.NewSelectors[0].Parameters[0].Type;
-				methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType);
+			{
+				var newParameterType = result.NewSelectors[0].Parameters[0].Type;
+				var methodWithElementSelector = methodCallExpression.Method.GetGenericMethodDefinition().MakeGenericMethod(newParameterType);
 
-				newCall = Expression.Call(methodWithElementSelector, new[]
+				newCall = Expression.Call
+				(methodWithElementSelector, new[]
 				{
 					result.NewSource,
 					result.NewSelectors[0]
 				});
 
 				break;
-			case "OrderBy":
+			}
+			case nameof(QueryableExtensions.OrderByThenBysHelper):
+			{
+				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
+				var newParameterType = result.NewSource.Type.GetSequenceElementType();
+				var method = methodCallExpression.Method.GetGenericMethodDefinition();
+				var methodWithElementSelector = method.GetGenericArguments().Length == 1
+					? method.MakeGenericMethod(newParameterType)
+					: method.MakeGenericMethod(newParameterType, resultType);
+
+				var newSource = result.NewSource;
+
+				newCall = Expression.Call
+				(
+					null,
+					methodWithElementSelector,
+					new[] { newSource, Expression.Constant(result.NewSelectors.ToArray()), methodCallExpression.Arguments[2] }
+				);
+
+				break;
+			}
 			case "Min":
 			case "Max":
 			case "Sum":
@@ -370,30 +387,35 @@ namespace Shaolinq.Persistence.Linq
 			case "FirstOrDefault":
 			case "Single":
 			case "SingleOrDefault":
+			{
 				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
-				newParameterType = result.NewSource.Type.GetSequenceElementType();
+				var newParameterType = result.NewSource.Type.GetSequenceElementType();
 				var method = methodCallExpression.Method.GetGenericMethodDefinition();
-				methodWithElementSelector = method.GetGenericArguments().Length == 1
+				var methodWithElementSelector = method.GetGenericArguments().Length == 1
 					? method.MakeGenericMethod(newParameterType)
 					: method.MakeGenericMethod(newParameterType, resultType);
+
+				var newSource = result.NewSource;
 
 				newCall = Expression.Call
 				(
 					null,
-					methodWithElementSelector, 
-					result.NewSelectors.Count > 0 ? new[] { result.NewSource, result.NewSelectors[0] } : new[] { result.NewSource }
+					methodWithElementSelector,
+					result.NewSelectors.Count > 0 ? new[] { newSource, result.NewSelectors[0] } : new[] { result.NewSource }
 				);
 
 				break;
+			}
 			case "GroupBy":
+			{
 				var keyType = result.NewSelectors[0].ReturnType;
-				newParameterType = result.NewSelectors[0].Parameters[0].Type;
+				var newParameterType = result.NewSelectors[0].Parameters[0].Type;
 				var elementType = methodCallExpression.Method.ReturnType.GetGenericArguments()[0].GetGenericArguments()[1];
 
-				methodWithElementSelector = MethodInfoFastRef
+				var methodWithElementSelector = MethodInfoFastRef
 					.QueryableGroupByWithElementSelectorMethod
 					.MakeGenericMethod(newParameterType, keyType, elementType);
-		
+
 				if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableGroupByMethod)
 				{
 					if (result.Changed)
@@ -433,12 +455,13 @@ namespace Shaolinq.Persistence.Linq
 				}
 
 				break;
+			}
 			default:
-				
-				resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
-				newParameterType = result.NewSource.Type.GetSequenceElementType();
-				method = methodCallExpression.Method.GetGenericMethodDefinition();
-				methodWithElementSelector = method.GetGenericArguments().Length == 1
+			{
+				var resultType = result.NewSelectors.Count > 0 ? result.NewSelectors[0].ReturnType : null;
+				var newParameterType = result.NewSource.Type.GetSequenceElementType();
+				var method = methodCallExpression.Method.GetGenericMethodDefinition();
+				var methodWithElementSelector = method.GetGenericArguments().Length == 1
 					? method.MakeGenericMethod(newParameterType)
 					: method.MakeGenericMethod(newParameterType, resultType);
 
@@ -450,6 +473,7 @@ namespace Shaolinq.Persistence.Linq
 				);
 
 				break;
+			}
 			}
 
 			this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));
@@ -463,9 +487,10 @@ namespace Shaolinq.Persistence.Linq
 			var sourceType = source.Type.GetGenericArguments()[0];
 
 			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.Item2, c.Item1)).ToList(), forProjection);
+
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjects;
 			var currentRootExpressionsByPath = result.RootExpressionsByPath;
-
+			
 			var predicateOrSelectors = result.ReducedExpressions.Select(c => c.StripQuotes()).ToArray();
 			var predicateOrSelectorLambdas = predicateOrSelectors.Select(c => c.StripQuotes()).ToArray();
 

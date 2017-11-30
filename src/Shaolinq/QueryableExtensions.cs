@@ -20,7 +20,8 @@ namespace Shaolinq
 		private static readonly MethodInfo UpdateHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).UpdateHelper(default(Expression<Action<string>>), default(bool))).GetGenericMethodDefinition();
 		private static readonly MethodInfo IncludedItemsMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).IncludedItems()).GetGenericMethodDefinition();
 		private static readonly MethodInfo IncludeMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Include(default(Expression<Func<string, string>>))).GetGenericMethodDefinition();
-		
+		internal static readonly MethodInfo OrderByThenBysHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).OrderByThenBysHelper(default(LambdaExpression[]), default(SortOrder[]))).GetGenericMethodDefinition();
+
 		internal static IQueryable<T> InsertHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated, bool requiresIdentityInsert)
 		{
 			return source.Provider.CreateQuery<T>(Expression.Call(null, InsertHelperMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
@@ -29,6 +30,11 @@ namespace Shaolinq
 		internal static IQueryable<T> UpdateHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated, bool requiresIdentityInsert)
 		{
 			return source.Provider.CreateQuery<T>(Expression.Call(null, UpdateHelperMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(requiresIdentityInsert)));
+		}
+
+		internal static IOrderedQueryable<T> OrderByThenBysHelper<T>(this IQueryable<T> source, LambdaExpression[] selectors, params SortOrder[] sortOrders)
+		{
+			return (IOrderedQueryable<T>)source.Provider.CreateQuery<T>(Expression.Call(null, OrderByThenBysHelperMethod.MakeGenericMethod(typeof(T)), source.Expression, Expression.Constant(selectors), Expression.Constant(sortOrders)));
 		}
 
 		[RewriteAsync(MethodAttributes.Public)]

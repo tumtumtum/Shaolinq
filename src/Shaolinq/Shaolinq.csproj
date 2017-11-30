@@ -47,7 +47,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>false</Prefer32Bit>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7.1</LangVersion>
     <DocumentationFile>
     </DocumentationFile>
   </PropertyGroup>
@@ -218,6 +218,7 @@
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\AliasReferenceReplacer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\OrderByThenByCombiner.cs" />
     <Compile Include="Persistence\Linq\Optimizers\InterfaceAccessNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\MemberAccessReplacer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAggregateProjectionNormalizer.cs" />

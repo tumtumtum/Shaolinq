@@ -810,6 +810,24 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_Query_With_OrderBy_With_Implicit_Join_And_ThenBy_And_Take()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var students = this.model.Students.ToList();
+
+				var results = this.model.Students
+					.OrderByDescending(c => c.School.Name)
+					.ThenByDescending(c => c.BestFriend.Lastname)
+					.ThenByDescending(c => c.Id)
+					.Take(2)
+					.ToList();
+
+				Assert.IsTrue(students.OrderByDescending(c => c.School.Name).ThenByDescending(c => c.BestFriend?.Lastname ?? null).ThenByDescending(c => c.Id).Take(2).SequenceEqual(results));
+			}
+		}
+
+		[Test]
 		public virtual void Test_Query_With_OrderBy_And_Skip_Take()
 		{
 			using (var scope = this.NewTransactionScope())

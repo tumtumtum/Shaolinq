@@ -14,10 +14,10 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres:DataAccessScope")]
 	[TestFixture("Postgres.DotConnect:DataAccessScope")]
 	[TestFixture("Postgres.DotConnect.Unprepared:DataAccessScope")]
-	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
 	[TestFixture("Sqlite:DataAccessScope")]
 	[TestFixture("SqliteInMemory:DataAccessScope")]
 	[TestFixture("SqliteClassicInMemory:DataAccessScope")]
+	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
 	public class DeflatedReferenceTests
 		: BaseTests<TestDataAccessModel>
 	{

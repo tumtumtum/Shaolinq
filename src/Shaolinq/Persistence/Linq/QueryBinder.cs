@@ -22,7 +22,6 @@ namespace Shaolinq.Persistence.Linq
 		private int aliasCount;
 		private int aggregateCount;
 		private Expression rootExpression;
-		private List<SqlOrderByExpression> thenBys;
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly RelatedPropertiesJoinExpanderResults joinExpanderResults;
 		private readonly Stack<Expression> selectorPredicateStack = new Stack<Expression>();
@@ -46,6 +45,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			expression = SqlPredicateToWhereConverter.Convert(expression);
 			expression = InterfaceAccessNormalizer.Normalize(dataAccessModel.TypeDescriptorProvider, expression);
+			expression = OrderByThenByCombiner.Combine(expression);
 			expression = QueryableIncludeExpander.Expand(expression);
 			var joinExpanderResults = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
@@ -900,17 +900,21 @@ namespace Shaolinq.Persistence.Linq
 					return this.BindForUpdate(methodCallExpression.Arguments[0]);
 				case "OrderBy":
 					this.selectorPredicateStack.Push(methodCallExpression);
-					result = this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Ascending);
+					result = this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), SortOrder.Ascending);
 					this.selectorPredicateStack.Pop();
 					return result;
 				case "OrderByDescending":
-					return this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Descending);
-				case "ThenBy":
-					return this.BindThenBy(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Ascending);
-				case "ThenByDescending":
-					return this.BindThenBy(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), OrderType.Descending);
+					this.selectorPredicateStack.Push(methodCallExpression);
+					result = this.BindOrderBy(methodCallExpression.Type, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1].StripQuotes(), SortOrder.Descending);
+					this.selectorPredicateStack.Pop();
+					return result;
+				case "OrderByThenBysHelper":
+					this.selectorPredicateStack.Push(methodCallExpression);
+					result = this.BindOrderByThenBys(methodCallExpression.Type, methodCallExpression.Arguments[0], (LambdaExpression[])methodCallExpression.Arguments[1].StripAndGetConstant().Value, (SortOrder[])methodCallExpression.Arguments[2].StripAndGetConstant().Value);
+					this.selectorPredicateStack.Pop();
+					return result;
 				case "GroupJoin":
-					if (methodCallExpression.Arguments.Count == 5)
+					if (methodCallExpression.Method.IsGenericMethod && methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.QueryableGroupJoinMethod)
 					{
 						return this.BindGroupJoin(methodCallExpression.Method, methodCallExpression.Arguments[0], methodCallExpression.Arguments[1], GetLambda(methodCallExpression.Arguments[2]), GetLambda(methodCallExpression.Arguments[3]), GetLambda(methodCallExpression.Arguments[4]));
 					}
@@ -1384,54 +1388,45 @@ namespace Shaolinq.Persistence.Linq
 			return Expression.MemberInit(memberInitExpression.NewExpression, newBindings);
 		}
 
-		protected virtual Expression BindOrderBy(Type resultType, Expression source, LambdaExpression orderSelector, OrderType orderType)
+		protected virtual Expression BindOrderBy(Type resultType, Expression source, LambdaExpression selector, SortOrder sortOrder)
 		{
-			var myThenBys = this.thenBys;
+			return BindOrderByThenBys(resultType, source, new[] { selector }, new [] { sortOrder });
+		}
 
-			this.thenBys = null;
-
+		protected virtual Expression BindOrderByThenBys(Type resultType, Expression source, LambdaExpression[] orderByThenBys, SortOrder[] sortOrders)
+		{
 			var projection = (SqlProjectionExpression)this.Visit(source);
 			var alias = this.GetNextAlias();
 			var projectedColumns = ProjectColumns(projection.Projector, alias, null, projection.Select.Alias);
+			List<SqlOrderByExpression> orderByExpressions = null;
 
-			this.AddExpressionByParameter(orderSelector.Parameters[0], projection.Projector);
-
-			var expression = this.Visit(orderSelector.Body).StripObjectBindingCalls();
-
-			if (expression.NodeType == ExpressionType.MemberInit)
+			for (var i = 0; i < orderByThenBys.Length; i++)
 			{
-				var memberInitExpression = (MemberInitExpression)expression;
+				var sortOrder = sortOrders[i];
+				var selector = orderByThenBys[i];
 
-				expression = this.RemoveNonPrimaryKeyBindings(memberInitExpression);
-			}
+				this.AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
-			var orderings = ProjectColumns(expression, alias, null, projection.Select.Alias).Columns.Select(column => new SqlOrderByExpression(orderType, column.Expression)).ToList();
+				var expression = this.Visit(selector.Body).StripObjectBindingCalls();
 
-			if (myThenBys != null)
-			{
-				for (var i = myThenBys.Count - 1; i >= 0; i--)
+				if (expression.NodeType == ExpressionType.MemberInit)
 				{
-					var thenBy = myThenBys[i];
-					var lambda = (LambdaExpression)thenBy.Expression;
+					var memberInitExpression = (MemberInitExpression)expression;
 
-					this.AddExpressionByParameter(lambda.Parameters[0], projection.Projector);
-					orderings.Add(new SqlOrderByExpression(thenBy.OrderType, this.Visit(lambda.Body)));
+					expression = this.RemoveNonPrimaryKeyBindings(memberInitExpression);
+				}
+
+				if (orderByExpressions == null)
+				{
+					orderByExpressions = ProjectColumns(expression, alias, null, projection.Select.Alias).Columns.Select(column => new SqlOrderByExpression(sortOrder == SortOrder.Ascending ? OrderType.Ascending : OrderType.Descending, column.Expression)).ToList();
+				}
+				else
+				{
+					orderByExpressions.AddRange(ProjectColumns(expression, alias, null, projection.Select.Alias).Columns.Select(column => new SqlOrderByExpression(sortOrder == SortOrder.Ascending ? OrderType.Ascending : OrderType.Descending, column.Expression)));
 				}
 			}
 
-			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, projection.Select, null, orderings.AsReadOnly(), projection.Select.ForUpdate), projectedColumns.Projector, null);
-		}
-
-		protected virtual Expression BindThenBy(Expression source, LambdaExpression orderSelector, OrderType orderType)
-		{
-			if (this.thenBys == null)
-			{
-				this.thenBys = new List<SqlOrderByExpression>();
-			}
-
-			this.thenBys.Add(new SqlOrderByExpression(orderType, orderSelector));
-
-			return this.Visit(source);
+			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, projectedColumns.Columns, projection.Select, null, orderByExpressions.AsReadOnly(), projection.Select.ForUpdate), projectedColumns.Projector, null);
 		}
 
 		private Expression BindUnion(Type resultType, Expression left, Expression right, bool unionAll)
