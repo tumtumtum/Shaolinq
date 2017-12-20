@@ -27,7 +27,7 @@ namespace Shaolinq.MySql
 			var sqlDialect = new MySqlSqlDialect();
 			var sqlDataTypeProvider = CreateSqlDataTypeProvider(model, contextInfo, () => new MySqlSqlDataTypeProvider(constraintDefaults));
 			var typeDescriptorProvider = model.TypeDescriptorProvider;
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, options => new MySqlSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.SilentlyIgnoreIndexConditions));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, (options, connection) => new MySqlSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.SilentlyIgnoreIndexConditions));
 
 			return new MySqlSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}

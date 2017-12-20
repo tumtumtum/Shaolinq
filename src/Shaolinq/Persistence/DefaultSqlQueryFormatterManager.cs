@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Data;
 using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Persistence
@@ -9,7 +10,7 @@ namespace Shaolinq.Persistence
 	{
 		public SqlDialect SqlDialect { get; }
 		public SqlQueryFormatterConstructorMethod ConstructorMethod { get; }
-		public delegate SqlQueryFormatter SqlQueryFormatterConstructorMethod(SqlQueryFormatterOptions options);
+		public delegate SqlQueryFormatter SqlQueryFormatterConstructorMethod(SqlQueryFormatterOptions options, IDbConnection connection);
 
 		public DefaultSqlQueryFormatterManager(SqlDialect sqlDialect, NamingTransformsConfiguration namingTransformsConfiguration, SqlQueryFormatterConstructorMethod constructorMethod)
 			: base(sqlDialect, namingTransformsConfiguration)
@@ -18,9 +19,9 @@ namespace Shaolinq.Persistence
 			this.ConstructorMethod = constructorMethod;
 		}
 
-		public override SqlQueryFormatter CreateQueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default)
+		public override SqlQueryFormatter CreateQueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default, IDbConnection connection = null)
 		{
-			return this.ConstructorMethod(options);
+			return this.ConstructorMethod(options, connection);
 		}
 	}
 }

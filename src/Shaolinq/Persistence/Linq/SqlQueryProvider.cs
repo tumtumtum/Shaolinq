@@ -197,7 +197,7 @@ namespace Shaolinq.Persistence.Linq
 					skipFormatResultSubstitution = true;
 				}
 
-				var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
+				var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression, SqlQueryFormatterOptions.Default);
 
 				SqlQueryFormatResult formatResultForCache = null;
 

@@ -12,12 +12,14 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
+		private int? majorVersion;
 		private readonly SqlServerSqlDatabaseContextInfo contextInfo;
 
-		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, SqlServerSqlDatabaseContextInfo contextInfo)
+		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, SqlServerSqlDatabaseContextInfo contextInfo, string serverVersion)
 			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
 			this.contextInfo = contextInfo;
+			this.majorVersion = serverVersion == null ? null : (int?)Convert.ToInt32(serverVersion.Split('.')[0]);
 		}
 
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)

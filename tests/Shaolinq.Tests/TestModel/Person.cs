@@ -33,7 +33,7 @@ namespace Shaolinq.Tests.TestModel
 
 		[PersistedMember, DefaultValue(0)]
 		public abstract int FavouriteNumber { get; set; }
-		
+
 		[ComputedMember("Height + (Weight ?? 0)"), DefaultValue(0)]
 		public abstract long HeightAndWeight { get; set; }
 		
@@ -53,6 +53,9 @@ namespace Shaolinq.Tests.TestModel
 
 		[PersistedMember, DefaultValue("2016-01-01")]
 		public abstract FixedDate? Birthdate { get; set; }
+
+		[PersistedMember]
+		public abstract FixedDate FavouriteDate { get; set; }
 
 		[PersistedMember]
 		public abstract DateTime? SpecialDate { get; set; }

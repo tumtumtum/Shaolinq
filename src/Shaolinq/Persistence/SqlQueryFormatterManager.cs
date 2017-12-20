@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -30,7 +31,7 @@ namespace Shaolinq.Persistence
 		private readonly string stringEscape;
 		private readonly NamingTransformsConfiguration namingTransformsConfiguration;
 
-		public abstract SqlQueryFormatter CreateQueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default);
+		public abstract SqlQueryFormatter CreateQueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default, IDbConnection connection = null);
 		
 		protected SqlQueryFormatterManager(SqlDialect sqlDialect, NamingTransformsConfiguration namingTransformsConfiguration)
 		{
@@ -41,9 +42,9 @@ namespace Shaolinq.Persistence
 			this.parameterPrefix = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 		}
 
-		public virtual SqlQueryFormatResult Format(Expression expression, SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default)
+		public virtual SqlQueryFormatResult Format(Expression expression, SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default, IDbConnection connection = null)
 		{
-			return this.CreateQueryFormatter(options).Format(expression);
+			return this.CreateQueryFormatter(options, connection).Format(expression);
 		}
 
 		public virtual string GetDefaultValueConstraintName(PropertyDescriptor propertyDescriptor)

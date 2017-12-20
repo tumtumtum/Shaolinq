@@ -41,6 +41,7 @@ namespace Shaolinq.Persistence
 		public object DefaultValue { get; }
 		public bool HasDefaultValue { get; }
 		public bool HasImplicitDefaultValue { get; }
+		public bool HasExplicitDefaultValue => !HasImplicitDefaultValue;
 		public string PropertyName => this.PropertyInfo.Name;
 		public Type PropertyType => this.PropertyInfo?.PropertyType;
 		public bool HasUniqueAttribute => this.UniqueAttribute != null;
@@ -112,8 +113,8 @@ namespace Shaolinq.Persistence
 					this.ComputedMemberAssignmentValue = assignmentExpression.Right;
 				}
 			}
-			
-			var implicitDefault = this.PropertyType.IsValueType && this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
+
+			var implicitDefault = this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
 
 			if (this.DefaultValueAttribute != null || (implicitDefault && !this.IsAutoIncrement))
 			{

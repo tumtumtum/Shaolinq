@@ -1,8 +1,9 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
-using System.Linq;
+using System;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
+using System.Linq;
 
 namespace Shaolinq.Tests
 {
@@ -21,6 +22,21 @@ namespace Shaolinq.Tests
 		public TestValueTypesWithDefaultValues(string providerName)
 			: base(providerName, alwaysSubmitDefaultValues: false, valueTypesAutoImplicitDefault: false)
 		{
+		}
+			
+		[Test]
+		public void Test_Student_MissingPropertyValue()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var school = this.model.Schools.Create();
+				var student = school.Students.Create();
+				
+				student.FavouriteDate = DateTime.Now;
+
+				scope.Flush();
+				scope.Complete();
+			}
 		}
 
 		[Test]

@@ -574,7 +574,7 @@ namespace Shaolinq.Tests
 							  from school in this.model.Schools
 							  orderby  student.Firstname, student.Lastname
 							  where student.School.Id == school.Id
-							  select new { student.Fullname, school.Name }).ToList();
+							  select new Tuple<string, string>(student.Fullname, school.Name)).ToList();
 
 				var students = this.model.Students.ToArray();
 				var schools = this.model.Schools.ToArray();
@@ -583,11 +583,7 @@ namespace Shaolinq.Tests
 									from school in schools
 									orderby student.Firstname, student.Lastname
 									where student.School.Id == school.Id
-									select new
-									{
-										student.Fullname,
-										school.Name
-									}).ToList();
+									select new Tuple<string, string>(student.Fullname, school.Name)).ToList();
 
 				Assert.IsTrue(resultsLocal.SequenceEqual(results));
 
