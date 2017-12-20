@@ -2264,42 +2264,14 @@ namespace Shaolinq.Persistence.Linq
 					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.StringLength, source);
 				}
 			}
-			else if (memberInfo.DeclaringType == typeof(DateTime))
-			{
-				switch (memberInfo.Name)
-				{
-				case "Week":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Week, source);
-				case "Month":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Month, source);
-				case "Year":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Year, source);
-				case "Hour":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Hour, source);
-				case "Minute":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Minute, source);
-				case "Second":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Second, source);
-				case "DayOfWeek":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfWeek, source);
-				case "Day":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfMonth, source);
-				case "DayOfYear":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfYear, source);
-				case "Date":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Date, source);
-				default:
-					throw new NotSupportedException("Member access on DateTime: " + memberInfo);
-				}
-			}
 			else if (memberInfo.DeclaringType == typeof(ServerDateTime))
 			{
 				switch (memberInfo.Name)
 				{
-				case "Now":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerNow);
-				case "UtcNow":
-					return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerUtcNow);
+					case "Now":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerNow);
+					case "UtcNow":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.ServerUtcNow);
 				}
 			}
 			else if (typeof(IGrouping<,>).IsAssignableFromIgnoreGenericParameters(memberInfo.DeclaringType) && source is NewExpression && memberInfo.Name == "Key")
@@ -2318,6 +2290,46 @@ namespace Shaolinq.Persistence.Linq
 				if (binding != null)
 				{
 					return binding.Expression;
+				}
+			}
+
+			var type = memberInfo.DeclaringType;
+			var castMethod = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
+				.Where(c => c.IsSpecialName)
+				.Where(c => c.ReturnType == typeof(DateTime))
+				.Where(c => c.Name.StartsWith("op_Implicit") || c.Name.StartsWith("op_Explicit"))
+				.Single(c => c.GetParameters().First()?.ParameterType == type);
+
+			var typeConvertableToDateTimeWithTypeConverterWithCast = castMethod != null;
+			var typeConverter = System.ComponentModel.TypeDescriptor.GetConverter(type);
+			var typeConvertableToDateTimeWithTypeConverter = typeConverter.CanConvertTo(typeof(DateTime));
+
+			if (memberInfo.DeclaringType == typeof(DateTime) || typeConvertableToDateTimeWithTypeConverterWithCast || typeConvertableToDateTimeWithTypeConverter)
+			{
+				switch (memberInfo.Name)
+				{
+					case "Week":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Week, source);
+					case "Month":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Month, source);
+					case "Year":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Year, source);
+					case "Hour":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Hour, source);
+					case "Minute":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Minute, source);
+					case "Second":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Second, source);
+					case "DayOfWeek":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfWeek, source);
+					case "Day":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfMonth, source);
+					case "DayOfYear":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.DayOfYear, source);
+					case "Date":
+						return new SqlFunctionCallExpression(memberInfo.GetMemberReturnType(), SqlFunction.Date, source);
+					default:
+						throw new NotSupportedException("Member access on DateTime: " + memberInfo);
 				}
 			}
 

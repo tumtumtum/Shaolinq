@@ -13,6 +13,10 @@ namespace Shaolinq.Tests
 	{
 		private readonly DateTime value;
 
+		public int Day => value.Day;
+		public int Month => value.Month;
+		public int Year => value.Year;
+
 		public FixedDate(DateTime value)
 		{
 			this.value = value.ToUniversalTime();

@@ -71,6 +71,7 @@ namespace Shaolinq.Tests
 				tum.TimeSinceLastSlept = TimeSpan.FromHours(7.5);
 				tum.SpecialDate = new DateTime(1979, 12, 24, 04, 00, 00);
 				tum.Birthdate = new FixedDate(new DateTime(1979, 12, 24, 00, 00, 00, DateTimeKind.Utc));
+				tum.FavouriteDate = new FixedDate(new DateTime(2016, 08, 19, 00, 00, 00, DateTimeKind.Utc));
 
 				var mars = school.Students.Create();
 
@@ -2219,6 +2220,21 @@ namespace Shaolinq.Tests
 				Assert.IsNotNull(student1);
 				Assert.AreEqual(1979, student1.First().Birthdate.Value.ToDateTime().Year);
 				Assert.AreEqual(0, student1.First().Birthdate.Value.ToDateTime().Hour);
+			}
+		}
+
+		[Test]
+		public virtual void Test_Date_Functions_When_Using_Custom_Date_Data_Type()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var student = this.model.Students
+					.Where(c => c.FavouriteDate.Year == 2016)
+					.Where(c => c.FavouriteDate.Month == 8)
+					.Where(c => c.FavouriteDate.Day == 19)
+					.ToList();
+
+				Assert.AreEqual(2, student.Count);
 			}
 		}
 
