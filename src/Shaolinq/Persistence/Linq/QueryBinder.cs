@@ -2294,15 +2294,17 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var type = memberInfo.DeclaringType;
-			var castMethod = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
+			var typeIsNullable = Nullable.GetUnderlyingType(type) != null;
+			var castMethod = typeIsNullable ? null : type.GetMethods(BindingFlags.Static | BindingFlags.Public)
 				.Where(c => c.IsSpecialName)
 				.Where(c => c.ReturnType == typeof(DateTime))
 				.Where(c => c.Name.StartsWith("op_Implicit") || c.Name.StartsWith("op_Explicit"))
-				.Single(c => c.GetParameters().First()?.ParameterType == type);
+				.SingleOrDefault(c => c.GetParameters().First()?.ParameterType == type);
 
 			var typeConvertableToDateTimeWithTypeConverterWithCast = castMethod != null;
 			var typeConverter = System.ComponentModel.TypeDescriptor.GetConverter(type);
-			var typeConvertableToDateTimeWithTypeConverter = typeConverter.CanConvertTo(typeof(DateTime));
+			var typeConvertableToDateTimeWithTypeConverter = !typeIsNullable
+				&& typeConverter.CanConvertTo(typeof(DateTime));
 
 			if (memberInfo.DeclaringType == typeof(DateTime) || typeConvertableToDateTimeWithTypeConverterWithCast || typeConvertableToDateTimeWithTypeConverter)
 			{

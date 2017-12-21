@@ -2228,13 +2228,13 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = this.NewTransactionScope())
 			{
-				var student = this.model.Students
+				var students = this.model.Students
 					.Where(c => c.FavouriteDate.Year == 2016)
 					.Where(c => c.FavouriteDate.Month == 8)
 					.Where(c => c.FavouriteDate.Day == 19)
 					.ToList();
 
-				Assert.AreEqual(2, student.Count);
+				Assert.AreEqual(1, students.Count);
 			}
 		}
 

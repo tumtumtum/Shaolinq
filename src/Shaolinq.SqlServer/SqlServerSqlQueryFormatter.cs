@@ -79,6 +79,36 @@ namespace Shaolinq.SqlServer
 		{
 			switch (functionCallExpression.Function)
 			{
+			case SqlFunction.Hour:
+				this.Write("DATEPART(hour, ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.Minute:
+				this.Write("DATEPART(minute, ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.Second:
+				this.Write("DATEPART(second, ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.DayOfWeek:
+				this.Write("DATEPART(weekday, ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.DayOfMonth:
+				this.Write("DATEPART(day, ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
+			case SqlFunction.DayOfYear:
+				this.Write("DATEPART(dayofyear, ");
+				this.Visit(functionCallExpression.Arguments[0]);
+				this.Write(")");
+				return functionCallExpression;
 			case SqlFunction.Date:
 				this.Write("CONVERT(date, ");
 				this.Visit(functionCallExpression.Arguments[0]);
