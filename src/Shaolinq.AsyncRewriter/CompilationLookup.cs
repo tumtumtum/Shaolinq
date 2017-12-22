@@ -39,14 +39,12 @@ namespace Shaolinq.AsyncRewriter
 
 		public List<IMethodSymbol> GetExtensionMethods(string name, ITypeSymbol type)
 		{
-			List<IMethodSymbol> methods;
-
 			if (type == null)
 			{
 				throw new ArgumentNullException(nameof(type));
 			}
 
-			if (!this.extensionMethodsByName.TryGetValue(name, out methods))
+			if (!this.extensionMethodsByName.TryGetValue(name, out var methods))
 			{
 				return new List<IMethodSymbol>();
 			}
@@ -99,9 +97,7 @@ namespace Shaolinq.AsyncRewriter
 				&& method.IsExtensionMethod
 				&& this.MethodIsPublicOrAccessibleFromCompilation(method))
 			{
-				List<IMethodSymbol> methods;
-
-				if (this.extensionMethodsByName.TryGetValue(method.Name, out methods))
+				if (this.extensionMethodsByName.TryGetValue(method.Name, out var methods))
 				{
 					methods.Add(method);
 				}

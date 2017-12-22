@@ -41,7 +41,7 @@ namespace Shaolinq.AsyncRewriter.Tests.RewriteTests
 		[RewriteAsync]
 		public int OutVariable()
 		{
-			int.TryParse("123", out int parsed);
+			int.TryParse("123", out var parsed);
 
 			return parsed;
 		}
@@ -120,8 +120,8 @@ namespace Shaolinq.AsyncRewriter.Tests.RewriteTests
 		[RewriteAsync]
 		public static ref int RefReturn(int[,] matrix, Func<int, bool> predicate)
 		{
-			for (int i = 0; i < matrix.GetLength(0); i++)
-			for (int j = 0; j < matrix.GetLength(1); j++)
+			for (var i = 0; i < matrix.GetLength(0); i++)
+			for (var j = 0; j < matrix.GetLength(1); j++)
 				if (predicate(matrix[i, j]))
 					return ref matrix[i, j];
 			throw new InvalidOperationException("Not found");

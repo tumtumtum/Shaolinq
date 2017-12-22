@@ -637,10 +637,9 @@ namespace Shaolinq.Persistence.Linq
 			var projection = this.VisitSequence(source);
 			this.AddExpressionByParameter(collectionSelector.Parameters[0], projection.Projector);
 
-			Expression collection;
 			var defaultIfEmpty = false;
 
-			if (collectionSelector.Body.TryStripDefaultIfEmptyCalls(out collection))
+			if (collectionSelector.Body.TryStripDefaultIfEmptyCalls(out var collection))
 			{
 				defaultIfEmpty = true;
 			}
@@ -1775,10 +1774,8 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var subquery = new SqlSubqueryExpression(returnType, select);
-
-			GroupByInfo info;
-
-			if (this.groupByMap.TryGetValue(projection, out info))
+			
+			if (this.groupByMap.TryGetValue(projection, out var info))
 			{
 				if (argument != null)
 				{
@@ -2007,9 +2004,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitParameter(ParameterExpression parameterExpression)
 		{
-			Expression retval;
-
-			if (this.expressionsByParameter.TryGetValue(parameterExpression, out retval))
+			if (this.expressionsByParameter.TryGetValue(parameterExpression, out var retval))
 			{
 				return retval;
 			}
@@ -2469,10 +2464,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return null;
 			}
-
-			List<IncludedPropertyInfo> includedPropertyInfos;
-
-			if (this.joinExpanderResults.IncludedPropertyInfos.TryGetValue(expression, out includedPropertyInfos))
+			
+			if (this.joinExpanderResults.IncludedPropertyInfos.TryGetValue(expression, out var includedPropertyInfos))
 			{
 				var useFullPath = !expression.Type.IsDataAccessObjectType();
 

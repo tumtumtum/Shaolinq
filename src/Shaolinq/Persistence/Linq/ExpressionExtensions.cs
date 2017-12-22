@@ -198,9 +198,7 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static Expression Strip(this Expression expression, Func<Expression, Expression> inner)
 		{
-			Expression result;
-
-			expression.TryStrip(inner, out result);
+			expression.TryStrip(inner, out var result);
 
 			return result;
 		}

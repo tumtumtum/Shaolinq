@@ -15,7 +15,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public static object CompileAndRun(LambdaExpression expression, params object[] args)
 		{
-			Delegate del;
 
 			if (args.Length != expression.Parameters.Count)
 			{
@@ -24,7 +23,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			var resultWithValues = SubstituteConstants(expression);
 
-			if (!delegatesByCachedCompileResult.TryGetValue(resultWithValues.Result, out del))
+			if (!delegatesByCachedCompileResult.TryGetValue(resultWithValues.Result, out var del))
 			{
 				if (args.Length == 0)
 				{
@@ -74,9 +73,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		public static SubstituteConstantsResultWithValues SubstituteConstants(Expression expression)
 		{
 			object[] args = null;
-			SubstituteConstantsResult result;
-			
-			if (!cachedSubstitutedExpressions.TryGetValue(expression, out result))
+
+			if (!cachedSubstitutedExpressions.TryGetValue(expression, out var result))
 			{
 				var values = new List<object>();
 				var parameters = new List<ParameterExpression>();

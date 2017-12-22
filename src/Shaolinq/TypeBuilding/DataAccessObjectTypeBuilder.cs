@@ -799,11 +799,10 @@ namespace Shaolinq.TypeBuilding
 					formatString, c =>
 					{
 						PropertyInfo pi;
-						PropertyBuilder pb; 
 						var name = c.Groups[1].Value;
 						var format = c.Groups[3].Value;
 
-						if (!this.propertyBuilders.TryGetValue(name, out pb))
+						if (!this.propertyBuilders.TryGetValue(name, out var pb))
 						{
 							pi = this.baseType.GetProperty(name, BindingFlags.NonPublic | BindingFlags.Instance);
 						}

@@ -38,9 +38,7 @@ namespace Shaolinq.Persistence
 			}
 			else if ((countProperty = type.GetProperty("Count")) != null)
 			{
-				Func<object, int> counter = null;
-
-				if (!getCountFuncs.TryGetValue(type, out counter))
+				if (!getCountFuncs.TryGetValue(type, out var counter))
 				{
 					var param = Expression.Parameter(typeof(object));
 					var body = Expression.Property(Expression.Convert(param, type), countProperty);

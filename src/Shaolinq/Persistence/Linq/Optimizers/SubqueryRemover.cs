@@ -55,13 +55,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
-			Dictionary<string, Expression> columnsByName;
-			
-			if (this.columnsBySelectAliasByColumnName.TryGetValue(column.SelectAlias, out columnsByName))
+			if (this.columnsBySelectAliasByColumnName.TryGetValue(column.SelectAlias, out var columnsByName))
 			{
-				Expression expr;
-
-				if (columnsByName.TryGetValue(column.Name, out expr))
+				if (columnsByName.TryGetValue(column.Name, out var expr))
 				{
 					return this.Visit(expr);
 				}

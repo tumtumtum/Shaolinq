@@ -158,9 +158,7 @@ namespace Shaolinq.Persistence
 
 		public EnumTypeDescriptor GetEnumTypeDescriptor(Type type)
 		{
-			EnumTypeDescriptor retval;
-
-			return this.enumTypeDescriptorsByType.TryGetValue(type, out retval) ? retval : null;
+			return this.enumTypeDescriptorsByType.TryGetValue(type, out var retval) ? retval : null;
 		}
 
 		public ICollection<TypeDescriptor> GetTypeDescriptors()
@@ -170,9 +168,7 @@ namespace Shaolinq.Persistence
 
 		public TypeDescriptor GetTypeDescriptor(Type type)
 		{
-			TypeDescriptor retval;
-
-			return this.typeDescriptorsByType.TryGetValue(type, out retval) ? retval : null;
+			return this.typeDescriptorsByType.TryGetValue(type, out var retval) ? retval : null;
 		}
 
 		public IEnumerable<EnumTypeDescriptor> GetPersistedEnumTypeDescriptors()

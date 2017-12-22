@@ -49,9 +49,7 @@ namespace Shaolinq.TypeBuilding
 		
 		public Type GetDataAccessObjectsType(Type type)
 		{
-			Type retval;
-			
-			if (this.dataAccessObjectsTypes.TryGetValue(type, out retval))
+			if (this.dataAccessObjectsTypes.TryGetValue(type, out var retval))
 			{
 				return retval;
 			}
@@ -71,13 +69,9 @@ namespace Shaolinq.TypeBuilding
 
 		private Func<DataAccessModel, bool, DataAccessObject> GetDataAccessObjectConstructor(Type dataAccessObjectType)
 		{
-			Func<DataAccessModel, bool, DataAccessObject> constructor;
-
-			if (!this.dataAccessObjectConstructors.TryGetValue(dataAccessObjectType, out constructor))
+			if (!this.dataAccessObjectConstructors.TryGetValue(dataAccessObjectType, out var constructor))
 			{
-				Type type;
-				
-				if (!this.concreteTypesByType.TryGetValue(dataAccessObjectType, out type))
+				if (!this.concreteTypesByType.TryGetValue(dataAccessObjectType, out var type))
 				{
 					throw new InvalidDataAccessObjectModelDefinition("{0} it not part of {1}", dataAccessObjectType.Name, this.dataAccessModelType.Name);
 				}
@@ -86,7 +80,7 @@ namespace Shaolinq.TypeBuilding
 				var dataAccessModelParam = Expression.Parameter(typeof(DataAccessModel));
 
 				var constructorInfo = type.GetConstructor(new[] { typeof(DataAccessModel), typeof(bool) });
-				
+
 				if (constructorInfo == null)
 				{
 					throw new Exception($"Unexpected missing constructor on {type.Name}");
@@ -108,26 +102,22 @@ namespace Shaolinq.TypeBuilding
 
 		public Type GetConcreteType(Type definitionType)
 		{
-			Type retval;
-
 			if (this.ConcreteAssembly == definitionType.Assembly)
 			{
 				return definitionType;
 			}
 
-			return this.concreteTypesByType.TryGetValue(definitionType, out retval) ? retval : definitionType;
+			return this.concreteTypesByType.TryGetValue(definitionType, out var retval) ? retval : definitionType;
 		}
 
 		public Type GetDefinitionType(Type concreteType)
 		{
-			Type retval;
-
 			if (this.DefinitionAssembly == concreteType.Assembly)
 			{
 				return concreteType;
 			}
 
-			return this.typesByConcreteType.TryGetValue(concreteType, out retval) ? retval : concreteType;
+			return this.typesByConcreteType.TryGetValue(concreteType, out var retval) ? retval : concreteType;
 		}
 	}
 }

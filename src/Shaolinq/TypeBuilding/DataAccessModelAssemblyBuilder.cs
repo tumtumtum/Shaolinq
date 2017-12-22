@@ -45,11 +45,9 @@ namespace Shaolinq.TypeBuilding
 
 		private static Assembly BuildAssembly(TypeDescriptorProvider typeDescriptorProvider, DataAccessModelConfiguration configuration)
 		{
-			string fullhash;
 			DataAccessObjectTypeBuilder dataAccessObjectTypeBuilder;
 			var serializedConfiguration = XmlSerializer<DataAccessModelConfigurationUniqueKey>.New().SerializeToString(new DataAccessModelConfigurationUniqueKey(configuration));
-			
-			var filename = GetFileName(typeDescriptorProvider, configuration.GeneratedAssembliesSaveDirectory, serializedConfiguration, out fullhash);
+			var filename = GetFileName(typeDescriptorProvider, configuration.GeneratedAssembliesSaveDirectory, serializedConfiguration, out var fullhash);
 
 			if (configuration.SaveAndReuseGeneratedAssemblies ?? false)
 			{

@@ -52,11 +52,9 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (expression.NodeType == (ExpressionType)SqlExpressionType.Column)
 			{
-				SqlColumnExpression mappedColumnExpression;
-
 				var column = (SqlColumnExpression)expression;
 
-				if (this.mappedColumnExpressions.TryGetValue(column, out mappedColumnExpression))
+				if (this.mappedColumnExpressions.TryGetValue(column, out var mappedColumnExpression))
 				{
 					return mappedColumnExpression;
 				}

@@ -225,9 +225,7 @@ namespace Shaolinq
 
 		public object GetAttribute(string key)
 		{
-			object result;
-
-			if (this.attributes.TryGetValue(key, out result))
+			if (this.attributes.TryGetValue(key, out var result))
 			{
 				return result;
 			}

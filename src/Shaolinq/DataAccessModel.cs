@@ -90,13 +90,11 @@ namespace Shaolinq
 
 		IQueryable IDataAccessModelInternal.CreateDataAccessObjects(RuntimeTypeHandle typeHandle)
 		{
-			Func<IQueryable> func;
-
-			if (!this.createDataAccessObjectsFuncs.TryGetValue(typeHandle, out func))
+			if (!this.createDataAccessObjectsFuncs.TryGetValue(typeHandle, out var func))
 			{
 				var type = Type.GetTypeFromHandle(typeHandle);
 
-				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type).GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression) });
+				var constructor = typeof(DataAccessObjects<>).MakeGenericType(type).GetConstructor(new[] { typeof(DataAccessModel), typeof(Expression) });
 
 				Debug.Assert(constructor != null);
 
@@ -415,10 +413,9 @@ namespace Shaolinq
 				return null;
 			}
 
-			Func<object, ObjectPropertyValue[]> func;
 			var objectTypeHandle = typeof(RawPrimaryKeysPlaceholderType<T>).TypeHandle;
 
-			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectTypeHandle, out func))
+			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectTypeHandle, out var func))
 			{
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
@@ -473,9 +470,8 @@ namespace Shaolinq
 
 			var idType = primaryKey.GetType();
 			var primaryKeyTypeHandle = Type.GetTypeHandle(primaryKey);
-			Func<object, ObjectPropertyValue[]> func;
 
-			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(primaryKeyTypeHandle, out func))
+			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(primaryKeyTypeHandle, out var func))
 			{
 				var isSimpleKey = false;
 				var typeOfPrimaryKey = Type.GetTypeFromHandle(primaryKeyTypeHandle);
@@ -508,7 +504,7 @@ namespace Shaolinq
 
 					replacementPrimaryKeyValues = properties.ToDictionary
 					(
-						c => c.ComputedMemberAssignTarget.Name, 
+						c => c.ComputedMemberAssignTarget.Name,
 						c => MemberAccessReplacer.Replace
 						(
 							c.ComputedMemberAssignmentValue,
@@ -712,11 +708,9 @@ namespace Shaolinq
 				return transactionContext.sqlDatabaseContext;
 			}
 
-			SqlDatabaseContextsInfo info;
-
 			var categories = transactionContext?.DatabaseContextCategoriesKey ?? "*";
 
-			if (!this.sqlDatabaseContextsByCategory.TryGetValue(categories, out info))
+			if (!this.sqlDatabaseContextsByCategory.TryGetValue(categories, out var info))
 			{
 				var compositeInfo = SqlDatabaseContextsInfo.Create();
 
@@ -809,10 +803,9 @@ namespace Shaolinq
 				throw new ArgumentNullException(nameof(dataAccessObject));
 			}
 
-			Func<DataAccessObject, DataAccessObject> func;
 			var definitionTypeHandle = dataAccessObject.GetAdvanced().DefinitionType.TypeHandle;
-			
-			if (!this.inflateFuncsByType.TryGetValue(definitionTypeHandle, out func))
+
+			if (!this.inflateFuncsByType.TryGetValue(definitionTypeHandle, out var func))
 			{
 				var definitionType = Type.GetTypeFromHandle(definitionTypeHandle);
 				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");
@@ -836,10 +829,9 @@ namespace Shaolinq
 				throw new ArgumentNullException(nameof(dataAccessObject));
 			}
 
-			Func<DataAccessObject, CancellationToken, Task<DataAccessObject>> func;
 			var definitionTypeHandle = dataAccessObject.GetAdvanced().DefinitionType.TypeHandle;
 
-			if (!this.inflateAsyncFuncsByType.TryGetValue(definitionTypeHandle, out func))
+			if (!this.inflateAsyncFuncsByType.TryGetValue(definitionTypeHandle, out var func))
 			{
 				var definitionType = Type.GetTypeFromHandle(definitionTypeHandle);
 				var parameter = Expression.Parameter(typeof(IDataAccessObjectAdvanced), "dataAccessObject");

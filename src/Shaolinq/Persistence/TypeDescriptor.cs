@@ -70,25 +70,20 @@ namespace Shaolinq.Persistence
 		
 		public PropertyDescriptor GetPropertyDescriptorByColumnName(string columnName)
 		{
-			PropertyDescriptor retval;
-
-			return !this.propertyDescriptorByColumnName.TryGetValue(columnName, out retval) ? null : retval;
+			return !this.propertyDescriptorByColumnName.TryGetValue(columnName, out var retval) ? null : retval;
 		}
 
 		public PropertyDescriptor GetPropertyDescriptorByPropertyName(string propertyName)
 		{
-			PropertyDescriptor retval;
-
-			return !this.propertyDescriptorByPropertyName.TryGetValue(propertyName, out retval) ? null : retval;
+			return !this.propertyDescriptorByPropertyName.TryGetValue(propertyName, out var retval) ? null : retval;
 		}
 
 		public PropertyDescriptor GetRelatedProperty(Type type)
 		{
-			PropertyDescriptor retval;
 
-			if (!this.relatedPropertiesByType.TryGetValue(type, out retval))
+			if (!this.relatedPropertiesByType.TryGetValue(type, out var retval))
 			{
-				Func<PropertyDescriptor, bool> isForType = delegate(PropertyDescriptor c)
+				Func<PropertyDescriptor, bool> isForType = delegate (PropertyDescriptor c)
 				{
 					if (type.IsAssignableFrom(c.PropertyType))
 					{

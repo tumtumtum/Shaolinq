@@ -259,7 +259,6 @@ namespace Shaolinq
 			public DataAccessObject Get(ObjectPropertyValue[] primaryKeys)
 			{
 				K key;
-				DataAccessObject outValue;
 
 				if (typeof(K) == typeof(CompositePrimaryKey))
 				{
@@ -270,7 +269,7 @@ namespace Shaolinq
 					key = (K)(object)primaryKeys[0].Value;
 				}
 
-				if (this.objectsByIdCache.TryGetValue(key, out outValue))
+				if (this.objectsByIdCache.TryGetValue(key, out var outValue))
 				{
 					return outValue;
 				}
@@ -280,9 +279,7 @@ namespace Shaolinq
 
 			public DataAccessObject Get(LambdaExpression predicate)
 			{
-				DataAccessObject outValue;
-
-				if (this.objectsByPredicateCache.TryGetValue(predicate, out outValue))
+				if (this.objectsByPredicateCache.TryGetValue(predicate, out var outValue))
 				{
 					return outValue;
 				}
@@ -317,9 +314,7 @@ namespace Shaolinq
 				{
 					if (value.GetAdvanced().PrimaryKeyIsCommitReady)
 					{
-						DataAccessObject result;
-
-						if (this.newObjects.TryGetValue(value, out result))
+						if (this.newObjects.TryGetValue(value, out var result))
 						{
 							if (result != value)
 							{
@@ -356,10 +351,8 @@ namespace Shaolinq
 					{
 						throw new InvalidOperationException("Cannot import predicated deflated object");
 					}
-
-					DataAccessObject existing;
-
-					if (this.objectsByPredicateCache.TryGetValue(predicate, out existing))
+					
+					if (this.objectsByPredicateCache.TryGetValue(predicate, out var existing))
 					{
 						existing.ToObjectInternal().SwapData(value, true);
 
@@ -380,14 +373,12 @@ namespace Shaolinq
 					
 				if (!forImport)
 				{
-					DataAccessObject outValue;
-
-					if (this.objectsByIdCache.TryGetValue(id, out outValue))
+					if (this.objectsByIdCache.TryGetValue(id, out var outValue))
 					{
 						var deleted = outValue.IsDeleted();
 
 						outValue.ToObjectInternal().SwapData(value, true);
-							
+
 						if (deleted)
 						{
 							outValue.ToObjectInternal().SetIsDeleted(true);
@@ -399,9 +390,7 @@ namespace Shaolinq
 
 				if (this.objectsDeleted != null)
 				{
-					DataAccessObject existingDeleted;
-
-					if (this.objectsDeleted.TryGetValue(id, out existingDeleted))
+					if (this.objectsDeleted.TryGetValue(id, out var existingDeleted))
 					{
 						if (!forImport)
 						{
@@ -460,10 +449,8 @@ namespace Shaolinq
 			}
 
 			var typeHandle = Type.GetTypeHandle(value);
-
-			IObjectsByIdCache cache;
-
-			if (!this.cachesByType.TryGetValue(typeHandle, out cache))
+			
+			if (!this.cachesByType.TryGetValue(typeHandle, out var cache))
 			{
 				cache = CreateCacheForDao(value, this);
 
@@ -504,26 +491,21 @@ namespace Shaolinq
 
 		public virtual DataAccessObject GetObject(Type type, ObjectPropertyValue[] primaryKeys)
 		{
-			IObjectsByIdCache cache;
-
-			return this.cachesByType.TryGetValue(type.TypeHandle, out cache) ? cache.Get(primaryKeys) : null;
+			return this.cachesByType.TryGetValue(type.TypeHandle, out var cache) ? cache.Get(primaryKeys) : null;
 		}
 
 		public virtual DataAccessObject GetObject(Type type, LambdaExpression predicate)
 		{
-			IObjectsByIdCache cache;
-
-			return this.cachesByType.TryGetValue(type.TypeHandle, out cache) ? cache.Get(predicate) : null;
+			return this.cachesByType.TryGetValue(type.TypeHandle, out var cache) ? cache.Get(predicate) : null;
 		}
 
 		private static Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>> cacheConstructor = new Dictionary<RuntimeTypeHandle, Func<DataAccessObjectDataContext, IObjectsByIdCache>>();
 
 		private static IObjectsByIdCache CreateCacheForDao(IDataAccessObjectAdvanced dao, DataAccessObjectDataContext context)
 		{
-			Func<DataAccessObjectDataContext, IObjectsByIdCache> func;
 			var typeHandle = Type.GetTypeHandle(dao);
 
-			if (!cacheConstructor.TryGetValue(typeHandle, out func))
+			if (!cacheConstructor.TryGetValue(typeHandle, out var func))
 			{
 				var type = dao.GetType();
 
@@ -562,7 +544,6 @@ namespace Shaolinq
 
 		public virtual DataAccessObject CacheObject(DataAccessObject value, bool forImport)
 		{
-			IObjectsByIdCache cache;
 			var typeHandle = Type.GetTypeHandle(value);
 
 			if ((value.GetAdvanced().ObjectState & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
@@ -570,7 +551,7 @@ namespace Shaolinq
 				return value;
 			}
 
-			if (!this.cachesByType.TryGetValue(typeHandle, out cache))
+			if (!this.cachesByType.TryGetValue(typeHandle, out var cache))
 			{
 				cache = CreateCacheForDao(value, this);
 

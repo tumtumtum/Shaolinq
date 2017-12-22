@@ -65,9 +65,7 @@ namespace Shaolinq.TypeBuilding
 			{
 				while (true)
 				{
-					RuntimeDataAccessModelInfo runtimeDataAccessModelInfo;
-
-					if (this.assemblyBuildInfosByKey.TryGetValue(key, out runtimeDataAccessModelInfo))
+					if (this.assemblyBuildInfosByKey.TryGetValue(key, out var runtimeDataAccessModelInfo))
 					{
 						return runtimeDataAccessModelInfo;
 					}

@@ -26,8 +26,6 @@ namespace Shaolinq.Persistence.Linq
 
 			for (index = this.replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
 			{
-				Expression retval;
-
 				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
 				{
 					indexFound = index;
@@ -38,7 +36,7 @@ namespace Shaolinq.Persistence.Linq
 					continue;
 				}
 				
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out var retval))
 				{
 					return retval;	
 				}
@@ -46,8 +44,6 @@ namespace Shaolinq.Persistence.Linq
 
 			for (index = this.replacementExpressionForPropertyPathsByJoin.Count - 1; index >= 0; index--)
 			{
-				Expression retval;
-
 				if (currentJoin == this.replacementExpressionForPropertyPathsByJoin[index].Left)
 				{
 					indexFound = index;
@@ -58,7 +54,7 @@ namespace Shaolinq.Persistence.Linq
 					continue;
 				}
 
-				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out retval))
+				if (this.replacementExpressionForPropertyPathsByJoin[index].Right.TryGetValue(propertyPath, out var retval))
 				{
 					return retval;
 				}

@@ -34,10 +34,9 @@ namespace Shaolinq.TypeBuilding
 		
 		public FieldInfo GetPropertyDescriptorField(Type typeDescriptorType, string propertyName)
 		{
-			FieldBuilder retval;
 			var key = new Tuple<Type, string>(typeDescriptorType, propertyName);
 
-			if (!this.propertyDescriptors.TryGetValue(key, out retval))
+			if (!this.propertyDescriptors.TryGetValue(key, out var retval))
 			{
 				retval = this.DataAccessModelTypeBuilder.DefineField($"property_{typeDescriptorType.Name}_{propertyName}_{Guid.NewGuid():N}", typeof(PropertyDescriptor), FieldAttributes.Public);
 
@@ -49,11 +48,9 @@ namespace Shaolinq.TypeBuilding
 
 		public FieldBuilder GetHashCodeField(string value, string prefix = "__hash")
 		{
-			FieldBuilder fieldBuilder;
-
-			if (!this.FieldsByValue.TryGetValue(value, out fieldBuilder))
+			if (!this.FieldsByValue.TryGetValue(value, out var fieldBuilder))
 			{
-				fieldBuilder = this.ConstantsContainer.DefineField(prefix + "_" +this.FieldsByValue.Count, typeof(int), FieldAttributes.Static | FieldAttributes.Public | FieldAttributes.InitOnly);
+				fieldBuilder = this.ConstantsContainer.DefineField(prefix + "_" + this.FieldsByValue.Count, typeof(int), FieldAttributes.Static | FieldAttributes.Public | FieldAttributes.InitOnly);
 
 				this.FieldsByValue[value] = fieldBuilder;
 			}

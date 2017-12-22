@@ -91,10 +91,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		private Expression GetExpression(Expression expression)
 		{
-			Expression retval;
 			var parameterExpression = expression as ParameterExpression;
 
-			if (parameterExpression != null && this.expressionByParameter.TryGetValue(parameterExpression, out retval))
+			if (parameterExpression != null && this.expressionByParameter.TryGetValue(parameterExpression, out var retval))
 			{
 				return retval;
 			}
@@ -328,8 +327,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			while (currentExpression?.Member is PropertyInfo)
 			{
 				var path = new PropertyPath(c => c.Name, visited.Select(c=> (PropertyInfo)c.Member).Take(visited.Count - i).ToArray());
-				
-				ReferencedRelatedObject objectInfo;
+
 
 				if (path.Length == 0)
 				{
@@ -343,7 +341,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					break;
 				}
 
-				if (!this.results.TryGetValue(path, out objectInfo))
+				if (!this.results.TryGetValue(path, out var objectInfo))
 				{
 					var includedPropertyPath = new PropertyPath(c => c.Name, path.Skip(includedPathSkip));
 

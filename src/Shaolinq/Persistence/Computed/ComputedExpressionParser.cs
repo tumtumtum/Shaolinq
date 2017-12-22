@@ -578,7 +578,6 @@ namespace Shaolinq.Persistence.Computed
 						}
 						else
 						{
-							Type type;
 							var fullIdentifierName = string.Join(".", identifierStack.Reverse());
 
 							identifierStack.Push(identifier);
@@ -592,7 +591,7 @@ namespace Shaolinq.Persistence.Computed
 								fullIdentifierName += (fullIdentifierName == "" ? "" : ".") + identifierStack.First();
 							}
 
-							if (this.TryGetType(fullIdentifierName, out type))
+							if (this.TryGetType(fullIdentifierName, out var type))
 							{
 								current = Expression.Constant(new TypeHolder(type));
 							}

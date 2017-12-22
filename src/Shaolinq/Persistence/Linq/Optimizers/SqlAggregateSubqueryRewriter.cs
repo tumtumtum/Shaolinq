@@ -54,9 +54,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitAggregateSubquery(SqlAggregateSubqueryExpression aggregate)
 		{
-			Expression mapped;
-
-			if (this.aggregateSubqueryInstances.TryGetValue(aggregate, out mapped))
+			if (this.aggregateSubqueryInstances.TryGetValue(aggregate, out var mapped))
 			{
 				return mapped;
 			}

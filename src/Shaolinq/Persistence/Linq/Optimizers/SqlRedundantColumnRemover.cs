@@ -28,9 +28,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
-			SqlColumnExpression existing;
-
-			if (this.visitedColumns.TryGetValue(column, out existing))
+			if (this.visitedColumns.TryGetValue(column, out var existing))
 			{
 				return existing;
 			}

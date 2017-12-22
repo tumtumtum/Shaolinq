@@ -34,9 +34,7 @@ namespace Shaolinq.Persistence.Linq
 		
 		public static IQueryable CreateQuery(Type elementType, SqlQueryProvider provider, Expression expression)
 		{
-			Func<SqlQueryProvider, Expression, IQueryable> func;
-
-			if (!createQueryCache.TryGetValue(elementType.TypeHandle, out func))
+			if (!createQueryCache.TryGetValue(elementType.TypeHandle, out var func))
 			{
 				var providerParam = Expression.Parameter(typeof(SqlQueryProvider));
 				var expressionParam = Expression.Parameter(typeof(Expression));
@@ -181,14 +179,13 @@ namespace Shaolinq.Persistence.Linq
 
 		internal ExecutionBuildResult BuildExecution(Expression expression, LambdaExpression projection = null, object[] placeholderValues = null, Expression<Func<IDataReader, object[]>> rootKeys = null)
 		{
-			ProjectorExpressionCacheInfo cacheInfo;
 			var skipFormatResultSubstitution = false;
 			var projectionExpression = expression as SqlProjectionExpression ?? (SqlProjectionExpression)Bind(this.DataAccessModel, this.SqlDatabaseContext.SqlDataTypeProvider, expression);
 
 			var foundCachedProjection = false;
 			var key = new ExpressionCacheKey(projectionExpression, projection);
 
-			if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out cacheInfo))
+			if (!this.SqlDatabaseContext.projectionExpressionCache.TryGetValue(key, out var cacheInfo))
 			{
 				if (expression != projectionExpression)
 				{
@@ -391,11 +388,10 @@ namespace Shaolinq.Persistence.Linq
 			projectionLambda = Expression.Lambda(executor, sqlQueryProviderParam, formatResultsParam, placeholderValuesParam);
 			var asyncProjectorLambda = Expression.Lambda(asyncExecutor, sqlQueryProviderParam, formatResultsParam, placeholderValuesParam, cancellationToken);
 
-			ProjectorCacheInfo cacheInfo;
 			var key = new ProjectorCacheKey(projectionLambda);
 			var oldCache = this.SqlDatabaseContext.projectorCache;
 
-			if (!oldCache.TryGetValue(key, out cacheInfo))
+			if (!oldCache.TryGetValue(key, out var cacheInfo))
 			{
 				cacheInfo.projector = projectionLambda.Compile();
 				cacheInfo.asyncProjector = asyncProjectorLambda.Compile();

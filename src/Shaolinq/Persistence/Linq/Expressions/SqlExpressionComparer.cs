@@ -83,9 +83,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			ConstantExpression current;
-
-			if (!this.TryGetCurrent(constantExpression, out current))
+			if (!this.TryGetCurrent(constantExpression, out var current))
 			{
 				return constantExpression;
 			}
@@ -123,9 +121,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override IReadOnlyList<T> VisitExpressionList<T>(IReadOnlyList<T> original)
 		{
-			IReadOnlyList<T> current;
-
-			if (!this.TryGetCurrent(original, out current))
+			if (!this.TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -155,9 +151,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		
 		protected override IReadOnlyList<MemberBinding> VisitBindingList(IReadOnlyList<MemberBinding> original)
 		{
-			IReadOnlyList<MemberBinding> current;
-
-			if (!this.TryGetCurrent(original, out current))
+			if (!this.TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -182,9 +176,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override IReadOnlyList<ElementInit> VisitElementInitializerList(IReadOnlyList<ElementInit> original)
 		{
-			IReadOnlyList<ElementInit> current;
-
-			if (!this.TryGetCurrent(original, out current))
+			if (!this.TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -209,9 +201,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected virtual LabelTarget VisitLabelTarget(LabelTarget original)
 		{
-			LabelTarget current;
-
-			if (!this.TryGetCurrent(original, out current))
+			if (!this.TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -233,9 +223,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected virtual IReadOnlyList<T> VisitObjectList<T>(IReadOnlyList<T> original)
 		{
-			IReadOnlyList<T> current;
-
-			if (!this.TryGetCurrent(original, out current))
+			if (!this.TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -254,9 +242,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
 		{
-			SqlConstantPlaceholderExpression current;
-
-			if (!this.TryGetCurrent(constantPlaceholder, out current))
+			if (!this.TryGetCurrent(constantPlaceholder, out var current))
 			{
 				return constantPlaceholder;
 			}
@@ -282,9 +268,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
-			IReadOnlyList<SqlColumnDeclaration> current;
-
-			if (!this.TryGetCurrent(columns, out current))
+			if (!this.TryGetCurrent(columns, out var current))
 			{
 				return columns;
 			}

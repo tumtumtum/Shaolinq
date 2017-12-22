@@ -27,11 +27,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		private void MarkColumnAsUsed(string alias, string name)
 		{
-			HashSet<string> columns;
-
 			alias = alias ?? "";
 
-			if (!this.allColumnsUsed.TryGetValue(alias, out columns))
+			if (!this.allColumnsUsed.TryGetValue(alias, out var columns))
 			{
 				columns = new HashSet<string>();
 			
@@ -43,9 +41,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		private bool IsColumnUsed(string alias, string name)
 		{
-			HashSet<string> columnsUsed;
-
-			if (this.allColumnsUsed.TryGetValue(alias, out columnsUsed))
+			if (this.allColumnsUsed.TryGetValue(alias, out var columnsUsed))
 			{
 				if (columnsUsed != null)
 				{

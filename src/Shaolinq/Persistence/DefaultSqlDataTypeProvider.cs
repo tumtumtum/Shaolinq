@@ -69,9 +69,7 @@ namespace Shaolinq.Persistence
 
 		public override SqlDataType GetSqlDataType(Type type)
 		{
-			SqlDataType value;
-
-			if (this.sqlDataTypesByType.TryGetValue(type, out value))
+			if (this.sqlDataTypesByType.TryGetValue(type, out var value))
 			{
 				return value;
 			}

@@ -279,10 +279,10 @@ namespace Shaolinq.Persistence.Computed
 						this.ConsumeChar();
 					}
 
-					ComputedExpressionKeyword keyword;;
-					var s = this.stringBuilder.ToString();
+;
+						var s = this.stringBuilder.ToString();
 
-					if (Enum.TryParse(s, true, out keyword))
+					if (Enum.TryParse(s, true, out ComputedExpressionKeyword keyword))
 					{
 						this.CurrentToken = ComputedExpressionToken.Keyword;
 						this.CurrentKeyword = keyword;

@@ -141,10 +141,8 @@ namespace Shaolinq.Persistence
 			{
 				return dataAccessObject;
 			}
-
-			Func<DataAccessObject, IDataReader, DataAccessObject> applicator;
-
-			if (!this.serverSideGeneratedPropertySettersByType.TryGetValue(Type.GetTypeHandle(dataAccessObject), out applicator))
+			
+			if (!this.serverSideGeneratedPropertySettersByType.TryGetValue(Type.GetTypeHandle(dataAccessObject), out var applicator))
 			{
 				var objectParameter = Expression.Parameter(typeof(DataAccessObject));
 				var readerParameter = Expression.Parameter(typeof(IDataReader));
@@ -155,26 +153,26 @@ namespace Shaolinq.Persistence
 				{
 					Expression.Assign(local, Expression.Convert(objectParameter, dataAccessObject.GetType()))
 				};
-				
+
 				var index = 0;
-				
+
 				foreach (var property in propertiesGeneratedOnServerSide)
 				{
 					var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(property.PropertyType);
 					var valueExpression = sqlDataType.GetReadExpression(readerParameter, index++);
 					var member = dataAccessObject.GetType().GetMostDerivedProperty(property.PropertyName);
-					
+
 					statements.Add(Expression.Assign(Expression.MakeMemberAccess(local, member), valueExpression));
 				}
-				
+
 				statements.Add(objectParameter);
-				
-				var body = Expression.Block(new [] { local }, statements);
+
+				var body = Expression.Block(new[] { local }, statements);
 
 				var lambda = Expression.Lambda<Func<DataAccessObject, IDataReader, DataAccessObject>>(body, objectParameter, readerParameter);
-				
+
 				applicator = lambda.Compile();
-				
+
 				this.serverSideGeneratedPropertySettersByType = this.serverSideGeneratedPropertySettersByType.Clone(Type.GetTypeHandle(dataAccessObject), applicator, "ServerSideGeneratedPropertySettersByType");
 			}
 
@@ -220,9 +218,8 @@ namespace Shaolinq.Persistence
 				foreach (var changed in changedProperties)
 				{
 					var temp = cachedValue.valueIndexesToParameterPlaceholderIndexes[i];
-					int parameterIndex;
 
-					if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
+					if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out var parameterIndex))
 					{
 						var typedValue = newParameters[parameterIndex];
 
@@ -240,9 +237,8 @@ namespace Shaolinq.Persistence
 				foreach (var changed in primaryKeys)
 				{
 					var temp = cachedValue.primaryKeyIndexesToParameterPlaceholderIndexes[i];
-					int parameterIndex;
 
-					if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out parameterIndex))
+					if (cachedValue.formatResult.PlaceholderIndexToParameterIndex.TryGetValue(temp, out var parameterIndex))
 					{
 						var typedValue = newParameters[parameterIndex];
 
@@ -360,12 +356,9 @@ namespace Shaolinq.Persistence
 
 		protected virtual IDbCommand BuildUpdateCommand(TypeDescriptor typeDescriptor, DataAccessObject dataAccessObject)
 		{
-			bool valuesPredicated;
-			bool primaryKeysPredicated;
 			IDbCommand command = null;
-			SqlCachedUpdateInsertFormatValue cachedValue;
 			var requiresIdentityInsert = dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties;
-			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out valuesPredicated);
+			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out var valuesPredicated);
 
 			if (updatedProperties.Count == 0)
 			{
@@ -373,7 +366,7 @@ namespace Shaolinq.Persistence
 			}
 			
 			var success = false;
-			var primaryKeys = dataAccessObject.ToObjectInternal().GetPrimaryKeysForUpdateFlattened(out primaryKeysPredicated);
+			var primaryKeys = dataAccessObject.ToObjectInternal().GetPrimaryKeysForUpdateFlattened(out var primaryKeysPredicated);
 
 			if (valuesPredicated || primaryKeysPredicated)
 			{
@@ -382,7 +375,7 @@ namespace Shaolinq.Persistence
 
 			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);
 		
-			if (this.TryGetUpdateCommand(commandKey, out cachedValue))
+			if (this.TryGetUpdateCommand(commandKey, out var cachedValue))
 			{
 				try
 				{
@@ -554,12 +547,9 @@ namespace Shaolinq.Persistence
 		{
 			var success = false;
 			IDbCommand command = null;
-			SqlCachedUpdateInsertFormatValue cachedValue;
-			bool predicated;
 
 			var requiresIdentityInsert = dataAccessObject.ToObjectInternal().HasAnyChangedPrimaryKeyServerSideProperties;
-
-			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out predicated);
+			var updatedProperties = dataAccessObject.ToObjectInternal().GetChangedPropertiesFlattened(out var predicated);
 
 			if (predicated)
 			{
@@ -568,7 +558,7 @@ namespace Shaolinq.Persistence
 
 			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);
 
-			if (this.TryGetInsertCommand(commandKey, out cachedValue))
+			if (this.TryGetInsertCommand(commandKey, out var cachedValue))
 			{
 				try
 				{

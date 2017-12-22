@@ -139,10 +139,8 @@ namespace Shaolinq
 		{
 			var key = this.relationshipInfo;
 			var cache = this.DataAccessModel.relatedDataAccessObjectsInitializeActionsCache;
-
-			Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> initializeDataAccessObject;
-
-			if (cache.TryGetValue(key, out initializeDataAccessObject))
+			
+			if (cache.TryGetValue(key, out var initializeDataAccessObject))
 			{
 				return initializeDataAccessObject;
 			}

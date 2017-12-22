@@ -130,10 +130,8 @@ namespace Shaolinq.Persistence
 						return QueryBinder.GetColumnInfos(property.DeclaringTypeDescriptor.TypeDescriptorProvider, properties);
 					}
 				}
-
-				int number;
-
-				if (indexedToValue != null && int.TryParse(s, out number))
+				
+				if (indexedToValue != null && int.TryParse(s, out var number))
 				{
 					return indexedToValue(number);
 				}

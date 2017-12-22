@@ -22,10 +22,9 @@ namespace Shaolinq.Persistence
 
 		public static Task RollbackAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
-			Func<IDbTransaction, CancellationToken, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);
 
-			if (!rollbackAsyncFuncsByType.TryGetValue(typeHandle, out func))
+			if (!rollbackAsyncFuncsByType.TryGetValue(typeHandle, out var func))
 			{
 				var type = Type.GetTypeFromHandle(typeHandle);
 				var param1 = Expression.Parameter(typeof(IDbTransaction));
@@ -69,10 +68,9 @@ namespace Shaolinq.Persistence
 
 		public static Task CommitAsync(this IDbTransaction transaction, CancellationToken cancellationToken)
 		{
-			Func<IDbTransaction, CancellationToken, Task> func;
 			var typeHandle = Type.GetTypeHandle(transaction);
 
-			if (!commitAsyncFuncsByType.TryGetValue(typeHandle, out func))
+			if (!commitAsyncFuncsByType.TryGetValue(typeHandle, out var func))
 			{
 				var type = transaction.GetType();
 				var param1 = Expression.Parameter(typeof(IDbTransaction));
