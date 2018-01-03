@@ -106,8 +106,8 @@ namespace Shaolinq.Tests
 				int.MaxValue,
 				long.MaxValue,
 				(ushort) short.MaxValue, // using signed max value as unsigned not supported in various databases
-				(uint) int.MaxValue, // using signed max value as unsigned not supported in various databases
-				(ulong) long.MaxValue, // using signed max value as unsigned not supported in various databases
+				int.MaxValue, // using signed max value as unsigned not supported in various databases
+				long.MaxValue, // using signed max value as unsigned not supported in various databases
 				maxDecimal,
 				(float) TruncateToSignificantDigits(float.MaxValue, this.floatSignificantFigures), // .NET internally stores 9 significant figures, but only 7 are used externally
 				double.MaxValue,

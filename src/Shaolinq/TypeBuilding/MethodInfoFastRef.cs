@@ -46,9 +46,9 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo EnumerableUtilsSingleOrExceptionIfFirstIsNullMethod = TypeUtils.GetMethod(() => default(IEnumerable<int?>).SingleOrExceptionIfFirstIsNull()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableDefaultIfEmptyCoalesceSpecifiedValueMethod = TypeUtils.GetMethod(() => default(IEnumerable<int?>).DefaultIfEmptyCoalesceSpecifiedValue(0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo StringStaticEqualsMethod = TypeUtils.GetMethod(() => string.Equals(default(string), default(string)));
-		public static readonly MethodInfo ObjectEqualsMethod = TypeUtils.GetMethod<object>(c => c.Equals((object)null));
-		public static readonly MethodInfo ObjectStaticEqualsMethod = TypeUtils.GetMethod(() => Equals((object)1, (object)2));
-		public static readonly MethodInfo ObjectStaticReferenceEqualsMethod = TypeUtils.GetMethod(() => ReferenceEquals((object)1, (object)2));
+		public static readonly MethodInfo ObjectEqualsMethod = TypeUtils.GetMethod<object>(c => c.Equals(null));
+		public static readonly MethodInfo ObjectStaticEqualsMethod = TypeUtils.GetMethod(() => Equals(1, 2));
+		public static readonly MethodInfo ObjectStaticReferenceEqualsMethod = TypeUtils.GetMethod(() => ReferenceEquals(1, 2));
 		public static readonly MethodInfo StringConcatMethod2 = TypeUtils.GetMethod(() => string.Concat(default(string), default(string)));
 		public static readonly MethodInfo StringConcatMethod3 = TypeUtils.GetMethod(() => string.Concat(default(string), default(string), default(string)));
 		public static readonly MethodInfo StringConcatMethod4 = TypeUtils.GetMethod(() => string.Concat(default(string), default(string), default(string)));
@@ -58,7 +58,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo DataAccessModelGetReferenceMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessModelGetDataAccessObjectsMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetDataAccessObjects<DataAccessObject>()).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessModelGetReferenceByValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(default(object[]))).GetGenericMethodDefinition();
-		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string>((Expression<Func<object, string>>)null)).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string>(null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string, int>(default(Expression<Func<object, string>>), (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo TransactionContextGetCurrentContextVersion = TypeUtils.GetMethod(() => TransactionContext.GetCurrentTransactionContextVersion(default(DataAccessModel)));
 		public static readonly MethodInfo DataAccessObjectExtensionsAddToCollectionMethod = TypeUtils.GetMethod(() => DataAccessObjectHelpersInternal.AddToCollection<DataAccessObject, DataAccessObject>(null, null, null, 0)).GetGenericMethodDefinition();

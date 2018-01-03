@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Platform.Validation;
 using Platform.Xml.Serialization;
 using Shaolinq.Persistence;
 
@@ -21,7 +22,7 @@ namespace Shaolinq
 		public List<SqlDatabaseContextInfo> SqlDatabaseContextInfos { get; set; }
 
 		/// <summary>
-		/// Default settings for contraints such as those defined in <seealso cref="Platform.Validation.SizeConstraintAttribute"/>
+		/// Default settings for contraints such as those defined in <see cref="SizeConstraintAttribute"/>
 		/// </summary>
 		[XmlElement("ConstraintDefaults")]
 		public ConstraintDefaultsConfiguration ConstraintDefaultsConfiguration { get; set; }
@@ -55,6 +56,16 @@ namespace Shaolinq
 		/// By default value types are set to <c>default(T)</c> as is the case with C#.
 		/// Set this property to false to disable this behaviour and require defaults to be set.
 		/// </summary>
+		/// <remarks>
+		/// Declaring a property as required with <see cref="ValueRequiredAttribute"/> will override
+		/// this setting on a property-by-property basis. For example, if this setting is set to <c>true</c>
+		/// but a property is attributed with <see cref="ValueRequiredAttribute"/> then a value will need
+		/// to be explicitly set on the property before its commited to the database.
+		/// <para>
+		/// This property only affects non-nullable value types. Value types that are nullable are treated
+		/// like reference types in that they always have an implicit default value of <c>null</c> if not set.
+		/// </para>
+		/// </remarks>
 		[XmlAttribute]
 		public bool ValueTypesAutoImplicitDefault { get; set; } = true;
 
@@ -64,13 +75,10 @@ namespace Shaolinq
 		/// basded upon the <c>DEFAULT VALUE</c> constraint.
 		/// </summary>
 		/// <remarks>
-		/// The default for this property is L<c>true</c>.
-		/// Set this propertuy to false if you want default values to be ommitted when submitting new objects.
-		/// When this property is true (default) then the default value that is configured on the DataAccessModel
+		/// The default value for this property is <c>true</c>.
+		/// Set this property to false if you want default values to be ommitted when submitting new objects.
+		/// When this property is <c>true</c> (default) then the default value that is configured on the <see cref="DataAccessModel"/>
 		/// will override the <c>DEFAULT VALUE</c> constraint declared database schema if there is a schema mismatch.
-		/// <para>
-		/// This property is ignored if <see cref="IncludeImplicitDefaultsInSchema"/> is false.
-		/// </para>
 		/// </remarks>
 		[XmlAttribute]
 		public bool AlwaysSubmitDefaultValues { get; set; } = true;
@@ -84,12 +92,13 @@ namespace Shaolinq
 		/// using the <see cref="DefaultValueAttribute"/>) are always included in the schema.
 		/// <para>
 		/// This property only has an effect if <see cref="ValueTypesAutoImplicitDefault"/> is <c>true</c></para>
+		/// and can be overriden on a property-by-property basis by applying the <see cref="ValueRequiredAttribute"/>.
 		/// </remarks>
 		[XmlAttribute]
 		public bool IncludeImplicitDefaultsInSchema { get; set; } = false;
 
 		/// <summary>
-		/// Path to the folder to store generated assemblies if <see cref="SaveAndReuseGeneratedAssemblies"/> is <c>true</c>.
+		/// Path to the folder to store generated assemblies when <see cref="SaveAndReuseGeneratedAssemblies"/> is <c>true</c>.
 		/// </summary>
 		/// <remarks>
 		/// If not configured, the directory containing the <c>Shaolinq.dll</c> assembly.

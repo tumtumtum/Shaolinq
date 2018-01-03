@@ -9,8 +9,8 @@ namespace Shaolinq.Persistence
 	internal class RewriteAsyncAttribute
 		: Attribute
 	{
-		public bool ContinueOnCapturedContext { get; private set; }
-		public MethodAttributes MethodAttributes { get; private set; }
+		public bool ContinueOnCapturedContext { get; }
+		public MethodAttributes MethodAttributes { get; }
 
 		public RewriteAsyncAttribute(MethodAttributes methodAttributes = default(MethodAttributes), bool continueOnCapturedContext = false)
 		{

@@ -13,13 +13,11 @@ namespace Shaolinq.Persistence.Linq
 {
 	public static class ExpressionExtensions
 	{
-		private static readonly ExpressionType[] expressionTypes = new[] { ExpressionType.Equal, ExpressionType.Constant, ExpressionType.AndAlso, ExpressionType.And, (ExpressionType)SqlExpressionType.ConstantPlaceholder, (ExpressionType)SqlExpressionType.Column };
+		private static readonly ExpressionType[] expressionTypes = { ExpressionType.Equal, ExpressionType.Constant, ExpressionType.AndAlso, ExpressionType.And, (ExpressionType)SqlExpressionType.ConstantPlaceholder, (ExpressionType)SqlExpressionType.Column };
 		
 		internal static IEnumerable<Expression> GetIncludeJoins(this Expression expression)
 		{
-			var select = expression as SqlSelectExpression;
-
-			if (select != null)
+			if (expression is SqlSelectExpression)
 			{
 				yield break;
 			}
@@ -70,16 +68,14 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static SqlSelectExpression GetLeftMostSelect(this Expression expression)
 		{
-			var select = expression as SqlSelectExpression;
 
-			if (select != null)
+			if (expression is SqlSelectExpression select)
 			{
 				return select;
 			}
 
-			var join = expression as SqlJoinExpression;
 
-			if (join != null)
+			if (expression is SqlJoinExpression join)
 			{
 				return GetLeftMostSelect(join.Left);
 			}
@@ -171,9 +167,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (binarySeparators.Contains(expression.NodeType))
 				{
-					var binaryExpression = expression as BinaryExpression;
 
-					if (binaryExpression != null)
+					if (expression is BinaryExpression binaryExpression)
 					{
 						Split(binaryExpression.Left, list, binarySeparators);
 						Split(binaryExpression.Right, list, binarySeparators);
@@ -275,9 +270,8 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (expression.NodeType == ExpressionType.Call)
 			{
-				var methodCallExpression = expression as MethodCallExpression;
 
-				if (methodCallExpression != null)
+				if (expression is MethodCallExpression methodCallExpression)
 				{
 					if (methodCallExpression.Method.Name == "Distinct"
 						&& methodCallExpression.Arguments.Count == 1
@@ -299,9 +293,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (expression.NodeType == ExpressionType.Call)
 			{
-				var sourceMethodCall = expression as MethodCallExpression;
-
-				if (sourceMethodCall == null)
+				if (!(expression is MethodCallExpression sourceMethodCall))
 				{
 					defaultIfEmptyValue = null;
 					result = expression;

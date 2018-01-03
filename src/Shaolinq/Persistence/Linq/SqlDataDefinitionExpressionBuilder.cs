@@ -78,9 +78,15 @@ namespace Shaolinq.Persistence.Linq
 					retval.Add(new SqlConstraintExpression(ConstraintType.Unique));
 				}
 
-				if (propertyDescriptor.HasDefaultValue && (propertyDescriptor.DefaultValue != null || propertyDescriptor.HasExplicitDefaultValue))
+				if (propertyDescriptor.HasDefaultValue)
 				{
-					retval.Add(new SqlConstraintExpression(ConstraintType.DefaultValue, constraintName: this.formatterManager.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
+					var outputDefaultValue = propertyDescriptor.HasExplicitDefaultValue
+						|| (propertyDescriptor.HasImplicitDefaultValue && model.Configuration.IncludeImplicitDefaultsInSchema && propertyDescriptor.DefaultValue != null);
+					
+					if (outputDefaultValue)
+					{
+						retval.Add(new SqlConstraintExpression(ConstraintType.DefaultValue, constraintName: this.formatterManager.GetDefaultValueConstraintName(propertyDescriptor), defaultValue: Expression.Constant(propertyDescriptor.DefaultValue)));
+					}
 				}
 			}
 

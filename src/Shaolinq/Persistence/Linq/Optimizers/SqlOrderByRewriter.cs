@@ -84,9 +84,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 				else
 				{
-					var orderExpressions = this.gatheredOrderings as List<SqlOrderByExpression>;
-
-					if (orderExpressions == null)
+					if (!(this.gatheredOrderings is List<SqlOrderByExpression> orderExpressions))
 					{
 						this.gatheredOrderings = orderExpressions = new List<SqlOrderByExpression>(this.gatheredOrderings);
 					}
@@ -126,10 +124,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					foreach (var decl in existingColumns)
 					{
-						var declColumn = decl.Expression as SqlColumnExpression;
-
 						if ((column != null && decl.Expression == ordering.Expression) ||
-							(column != null && declColumn != null && column.SelectAlias == declColumn.SelectAlias && column.Name == declColumn.Name))
+							(column != null && decl.Expression is SqlColumnExpression declColumn && column.SelectAlias == declColumn.SelectAlias && column.Name == declColumn.Name))
 						{
 							expr = new SqlColumnExpression(column.Type, alias, decl.Name);
 

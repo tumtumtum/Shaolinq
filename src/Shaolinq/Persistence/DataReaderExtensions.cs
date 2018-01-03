@@ -41,9 +41,8 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public static T GetFieldValueEx<T>(this IDataReader reader, int ordinal)
 		{
-			var dbDataReader = reader as DbDataReader;
 
-			if (dbDataReader != null)
+			if (reader is DbDataReader dbDataReader)
 			{
 				return dbDataReader.GetFieldValue<T>(ordinal);
 			}

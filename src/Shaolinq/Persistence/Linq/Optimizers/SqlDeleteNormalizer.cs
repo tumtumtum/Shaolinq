@@ -16,9 +16,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
-			var projection = deleteExpression.Source as SqlProjectionExpression;
-
-			if (projection == null)
+			if (!(deleteExpression.Source is SqlProjectionExpression projection))
 			{
 				return deleteExpression;
 			}

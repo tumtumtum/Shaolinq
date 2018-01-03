@@ -16,9 +16,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitInsertInto(SqlInsertIntoExpression insertIntoExpression)
 		{
-			var projection = insertIntoExpression.Source as SqlProjectionExpression;
-
-			if (projection == null)
+			if (!(insertIntoExpression.Source is SqlProjectionExpression projection))
 			{
 				return insertIntoExpression;
 			}

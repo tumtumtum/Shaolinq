@@ -17,9 +17,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			var queryable = constantExpression.Value as IQueryable;
-
-			if (queryable != null && queryable.Expression != constantExpression)
+			if (constantExpression.Value is IQueryable queryable && queryable.Expression != constantExpression)
 			{
 				return this.Visit(queryable.Expression);
 			}

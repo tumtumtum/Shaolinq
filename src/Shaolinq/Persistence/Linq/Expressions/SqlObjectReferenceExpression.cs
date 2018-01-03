@@ -26,9 +26,8 @@ namespace Shaolinq.Persistence.Linq.Expressions
 					continue;
 				}
 
-				var expression = assignment.Expression as SqlObjectReferenceExpression;
 
-				if (expression != null)
+				if (assignment.Expression is SqlObjectReferenceExpression expression)
 				{
 					foreach (var value in expression.GetBindingsFlattened())
 					{

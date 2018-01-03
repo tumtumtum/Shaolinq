@@ -21,9 +21,8 @@ namespace Shaolinq.Persistence
 		{
 			this.context.currentReader?.BufferAll();
 
-			var dbCommand = this.Inner as DbCommand;
 
-			if (dbCommand != null)
+			if (this.Inner is DbCommand dbCommand)
 			{
 				return dbCommand.ExecuteNonQuery();
 			}
@@ -38,9 +37,8 @@ namespace Shaolinq.Persistence
 		{
 			this.context.currentReader?.BufferAll();
 
-			var dbCommand = this.Inner as DbCommand;
 
-			if (dbCommand != null)
+			if (this.Inner is DbCommand dbCommand)
 			{
 				return dbCommand.ExecuteScalar();
 			}
@@ -55,9 +53,8 @@ namespace Shaolinq.Persistence
 		{
 			this.context.currentReader?.BufferAll();
 
-			var dbCommand = this.Inner as DbCommand;
 
-			if (dbCommand != null)
+			if (this.Inner is DbCommand dbCommand)
 			{
 				return new MarsDataReader(this, dbCommand.ExecuteReader());
 			}
@@ -72,9 +69,8 @@ namespace Shaolinq.Persistence
 		{
 			this.context.currentReader?.BufferAll();
 
-			var dbCommand = this.Inner as DbCommand;
 
-			if (dbCommand != null)
+			if (this.Inner is DbCommand dbCommand)
 			{
 				return new MarsDataReader(this, dbCommand.ExecuteReader(behavior));
 			}

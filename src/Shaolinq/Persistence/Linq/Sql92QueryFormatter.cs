@@ -734,9 +734,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void VisitColumn(SqlSelectExpression selectExpression, SqlColumnDeclaration column)
 		{
-			var c = this.Visit(column.Expression) as SqlColumnExpression;
-
-			if ((c == null || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
+			if ((!(this.Visit(column.Expression) is SqlColumnExpression c) || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
 			{
 				this.Write(" AS ");
 				this.WriteQuotedIdentifier(column.Name);
@@ -872,7 +870,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			base.VisitOrderBy(orderByExpression);
 
-			if (((SqlOrderByExpression)orderByExpression).OrderType == OrderType.Descending)
+			if (orderByExpression.OrderType == OrderType.Descending)
 			{
 				this.Write(" DESC");
 			}
@@ -1301,9 +1299,8 @@ namespace Shaolinq.Persistence.Linq
 		
 		public virtual void WriteQuotedStringOrObject(object value)
 		{
-			var s = value as string;
 
-			if (s != null)
+			if (value is string s)
 			{
 				this.WriteQuotedString(s);
 			}

@@ -243,6 +243,8 @@
     <Compile Include="SqlServerClusteredIndexes\SqlServerClusteredIndexesTest.cs" />
     <Compile Include="SqlServerClusteredIndexes\SqlServerDataAccessModel.cs" />
     <Compile Include="SqlServerClusteredIndexes\Directory.cs" />
+    <Compile Include="TestDefaults2.cs" />
+    <Compile Include="TestDefaults1.cs" />
     <Compile Include="TestModel\Address.cs" />
     <Compile Include="AutoIncrementTests.cs" />
     <Compile Include="TestModel\BaseGenericDao.cs" />
@@ -250,6 +252,7 @@
     <Compile Include="TestModel\Cat.cs" />
     <Compile Include="TestModel\Club.cs" />
     <Compile Include="TestModel\DefaultIfEmptyTestObject.cs" />
+    <Compile Include="TestModel\DefaultsTestObject.cs" />
     <Compile Include="TestModel\Dog.cs" />
     <Compile Include="TestModel\Fraternity.cs" />
     <Compile Include="TestModel\IIdentified.cs" />

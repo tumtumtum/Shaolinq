@@ -28,9 +28,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 				else
 				{
-					var select = join.Right as SqlSelectExpression;
-					
-					if (select != null && select.Take == null && select.Skip == null && !SqlAggregateChecker.HasAggregates(select) && (select.GroupBy == null || select.GroupBy.Count == 0))
+					if (@join.Right is SqlSelectExpression @select && select.Take == null && select.Skip == null && !SqlAggregateChecker.HasAggregates(select) && (select.GroupBy == null || select.GroupBy.Count == 0))
 					{
 						var selectWithoutWhere = select.ChangeWhere(null);
 						var referencedAliases = SqlReferencedAliasGatherer.Gather(selectWithoutWhere);

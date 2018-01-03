@@ -55,9 +55,8 @@ namespace Shaolinq.Persistence.Linq
 				return false;
 			}
 
-			var memberExpression = expression as MemberExpression;
 
-			if (memberExpression != null)
+			if (expression is MemberExpression memberExpression)
 			{
 				if (memberExpression.Member.DeclaringType == typeof(ServerDateTime))
 				{
@@ -70,9 +69,8 @@ namespace Shaolinq.Persistence.Linq
 				return false;
 			}
 
-			var callExpression = expression as MethodCallExpression;
 
-			if (callExpression != null)
+			if (expression is MethodCallExpression callExpression)
 			{
 				var declaringType = callExpression.Method.DeclaringType;
 

@@ -8,17 +8,12 @@ namespace Shaolinq.Persistence
 	public static partial class DbCommandExtensions
 	{
 		public static T Unwrap<T>(this IDbCommand command)
-			where T : class, IDbCommand
-		{
-			return (command as T) ?? (T)(command as MarsDbCommand)?.Inner;
-		}
+			where T : class, IDbCommand => command as T ?? (T)(command as MarsDbCommand)?.Inner;
 
 		[RewriteAsync]
 		public static IDataReader ExecuteReaderEx(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
 		{
-			var marsDbCommand = command as MarsDbCommand;
-
-			if (marsDbCommand != null)
+			if (command is MarsDbCommand marsDbCommand)
 			{
 				if (!suppressAnalytics)
 				{
@@ -28,9 +23,7 @@ namespace Shaolinq.Persistence
 				return marsDbCommand.ExecuteReader();
 			}
 
-			var dbCommand = command as DbCommand;
-
-			if (dbCommand != null)
+			if (command is DbCommand dbCommand)
 			{
 				if (!suppressAnalytics)
 				{
@@ -46,9 +39,7 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public static int ExecuteNonQueryEx(this IDbCommand command, DataAccessModel dataAccessModel, bool suppressAnalytics = false)
 		{
-			var marsDbCommand = command as MarsDbCommand;
-
-			if (marsDbCommand != null)
+			if (command is MarsDbCommand marsDbCommand)
 			{
 				if (!suppressAnalytics)
 				{
@@ -58,9 +49,8 @@ namespace Shaolinq.Persistence
 				return marsDbCommand.ExecuteNonQuery();
 			}
 
-			var dbCommand = command as DbCommand;
 
-			if (dbCommand != null)
+			if (command is DbCommand dbCommand)
 			{
 				if (!suppressAnalytics)
 				{

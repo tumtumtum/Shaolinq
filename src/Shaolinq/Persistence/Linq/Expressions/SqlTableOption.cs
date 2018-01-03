@@ -19,9 +19,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public override bool Equals(object obj)
 		{
-			var other = obj as SqlTableOption;
-
-			if (other == null)
+			if (!(obj is SqlTableOption other))
 			{
 				return false;
 			}

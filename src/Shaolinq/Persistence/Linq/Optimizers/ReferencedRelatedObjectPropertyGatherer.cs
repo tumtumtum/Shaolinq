@@ -91,9 +91,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		private Expression GetExpression(Expression expression)
 		{
-			var parameterExpression = expression as ParameterExpression;
-
-			if (parameterExpression != null && this.expressionByParameter.TryGetValue(parameterExpression, out var retval))
+			if (expression is ParameterExpression parameterExpression && this.expressionByParameter.TryGetValue(parameterExpression, out var retval))
 			{
 				return retval;
 			}

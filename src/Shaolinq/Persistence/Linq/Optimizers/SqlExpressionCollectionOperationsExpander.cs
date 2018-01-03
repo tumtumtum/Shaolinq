@@ -38,18 +38,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (functionCallExpression != null && functionCallExpression.Function == SqlFunction.CollectionCount)
 				{
-					var constantExpression = otherExpression as ConstantExpression;
 
-					if (constantExpression != null)
+					if (otherExpression is ConstantExpression constantExpression)
 					{
 						if (constantExpression.Type == typeof(int) || constantExpression.Type == typeof(long))
 						{
 							if (Convert.ToInt32(constantExpression.Value) == 0)
 							{
-								var isNull = new SqlFunctionCallExpression(typeof(bool) ,SqlFunction.IsNull ,functionCallExpression.Arguments[0]);
-								var isEmpty = Expression.Equal(functionCallExpression.Arguments[0] ,Expression.Constant(""));
+								var isNull = new SqlFunctionCallExpression(typeof(bool), SqlFunction.IsNull, functionCallExpression.Arguments[0]);
+								var isEmpty = Expression.Equal(functionCallExpression.Arguments[0], Expression.Constant(""));
 
-								return Expression.Or(isNull ,isEmpty);
+								return Expression.Or(isNull, isEmpty);
 							}
 						}
 					}

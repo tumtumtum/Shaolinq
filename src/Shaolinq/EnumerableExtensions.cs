@@ -285,16 +285,14 @@ namespace Shaolinq
 				return null;
 			}
 
-			var readonlyCollection = source as ReadOnlyCollection<T>;
 
-			if (readonlyCollection != null)
+			if (source is ReadOnlyCollection<T> readonlyCollection)
 			{
 				return readonlyCollection;
 			}
 
-			var list = source as IList<T>;
 
-			if (list != null)
+			if (source is IList<T> list)
 			{
 				return new ReadOnlyCollection<T>(list);
 			}

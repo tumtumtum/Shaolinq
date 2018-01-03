@@ -24,6 +24,6 @@ namespace Shaolinq.Persistence
 		public virtual string Database => this.Inner.Database;
 		public virtual ConnectionState State => this.Inner.State;
 		public virtual int ConnectionTimeout => this.Inner.ConnectionTimeout;
-		public virtual string ConnectionString { get { return this.Inner.ConnectionString; } set { this.Inner.ConnectionString = value; } }
+		public virtual string ConnectionString { get => this.Inner.ConnectionString; set => this.Inner.ConnectionString = value; }
 	}
 }

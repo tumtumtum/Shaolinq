@@ -70,9 +70,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public override bool Equals(object obj)
 		{
-			var value = obj as ObjectPath<T>?;
-
-			return value != null && ArrayEqualityComparer<T>.Default.Equals(this.path, value.Value.path);
+			return obj is ObjectPath<T> value && ArrayEqualityComparer<T>.Default.Equals(this.path, value.path);
 		}
 
 		public override int GetHashCode()

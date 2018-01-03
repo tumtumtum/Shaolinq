@@ -12,9 +12,8 @@ namespace Shaolinq
 	{
 		public static Task<T> ExecuteAsync<T>(this IQueryProvider queryProvider, Expression expression, CancellationToken cancellationToken)
 		{
-			var sqlQueryProvider = queryProvider as ISqlQueryProvider;
 
-			if (sqlQueryProvider != null)
+			if (queryProvider is ISqlQueryProvider sqlQueryProvider)
 			{
 				return sqlQueryProvider.ExecuteAsync<T>(expression, cancellationToken);
 			}

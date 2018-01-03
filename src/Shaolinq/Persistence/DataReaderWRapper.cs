@@ -64,9 +64,8 @@ namespace Shaolinq.Persistence
 		{
 			get
 			{
-				var inner = this.Inner as DbDataReader;
 
-				if (inner != null)
+				if (this.Inner is DbDataReader inner)
 				{
 					return inner.HasRows;
 				}

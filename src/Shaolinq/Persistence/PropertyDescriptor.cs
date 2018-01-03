@@ -41,6 +41,7 @@ namespace Shaolinq.Persistence
 		public object DefaultValue { get; }
 		public bool HasDefaultValue { get; }
 		public bool HasImplicitDefaultValue { get; }
+		public bool ValueRequired => this.ValueRequiredAttribute?.Required ?? false;
 		public bool HasExplicitDefaultValue => !HasImplicitDefaultValue;
 		public string PropertyName => this.PropertyInfo.Name;
 		public Type PropertyType => this.PropertyInfo?.PropertyType;
@@ -116,7 +117,7 @@ namespace Shaolinq.Persistence
 
 			var implicitDefault = this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
 
-			if (this.DefaultValueAttribute != null || (implicitDefault && !this.IsAutoIncrement))
+			if (this.DefaultValueAttribute != null || implicitDefault && !this.IsAutoIncrement)
 			{
 				this.HasDefaultValue = true;
 
@@ -157,9 +158,7 @@ namespace Shaolinq.Persistence
 
 		public override bool Equals(object obj)
 		{
-			var value = obj as PropertyDescriptor;
-
-			return value != null && value.PropertyInfo == this.PropertyInfo;
+			return obj is PropertyDescriptor value && value.PropertyInfo == this.PropertyInfo;
 		}
 
 		public override int GetHashCode() => this.PropertyInfo.GetHashCode();

@@ -43,9 +43,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public override bool Equals(object obj)
 		{
-			var other = obj as SqlColumnExpression;
-
-			return other != null && (ReferenceEquals(this, other) || (this.SelectAlias == other.SelectAlias && this.Name == other.Name));
+			return obj is SqlColumnExpression other && (ReferenceEquals(this, other) || (this.SelectAlias == other.SelectAlias && this.Name == other.Name));
 		}
 
 		public SqlColumnExpression ChangeToNullable()

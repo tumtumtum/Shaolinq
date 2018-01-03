@@ -16,9 +16,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitUpdate(SqlUpdateExpression updateExpression)
 		{
-			var projection = updateExpression.Source as SqlProjectionExpression;
-
-			if (projection == null)
+			if (!(updateExpression.Source is SqlProjectionExpression projection))
 			{
 				return updateExpression;
 			}

@@ -266,7 +266,7 @@ namespace Shaolinq
 				}
 				else
 				{
-					key = (K)(object)primaryKeys[0].Value;
+					key = (K)primaryKeys[0].Value;
 				}
 
 				if (this.objectsByIdCache.TryGetValue(key, out var outValue))
@@ -478,9 +478,8 @@ namespace Shaolinq
 
 			foreach (var propertyInfoAndValue in value.GetAdvanced().GetAllProperties())
 			{
-				var propertyValue = propertyInfoAndValue.Value as DataAccessObject;
 
-				if (propertyValue != null && !alreadyVisited.Contains(propertyValue))
+				if (propertyInfoAndValue.Value is DataAccessObject propertyValue && !alreadyVisited.Contains(propertyValue))
 				{
 					alreadyVisited.Add(propertyValue);
 

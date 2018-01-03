@@ -17,13 +17,8 @@ namespace Shaolinq
 
 		public override T Value
 		{
-			get
-			{
-				var container = CallContext.LogicalGetData(this.key) as ByRefContainer<T>;
-
-				return container == null ? default(T) : container.value;
-			}
-			set { CallContext.LogicalSetData(this.key, new ByRefContainer<T>(value)); }
+			get => !(CallContext.LogicalGetData(this.key) is ByRefContainer<T> container) ? default : container.value;
+			set => CallContext.LogicalSetData(this.key, new ByRefContainer<T>(value));
 		}
 
 		public CallContextNativeAsyncLocal()

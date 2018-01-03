@@ -62,7 +62,7 @@ namespace Shaolinq
 		internal bool systemTransactionCompleted;
 		internal TransactionStatus systemTransactionStatus;
 
-		public DataAccessIsolationLevel IsolationLevel { get; private set; }
+		public DataAccessIsolationLevel IsolationLevel { get; }
 		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.transactionContextsByDataAccessModel?.Keys ?? Enumerable.Empty<DataAccessModel>();
 
 		internal DataAccessTransaction()

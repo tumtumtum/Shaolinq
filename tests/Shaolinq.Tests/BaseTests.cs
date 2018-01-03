@@ -18,6 +18,7 @@ namespace Shaolinq.Tests
 		where T : DataAccessModel
 	{
 		private readonly bool valueTypesAutoImplicitDefault;
+		private readonly bool includeImplicitDefaultsInSchema;
 		private readonly bool alwaysSubmitDefaultValues;
 		protected T model;
 		protected internal static readonly bool useMonoData;
@@ -176,9 +177,10 @@ namespace Shaolinq.Tests
 
 		protected string ProviderName { get; }
 
-		public BaseTests(string providerName, bool alwaysSubmitDefaultValues = false, bool valueTypesAutoImplicitDefault = true)
+		public BaseTests(string providerName, bool alwaysSubmitDefaultValues = false, bool valueTypesAutoImplicitDefault = true, bool includeImplicitDefaultsInSchema = true)
 		{
 			this.valueTypesAutoImplicitDefault = valueTypesAutoImplicitDefault;
+			this.includeImplicitDefaultsInSchema = includeImplicitDefaultsInSchema;
 			this.alwaysSubmitDefaultValues = alwaysSubmitDefaultValues;
 
 			var ss = providerName.Split(':');
@@ -204,6 +206,9 @@ namespace Shaolinq.Tests
 				else
 				{
 					var configuration = this.Create(this.ProviderName, this.GetType().Name);
+					configuration.AlwaysSubmitDefaultValues = alwaysSubmitDefaultValues;
+					configuration.ValueTypesAutoImplicitDefault = valueTypesAutoImplicitDefault;
+					configuration.IncludeImplicitDefaultsInSchema = includeImplicitDefaultsInSchema;
 					this.model = DataAccessModel.BuildDataAccessModel<T>(configuration);
 				}
 

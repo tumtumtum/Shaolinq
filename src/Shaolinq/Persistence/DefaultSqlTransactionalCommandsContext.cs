@@ -293,9 +293,8 @@ namespace Shaolinq.Persistence
 			foreach (var primaryKey in primaryKeys)
 			{
 				var value = primaryKey.Value;
-				var placeholder = primaryKey.Value as Expression;
 
-				if (placeholder == null)
+				if (!(primaryKey.Value is Expression placeholder))
 				{
 					placeholder = new SqlConstantPlaceholderExpression(constantPlaceholdersCount++, Expression.Constant(value, primaryKey.PropertyType.CanBeNull() ? primaryKey.PropertyType : primaryKey.PropertyType.MakeNullable()));
 				}

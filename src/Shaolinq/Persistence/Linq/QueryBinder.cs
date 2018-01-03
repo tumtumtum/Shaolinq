@@ -163,9 +163,8 @@ namespace Shaolinq.Persistence.Linq
 			}
 
 			var visitedList = this.Visit(list);
-			var visitedListAsConstant = visitedList as SqlConstantPlaceholderExpression;
 
-			if (visitedListAsConstant != null &&
+			if (visitedList is SqlConstantPlaceholderExpression visitedListAsConstant &&
 				(typeof(IList<>).IsAssignableFromIgnoreGenericParameters(visitedListAsConstant.ConstantExpression.Type)
 				|| typeof(ICollection<>).IsAssignableFromIgnoreGenericParameters(visitedListAsConstant.ConstantExpression.Type)
 				|| typeof(IEnumerable).IsAssignableFrom(visitedListAsConstant.ConstantExpression.Type)
@@ -1152,7 +1151,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindUpdateHelper(Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
 		{
-			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
+			var updatedValueExpressions = ((BlockExpression)updatedValues.Body).Expressions;
 			var assignments = new List<Expression>();
 
 			var projection = (SqlProjectionExpression)this.Visit(source);
@@ -1187,7 +1186,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindInsertHelper(Expression source, LambdaExpression updatedValues, bool requiresIdentityInsert)
 		{
-			var updatedValueExpressions = ((BlockExpression)((LambdaExpression)updatedValues).Body).Expressions;
+			var updatedValueExpressions = ((BlockExpression)updatedValues.Body).Expressions;
 			var values = new List<Expression>();
 			var columnNames = new List<string>();
 
@@ -1283,9 +1282,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (methodCallExpression.Arguments.Count == 1)
 				{
-					var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
-
-					if (newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
+					if (!(methodCallExpression.Arguments[0] is NewArrayExpression newArrayExpression) || newArrayExpression.Expressions.Count > 0)
 					{
 						throw new NotSupportedException(nameof(string.Trim));
 					}
@@ -1297,12 +1294,8 @@ namespace Shaolinq.Persistence.Linq
 
 				if (methodCallExpression.Arguments.Count == 1)
 				{
-					var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
-					var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
-					var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
-
-					if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
-						&& constantExpression == null && constantPlaceholderExpression == null)
+					if ((!(methodCallExpression.Arguments[0] is NewArrayExpression newArrayExpression) || newArrayExpression.Expressions.Count > 0)
+						&& !(methodCallExpression.Arguments[0] is ConstantExpression) && !(methodCallExpression.Arguments[0] is SqlConstantPlaceholderExpression))
 					{
 						throw new NotSupportedException(nameof(string.TrimStart));
 					}
@@ -1314,12 +1307,8 @@ namespace Shaolinq.Persistence.Linq
 
 				if (methodCallExpression.Arguments.Count == 1)
 				{
-					var newArrayExpression = methodCallExpression.Arguments[0] as NewArrayExpression;
-					var constantExpression = methodCallExpression.Arguments[0] as ConstantExpression;
-					var constantPlaceholderExpression = methodCallExpression.Arguments[0] as SqlConstantPlaceholderExpression;
-
-					if ((newArrayExpression == null || newArrayExpression.Expressions.Count > 0)
-						&& constantExpression == null && constantPlaceholderExpression == null)
+					if ((!(methodCallExpression.Arguments[0] is NewArrayExpression newArrayExpression) || newArrayExpression.Expressions.Count > 0)
+						&& !(methodCallExpression.Arguments[0] is ConstantExpression) && !(methodCallExpression.Arguments[0] is SqlConstantPlaceholderExpression))
 					{
 						throw new NotSupportedException(nameof(string.TrimEnd));
 					}
@@ -1966,9 +1955,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			var queryable = constantExpression.Value as IQueryable;
-
-			if (queryable != null && queryable.Expression != constantExpression)
+			if (constantExpression.Value is IQueryable queryable && queryable.Expression != constantExpression)
 			{
 				return this.Visit(queryable.Expression);
 			}
@@ -2116,11 +2103,9 @@ namespace Shaolinq.Persistence.Linq
 						return this.BindWhere(memberExpression.Type, inner, where, true);
 					}
 
-					for (int i = 0, n = min.Bindings.Count; i < n; i++)
+					foreach (var binding in min.Bindings)
 					{
-						var assign = min.Bindings[i] as MemberAssignment;
-
-						if (assign != null && MembersMatch(assign.Member, memberExpression.Member))
+						if (binding is MemberAssignment assign && MembersMatch(assign.Member, memberExpression.Member))
 						{
 							return assign.Expression;
 						}

@@ -39,9 +39,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		internal static IEnumerable<Expression> GetPrimaryKeyElementalExpressions(Expression expression)
 		{
-			var initExpression = expression as MemberInitExpression;
 
-			if (initExpression != null)
+			if (expression is MemberInitExpression initExpression)
 			{
 				var memberInitExpression = initExpression;
 
@@ -56,7 +55,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					{
 						foreach (var inner in GetPrimaryKeyElementalExpressions(value))
 						{
-							yield return inner;	
+							yield return inner;
 						}
 					}
 					else
@@ -68,9 +67,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				yield break;
 			}
 
-			var referenceExpression = expression as SqlObjectReferenceExpression;
-
-			if (referenceExpression == null)
+			if (!(expression is SqlObjectReferenceExpression referenceExpression))
 			{
 				yield break;
 			}

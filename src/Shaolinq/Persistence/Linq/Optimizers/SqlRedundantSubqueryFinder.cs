@@ -34,9 +34,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			foreach (var decl in select.Columns)
 			{
-				var col = decl.Expression as SqlColumnExpression;
-
-				if (col == null || decl.Name != col.Name)
+				if (!(decl.Expression is SqlColumnExpression col) || decl.Name != col.Name)
 				{
 					return false;
 				}
@@ -52,9 +50,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return false;
 			}
 
-			var fromSelect = select.From as SqlSelectExpression;
-
-			if (fromSelect == null || select.Columns.Count > fromSelect.Columns.Count)
+			if (!(@select.From is SqlSelectExpression fromSelect) || select.Columns.Count > fromSelect.Columns.Count)
 			{
 				return false;
 			}
@@ -63,9 +59,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			foreach (var t in @select.Columns)
 			{
-				var columnExpression = t.Expression as SqlColumnExpression;
-
-				if (columnExpression == null || !fromColumnNames.Contains(columnExpression.Name))
+				if (!(t.Expression is SqlColumnExpression columnExpression) || !fromColumnNames.Contains(columnExpression.Name))
 				{
 					return false;
 				}

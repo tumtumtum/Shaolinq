@@ -96,10 +96,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return true;
 			}
 
-			var typedLeft = left as SqlColumnExpression;
-			var typedRight = right as SqlColumnExpression;
-
-			var retval = typedLeft != null && typedRight != null
+			var retval = left is SqlColumnExpression typedLeft && right is SqlColumnExpression typedRight
 					&& typedLeft.Type == typedRight.Type
 				   && typedLeft.SelectAlias == typedRight.SelectAlias
 				   && typedLeft.Name == typedRight.Name;

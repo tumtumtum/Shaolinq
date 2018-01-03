@@ -19,9 +19,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
 		{
-			var constantExpression = expression.Test as ConstantExpression;
 
-			if (constantExpression != null)
+			if (expression.Test is ConstantExpression constantExpression)
 			{
 				return Convert.ToBoolean(constantExpression.Value) ? expression.IfTrue : expression.IfFalse;
 			}

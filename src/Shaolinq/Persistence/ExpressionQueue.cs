@@ -17,12 +17,7 @@ namespace Shaolinq.Persistence
 
 		public Expression Dequeue()
 		{
-			if (this.queue.Count == 0)
-			{
-				return null;
-			}
-
-			return this.queue.Dequeue();
+			return this.queue.Count == 0 ? null : this.queue.Dequeue();
 		}
 	}
 }

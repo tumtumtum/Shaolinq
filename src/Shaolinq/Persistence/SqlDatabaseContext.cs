@@ -142,9 +142,7 @@ namespace Shaolinq.Persistence
 				retval = defaultProviderFactoryMethod();
 			}
 
-			var defaultSqlDataTypeProvider = retval as DefaultSqlDataTypeProvider;
-
-			if (defaultSqlDataTypeProvider != null && contextInfo.SqlDataTypes?.Count > 0)
+			if (retval is DefaultSqlDataTypeProvider defaultSqlDataTypeProvider && contextInfo.SqlDataTypes?.Count > 0)
 			{
 				var sqlDataTypeContext = new InjectionContext(model, contextInfo, () => retval, c => c == "nullable" ? new Tuple<bool, object>(true, false) : new Tuple<bool, object>(false, false));
 

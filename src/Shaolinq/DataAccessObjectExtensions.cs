@@ -24,7 +24,7 @@ namespace Shaolinq
 				return dataAccessObject;
 			}
 
-			var inflated = dataAccessObject.dataAccessModel.Inflate((DataAccessObject)dataAccessObject);
+			var inflated = dataAccessObject.dataAccessModel.Inflate(dataAccessObject);
 			dataAccessObject.ToObjectInternal()?.SwapData(inflated, true);
 
 			return dataAccessObject;
@@ -44,7 +44,7 @@ namespace Shaolinq
 				return dataAccessObject;
 			}
 
-			var inflated = await dataAccessObject.dataAccessModel.InflateAsync((DataAccessObject)dataAccessObject, cancellationToken);
+			var inflated = await dataAccessObject.dataAccessModel.InflateAsync(dataAccessObject, cancellationToken);
 			dataAccessObject.ToObjectInternal().SwapData(inflated, true);
 
 			return dataAccessObject;
