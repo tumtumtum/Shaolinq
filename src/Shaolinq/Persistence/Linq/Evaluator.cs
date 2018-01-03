@@ -84,7 +84,7 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		/// <summary>
-		/// Evaluates & replaces sub-trees when first candidate is reached (top-down)
+		/// Evaluates and replaces sub-trees when first candidate is reached (top-down)
 		/// </summary>
 		private class SubtreeEvaluator
 			: SqlExpressionVisitor
