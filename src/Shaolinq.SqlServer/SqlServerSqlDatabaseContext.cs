@@ -21,7 +21,7 @@ namespace Shaolinq.SqlServer
 		public bool ReadCommittedSnapshot { get; }
 
 		private static readonly Regex EnlistRegex = new Regex(@"Enlist\s*=[^;$]+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private static readonly Regex DatabaseRegex= new Regex(@".*((Initial Catalog)|(Database))\s*\=([^;$]+)[;$]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+		private static readonly Regex DatabaseRegex = new Regex(@"(?:(?:Initial Catalog)|(?:Database))\s*=\s*([^;$]+)[;$]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		private static string GetDatabaseName(SqlServerSqlDatabaseContextInfo contextInfo)
 		{
