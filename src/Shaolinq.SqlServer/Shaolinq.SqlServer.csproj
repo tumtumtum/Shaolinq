@@ -36,13 +36,11 @@
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Platform, Version=1.2.1.288, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.NET.1.2.1.288\lib\net452\Platform.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Platform, Version=1.2.1.291, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.NET.1.2.1.291\lib\net452\Platform.dll</HintPath>
     </Reference>
-    <Reference Include="Platform.Xml.Serialization, Version=1.2.1.288, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Platform.Xml.Serialization.1.2.1.288\lib\net452\Platform.Xml.Serialization.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Platform.Xml.Serialization, Version=1.2.1.291, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Platform.Xml.Serialization.1.2.1.291\lib\net452\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
