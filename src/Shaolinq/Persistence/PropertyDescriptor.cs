@@ -117,7 +117,7 @@ namespace Shaolinq.Persistence
 
 			var implicitDefault = this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
 
-			if (this.DefaultValueAttribute != null || implicitDefault && !this.IsAutoIncrement)
+			if (this.DefaultValueAttribute != null || (implicitDefault && !this.IsAutoIncrement && !this.ValueRequired))
 			{
 				this.HasDefaultValue = true;
 

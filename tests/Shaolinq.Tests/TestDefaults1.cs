@@ -47,5 +47,24 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
+
+		[Test]
+		public void Test_ImplicitDefault_Overridden_By_ValueRequired()
+		{
+			Assert.Throws<MissingPropertyValueException>
+			(() =>
+			{
+				using (var scope = NewTransactionScope())
+				{
+					var obj = this.model.DefaultsTestObjects.Create();
+
+					obj.NullableIntValueWithValueRequired = 2;
+
+					scope.Flush();
+
+					scope.Complete();
+				}
+			});
+		}
 	}
 }

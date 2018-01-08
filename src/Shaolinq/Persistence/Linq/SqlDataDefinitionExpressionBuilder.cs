@@ -56,9 +56,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (propertyDescriptor.PropertyType.IsNullableType() || !propertyDescriptor.PropertyType.IsValueType)
 				{
-					var valueRequiredAttribute = propertyDescriptor.ValueRequiredAttribute;
-
-					if (valueRequiredAttribute != null && valueRequiredAttribute.Required)
+					if (propertyDescriptor.ValueRequiredAttribute?.Required ?? false)
 					{
 						retval.Add(new SqlConstraintExpression(ConstraintType.NotNull));
 					}
@@ -80,8 +78,12 @@ namespace Shaolinq.Persistence.Linq
 
 				if (propertyDescriptor.HasDefaultValue)
 				{
+					var isPrimaryKeyWithNullDefault = propertyDescriptor.IsPrimaryKey
+						&& propertyDescriptor.DefaultValue == null;
+
 					var outputDefaultValue = propertyDescriptor.HasExplicitDefaultValue
-						|| (propertyDescriptor.HasImplicitDefaultValue && model.Configuration.IncludeImplicitDefaultsInSchema && propertyDescriptor.DefaultValue != null);
+						|| (propertyDescriptor.HasImplicitDefaultValue && model.Configuration.IncludeImplicitDefaultsInSchema
+						&& !isPrimaryKeyWithNullDefault);
 					
 					if (outputDefaultValue)
 					{
