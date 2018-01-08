@@ -117,7 +117,7 @@ namespace Shaolinq.Persistence
 
 			if (this.ValueRequired && this.DefaultValueAttribute != null)
 			{
-				throw new InvalidDataAccessModelDefinitionException("Property can't have ValueRequiredAttribute.Required = true and DefaultValueAttribute");
+				throw new InvalidDataAccessModelDefinitionException($"Property '{propertyInfo.DeclaringType.Name}.{this.PropertyName}' can't have ValueRequiredAttribute.Required = true and DefaultValueAttribute");
 			}
 
 			var implicitDefault = this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
