@@ -115,6 +115,11 @@ namespace Shaolinq.Persistence
 				}
 			}
 
+			if (this.ValueRequired && this.DefaultValueAttribute != null)
+			{
+				throw new InvalidDataAccessModelDefinitionException("Property can't have ValueRequiredAttribute.Required = true and DefaultValueAttribute");
+			}
+
 			var implicitDefault = this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.ValueTypesAutoImplicitDefault;
 
 			if (this.DefaultValueAttribute != null || (implicitDefault && !this.IsAutoIncrement && !this.ValueRequired))
