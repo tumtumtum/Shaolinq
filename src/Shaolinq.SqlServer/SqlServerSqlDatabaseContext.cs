@@ -109,7 +109,12 @@ namespace Shaolinq.SqlServer
 				}
 
 				connectionStringBuilder.MultipleActiveResultSets = contextInfo.MultipleActiveResultSets;
-				connectionStringBuilder.Enlist = false;
+
+				if (!IsRunningMono())
+				{
+					connectionStringBuilder.Enlist = false;
+				}
+				
 				connectionStringBuilder.DataSource = dataSource;
 				connectionStringBuilder.InitialCatalog = this.DatabaseName;
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
