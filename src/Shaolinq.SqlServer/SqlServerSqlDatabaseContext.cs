@@ -12,6 +12,11 @@ namespace Shaolinq.SqlServer
 	public partial class SqlServerSqlDatabaseContext
 		: SqlDatabaseContext
 	{
+		internal static bool IsRunningMono()
+		{
+			return Type.GetType("Mono.Runtime") != null;
+		}
+
 		public string Username { get; }
 		public string Password { get; }
 		public string ServerName { get; }
@@ -72,10 +77,10 @@ namespace Shaolinq.SqlServer
 				{
 					found = true;
 
-					return "Enlist=False";
+					return IsRunningMono() ? "" : "Enlist=False";
 				});
 
-				if (!found)
+				if (!found && !IsRunningMono())
 				{
 					this.ConnectionString += ";Enlist=False;";
 				}
