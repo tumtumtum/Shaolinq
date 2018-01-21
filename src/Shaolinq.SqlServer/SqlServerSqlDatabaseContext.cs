@@ -120,7 +120,7 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
 				connectionStringBuilder.Pooling = contextInfo.Pooling;
 
-				contextInfo.TypeSystemVersion = contextInfo.TypeSystemVersion ?? "SQL Server 2012";
+				connectionStringBuilder.TypeSystemVersion = contextInfo.TypeSystemVersion ?? "SQL Server 2012";
 				
 				if (contextInfo.ConnectionTimeout != null)
 				{
