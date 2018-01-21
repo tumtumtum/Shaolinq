@@ -91,6 +91,15 @@ namespace Shaolinq.SqlServer
 		[XmlAttribute]
 		public bool UniqueNullIndexAnsiComplianceFixerClassicBehaviour { get; set; } = false;
 
+		/// <summary>
+		/// The version of the SQL server type system to use
+		/// </summary>
+		/// <remarks>
+		/// Possible valid values: 'SQL Server 2000', 'SQL Server 2005', 'SQL Server 2008', 'SQL Server 2012' (default if not specified is 2012)
+		/// </remarks>
+		[XmlAttribute]
+		public string TypeSystemVersion { get; set; } = null;
+
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
 			return SqlServerSqlDatabaseContext.Create(this, model);

@@ -119,6 +119,8 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.InitialCatalog = this.DatabaseName;
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
 				connectionStringBuilder.Pooling = contextInfo.Pooling;
+
+				contextInfo.TypeSystemVersion = contextInfo.TypeSystemVersion ?? "SQL Server 2012";
 				
 				if (contextInfo.ConnectionTimeout != null)
 				{
