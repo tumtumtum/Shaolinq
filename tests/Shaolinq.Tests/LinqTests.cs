@@ -1547,6 +1547,8 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		[Category("IgnoreOnMono")]
+		/* Currently fails with Mono */
 		public void Test_Query_Related_Objects3()
 		{
 			Func<Task> func = async () =>
@@ -2802,6 +2804,8 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		[Category("IgnoreOnMono")]
+		/* Currently fails with Mono */
 		public void Test_GroupBy_Project_Group0()
 		{
 			using (var scope = this.NewTransactionScope())
@@ -2829,6 +2833,8 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		[Category("IgnoreOnMono")]
+		/* Currently fails with Mono */
 		public void Test_GroupBy_Project_Group1()
 		{
 			using (var scope = this.NewTransactionScope())
@@ -2936,6 +2942,8 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		[Category("IgnoreOnMono")]
+		/* Currently fails with Mono */
 		public void Test_GroupBy_Project_Group5()
 		{
 			using (var scope = this.NewTransactionScope())
