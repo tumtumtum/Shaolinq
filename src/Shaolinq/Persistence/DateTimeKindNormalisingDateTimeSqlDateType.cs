@@ -17,13 +17,13 @@ namespace Shaolinq.Persistence
 		
 		private readonly MethodInfo specifyKindMethod;
 
-		public DateTimeKindNormalisingDateTimeSqlDateType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, string typeName, bool nullable, DateTimeKind dateTimeKind)
-			: this(constraintDefaultsConfiguration, nullable ? typeof(DateTime?) : typeof(DateTime), typeName, dateTimeKind)
+		public DateTimeKindNormalisingDateTimeSqlDateType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, string typeName, bool nullable, DateTimeKind dateTimeKind, MethodInfo dataRecordGetMethod = null)
+			: this(constraintDefaultsConfiguration, nullable ? typeof(DateTime?) : typeof(DateTime), typeName, dateTimeKind, dataRecordGetMethod)
 		{
 		}
 
-		public DateTimeKindNormalisingDateTimeSqlDateType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type, string typeName, DateTimeKind dateTimeKind)
-			: base(constraintDefaultsConfiguration, type, typeName, DataRecordMethods.GetMethod(nameof(IDataRecord.GetDateTime)))
+		public DateTimeKindNormalisingDateTimeSqlDateType(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, Type type, string typeName, DateTimeKind dateTimeKind, MethodInfo dataRecordGetMethod = null)
+			: base(constraintDefaultsConfiguration, type, typeName, dataRecordGetMethod ?? DataRecordMethods.GetMethod(nameof(IDataRecord.GetDateTime)))
 		{
 			this.dateTimeKind = dateTimeKind;
 			this.specifyKindMethod = type.IsNullableType() ? specifyKindIfUnspecifiedMethodNullable : specifyKindIfUnspecifiedMethod;

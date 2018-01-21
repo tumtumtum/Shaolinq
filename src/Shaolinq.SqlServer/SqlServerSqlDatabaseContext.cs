@@ -12,9 +12,11 @@ namespace Shaolinq.SqlServer
 	public partial class SqlServerSqlDatabaseContext
 		: SqlDatabaseContext
 	{
+		private static bool? isRunningMono;
+
 		internal static bool IsRunningMono()
 		{
-			return Type.GetType("Mono.Runtime") != null;
+			return isRunningMono ?? (isRunningMono = (Type.GetType("Mono.Runtime") != null)).Value;
 		}
 
 		public string Username { get; }
@@ -120,7 +122,12 @@ namespace Shaolinq.SqlServer
 				connectionStringBuilder.Encrypt = contextInfo.Encrypt;
 				connectionStringBuilder.Pooling = contextInfo.Pooling;
 
-				connectionStringBuilder.TypeSystemVersion = contextInfo.TypeSystemVersion ?? "SQL Server 2008";
+				// TODO: Remove when Mono switches to using reference source implementation
+
+				if (!IsRunningMono())
+				{
+					connectionStringBuilder.TypeSystemVersion = contextInfo.TypeSystemVersion ?? "SQL Server 2008";
+				}
 				
 				if (contextInfo.ConnectionTimeout != null)
 				{

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Data;
 using Shaolinq.Persistence;
 
 namespace Shaolinq.SqlServer
@@ -23,9 +24,13 @@ namespace Shaolinq.SqlServer
 			this.DefinePrimitiveSqlDataType(typeof(ulong), "NUMERIC(20)", "GetValue");
 			this.DefinePrimitiveSqlDataType(typeof(float), "FLOAT(24)", "GetValue");
 			this.DefinePrimitiveSqlDataType(typeof(double), "FLOAT(53)", "GetValue");
-			
-			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", false, DateTimeKind.Utc));
-			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", true, DateTimeKind.Utc));
+
+			// TODO: Always use GetDateTime when Mono switches to using reference source implementation
+
+			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", false, DateTimeKind.Utc,
+				SqlServerSqlDatabaseContext.IsRunningMono() ? DataRecordMethods.GetMethod(nameof(IDataRecord.GetValue)) : DataRecordMethods.GetMethod(nameof(IDataRecord.GetDateTime))));
+			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME2", true, DateTimeKind.Utc, 
+				SqlServerSqlDatabaseContext.IsRunningMono() ? DataRecordMethods.GetMethod(nameof(IDataRecord.GetValue)) : DataRecordMethods.GetMethod(nameof(IDataRecord.GetDateTime))));
 
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaultsConfiguration, typeof(decimal), "DECIMAL(38, 9)"));
 			this.DefineSqlDataType(new SqlServerDecimalDataType(constraintDefaultsConfiguration, typeof(decimal?), "DECIMAL(38, 9)"));
