@@ -2178,12 +2178,12 @@ namespace Shaolinq
 			try
 			{
 				var context = new DataAccessModelHookSubmitContext(this, forFlush);
-				this.DataAccessModel.OnHookBeforeSubmit(context);
+				((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmit(context);
 				this.isCommiting = true;
 				await this.CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
-				this.DataAccessModel.OnHookAfterSubmit(context);
+				((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterSubmit(context);
 			}
 			finally
 			{

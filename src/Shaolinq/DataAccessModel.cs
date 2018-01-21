@@ -355,7 +355,7 @@ namespace Shaolinq
 					.FinishedInitializing()
 					.SubmitToCache();
 
-				this.OnHookCreate(retval);
+				((IDataAccessModelInternal)this).OnHookCreate(retval);
 
 				return retval;
 			}
@@ -387,7 +387,7 @@ namespace Shaolinq
 					.FinishedInitializing()
 					.SubmitToCache();
 
-				this.OnHookCreate(retval);
+				((IDataAccessModelInternal)this).OnHookCreate(retval);
 
 				return retval;
 			}
@@ -596,7 +596,7 @@ namespace Shaolinq
 				.FinishedInitializing()
 				.SubmitToCache();
 
-			this.OnHookCreate(retval);
+			((IDataAccessModelInternal)this).OnHookCreate(retval);
 
 			return retval;
 		}
@@ -640,7 +640,7 @@ namespace Shaolinq
 					.FinishedInitializing()
 					.SubmitToCache();
 
-				this.OnHookCreate(retval);
+				((IDataAccessModelInternal)this).OnHookCreate(retval);
 
 				return retval;
 			}

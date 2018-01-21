@@ -9,5 +9,9 @@ namespace Shaolinq
 	{
 		IQueryable CreateDataAccessObjects(Type type);
 		IQueryable CreateDataAccessObjects(RuntimeTypeHandle typeHandle);
+		void OnHookCreate(DataAccessObject obj);
+		void OnHookRead(DataAccessObject obj);
+		void OnHookBeforeSubmit(DataAccessModelHookSubmitContext context);
+		void OnHookAfterSubmit(DataAccessModelHookSubmitContext context);
 	}
 }

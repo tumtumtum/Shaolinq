@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Shaolinq.Tests.SqlServerClusteredIndexes
 {
-	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
+	[TestFixture("SqlServer")]
 	public class SqlServerClusteredIndexesTest
 		: BaseTests<SqlServerDataAccessModel>
 	{

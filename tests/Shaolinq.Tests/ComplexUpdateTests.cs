@@ -16,7 +16,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
 	[TestFixture("Sqlite")]
-	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
+	[TestFixture("SqlServer")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	public class ComplexUpdateTests

@@ -82,7 +82,7 @@ namespace Shaolinq
 			return Guid.NewGuid();
 		}
 
-		internal void OnHookCreate(DataAccessObject obj)
+		void IDataAccessModelInternal.OnHookCreate(DataAccessObject obj)
 		{
 			var localHooks = this.hooks;
 
@@ -95,7 +95,7 @@ namespace Shaolinq
 			}
 		}
 
-		internal void OnHookRead(DataAccessObject obj)
+		void IDataAccessModelInternal.OnHookRead(DataAccessObject obj)
 		{
 			var localHooks = this.hooks;
 
@@ -108,7 +108,7 @@ namespace Shaolinq
 			}
 		}
 
-		internal void OnHookBeforeSubmit(DataAccessModelHookSubmitContext context)
+		void IDataAccessModelInternal.OnHookBeforeSubmit(DataAccessModelHookSubmitContext context)
 		{
 			var localHooks = this.hooks;
 
@@ -121,7 +121,7 @@ namespace Shaolinq
 			}
 		}
 
-		internal void OnHookAfterSubmit(DataAccessModelHookSubmitContext context)
+		void IDataAccessModelInternal.OnHookAfterSubmit(DataAccessModelHookSubmitContext context)
 		{
 			var localHooks = this.hooks;
 

@@ -1981,6 +1981,19 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
+		private void BuildNotifyReadMethod()
+		{
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessModelInternal));
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessModelInternal>(c => c.OnHookRead(default)));
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ret);
+		}
+
 		private void BuildSetIsDeflatedReferenceMethod()
 		{
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());

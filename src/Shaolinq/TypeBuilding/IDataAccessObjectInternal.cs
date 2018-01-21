@@ -10,6 +10,7 @@ namespace Shaolinq.TypeBuilding
 		void SetIsNew(bool value);
 		void SetIsDeleted(bool value);
 		object CompositePrimaryKey { get; }
+		IDataAccessObjectInternal NotifyRead();
 		void MarkServerSidePropertiesAsApplied();
 		IDataAccessObjectInternal SubmitToCache();
 		IDataAccessObjectInternal ResetModified();

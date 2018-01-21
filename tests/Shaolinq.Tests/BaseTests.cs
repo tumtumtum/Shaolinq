@@ -43,13 +43,16 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
 		{
-			var host = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER") ?? ".\\SQLEXPRESS";
+			var host = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER_HOST") ?? ".\\SQLEXPRESS";
+			var userName = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER_USERNAME");
+			var password = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER_PASSWORD");
 
-			var retval = SqlServerConfiguration.Create(databaseName, host, multipleActiveResultsets: true);
+			var retval = SqlServerConfiguration.Create(databaseName, host, userName: userName, password: password,  multipleActiveResultsets: true);
 
 			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
 			retval.ValueTypesAutoImplicitDefault = this.valueTypesAutoImplicitDefault;
 			retval.SaveAndReuseGeneratedAssemblies = true;
+
 			retval.SqlDatabaseContextInfos[0].SqlDataTypes = new List<Type> { typeof(SqlFixedDateDataType) };
 			
 			return retval;

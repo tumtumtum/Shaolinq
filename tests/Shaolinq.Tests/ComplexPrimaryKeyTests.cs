@@ -15,7 +15,7 @@ namespace Shaolinq.Tests
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
 	[TestFixture("Sqlite:DataAccessScope")]
-	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
+	[TestFixture("SqlServer:DataAccessScope")]
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	public class ComplexPrimaryKeyTests

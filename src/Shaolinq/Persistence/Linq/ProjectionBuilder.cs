@@ -30,6 +30,11 @@ namespace Shaolinq.Persistence.Linq
 		private bool atRootLevel = true;
 		private bool treatColumnsAsNullable;
 
+		private readonly MethodInfo submitToCacheMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.SubmitToCache());
+		private readonly MethodInfo resetModifiedMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.ResetModified());
+		private readonly MethodInfo finishedInitializingMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.FinishedInitializing());
+		private readonly MethodInfo notifyReadMethod  = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.NotifyRead());
+
 		private ProjectionBuilder(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, ProjectionBuilderScope scope)
 		{
 			this.dataAccessModel = dataAccessModel;
@@ -152,11 +157,9 @@ namespace Shaolinq.Persistence.Linq
 
 				if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
 				{
-					var submitToCacheMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.SubmitToCache());
-					var resetModifiedMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.ResetModified());
-					var finishedInitializingMethod = TypeUtils.GetMethod<IDataAccessObjectInternal>(c => c.FinishedInitializing());
+					var methodCalls = Expression.Call(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), this.notifyReadMethod);
 
-					retval = Expression.Convert(Expression.Invoke(this.filterParameter, Expression.Convert(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), typeof(DataAccessObject))), retval.Type);
+					retval = Expression.Convert(Expression.Invoke(this.filterParameter, Expression.Convert(methodCalls, typeof(DataAccessObject))), retval.Type);
 				}
 
 				if (nullCheck != null)

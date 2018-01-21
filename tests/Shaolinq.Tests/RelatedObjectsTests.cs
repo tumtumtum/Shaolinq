@@ -12,7 +12,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
-	[TestFixture("SqlServer", Category = "IgnoreOnMono")]
+	[TestFixture("SqlServer")]
 	[TestFixture("Sqlite")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]

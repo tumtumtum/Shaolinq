@@ -572,7 +572,7 @@ namespace Shaolinq
 			{
 				var context = new DataAccessModelHookSubmitContext(this, forFlush);
 
-				this.DataAccessModel.OnHookBeforeSubmit(context);
+				((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmit(context);
 
 				this.isCommiting = true;
 				
@@ -580,7 +580,7 @@ namespace Shaolinq
 				this.CommitUpdated(commandsContext);
 				this.CommitDeleted(commandsContext);
 
-				this.DataAccessModel.OnHookAfterSubmit(context);
+				((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterSubmit(context);
 			}
 			finally
 			{

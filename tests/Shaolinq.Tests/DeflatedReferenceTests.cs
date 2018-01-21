@@ -17,7 +17,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Sqlite:DataAccessScope")]
 	[TestFixture("SqliteInMemory:DataAccessScope")]
 	[TestFixture("SqliteClassicInMemory:DataAccessScope")]
-	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
+	[TestFixture("SqlServer:DataAccessScope")]
 	public class DeflatedReferenceTests
 		: BaseTests<TestDataAccessModel>
 	{

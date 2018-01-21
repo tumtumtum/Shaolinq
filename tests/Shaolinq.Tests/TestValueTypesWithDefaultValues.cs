@@ -13,7 +13,7 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres.DotConnect.Unprepared:DataAccessScope")]
 	[TestFixture("Sqlite")]
 	[TestFixture("Sqlite:DataAccessScope")]
-	[TestFixture("SqlServer:DataAccessScope", Category = "IgnoreOnMono")]
+	[TestFixture("SqlServer:DataAccessScope")]
 	[TestFixture("SqliteInMemory:DataAccessScope")]
 	[TestFixture("SqliteClassicInMemory:DataAccessScope")]
 	public class TestValueTypesWithDefaultValues
