@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
-	[TestFixture(Category = "IgnoreOnMono")]
+	[TestFixture]
 	public class AsyncRewriterTests
 	{
 		private static IEnumerable<TestCaseData> GetTestCases()

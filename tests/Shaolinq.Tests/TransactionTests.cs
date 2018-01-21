@@ -145,7 +145,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Category("IgnoreOnMono")]
 		public void Test_Insert_And_Nplus1_Query_Async()
 		{
 			Test_Insert_And_Nplus1_Query_Async_Private().Wait();
@@ -195,7 +194,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Category("IgnoreOnMono")]
 		public void Test_AsyncSelect()
 		{
 			this.Test_AsyncSelect_Private().Wait();
@@ -232,7 +230,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Category("IgnoreOnMono")]
 		public void Test_Async_TransactionScope()
 		{
 			this.Test_Async_TransactionScope_Private().Wait();

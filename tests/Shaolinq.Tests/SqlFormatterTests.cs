@@ -14,9 +14,9 @@ namespace Shaolinq.Tests
 	[TestFixture("Postgres")]
 	[TestFixture("Postgres.DotConnect")]
 	[TestFixture("Postgres.DotConnect.Unprepared")]
-	[TestFixture("Sqlite", Category = "IgnoreOnMono")]
-	[TestFixture("SqliteInMemory", Category = "IgnoreOnMono")]
-	[TestFixture("SqliteClassicInMemory", Category = "IgnoreOnMono")]
+	[TestFixture("Sqlite")]
+	[TestFixture("SqliteInMemory")]
+	[TestFixture("SqliteClassicInMemory")]
 	public class SqlFormatterTests
 		: BaseTests<TestDataAccessModel>
 	{
