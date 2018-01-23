@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -16,6 +17,8 @@ namespace Shaolinq.ExpressionWriter
 
 		public override bool Execute()
 		{
+			AppDomain.CurrentDomain.AssemblyResolve += AssemblyRedirectAndResolver.CurrentDomain_AssemblyResolve;
+
 			var result = ExpressionHasherWriter.Write(this.InputFiles.Select(c => c.ItemSpec).ToArray());
 
 			File.WriteAllText(this.OutputFile.ItemSpec, result);

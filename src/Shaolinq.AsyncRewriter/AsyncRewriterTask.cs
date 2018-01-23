@@ -23,8 +23,6 @@ namespace Shaolinq.AsyncRewriter
 
 		public AsyncRewriterTask()
 		{
-			AppDomain.CurrentDomain.AssemblyResolve += AssemblyRedirectAndResolver.CurrentDomain_AssemblyResolve;
-
 			this.rewriter = new Rewriter();
 		}
 
@@ -49,6 +47,8 @@ namespace Shaolinq.AsyncRewriter
 
 		public override bool Execute()
 		{
+			AppDomain.CurrentDomain.AssemblyResolve += AssemblyRedirectAndResolver.CurrentDomain_AssemblyResolve;
+
 			var code = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
 
 			foreach (var outputFile in this.OutputFile)
