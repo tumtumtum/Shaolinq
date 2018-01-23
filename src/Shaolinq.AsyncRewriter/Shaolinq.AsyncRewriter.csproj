@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyRedirectAndResolver.cs" />
     <Compile Include="AsyncMethodValidator.cs" />
     <Compile Include="AsyncRewriterTaskLogger.cs" />
     <Compile Include="CompilationLookup.cs" />

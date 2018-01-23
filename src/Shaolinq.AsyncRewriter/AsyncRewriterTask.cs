@@ -23,6 +23,8 @@ namespace Shaolinq.AsyncRewriter
 
 		public AsyncRewriterTask()
 		{
+			AppDomain.CurrentDomain.AssemblyResolve += AssemblyRedirectAndResolver.CurrentDomain_AssemblyResolve;
+
 			this.rewriter = new Rewriter();
 		}
 
