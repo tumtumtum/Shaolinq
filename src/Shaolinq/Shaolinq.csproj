@@ -198,6 +198,7 @@
     <Compile Include="Persistence\DictionaryStaticCacheExtensions.cs" />
     <Compile Include="Persistence\EnumTypeDescriptor.cs" />
     <Compile Include="Persistence\DbCommandWrapper.cs" />
+    <Compile Include="Persistence\ExecuteReaderContext.cs" />
     <Compile Include="Persistence\ExpressionCacheKey.cs" />
     <Compile Include="Persistence\ExpressionCacheKeyEqualityComparer.cs" />
     <Compile Include="Persistence\ExpressionQueue.cs" />

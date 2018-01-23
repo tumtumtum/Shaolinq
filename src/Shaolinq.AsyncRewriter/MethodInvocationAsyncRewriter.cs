@@ -24,7 +24,6 @@ namespace Shaolinq.AsyncRewriter
 		{
 			InvocationExpressionSyntax rewrittenInvocation;
 
-
 			if (node.Expression is IdentifierNameSyntax identifierName)
 			{
 				rewrittenInvocation = node.WithExpression(identifierName.WithIdentifier(SyntaxFactory.Identifier(identifierName.Identifier.Text + "Async")));

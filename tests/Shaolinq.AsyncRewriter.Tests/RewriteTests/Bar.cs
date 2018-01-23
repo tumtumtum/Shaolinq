@@ -20,7 +20,13 @@ namespace Shaolinq.AsyncRewriter.Tests.NS1
 		[RewriteAsync]
 		public override void Method1()
 		{
-			Method2("hello", null);
+			var uuid = Guid.NewGuid();
+
+			Method2($"hello {uuid:N}", null);
+
+			Method2($"hello {uuid:N}", null);
+
+			Method2($"hello {uuid:N}", null);
 		}
 
 		[RewriteAsync]

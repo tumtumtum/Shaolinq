@@ -67,8 +67,13 @@ namespace Shaolinq.AsyncRewriter
 				.AddRange(extraUsingDirectives)
 				.AddRange(namespaces.SelectMany(c => GetNamespacesAndParents(c.Name.ToString()).Select(d => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(d)))))
 				.Sort();
-
-			usings = usings.Replace(usings[0], usings[0].WithLeadingTrivia(SyntaxFactory.Trivia(SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword), true))));
+			
+			usings = usings.Replace(usings[0], usings[0].WithLeadingTrivia
+			(
+				SyntaxFactory.EndOfLine(Environment.NewLine),
+				SyntaxFactory.Trivia(SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword), true)),
+				SyntaxFactory.EndOfLine(Environment.NewLine)
+			));
 			
 			return compilationUnit.WithUsings(usings);
 		}

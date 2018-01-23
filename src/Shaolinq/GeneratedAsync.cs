@@ -847,14 +847,15 @@ namespace Shaolinq.Persistence
 
 	public partial class DefaultSqlTransactionalCommandsContext
 	{
-		public override Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters)
+		public override Task<ExecuteReaderContext> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters)
 		{
 			return this.ExecuteReaderAsync(sql, parameters, CancellationToken.None);
 		}
 
-		public override async Task<IDataReader> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
+		public override async Task<ExecuteReaderContext> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
 		{
-			using (var command = this.CreateCommand())
+			var command = this.CreateCommand();
+			try
 			{
 				foreach (var value in parameters)
 				{
@@ -865,10 +866,12 @@ namespace Shaolinq.Persistence
 				Logger.Info(() => this.FormatCommand(command));
 				try
 				{
-					return await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false);
+					return new ExecuteReaderContext((await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false)), command);
 				}
 				catch (Exception e)
 				{
+					command?.Dispose();
+					command = null;
 					var decoratedException = this.LogAndDecorateException(e, command);
 					if (decoratedException != null)
 					{
@@ -877,6 +880,11 @@ namespace Shaolinq.Persistence
 
 					throw;
 				}
+			}
+			catch
+			{
+				command?.Dispose();
+				throw;
 			}
 		}
 
@@ -1125,7 +1133,8 @@ namespace Shaolinq.Persistence.Linq
 			state0:
 				this.state = 1;
 			var commandsContext = (await this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false));
-			this.dataReader = (await commandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+			this.executeReaderContext = (await commandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+			this.dataReader = this.executeReaderContext.DataReader;
 			this.context = this.objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
 			state1:
 				T result;

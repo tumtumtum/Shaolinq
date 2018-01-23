@@ -17,6 +17,7 @@ namespace Shaolinq.Persistence.Linq
 		private IDataReader dataReader;
 		private readonly ObjectProjector<T, U, C> objectProjector;
 		private TransactionContext.TransactionExecutionContext transactionExecutionContextAcquisition;
+		private ExecuteReaderContext executeReaderContext;
 
 		public ObjectProjectionAsyncEnumerator(ObjectProjector<T, U, C> objectProjector)
 		{
@@ -55,7 +56,7 @@ namespace Shaolinq.Persistence.Linq
 		private void Close()
 		{
 			// ReSharper disable EmptyGeneralCatchClause
-			try { this.dataReader?.Dispose(); } catch { }
+			try { this.executeReaderContext?.Dispose(); } catch { }
 			try { this.transactionExecutionContextAcquisition?.Dispose(); } catch { }
 			this.dataReader = null;
 			this.transactionExecutionContextAcquisition = null;
@@ -86,7 +87,8 @@ state0:
 
 			this.state = 1;
 			var commandsContext = this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContext();
-			this.dataReader = commandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
+			this.executeReaderContext = commandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
+			this.dataReader = this.executeReaderContext.DataReader;
 			this.context = this.objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
 
 state1:

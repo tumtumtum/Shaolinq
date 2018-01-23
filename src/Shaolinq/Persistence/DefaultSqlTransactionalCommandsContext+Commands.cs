@@ -15,9 +15,11 @@ namespace Shaolinq.Persistence
 	{
 		#region ExecuteReader
 		[RewriteAsync]
-		public override IDataReader ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters)
+		public override ExecuteReaderContext ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters)
 		{
-			using (var command = this.CreateCommand())
+			var command = this.CreateCommand();
+
+			try
 			{
 				foreach (var value in parameters)
 				{
@@ -30,10 +32,13 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					return command.ExecuteReaderEx(this.DataAccessModel);
+					return new ExecuteReaderContext(command.ExecuteReaderEx(this.DataAccessModel), command);
 				}
 				catch (Exception e)
 				{
+					command?.Dispose();
+					command = null;
+
 					var decoratedException = this.LogAndDecorateException(e, command);
 
 					if (decoratedException != null)
@@ -43,6 +48,12 @@ namespace Shaolinq.Persistence
 
 					throw;
 				}
+			}
+			catch
+			{
+				command?.Dispose();
+
+				throw;
 			}
 		}
 		#endregion

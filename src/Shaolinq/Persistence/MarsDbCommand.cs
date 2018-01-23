@@ -53,7 +53,6 @@ namespace Shaolinq.Persistence
 		{
 			this.context.currentReader?.BufferAll();
 
-
 			if (this.Inner is DbCommand dbCommand)
 			{
 				return new MarsDataReader(this, dbCommand.ExecuteReader());
