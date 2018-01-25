@@ -495,19 +495,16 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
-  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.dll" />
+  <UsingTask TaskName="ExpressionComparerWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.exe" />
+  <UsingTask TaskName="ExpressionHasherWriterTask" AssemblyFile="../Shaolinq.ExpressionWriter/bin/$(Configuration)/Shaolinq.ExpressionWriter.exe" />
   <ItemGroup>
     <SourceWithoutGeneratedExpressions Include="@(Compile)" Exclude="**/GeneratedSqlExpression*.cs">
       <InProject>False</InProject>
     </SourceWithoutGeneratedExpressions>
   </ItemGroup>
-  <Target Name="GenerateComparerAndHasher" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences">
+  <Target Name="GenerateComparerAndHasher" BeforeTargets="BeforeBuild">
     <ExpressionComparerWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionComparer.cs" />
     <ExpressionHasherWriterTask InputFiles="@(SourceWithoutGeneratedExpressions)" OutputFile="GeneratedSqlExpressionHasher.cs" />
-  </Target>
-  <Target Name="GenerateComparerAndHasherBeforeBuild" BeforeTargets="BeforeBuild">
-    <Exec Command="&quot;$(MSBuildToolsPath)\msbuild.exe&quot; /p:Configuration=$(Configuration) &quot;$(MSBuildProjectFullPath)&quot; /v:m /m:1 /p:BuildProjectReferences=false /target:GenerateComparerAndHasher" WorkingDirectory="." />
   </Target>
   <Import Project="../AsyncRewriter.target" />
 </Project>

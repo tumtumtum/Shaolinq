@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -10,20 +10,30 @@ namespace Shaolinq.ExpressionWriter
 	public class ExpressionHasherWriterTask: Microsoft.Build.Utilities.Task
 	{
 		[Required]
-		public ITaskItem[] InputFiles { get; set; }
+		public string[] InputFiles { get; set; }
 
 		[Required]
-		public ITaskItem OutputFile { get; set; }
+		public string OutputFile { get; set; }
 
 		public override bool Execute()
 		{
-			AppDomain.CurrentDomain.AssemblyResolve += AssemblyRedirectAndResolver.CurrentDomain_AssemblyResolve;
+			var startInfo = new ProcessStartInfo
+			{
+				FileName = this.GetType().Assembly.Location,
+				UseShellExecute = false,
+				CreateNoWindow = false,
+				RedirectStandardOutput = false,
+				RedirectStandardError = false,
+				RedirectStandardInput = false,
+				Arguments = $"-writer hasher -output {this.OutputFile} {string.Join(" ", this.InputFiles)}"
+			};
 
-			var result = ExpressionHasherWriter.Write(this.InputFiles.Select(c => c.ItemSpec).ToArray());
+			var process = new Process { StartInfo = startInfo };
 
-			File.WriteAllText(this.OutputFile.ItemSpec, result);
+			process.Start();
+			process.WaitForExit();
 
-			return true;
+			return process.ExitCode == 0;
 		}
 	}
 }

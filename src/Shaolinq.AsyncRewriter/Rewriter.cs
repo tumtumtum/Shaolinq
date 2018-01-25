@@ -139,8 +139,6 @@ namespace Shaolinq.AsyncRewriter
 
 					return results;
 				}).Where(c => c != null));
-
-				this.log.LogMessage($"Loaded assemblies: {string.Join(",", loadedAssemblies)}");
 			}
 
 			var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);

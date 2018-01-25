@@ -222,5 +222,12 @@ namespace Shaolinq.ExpressionWriter
 		{
 			return new ExpressionHasherWriter(sourcePaths).Write();
 		}
+
+		public static void Write(string[] sourcePaths, string outputFile)
+		{
+			var result = new ExpressionHasherWriter(sourcePaths).Write();
+
+			File.WriteAllText(outputFile, result);
+		}
 	}
 }

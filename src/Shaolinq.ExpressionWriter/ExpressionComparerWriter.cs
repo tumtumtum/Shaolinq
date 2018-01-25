@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -287,6 +288,15 @@ namespace Shaolinq.ExpressionWriter
 		public static string Write(string[] sourcePaths)
 		{
 			return new ExpressionComparerWriter(sourcePaths).Write();
+		}
+
+		public static void Write(string[] sourcePaths, string outputPath)
+		{
+			Console.WriteLine(Environment.CurrentDirectory);
+
+			var result = new ExpressionComparerWriter(sourcePaths).Write();
+
+			File.WriteAllText(outputPath, result);
 		}
 	}
 }
