@@ -58,7 +58,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			var rewriteResult = rewriter.RewriteAndMerge(files.Select(c => Path.Combine(root, c)).ToArray());
 
 			var syntaxTrees =
-				new List<SyntaxTree>(files.Select(c => CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(root, c)))))
+				new List<SyntaxTree>(files.Select(c => CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(root, c)), new CSharpParseOptions(LanguageVersion.CSharp7))))
 				{
 					CSharpSyntaxTree.ParseText(rewriteResult)
 				};

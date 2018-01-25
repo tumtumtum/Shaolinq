@@ -127,7 +127,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyRedirectAndResolver.cs" />
     <Compile Include="ExpressionComparerWriter.cs" />
     <Compile Include="ExpressionComparerWriterTask.cs" />
     <Compile Include="ExpressionHasherWriter.cs" />

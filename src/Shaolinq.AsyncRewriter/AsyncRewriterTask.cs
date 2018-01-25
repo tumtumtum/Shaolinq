@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
-using System.IO;
-using System.Linq;
+using System.Diagnostics;
 using Microsoft.Build.Framework;
 
 namespace Shaolinq.AsyncRewriter
@@ -10,12 +8,12 @@ namespace Shaolinq.AsyncRewriter
 	public class AsyncRewriterTask : Microsoft.Build.Utilities.Task
 	{
 		[Required]
-		public ITaskItem[] InputFiles { get; set; }
+		public string[] InputFiles { get; set; }
 
 		[Required]
-		public ITaskItem[] OutputFile { get; set; }
+		public string[] OutputFile { get; set; }
 
-		public ITaskItem[] Assemblies { get; set; }
+		public string[] Assemblies { get; set; }
 
 		public bool DontWriteIfNoChanges { get; set; }
 
@@ -26,65 +24,25 @@ namespace Shaolinq.AsyncRewriter
 			this.rewriter = new Rewriter();
 		}
 
-		private static bool Equal(TextReader left, TextReader right)
-		{
-			while (true)
-			{
-				var l = left.Read();
-				var r = right.Read();
-
-				if (l != r)
-				{
-					return false;
-				}
-
-				if (l == -1)
-				{
-					return true;
-				}
-			}
-		}
-
 		public override bool Execute()
 		{
-			AppDomain.CurrentDomain.AssemblyResolve += AssemblyRedirectAndResolver.CurrentDomain_AssemblyResolve;
-
-			var code = this.rewriter.RewriteAndMerge(this.InputFiles.Select(f => f.ItemSpec).ToArray(), this.Assemblies?.Select(c => c.ItemSpec).ToArray());
-
-			foreach (var outputFile in this.OutputFile)
+			var startInfo = new ProcessStartInfo
 			{
-				var changed = true;
-				var filename = outputFile.ItemSpec;
+				FileName = this.GetType().Assembly.Location,
+				UseShellExecute = false,
+				CreateNoWindow = false,
+				RedirectStandardOutput = false,
+				RedirectStandardError = false,
+				RedirectStandardInput = false,
+				Arguments = $"-output \"{string.Join(";", this.OutputFile)}\" -assemblies \"{string.Join(";", this.Assemblies)}\" {(DontWriteIfNoChanges == false ? "-alwayswrite" : "")} {string.Join(" ", this.InputFiles)}"
+			};
 
-				try
-				{
-					using (TextReader left = File.OpenText(filename), right = new StringReader(code))
-					{
-						if (Equal(left, right))
-						{
-							this.Log.LogMessage($"{filename} has not changed");
+			var process = new Process { StartInfo = startInfo };
 
-							changed = false;
-						}
-					}
-				}
-				catch (Exception)
-				{
-				}
+			process.Start();
+			process.WaitForExit();
 
-				if (!changed && this.DontWriteIfNoChanges)
-				{
-					this.Log.LogMessage($"Skipping writing {filename}");
-
-					continue;
-				}
-
-				this.Log.LogMessage($"Writing {filename}");
-
-				File.WriteAllText(filename, code);
-			}
-
-			return true;
+			return process.ExitCode == 0;
 		}
 	}
 }

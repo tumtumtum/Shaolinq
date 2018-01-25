@@ -257,17 +257,20 @@ namespace Shaolinq.AsyncRewriter
 			
 			return SyntaxFactory.SyntaxTree
 			(
-				SyntaxFactory.CompilationUnit()
-				.WithMembers
+				InterpolatedFormatSpecifierFixer.Fix
 				(
-					SyntaxFactory.List
+					SyntaxFactory.CompilationUnit()
+					.WithMembers
 					(
-						rewrittenTrees.SelectMany
+						SyntaxFactory.List
 						(
-							c => c.GetCompilationUnitRoot().Members
+							rewrittenTrees.SelectMany
+							(
+								c => c.GetCompilationUnitRoot().Members
+							)
 						)
-					)
-				).NormalizeWhitespace("\t")
+					).NormalizeWhitespace("\t")
+				)
 			);
 		}
 
@@ -676,6 +679,64 @@ namespace Shaolinq.AsyncRewriter
 				.WithTrailingTrivia(methodSyntax.GetTrailingTrivia().Where(c => c.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia || c.Kind() == SyntaxKind.EndOfLineTrivia || c.Kind() == SyntaxKind.WhitespaceTrivia));
 
 			return newAsyncMethod;
+		}
+		
+		private static bool Equal(TextReader left, TextReader right)
+		{
+			while (true)
+			{
+				var l = left.Read();
+				var r = right.Read();
+
+				if (l != r)
+				{
+					return false;
+				}
+
+				if (l == -1)
+				{
+					return true;
+				}
+			}
+		}
+		
+		public static void Rewrite(string[] input, string[] assemblies, string[] output, bool dontWriteIfNoChanges)
+		{
+			var log = TextAsyncRewriterLogger.ConsoleLogger;
+
+			var rewriter = new Rewriter(log);
+			var code = rewriter.RewriteAndMerge(input, assemblies);
+
+			foreach (var outputFile in output)
+			{
+				var changed = true;
+				var filename = outputFile;
+
+				try
+				{
+					using (TextReader left = File.OpenText(filename), right = new StringReader(code))
+					{
+						if (Equal(left, right))
+						{
+							log.LogMessage($"{filename} has not changed");
+
+							changed = false;
+						}
+					}
+				}
+				catch (Exception)
+				{
+				}
+
+				if (!changed && dontWriteIfNoChanges)
+				{
+					log.LogMessage($"Skipping writing {filename}");
+
+					continue;
+				}
+
+				File.WriteAllText(filename, code);
+			}
 		}
 	}
 }
