@@ -11,23 +11,23 @@ namespace Shaolinq.AsyncRewriter.Tests
 		[RewriteAsync]
 		int Bar(string s);
 	}
-	
-	public partial class ConditionalAccess<T>
-	{
-		public partial class Foo: IFoo
-		{
-			[RewriteAsync]
-			public int Bar(string s)
-			{
-				return 0;
-			}
 
-			public Foo Other(int x)
-			{
-				return null;
-			}
+	public partial class Foo : IFoo
+	{
+		[RewriteAsync]
+		public int Bar(string s)
+		{
+			return 0;
 		}
 
+		public Foo Other(int x)
+		{
+			return null;
+		}
+	}
+	
+	public partial class ConditionalAccess<T>
+	{	
 		public class Car
 		{
 			public void Toot(bool value)
@@ -41,29 +41,6 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			return null;
 		}
-		/*
-		[RewriteAsync]
-		public void Test()
-		{
-			this.foo?.Bar();
-		}
-
-		[RewriteAsync()]
-		public void Test2()
-		{
-			var foo = GetCurrentFoo();
-
-			foo?.Other(0).Bar();
-		}
-
-		[RewriteAsync()]
-		public void Test2()
-		{
-			var foo = GetCurrentFoo();
-
-			foo?.Other(foo.Bar()).Bar();
-		}*/
-
 
 		[RewriteAsync]
 		public IQueryable<T> GetAll()
@@ -82,9 +59,9 @@ namespace Shaolinq.AsyncRewriter.Tests
 			if (true)
 			{
 				var q = await this.GetAllAsync();
-
-				await q.Where(c => true);
-
+				
+				q.Where(c => true);
+				
 				var x = q.Where(c => true).ToList();
 
 				if (true)

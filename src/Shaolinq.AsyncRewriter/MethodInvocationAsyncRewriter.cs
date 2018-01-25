@@ -79,7 +79,7 @@ namespace Shaolinq.AsyncRewriter
 				{
 					cancellationTokenPos++;
 				}
-				
+
 				if (cancellationTokenPos == rewrittenInvocation.ArgumentList.Arguments.Count)
 				{
 					rewrittenInvocation = rewrittenInvocation.WithArgumentList(rewrittenInvocation.ArgumentList.AddArguments(cancellationTokenArg));
@@ -98,7 +98,7 @@ namespace Shaolinq.AsyncRewriter
 
 			var rewritten = (ExpressionSyntax)SyntaxFactory.AwaitExpression(methodInvocation);
 
-			if (!(node.Parent is StatementSyntax))
+			if (node.Parent != null && !(node.Parent is StatementSyntax))
 			{
 				rewritten = SyntaxFactory.ParenthesizedExpression(rewritten);
 			}

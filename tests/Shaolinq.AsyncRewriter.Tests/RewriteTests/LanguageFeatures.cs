@@ -117,7 +117,7 @@ namespace Shaolinq.AsyncRewriter.Tests.RewriteTests
 			return sum;
 		}
 
-		[RewriteAsync]
+		/* Async methods don't support ref returns */
 		public static ref int RefReturn(int[,] matrix, Func<int, bool> predicate)
 		{
 			for (var i = 0; i < matrix.GetLength(0); i++)

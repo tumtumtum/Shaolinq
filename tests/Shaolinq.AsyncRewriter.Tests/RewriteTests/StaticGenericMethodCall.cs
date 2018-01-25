@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Shaolinq.AsyncRewriter.Tests.RewriteTests
 {
-	public class StaticGenericMethodCall : BaseStaticGenericMethodCall
+	public class StaticGenericMethodCall
 	{
 		protected static T Foo<T>(T x)
 		{
@@ -17,7 +17,7 @@ namespace Shaolinq.AsyncRewriter.Tests.RewriteTests
 		{
 			Foo<string>("");
 
-			return null;
+			return;
 		}
 	}
 }

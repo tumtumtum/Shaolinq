@@ -47,7 +47,6 @@ namespace Shaolinq.AsyncRewriter.Tests
 			Console.WriteLine(result);
 		}
 
-		[Explicit]
 		[TestCaseSource(nameof(GetTestCases))]
 		public void TestRewriteCompile(params string[] inputFiles)
 		{
