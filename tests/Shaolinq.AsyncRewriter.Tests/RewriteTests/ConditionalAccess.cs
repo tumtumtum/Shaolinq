@@ -68,7 +68,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 				{
 					var q2 = await this.GetAllAsync();
 
-					await q2.Where(c => true).ToListAsync();
+					q2.Where(c => true).ToList();
 				}
 			}
 		}

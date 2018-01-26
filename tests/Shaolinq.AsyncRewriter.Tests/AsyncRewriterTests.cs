@@ -66,8 +66,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			var references = new MetadataReference[]
 			{
 				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-				MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
-				MetadataReference.CreateFromFile(typeof(DataAccessObject).Assembly.Location)
+				MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location)
 			};
 
 			var compilation = CSharpCompilation.Create(
