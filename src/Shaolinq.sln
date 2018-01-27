@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2020
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shaolinq", "Shaolinq\Shaolinq.csproj", "{0C8321D6-4DF6-4B90-AF5A-92537D4A7E54}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -97,8 +97,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {B604B0D4-781F-4A5F-AC37-2C08F11FF9A6}
 	EndGlobalSection
 EndGlobal
