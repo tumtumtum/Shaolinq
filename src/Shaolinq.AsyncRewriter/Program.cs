@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace Shaolinq.AsyncRewriter
 {
@@ -10,6 +14,11 @@ namespace Shaolinq.AsyncRewriter
 			string[] input = null;
 			string[] assemblies = null;
 			var alwayswrite = false;
+
+			if (args.Length == 1 && args[0] == "@")
+			{
+				args = CommandLineParser.ParseArguments(Console.ReadLine());
+			}
 
 			for (var i = 0; i < args.Length; i++)
 			{

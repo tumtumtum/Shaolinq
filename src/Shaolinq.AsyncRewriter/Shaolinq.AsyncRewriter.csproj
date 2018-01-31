@@ -121,6 +121,7 @@
   <ItemGroup>
     <Compile Include="AsyncMethodValidator.cs" />
     <Compile Include="AsyncRewriterTaskLogger.cs" />
+    <Compile Include="CommandLineParser.cs" />
     <Compile Include="CompilationLookup.cs" />
     <Compile Include="GeneratedAsyncMethodSubstitutor.cs" />
     <Compile Include="IAsyncRewriterLogger.cs" />
