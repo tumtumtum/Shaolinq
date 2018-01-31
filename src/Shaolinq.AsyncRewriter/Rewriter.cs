@@ -257,19 +257,22 @@ namespace Shaolinq.AsyncRewriter
 			
 			return SyntaxFactory.SyntaxTree
 			(
-				InterpolatedFormatSpecifierFixer.Fix
+				ParenthesizedExpressionStatementFixer.Fix
 				(
-					SyntaxFactory.CompilationUnit()
-					.WithMembers
+					InterpolatedFormatSpecifierFixer.Fix
 					(
-						SyntaxFactory.List
+						SyntaxFactory.CompilationUnit()
+						.WithMembers
 						(
-							rewrittenTrees.SelectMany
+							SyntaxFactory.List
 							(
-								c => c.GetCompilationUnitRoot().Members
+								rewrittenTrees.SelectMany
+								(
+									c => c.GetCompilationUnitRoot().Members
+								)
 							)
-						)
-					).NormalizeWhitespace("\t")
+						).NormalizeWhitespace("\t")
+					)
 				)
 			);
 		}

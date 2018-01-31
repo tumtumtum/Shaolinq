@@ -98,10 +98,7 @@ namespace Shaolinq.AsyncRewriter
 
 			var rewritten = (ExpressionSyntax)SyntaxFactory.AwaitExpression(methodInvocation);
 
-			if (node.Parent != null && !(node.Parent is StatementSyntax))
-			{
-				rewritten = SyntaxFactory.ParenthesizedExpression(rewritten);
-			}
+			rewritten = SyntaxFactory.ParenthesizedExpression(rewritten);
 
 			return rewritten;
 		}

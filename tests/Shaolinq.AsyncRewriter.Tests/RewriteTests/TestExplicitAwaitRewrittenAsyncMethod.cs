@@ -30,5 +30,11 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 			return true;
 		}
+
+		[RewriteAsync]
+		public void Test2()
+		{
+			GetAll().Where(c => true).ToList().Select(c => true).ToList();
+		}
 	}
 }

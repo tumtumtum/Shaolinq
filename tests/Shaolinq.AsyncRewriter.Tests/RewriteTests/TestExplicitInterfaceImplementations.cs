@@ -15,7 +15,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		/// This is a test remark
 		/// </remarks>
 		[RewriteAsync]
-		void Test1(T a1);
+		int Test1(T a1);
 	}
 
 	/// <summary>
@@ -36,12 +36,13 @@ namespace Shaolinq.AsyncRewriter.Tests
 		[RewriteAsync]
 		public void Test()
 		{
-			((IFoo<int>)this).Test1(0);
+			((IFoo<int>)this).Test1(0).CompareTo(1);
 		}
 
 		[RewriteAsync]
-		void IFoo<int>.Test1(int a1)
+		int IFoo<int>.Test1(int a1)
 		{
+			return 0;
 		}
 	}
 }
