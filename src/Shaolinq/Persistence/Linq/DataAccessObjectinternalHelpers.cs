@@ -24,6 +24,7 @@ namespace Shaolinq.Persistence.Linq
 		}
 
 		public static T Include<T, U>(this T obj, Expression<Func<T, U>> include)
+			where T : DataAccessObject
 		{
 			throw new InvalidOperationException("This method should only be called from within a LINQ query");
 		}
