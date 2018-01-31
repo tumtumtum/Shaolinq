@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
+using Shaolinq.Persistence.Linq;
 
 namespace Shaolinq.Tests
 {

@@ -5,9 +5,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using Platform;
 
-namespace Shaolinq
+namespace Shaolinq.Persistence.Linq
 {
-	public static class DataAccessObjectHelpersInternal
+	public static class DataAccessObjectInternalHelpers
 	{
 		public static P AddToCollection<P, C>(P parent, Func<P, RelatedDataAccessObjects<C>> getChildren, C child, int version)
 			where P : DataAccessObject
@@ -24,10 +24,9 @@ namespace Shaolinq
 		}
 
 		public static T Include<T, U>(this T obj, Expression<Func<T, U>> include)
+			where T : DataAccessObject
 		{
-			// ReSharper disable SuspiciousTypeConversion.Global
-			return obj;
-			// ReSharper restore SuspiciousTypeConversion.Global
+			throw new InvalidOperationException("This method should only be called from within a LINQ query");
 		}
 
 		public static Expression GetPropertyValueExpressionFromPredicatedDeflatedObject<T, U>(T obj, string propertyPath)
