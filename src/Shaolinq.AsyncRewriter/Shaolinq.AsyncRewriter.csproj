@@ -129,6 +129,7 @@
     <Compile Include="MethodInvocationInspector.cs" />
     <Compile Include="MethodInvocationAsyncRewriter.cs" />
     <Compile Include="MethodSymbolExtensions.cs" />
+    <Compile Include="ParenthesizedExpressionStatementFixer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Rewriter.cs" />
     <Compile Include="AsyncRewriterTask.cs" />

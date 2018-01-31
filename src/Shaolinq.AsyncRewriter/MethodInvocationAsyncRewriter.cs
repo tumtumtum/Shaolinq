@@ -99,7 +99,7 @@ namespace Shaolinq.AsyncRewriter
 			var rewritten = (ExpressionSyntax)SyntaxFactory.AwaitExpression(methodInvocation);
 
 			rewritten = SyntaxFactory.ParenthesizedExpression(rewritten);
-
+			
 			return rewritten;
 		}
 
