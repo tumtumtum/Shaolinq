@@ -145,7 +145,7 @@
     <Compile Include="DataAccessModelHookBase.cs" />
     <Compile Include="DataAccessModelHookSubmitContext.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
-    <Compile Include="DataAccessObjectHelpersInternal.cs" />
+    <Compile Include="Persistence\Linq\DataAccessObjectInternalHelpers.cs" />
     <Compile Include="DataAccessScope.cs" />
     <Compile Include="DataAccessScopeOptions.cs" />
     <Compile Include="DataAccessTransaction.cs" />

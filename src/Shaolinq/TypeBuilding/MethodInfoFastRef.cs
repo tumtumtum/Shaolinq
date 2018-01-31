@@ -13,7 +13,7 @@ namespace Shaolinq.TypeBuilding
 {
 	public static class MethodInfoFastRef
 	{
-		public static readonly MethodInfo DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject = TypeUtils.GetMethod(() => DataAccessObjectHelpersInternal.GetPropertyValueExpressionFromPredicatedDeflatedObject<DataAccessObject, int>(default(DataAccessObject), default(string))).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject = TypeUtils.GetMethod(() => DataAccessObjectInternalHelpers.GetPropertyValueExpressionFromPredicatedDeflatedObject<DataAccessObject, int>(default(DataAccessObject), default(string))).GetGenericMethodDefinition();
 		public static readonly MethodInfo TaskExtensionsUnwrapMethod = TypeUtils.GetMethod(() => System.Threading.Tasks.TaskExtensions.Unwrap<int>(null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).Count()).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableWhereMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).Where(c => true)).GetGenericMethodDefinition();
@@ -61,7 +61,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string>(null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string, int>(default(Expression<Func<object, string>>), (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo TransactionContextGetCurrentContextVersion = TypeUtils.GetMethod(() => TransactionContext.GetCurrentTransactionContextVersion(default(DataAccessModel)));
-		public static readonly MethodInfo DataAccessObjectExtensionsAddToCollectionMethod = TypeUtils.GetMethod(() => DataAccessObjectHelpersInternal.AddToCollection<DataAccessObject, DataAccessObject>(null, null, null, 0)).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessObjectExtensionsAddToCollectionMethod = TypeUtils.GetMethod(() => DataAccessObjectInternalHelpers.AddToCollection<DataAccessObject, DataAccessObject>(null, null, null, 0)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableExtensionsItemsMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).IncludedItems()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableExtensionsLeftJoinMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).LeftJoin(default(IEnumerable<string>), x => "", y => "", (x, y) => "")).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableOrderByMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).OrderBy(c => c.ToString())).GetGenericMethodDefinition();
