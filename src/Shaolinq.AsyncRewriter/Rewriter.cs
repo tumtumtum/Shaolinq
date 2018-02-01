@@ -271,9 +271,9 @@ namespace Shaolinq.AsyncRewriter
 									c => c.GetCompilationUnitRoot().Members
 								)
 							)
-						).NormalizeWhitespace("\t")
+						)
 					)
-				)
+				).NormalizeWhitespace("\t")
 			);
 		}
 

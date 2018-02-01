@@ -16,7 +16,12 @@ namespace Shaolinq.AsyncRewriter
 		{
 			if (node.Expression is ParenthesizedExpressionSyntax syntax)
 			{
-				return node.WithExpression(syntax.Expression);
+				var expression = syntax
+					.Expression
+					.WithLeadingTrivia(node.GetLeadingTrivia())
+					.WithTrailingTrivia(node.GetTrailingTrivia());
+
+				return node.WithExpression(expression);
 			}
 
 			return base.VisitExpressionStatement(node);
