@@ -42,7 +42,7 @@ namespace Shaolinq
 			{
 				if (!dataAccessModel.IsDisposed)
 				{
-await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+					await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 				}
 			}
 		}
@@ -81,7 +81,7 @@ await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			this.transaction.CheckAborted();
 			if (!dataAccessModel.IsDisposed)
 			{
-await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+				await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -111,7 +111,7 @@ await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 		public async Task<T> CompleteAsync<T>(Func<T> result, CancellationToken cancellationToken)
 		{
 			var retval = result();
-await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
+			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
 			return retval;
 		}
 
@@ -141,7 +141,7 @@ await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).Config
 		public async Task<T> CompleteAsync<T>(Func<T> result, ScopeCompleteOptions options, CancellationToken cancellationToken)
 		{
 			var retval = result();
-await this.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
+			await this.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
 			return retval;
 		}
 
@@ -170,7 +170,7 @@ await this.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
 		/// </remarks>
 		public async Task CompleteAsync(CancellationToken cancellationToken)
 		{
-await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
+			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -218,7 +218,7 @@ await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).Config
 			this.transaction?.CheckAborted();
 			if ((options & ScopeCompleteOptions.SuppressAutoFlush) != 0)
 			{
-await this.FlushAsync(cancellationToken).ConfigureAwait(false);
+				await this.FlushAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			if (this.transaction == null)
@@ -243,7 +243,7 @@ await this.FlushAsync(cancellationToken).ConfigureAwait(false);
 				throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
 			}
 
-await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+			await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 			this.transaction.Dispose();
 		}
 	}
@@ -277,7 +277,7 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
-await transactionContext.CommitAsync(cancellationToken).ConfigureAwait(false);
+					await transactionContext.CommitAsync(cancellationToken).ConfigureAwait(false);
 					transactionContext.Dispose();
 				}
 			}
@@ -895,7 +895,7 @@ namespace Shaolinq.Persistence
 
 		public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
-await this.UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
+			await this.UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
 		}
 
 		private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
@@ -1003,7 +1003,7 @@ await this.UpdateAsync(type, dataAccessObjects, true, cancellationToken).Configu
 									reader.Close();
 									if (!dataAccessObjectInternal.ValidateServerSideGeneratedIds())
 									{
-await this.DeleteAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
+										await this.DeleteAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
 										goto retryInsert;
 									}
 
@@ -1011,7 +1011,7 @@ await this.DeleteAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, canc
 									var updateRequired = dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties();
 									if (updateRequired)
 									{
-await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, false, cancellationToken).ConfigureAwait(false);
+										await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, false, cancellationToken).ConfigureAwait(false);
 									}
 								}
 							}
@@ -1094,7 +1094,7 @@ await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, fals
 				return;
 			}
 
-await ((ISqlQueryProvider)provider).ExecuteAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			await ((ISqlQueryProvider)provider).ExecuteAsync<int>(expression, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
@@ -1400,7 +1400,7 @@ namespace Shaolinq.Persistence
 			{
 				if (this.dbTransaction != null)
 				{
-await this.dbTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+					await this.dbTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 					this.dbTransaction.Dispose();
 					this.dbTransaction = null;
 				}
@@ -1433,7 +1433,7 @@ await this.dbTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 			{
 				if (this.dbTransaction != null)
 				{
-await this.dbTransaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+					await this.dbTransaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
 					this.dbTransaction.Dispose();
 					this.dbTransaction = null;
 				}
@@ -1468,8 +1468,8 @@ namespace Shaolinq.Persistence
 		public virtual async Task CreateDatabaseAndSchemaAsync(DatabaseCreationOptions options, CancellationToken cancellationToken)
 		{
 			var dataDefinitionExpressions = this.BuildDataDefinitonExpressions(options);
-await this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
-await this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
+			await this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
+			await this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
 		}
 
 		protected abstract Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options);
@@ -1496,10 +1496,10 @@ await this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancell
 						}
 					}
 
-await dataTransactionContext.CommitAsync(cancellationToken).ConfigureAwait(false);
+					await dataTransactionContext.CommitAsync(cancellationToken).ConfigureAwait(false);
 				}
 
-await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
+				await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
 			}
 		}
 	}
@@ -1654,7 +1654,7 @@ namespace Shaolinq
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, CancellationToken cancellationToken)where T : DataAccessObject
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Delete<T>(default (IQueryable<T>))), source.Expression);
-await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			return (await source.Provider.ExecuteAsync<int>(expression, cancellationToken).ConfigureAwait(false));
 		}
 
@@ -1666,7 +1666,7 @@ await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellatio
 		public static async Task<int> DeleteAsync<T>(this IQueryable<T> source, Expression<Func<T, bool>> predicate, CancellationToken cancellationToken)where T : DataAccessObject
 		{
 			Expression expression = Expression.Call(TypeUtils.GetMethod(() => Delete<T>(default (IQueryable<T>))), Expression.Call(MethodInfoFastRef.QueryableWhereMethod.MakeGenericMethod(typeof (T)), source.Expression, Expression.Quote(predicate)));
-await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+			await ((SqlQueryProvider)source.Provider).DataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			return (await source.Provider.ExecuteAsync<int>(expression, cancellationToken).ConfigureAwait(false));
 		}
 
@@ -2193,9 +2193,9 @@ namespace Shaolinq
 				var context = new DataAccessModelHookSubmitContext(this, forFlush);
 				((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmit(context);
 				this.isCommiting = true;
-await this.CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
-await this.CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
-await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
+				await this.CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
+				await this.CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
+				await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterSubmit(context);
 			}
 			finally
@@ -2216,7 +2216,7 @@ await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait
 
 		private static async Task CommitDeletedAsync(SqlTransactionalCommandsContext commandsContext, IObjectsByIdCache cache, CancellationToken cancellationToken)
 		{
-await commandsContext.DeleteAsync(cache.Type, cache.GetDeletedObjects(), cancellationToken).ConfigureAwait(false);
+			await commandsContext.DeleteAsync(cache.Type, cache.GetDeletedObjects(), cancellationToken).ConfigureAwait(false);
 		}
 
 		private Task CommitDeletedAsync(SqlTransactionalCommandsContext commandsContext)
@@ -2228,7 +2228,7 @@ await commandsContext.DeleteAsync(cache.Type, cache.GetDeletedObjects(), cancell
 		{
 			foreach (var cache in this.cachesByType)
 			{
-await CommitDeletedAsync(commandsContext, cache.Value, cancellationToken).ConfigureAwait(false);
+				await CommitDeletedAsync(commandsContext, cache.Value, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -2239,8 +2239,8 @@ await CommitDeletedAsync(commandsContext, cache.Value, cancellationToken).Config
 
 		private static async Task CommitUpdatedAsync(SqlTransactionalCommandsContext commandsContext, IObjectsByIdCache cache, CancellationToken cancellationToken)
 		{
-await commandsContext.UpdateAsync(cache.Type, cache.GetObjectsById(), cancellationToken).ConfigureAwait(false);
-await commandsContext.UpdateAsync(cache.Type, cache.GetObjectsByPredicate(), cancellationToken).ConfigureAwait(false);
+			await commandsContext.UpdateAsync(cache.Type, cache.GetObjectsById(), cancellationToken).ConfigureAwait(false);
+			await commandsContext.UpdateAsync(cache.Type, cache.GetObjectsByPredicate(), cancellationToken).ConfigureAwait(false);
 		}
 
 		private Task CommitUpdatedAsync(SqlTransactionalCommandsContext commandsContext)
@@ -2252,7 +2252,7 @@ await commandsContext.UpdateAsync(cache.Type, cache.GetObjectsByPredicate(), can
 		{
 			foreach (var cache in this.cachesByType)
 			{
-await CommitUpdatedAsync(commandsContext, cache.Value, cancellationToken).ConfigureAwait(false);
+				await CommitUpdatedAsync(commandsContext, cache.Value, cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -2287,7 +2287,7 @@ await CommitUpdatedAsync(commandsContext, cache.Value, cancellationToken).Config
 			var insertResultsByType = new Dictionary<TypeAndTransactionalCommandsContext, InsertResults>();
 			foreach (var value in this.cachesByType.Values)
 			{
-await CommitNewPhase1Async(commandsContext, value, insertResultsByType, fixups, cancellationToken).ConfigureAwait(false);
+				await CommitNewPhase1Async(commandsContext, value, insertResultsByType, fixups, cancellationToken).ConfigureAwait(false);
 			}
 
 			var currentInsertResultsByType = insertResultsByType;
@@ -2324,7 +2324,7 @@ await CommitNewPhase1Async(commandsContext, value, insertResultsByType, fixups, 
 			{
 				var type = i.Key.Type;
 				var databaseTransactionContext = i.Key.CommandsContext;
-await databaseTransactionContext.UpdateAsync(type, i.Value, cancellationToken).ConfigureAwait(false);
+				await databaseTransactionContext.UpdateAsync(type, i.Value, cancellationToken).ConfigureAwait(false);
 			}
 		}
 	}
@@ -2381,7 +2381,7 @@ namespace Shaolinq.Persistence
 
 			var retval = this.dbProviderFactory.CreateConnection();
 			retval.ConnectionString = this.ConnectionString;
-await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
+			await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
 			return retval;
 		}
 
@@ -2399,7 +2399,7 @@ await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
 
 			var retval = this.dbProviderFactory.CreateConnection();
 			retval.ConnectionString = this.ServerConnectionString;
-await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
+			await retval.OpenAsync(cancellationToken).ConfigureAwait(false);
 			return retval;
 		}
 
@@ -2449,8 +2449,8 @@ namespace Shaolinq
 		{
 			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.Zero))
 			{
-await this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchemaAsync(options, cancellationToken).ConfigureAwait(false);
-await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
+				await this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchemaAsync(options, cancellationToken).ConfigureAwait(false);
+				await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -2480,7 +2480,7 @@ await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
 				throw new InvalidOperationException("Cannot backup to self");
 			}
 
-await this.GetCurrentSqlDatabaseContext().BackupAsync(dataAccessModel.GetCurrentSqlDatabaseContext(), cancellationToken).ConfigureAwait(false);
+			await this.GetCurrentSqlDatabaseContext().BackupAsync(dataAccessModel.GetCurrentSqlDatabaseContext(), cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
@@ -2532,8 +2532,8 @@ namespace Shaolinq
 				if (this.dataAccessObjectDataContext != null)
 				{
 					this.commandsContext = (await this.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false));
-await this.dataAccessObjectDataContext.CommitAsync(this.commandsContext, false, cancellationToken).ConfigureAwait(false);
-await this.commandsContext.CommitAsync(cancellationToken).ConfigureAwait(false);
+					await this.dataAccessObjectDataContext.CommitAsync(this.commandsContext, false, cancellationToken).ConfigureAwait(false);
+					await this.commandsContext.CommitAsync(cancellationToken).ConfigureAwait(false);
 				}
 			}
 			catch (Exception e)
@@ -2601,7 +2601,7 @@ namespace Shaolinq
 			{
 				if (!dataAccessModel.IsDisposed)
 				{
-await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+					await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 				}
 			}
 		}
@@ -2615,7 +2615,7 @@ await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 		{
 			if (!dataAccessModel.IsDisposed)
 			{
-await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
+				await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -2626,7 +2626,7 @@ await dataAccessModel.FlushAsync(cancellationToken).ConfigureAwait(false);
 
 		public static async Task FlushAsync(this TransactionScope scope, CancellationToken cancellationToken)
 		{
-await scope.SaveAsync(cancellationToken).ConfigureAwait(false);
+			await scope.SaveAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		public static Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel)
@@ -2636,7 +2636,7 @@ await scope.SaveAsync(cancellationToken).ConfigureAwait(false);
 
 		public static async Task FlushAsync(this TransactionScope scope, DataAccessModel dataAccessModel, CancellationToken cancellationToken)
 		{
-await scope.SaveAsync(dataAccessModel, cancellationToken).ConfigureAwait(false);
+			await scope.SaveAsync(dataAccessModel, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

@@ -153,7 +153,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		{
 			ICacheClient client = null;
 
-			client.Set("", "", new List<Guid>());
+			client.Set($"{Guid.NewGuid():N}", "", new List<Guid>());
 		}
 
 		[RewriteAsync]

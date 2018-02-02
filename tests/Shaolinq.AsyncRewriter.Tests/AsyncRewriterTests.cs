@@ -43,6 +43,8 @@ namespace Shaolinq.AsyncRewriter.Tests
 			var root = Path.Combine(Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
 
 			var result = rewriter.RewriteAndMerge(inputFiles.Select(c => Path.Combine(root, c)).ToArray());
+			
+			Assert.IsFalse(result.Contains(": N}\""));
 
 			Console.WriteLine(result);
 		}

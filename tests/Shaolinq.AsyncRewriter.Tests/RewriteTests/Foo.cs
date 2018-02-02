@@ -34,7 +34,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 		public virtual void Method3<T>()
 			where T : class
-		{	
+		{
 		}
 
 		[RewriteAsync]

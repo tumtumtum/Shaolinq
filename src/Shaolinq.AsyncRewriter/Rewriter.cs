@@ -257,9 +257,9 @@ namespace Shaolinq.AsyncRewriter
 			
 			return SyntaxFactory.SyntaxTree
 			(
-				ParenthesizedExpressionStatementFixer.Fix
+				InterpolatedFormatSpecifierFixer.Fix
 				(
-					InterpolatedFormatSpecifierFixer.Fix
+					ParenthesizedExpressionStatementFixer.Fix
 					(
 						SyntaxFactory.CompilationUnit()
 						.WithMembers
@@ -272,8 +272,8 @@ namespace Shaolinq.AsyncRewriter
 								)
 							)
 						)
-					)
-				).NormalizeWhitespace("\t")
+					).NormalizeWhitespace("\t")
+				)
 			);
 		}
 
