@@ -2,6 +2,139 @@ namespace Shaolinq
 {
 #pragma warning disable
 	using System;
+	using System.Linq;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using Shaolinq.Persistence;
+	using global::Shaolinq;
+	using global::Shaolinq.Persistence;
+
+	public partial class DataAccessModel
+	{
+		Task IDataAccessModelInternal.OnHookCreateAsync(DataAccessObject obj)
+		{
+			return ((IDataAccessModelInternal)this).OnHookCreateAsync(obj, CancellationToken.None);
+		}
+
+		async Task IDataAccessModelInternal.OnHookCreateAsync(DataAccessObject obj, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					await hook.CreateAsync(obj, cancellationToken).ConfigureAwait(false);
+				}
+			}
+		}
+
+		Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject obj)
+		{
+			return ((IDataAccessModelInternal)this).OnHookReadAsync(obj, CancellationToken.None);
+		}
+
+		async Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject obj, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					await hook.ReadAsync(obj, cancellationToken).ConfigureAwait(false);
+				}
+			}
+		}
+
+		Task IDataAccessModelInternal.OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context)
+		{
+			return ((IDataAccessModelInternal)this).OnHookBeforeSubmitAsync(context, CancellationToken.None);
+		}
+
+		async Task IDataAccessModelInternal.OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					await hook.BeforeSubmitAsync(context, cancellationToken).ConfigureAwait(false);
+				}
+			}
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context)
+		{
+			return ((IDataAccessModelInternal)this).OnHookAfterSubmitAsync(context, CancellationToken.None);
+		}
+
+		async Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					await hook.AfterSubmitAsync(context, cancellationToken).ConfigureAwait(false);
+				}
+			}
+		}
+	}
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+	using System;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using Shaolinq.Persistence;
+	using global::Shaolinq;
+	using global::Shaolinq.Persistence;
+
+	public abstract partial class DataAccessModelHookBase
+	{
+		public virtual Task CreateAsync(DataAccessObject dataAccessObject)
+		{
+			return this.CreateAsync(dataAccessObject, CancellationToken.None);
+		}
+
+		public virtual async Task CreateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
+		{
+		}
+
+		public virtual Task ReadAsync(DataAccessObject dataAccessObject)
+		{
+			return this.ReadAsync(dataAccessObject, CancellationToken.None);
+		}
+
+		public virtual async Task ReadAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
+		{
+		}
+
+		public virtual Task BeforeSubmitAsync(DataAccessModelHookSubmitContext context)
+		{
+			return this.BeforeSubmitAsync(context, CancellationToken.None);
+		}
+
+		public virtual async Task BeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		{
+		}
+
+		public virtual Task AfterSubmitAsync(DataAccessModelHookSubmitContext context)
+		{
+			return this.AfterSubmitAsync(context, CancellationToken.None);
+		}
+
+		public virtual async Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		{
+		}
+	}
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+	using System;
 	using System.Threading;
 	using System.Transactions;
 	using System.Threading.Tasks;
@@ -687,6 +820,84 @@ namespace Shaolinq
 				return enumerator.Current.Value;
 			}
 		}
+	}
+}
+
+namespace Shaolinq
+{
+#pragma warning disable
+	using System;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using Shaolinq.Persistence;
+	using global::Shaolinq;
+	using global::Shaolinq.Persistence;
+
+	public partial interface IDataAccessModelHook
+	{
+		/// <summary>
+		/// Called after a new object has been created
+		/// </summary>
+		Task CreateAsync(DataAccessObject dataAccessObject);
+		/// <summary>
+		/// Called after a new object has been created
+		/// </summary>
+		Task CreateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken);
+		/// <summary>
+		/// Called just after an object has been read from the database
+		/// </summary>
+		Task ReadAsync(DataAccessObject dataAccessObject);
+		/// <summary>
+		/// Called just after an object has been read from the database
+		/// </summary>
+		Task ReadAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken);
+		/// <summary>
+		/// Called just before changes/updates are written to the database
+		/// </summary>
+		Task BeforeSubmitAsync(DataAccessModelHookSubmitContext context);
+		/// <summary>
+		/// Called just before changes/updates are written to the database
+		/// </summary>
+		Task BeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
+		/// <summary>
+		/// Called just after changes have been written to thea database
+		/// </summary>
+		/// <remarks>
+		/// A transactiojn is usually committed after this call unless the call is due
+		/// to a <see cref = "DataAccessModel.Flush()"/> call
+		/// </remarks>
+		Task AfterSubmitAsync(DataAccessModelHookSubmitContext context);
+		/// <summary>
+		/// Called just after changes have been written to thea database
+		/// </summary>
+		/// <remarks>
+		/// A transactiojn is usually committed after this call unless the call is due
+		/// to a <see cref = "DataAccessModel.Flush()"/> call
+		/// </remarks>
+		Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
+	}
+}
+
+namespace Shaolinq.Persistence
+{
+#pragma warning disable
+	using System;
+	using System.Linq;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using Shaolinq;
+	using Shaolinq.Persistence;
+
+	public partial interface IDataAccessModelInternal
+	{
+		Task OnHookCreateAsync(DataAccessObject obj);
+		Task OnHookCreateAsync(DataAccessObject obj, CancellationToken cancellationToken);
+		Task OnHookReadAsync(DataAccessObject obj);
+		Task OnHookReadAsync(DataAccessObject obj, CancellationToken cancellationToken);
+		Task OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context);
+		Task OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
+		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context);
+		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
 	}
 }
 
@@ -2191,12 +2402,12 @@ namespace Shaolinq
 			try
 			{
 				var context = new DataAccessModelHookSubmitContext(this, forFlush);
-				((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmit(context);
+				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmitAsync(context, cancellationToken).ConfigureAwait(false);
 				this.isCommiting = true;
 				await this.CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
-				((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterSubmit(context);
+				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterSubmitAsync(context, cancellationToken).ConfigureAwait(false);
 			}
 			finally
 			{

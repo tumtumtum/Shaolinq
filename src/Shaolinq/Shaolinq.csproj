@@ -164,7 +164,7 @@
     <Compile Include="IAsyncEnumerator.cs" />
     <Compile Include="IAsyncEnumerable.cs" />
     <Compile Include="IDataAccessModelHook.cs" />
-    <Compile Include="IDataAccessModelInternal.cs" />
+    <Compile Include="Persistence\IDataAccessModelInternal.cs" />
     <Compile Include="IIndexAttribute.cs" />
     <Compile Include="NamedMemberAttribute.cs" />
     <Compile Include="NamingTransformsConfiguration.cs" />

@@ -182,12 +182,12 @@ namespace Shaolinq.Sqlite
 		{
 			if (!this.IsInMemoryConnection)
 			{
-				return await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+				return (await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
 			}
 
 			if (this.IsSharedCacheConnection)
 			{
-				return await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+				return (await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
 			}
 
 			return this.connection ?? (this.connection = new SqlitePersistentDbConnection((await base.OpenConnectionAsync(cancellationToken).ConfigureAwait(false))));

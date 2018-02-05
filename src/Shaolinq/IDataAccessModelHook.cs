@@ -5,7 +5,7 @@ using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public interface IDataAccessModelHook
+	public partial interface IDataAccessModelHook
 	{
 		/// <summary>
 		/// Called when the model needs to create a Guid
@@ -23,16 +23,19 @@ namespace Shaolinq
 		/// <summary>
 		/// Called after a new object has been created
 		/// </summary>
+		[RewriteAsync]
 		void Create(DataAccessObject dataAccessObject);
 
 		/// <summary>
 		/// Called just after an object has been read from the database
 		/// </summary>
+		[RewriteAsync]
 		void Read(DataAccessObject dataAccessObject);
 		
 		/// <summary>
 		/// Called just before changes/updates are written to the database
 		/// </summary>
+		[RewriteAsync]
 		void BeforeSubmit(DataAccessModelHookSubmitContext context);
 
 		/// <summary>
@@ -42,6 +45,7 @@ namespace Shaolinq
 		/// A transactiojn is usually committed after this call unless the call is due
 		/// to a <see cref="DataAccessModel.Flush()"/> call
 		/// </remarks>
+		[RewriteAsync]
 		void AfterSubmit(DataAccessModelHookSubmitContext context);
 	}
 }

@@ -118,7 +118,7 @@ namespace Shaolinq.MySql
 						command.CommandText = String.Format("SHOW DATABASES;", this.SqlDatabaseContext.DatabaseName);
 						using (var reader = (await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false)))
 						{
-							while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+							while ((await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
 							{
 								var s = reader.GetString(0);
 								if (s.Equals(this.SqlDatabaseContext.DatabaseName) || s.Equals(this.SqlDatabaseContext.DatabaseName.ToLower()))

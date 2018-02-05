@@ -1,9 +1,11 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
 {
-	public abstract class DataAccessModelHookBase : IDataAccessModelHook
+	public abstract partial class DataAccessModelHookBase : IDataAccessModelHook
 	{
 		public Guid? CreateGuid()
 		{
@@ -15,18 +17,22 @@ namespace Shaolinq
 			return null;
 		}
 
+		[RewriteAsync]
 		public virtual void Create(DataAccessObject dataAccessObject)
 		{
 		}
 
+		[RewriteAsync]
 		public virtual void Read(DataAccessObject dataAccessObject)
 		{
 		}
 
+		[RewriteAsync]
 		public virtual void BeforeSubmit(DataAccessModelHookSubmitContext context)
 		{
 		}
 
+		[RewriteAsync]
 		public virtual void AfterSubmit(DataAccessModelHookSubmitContext context)
 		{
 		}

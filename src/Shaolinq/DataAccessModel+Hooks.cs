@@ -55,7 +55,7 @@ namespace Shaolinq
 			}
 		}
 
-		public Guid CreateGuid(PropertyDescriptor propertyDescriptor = null)
+		public Guid? CreateGuid(PropertyDescriptor propertyDescriptor)
 		{
 			var localHooks = this.hooks;
 
@@ -81,7 +81,8 @@ namespace Shaolinq
 
 			return Guid.NewGuid();
 		}
-
+		
+		[RewriteAsync]
 		void IDataAccessModelInternal.OnHookCreate(DataAccessObject obj)
 		{
 			var localHooks = this.hooks;
@@ -95,6 +96,7 @@ namespace Shaolinq
 			}
 		}
 
+		[RewriteAsync]
 		void IDataAccessModelInternal.OnHookRead(DataAccessObject obj)
 		{
 			var localHooks = this.hooks;
@@ -108,6 +110,7 @@ namespace Shaolinq
 			}
 		}
 
+		[RewriteAsync]
 		void IDataAccessModelInternal.OnHookBeforeSubmit(DataAccessModelHookSubmitContext context)
 		{
 			var localHooks = this.hooks;
@@ -121,6 +124,7 @@ namespace Shaolinq
 			}
 		}
 
+		[RewriteAsync]
 		void IDataAccessModelInternal.OnHookAfterSubmit(DataAccessModelHookSubmitContext context)
 		{
 			var localHooks = this.hooks;

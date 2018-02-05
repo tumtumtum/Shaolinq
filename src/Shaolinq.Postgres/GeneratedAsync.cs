@@ -39,7 +39,7 @@ namespace Shaolinq.Postgres
 						command.CommandText = "SELECT datname FROM pg_database;";
 						using (var reader = (await command.ExecuteReaderExAsync(this.SqlDatabaseContext.DataAccessModel, cancellationToken, true).ConfigureAwait(false)))
 						{
-							while (await reader.ReadExAsync(cancellationToken).ConfigureAwait(false))
+							while ((await reader.ReadExAsync(cancellationToken).ConfigureAwait(false)))
 							{
 								var s = reader.GetString(0);
 								if (s.Equals(databaseName))

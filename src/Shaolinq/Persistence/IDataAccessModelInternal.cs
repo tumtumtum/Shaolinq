@@ -3,15 +3,23 @@
 using System;
 using System.Linq;
 
-namespace Shaolinq
+namespace Shaolinq.Persistence
 {
-	public interface IDataAccessModelInternal
+	public partial interface IDataAccessModelInternal
 	{
 		IQueryable CreateDataAccessObjects(Type type);
 		IQueryable CreateDataAccessObjects(RuntimeTypeHandle typeHandle);
+		
+		[RewriteAsync]
 		void OnHookCreate(DataAccessObject obj);
+
+		[RewriteAsync]
 		void OnHookRead(DataAccessObject obj);
+
+		[RewriteAsync]
 		void OnHookBeforeSubmit(DataAccessModelHookSubmitContext context);
+
+		[RewriteAsync]
 		void OnHookAfterSubmit(DataAccessModelHookSubmitContext context);
 	}
 }
