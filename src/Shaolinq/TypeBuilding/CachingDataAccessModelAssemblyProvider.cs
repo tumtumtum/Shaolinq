@@ -35,16 +35,14 @@ namespace Shaolinq.TypeBuilding
 
 			public override bool Equals(object obj)
 			{
-				var other = obj as AssemblyKey?;
-
-				if (other == null)
+				if (!(obj is AssemblyKey other))
 				{
 					return false;
 				}
 				
-				return other.Value.configurationHash == this.configurationHash
-						&& other.Value.dataAccessModelType == this.dataAccessModelType
-						&& this.configurationXml == other.Value.configurationXml;
+				return other.configurationHash == this.configurationHash
+						&& other.dataAccessModelType == this.dataAccessModelType
+						&& this.configurationXml == other.configurationXml;
 			}
 		}
 

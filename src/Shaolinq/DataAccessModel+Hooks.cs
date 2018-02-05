@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -55,7 +58,7 @@ namespace Shaolinq
 			}
 		}
 
-		public Guid? CreateGuid(PropertyDescriptor propertyDescriptor)
+		public Guid CreateGuid(PropertyDescriptor propertyDescriptor)
 		{
 			var localHooks = this.hooks;
 
@@ -82,7 +85,6 @@ namespace Shaolinq
 			return Guid.NewGuid();
 		}
 		
-		[RewriteAsync]
 		void IDataAccessModelInternal.OnHookCreate(DataAccessObject obj)
 		{
 			var localHooks = this.hooks;
@@ -96,7 +98,30 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync]
+		Task IDataAccessModelInternal.OnHookCreateAsync(DataAccessObject dataAccessObject)
+		{
+			return ((IDataAccessModelInternal)this).OnHookCreateAsync(dataAccessObject, CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookCreateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			var tasks = new List<Task>();
+	
+			if (localHooks != null)
+			{
+				foreach (var hook in localHooks)
+				{
+					var task = hook.CreateAsync(dataAccessObject, cancellationToken);
+					
+					task.ConfigureAwait(false);
+					tasks.Add(task);
+				}
+			}
+
+			return Task.WhenAll(tasks);
+		}
+		
 		void IDataAccessModelInternal.OnHookRead(DataAccessObject obj)
 		{
 			var localHooks = this.hooks;
@@ -110,7 +135,24 @@ namespace Shaolinq
 			}
 		}
 
-		[RewriteAsync]
+		Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject dataAccessObject)
+		{
+			return ((IDataAccessModelInternal)this).OnHookCreateAsync(dataAccessObject, CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			var tasks = new List<Task>();
+	
+			if (localHooks != null)
+			{
+				tasks.AddRange(localHooks.Select(hook => hook.ReadAsync(dataAccessObject, cancellationToken)));
+			}
+
+			return Task.WhenAll(tasks);
+		}
+		
 		void IDataAccessModelInternal.OnHookBeforeSubmit(DataAccessModelHookSubmitContext context)
 		{
 			var localHooks = this.hooks;
@@ -123,8 +165,25 @@ namespace Shaolinq
 				}
 			}
 		}
+		
+		Task IDataAccessModelInternal.OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context)
+		{
+			return ((IDataAccessModelInternal)this).OnHookBeforeSubmitAsync(context, CancellationToken.None);
+		}
 
-		[RewriteAsync]
+		Task IDataAccessModelInternal.OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			var tasks = new List<Task>();
+	
+			if (localHooks != null)
+			{
+				tasks.AddRange(localHooks.Select(hook => hook.BeforeSubmitAsync(context, cancellationToken)));
+			}
+
+			return Task.WhenAll(tasks);
+		}
+
 		void IDataAccessModelInternal.OnHookAfterSubmit(DataAccessModelHookSubmitContext context)
 		{
 			var localHooks = this.hooks;
@@ -136,6 +195,24 @@ namespace Shaolinq
 					hook.AfterSubmit(context);
 				}
 			}
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context)
+		{
+			return ((IDataAccessModelInternal)this).OnHookBeforeSubmitAsync(context, CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		{
+			var localHooks = this.hooks;
+			var tasks = new List<Task>();
+	
+			if (localHooks != null)
+			{
+				tasks.AddRange(localHooks.Select(hook => hook.AfterSubmitAsync(context, cancellationToken)));
+			}
+
+			return Task.WhenAll(tasks);
 		}
 	}
 }

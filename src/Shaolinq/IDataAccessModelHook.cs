@@ -42,7 +42,7 @@ namespace Shaolinq
 		/// Called just after changes have been written to thea database
 		/// </summary>
 		/// <remarks>
-		/// A transactiojn is usually committed after this call unless the call is due
+		/// A transaction is usually committed after this call unless the call is due
 		/// to a <see cref="DataAccessModel.Flush()"/> call
 		/// </remarks>
 		[RewriteAsync]
