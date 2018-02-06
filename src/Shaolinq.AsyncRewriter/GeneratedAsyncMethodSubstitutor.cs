@@ -99,7 +99,7 @@ namespace Shaolinq.AsyncRewriter
 					.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
 		}
 
-		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall)
+		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall, int candidateCount)
 		{
 			return node;
 		}

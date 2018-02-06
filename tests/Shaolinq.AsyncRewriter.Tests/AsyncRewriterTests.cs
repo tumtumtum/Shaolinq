@@ -15,6 +15,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 	{
 		private static IEnumerable<TestCaseData> GetTestCases()
 		{
+			yield return GetTestCaseData("AmbiguousReference", "AmbiguousReference.cs");
 			yield return GetTestCaseData("Rewrite", "Foo.cs", "Bar.cs");
 			yield return GetTestCaseData("Generic Constraints", "IQuery.cs");
 			yield return GetTestCaseData("Interfaces", "ICommand.cs");
@@ -55,8 +56,14 @@ namespace Shaolinq.AsyncRewriter.Tests
 			var rewriter = new Rewriter();
 			var root = Path.Combine(Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
 			var files = new List<string>(inputFiles) {"RewriteAsyncAttribute.cs"};
+			var references = new MetadataReference[]
+			{
+				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+				MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+				MetadataReference.CreateFromFile(typeof(QueryableExtensions).Assembly.Location)
+			};
 
-			var rewriteResult = rewriter.RewriteAndMerge(files.Select(c => Path.Combine(root, c)).ToArray());
+			var rewriteResult = rewriter.RewriteAndMerge(files.Select(c => Path.Combine(root, c)).ToArray(), references.Select(c => c.Display).ToArray());
 
 			Console.WriteLine(rewriteResult);
 
@@ -67,12 +74,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 				};
 
 			var assemblyName = Path.GetRandomFileName();
-			var references = new MetadataReference[]
-			{
-				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-				MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location)
-			};
-
+			
 			var compilation = CSharpCompilation.Create(
 				assemblyName,
 				syntaxTrees: syntaxTrees,

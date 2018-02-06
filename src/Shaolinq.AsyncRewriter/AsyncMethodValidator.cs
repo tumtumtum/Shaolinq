@@ -33,9 +33,9 @@ namespace Shaolinq.AsyncRewriter
 		{
 		}
 
-		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall)
+		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall, int candidateCount)
 		{
-			var result = base.InspectExpression(node, cancellationTokenPos, candidate, explicitExtensionMethodCall);
+			var result = base.InspectExpression(node, cancellationTokenPos, candidate, explicitExtensionMethodCall, candidateCount);
 
 			this.results.Add(new ValidatorResult { MethodInvocationSyntax = node, ReplacementExpressionSyntax = result, ReplacementMethodSymbol = candidate });
 

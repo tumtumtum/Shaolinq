@@ -20,7 +20,7 @@ namespace Shaolinq.AsyncRewriter
 			return (MethodDeclarationSyntax)new MethodInvocationAsyncRewriter(log, extensionMethodLookup, semanticModel, excludeTypes, cancellationTokenSymbol, methodSyntax).Visit(methodSyntax);
 		}
 
-		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall)
+		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall, int candidateCount)
 		{
 			InvocationExpressionSyntax rewrittenInvocation;
 
@@ -31,8 +31,7 @@ namespace Shaolinq.AsyncRewriter
 			else if (node.Expression is MemberAccessExpressionSyntax)
 			{
 				var memberAccessExp = (MemberAccessExpressionSyntax)node.Expression;
-
-
+				
 				if (memberAccessExp.Expression is InvocationExpressionSyntax nestedInvocation)
 				{
 					memberAccessExp = memberAccessExp.WithExpression(nestedInvocation);
@@ -40,10 +39,21 @@ namespace Shaolinq.AsyncRewriter
 
 				if (explicitExtensionMethodCall)
 				{
+					string name;
+
+					if (candidateCount > 1)
+					{
+						name = "global::" + candidate.ContainingType.ToDisplayString();
+					}
+					else
+					{
+						name = candidate.ContainingType.ToMinimalDisplayString(this.semanticModel, node.SpanStart + this.displacement);
+					}
+
 					rewrittenInvocation = node.WithExpression
 					(
 						memberAccessExp
-							.WithExpression(SyntaxFactory.IdentifierName(candidate.ContainingType.ToMinimalDisplayString(this.semanticModel, node.SpanStart + this.displacement)))
+							.WithExpression(SyntaxFactory.IdentifierName(name))
 							.WithName(memberAccessExp.Name.WithIdentifier(SyntaxFactory.Identifier(memberAccessExp.Name.Identifier.Text + "Async")))
 					);
 
