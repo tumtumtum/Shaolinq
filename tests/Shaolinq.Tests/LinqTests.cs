@@ -2715,7 +2715,7 @@ namespace Shaolinq.Tests
 					where
 						student.Sex == Sex.Female 
 					select
-						student.Include(c => c.BestFriend.Address);
+						student.IncludeDirect(c => c.BestFriend.Address);
 
 				var count = 0;
 
@@ -2769,7 +2769,7 @@ namespace Shaolinq.Tests
 							&& student.Sex == Sex.Male
 							&& student.School.Name.EndsWith("School")
 						select
-							student.Include(c => c.Address)).First();
+							student.IncludeDirect(c => c.Address)).First();
 
 				Assert.AreEqual("Bruce's Kung Fu School", firstStudent.School.Name);
 				Assert.IsFalse(firstStudent.IsDeflatedReference());

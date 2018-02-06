@@ -23,7 +23,7 @@ namespace Shaolinq.Persistence.Linq
 			return parent;
 		}
 
-		public static T Include<T, U>(this T obj, Expression<Func<T, U>> include)
+		public static T IncludeDirect<T, U>(this T obj, Expression<Func<T, U>> include)
 		{
 			throw new InvalidOperationException("This method should only be called from within a LINQ query");
 		}

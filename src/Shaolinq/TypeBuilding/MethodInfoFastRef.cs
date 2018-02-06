@@ -29,8 +29,8 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableGroupJoinMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).GroupJoin(default(IQueryable<int>), c => c.Length, c => c, (x, y) => x)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableDefaultIfEmptyMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).DefaultIfEmpty()).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableDefaultIfEmptyWithValueMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).DefaultIfEmpty(string.Empty)).GetGenericMethodDefinition();
-		public static readonly MethodInfo QueryableExtensionsIncludeMethod = TypeUtils.GetMethod(() => QueryableExtensions.Include(default(IQueryable<DataAccessObject>), c => c)).GetGenericMethodDefinition();
-		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => ((DataAccessObject)null).Include(c => c)).GetGenericMethodDefinition();
+		public static readonly MethodInfo QueryableExtensionsIncludeMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).Include(c => c)).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => DataAccessObjectInternalHelpers.IncludeDirect((DataAccessObject)null, c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumParseMethod = TypeUtils.GetMethod(() => Enum.Parse(typeof(Enum), default(string)));
 		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(new object[0])).GetGenericMethodDefinition();
 		public static readonly MethodInfo GuidEqualsMethod = TypeUtils.GetMethod<Guid>(c => c.Equals(Guid.Empty));
