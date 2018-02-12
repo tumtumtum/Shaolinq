@@ -79,6 +79,9 @@ namespace Shaolinq
 		/// Set this property to false if you want default values to be ommitted when submitting new objects.
 		/// When this property is <c>true</c> (default) then the default value that is configured on the <see cref="DataAccessModel"/>
 		/// will override the <c>DEFAULT VALUE</c> constraint declared database schema if there is a schema mismatch.
+		/// <para>
+		/// Properties that have implicit default values will always be submitted if <see cref="IncludeImplicitDefaultsInSchema"/> is <c>false</c>
+		/// </para>
 		/// </remarks>
 		[XmlAttribute]
 		public bool AlwaysSubmitDefaultValues { get; set; } = true;

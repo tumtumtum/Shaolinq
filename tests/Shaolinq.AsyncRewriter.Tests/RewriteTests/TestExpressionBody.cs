@@ -11,11 +11,18 @@ namespace Shaolinq.AsyncRewriter.Tests
 		[RewriteAsync]
 		public bool Test() => Foo();
 		
-
+		[RewriteAsync]
+		public void Test2() => Bar();
+		 
 		[RewriteAsync]
 		public bool Foo()
 		{
 			return true;	
+		}
+
+		[RewriteAsync]
+		public void Bar()
+		{
 		}
 	}
 }

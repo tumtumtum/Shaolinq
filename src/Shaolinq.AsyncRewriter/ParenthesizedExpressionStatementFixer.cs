@@ -12,6 +12,21 @@ namespace Shaolinq.AsyncRewriter
 			return new ParenthesizedExpressionStatementFixer().Visit(syntaxNode);
 		}
 
+		public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
+		{
+			if (node.ExpressionBody?.Expression is ParenthesizedExpressionSyntax syntax)
+			{
+				var expression = syntax
+					.Expression
+					.WithLeadingTrivia(node.GetLeadingTrivia())
+					.WithTrailingTrivia(node.GetTrailingTrivia());
+
+				return node.WithExpressionBody(node.ExpressionBody.WithExpression(expression));
+			}
+
+			return base.VisitMethodDeclaration(node);
+		}
+
 		public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
 		{
 			if (node.Expression is ParenthesizedExpressionSyntax syntax)

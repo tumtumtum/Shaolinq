@@ -238,6 +238,7 @@
     <Compile Include="SqlServerClusteredIndexes\SqlServerClusteredIndexesTest.cs" />
     <Compile Include="SqlServerClusteredIndexes\SqlServerDataAccessModel.cs" />
     <Compile Include="SqlServerClusteredIndexes\Directory.cs" />
+    <Compile Include="TestDefaults3.cs" />
     <Compile Include="TestDefaults2.cs" />
     <Compile Include="TestDefaults1.cs" />
     <Compile Include="TestModel\Address.cs" />
