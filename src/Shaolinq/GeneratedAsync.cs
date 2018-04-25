@@ -1023,7 +1023,7 @@ namespace Shaolinq.Persistence
 
 		public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
-			await this.UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
+			await this.UpdateAsync(type, dataAccessObjects, false, cancellationToken).ConfigureAwait(false);
 		}
 
 		private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)

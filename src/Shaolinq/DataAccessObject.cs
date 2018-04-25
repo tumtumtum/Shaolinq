@@ -75,6 +75,7 @@ namespace Shaolinq
 		bool IDataAccessObjectAdvanced.PrimaryKeyIsCommitReady => false;
 		int IDataAccessObjectAdvanced.NumberOfPropertiesGeneratedOnTheServerSide => this.TypeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysFlattened() => this.ToObjectInternal().GetPrimaryKeysFlattened(out placeholder);
+		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysForUpdate() => this.ToObjectInternal().GetPrimaryKeysForUpdate(out placeholder);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysForUpdateFlattened() => this.ToObjectInternal().GetPrimaryKeysForUpdateFlattened(out placeholder);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeys() => this.TypeDescriptor.PrimaryKeyProperties.Select(c => ObjectPropertyValue.Create(c, this)).ToArray();
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetRelatedObjectProperties() => this.TypeDescriptor.PersistedProperties.Where(c => c.PropertyType.IsDataAccessObjectType()).Select(c => ObjectPropertyValue.Create(c, this)).ToArray();

@@ -37,6 +37,7 @@ namespace Shaolinq.TypeBuilding
 		private FieldInfo predicateField;
 		private ILGenerator cctorGenerator;
 		private FieldInfo originalPrimaryKeyField;
+		private FieldInfo originalPrimaryKeyFlattenedField;
 		private FieldInfo isDeflatedReferenceField;
 		private FieldInfo finishedInitializingField;
 		private FieldBuilder partialObjectStateField;
@@ -105,7 +106,8 @@ namespace Shaolinq.TypeBuilding
 				this.typeBuilder.AddInterfaceImplementation(typeof(IDataAccessObjectInternal));
 
 				this.constructorFinishedField = this.typeBuilder.DefineField("$$constructorFinished", typeof(bool), FieldAttributes.Public);
-				this.originalPrimaryKeyField = this.typeBuilder.DefineField("$$originalPrimaryKeyFlattened", typeof(ObjectPropertyValue[]), FieldAttributes.Public);
+				this.originalPrimaryKeyField = this.typeBuilder.DefineField("$$originalPrimaryKey", typeof(ObjectPropertyValue[]), FieldAttributes.Public);
+				this.originalPrimaryKeyFlattenedField = this.typeBuilder.DefineField("$$originalPrimaryKeyFlattened", typeof(ObjectPropertyValue[]), FieldAttributes.Public);
 				this.finishedInitializingField = this.dataObjectTypeTypeBuilder.DefineField("$$finishedInitializing", typeof(bool), FieldAttributes.Public);
 				this.swappingField = this.dataObjectTypeTypeBuilder.DefineField("$$swappingField", typeof(bool), FieldAttributes.Public);
 				
@@ -1225,8 +1227,13 @@ namespace Shaolinq.TypeBuilding
 
 						privateGenerator.Emit(OpCodes.Ldarg_0);
 						privateGenerator.Emit(OpCodes.Ldarg_0);
-						privateGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectAdvanced>(c => c.GetPrimaryKeysFlattened()));
+						privateGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectAdvanced>(c => c.GetPrimaryKeysForUpdate()));
 						privateGenerator.Emit(OpCodes.Stfld, this.originalPrimaryKeyField);
+
+						privateGenerator.Emit(OpCodes.Ldarg_0);
+						privateGenerator.Emit(OpCodes.Ldarg_0);
+						privateGenerator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectAdvanced>(c => c.GetPrimaryKeysFlattened()));
+						privateGenerator.Emit(OpCodes.Stfld, this.originalPrimaryKeyFlattenedField);
 
 						privateGenerator.MarkLabel(skipSaving);
 					}
@@ -2409,7 +2416,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ret);
 		}
 
-		private void BuildGetPrimaryKeysForUpdateFlattenedMethod()
+		private void BuildGetPrimaryKeysForUpdateMethod()
 		{
 			var b = false;
 			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
@@ -2421,6 +2428,31 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Brfalse, label);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.originalPrimaryKeyField);
+			generator.Emit(OpCodes.Ret);
+
+			generator.MarkLabel(label);
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
+			generator.Emit(OpCodes.Ldarg_1);
+			
+			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<IDataAccessObjectAdvanced>(c => c.GetPrimaryKeys()));
+
+			generator.Emit(OpCodes.Ret);
+		}
+
+		private void BuildGetPrimaryKeysForUpdateFlattenedMethod()
+		{
+			var b = false;
+			var generator = this.CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
+
+			var label = generator.DefineLabel();
+
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.originalPrimaryKeyFlattenedField);
+			generator.Emit(OpCodes.Brfalse, label);
+			generator.Emit(OpCodes.Ldarg_0);
+			generator.Emit(OpCodes.Ldfld, this.originalPrimaryKeyFlattenedField);
 			generator.Emit(OpCodes.Ret);
 
 			generator.MarkLabel(label);

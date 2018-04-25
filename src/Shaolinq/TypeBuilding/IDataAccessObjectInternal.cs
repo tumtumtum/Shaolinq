@@ -26,6 +26,7 @@ namespace Shaolinq.TypeBuilding
 		bool ComputeNonServerGeneratedIdDependentComputedTextProperties();
 		ObjectPropertyValue[] GetPrimaryKeysFlattened(out bool predicated);
 		void SwapData(DataAccessObject source, bool transferChangedProperties);
+		ObjectPropertyValue[] GetPrimaryKeysForUpdate(out bool predicated);
 		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened(out bool predicated);
 		List<ObjectPropertyValue> GetChangedPropertiesFlattened(out bool predicated);
 		bool ValidateServerSideGeneratedIds();

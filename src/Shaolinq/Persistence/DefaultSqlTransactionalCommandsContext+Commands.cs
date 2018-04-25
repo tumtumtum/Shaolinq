@@ -63,7 +63,7 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			this.Update(type, dataAccessObjects, true);
+			this.Update(type, dataAccessObjects, false);
 		}
 
 		[RewriteAsync]
