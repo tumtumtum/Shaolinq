@@ -26,9 +26,7 @@ namespace Shaolinq.Persistence
 
 		private volatile Regex formatCommandRegex;
 		private readonly SqlDialect sqlDialect;
-		private readonly string stringQuote; 
 		private readonly string parameterPrefix;
-		private readonly string stringEscape;
 		private readonly NamingTransformsConfiguration namingTransformsConfiguration;
 
 		public abstract SqlQueryFormatter CreateQueryFormatter(SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default, IDbConnection connection = null);
@@ -37,8 +35,8 @@ namespace Shaolinq.Persistence
 		{
 			this.sqlDialect = sqlDialect;
 			this.namingTransformsConfiguration = namingTransformsConfiguration;
-			this.stringEscape = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringEscape);
-			this.stringQuote = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote); 
+			this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringEscape);
+			this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.StringQuote); 
 			this.parameterPrefix = this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 		}
 

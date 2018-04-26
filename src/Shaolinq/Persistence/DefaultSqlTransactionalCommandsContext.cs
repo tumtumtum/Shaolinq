@@ -114,17 +114,33 @@ namespace Shaolinq.Persistence
 
 		internal string FormatCommand(IDbCommand command)
 		{
+			if (command == null)
+			{
+				throw new ArgumentNullException(nameof(command));
+			}
+
 			var formatManager = this.SqlDatabaseContext.SqlQueryFormatterManager;
 
-			return formatManager.SubstitutedParameterValues(command.CommandText, (parameterName, formatConstant) => formatConstant(((IDbDataParameter)command.Parameters[parameterName]).Value));
+			return formatManager.SubstitutedParameterValues(command.CommandText, (parameterName, formatConstant) =>
+			{
+				var commandParameter = (IDbDataParameter)command.Parameters[parameterName];
+
+				return commandParameter == null ? parameterName : formatConstant(commandParameter.Value);
+			});
 		}
 		
 		private Exception LogAndDecorateException(Exception e, IDbCommand command)
 		{
-			var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e) ?? this.FormatCommand(command);
+			var relatedSql = this.SqlDatabaseContext.GetRelatedSql(e);
+
+			if (relatedSql == null)
+			{
+				ActionUtils.IgnoreExceptions(() => relatedSql = this.FormatCommand(command));
+			}
+
 			var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
 
-			Logger.Error(this.FormatCommand(command));
+			Logger.Error(relatedSql);
 			Logger.Error(e.ToString());
 
 			if (decoratedException != e)
