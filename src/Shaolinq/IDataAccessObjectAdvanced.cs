@@ -128,7 +128,14 @@ namespace Shaolinq
 		ObjectPropertyValue[] GetPrimaryKeysFlattened();
 
 		/// <summary>
-		/// Gets an array of the primary keys and their values.
+		/// Gets an array of the primary keys used for updating the object (may be different from current primary key if the primary key was changed).
+		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="ObjectPropertyValue"/>
+		/// are guaranteed to be interned.
+		/// </summary>
+		ObjectPropertyValue[] GetPrimaryKeysForUpdate();
+
+		/// <summary>
+		/// Gets an array of the primary keys used for updating the object (may be different from current primary key if the primary key was changed).
 		/// This property is generated using Reflection.Emit.  Strings inside the returned <see cref="ObjectPropertyValue"/>
 		/// are guaranteed to be interned.
 		/// </summary>

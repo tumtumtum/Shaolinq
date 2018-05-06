@@ -13,6 +13,7 @@ namespace Shaolinq.TypeBuilding
 		IDataAccessObjectInternal NotifyRead();
 		void MarkServerSidePropertiesAsApplied();
 		IDataAccessObjectInternal SubmitToCache();
+		IDataAccessObjectInternal RemoveFromCache();
 		IDataAccessObjectInternal ResetModified();
 		int GetHashCodeAccountForServerGenerated();
 		LambdaExpression DeflatedPredicate { get; }
@@ -26,6 +27,7 @@ namespace Shaolinq.TypeBuilding
 		bool ComputeNonServerGeneratedIdDependentComputedTextProperties();
 		ObjectPropertyValue[] GetPrimaryKeysFlattened(out bool predicated);
 		void SwapData(DataAccessObject source, bool transferChangedProperties);
+		ObjectPropertyValue[] GetPrimaryKeysForUpdate();
 		ObjectPropertyValue[] GetPrimaryKeysForUpdateFlattened(out bool predicated);
 		List<ObjectPropertyValue> GetChangedPropertiesFlattened(out bool predicated);
 		bool ValidateServerSideGeneratedIds();

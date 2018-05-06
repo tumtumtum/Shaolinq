@@ -136,15 +136,18 @@
     <Compile Include="ByRefContainer.cs" />
     <Compile Include="ByValueContainer.cs" />
     <Compile Include="CallContextNativeAsyncLocal.cs" />
+    <Compile Include="CompositePrimaryKeyComparer.cs" />
     <Compile Include="ComputedMemberAttribute.cs" />
     <Compile Include="ComputedTextMemberAttribute.cs" />
     <Compile Include="ConcurrencyException.cs" />
+    <Compile Include="ConditionalKeyComparer.cs" />
     <Compile Include="ConstraintDefaultsConfiguration.cs" />
     <Compile Include="DataAccessIsolationLevel.cs" />
     <Compile Include="DataAccessModel+Hooks.cs" />
     <Compile Include="DataAccessModelHookBase.cs" />
     <Compile Include="DataAccessModelHookSubmitContext.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
+    <Compile Include="ObjectsByIdCache.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectInternalHelpers.cs" />
     <Compile Include="DataAccessScope.cs" />
     <Compile Include="DataAccessScopeOptions.cs" />
@@ -267,6 +270,7 @@
     <Compile Include="Persistence\TypedValue.cs" />
     <Compile Include="Persistence\VariableSubstituter.cs" />
     <Compile Include="Persistence\RewriteAsyncAttribute.cs" />
+    <Compile Include="PredicatePrimaryKeyComparer.cs" />
     <Compile Include="ScopeCompleteOptions.cs" />
     <Compile Include="SqlDatabaseContextInfoDynamicTypeProvider.cs" />
     <Compile Include="SqlQueryProviderExtensions.cs" />

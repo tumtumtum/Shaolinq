@@ -13,7 +13,6 @@ namespace Shaolinq.Tests
 	[TestFixture("SqlServer")]
 	[TestFixture("SqliteInMemory")]
 	[TestFixture("SqliteClassicInMemory")]
-	[Ignore("Need to review")]
 	public class TestDefaults3
 		: BaseTests<TestDataAccessModel>
 	{
@@ -32,7 +31,7 @@ namespace Shaolinq.Tests
 				var obj = this.model.DefaultsTestObjects.Create();
 
 				obj.IntValueWithValueRequired = 1;
-				obj.NullableIntValueWithValueRequired = null;
+				obj.NullableIntValueWithValueRequired = 2;
 
 				scope.Flush();
 
@@ -59,7 +58,6 @@ namespace Shaolinq.Tests
 				{
 					var obj = this.model.DefaultsTestObjects.Create();
 					
-					obj.IntValueWithValueRequired = 1;
 					obj.NullableIntValueWithValueRequired = 2;
 
 					scope.Flush();

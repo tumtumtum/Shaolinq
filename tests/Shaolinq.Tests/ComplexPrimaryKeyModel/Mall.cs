@@ -58,10 +58,10 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[RelatedDataAccessObjects]
 		public virtual RelatedDataAccessObjects<Shop> Shops { get; }
 
-		[RelatedDataAccessObjects(BackReferenceName = "Mall2")]
+		[RelatedDataAccessObjects(BackReferenceName = nameof(Shop.Mall2))]
 		public virtual RelatedDataAccessObjects<Shop> Shops2 { get; }
 
-		[RelatedDataAccessObjects(BackReferenceName = "Mall3")]
+		[RelatedDataAccessObjects(BackReferenceName = nameof(Shop.Mall3))]
 		public virtual RelatedDataAccessObjects<Shop> Shops3 { get; }
 	}
 }

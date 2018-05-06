@@ -1023,16 +1023,6 @@ namespace Shaolinq.Persistence
 
 		public override async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
-			await this.UpdateAsync(type, dataAccessObjects, true, cancellationToken).ConfigureAwait(false);
-		}
-
-		private Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
-		{
-			return this.UpdateAsync(type, dataAccessObjects, resetModified, CancellationToken.None);
-		}
-
-		private async Task UpdateAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified, CancellationToken cancellationToken)
-		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
@@ -1070,11 +1060,6 @@ namespace Shaolinq.Persistence
 					if (result == 0)
 					{
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
-					}
-
-					if (resetModified)
-					{
-						dataAccessObject.ToObjectInternal().ResetModified();
 					}
 				}
 			}
@@ -1139,7 +1124,7 @@ namespace Shaolinq.Persistence
 									var updateRequired = dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties();
 									if (updateRequired)
 									{
-										await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, false, cancellationToken).ConfigureAwait(false);
+										await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
 									}
 								}
 							}
@@ -2295,12 +2280,8 @@ namespace Shaolinq
 	using System.Collections.Generic;
 	using Platform;
 	using Shaolinq.Persistence;
-	using Shaolinq.TypeBuilding;
-	using Shaolinq.Persistence.Linq.Expressions;
 	using global::Shaolinq;
 	using global::Shaolinq.Persistence;
-	using global::Shaolinq.TypeBuilding;
-	using global::Shaolinq.Persistence.Linq.Expressions;
 
 	public partial class DataAccessObjectDataContext
 	{
@@ -2316,18 +2297,23 @@ namespace Shaolinq
 				cache.Value.AssertObjectsAreReadyForCommit();
 			}
 
+			var context = new DataAccessModelHookSubmitContext(this, forFlush);
 			try
 			{
-				var context = new DataAccessModelHookSubmitContext(this, forFlush);
 				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmitAsync(context, cancellationToken).ConfigureAwait(false);
 				this.isCommiting = true;
 				await this.CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 				await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
-				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterSubmitAsync(context, cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				context.Exception = e;
+				throw;
 			}
 			finally
 			{
+				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterSubmitAsync(context, cancellationToken).ConfigureAwait(false);
 				this.isCommiting = false;
 			}
 
@@ -2411,8 +2397,8 @@ namespace Shaolinq
 
 		private async Task CommitNewAsync(SqlTransactionalCommandsContext commandsContext, CancellationToken cancellationToken)
 		{
-			var fixups = new Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>>();
 			var insertResultsByType = new Dictionary<TypeAndTransactionalCommandsContext, InsertResults>();
+			var fixups = new Dictionary<TypeAndTransactionalCommandsContext, IReadOnlyList<DataAccessObject>>();
 			foreach (var value in this.cachesByType.Values)
 			{
 				await CommitNewPhase1Async(commandsContext, value, insertResultsByType, fixups, cancellationToken).ConfigureAwait(false);

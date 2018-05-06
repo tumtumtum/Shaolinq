@@ -22,9 +22,26 @@ namespace Shaolinq.Tests
 	public class ComplexUpdateTests
 		: BaseTests<ComplexPrimaryKeyDataAccessModel>
 	{
+		public class DataModelHook : DataAccessModelHookBase
+		{
+			public int UpdateCount { get; set; }
+		
+			public override void AfterSubmit(DataAccessModelHookSubmitContext context)
+			{
+				this.UpdateCount += context.Updated.Count();
+
+				base.AfterSubmit(context);
+			}
+		}
+
+		private readonly DataModelHook hook = new DataModelHook();
+
 		public ComplexUpdateTests(string providerName)
 			: base(providerName)
 		{
+			this.hook = new DataModelHook();
+
+			this.model.AddHook(this.hook);
 		}
 
 		[Test]
@@ -71,6 +88,8 @@ namespace Shaolinq.Tests
 
 			addresses1 = this.model.Addresses.ToList();
 
+			var oldCount = hook.UpdateCount;
+
 			using (var scope = this.NewTransactionScope())
 			{
 				var addresses = this.model.Addresses.ToList();
@@ -88,6 +107,8 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			Assert.AreEqual(oldCount + 1, hook.UpdateCount);
 
 			using (var scope = this.NewTransactionScope())
 			{
