@@ -4,9 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using NUnit.Framework;
+using Platform;
 
 namespace Shaolinq.AsyncRewriter.Tests
 {
@@ -30,6 +33,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			yield return GetTestCaseData("Language features", "LanguageFeatures.cs");
 			yield return GetTestCaseData("Static Generic Method Call", "StaticGenericMethodCall.cs");
 			yield return GetTestCaseData("Nested async methods", "NestedAsync.cs");
+			yield return GetTestCaseData("Method resolution test", "MethodResolutionTest.cs");
 		}
 
 		private static TestCaseData GetTestCaseData(string name, params string[] inputFiles)
@@ -98,6 +102,41 @@ namespace Shaolinq.AsyncRewriter.Tests
 
 					Assert.Fail();
 				}
+
+				var assembly = Assembly.Load(ms.ToArray());
+
+				var asyncMethod = assembly.DefinedTypes
+					.SelectMany(c => c.GetMethods())
+					.FirstOrDefault(c => c.Name == "MainAsync" && c.IsStatic && c.GetParameters().Length == 0 && c.ReturnType.IsAssignableFromIgnoreGenericParameters(typeof(Task<>)));
+
+				if (asyncMethod != null)
+				{
+					var task = (Task<int>)asyncMethod.Invoke(null, null);
+
+					var result = task.GetAwaiter().GetResult();
+
+					if (result != 0)
+					{
+						Assert.Fail();
+					}
+				}
+				else
+				{
+					var method = assembly.DefinedTypes
+						.SelectMany(c => c.GetMethods())
+						.FirstOrDefault(c => c.Name == "Main" && c.IsStatic && c.GetParameters().Length == 0 && c.ReturnType == typeof(int));
+
+					if (method != null)
+					{
+						var result = (int)method.Invoke(null, null);
+
+						if (result != 0)
+						{
+							Assert.Fail();
+						}
+					}
+				}
+
 			}
 		}
 	}

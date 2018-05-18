@@ -211,16 +211,25 @@ namespace Shaolinq.AsyncRewriter
 					.OfType<IMethodSymbol>()
 					.ToList();
 
-				candidate = asyncMethodCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
+				candidate = null;
 
-				if (candidate != null)
+				// Prefer exact type matches before we fall back and find usable generic async methods
+
+				foreach (var comparer in new IEqualityComparer<ITypeSymbol>[] { EqualityComparer<ITypeSymbol>.Default, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default })
 				{
-					candidateCount = asyncMethodCandidates.Count(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
-				}
-				else
-				{
-					candidate = asyncMethodCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
-					candidateCount = asyncMethodCandidates.Count(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
+					candidate = asyncMethodCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, comparer));
+					candidateCount = asyncMethodCandidates.Count(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, comparer));
+
+					if (candidate == null)
+					{
+						candidate = asyncMethodCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), comparer));
+						candidateCount = asyncMethodCandidates.Count(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(methodParameters.Select(e => e.Type), comparer));
+					}
+
+					if (candidate != null)
+					{
+						break;
+					}
 				}
 
 				if (candidate == null)
