@@ -43,6 +43,9 @@
     <Reference Include="nunit.framework, Version=3.9.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\..\src\packages\NUnit.3.9.0\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="Platform, Version=1.2.1.291, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\src\packages\Platform.NET.1.2.1.291\lib\net452\Platform.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\src\packages\System.AppContext.4.3.0\lib\net46\System.AppContext.dll</HintPath>
@@ -119,6 +122,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncRewriterTests.cs" />
+    <Content Include="RewriteTests\MethodResolutionTest.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="RewriteTests\AmbiguousReference.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

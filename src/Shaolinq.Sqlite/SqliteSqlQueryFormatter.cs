@@ -25,7 +25,7 @@ namespace Shaolinq.Sqlite
 			expression = base.PreProcess(expression);
 			expression = SqliteAutoIncrementPrimaryKeyColumnReducer.Reduce(expression, out primaryKeyNameByTablesWithReducedPrimaryKeyName);
 			expression = SqliteForeignKeyConstraintReducer.Reduce(expression, primaryKeyNameByTablesWithReducedPrimaryKeyName);
-
+			
 			return expression;
 		}
 

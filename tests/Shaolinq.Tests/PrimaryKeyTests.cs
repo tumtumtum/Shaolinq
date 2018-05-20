@@ -59,6 +59,10 @@ namespace Shaolinq.Tests
 			{
 				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
+				// AutoIncrement Guid  properties are set immediately
+				
+				Assert.IsTrue(obj.Id != Guid.Empty);
+
 				obj.Id = Guid.NewGuid();
 					
 				scope.Complete();
@@ -66,24 +70,30 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Create_Object_With_Guid_AutoIncrement_PrimaryKey_And_Get_PrimaryKey()
+		public void Test_Create_Object_With_Guid_AutoIncrement_PrimaryKey_And_Set_New_PrimaryKey_After_Flush()
 		{
+			var originalGuid = new Guid("028af028-534e-4b5e-a447-8337438306d7");
+			var newGuid = new Guid("62766b02-47a1-4d0f-afa0-f45f543b001c");
+			
 			using (var scope = this.NewTransactionScope())
 			{
 				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
 
-				// AutoIncrement Guid  properties are set immediately
-
-				Assert.IsTrue(obj.Id != Guid.Empty);
+				obj.Id = originalGuid;
 				
-				scope.Flush();
+				scope.Complete();
+			}
 
-				Assert.IsTrue(obj.Id != Guid.Empty);
+			using (var scope = this.NewTransactionScope())
+			{
+				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.GetByPrimaryKey(originalGuid);
 
-				obj.Id = Guid.NewGuid();
+				obj.Id = newGuid;
 
 				scope.Complete();
 			}
+
+			Assert.IsNotNull(this.model.ObjectWithGuidAutoIncrementPrimaryKeys.GetByPrimaryKey(newGuid));
 		}
 
 		[Test]
@@ -213,23 +223,34 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Object_With_Long_Non_AutoIncrement_PrimaryKey_And_Dont_Set_PrimaryKey()
 		{
+			long id;
 			var name = new StackTrace().GetFrame(0).GetMethod().Name;
 
-			Assert.Throws(Is.InstanceOf<TransactionAbortedException>().Or.InstanceOf<DataAccessTransactionAbortedException>(), () =>
+			using (var scope = this.NewTransactionScope())
 			{
-				using (var scope = this.NewTransactionScope())
-				{
-					var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
+				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
-					obj.Name = name;
+				obj.Name = name;
 
-					scope.Complete();
-				}
-			});
+				scope.Flush();
+
+				id = obj.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.GetByPrimaryKey(id);
+
+				obj.Name = name;
+
+				scope.Complete();
+			}
 		}
 
 		[Test]
-		public void Test_Create_Object_With_Long_Non_AutoIncrement_PrimaryKey_And_Dont_Set_PrimaryKey_With_Default_Value()
+		public void Test_Create_Paper_And_Dont_Set_PrimaryKey()
 		{
 			var name = new StackTrace().GetFrame(0).GetMethod().Name;
 
@@ -237,17 +258,39 @@ namespace Shaolinq.Tests
 			{
 				using (var scope = this.NewTransactionScope())
 				{
-					var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
-
-					obj.Id = 0;
-					obj.Name = name;
+					var obj = this.model.Papers.Create();
 
 					scope.Complete();
 				}
 			});
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var obj = this.model.Papers.Create();
+
+				obj.Id = "COSC222";
+
+				scope.Complete();
+			}
 		}
 
+		[Test]
+		public void Test_Create_Object_With_Long_Non_AutoIncrement_PrimaryKey_And_Set_PrimaryKey_With_Default_Value()
+		{
+			var name = new StackTrace().GetFrame(0).GetMethod().Name;
 
+			using (var scope = this.NewTransactionScope())
+			{
+				this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Delete();
+
+				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
+
+				obj.Name = name;
+
+				scope.Complete();
+			}
+		}
+		
 		[Test]
 		public void Test_Create_Object_With_Long_Non_AutoIncrement_PrimaryKey_And_Set_PrimaryKey()
 		{
@@ -255,6 +298,8 @@ namespace Shaolinq.Tests
 
 			using (var scope = this.NewTransactionScope())
 			{
+				this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Delete();
+
 				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create();
 
 				obj.Id = 999;

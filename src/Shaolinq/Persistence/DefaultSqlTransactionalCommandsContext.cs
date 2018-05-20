@@ -157,7 +157,7 @@ namespace Shaolinq.Persistence
 			{
 				return dataAccessObject;
 			}
-			
+
 			if (!this.serverSideGeneratedPropertySettersByType.TryGetValue(Type.GetTypeHandle(dataAccessObject), out var applicator))
 			{
 				var objectParameter = Expression.Parameter(typeof(DataAccessObject));
@@ -184,7 +184,6 @@ namespace Shaolinq.Persistence
 				statements.Add(objectParameter);
 
 				var body = Expression.Block(new[] { local }, statements);
-
 				var lambda = Expression.Lambda<Func<DataAccessObject, IDataReader, DataAccessObject>>(body, objectParameter, readerParameter);
 
 				applicator = lambda.Compile();

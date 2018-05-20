@@ -33,7 +33,7 @@ namespace Shaolinq.Sqlite
 			var primaryKeyConstraint = createTableExpression
 				.TableConstraints
 				.SingleOrDefault(c => c.PrimaryKey);
-
+			
 			if (primaryKeyConstraint != null)
 			{
 				var autoIncrementColumns = createTableExpression

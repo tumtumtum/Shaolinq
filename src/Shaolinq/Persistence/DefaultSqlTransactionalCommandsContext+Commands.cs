@@ -63,12 +63,6 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public override void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
-			this.Update(type, dataAccessObjects, true);
-		}
-
-		[RewriteAsync]
-		private void Update(Type type, IEnumerable<DataAccessObject> dataAccessObjects, bool resetModified)
-		{
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
 			foreach (var dataAccessObject in dataAccessObjects)
@@ -82,7 +76,6 @@ namespace Shaolinq.Persistence
 
 				using (var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject))
 				{
-
 					if (command == null)
 					{
 						Logger.ErrorFormat("Object is reported as changed but GetChangedProperties returns an empty list ({0})", dataAccessObject);
@@ -114,14 +107,10 @@ namespace Shaolinq.Persistence
 					{
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
-
-					if (resetModified)
-					{
-						dataAccessObject.ToObjectInternal().ResetModified();
-					}
 				}
 			}
 		}
+
 		#endregion
 
 		#region Insert
@@ -194,7 +183,7 @@ retryInsert:
 
 									if (updateRequired)
 									{
-										this.Update(dataAccessObject.GetType(), new[] { dataAccessObject }, false);
+										this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
 									}
 								}
 							}
