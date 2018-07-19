@@ -7,10 +7,22 @@ namespace Shaolinq.Persistence
 	public struct TypedValue
 	{
 		public Type Type {get; }
+		public string Name { get; }
 		public object Value { get; }
 		public Func<object, object> Converter { get; }
 
-		public TypedValue(Type type, object value, Func<object, object> converter = null)
+		public TypedValue(Type type, object value)
+			: this(type, value, null)
+		{
+		}
+
+		public TypedValue(Type type, string name, object value)
+			: this(type, value, null)
+		{
+			this.Name = name;
+		}
+
+		public TypedValue(Type type, object value, Func<object, object> converter)
 			: this()
 		{
 			this.Type = type;

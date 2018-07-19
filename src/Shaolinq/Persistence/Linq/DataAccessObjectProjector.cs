@@ -1,13 +1,13 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class DataAccessObjectProjector<T, U>
-		: ObjectProjector<T, U, DataAccessObjectProjector<T, U>.Context>
-		where U : T
+	public class DataAccessObjectProjector<T>
+		: ObjectProjector<T, DataAccessObjectProjector<T>.Context>
 		where T : DataAccessObject
 	{
 		#region Context
@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			private T value;
 			internal bool HasValue { get; private set; }
-			internal T Value { get { return this.value; } set { this.value = value; this.HasValue = true; } }
+			internal T Value { get => this.value; set { this.value = value; this.HasValue = true; } }
 
 			internal Context()
 			{
@@ -23,8 +23,8 @@ namespace Shaolinq.Persistence.Linq
 		}
 		#endregion
 
-		public DataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader)
-			: base(provider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
+		public DataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, string commandText, IReadOnlyList<TypedValue> parameterValues, object[] placeholderValues, ObjectReaderFunc<T> objectReader)
+			: base(provider, dataAccessModel, sqlDatabaseContext, commandText, parameterValues, placeholderValues, objectReader)
 		{
 		}
 

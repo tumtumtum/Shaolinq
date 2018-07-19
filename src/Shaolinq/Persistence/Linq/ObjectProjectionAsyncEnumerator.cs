@@ -6,20 +6,19 @@ using System.Data;
 
 namespace Shaolinq.Persistence.Linq
 {
-	internal partial class ObjectProjectionAsyncEnumerator<T, U, C>
+	internal partial class ObjectProjectionAsyncEnumerator<T, C>
 		: IAsyncEnumerator<T>
-		where U : T
 		where C : class
 	{
 		private int state;
 		private bool disposed;
 		private C context;
 		private IDataReader dataReader;
-		private readonly ObjectProjector<T, U, C> objectProjector;
+		private readonly ObjectProjector<T, C> objectProjector;
 		private TransactionContext.TransactionExecutionContext transactionExecutionContextAcquisition;
 		private ExecuteReaderContext executeReaderContext;
 
-		public ObjectProjectionAsyncEnumerator(ObjectProjector<T, U, C> objectProjector)
+		public ObjectProjectionAsyncEnumerator(ObjectProjector<T, C> objectProjector)
 		{
 			this.objectProjector = objectProjector;
 
@@ -45,7 +44,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (this.disposed)
 			{
-				throw new ObjectDisposedException(nameof(ObjectProjectionAsyncEnumerator<T, U, C>));
+				throw new ObjectDisposedException(nameof(ObjectProjectionAsyncEnumerator<T, C>));
 			}
 
 			this.disposed = true;
@@ -87,7 +86,7 @@ state0:
 
 			this.state = 1;
 			var commandsContext = this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContext();
-			this.executeReaderContext = commandsContext.ExecuteReader(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues);
+			this.executeReaderContext = commandsContext.ExecuteReader(this.objectProjector.CommandText, this.objectProjector.ParameterValues);
 			this.dataReader = this.executeReaderContext.DataReader;
 			this.context = this.objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
 

@@ -295,10 +295,8 @@ namespace Shaolinq.Persistence.Linq
 
 			if (elementType.IsDataAccessObjectType())
 			{
-				var concreteElementType = this.DataAccessModel.GetConcreteTypeFromDefinitionType(elementType);
-
-				var constructor = typeof(DataAccessObjectProjector<,>)
-					.MakeGenericType(elementType, concreteElementType)
+				var constructor = typeof(DataAccessObjectProjector<>)
+					.MakeGenericType(elementType)
 					.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
 				executor = Expression.New
@@ -307,7 +305,8 @@ namespace Shaolinq.Persistence.Linq
 					sqlQueryProviderParam,
 					Expression.Constant(this.DataAccessModel),
 					Expression.Constant(this.SqlDatabaseContext),
-					formatResultsParam,
+					Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.CommandText)),
+					Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.ParameterValues)),
 					placeholderValuesParam,
 					projectionLambda
 				);
@@ -316,7 +315,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if ((aggregator?.Body as MethodCallExpression)?.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.EnumerableExtensionsAlwaysReadFirstMethod)
 				{
-					var constructor = typeof(AlwaysReadFirstObjectProjector<,>).MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
+					var constructor = typeof(AlwaysReadFirstObjectProjector<>).MakeGenericType(projectionLambda.ReturnType).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
 
 					executor = Expression.New
 					(
@@ -324,7 +323,8 @@ namespace Shaolinq.Persistence.Linq
 						sqlQueryProviderParam,
 						Expression.Constant(this.DataAccessModel),
 						Expression.Constant(this.SqlDatabaseContext),
-						formatResultsParam,
+						Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.CommandText)),
+						Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.ParameterValues)),
 						placeholderValuesParam,
 						projectionLambda
 					);
@@ -333,8 +333,8 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (keyBuilder == null)
 					{
-						var constructor = typeof(ObjectProjector<,>)
-							.MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType)
+						var constructor = typeof(ObjectProjector<>)
+							.MakeGenericType(projectionLambda.ReturnType)
 							.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
 							.Single();
 
@@ -344,15 +344,16 @@ namespace Shaolinq.Persistence.Linq
 							sqlQueryProviderParam,
 							Expression.Constant(this.DataAccessModel),
 							Expression.Constant(this.SqlDatabaseContext),
-							formatResultsParam,
+							Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.CommandText)),
+							Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.ParameterValues)),
 							placeholderValuesParam,
 							projectionLambda
 						);
 					}
 					else
 					{
-						var constructor = typeof(ComplexDataAccessObjectProjector<,>)
-							.MakeGenericType(projectionLambda.ReturnType, projectionLambda.ReturnType)
+						var constructor = typeof(ComplexDataAccessObjectProjector<>)
+							.MakeGenericType(projectionLambda.ReturnType)
 							.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
 							.Single();
 
@@ -362,7 +363,8 @@ namespace Shaolinq.Persistence.Linq
 							sqlQueryProviderParam,
 							Expression.Constant(this.DataAccessModel),
 							Expression.Constant(this.SqlDatabaseContext),
-							formatResultsParam,
+							Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.CommandText)),
+							Expression.Property(formatResultsParam, nameof(SqlQueryFormatResult.ParameterValues)),
 							placeholderValuesParam,
 							projectionLambda,
 							keyBuilder

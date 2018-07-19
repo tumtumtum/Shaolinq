@@ -54,25 +54,157 @@ namespace Shaolinq.DirectAccess.Sql
 	using System;
 	using System.Data;
 	using System.Linq;
-	using System.Text;
 	using System.Threading;
+	using System.Reflection;
 	using System.Threading.Tasks;
+	using System.Linq.Expressions;
 	using System.Collections.Generic;
+	using Platform;
 	using Shaolinq;
+	using Platform.Reflection;
 	using Shaolinq.Persistence;
 	using Shaolinq.DirectAccess;
 	using Shaolinq.DirectAccess.Sql;
+	using Shaolinq.Persistence.Linq;
 
 	public static partial class DataAccessModelExtensions
 	{
-		public static Task<IDbConnection> OpenConnectionAsync<T>(this T model, bool forWrite = true)where T : DataAccessModel
+		/// <summary>
+		/// Opens and returns a new connection to the database for the given <see cref = "model"/>.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel">The type of <see cref = "DataAccessModel"/></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <remarks>This method does not require an existing <see cref = "DataAccessScope"/>. The new connection will be
+		/// unrelated to any existing scope and it is up to the caller to dispose of the connection.</remarks>
+		/// <returns>The <see cref = "IDbConnection"/></returns>
+		public static Task<IDbConnection> OpenConnectionAsync<TDataAccessModel>(this TDataAccessModel model)where TDataAccessModel : DataAccessModel
 		{
-			return OpenConnectionAsync<T>(model, CancellationToken.None, forWrite);
+			return OpenConnectionAsync<TDataAccessModel>(model, CancellationToken.None);
 		}
 
-		public static async Task<IDbConnection> OpenConnectionAsync<T>(this T model, CancellationToken cancellationToken, bool forWrite = true)where T : DataAccessModel
+		/// <summary>
+		/// Opens and returns a new connection to the database for the given <see cref = "model"/>.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel">The type of <see cref = "DataAccessModel"/></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <remarks>This method does not require an existing <see cref = "DataAccessScope"/>. The new connection will be
+		/// unrelated to any existing scope and it is up to the caller to dispose of the connection.</remarks>
+		/// <returns>The <see cref = "IDbConnection"/></returns>
+		public static async Task<IDbConnection> OpenConnectionAsync<TDataAccessModel>(this TDataAccessModel model, CancellationToken cancellationToken)where TDataAccessModel : DataAccessModel
 		{
-			return (await model.GetCurrentDataContext(forWrite).SqlDatabaseContext.OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
+			return (await model.GetCurrentSqlDatabaseContext().OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
+		}
+
+		/// <summary>
+		/// Executes a given SQL query and returns the number of rows affected.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel"></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <param name = "sql">The SQL query as a string</param>
+		/// <param name = "arguments">Arguments for the SQL query</param>
+		/// <remarks>
+		/// This method can only be called from within a <see cref = "DataAccessScope"/>.
+		/// </remarks>
+		/// <returns>The number of rows affected by the query.</returns>
+		public static Task<int> ExecuteNonQueryAsync<TDataAccessModel>(this TDataAccessModel model, string sql, params object[] arguments)where TDataAccessModel : DataAccessModel
+		{
+			return ExecuteNonQueryAsync<TDataAccessModel>(model, sql, CancellationToken.None, arguments);
+		}
+
+		/// <summary>
+		/// Executes a given SQL query and returns the number of rows affected.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel"></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <param name = "sql">The SQL query as a string</param>
+		/// <param name = "arguments">Arguments for the SQL query</param>
+		/// <remarks>
+		/// This method can only be called from within a <see cref = "DataAccessScope"/>.
+		/// </remarks>
+		/// <returns>The number of rows affected by the query.</returns>
+		public static async Task<int> ExecuteNonQueryAsync<TDataAccessModel>(this TDataAccessModel model, string sql, CancellationToken cancellationToken, params object[] arguments)where TDataAccessModel : DataAccessModel
+		{
+			var args = new List<TypedValue>(arguments.Select(c => new TypedValue(c?.GetType() ?? typeof (object), c)));
+			return (await model.GetCurrentCommandsContext().ExecuteNonQueryAsync(sql, args, cancellationToken).ConfigureAwait(false));
+		}
+
+		/// <summary>
+		/// Returns a list of results for a given SQL query.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel"></typeparam>
+		/// <typeparam name = "T">The type of object to return for each value in the result set. Also see <see cref = "readObject"/></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <param name = "readObject">A function that converts an <see cref = "IDataReader"/> into an object of type <see cref = "T"/></param>
+		/// <param name = "sql">The SQL query as a string</param>
+		/// <remarks>
+		/// This method can only be called from within a <see cref = "DataAccessScope"/>.
+		/// </remarks>
+		/// <returns>An <see cref = "IAsyncEnumerable{T}"/> that presents an <see cref = "IDataReader"/> for each row in the result set.</returns>
+		public static Task<List<T>> ExecuteReadAllAsync<TDataAccessModel, T>(this TDataAccessModel model, Func<IDataReader, T> readObject, string sql)where TDataAccessModel : DataAccessModel
+		{
+			return ExecuteReadAllAsync<TDataAccessModel, T>(model, readObject, sql, CancellationToken.None);
+		}
+
+		/// <summary>
+		/// Returns a list of results for a given SQL query.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel"></typeparam>
+		/// <typeparam name = "T">The type of object to return for each value in the result set. Also see <see cref = "readObject"/></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <param name = "readObject">A function that converts an <see cref = "IDataReader"/> into an object of type <see cref = "T"/></param>
+		/// <param name = "sql">The SQL query as a string</param>
+		/// <remarks>
+		/// This method can only be called from within a <see cref = "DataAccessScope"/>.
+		/// </remarks>
+		/// <returns>An <see cref = "IAsyncEnumerable{T}"/> that presents an <see cref = "IDataReader"/> for each row in the result set.</returns>
+		public static async Task<List<T>> ExecuteReadAllAsync<TDataAccessModel, T>(this TDataAccessModel model, Func<IDataReader, T> readObject, string sql, CancellationToken cancellationToken)where TDataAccessModel : DataAccessModel
+		{
+			var emptyArgs = new
+			{
+			}
+
+			;
+			return (await model.ExecuteReadAllAsync(readObject, sql, emptyArgs, cancellationToken).ConfigureAwait(false));
+		}
+
+		/// <summary>
+		/// Returns a list of results for a given SQL query.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel"></typeparam>
+		/// <typeparam name = "T">The type of object to return for each value in the result set. Also see <see cref = "readObject"/></typeparam>
+		/// <typeparam name = "TArgs">The anonymous type containing the parameters referenced by <see cref = "sql"/></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <param name = "readObject">A function that converts an <see cref = "IDataReader"/> into an object of type <see cref = "T"/></param>
+		/// <param name = "sql">The SQL query as a string</param>
+		/// <param name = "args">An anonymous type containing the parameters referenced by <see cref = "sql"/></param>
+		/// <remarks>
+		/// This method can only be called from within a <see cref = "DataAccessScope"/>.
+		/// </remarks>
+		/// <returns>An <see cref = "IAsyncEnumerable{T}"/> that presents an <see cref = "IDataReader"/> for each row in the result set.</returns>
+		public static Task<List<T>> ExecuteReadAllAsync<TDataAccessModel, TArgs, T>(this TDataAccessModel model, Func<IDataReader, T> readObject, string sql, TArgs args)where TDataAccessModel : DataAccessModel
+		{
+			return ExecuteReadAllAsync<TDataAccessModel, TArgs, T>(model, readObject, sql, args, CancellationToken.None);
+		}
+
+		/// <summary>
+		/// Returns a list of results for a given SQL query.
+		/// </summary>
+		/// <typeparam name = "TDataAccessModel"></typeparam>
+		/// <typeparam name = "T">The type of object to return for each value in the result set. Also see <see cref = "readObject"/></typeparam>
+		/// <typeparam name = "TArgs">The anonymous type containing the parameters referenced by <see cref = "sql"/></typeparam>
+		/// <param name = "model">The <see cref = "DataAccessModel"/></param>
+		/// <param name = "readObject">A function that converts an <see cref = "IDataReader"/> into an object of type <see cref = "T"/></param>
+		/// <param name = "sql">The SQL query as a string</param>
+		/// <param name = "args">An anonymous type containing the parameters referenced by <see cref = "sql"/></param>
+		/// <remarks>
+		/// This method can only be called from within a <see cref = "DataAccessScope"/>.
+		/// </remarks>
+		/// <returns>An <see cref = "IAsyncEnumerable{T}"/> that presents an <see cref = "IDataReader"/> for each row in the result set.</returns>
+		public static async Task<List<T>> ExecuteReadAllAsync<TDataAccessModel, TArgs, T>(this TDataAccessModel model, Func<IDataReader, T> readObject, string sql, TArgs args, CancellationToken cancellationToken)where TDataAccessModel : DataAccessModel
+		{
+			var retval = new List<T>();
+			model.ExecuteReader(readObject, sql, args).WithEach(c => retval.Add(c));
+			return retval;
 		}
 	}
 }
@@ -1004,6 +1136,47 @@ namespace Shaolinq.Persistence
 
 	public partial class DefaultSqlTransactionalCommandsContext
 	{
+		public override Task<int> ExecuteNonQueryAsync(string sql, IReadOnlyList<TypedValue> parameters)
+		{
+			return this.ExecuteNonQueryAsync(sql, parameters, CancellationToken.None);
+		}
+
+		public override async Task<int> ExecuteNonQueryAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
+		{
+			var command = this.CreateCommand();
+			try
+			{
+				foreach (var value in parameters)
+				{
+					this.AddParameter(command, value.Type, value.Name, value.Value);
+				}
+
+				command.CommandText = sql;
+				Logger.Info(() => this.FormatCommand(command));
+				try
+				{
+					return (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
+				}
+				catch (Exception e)
+				{
+					command?.Dispose();
+					command = null;
+					var decoratedException = this.LogAndDecorateException(e, command);
+					if (decoratedException != null)
+					{
+						throw decoratedException;
+					}
+
+					throw;
+				}
+			}
+			catch
+			{
+				command?.Dispose();
+				throw;
+			}
+		}
+
 		public override Task<ExecuteReaderContext> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters)
 		{
 			return this.ExecuteReaderAsync(sql, parameters, CancellationToken.None);
@@ -1016,7 +1189,7 @@ namespace Shaolinq.Persistence
 			{
 				foreach (var value in parameters)
 				{
-					this.AddParameter(command, value.Type, value.Value);
+					this.AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				command.CommandText = sql;
@@ -1201,7 +1374,7 @@ namespace Shaolinq.Persistence
 				command.CommandText = formatResult.CommandText;
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Type, value.Value);
+					this.AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				Logger.Info(() => this.FormatCommand(command));
@@ -1253,7 +1426,7 @@ namespace Shaolinq.Persistence.Linq
 	using Shaolinq.Persistence;
 	using Shaolinq.Persistence.Linq;
 
-	internal partial class ObjectProjectionAsyncEnumerator<T, U, C>
+	internal partial class ObjectProjectionAsyncEnumerator<T, C>
 	{
 		public virtual Task<bool> MoveNextAsync()
 		{
@@ -1275,7 +1448,7 @@ namespace Shaolinq.Persistence.Linq
 			state0:
 				this.state = 1;
 			var commandsContext = (await this.transactionExecutionContextAcquisition.TransactionContext.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false));
-			this.executeReaderContext = (await commandsContext.ExecuteReaderAsync(this.objectProjector.formatResult.CommandText, this.objectProjector.formatResult.ParameterValues, cancellationToken).ConfigureAwait(false));
+			this.executeReaderContext = (await commandsContext.ExecuteReaderAsync(this.objectProjector.CommandText, this.objectProjector.ParameterValues, cancellationToken).ConfigureAwait(false));
 			this.dataReader = this.executeReaderContext.DataReader;
 			this.context = this.objectProjector.CreateEnumerationContext(this.dataReader, this.transactionExecutionContextAcquisition.Version);
 			state1:

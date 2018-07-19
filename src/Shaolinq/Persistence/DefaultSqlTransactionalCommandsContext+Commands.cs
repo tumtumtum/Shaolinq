@@ -13,6 +13,51 @@ namespace Shaolinq.Persistence
 {
 	public partial class DefaultSqlTransactionalCommandsContext
 	{
+		#region ExecuteNonQuery
+		[RewriteAsync]
+		public override int ExecuteNonQuery(string sql, IReadOnlyList<TypedValue> parameters)
+		{
+			var command = this.CreateCommand();
+
+			try
+			{
+				foreach (var value in parameters)
+				{
+					this.AddParameter(command, value.Type, value.Name, value.Value);
+				}
+
+				command.CommandText = sql;
+
+				Logger.Info(() => this.FormatCommand(command));
+
+				try
+				{
+					return command.ExecuteNonQueryEx(this.DataAccessModel);
+				}
+				catch (Exception e)
+				{
+					command?.Dispose();
+					command = null;
+
+					var decoratedException = this.LogAndDecorateException(e, command);
+
+					if (decoratedException != null)
+					{
+						throw decoratedException;
+					}
+
+					throw;
+				}
+			}
+			catch
+			{
+				command?.Dispose();
+
+				throw;
+			}
+		}
+		#endregion
+
 		#region ExecuteReader
 		[RewriteAsync]
 		public override ExecuteReaderContext ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters)
@@ -23,7 +68,7 @@ namespace Shaolinq.Persistence
 			{
 				foreach (var value in parameters)
 				{
-					this.AddParameter(command, value.Type, value.Value);
+					this.AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				command.CommandText = sql;
@@ -233,7 +278,7 @@ retryInsert:
 
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Type, value.Value);
+					this.AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				Logger.Info(() => this.FormatCommand(command));

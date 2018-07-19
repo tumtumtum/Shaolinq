@@ -1,16 +1,16 @@
 ﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace Shaolinq.Persistence.Linq
 {
-	public class AlwaysReadFirstObjectProjector<T, U>
-		: ObjectProjector<T, U>
-		where U : T
+	public class AlwaysReadFirstObjectProjector<T>
+		: ObjectProjector<T>
 	{
-		public AlwaysReadFirstObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader)
-			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
+		public AlwaysReadFirstObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, string commandText, IReadOnlyList<TypedValue> parameterValues, object[] placeholderValues, ObjectReaderFunc<T> objectReader)
+			: base(queryProvider, dataAccessModel, sqlDatabaseContext, commandText, parameterValues, placeholderValues, objectReader)
 		{
 		}
 

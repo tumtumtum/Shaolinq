@@ -42,6 +42,10 @@ namespace Shaolinq.Persistence
 		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects);
 		public abstract Task<InsertResults> InsertAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken);
 
+		public abstract int ExecuteNonQuery(string sql, IReadOnlyList<TypedValue> parameters);
+		public abstract Task<int> ExecuteNonQueryAsync(string sql, IReadOnlyList<TypedValue> parameters);
+		public abstract Task<int> ExecuteNonQueryAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken);
+
 		public abstract ExecuteReaderContext ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters);
 		public abstract Task<ExecuteReaderContext> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters);
 		public abstract Task<ExecuteReaderContext> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken);
@@ -54,13 +58,18 @@ namespace Shaolinq.Persistence
 
 			foreach (var parameter in formatResult.ParameterValues)
 			{
-				this.AddParameter(command, parameter.Type, parameter.Value);
+				this.AddParameter(command, parameter.Type, parameter.Name, parameter.Value);
 			}
 		}
 
 		public IDbDataParameter AddParameter(IDbCommand command, Type type, object value)
 		{
-			var parameter = this.CreateParameter(command, this.parameterIndicatorPrefix + SqlQueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
+			return AddParameter(command, type, null, value);
+		}
+
+		public IDbDataParameter AddParameter(IDbCommand command, Type type, string name, object value)
+		{
+			var parameter = this.CreateParameter(command,  name ?? this.parameterIndicatorPrefix + SqlQueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
 
 			command.Parameters.Add(parameter);
 

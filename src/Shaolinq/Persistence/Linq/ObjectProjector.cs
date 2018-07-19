@@ -12,37 +12,37 @@ namespace Shaolinq.Persistence.Linq
 		public SqlQueryProvider QueryProvider { get; }
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-		protected internal readonly SqlQueryFormatResult formatResult;
+		public string CommandText { get; }
+		public IReadOnlyList<TypedValue> ParameterValues { get; }
 
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, string commandText, IReadOnlyList<TypedValue> parameterValues)
 		{
 			this.QueryProvider = queryProvider;
 			this.DataAccessModel = dataAccessModel;
 			this.SqlDatabaseContext = sqlDatabaseContext;
-			this.formatResult = formatResult;
+			this.CommandText = commandText;
+			this.ParameterValues = parameterValues;
 		}
 	}
 
-	public class ObjectProjector<T, U>
-		: ObjectProjector<T, U, object>
-		where U : T
+	public class ObjectProjector<T>
+		: ObjectProjector<T, object>
 	{
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader)
-			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, string commandText, IReadOnlyList<TypedValue> parameterValues, object[] placeholderValues, ObjectReaderFunc<T> objectReader)
+			: base(queryProvider, dataAccessModel, sqlDatabaseContext, commandText, parameterValues, placeholderValues, objectReader)
 		{
 		}
 	}
 
-	public class ObjectProjector<T, U, C>
+	public class ObjectProjector<T, C>
 		: ObjectProjector, IAsyncEnumerable<T>
-		where U : T
 		where C : class
 	{
 		protected internal readonly object[] placeholderValues;
-		protected internal readonly ObjectReaderFunc<U> objectReader;
+		protected internal readonly ObjectReaderFunc<T> objectReader;
 
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader)
-			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, string commandText, IReadOnlyList<TypedValue> parameterValues, object[] placeholderValues, ObjectReaderFunc<T> objectReader)
+			: base(queryProvider, dataAccessModel, sqlDatabaseContext, commandText, parameterValues)
 		{
 			this.placeholderValues = placeholderValues;
 			this.objectReader = objectReader;
@@ -69,6 +69,6 @@ namespace Shaolinq.Persistence.Linq
 
 		IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();
 		public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
-		public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new ObjectProjectionAsyncEnumerator<T, U, C>(this);
+		public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new ObjectProjectionAsyncEnumerator<T, C>(this);
 	}
 }

@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
@@ -9,9 +10,8 @@ namespace Shaolinq.Persistence.Linq
 	/// <summary>
 	/// Projects DataAccessObjects that are contained inside non-DAO objects
 	/// </summary>
-	public class ComplexDataAccessObjectProjector<T, U>
-		: ObjectProjector<T, U, ComplexDataAccessObjectProjector<T, U>.Context>
-		where U : T
+	public class ComplexDataAccessObjectProjector<T>
+		: ObjectProjector<T, ComplexDataAccessObjectProjector<T>.Context>
 	{
 		#region Context
 		public class Context
@@ -29,8 +29,8 @@ namespace Shaolinq.Persistence.Linq
 
 		private readonly Func<IDataReader, object[]> keysGenerator;
 
-		public ComplexDataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader, Func<IDataReader, object[]> keysGenerator)
-			: base(provider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
+		public ComplexDataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, string commandText, IReadOnlyList<TypedValue> parameterValues, object[] placeholderValues, ObjectReaderFunc<T> objectReader, Func<IDataReader, object[]> keysGenerator)
+			: base(provider, dataAccessModel, sqlDatabaseContext, commandText, parameterValues, placeholderValues, objectReader)
 		{
 			this.keysGenerator = keysGenerator;
 		}

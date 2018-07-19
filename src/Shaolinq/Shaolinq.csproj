@@ -148,7 +148,6 @@
     <Compile Include="DataAccessModelHookSubmitContext.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DirectAccess\Sql\DataAccessModelExtensions.cs" />
-    <Compile Include="DirectAccess\Sql\DataAccessScopeExtensions.cs" />
     <Compile Include="ObjectsByIdCache.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectInternalHelpers.cs" />
     <Compile Include="DataAccessScope.cs" />
