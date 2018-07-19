@@ -28,7 +28,7 @@ namespace Shaolinq
 				{
 					var array = new IDataAccessModelHook[this.hooks.Length + 1];
 
-					Array.Copy(this.hooks, array, this.hooks.Length + 1);
+					Array.Copy(this.hooks, array, this.hooks.Length);
 					this.hooks[this.hooks.Length] = value;
 
 					this.hooks = array;
