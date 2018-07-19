@@ -9,7 +9,7 @@ namespace Shaolinq.Persistence.Linq
 		: ObjectProjector<T, U>
 		where U : T
 	{
-		public AlwaysReadFirstObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], Func<DataAccessObject, DataAccessObject>, U> objectReader)
+		public AlwaysReadFirstObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader)
 			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
 		{
 		}
@@ -23,7 +23,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var contextInfo = (Tuple<IDataReader, int>)context;
 
-			result = this.objectReader(this, contextInfo.Item1, contextInfo.Item2, this.placeholderValues, null);
+			result = this.objectReader(this, contextInfo.Item1, contextInfo.Item2, this.placeholderValues);
 
 			return true;
 		}

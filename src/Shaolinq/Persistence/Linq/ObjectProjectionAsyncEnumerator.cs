@@ -96,7 +96,7 @@ state1:
 
 			if (this.dataReader.ReadEx())
 			{
-				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues, o => this.objectProjector.ProcessDataAccessObject(o, ref this.context));
+				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues);
 
 				if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
 				{

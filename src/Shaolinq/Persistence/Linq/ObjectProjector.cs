@@ -27,7 +27,7 @@ namespace Shaolinq.Persistence.Linq
 		: ObjectProjector<T, U, object>
 		where U : T
 	{
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], Func<DataAccessObject, DataAccessObject>, U> objectReader)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader)
 			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
 		{
 		}
@@ -39,9 +39,9 @@ namespace Shaolinq.Persistence.Linq
 		where C : class
 	{
 		protected internal readonly object[] placeholderValues;
-		protected internal readonly Func<ObjectProjector, IDataReader, int, object[], Func<DataAccessObject, DataAccessObject>, U> objectReader;
+		protected internal readonly ObjectReaderFunc<U> objectReader;
 
-		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], Func<DataAccessObject, DataAccessObject>, U> objectReader)
+		public ObjectProjector(SqlQueryProvider queryProvider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader)
 			: base(queryProvider, dataAccessModel, sqlDatabaseContext, formatResult)
 		{
 			this.placeholderValues = placeholderValues;
@@ -65,11 +65,6 @@ namespace Shaolinq.Persistence.Linq
 		protected internal virtual C CreateEnumerationContext(IDataReader dataReader, int executionVersion)
 		{
 			return default(C);
-		}
-
-		protected internal virtual DataAccessObject ProcessDataAccessObject(DataAccessObject value, ref C context)
-		{
-			return value;	
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();

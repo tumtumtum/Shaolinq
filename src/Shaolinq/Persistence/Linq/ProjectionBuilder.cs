@@ -13,6 +13,8 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq
 {
+	public delegate T ObjectReaderFunc<out T>(ObjectProjector objectProjector, IDataReader dataReader, int version, object[] dynamicParameters);
+
 	public class ProjectionBuilder
 		: SqlExpressionVisitor
 	{
@@ -25,8 +27,7 @@ namespace Shaolinq.Persistence.Linq
 		private readonly SqlDatabaseContext sqlDatabaseContext;
 		private readonly SqlQueryProvider queryProvider;
 		private readonly ParameterExpression versionParameter;
-		private readonly ParameterExpression filterParameter;
-
+		
 		private bool atRootLevel = true;
 		private bool treatColumnsAsNullable;
 
@@ -47,7 +48,6 @@ namespace Shaolinq.Persistence.Linq
 			this.objectProjector = Expression.Parameter(typeof(ObjectProjector), "objectProjector");
 			this.dynamicParameters = Expression.Parameter(typeof (object[]), "dynamicParameters");
 			this.versionParameter = Expression.Parameter(typeof(int), "version");
-			this.filterParameter = Expression.Parameter(typeof(Func<DataAccessObject, DataAccessObject>), "filter");
 		}
 
 		public static LambdaExpression Build(DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryProvider queryProvider, Expression expression, ProjectionBuilderScope scope, out Expression<Func<IDataReader, object[]>> rootKeys)
@@ -65,7 +65,7 @@ namespace Shaolinq.Persistence.Linq
 				rootKeys = null;
 			}
 
-			return Expression.Lambda(body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.versionParameter, projectionBuilder.dynamicParameters, projectionBuilder.filterParameter);
+			return Expression.Lambda(typeof(ObjectReaderFunc<>).MakeGenericType(body.Type), body, projectionBuilder.objectProjector, projectionBuilder.dataReader, projectionBuilder.versionParameter, projectionBuilder.dynamicParameters);
 		}
 
 		protected override Expression VisitNewArray(NewArrayExpression expression)
@@ -159,12 +159,12 @@ namespace Shaolinq.Persistence.Linq
 				{
 					var methodCalls = Expression.Call(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), this.notifyReadMethod);
 
-					retval = Expression.Convert(Expression.Invoke(this.filterParameter, Expression.Convert(methodCalls, typeof(DataAccessObject))), retval.Type);
+					retval = Expression.Convert(methodCalls, retval.Type);
 				}
 
 				if (nullCheck != null)
 				{
-					return Expression.Condition(nullCheck, Expression.Convert(Expression.Invoke(this.filterParameter, Expression.Constant(null, retval.Type)), retval.Type), retval);
+					return Expression.Condition(nullCheck, Expression.Constant(null, retval.Type), retval);
 				}
 				else
 				{
@@ -437,7 +437,8 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedScope = this.scope;
 				this.scope = new ProjectionBuilderScope(newColumnIndexes);
-				var projectionProjector = Expression.Lambda(this.Visit(projectionExpression.Projector), this.objectProjector, this.dataReader, this.versionParameter, this.dynamicParameters, this.filterParameter);
+				var projector = this.Visit(projectionExpression.Projector);
+				var projectionProjector = Expression.Lambda(typeof(ObjectReaderFunc<>).MakeGenericType(projector.Type), projector, this.objectProjector, this.dataReader, this.versionParameter, this.dynamicParameters);
 
 				Expression rootKeys;
 

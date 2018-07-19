@@ -29,7 +29,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private readonly Func<IDataReader, object[]> keysGenerator;
 
-		public ComplexDataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, Func<ObjectProjector, IDataReader, int, object[], Func<DataAccessObject, DataAccessObject>, U> objectReader, Func<IDataReader, object[]> keysGenerator)
+		public ComplexDataAccessObjectProjector(SqlQueryProvider provider, DataAccessModel dataAccessModel, SqlDatabaseContext sqlDatabaseContext, SqlQueryFormatResult formatResult, object[] placeholderValues, ObjectReaderFunc<U> objectReader, Func<IDataReader, object[]> keysGenerator)
 			: base(provider, dataAccessModel, sqlDatabaseContext, formatResult, placeholderValues, objectReader)
 		{
 			this.keysGenerator = keysGenerator;

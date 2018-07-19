@@ -48,6 +48,35 @@ namespace Shaolinq
 	}
 }
 
+namespace Shaolinq.DirectAccess.Sql
+{
+#pragma warning disable
+	using System;
+	using System.Data;
+	using System.Linq;
+	using System.Text;
+	using System.Threading;
+	using System.Threading.Tasks;
+	using System.Collections.Generic;
+	using Shaolinq;
+	using Shaolinq.Persistence;
+	using Shaolinq.DirectAccess;
+	using Shaolinq.DirectAccess.Sql;
+
+	public static partial class DataAccessModelExtensions
+	{
+		public static Task<IDbConnection> OpenConnectionAsync<T>(this T model, bool forWrite = true)where T : DataAccessModel
+		{
+			return OpenConnectionAsync<T>(model, CancellationToken.None, forWrite);
+		}
+
+		public static async Task<IDbConnection> OpenConnectionAsync<T>(this T model, CancellationToken cancellationToken, bool forWrite = true)where T : DataAccessModel
+		{
+			return (await model.GetCurrentDataContext(forWrite).SqlDatabaseContext.OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
+		}
+	}
+}
+
 namespace Shaolinq
 {
 #pragma warning disable
@@ -1253,7 +1282,7 @@ namespace Shaolinq.Persistence.Linq
 				T result;
 			if ((await this.dataReader.ReadExAsync(cancellationToken).ConfigureAwait(false)))
 			{
-				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues, o => this.objectProjector.ProcessDataAccessObject(o, ref this.context));
+				T value = this.objectProjector.objectReader(this.objectProjector, this.dataReader, this.transactionExecutionContextAcquisition.Version, this.objectProjector.placeholderValues);
 				if (this.objectProjector.ProcessMoveNext(this.dataReader, value, ref this.context, out result))
 				{
 					this.Current = result;
