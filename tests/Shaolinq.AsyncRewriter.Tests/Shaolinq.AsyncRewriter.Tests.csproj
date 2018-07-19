@@ -122,6 +122,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncRewriterTests.cs" />
+    <Content Include="RewriteTests\ExtensionMethodTests2.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="RewriteTests\MethodResolutionTest.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

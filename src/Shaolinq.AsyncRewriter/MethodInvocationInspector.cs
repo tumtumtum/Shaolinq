@@ -181,7 +181,7 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			var methodSymbol = (IMethodSymbol)result.Symbol;
-			var methodParameters = (methodSymbol.ReducedFrom ?? methodSymbol).ExtensionMethodNormalizingParameters().ToArray();
+			var methodParameters = methodSymbol.ExtensionMethodNormalizingParameters().ToArray();
 
 			IMethodSymbol candidate;
 			int cancellationTokenPos;
@@ -189,7 +189,14 @@ namespace Shaolinq.AsyncRewriter
 			if (methodSymbol.HasRewriteAsyncApplied())
 			{
 				candidate = methodSymbol;
-				cancellationTokenPos = methodParameters.TakeWhile(p => !p.IsOptional && !p.IsParams).Count();
+				cancellationTokenPos = methodParameters.Count(p => !p.IsOptional && !p.IsParams);
+
+				if (methodSymbol.IsExtensionMethod && methodSymbol.ReducedFrom == null)
+				{
+					// Called using static method call rather than instance then make room for the "this" arg
+
+					cancellationTokenPos++;
+				}
 			}
 			else
 			{

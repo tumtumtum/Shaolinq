@@ -23,6 +23,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			yield return GetTestCaseData("Generic Constraints", "IQuery.cs");
 			yield return GetTestCaseData("Interfaces", "ICommand.cs");
 			yield return GetTestCaseData("Extension methods", "ExtensionMethodTests.cs", "Foo.cs");
+			yield return GetTestCaseData("Extension methods2", "ExtensionMethodTests2.cs");
 			yield return GetTestCaseData("Conditional access", "ConditionalAccess.cs");
 			yield return GetTestCaseData("Assignment", "TestAssignment.cs");
 			yield return GetTestCaseData("Generic specialised implementation", "TestGenericSpecialisedImplementation.cs");
