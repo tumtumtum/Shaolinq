@@ -42,60 +42,27 @@ namespace Shaolinq.Persistence
 
 		public virtual SqlQueryFormatResult Format(Expression expression, SqlQueryFormatterOptions options = SqlQueryFormatterOptions.Default, IDbConnection connection = null)
 		{
-			return this.CreateQueryFormatter(options, connection).Format(expression);
+			return CreateQueryFormatter(options, connection).Format(expression);
 		}
 
 		public virtual string GetDefaultValueConstraintName(PropertyDescriptor propertyDescriptor)
-		{
-			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultDefaultValueConstraintName, propertyDescriptor);
-
-			if (namingTransformsConfiguration?.DefaultValueConstraintName == null)
-			{
-				return defaultName;
-			}
-
-			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.DefaultValueConstraintName);
+		{	
+			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration.DefaultValueConstraintName ?? NamingTransformsConfiguration.DefaultDefaultValueConstraintName);
 		}
 
-		public virtual string GetIndexConstraintName(PropertyDescriptor propertyDescriptor)
+		public virtual string GetIndexConstraintName(TypeDescriptor typeDescriptor, string indexName, PropertyDescriptor[] properties)
 		{
-			return GetIndexConstraintName(new [] {  propertyDescriptor });
-		}
-
-		public virtual string GetIndexConstraintName(IEnumerable<PropertyDescriptor> propertyDescriptors)
-		{
-			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultIndexConstraintName, propertyDescriptors.ToArray());
-			
-			if (namingTransformsConfiguration?.IndexConstraintName == null)
-			{
-				return defaultName;
-			}
-
-			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.IndexConstraintName);
+			return VariableSubstituter.SedTransform(indexName, this.namingTransformsConfiguration.IndexConstraintName ?? NamingTransformsConfiguration.DefaultIndexConstraintName, properties);
 		}
 
 		public virtual string GetForeignKeyConstraintName(PropertyDescriptor propertyDescriptor)
 		{
-			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultForeignKeyConstraintName, propertyDescriptor);
-			
-			if (namingTransformsConfiguration?.ForeignKeyConstraintName == null)
-			{
-				return defaultName;
-			}
-
-			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.ForeignKeyConstraintName);
+			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration.ForeignKeyConstraintName ?? NamingTransformsConfiguration.DefaultForeignKeyConstraintName);
 		}
 
 		public virtual string GetPrimaryKeyConstraintName(TypeDescriptor declaringTypeDescriptor, PropertyDescriptor[] primaryKeys)
 		{
-			var defaultName = VariableSubstituter.SedTransform("", NamingTransformsConfiguration.DefaultPrimaryKeyConstraintName, primaryKeys);
-
-			if (namingTransformsConfiguration?.PrimaryKeyConstraintName == null)
-			{
-				return defaultName;
-			}
-
-			return VariableSubstituter.SedTransform(defaultName, namingTransformsConfiguration.PrimaryKeyConstraintName);
+			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration.PrimaryKeyConstraintName ?? NamingTransformsConfiguration.DefaultPrimaryKeyConstraintName);
 		}
 		
 		public virtual string SubstitutedParameterValues(string commandText, Func<string, Func<object, string>, string> paramNameToString)
@@ -105,7 +72,7 @@ namespace Shaolinq.Persistence
 				this.formatCommandRegex = new Regex($@"\{this.parameterPrefix}{SqlQueryFormatter.ParamNamePrefix}[0-9]+", RegexOptions.Compiled);
 			}
 
-			var formatter = this.CreateQueryFormatter();
+			var formatter = CreateQueryFormatter();
 			
 			return this.formatCommandRegex.Replace(commandText, match => paramNameToString(match.Value, c => formatter.FormatConstant(c)));
 		}	

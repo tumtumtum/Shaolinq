@@ -7,11 +7,11 @@ namespace Shaolinq
 	[XmlElement]
 	public class NamingTransformsConfiguration
 	{
-		public const string DefaultIndexConstraintName = "s/^.*$/idx_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
-		public const string DefaultForeignKeyConstraintName = "s/^.*$/fk_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
-		public const string DefaultPrimaryKeyConstraintName = "s/^.*$/pk_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
-		public const string DefaultDefaultValueConstraintName = "s/^.*$/$(TABLENAME:L)_$(COLUMNNAME:L)_def/";
-		
+		public const string DefaultForeignKeyConstraintName = "s/^\\s*$/fk_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
+		public const string DefaultIndexConstraintName = "s/^\\s*$/idx_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
+		public const string DefaultPrimaryKeyConstraintName = "s/^\\s*$/pk_$(TABLENAME:L)_$(PROPERTYNAMES:L)/";
+		public const string DefaultDefaultValueConstraintName = "s/^\\s*$/$(TABLENAME:L)_$(COLUMNNAME:L)_def/";
+
 		[XmlAttribute]
 		public string DataAccessObjectName { get; set; }
 
@@ -25,7 +25,7 @@ namespace Shaolinq
 		public string PersistedMemberSuffixName { get; set; }
 
 		[XmlAttribute]
-		public string ForeignKeyConstraintName { get; set; }
+		public string ForeignKeyConstraintName { get; set; } 
 
 		[XmlAttribute]
 		public string IndexConstraintName { get; set; }

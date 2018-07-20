@@ -360,9 +360,9 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlCreateIndexExpression(indexInfo.IndexName, table, indexInfo.Unique, indexInfo.IndexType, false, indexedColumns, includedColumns, where);
 		}
 
-		private string CreateIndexName(params PropertyDescriptor[] propertyDescriptors)
+		private string CreateIndexName(TypeDescriptor typeDescriptor, string indexName, IEnumerable<PropertyDescriptor> properties)
 		{
-			return this.formatterManager.GetIndexConstraintName(propertyDescriptors);
+			return this.formatterManager.GetIndexConstraintName(typeDescriptor, indexName, properties.ToArray());
 		}
 		
 		private IndexInfo GetOrganizationIndexInfo(TypeDescriptor typeDescriptor)
@@ -380,7 +380,7 @@ namespace Shaolinq.Persistence.Linq
 					var properties = indexAttribute.Properties?.Select(c => new IndexPropertyInfo(c))?.ToList();
 					var propertyDescriptors = properties?.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName)).ToArray();
 
-					return new IndexInfo(indexAttribute.IndexName ?? CreateIndexName(propertyDescriptors), properties, indexAttribute.Unique, IndexType.Default, null);
+					return new IndexInfo(indexAttribute.IndexName ?? CreateIndexName(typeDescriptor, indexAttribute.IndexName, propertyDescriptors), properties, indexAttribute.Unique, IndexType.Default, null);
 				}
 			}
 
@@ -411,7 +411,7 @@ namespace Shaolinq.Persistence.Linq
 						.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName))
 						.ToArray();
 
-					return new IndexInfo(indexName ?? CreateIndexName(propertyDescriptors), properties, unique, IndexType.Default, null);
+					return new IndexInfo(indexName ?? CreateIndexName(typeDescriptor, indexName, propertyDescriptors), properties, unique, IndexType.Default, null);
 				}
 			}
 
@@ -425,14 +425,14 @@ namespace Shaolinq.Persistence.Linq
 				var properties = indexAttribute.Properties.Select(c => new IndexPropertyInfo(c)).ToList();
 				var propertyDescriptors = properties.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName)).ToArray();
 
-				yield return new IndexInfo(indexAttribute.IndexName ?? CreateIndexName(propertyDescriptors), properties, indexAttribute.Unique, indexAttribute.IndexType, indexAttribute.Condition);
+				yield return new IndexInfo(indexAttribute.IndexName ?? CreateIndexName(typeDescriptor, indexAttribute.IndexName, propertyDescriptors), properties, indexAttribute.Unique, indexAttribute.IndexType, indexAttribute.Condition);
 			}
 
 			var allIndexAttributes = typeDescriptor
 				.PersistedPropertiesWithoutBackreferences
 				.Concat(typeDescriptor.RelationshipRelatedProperties)
 				.SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)))
-				.GroupBy(c => c.Item1.IndexName ?? CreateIndexName(c.Item2))
+				.GroupBy(c => c.Item1.IndexName ?? CreateIndexName(typeDescriptor, "", new [] { c.Item2 }))
 				.OrderBy(c => c.Key);
 
 			foreach (var grouping in allIndexAttributes)

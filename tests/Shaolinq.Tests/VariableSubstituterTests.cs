@@ -32,6 +32,14 @@ namespace Shaolinq.Tests
 			s = VariableSubstituter.SedTransform("Pokwer22", "s/Db(Pokwer)/$1/g");
 
 			Assert.AreEqual("Pokwer22", s);
+
+			s = VariableSubstituter.SedTransform("Hello", "s/^$/HELLO/g");
+
+			Assert.AreEqual("Hello", s);
+
+			s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g");
+
+			Assert.AreEqual("HELLO", s);
 		}
 	}
 }
