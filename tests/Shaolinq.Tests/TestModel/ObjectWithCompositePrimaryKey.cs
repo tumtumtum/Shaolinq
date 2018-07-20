@@ -5,11 +5,11 @@ using Platform.Validation;
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
+	[Index("Name", "Id:IncludeOnly", IndexName = "name_id_idx")]
 	public abstract class ObjectWithCompositePrimaryKey
 		: DataAccessObject<long>
 	{
 		[AutoIncrement(false)]
-		[Index("name_id_idx")]
 		public abstract override long Id { get; set; }
 
 		[PrimaryKey, PersistedMember, SizeConstraint(MaximumLength = 128)]
@@ -20,7 +20,6 @@ namespace Shaolinq.Tests.TestModel
 		public abstract Student Student { get; set; }
 
 		[PersistedMember]
-		[Index("name_id_idx", IncludeOnly = true)]
 		public abstract string Name { get; set; }
 	}
 }

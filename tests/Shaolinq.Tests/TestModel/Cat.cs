@@ -5,11 +5,11 @@ using Platform.Validation;
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
+	[Index("Name", "Student")]
 	public class Cat
 		: DataAccessObject<long>
 	{
 		[PersistedMember]
-		[Index(IndexName = "Index")]
 		public virtual string Name { get; set; }
 
 		[PersistedMember]

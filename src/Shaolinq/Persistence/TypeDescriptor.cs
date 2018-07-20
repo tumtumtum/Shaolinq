@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -23,7 +24,9 @@ namespace Shaolinq.Persistence
 		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
 		public IReadOnlyList<PropertyDescriptor> PrimaryKeyDerivableProperties { get; }
-		
+		public IReadOnlyList<IndexAttribute> IndexAttributes { get; }
+		public OrganizationIndexAttribute OrganizationIndexAttribute { get; set; }
+
 		public string TypeName => this.Type.Name;
 		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
 		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
@@ -32,6 +35,8 @@ namespace Shaolinq.Persistence
 		internal readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
+
+		public override string ToString() => "TypeDescriptor: " + this.Type.Name;
 
 		public static bool IsSimpleType(Type type)
 		{
@@ -83,7 +88,7 @@ namespace Shaolinq.Persistence
 
 			if (!this.relatedPropertiesByType.TryGetValue(type, out var retval))
 			{
-				Func<PropertyDescriptor, bool> isForType = delegate (PropertyDescriptor c)
+				bool IsForType(PropertyDescriptor c)
 				{
 					if (type.IsAssignableFrom(c.PropertyType))
 					{
@@ -99,16 +104,11 @@ namespace Shaolinq.Persistence
 					}
 
 					return false;
-				};
-
-				retval = this.RelationshipRelatedProperties.FirstOrDefault(isForType);
-
-				if (retval == null)
-				{
-					throw new InvalidOperationException($"Unable to find related property for type '{type.Name}' on type '{this.Type.Name}'");
 				}
 
-				this.relatedPropertiesByType[type] = retval;
+				retval = this.RelationshipRelatedProperties.FirstOrDefault(IsForType);
+
+				this.relatedPropertiesByType[type] = retval ?? throw new InvalidOperationException($"Unable to find related property for type '{type.Name}' on type '{this.Type.Name}'");
 			}
 
 			return retval;
@@ -299,29 +299,78 @@ namespace Shaolinq.Persistence
 				throw new InvalidDataAccessObjectModelDefinition("An object can only define one integer auto increment property");
 			}
 
-			var organizationIdexes = this.PersistedProperties
+			this.IndexAttributes = new ReadOnlyCollection<IndexAttribute>(this.Type.GetCustomAttributes<IndexAttribute>(true).ToList());
+
+			foreach (var attribute in this.IndexAttributes)
+			{
+				if (attribute.indexNameIfPropertyOrPropertyIfClass != null)
+				{
+					attribute.Properties = new [] { attribute.indexNameIfPropertyOrPropertyIfClass };
+				}
+			}
+
+			var attributes = this.Type.GetCustomAttributes<OrganizationIndexAttribute>(true);
+
+			if (attributes.Any())
+			{
+				if (attributes.Count() > 1)
+				{
+					throw new InvalidDataAccessModelDefinitionException($"Cannot define more than one {nameof(OrganizationIndexAttribute)} on type {this.TypeName}");
+				}
+
+				this.OrganizationIndexAttribute = attributes.Single();
+			}
+
+			ValidateIndexes();
+			ValidateOrgnizationIndex();
+		}
+
+		private void ValidateIndexes()
+		{
+			if (this.IndexAttributes.Any(c => (c.Properties?.Length ?? 0) == 0))
+			{
+				throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} contains class-defined indexes with no defined properties.");
+			}
+		}
+
+		private void ValidateOrgnizationIndex()
+		{
+			var properties = this.PersistedProperties
 				.Where(c => c.OrganizationIndexAttribute != null)
 				.ToList();
 
-			if (organizationIdexes.Count == 1)
+			if (this.OrganizationIndexAttribute != null)
 			{
-				if (organizationIdexes[0].OrganizationIndexAttribute.Disable && !organizationIdexes[0].IsPrimaryKey)
+				if (properties.Count > 0)
 				{
-					throw new InvalidDataAccessObjectModelDefinition($"Disabling an organization/clustered requires {nameof(OrganizationIndexAttribute)} to be applied to a primary key property but is instead applied to the property '{organizationIdexes[0].PropertyName}'");
+					throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} should not have properties that define an {nameof(OrganizationIndexAttribute)} because an {nameof(OrganizationIndexAttribute)} is already defined at the class level");
+				}
+
+				if (this.OrganizationIndexAttribute.Disable)
+				{
+					if ((this.OrganizationIndexAttribute.Properties?.Length ?? 0) == 0)
+					{
+						throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} defines a disabled {nameof(OrganizationIndexAttribute)} with a non null or empty Properties.");
+					}
+				}
+
+				return;
+			}
+
+			if (properties.Count == 1)
+			{
+				if (properties[0].OrganizationIndexAttribute.Disable && !properties[0].IsPrimaryKey)
+				{
+					throw new InvalidDataAccessObjectModelDefinition($"Disabling an organization/clustered requires {nameof(OrganizationIndexAttribute)} to be applied to a primary key property but is instead applied to the property '{properties[0].PropertyName}'");
 				}
 			}
-			else if (organizationIdexes.Count > 1)
+			else if (properties.Count > 1)
 			{
-				if (organizationIdexes.Any(c => c.OrganizationIndexAttribute.Disable))
+				if (properties.Any(c => c.OrganizationIndexAttribute.Disable))
 				{
 					throw new InvalidDataAccessObjectModelDefinition($"You have defined and/or disabled the organization/clustered index on {this.TypeName} multiple times. Remove one or more of the [{nameof(OrganizationIndexAttribute)}] attributes.");
 				}
 			}
-		}
-
-		public override string ToString()
-		{
-			return "TypeDescriptor: " + this.Type.Name;
 		}
 	}
 }

@@ -1397,11 +1397,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
                 return expression;
             }
 
-            if (!(this.result &= current.LowercaseIndex == expression.LowercaseIndex))
-            {
-                return expression;
-            }
-
             if (!(this.result &= current.IndexType == expression.IndexType))
             {
                 return expression;

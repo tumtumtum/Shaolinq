@@ -166,7 +166,6 @@ namespace Shaolinq.Persistence.Linq.Expressions
         {
             this.hashCode ^= expression.Unique ? 379717795 : 0;
             this.hashCode ^= expression.IfNotExist ? 1286760945 : 0;
-            this.hashCode ^= expression.LowercaseIndex ? -692148566 : 0;
             this.hashCode ^= expression.IndexType.GetHashCode();
             this.hashCode ^= expression.Clustered.GetHashCode();
             this.hashCode ^= expression.IndexName?.GetHashCode() ?? 0;

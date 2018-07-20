@@ -149,6 +149,7 @@
     <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DirectAccess\Sql\DataAccessModelExtensions.cs" />
     <Compile Include="ObjectsByIdCache.cs" />
+    <Compile Include="Persistence\IndexInfo.cs" />
     <Compile Include="Persistence\Linq\DataAccessObjectInternalHelpers.cs" />
     <Compile Include="DataAccessScope.cs" />
     <Compile Include="DataAccessScopeOptions.cs" />

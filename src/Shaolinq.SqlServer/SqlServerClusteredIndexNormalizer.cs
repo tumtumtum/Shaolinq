@@ -100,7 +100,7 @@ namespace Shaolinq.SqlServer
 				this.makeUnclustered = false;
 			}
 
-			var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, false, IndexType.Default, false, organizationIndex.Columns, null, null, true);
+			var indexExpression = new SqlCreateIndexExpression(organizationIndex.IndexName, createTableExpression.Table, false, IndexType.Default, false, organizationIndex.Columns, null, null, true);
 
 			if (this.additionalStatements == null)
 			{

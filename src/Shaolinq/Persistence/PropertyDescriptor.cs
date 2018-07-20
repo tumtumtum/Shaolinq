@@ -88,8 +88,16 @@ namespace Shaolinq.Persistence
 			this.PrimaryKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
 			this.OrganizationIndexAttribute = this.PropertyInfo.GetFirstCustomAttribute<OrganizationIndexAttribute>(true);
 			this.IsPrimaryKey = this.PrimaryKeyAttribute != null && this.PrimaryKeyAttribute.IsPrimaryKey;
-			this.IndexAttributes = this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToReadOnlyCollection();
 			this.UniqueAttribute = this.PropertyInfo.GetFirstCustomAttribute<UniqueAttribute>(true);
+			this.IndexAttributes = this.PropertyInfo.GetCustomAttributes(typeof(IndexAttribute), true).OfType<IndexAttribute>().ToReadOnlyCollection();
+			
+			foreach (var attribute in this.IndexAttributes)
+			{
+				if (attribute.indexNameIfPropertyOrPropertyIfClass != null)
+				{
+					attribute.IndexName = attribute.indexNameIfPropertyOrPropertyIfClass;
+				}
+			}
 
 			var named = this.PersistedMemberAttribute ?? this.BackReferenceAttribute ?? (NamedMemberAttribute)this.RelatedDataAccessObjectsAttribute;
 

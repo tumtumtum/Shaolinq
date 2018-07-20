@@ -558,7 +558,7 @@ namespace Shaolinq.Persistence.Linq
 				|| table != createIndexExpression.Table
 				|| where != createIndexExpression.Where)
 			{
-				return new SqlCreateIndexExpression(createIndexExpression.IndexName, table, createIndexExpression.Unique, createIndexExpression.LowercaseIndex, createIndexExpression.IndexType, createIndexExpression.IfNotExist, columns, includedColumns, where, createIndexExpression.Clustered);
+				return new SqlCreateIndexExpression(createIndexExpression.IndexName, table, createIndexExpression.Unique, createIndexExpression.IndexType, createIndexExpression.IfNotExist, columns, includedColumns, where, createIndexExpression.Clustered);
 			}
 
 			return createIndexExpression;

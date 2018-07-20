@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
 using Platform;
 using Shaolinq.Persistence.Computed;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -272,98 +273,75 @@ namespace Shaolinq.Persistence.Linq
 
 			SqlOrganizationIndexExpression organizationIndex = null;
 
-			var organizationAttributes = typeDescriptor
-				.PersistedProperties
-				.Where(c => c.OrganizationIndexAttribute != null)
-				.Where(c => c.OrganizationIndexAttribute.IncludeOnly == false)
-				.Select(c => new Tuple<OrganizationIndexAttribute, PropertyDescriptor>(c.OrganizationIndexAttribute, c))
-				.OrderBy(c => c.Item1.CompositeOrder)
-				.ToArray();
+			var organizationIndexInfo = GetOrganizationIndexInfo(typeDescriptor);
 			
-			if (organizationAttributes.Length > 0)
+			if (organizationIndexInfo != null)
 			{
-				var organizationIndexName = this.formatterManager.GetIndexConstraintName(organizationAttributes.Select(c => c.Item2));
-
-				organizationIndex = this.BuildOrganizationIndexExpression(organizationIndexName, organizationAttributes);
+				organizationIndex = this.BuildOrganizationIndexExpression(typeDescriptor, organizationIndexInfo);
 			}
 
 			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, organizationIndex);
 		}
 
-		private SqlOrganizationIndexExpression BuildOrganizationIndexExpression(string indexName, Tuple<OrganizationIndexAttribute, PropertyDescriptor>[] properties)
+		private SqlOrganizationIndexExpression BuildOrganizationIndexExpression(TypeDescriptor typeDescriptor, IndexInfo indexInfo)
 		{
-			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
-
-			if (properties.Select(c => c.Item1).Any(c => c.Disable))
+			if (indexInfo.Properties == null)
 			{
-				return new SqlOrganizationIndexExpression(indexName, null, null);
+				return new SqlOrganizationIndexExpression(null, null, null);
 			}
 
 			var indexedColumns = new List<SqlIndexedColumnExpression>();
 
-			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.IncludeOnly))
+			foreach (var property in indexInfo.Properties)
 			{
-				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeDescriptor.GetPropertyDescriptorByPropertyName(property.PropertyName)))
 				{
-					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName), attributeAndProperty.Item1.SortOrder, attributeAndProperty.Item1.LowercaseIndex));
+					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName), property.SortOrder, property.Lowercase));
 				}
 			}
 
-			var includedColumns = new List<SqlIndexedColumnExpression>();
-
-			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.IncludeOnly))
-			{
-				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
-				{
-					includedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName)));
-				}
-			}
-
-			return new SqlOrganizationIndexExpression(indexName, indexedColumns, includedColumns);
+			return new SqlOrganizationIndexExpression(indexInfo.IndexName, indexedColumns, null);
 		}
 
-		private Expression BuildIndexExpression(SqlTableExpression table, string indexName, Tuple<IndexAttribute, PropertyDescriptor>[] properties)
+		private Expression BuildIndexExpression(TypeDescriptor typeDescriptor, SqlTableExpression table, IndexInfo indexInfo)
 		{
 			Expression where = null;
-			var unique = properties.Select(c => c.Item1).Any(c => c.Unique);
-			var lowercaseIndex = properties.Any(c => c.Item1.LowercaseIndex);
-			var indexType = properties.Select(c => c.Item1.IndexType).FirstOrDefault(c => c != IndexType.Default);
-			var sorted = properties.OrderBy(c => c.Item1.CompositeOrder, Comparer<int>.Default);
-
+		
 			var indexedColumns = new List<SqlIndexedColumnExpression>();
 
-			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.IncludeOnly)) 
+			foreach (var property in indexInfo.Properties.Where(c => !c.IncludeOnly)) 
 			{
-				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeDescriptor.GetPropertyDescriptorByPropertyName(property.PropertyName)))
 				{
-					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName), attributeAndProperty.Item1.SortOrder, attributeAndProperty.Item1.LowercaseIndex));
+					indexedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName), property.SortOrder, property.Lowercase));
 				}
 			}
 
 			var includedColumns = new List<SqlIndexedColumnExpression>();
 
-			foreach (var attributeAndProperty in sorted.Where(c => c.Item1.IncludeOnly))
+			foreach (var property in indexInfo.Properties.Where(c => c.IncludeOnly)) 
 			{
-				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, attributeAndProperty.Item2))
+				foreach (var columnInfo in QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeDescriptor.GetPropertyDescriptorByPropertyName(property.PropertyName)))
 				{
 					includedColumns.Add(new SqlIndexedColumnExpression(new SqlColumnExpression(columnInfo.DefinitionProperty.PropertyType, null, columnInfo.ColumnName)));
 				}
 			}
 
-			Debug.Assert(properties.Select(c => c.Item2.PropertyInfo.DeclaringType).Distinct().Count() == 1);
+			var parameterExpression = Expression.Parameter(typeDescriptor.Type);
 
-			var parameterExpression = Expression.Parameter(properties.First().Item2.PropertyInfo.DeclaringType);
-
-			foreach (var attributeAndProperty in sorted.Where(c => !c.Item1.Condition.IsNullOrEmpty()))
+			if (indexInfo.Condition == null)
 			{
-				var expression = ComputedExpressionParser.Parse(attributeAndProperty.Item1.Condition, attributeAndProperty.Item2, parameterExpression, null, typeof(bool));
-
-				if (expression == null)
+				foreach (var property in indexInfo.Properties.Where(c => !c.Condition.IsNullOrEmpty()))
 				{
-					continue;
-				}
+					var expression = ComputedExpressionParser.Parse(property.Condition, typeDescriptor.GetPropertyDescriptorByPropertyName(property.PropertyName), parameterExpression, null, typeof(bool));
 
-				where = where == null ? expression.Body : Expression.And(where, expression.Body);
+					if (expression == null)
+					{
+						continue;
+					}
+
+					where = where == null ? expression.Body : Expression.And(where, expression.Body);
+				}
 			}
 
 			if (where != null)
@@ -379,24 +357,106 @@ namespace Shaolinq.Persistence.Linq
 				where = AliasReferenceReplacer.Replace(where, ((SqlTableExpression)projection.Select.From).Alias, null);
 			}
 
-			return new SqlCreateIndexExpression(indexName, table, unique, lowercaseIndex, indexType, false, indexedColumns, includedColumns, where);
+			return new SqlCreateIndexExpression(indexInfo.IndexName, table, indexInfo.Unique, indexInfo.IndexType, false, indexedColumns, includedColumns, where);
+		}
+
+		private string CreateIndexName(params PropertyDescriptor[] propertyDescriptors)
+		{
+			return this.formatterManager.GetIndexConstraintName(propertyDescriptors);
+		}
+		
+		private IndexInfo GetOrganizationIndexInfo(TypeDescriptor typeDescriptor)
+		{
+			var indexAttribute = typeDescriptor.OrganizationIndexAttribute;
+
+			if (typeDescriptor.OrganizationIndexAttribute != null)
+			{
+				if (indexAttribute.Disable)
+				{
+					return new IndexInfo(null, null, indexAttribute.Unique, IndexType.Default, null);
+				}
+				else
+				{
+					var properties = indexAttribute.Properties?.Select(c => new IndexPropertyInfo(c))?.ToList();
+					var propertyDescriptors = properties?.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName)).ToArray();
+
+					return new IndexInfo(indexAttribute.IndexName ?? CreateIndexName(propertyDescriptors), properties, indexAttribute.Unique, IndexType.Default, null);
+				}
+			}
+
+			var organizationAttributes = typeDescriptor
+				.PersistedProperties
+				.Where(c => c.OrganizationIndexAttribute != null)
+				.Select(c => new Tuple<OrganizationIndexAttribute, PropertyDescriptor>(c.OrganizationIndexAttribute, c))
+				.OrderBy(c => c.Item1.CompositeOrder)
+				.ToArray();
+
+			if (organizationAttributes.Length > 0)
+			{
+				var unique = organizationAttributes.Any(c => c.Item1.Unique);
+				var indexName = organizationAttributes.FirstOrDefault(c => c.Item1.IndexName != null)?.Item1.IndexName;
+				var disable = organizationAttributes.Any(c => c.Item1.Disable);
+
+				if (disable)
+				{
+					return new IndexInfo(null, null, unique, IndexType.Default, null);
+				}
+				else
+				{
+					var properties = organizationAttributes
+						.Select(c => new IndexPropertyInfo(c.Item2.PropertyName, c.Item1.Lowercase, c.Item1.SortOrder, false, null))
+						.ToReadOnlyCollection();
+
+					var propertyDescriptors = properties
+						.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName))
+						.ToArray();
+
+					return new IndexInfo(indexName ?? CreateIndexName(propertyDescriptors), properties, unique, IndexType.Default, null);
+				}
+			}
+
+			return null;
+		}
+
+		private IEnumerable<IndexInfo> GetIndexInfos(TypeDescriptor typeDescriptor)
+		{
+			foreach (var indexAttribute in typeDescriptor.IndexAttributes)
+			{
+				var properties = indexAttribute.Properties.Select(c => new IndexPropertyInfo(c)).ToList();
+				var propertyDescriptors = properties.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName)).ToArray();
+
+				yield return new IndexInfo(indexAttribute.IndexName ?? CreateIndexName(propertyDescriptors), properties, indexAttribute.Unique, indexAttribute.IndexType, indexAttribute.Condition);
+			}
+
+			var allIndexAttributes = typeDescriptor
+				.PersistedPropertiesWithoutBackreferences
+				.Concat(typeDescriptor.RelationshipRelatedProperties)
+				.SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)))
+				.GroupBy(c => c.Item1.IndexName ?? CreateIndexName(c.Item2))
+				.OrderBy(c => c.Key);
+
+			foreach (var grouping in allIndexAttributes)
+			{
+				var unique = grouping.Any(c => c.Item1.Unique);
+				var indexType = grouping.FirstOrDefault(c => c.Item1.IndexType != IndexType.Default)?.Item1?.IndexType ?? IndexType.Default;
+				
+				var properties = grouping
+					.OrderBy(c => c.Item1.CompositeOrder)
+					.Select(c => new IndexPropertyInfo(c.Item2.PropertyName, c.Item1.Lowercase, c.Item1.SortOrder, c.Item1.IncludeOnly, c.Item1.Condition))
+					.ToReadOnlyCollection();
+
+				yield return new IndexInfo(grouping.Key, properties, unique, indexType, null); 
+			}
 		}
 
 		private IEnumerable<Expression> BuildCreateIndexExpressions(TypeDescriptor typeDescriptor)
 		{
-			var allIndexAttributes = typeDescriptor.PersistedPropertiesWithoutBackreferences.Concat(typeDescriptor.RelationshipRelatedProperties).SelectMany(c => c.IndexAttributes.Select(d => new Tuple<IndexAttribute, PropertyDescriptor>(d, c)));
-
-			var indexAttributesByName = allIndexAttributes.GroupBy(c => c.Item1.IndexName ?? typeDescriptor.PersistedName + "_" + c.Item2.PersistedName + "_idx").Sorted((x, y) => String.CompareOrdinal(x.Key, y.Key));
-
+			var indexInfos = GetIndexInfos(typeDescriptor);
 			var table = new SqlTableExpression(typeDescriptor.PersistedName);
 
-			foreach (var group in indexAttributesByName)
+			foreach (var indexInfo in indexInfos)
 			{
-				var indexName = group.Key;
-
-				var propertyDescriptors = group.ToArray();
-
-				var index = this.BuildIndexExpression(table, indexName, propertyDescriptors);
+				var index = this.BuildIndexExpression(typeDescriptor, table, indexInfo);
 
 				if (index != null)
 				{
