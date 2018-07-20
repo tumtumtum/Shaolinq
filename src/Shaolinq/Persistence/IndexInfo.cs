@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Shaolinq.Persistence
@@ -40,9 +41,9 @@ namespace Shaolinq.Persistence
 				return;
 			}
 
-			foreach (var value in ss[1].Split(',').Select(c => c.Trim().ToLower()))
+			foreach (var value in ss[1].Split(',').Select(c => c.Trim()))
 			{
-				switch (value)
+				switch (value.ToLower())
 				{
 				case "lowercase":
 					this.Lowercase = true;
@@ -56,6 +57,8 @@ namespace Shaolinq.Persistence
 				case "includeonly":
 					this.IncludeOnly = true;
 					break;
+				default:
+					throw new InvalidOperationException($"Unsupported index property modifier: {value}");
 				}
 			}
 		}
