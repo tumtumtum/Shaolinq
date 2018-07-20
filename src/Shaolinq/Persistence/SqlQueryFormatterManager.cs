@@ -47,22 +47,22 @@ namespace Shaolinq.Persistence
 
 		public virtual string GetDefaultValueConstraintName(PropertyDescriptor propertyDescriptor)
 		{	
-			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration.DefaultValueConstraintName ?? NamingTransformsConfiguration.DefaultDefaultValueConstraintName);
+			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration?.DefaultValueConstraintName ?? NamingTransformsConfiguration.DefaultDefaultValueConstraintName, propertyDescriptor);
 		}
 
 		public virtual string GetIndexConstraintName(TypeDescriptor typeDescriptor, string indexName, PropertyDescriptor[] properties)
 		{
-			return VariableSubstituter.SedTransform(indexName, this.namingTransformsConfiguration.IndexConstraintName ?? NamingTransformsConfiguration.DefaultIndexConstraintName, properties);
+			return VariableSubstituter.SedTransform(indexName, this.namingTransformsConfiguration?.IndexConstraintName ?? NamingTransformsConfiguration.DefaultIndexConstraintName, properties);
 		}
 
 		public virtual string GetForeignKeyConstraintName(PropertyDescriptor propertyDescriptor)
 		{
-			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration.ForeignKeyConstraintName ?? NamingTransformsConfiguration.DefaultForeignKeyConstraintName);
+			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration?.ForeignKeyConstraintName ?? NamingTransformsConfiguration.DefaultForeignKeyConstraintName, propertyDescriptor);
 		}
 
 		public virtual string GetPrimaryKeyConstraintName(TypeDescriptor declaringTypeDescriptor, PropertyDescriptor[] primaryKeys)
 		{
-			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration.PrimaryKeyConstraintName ?? NamingTransformsConfiguration.DefaultPrimaryKeyConstraintName);
+			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration?.PrimaryKeyConstraintName ?? NamingTransformsConfiguration.DefaultPrimaryKeyConstraintName, primaryKeys);
 		}
 		
 		public virtual string SubstitutedParameterValues(string commandText, Func<string, Func<object, string>, string> paramNameToString)

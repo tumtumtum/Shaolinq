@@ -94,10 +94,7 @@ namespace Shaolinq.Persistence
 
 		public static string Substitute(string input, PropertyDescriptor[] properties, Func<int, string> indexedToValue = null)
 		{
-			if (input == null)
-			{
-				return properties?.FirstOrDefault()?.PropertyName;
-			}
+			input = input ?? "";
 
 			return Substitute(input, value =>
 			{
@@ -151,6 +148,8 @@ namespace Shaolinq.Persistence
 			{
 				return value;
 			}
+
+			value = value ?? "";
 
 			if (transformString.Length < 4 || transformString[0] != 's')
 			{

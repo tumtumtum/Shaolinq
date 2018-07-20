@@ -103,9 +103,9 @@ namespace Shaolinq.Persistence
 
 			if (named != null)
 			{
-				this.PersistedName = named.GetName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberName);
-				this.PrefixName = named.GetPrefixName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberPrefixName);
-				this.SuffixName = named.GetSuffixName(this, this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberSuffixName);
+				this.PersistedName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.Name ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberName);
+				this.PrefixName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.PrefixName ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberPrefixName);
+				this.SuffixName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.SuffixName ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberSuffixName);
 			}
 
 			var expression = this.ComputedMemberAttribute?.GetSetLambdaExpression(this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration, this)?.Body.StripConvert();
