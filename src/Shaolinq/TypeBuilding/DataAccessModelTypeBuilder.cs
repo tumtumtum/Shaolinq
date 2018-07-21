@@ -38,7 +38,7 @@ namespace Shaolinq.TypeBuilding
 			var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, null);
 			var ctorGenerator = constructorBuilder.GetILGenerator();
 			ctorGenerator.Emit(OpCodes.Ldarg_0);
-			ctorGenerator.Emit(OpCodes.Call, baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null));
+			ctorGenerator.Emit(OpCodes.Call, baseType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, Type.EmptyTypes, null));
 			ctorGenerator.Emit(OpCodes.Ldarg_0);
 			ctorGenerator.Emit(OpCodes.Newobj, this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField.FieldType.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null));
 			ctorGenerator.Emit(OpCodes.Stfld, this.AssemblyBuildContext.DataAccessModelPropertiesTypeBuilderField);
@@ -61,7 +61,7 @@ namespace Shaolinq.TypeBuilding
 			foreach (var propertyInfo in baseType.GetProperties())
 			{
 				var queryableAttribute = propertyInfo.GetFirstCustomAttribute<DataAccessObjectsAttribute>(true);
-				
+
 				if (queryableAttribute == null)
 				{
 					continue;
@@ -72,41 +72,38 @@ namespace Shaolinq.TypeBuilding
 					throw new InvalidOperationException("DataAccessModel objects should not defined properties of type RelatedDataAccessObject<>");
 				}
 
-				if (propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetSetMethod().IsAbstract)
+				// Generate the field for the queryable
+				var fieldBuilder = typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
+
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldnull);
+				generator.Emit(OpCodes.Newobj, propertyInfo.PropertyType.GetConstructor(new[] { typeof(DataAccessModel), typeof(Expression) }));
+				generator.Emit(OpCodes.Stfld, fieldBuilder);
+
+				// Add to dictionary
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
+				generator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType.GetGenericArguments()[0]);
+				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
+				generator.Emit(OpCodes.Ldarg_0);
+				generator.Emit(OpCodes.Ldfld, fieldBuilder);
+				generator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
+
+				var propertyBuilder = typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
+
+				// Implement get method
+
+				if (propertyInfo.GetGetMethod() != null)
 				{
-					// Generate the field for the queryable
-					var fieldBuilder = typeBuilder.DefineField("$$" + propertyInfo.Name, propertyInfo.PropertyType, FieldAttributes.Private);
+					propertyBuilder.SetGetMethod(this.BuildPropertyMethod("get", propertyInfo, fieldBuilder));
+				}
 
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldnull);
-					generator.Emit(OpCodes.Newobj, propertyInfo.PropertyType.GetConstructor(new [] { typeof(DataAccessModel), typeof(Expression)}));
-					generator.Emit(OpCodes.Stfld, fieldBuilder);
-					
-					// Add to dictionary
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, this.dictionaryFieldBuilder);
-					generator.Emit(OpCodes.Ldtoken, propertyInfo.PropertyType.GetGenericArguments()[0]);
-					generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
-					generator.Emit(OpCodes.Ldarg_0);
-					generator.Emit(OpCodes.Ldfld, fieldBuilder);
-					generator.Emit(OpCodes.Callvirt, this.dictionaryFieldBuilder.FieldType.GetMethod("set_Item"));
-					
-					var propertyBuilder = typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, Type.EmptyTypes);
+				// Implement set method
 
-					// Implement get method
-
-					if (propertyInfo.GetGetMethod() != null && propertyInfo.GetGetMethod().IsAbstract)
-					{
-						propertyBuilder.SetGetMethod(this.BuildPropertyMethod("get", propertyInfo, fieldBuilder));
-					}
-
-					// Implement set method
-
-					if (propertyInfo.GetSetMethod() != null && propertyInfo.GetSetMethod().IsAbstract)
-					{
-						throw new InvalidOperationException($"The property '{baseType.Name}.{propertyInfo.Name}' should not have a setter because it is a [DataAccessObjects] property");
-					}
+				if (propertyInfo.GetSetMethod() != null)
+				{
+					propertyBuilder.SetSetMethod(BuildRelatedDataAccessObjectsSetMethod(propertyInfo));
 				}
 			}
 
@@ -130,10 +127,29 @@ namespace Shaolinq.TypeBuilding
 			return typeBuilder.CreateType();
 		}
 
+		private MethodBuilder BuildRelatedDataAccessObjectsSetMethod(PropertyInfo propertyInfo)
+		{
+			var typeBuilder = this.AssemblyBuildContext.DataAccessModelTypeBuilder;
+
+			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyInfo.GetSetMethod().Attributes  & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
+			var method = typeBuilder.DefineMethod("set_" + propertyInfo.Name, methodAttributes, typeof(void), new Type[] { propertyInfo.PropertyType });
+
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldsfld, $"You cannot explicit set the property {this.AssemblyBuildContext.DataAccessModelTypeBuilder.Name}.'{propertyInfo.Name}'");
+
+			generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new NotImplementedException(default(string))));
+
+			generator.Emit(OpCodes.Throw);
+			generator.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
 		protected virtual void BuildGetDataAccessObjectsMethod()
 		{
 			var typeBuilder = this.AssemblyBuildContext.DataAccessModelTypeBuilder;
-			var method = typeBuilder.BaseType.GetMethods().First(c => c.Name == "GetDataAccessObjects" && !c.IsGenericMethod && c.GetParameters().Length == 1);
+			var method = TypeUtils.GetMethod<DataAccessModel>(c => c.GetDataAccessObjects(default(Type)));
 			var methodAttributes = (method.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot)) | MethodAttributes.Virtual;
 			var methodBuilder = typeBuilder.DefineMethod(method.Name, methodAttributes, method.CallingConvention, method.ReturnType, method.GetParameters().Select(c => c.ParameterType).ToArray());
 			

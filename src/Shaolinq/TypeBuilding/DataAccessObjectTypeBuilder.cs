@@ -556,9 +556,31 @@ namespace Shaolinq.TypeBuilding
 				currentFieldInDataObject = this.valueFields[propertyBuilder.Name];
 
 				propertyBuilder.SetGetMethod(this.BuildRelatedDataAccessObjectsMethod(propertyInfo.Name, propertyInfo.GetGetMethod().Attributes, propertyInfo.GetGetMethod().CallingConvention, propertyInfo.PropertyType, this.typeBuilder, this.dataObjectField, currentFieldInDataObject, propertyInfo));
+
+				if (propertyInfo.GetSetMethod() != null)
+				{
+					propertyBuilder.SetSetMethod(BuildRelatedDataAccessObjectsSetMethod(propertyInfo));
+				}
 			}
 		}
-		
+
+		private MethodBuilder BuildRelatedDataAccessObjectsSetMethod(PropertyInfo propertyInfo)
+		{
+			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyInfo.GetSetMethod().Attributes  & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));
+			var method = this.typeBuilder.DefineMethod("set_" + propertyInfo.Name, methodAttributes, typeof(void), new Type[] { propertyInfo.PropertyType });
+
+			var generator = method.GetILGenerator();
+
+			generator.Emit(OpCodes.Ldsfld, $"You cannot explicit set the property {this.typeDescriptor.TypeName}.'{propertyInfo.Name}'");
+
+			generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new NotImplementedException(default(string))));
+
+			generator.Emit(OpCodes.Throw);
+			generator.Emit(OpCodes.Ret);
+
+			return method;
+		}
+
 		private MethodBuilder BuildRelatedDataAccessObjectsMethod(string propertyName, MethodAttributes propertyAttributes, CallingConventions callingConventions, Type propertyType, TypeBuilder typeBuilder, FieldInfo dataObjectField, FieldInfo currentFieldInDataObject, PropertyInfo propertyInfo)
 		{
 			var methodAttributes = MethodAttributes.Virtual | MethodAttributes.SpecialName | MethodAttributes.HideBySig | (propertyAttributes & (MethodAttributes.Public | MethodAttributes.Private | MethodAttributes.Assembly | MethodAttributes.Family));

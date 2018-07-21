@@ -18,6 +18,6 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		public abstract string Nickname { get; set; }
 
 		[RelatedDataAccessObjects]
-		public abstract RelatedDataAccessObjects<Toy> Toys { get; }
+		public abstract RelatedDataAccessObjects<Toy> Toys { get; set; }
 	}
 }

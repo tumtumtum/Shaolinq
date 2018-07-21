@@ -2,31 +2,31 @@
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessModel]
-	public abstract class ComplexPrimaryKeyDataAccessModel
+	public class ComplexPrimaryKeyDataAccessModel
 		: DataAccessModel
 	{
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Mall> Malls { get; }
+		public virtual DataAccessObjects<Mall> Malls { get; set; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Shop> Shops { get; }
+		public virtual DataAccessObjects<Shop> Shops { get; set; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Address> Addresses { get; }
+		public virtual DataAccessObjects<Address> Addresses { get; set; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Region> Regions { get; }
+		public virtual DataAccessObjects<Region> Regions { get; set; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Coordinate> Coordinates { get; }
+		public virtual DataAccessObjects<Coordinate> Coordinates { get; set; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Child> Children { get; }
+		public virtual DataAccessObjects<Child> Children { get; set; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<Toy> Toys { get; }
+		public virtual DataAccessObjects<Toy> Toys { get; set; }
 
 		[DataAccessObjects]
-		public abstract DataAccessObjects<SuperMall> SuperMalls {get;}
+		public virtual DataAccessObjects<SuperMall> SuperMalls { get; set; }
 	}
 }

@@ -55,11 +55,6 @@ namespace Shaolinq.Persistence
 
 							var typeDescriptor = new TypeDescriptor(this, currentType);
 
-							if (typeDescriptor.PrimaryKeyProperties.Count(c => c.PropertyType.IsNullableType()) > 0)
-							{
-								throw new InvalidDataAccessObjectModelDefinition("The type {0} illegally defines a nullable primary key", currentType.Name);
-							}
-
 							this.typeDescriptorsByType[currentType] = typeDescriptor;
 						}
 					}
@@ -70,6 +65,11 @@ namespace Shaolinq.Persistence
 
 					currentType = currentType.BaseType;
 				}
+			}
+
+			foreach (var type in this.typeDescriptorsByType.Values)
+			{
+				type.Complete();
 			}
 
 			var typesSet = new HashSet<Type>(this.typeDescriptorsByType.Keys);
@@ -85,7 +85,7 @@ namespace Shaolinq.Persistence
 
 			if (first != null)
 			{
-				throw new InvalidDataAccessModelDefinitionException($"Type {first.Name} is referenced but is not declared as a property {dataAccessModelType.Name}");
+				throw new InvalidDataAccessModelDefinitionException($"Type {first.Name} is referenced but is not declared as a property on {dataAccessModelType.Name}");
 			}	
 
 			// Enums

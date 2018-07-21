@@ -17,9 +17,9 @@ namespace Shaolinq.Persistence
 	{
 		public Type OwnerType { get; }
 		public bool IsPrimaryKey { get; }
-		public string PersistedName { get; }
-		public string SuffixName { get; }
-		public string PrefixName { get; }
+		public string PersistedName { get; private set; }
+		public string SuffixName { get; private set; }
+		public string PrefixName { get; private set; }
 		public PropertyInfo PropertyInfo { get; }
 		public UniqueAttribute UniqueAttribute { get; }
 		public TypeDescriptor DeclaringTypeDescriptor { get; }
@@ -85,6 +85,15 @@ namespace Shaolinq.Persistence
 				this.AutoIncrementAttribute = propertyInfo.GetFirstCustomAttribute<AutoIncrementAttribute>(true);
 			}
 
+			var named = this.PersistedMemberAttribute ?? this.BackReferenceAttribute ?? (NamedMemberAttribute)this.RelatedDataAccessObjectsAttribute;
+
+			if (named != null)
+			{
+				this.PersistedName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.Name ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberName);
+				this.PrefixName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.PrefixName ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberPrefixName);
+				this.SuffixName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.SuffixName ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberSuffixName);
+			}
+
 			this.PrimaryKeyAttribute = this.PropertyInfo.GetFirstCustomAttribute<PrimaryKeyAttribute>(true);
 			this.OrganizationIndexAttribute = this.PropertyInfo.GetFirstCustomAttribute<OrganizationIndexAttribute>(true);
 			this.IsPrimaryKey = this.PrimaryKeyAttribute != null && this.PrimaryKeyAttribute.IsPrimaryKey;
@@ -97,15 +106,6 @@ namespace Shaolinq.Persistence
 				{
 					attribute.IndexName = attribute.indexNameIfPropertyOrPropertyIfClass;
 				}
-			}
-
-			var named = this.PersistedMemberAttribute ?? this.BackReferenceAttribute ?? (NamedMemberAttribute)this.RelatedDataAccessObjectsAttribute;
-
-			if (named != null)
-			{
-				this.PersistedName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.Name ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberName);
-				this.PrefixName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.PrefixName ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberPrefixName);
-				this.SuffixName = VariableSubstituter.SedTransform(VariableSubstituter.Substitute(named.SuffixName ?? this.PropertyName, this), this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration.NamingTransforms?.PersistedMemberSuffixName);
 			}
 
 			var expression = this.ComputedMemberAttribute?.GetSetLambdaExpression(this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration, this)?.Body.StripConvert();
@@ -177,5 +177,6 @@ namespace Shaolinq.Persistence
 		public override int GetHashCode() => this.PropertyInfo.GetHashCode();
 		public override string ToString() => $"{this.DeclaringTypeDescriptor.TypeName}.{this.PropertyName} [PropertyDescriptor]";
 		public TypeRelationshipInfo RelationshipInfo => this.DeclaringTypeDescriptor.GetRelationshipInfos().SingleOrDefault(c => c.ReferencingProperty == this);
+
 	}
 }

@@ -112,27 +112,23 @@ namespace Shaolinq.Persistence
 						return property.PropertyName;
 					case "PROPERTYTYPENAME":
 						return property.PropertyType.Name;
-					case "TABLENAME":
 					case "PERSISTED_TYPENAME":
 						return property.DeclaringTypeDescriptor.PersistedName;
-					case "COLUMNNAME":
 					case "PERSISTED_PROPERTYNAME":
 						return property.PersistedName;
-					case "XCOLUMNNAME":
-						return QueryBinder.GetColumnInfos(property.DeclaringTypeDescriptor.TypeDescriptorProvider, property);
-					case "COLUMNTYPENAME":
 					case "PERSISTED_PROPERTYTYPENAME":
 						return property.PropertyTypeTypeDescriptor.PersistedName;
 					case "PROPERTYNAMES":
 						return properties.Select(c => c.PropertyName);
-					case "COLUMNNAMES":
 					case "PERSISTED_PROPERTYNAMES":
 						return properties.Select(c => c.PersistedName);
 					case "PERSISTED_PROPERTYPREFIXNAMES":
 						return properties.Select(c => c.PrefixName);
 					case "PERSISTED_PROPERTYSUFFIXNAMES":
 						return properties.Select(c => c.SuffixName);
-					case "XCOLUMNNAMES":
+					case "COLUMNNAME":
+						return QueryBinder.GetColumnInfos(property.DeclaringTypeDescriptor.TypeDescriptorProvider, property);
+					case "COLUMNNAMES":
 						return QueryBinder.GetColumnInfos(property.DeclaringTypeDescriptor.TypeDescriptorProvider, properties);
 					}
 				}

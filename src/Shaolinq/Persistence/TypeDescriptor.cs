@@ -17,24 +17,24 @@ namespace Shaolinq.Persistence
 		public string PersistedName { get; }
 		public TypeDescriptorProvider TypeDescriptorProvider { get; }
 		public DataAccessObjectAttribute DataAccessObjectAttribute { get; }
-		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedPropertiesWithoutBackreferences { get; }
-		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; }
-		public IReadOnlyList<PropertyDescriptor> PrimaryKeyDerivableProperties { get; }
-		public IReadOnlyList<IndexAttribute> IndexAttributes { get; }
+		public IReadOnlyList<PropertyDescriptor> ComputedProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> PersistedPropertiesWithoutBackreferences { get; private set;}
+		public IReadOnlyList<PropertyDescriptor> PrimaryKeyProperties { get; private set;}
+		public IReadOnlyList<PropertyDescriptor> ComputedTextProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> RelationshipRelatedProperties { get; private set; }
+		public IReadOnlyList<PropertyDescriptor> PersistedProperties { get; private set;}
+		public IReadOnlyList<PropertyDescriptor> PrimaryKeyDerivableProperties { get; private set; }
+		public IReadOnlyList<IndexAttribute> IndexAttributes { get; private set; }
 		public OrganizationIndexAttribute OrganizationIndexAttribute { get; set; }
 
 		public string TypeName => this.Type.Name;
 		public int PrimaryKeyCount => this.PrimaryKeyProperties.Count;
 		public bool HasPrimaryKeys => this.PrimaryKeyProperties.Count > 0;
 		
-		private readonly List<TypeRelationshipInfo> relationshipInfos;
-		internal readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
-		private readonly IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
-		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
+		private List<TypeRelationshipInfo> relationshipInfos;
+		internal IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
+		private IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
+		private Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
 
 		public override string ToString() => "TypeDescriptor: " + this.Type.Name;
 
@@ -163,22 +163,24 @@ namespace Shaolinq.Persistence
 
 		public TypeDescriptor(TypeDescriptorProvider typeDescriptorProvider, Type type)
 		{
-			var propertyDescriptorsInOrder = new List<PropertyDescriptor>();
-			
 			this.Type = type;
 			this.TypeDescriptorProvider = typeDescriptorProvider;
-
 			this.DataAccessObjectAttribute = type.GetFirstCustomAttribute<DataAccessObjectAttribute>(true);
+			this.PersistedName = this.DataAccessObjectAttribute.GetName(this, this.TypeDescriptorProvider.Configuration.NamingTransforms?.DataAccessObjectName);
+			
+			
+		}
 
+		internal void Complete()
+		{
+			var propertyDescriptorsInOrder = new List<PropertyDescriptor>();
+			
 			var relatedProperties = new List<PropertyDescriptor>();
 			this.relationshipInfos = new List<TypeRelationshipInfo>();
 			this.propertyDescriptorByColumnName = new Dictionary<string, PropertyDescriptor>();
 			this.propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
 
 			var alreadyEnteredProperties = new HashSet<string>();
-
-			this.PersistedName = this.DataAccessObjectAttribute.GetName(this, this.TypeDescriptorProvider.Configuration.NamingTransforms?.DataAccessObjectName);
-
 			foreach (var propertyInfo in this.GetPropertiesInOrder())
 			{
 				if (alreadyEnteredProperties.Contains(propertyInfo.Name))
@@ -192,7 +194,7 @@ namespace Shaolinq.Persistence
 
 				if (attribute != null)
 				{
-					var propertyDescriptor = new PropertyDescriptor(this, type, propertyInfo);
+					var propertyDescriptor = new PropertyDescriptor(this, this.Type, propertyInfo);
 
 					if (propertyInfo.GetGetMethod() == null)
 					{
@@ -211,7 +213,7 @@ namespace Shaolinq.Persistence
 					
 					if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
+						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, this.Type.Name);
 					}
 
 					propertyDescriptorsInOrder.Add(propertyDescriptor);
@@ -237,7 +239,7 @@ namespace Shaolinq.Persistence
 
 						if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
 						{
-							throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
+							throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, this.Type.Name);
 						}
 
 						relatedProperties.Add(propertyDescriptor);
@@ -259,11 +261,6 @@ namespace Shaolinq.Persistence
 						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is decorated with a RelatedDataAccessObjectsAttribute but the property type does not extend RelatedDataAccessObjects<T>", this.Type.Name, propertyInfo.Name);
 					}
 
-					if (propertyInfo.GetSetMethod() != null)
-					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} is a related objects property and should not define a setter method", propertyInfo.Name);
-					}
-
 					if (propertyInfo.GetGetMethod() == null)
 					{
 						throw new InvalidDataAccessObjectModelDefinition("The property {0} is missing a required getter method", propertyInfo.Name);
@@ -271,7 +268,7 @@ namespace Shaolinq.Persistence
 
 					if (!(propertyInfo.GetGetMethod().IsAbstract || propertyInfo.GetGetMethod().IsVirtual))
 					{
-						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, type.Name);
+						throw new InvalidDataAccessObjectModelDefinition("The property {0} on {1} is not virtual or abstract", propertyInfo.Name, this.Type.Name);
 					}
 
 					var propertyDescriptor = new PropertyDescriptor(this, this.Type, propertyInfo);
@@ -319,6 +316,11 @@ namespace Shaolinq.Persistence
 				}
 
 				this.OrganizationIndexAttribute = attributes.Single();
+			}
+
+			if (this.PrimaryKeyProperties.Count(c => c.PropertyType.IsNullableType()) > 0)
+			{
+				throw new InvalidDataAccessObjectModelDefinition("The type {0} illegally defines a nullable primary key", this.Type.Name);
 			}
 
 			ValidateIndexes();
