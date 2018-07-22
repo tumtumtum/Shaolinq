@@ -159,25 +159,20 @@ namespace Shaolinq.Persistence
 		{
 			var currentPos = 0;
 
-			char? Consume()
+			char? Consume(Func<char?, bool> keepGoing = null)
 			{
-				if (currentPos < transformString.Length)
+				if (keepGoing == null)
 				{
-					currentPos++;
-				}
-
-				return CurrentChar();
-			}
-
-			char? ConsumeWhitespace()
-			{
-				while (currentPos < transformString.Length)
-				{
-					if (!char.IsWhiteSpace(transformString[currentPos]))
+					if (currentPos < transformString.Length)
 					{
-						break;
+						currentPos++;
 					}
 
+					return CurrentChar();
+				}
+
+				while (currentPos < transformString.Length && keepGoing(CurrentChar()))
+				{
 					currentPos++;
 				}
 
@@ -198,7 +193,7 @@ namespace Shaolinq.Persistence
 			{
 				var current = new SedDirective();
 
-				ConsumeWhitespace();
+				Consume(c => c != null && char.IsWhiteSpace(c.Value));
 
 				if (CurrentChar() != 's')
 				{
@@ -211,8 +206,13 @@ namespace Shaolinq.Persistence
 
 				var buffer = new StringBuilder();
 
-				while ((Consume() ?? separatorChar) != separatorChar)
+				while (Consume() != null)
 				{
+					if (CurrentChar() == separatorChar)
+					{
+						break;
+					}
+
 					buffer.Append(CurrentChar());
 				}
 
@@ -224,8 +224,13 @@ namespace Shaolinq.Persistence
 				current.Pattern = buffer.ToString();
 				buffer.Length = 0;
 
-				while ((Consume() ?? separatorChar) != separatorChar)
+				while (Consume() != null)
 				{
+					if (CurrentChar() == separatorChar)
+					{
+						break;
+					}
+
 					buffer.Append(CurrentChar());
 				}
 
@@ -237,8 +242,13 @@ namespace Shaolinq.Persistence
 				current.Replacement = buffer.ToString();
 				buffer.Length = 0;
 
-				while (!char.IsWhiteSpace(Consume() ?? ' '))
+				while (Consume() != null)
 				{
+					if (CurrentChar() == ' ' || CurrentChar() == ';')
+					{
+						break;
+					}
+
 					buffer.Append(CurrentChar());
 				}
 
@@ -246,7 +256,17 @@ namespace Shaolinq.Persistence
 
 				yield return current;
 
-				ConsumeWhitespace();
+				Consume(c => c != null && char.IsWhiteSpace(c.Value));
+
+				if (CurrentChar() == ';')
+				{
+					Consume();
+					Consume(c => c != null && char.IsWhiteSpace(c.Value));
+
+					continue;
+				}
+
+				break;
 			}
 		}
 

@@ -12,15 +12,15 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test()
 		{
-			var s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g s/HELL(.*)/BYE$1/");
+			var s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g; s/HELL(.*)/BYE$1/");
 
 			Assert.AreEqual("BYEO", s);
 
-			s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g \n\ts/HELL(.*)/BYE$1/");
+			s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g \n;\ts/HELL(.*)/BYE$1/");
 
 			Assert.AreEqual("BYEO", s);
 
-			s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g \n\ts/HELL(.*)/BYE$1/     ");
+			s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g \n\t;s/HELL(.*)/BYE$1/     ");
 
 			Assert.AreEqual("BYEO", s);
 
