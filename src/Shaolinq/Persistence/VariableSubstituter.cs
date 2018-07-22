@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Platform;
 using Shaolinq.Persistence.Linq;
@@ -147,6 +148,108 @@ namespace Shaolinq.Persistence
 			return SedTransform(value, transformString, new[] { property });
 		}
 
+		private struct SedDirective
+		{
+			public string Pattern { get; set; }
+			public string Replacement { get; set; }
+			public string Options { get; set; }
+		}
+
+		private static IEnumerable<SedDirective> GetSedDirectives(string transformString)
+		{
+			var currentPos = 0;
+
+			char? Consume()
+			{
+				if (currentPos < transformString.Length)
+				{
+					currentPos++;
+				}
+
+				return CurrentChar();
+			}
+
+			char? ConsumeWhitespace()
+			{
+				while (currentPos < transformString.Length)
+				{
+					if (!char.IsWhiteSpace(transformString[currentPos]))
+					{
+						break;
+					}
+
+					currentPos++;
+				}
+
+				return CurrentChar();
+			}
+
+			char? CurrentChar()
+			{
+				if (currentPos >= transformString.Length)
+				{
+					return null;
+				}
+
+				return transformString[currentPos];
+			}
+
+			while (CurrentChar() != null)
+			{
+				var current = new SedDirective();
+
+				ConsumeWhitespace();
+
+				if (CurrentChar() != 's')
+				{
+					throw new ArgumentException($"Invalid string (expected 's' at {currentPos}): {transformString}", nameof(transformString));
+				}
+
+				Consume();
+
+				var separatorChar = CurrentChar();
+
+				var buffer = new StringBuilder();
+
+				while ((Consume() ?? separatorChar) != separatorChar)
+				{
+					buffer.Append(CurrentChar());
+				}
+
+				if (CurrentChar() != separatorChar)
+				{
+					throw new ArgumentException($"Invalid string (expected '{separatorChar}' at {currentPos}): {transformString}", nameof(transformString));
+				}
+
+				current.Pattern = buffer.ToString();
+				buffer.Length = 0;
+
+				while ((Consume() ?? separatorChar) != separatorChar)
+				{
+					buffer.Append(CurrentChar());
+				}
+
+				if (CurrentChar() != separatorChar)
+				{
+					throw new ArgumentException($"Invalid string (expected '{separatorChar}' at {currentPos}): {transformString}", nameof(transformString));
+				}
+
+				current.Replacement = buffer.ToString();
+				buffer.Length = 0;
+
+				while (!char.IsWhiteSpace(Consume() ?? ' '))
+				{
+					buffer.Append(CurrentChar());
+				}
+
+				current.Options = buffer.ToString();
+
+				yield return current;
+
+				ConsumeWhitespace();
+			}
+		}
+
 		public static string SedTransform(string value, string transformString, PropertyDescriptor[] properties = null)
 		{
 			if (string.IsNullOrEmpty(transformString))
@@ -155,54 +258,51 @@ namespace Shaolinq.Persistence
 			}
 
 			value = value ?? "";
-
-			if (transformString.Length < 4 || transformString[0] != 's')
+			
+			foreach (var directive in GetSedDirectives(transformString))
 			{
-				throw new ArgumentException(nameof(transformString));
-			}
-
-			var c = transformString[1];
-			transformString = transformString.Substring(2);
-			var ss = transformString.Split(c);
-
-			if (ss.Length != 3)
-			{
-				throw new ArgumentException(nameof(transformString));
-			}
-
-			var pattern = ss[0];
-			var replacement = ss[1];
-			var options = ss[2];
-			var useReplacementRegex = replacement.Contains("$");
-
-			var maxCount = 1;
-			var regexOptions = RegexOptions.None;
-
-			if (options.Contains("g"))
-			{
-				maxCount = int.MaxValue;
-			}
-
-			if (options.Contains("i"))
-			{
-				regexOptions |= RegexOptions.IgnoreCase;
-			}
-
-			var count = 0;
-
-			return Regex.Replace(value, pattern, match =>
-			{
-				if (maxCount != int.MaxValue && count > maxCount)
+				if (transformString.Length < 4 || transformString[0] != 's')
 				{
-					return match.Value;
+					throw new ArgumentException(nameof(transformString));
 				}
 
-				count++;
+				var pattern = directive.Pattern;
+				var replacement = directive.Replacement;
+				var options = directive.Options;
+				var useReplacementRegex = replacement.Contains("$");
 
-				var result = useReplacementRegex ? Substitute(replacement, properties, index => match.Groups[index].Value) : replacement;
+				var maxCount = 1;
+				var regexOptions = RegexOptions.None;
 
-				return result;
-			}, regexOptions);
+				if (options.Contains("g"))
+				{
+					maxCount = int.MaxValue;
+				}
+
+				if (options.Contains("i"))
+				{
+					regexOptions |= RegexOptions.IgnoreCase;
+				}
+
+				var count = 0;
+
+				value = Regex.Replace
+				(value, pattern, match =>
+				{
+					if (maxCount != int.MaxValue && count > maxCount)
+					{
+						return match.Value;
+					}
+
+					count++;
+
+					var result = useReplacementRegex ? Substitute(replacement, properties, index => match.Groups[index].Value) : replacement;
+
+					return result;
+				}, regexOptions);
+			}
+
+			return value;
 		}
 	}
 }

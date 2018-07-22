@@ -7,13 +7,24 @@ using Shaolinq.Persistence;
 namespace Shaolinq.Tests
 {
 	[TestFixture]
-	public class 
-		VariableSubstituterTests
+	public class VariableSubstituterTests
 	{
 		[Test]
 		public void Test()
 		{
-			var s = VariableSubstituter.SedTransform("Pokwer22", "s/^.*$/$(env.USERNAME)$0/g");
+			var s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g s/HELL(.*)/BYE$1/");
+
+			Assert.AreEqual("BYEO", s);
+
+			s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g \n\ts/HELL(.*)/BYE$1/");
+
+			Assert.AreEqual("BYEO", s);
+
+			s = VariableSubstituter.SedTransform("", "s/^$/HELLO/g \n\ts/HELL(.*)/BYE$1/     ");
+
+			Assert.AreEqual("BYEO", s);
+
+			s = VariableSubstituter.SedTransform("Pokwer22", "s/^.*$/$(env.USERNAME)$0/g");
 
 			Assert.AreEqual(Environment.GetEnvironmentVariable("USERNAME") + "Pokwer22", s);
 
