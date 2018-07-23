@@ -15,7 +15,7 @@ namespace Shaolinq.Persistence
 		private static int GetRecommendedLength(ConstraintDefaultsConfiguration defaultsConfiguration, Type enumType)
 		{
 			var type = Nullable.GetUnderlyingType(enumType) ?? enumType;
-
+			
 			var names = Enum.GetNames(type);
 
 			if (names.Length == 0)
@@ -38,12 +38,13 @@ namespace Shaolinq.Persistence
 		private static ConstraintDefaultsConfiguration CreateConstraintDefaults(ConstraintDefaultsConfiguration defaultsConfiguration, Type type)
 		{
 			var length = GetRecommendedLength(defaultsConfiguration, type);
+			var attribute = type.GetFirstCustomAttribute<SizeConstraintAttribute>(true);
 
 			return new ConstraintDefaultsConfiguration(defaultsConfiguration)
 			{
-				StringMaximumLength = length,
-				IndexedStringMaximumLength = length,
-				StringSizeFlexibility = SizeFlexibility.Variable
+				StringMaximumLength = attribute?.MaximumLength > 0 ? attribute.MaximumLength : length,
+				IndexedStringMaximumLength = attribute?.MaximumLength > 0 ? attribute.MaximumLength : length,
+				StringSizeFlexibility = attribute?.SizeFlexibility ?? SizeFlexibility.Variable
 			};
 		}
 

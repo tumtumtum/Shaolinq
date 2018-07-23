@@ -6,18 +6,40 @@ using Platform.Xml.Serialization;
 
 namespace Shaolinq
 {
+	/// <summary>
+	/// Used to configure the default constraints, if unspecified on persisted members, for string datatypes.
+	/// </summary>
 	[XmlElement]
 	public class ConstraintDefaultsConfiguration
 		: ICloneable
 	{
-		[XmlAttribute] public int StringMaximumLength { get; set; }
-		[XmlAttribute] public int IndexedStringMaximumLength { get; set; }
-		[XmlAttribute] public SizeFlexibility StringSizeFlexibility { get; set; }
+		public const int DefaultStringMaximumLength = 512;
+		public const int DefaultIndexedStringMaximumLength = 512;
+		public const SizeFlexibility DefaultStringSizeFlexibility = SizeFlexibility.Variable;
+
+		/// <summary>
+		/// The maximum size of the string.
+		/// </summary>
+		[XmlAttribute]
+		public int StringMaximumLength { get; set; } = DefaultStringMaximumLength;
+
+		/// <summary>
+		/// The maximum size of the string if the column is used in any index. If in doubt set as the same value for <see cref="StringMaximumLength"/>.
+		/// </summary>
+		[XmlAttribute]
+		public int IndexedStringMaximumLength { get; set; } = DefaultIndexedStringMaximumLength;
+
+		/// <summary>
+		/// Determines how flexible the storage is for the string.
+		/// </summary>
+		/// <remarks>
+		/// <see cref="SizeFlexibility.Variable"/> usually maps to <c>VARCHAR</c> and <see cref="SizeFlexibility.Fixed"/> maps to <c>CHAR</c>.
+		/// </remarks>
+		[XmlAttribute]
+		public SizeFlexibility StringSizeFlexibility { get; set; } = DefaultStringSizeFlexibility;
 
 		public ConstraintDefaultsConfiguration()
 		{
-			this.StringMaximumLength = 512;
-			this.IndexedStringMaximumLength = 512;
 		}
 
 		public ConstraintDefaultsConfiguration(ConstraintDefaultsConfiguration original)
