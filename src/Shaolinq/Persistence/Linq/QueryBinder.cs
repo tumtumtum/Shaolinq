@@ -438,7 +438,7 @@ namespace Shaolinq.Persistence.Linq
 				left = right = null;
 				var operation = binaryExpression.NodeType;
 
-				if (methodCallExpressionLeft != null && constantExpressionRight != null)
+				if (methodCallExpressionLeft?.Method?.Name == "CompareTo" && constantExpressionRight != null)
 				{
 					left = methodCallExpressionLeft.Object;
 					right = methodCallExpressionLeft.Arguments[0];
@@ -448,7 +448,7 @@ namespace Shaolinq.Persistence.Linq
 						throw new InvalidOperationException($"Result of CompareTo call requires an inequality comparison with 0 not {constantExpressionRight.Value}");
 					}
 				}
-				else if (methodCallExpressionRight != null && constantExpressionLeft != null)
+				else if (methodCallExpressionRight?.Method?.Name == "CompareTo" && constantExpressionLeft != null)
 				{
 					left = methodCallExpressionRight.Object;
 					right = methodCallExpressionRight.Arguments[0];
@@ -2080,6 +2080,22 @@ namespace Shaolinq.Persistence.Linq
 				return this.MakeMemberAccess(null, memberExpression.Member);
 			}
 
+			if ((SqlExpressionType)source.NodeType == SqlExpressionType.Projection)
+			{
+				var alias = GetNextAlias();
+				var projection = (SqlProjectionExpression)source;
+				var from = ((SqlProjectionExpression)source).Select;
+
+				var memberInit = projection.Projector as MemberInitExpression;
+
+				var columns = new List<SqlColumnDeclaration>()
+				{
+					new SqlColumnDeclaration(memberExpression.Member.Name, memberInit.Bindings.OfType<MemberAssignment>().First(c => MembersMatch(c.Member, memberExpression.Member)).Expression)
+				};
+
+				return new SqlSelectExpression(memberExpression.Type, alias, columns, from, null, null);
+			}
+
 			switch (source.NodeType)
 			{
 			case ExpressionType.MemberInit:
@@ -2438,7 +2454,6 @@ namespace Shaolinq.Persistence.Linq
 					}
 				}
 			}
-
 
 			return expression;
 		}

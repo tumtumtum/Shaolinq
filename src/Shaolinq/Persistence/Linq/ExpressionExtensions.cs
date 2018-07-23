@@ -135,10 +135,6 @@ namespace Shaolinq.Persistence.Linq
 					{
 						return methodCallExpression.Arguments[0].StripForIncludeScanning();
 					}
-					else if (methodCallExpression.Method.DeclaringType == typeof(Queryable))
-					{
-						return methodCallExpression.Arguments[0].StripForIncludeScanning();
-					}
 				}
 
 				return null;

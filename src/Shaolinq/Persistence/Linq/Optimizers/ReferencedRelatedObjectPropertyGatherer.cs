@@ -326,7 +326,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				var path = new PropertyPath(c => c.Name, visited.Select(c=> (PropertyInfo)c.Member).Take(visited.Count - i).ToArray());
 
-
 				if (path.Length == 0)
 				{
 					break;

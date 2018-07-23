@@ -354,7 +354,7 @@ namespace Shaolinq.Persistence.Linq
 
 				where = projection.Select.Where;
 
-				where = AliasReferenceReplacer.Replace(where, ((SqlTableExpression)projection.Select.From).Alias, null);
+				where = AliasReferenceReplacer.Replace(where, ((SqlAliasedExpression)projection.Select.From).Alias, null);
 			}
 
 			return new SqlCreateIndexExpression(indexInfo.IndexName, table, indexInfo.Unique, indexInfo.IndexType, false, indexedColumns, includedColumns, where);

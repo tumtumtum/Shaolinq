@@ -1,5 +1,6 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
@@ -14,7 +15,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		: SqlExpressionVisitor
 	{
 		private readonly Dictionary<string, HashSet<string>> allColumnsUsed;
-
+		
 		private SqlUnusedColumnRemover()
 		{
 			this.allColumnsUsed = new Dictionary<string, HashSet<string>>();
@@ -57,11 +58,54 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			this.allColumnsUsed[alias] = new HashSet<string>();
 		}
 
+		private void MarkAllColumnsUsed(string alias, IEnumerable<string> columns)
+		{
+			this.allColumnsUsed[alias] = new HashSet<string>(columns);
+		}
+
 		protected override Expression VisitColumn(SqlColumnExpression column)
 		{
-			this.MarkColumnAsUsed(column.SelectAlias, column.Name);
+			MarkColumnAsUsed(column.SelectAlias, column.Name);
 
 			return column;
+		}
+
+		protected override Expression VisitUnary(UnaryExpression unaryExpression)
+		{
+			if (unaryExpression.Operand is SqlSelectExpression select)
+			{
+				MarkAllColumnsUsed(select.Alias, select.Columns.Select(c => c.Name));
+			}
+
+			return base.VisitUnary(unaryExpression);
+		}
+
+		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
+		{
+			foreach (var select in functionCallExpression.Arguments.OfType<SqlSelectExpression>())
+			{
+				MarkAllColumnsUsed(select.Alias, select.Columns.Select(c => c.Name));
+			}
+
+			return base.VisitFunctionCall(functionCallExpression);
+		}
+
+		protected override Expression VisitBinary(BinaryExpression binaryExpression)
+		{
+			// If a query is used in a comparison then we can't assume the exact number of columns 
+			// selected isn't needed for the comparison 
+			
+			if (binaryExpression.Left is SqlSelectExpression select1)
+			{
+				MarkAllColumnsUsed(select1.Alias, select1.Columns.Select(c => c.Name));
+			}
+
+			if (binaryExpression.Right is SqlSelectExpression select2)
+			{
+				MarkAllColumnsUsed(select2.Alias, select2.Columns.Select(c => c.Name));
+			}
+
+			return base.VisitBinary(binaryExpression);
 		}
 
 		protected override Expression VisitSubquery(SqlSubqueryExpression subquery)
@@ -70,7 +114,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				Debug.Assert(subquery.Select.Columns.Count == 1);
 
-				this.MarkColumnAsUsed(subquery.Select.Alias, subquery.Select.Columns[0].Name);
+				MarkColumnAsUsed(subquery.Select.Alias, subquery.Select.Columns[0].Name);
 			}
 
 			return base.VisitSubquery(subquery);
@@ -81,16 +125,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			// Visit column projection first
 
 			var columns = select.Columns;
-
+			
 			List<SqlColumnDeclaration> alternate = null;
 
 			for (int i = 0, n = select.Columns.Count; i < n; i++)
 			{
 				var columnDeclaration = select.Columns[i];
 
-				if (select.Distinct || this.IsColumnUsed(select.Alias, columnDeclaration.Name) || columnDeclaration.NoOptimise)
+				if (select.Distinct || IsColumnUsed(select.Alias, columnDeclaration.Name) || columnDeclaration.NoOptimise)
 				{
-					var expr = this.Visit(columnDeclaration.Expression);
+					var expr = Visit(columnDeclaration.Expression);
 
 					if (expr != columnDeclaration.Expression)
 					{
@@ -99,7 +143,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				}
 				else
 				{
-					columnDeclaration = null;  // null means it gets omitted
+					// null means it gets omitted
+
+					columnDeclaration = null; 
 				}
 
 				if (columnDeclaration != select.Columns[i] && alternate == null)
@@ -112,25 +158,39 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					}
 				}
 
-				if (columnDeclaration != null && alternate != null)
+				if (columnDeclaration != null)
 				{
-					alternate.Add(columnDeclaration);
+					alternate?.Add(columnDeclaration);
 				}
 			}
 
 			if (alternate != null)
 			{
-				columns = alternate.ToReadOnlyCollection();
+				// Conservatively, don't remove any columns if it would mean removing all of them
+
+				if (alternate.Count == 0)
+				{
+					// Visit all columns so that their references/expressions can be marked as used
+
+					foreach (var c in select.Columns)
+					{
+						Visit(c.Expression);
+					}
+				}
+				else
+				{
+					columns = alternate.ToReadOnlyCollection();
+				}
 			}
 
-			var take = this.Visit(select.Take);
-			var skip = this.Visit(select.Skip);
-			var groupbys = this.VisitExpressionList(select.GroupBy);
-			var orderbys = this.VisitExpressionList(select.OrderBy);
-			var where = this.Visit(select.Where);
-			var from = this.Visit(select.From);
+			var take = Visit(select.Take);
+			var skip = Visit(select.Skip);
+			var groupbys = VisitExpressionList(select.GroupBy);
+			var orderbys = VisitExpressionList(select.OrderBy);
+			var where = Visit(select.Where);
+			var from = Visit(select.From);
 
-			this.ClearColumnsUsed(select.Alias);
+			ClearColumnsUsed(select.Alias);
 
 			if (columns != select.Columns
 				|| orderbys != select.OrderBy
@@ -150,8 +210,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			// Visit mapping in reverse order
 
-			var projector = this.Visit(projection.Projector);
-			var select = (SqlSelectExpression)this.Visit(projection.Select);
+			// This collects columns that are used in the projector
+			var projector = Visit(projection.Projector);
+		
+			// Removes columns that aren't used
+			var select = (SqlSelectExpression)Visit(projection.Select);
 
 			return UpdateProjection(projection, select, projector, projection.Aggregator);
 		}
@@ -160,9 +223,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			// Visit join in reverse order
 
-			var condition = this.Visit(join.JoinCondition);
-			var right = this.VisitSource(join.Right);
-			var left = this.VisitSource(join.Left);
+			var condition = Visit(join.JoinCondition);
+			var right = VisitSource(join.Right);
+			var left = VisitSource(join.Left);
 
 			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
 			{

@@ -481,9 +481,12 @@ namespace Shaolinq.Persistence.Linq
 			var referencedObjectPaths = memberAccessExpressionsNeedingJoins
 				.Where(c => !c.IncludedPropertyPath.Any(d => d.PropertyType.IsDataAccessObjectType()))
 				.OrderBy(c => c.FullAccessPropertyPath.Length)
-				.Concat(memberAccessExpressionsNeedingJoins
-				.Where(c => c.IncludedPropertyPath.Any(d => d.PropertyType.IsDataAccessObjectType()))
-				.OrderBy(c => c.FullAccessPropertyPath.Length))
+				.Concat
+				(
+					memberAccessExpressionsNeedingJoins
+					.Where(c => c.IncludedPropertyPath.Any(d => d.PropertyType.IsDataAccessObjectType()))
+					.OrderBy(c => c.FullAccessPropertyPath.Length)
+				)
 				.ToList();
 
 			var referencedPathsWithCollectionIncludes = memberAccessExpressionsNeedingJoins
