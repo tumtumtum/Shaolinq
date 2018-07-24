@@ -96,26 +96,43 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
 			if (functionCallExpression.Arguments.Count == 1
-				&& (functionCallExpression.Function == SqlFunction.IsNotNull || functionCallExpression.Function == SqlFunction.IsNull)
-				&& (functionCallExpression.Arguments[0].NodeType == ExpressionType.MemberInit || functionCallExpression.Arguments[0].NodeType == (ExpressionType)SqlExpressionType.ObjectReference))
+				&& (functionCallExpression.Function == SqlFunction.IsNotNull || functionCallExpression.Function == SqlFunction.IsNull))
 			{
-				Expression retval = null;
-				
-				foreach (var value in GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
+				if ((functionCallExpression.Arguments[0].NodeType == ExpressionType.MemberInit || functionCallExpression.Arguments[0].NodeType == (ExpressionType)SqlExpressionType.ObjectReference))
 				{
-					var current = new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, value);
+					// Convert ObjectReference1 == ObjectReference2 -> ObjectReference1.PrimaryKey == ObjectReference2.PrimaryKey
 
-					if (retval == null)
+					Expression retval = null;
+
+					foreach (var value in GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
 					{
-						retval = current;
+						var current = new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, value);
+
+						if (retval == null)
+						{
+							retval = current;
+						}
+						else
+						{
+							retval = Expression.And(retval, current);
+						}
 					}
-					else
-					{
-						retval = Expression.And(retval, current);
-					}
+
+					return retval;
 				}
+				else if ((SqlExpressionType)functionCallExpression.Arguments[0].NodeType == SqlExpressionType.Projection)
+				{
+					// Convert (SELECT a, b, c FROM T) == NULL -> NOT EXISTS (SELECT a, b, c FROM T)
 
-				return retval;
+					Expression retval = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(functionCallExpression.Arguments[0]));
+
+					if (functionCallExpression.Function == SqlFunction.IsNull)
+					{
+						retval = Expression.Not(retval);
+					}
+
+					return retval;
+				}
 			}
 
 			return base.VisitFunctionCall(functionCallExpression);

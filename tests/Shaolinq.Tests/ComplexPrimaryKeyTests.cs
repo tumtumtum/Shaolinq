@@ -2339,6 +2339,30 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_PropertyAccess_After_First1()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.First().Name == "")
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_PropertyAccess_After_First2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.First().SecondAddress.Street == "")
+					.ToList();
+			}
+		}
+
+		[Test]
 		public void Test_Include_Basic()
 		{
 			using (var scope = this.NewTransactionScope())
@@ -2365,7 +2389,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression()
+		public void Test_SubCollection_First_Property_Length_Equals()
 		{
 			using (var scope = this.NewTransactionScope())
 			{
@@ -2377,14 +2401,62 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Ignore("Not working yet")]
-		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression2()
+		public void Test_Compare_Implicit_Include_To_Null()
 		{
 			using (var scope = this.NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
-					.Where(c => c.Shops.First().Address != null)
+					.Where(c => c.Address != null)
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Compare_Implicit_Include_SubCollection_First_To_Null1()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.Select(d => d.Address).First() == null)
+					.ToList();
+			}
+		}
+
+		
+		[Test]
+		public void Test_Compare_Implicit_Include_SubCollection_First_To_Null2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.First().Address == null)
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Compare_Implicit_Include_SubCollection_First_Then_Property1()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.Select(d => d.Address).First().Street == "")
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Compare_Implicit_Include_SubCollection_First_Then_Property2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.First().Address.Street == "")
 					.ToList();
 			}
 		}
@@ -2396,7 +2468,19 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Where(c => c.Shops.Any(d => d.SecondAddress.Street == ""))
+					.Where(c => c.SisterMall.SisterMall.SisterMall.SisterMall2.Shops.Any(d => d.Mall3.TopShop.SecondAddress.Street == ""))
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Select_Using_Inner_Related_First_Property_Expression()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Select(c => c.SisterMall.SisterMall.SisterMall.SisterMall2.Shops.Select(d => d.Mall3.TopShop.SecondAddress.Street).First())
 					.ToList();
 			}
 		}
@@ -2414,8 +2498,7 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Ignore("Not working yet")]
-		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression5()
+		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression5a()
 		{
 			using (var scope = this.NewTransactionScope())
 			{
@@ -2425,16 +2508,63 @@ namespace Shaolinq.Tests
 					.ToList();
 			}
 		}
+
+		[Test]
+		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression5b()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.Select(d => d.Mall3.SisterMall.Shops.Select(e => e.Address.Street).First()).First() == "")
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression5c()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Where(c => c.Shops.Select(d => d.Address).Select(d => d.Street).First() == "")
+					.ToList();
+			}
+		}
 		
 		[Test]
-		[Ignore("Not working yet")]
-		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression6()
+		public void Test_Select_Using_Inner_SubCollection_And_Property1()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Select(c => c.Shops.Select(d => d.SecondAddress).First().Street == "")
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Select_Using_Inner_SubCollection_And_Property2()
 		{
 			using (var scope = this.NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
 					.Select(c => c.Shops.First().SecondAddress.Street)
+					.ToList();
+			}
+		}
+
+		[Test]
+		public void Test_Select_Using_Inner_SubCollection_Count()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Select(c => c.Shops.Select(d => d.SecondAddress).Count() == 1)
 					.ToList();
 			}
 		}
@@ -2500,7 +2630,6 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		[Ignore("Not working yet")]
 		public void Test_Include_Collection2c()
 		{
 			using (var scope = this.NewTransactionScope())
@@ -2508,7 +2637,45 @@ namespace Shaolinq.Tests
 				var malls = this.model
 					.Malls
 					.Include(c => c.SisterMall.Shops.Include(d => d.Address))
-					.OrderBy(c => c.Shops.First().Name)
+					.OrderBy(c => c.Shops.First().Mall2.Shops.First().Name)
+					.ToList();
+
+				var mall = malls.First(c => c.Name.Contains("Seattle City"));
+				Assert.IsNull(mall.Address);
+				Assert.IsTrue(mall.SisterMall.Address.IsDeflatedReference());
+				var shops = mall.SisterMall.Shops.ToList();
+				Assert.IsFalse(shops[0].Address.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_Two_Level_Collection_Query1()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(c => c.SisterMall.Shops.Include(d => d.Address))
+					.OrderBy(c => c.Shops.First().Mall2.Shops.First().Name)
+					.ToList();
+
+				var mall = malls.First(c => c.Name.Contains("Seattle City"));
+				Assert.IsNull(mall.Address);
+				Assert.IsTrue(mall.SisterMall.Address.IsDeflatedReference());
+				var shops = mall.SisterMall.Shops.ToList();
+				Assert.IsFalse(shops[0].Address.IsDeflatedReference());
+			}
+		}
+		
+		[Test]
+		public void Test_OrderBy_Two_Level_Collection_Query2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Include(c => c.SisterMall.Shops.Include(d => d.Address))
+					.OrderBy(c => c.Shops.Select(d => d.Mall2).First().Shops.Select(d => d.Name).First())
 					.ToList();
 
 				var mall = malls.First(c => c.Name.Contains("Seattle City"));

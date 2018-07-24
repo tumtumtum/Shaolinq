@@ -180,6 +180,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return retval;
 			}
 
+			if (methodCallExpression.Method.DeclaringType == typeof(JoinHelperExtensions))
+			{
+			//	return methodCallExpression;
+			}
+
 			return base.VisitMethodCall(methodCallExpression);
 		}
 

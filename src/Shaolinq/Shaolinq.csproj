@@ -251,6 +251,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlInsertIntoNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPredicateToWhereConverter.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlProjectionSelectExpander.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlPropertyAccessToSelectAmender.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlRedundantSubqueryFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlTupleOrAnonymousTypeComparisonExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlNullComparisonCoalescer.cs" />

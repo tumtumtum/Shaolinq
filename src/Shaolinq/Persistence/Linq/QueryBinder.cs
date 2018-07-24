@@ -44,6 +44,7 @@ namespace Shaolinq.Persistence.Linq
 		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression)
 		{
 			expression = SqlPredicateToWhereConverter.Convert(expression);
+			expression = SqlPropertyAccessToSelectAmender.Amend(expression);
 			expression = InterfaceAccessNormalizer.Normalize(dataAccessModel.TypeDescriptorProvider, expression);
 			expression = OrderByThenByCombiner.Combine(expression);
 			expression = QueryableIncludeExpander.Expand(expression);
