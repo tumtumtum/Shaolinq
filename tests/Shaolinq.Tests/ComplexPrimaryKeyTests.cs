@@ -49,14 +49,6 @@ namespace Shaolinq.Tests
 
 				return (this.queryable()).Where(c => c.Address.Number == 0);
 			}
-
-			public IQueryable<T> Query3()
-			{
-				// Roslyn turns this into Expression.Member(Expression.Convert(c, typeof(IAddressed)), methodof(IAddressed.Address))
-				// Instead of Expression.Member(c, methodof(T.Address))
-
-				return (this.queryable()).Select(c => c.IncludeDirect(d => d.Address));
-			}
 		}
 
 		public class SelectorTesterClass2<T>
@@ -117,20 +109,6 @@ namespace Shaolinq.Tests
 			Assert.IsFalse(s.Contains("ObjectReference"));
 		}
 
-		[Test]
-		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics3()
-		{
-
-			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
-
-			tester.Query1();
-
-			var s = tester.Query3().ToString();
-
-			Assert.IsTrue(s.Contains("JOIN"));
-			Assert.IsFalse(s.Contains("ObjectReference"));
-		}
-		
 		public ComplexPrimaryKeyTests(string providerName)
 			: base(providerName)
 		{
@@ -599,11 +577,11 @@ namespace Shaolinq.Tests
 				from
 				shop in this.model.Shops
 				join
-				address1 in this.model.Addresses on shop.Address equals address1
+				address1 in this.model.Addresses.Include(c => c.Region.Center) on shop.Address equals address1
 				join
 				address2 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address2
 				join
-				_address3 in this.model.Addresses on shop.ThirdAddress equals _address3  into g
+				_address3 in this.model.Addresses.Include(c => c.Region) on shop.ThirdAddress equals _address3  into g
 				from address3 in g.DefaultIfEmpty()
 				join
 				address4 in this.model.Addresses.Include(c => c.Region) on shop.SecondAddress equals address4
@@ -613,9 +591,9 @@ namespace Shaolinq.Tests
 				new
 				{
 					shop,
-					address1 = address1.IncludeDirect(c => c.Region.Center),
+					address1,
 					address2,
-					address3 = address3.IncludeDirect(c => c.Region),
+					address3,
 					address4,
 					address5
 				};
@@ -1357,8 +1335,12 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = this.NewTransactionScope())
 			{
-				var query = this.model.Shops.Where(c => c.Address.Street == "Madison Street")
-					.Select(c => c.IncludeDirect(d => d.Address).IncludeDirect(d => d.SecondAddress));
+				var query = this
+					.model
+					.Shops
+					.Where(c => c.Address.Street == "Madison Street")
+					.Include(c => c.Address)
+					.Include(c => c.SecondAddress);
 
 				var first = query.First();
 
@@ -1503,8 +1485,8 @@ namespace Shaolinq.Tests
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
 					.Where(c => c.Address.Region.Name == "Washington")
-					.Select(c => c.IncludeDirect(d => d.Address))
-					.Select(c => c.IncludeDirect(d => d.SecondAddress));
+					.Include(c => c.Address)
+					.Include(c => c.SecondAddress);
 
 				var first = query.First();
 
@@ -1536,10 +1518,12 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = this.NewTransactionScope())
 			{
-				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
-					.Select(c => c.IncludeDirect(d => d.Address))
-					.Select(c => c.IncludeDirect(d => d.Mall))
-					.Select(c => c.IncludeDirect(d => d.Address));
+				var query = this
+					.model
+					.Shops
+					.Where(c => c.Address.Region.Name == "Washington")
+					.Include(c => c.Address)
+					.Include(c => c.Mall);
 
 				var first = query.First();
 
@@ -1602,9 +1586,9 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var query = from
-					shop in this.model.Shops
+					shop in this.model.Shops.Include(c => c.Address.Region)
 					where shop.Id == this.shopId
-					select shop.IncludeDirect(c => c.Address.Region);
+					select shop;
 
 				var first = query.First();
 
@@ -1648,9 +1632,8 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = this.NewTransactionScope())
 			{
-				var query = this.model.Shops
-					.Where(c => c.Address.Street == "Madison Street" && c.SecondAddress.Street == "Jefferson Avenue")
-					.Select(c => c.IncludeDirect(d => d.Address));
+				var query = this.model.Shops.Include(c => c.Address)
+					.Where(c => c.Address.Street == "Madison Street" && c.SecondAddress.Street == "Jefferson Avenue");
 
 				var first = query.First();
 
@@ -1668,7 +1651,7 @@ namespace Shaolinq.Tests
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street" )
 					.Where(c => c.SecondAddress.Street == "Jefferson Avenue")
-					.Select(c => c.IncludeDirect(d => d.Address));
+					.Include(c => c.Address);
 
 				var first = query.First();
 
@@ -1684,9 +1667,10 @@ namespace Shaolinq.Tests
 			using (var scope = this.NewTransactionScope())
 			{
 				var query = this.model.Shops
+					.Include(c => c.Address)
+					.Include(c => c.SecondAddress)
 					.Where(c => c.Address.Street == "Madison Street")
-					.Where(c => c.SecondAddress.Street == "Jefferson Avenue")
-					.Select(c => c.IncludeDirect(d => d.Address).IncludeDirect(d => d.SecondAddress));
+					.Where(c => c.SecondAddress.Street == "Jefferson Avenue");
 
 				var first = query.First();
 
@@ -1704,7 +1688,8 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => c.IncludeDirect(d => d.Address).IncludeDirect(d => d.Mall));
+					.Include(c => c.Address)
+					.Include(c => c.Mall);
 
 				var first = query.First();
 
@@ -1757,7 +1742,7 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => c.IncludeDirect(d => d.Address).IncludeDirect(d => d.Address.Region));
+					.Include(c => c.Address.Region);
 
 				var first = query.First();
 
@@ -1774,7 +1759,7 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => c.IncludeDirect(d => DataAccessObjectInternalHelpers.IncludeDirect(d.Address, e => e.Region)));
+					.Include(c => c.Address.Region);
 
 				var first = query.First();
 
@@ -1791,8 +1776,9 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => new Tuple<string, Shop>("hi",  c ))
-					.Select(c => c.Item2.IncludeDirect(e => e.Address.Region));
+					.Select(c => new Tuple<string, Shop>("hi", c))
+					.Include(c => c.Item2.Address.Region)
+					.Select(c => c.Item2);
 
 				var first = query.First();
 
@@ -1809,8 +1795,9 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => new Tuple<string, Shop>("hi", c ))
-					.Select(c => c.Item2.IncludeDirect(d => DataAccessObjectInternalHelpers.IncludeDirect(d.Address, e => e.Region)));
+					.Select(c => new Tuple<string, Shop>("hi", c))
+					.Include(c => c.Item2.Address.Region)
+					.Select(c => c.Item2);
 
 				var first = query.First();
 
@@ -1827,7 +1814,7 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => c.IncludeDirect(d => d.Address));
+					.Include(c => c.Address);
 
 				var first = query.First();
 
@@ -1919,10 +1906,12 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(shop => new
+					.Select
+					(shop => new
 					{
 						shop
-					}).Select(c => c.IncludeDirect(d => d.shop.Address));
+					})
+					.Include(c => c.shop.Address);
 
 				var first = query.First();
 
@@ -1991,7 +1980,9 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(c => c).Select(c => c.IncludeDirect(d => d.Address.Region));
+					.Select(c => c)
+					.Include(c => c.Address.Region)
+					.Select(c => c);
 
 				var first = query.First();
 
@@ -2026,13 +2017,16 @@ namespace Shaolinq.Tests
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
-					.Select(shop => new
+					.Select
+					(shop => new
 					{
 						x = new
 						{
 							shopp = shop
 						}
-					}).Select(c => c.x.shopp.IncludeDirect(d => d.Address.Region));
+					})
+					.Include(c => c.x.shopp.Address.Region)
+					.Select(c => c.x.shopp);
 
 				var first = query.First();
 
