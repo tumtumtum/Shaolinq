@@ -1351,14 +1351,34 @@ namespace Shaolinq.Tests
 			}
 		}
 
-
 		[Test]
-		public void Test_Include_With_One_Select()
+		public void Test_Include_With_One_Select1()
 		{
 			using (var scope = this.NewTransactionScope())
 			{
-				var query = this.model.Shops.Where(c => c.Address.Street == "Madison Street")
+				var query = this.model
+					.Shops
+					.Where(c => c.Address.Street == "Madison Street")
 					.Select(c => c.IncludeDirect(d => d.Address).IncludeDirect(d => d.SecondAddress));
+
+				var first = query.First();
+
+				Assert.IsFalse(first.Address.IsDeflatedReference());
+				Assert.IsFalse(first.SecondAddress.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_Include_With_One_Select2()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var query = this.model
+					.Shops
+					.Where(c => c.Address.Street == "Madison Street")
+					.Include(c => c.Address)
+					.Include(c => c.SecondAddress)
+					.Select(c => c);
 
 				var first = query.First();
 
@@ -1901,9 +1921,10 @@ namespace Shaolinq.Tests
 					{
 						x = new
 						{
-							shop
+							shop,
+							s = shop
 						}
-					}).Include(c => c.x.shop.Address);
+					}).Include(c => c.x.s.Address);
 
 				var first = query.First();
 
@@ -2048,7 +2069,7 @@ namespace Shaolinq.Tests
 			{
 				var query =
 					(from
-						shop in this.model.Shops
+						shop in this.model.Shops.Include(c => c.Address.Region)
 						select new
 						{
 							shop1 = new
@@ -2056,7 +2077,7 @@ namespace Shaolinq.Tests
 								 shop2 = shop
 							}
 						}
-					).Select(c => new { shop = c.shop1.shop2, address = c.shop1.shop2.Address.IncludeDirect(d => d.Region) });
+					).Select(c => new { shop = c.shop1.shop2, address = c.shop1.shop2.Address });
 
 
 				var first = query.First();
@@ -2391,6 +2412,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_SubCollection_First_Property_Length_Equals()
 		{
+			if (this.ProviderName == "MySql")
+			{
+				return;
+			}
+
 			using (var scope = this.NewTransactionScope())
 			{
 				var malls = this.model
@@ -2512,6 +2538,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression5b()
 		{
+			if (this.ProviderName == "MySql")
+			{
+				return;
+			}
+			
 			using (var scope = this.NewTransactionScope())
 			{
 				var malls = this.model
@@ -2552,7 +2583,7 @@ namespace Shaolinq.Tests
 			{
 				var malls = this.model
 					.Malls
-					.Select(c => c.Shops.First().SecondAddress.Street)
+					.Select(c => c.Shops.Select(d => d.SecondAddress).First())
 					.ToList();
 			}
 		}
@@ -2632,6 +2663,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Collection2c()
 		{
+			if (this.ProviderName == "MySql")
+			{
+				return;
+			}
+
 			using (var scope = this.NewTransactionScope())
 			{
 				var malls = this.model
@@ -2651,6 +2687,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_Two_Level_Collection_Query1()
 		{
+			if (this.ProviderName == "MySql")
+			{
+				return;
+			}
+
 			using (var scope = this.NewTransactionScope())
 			{
 				var malls = this.model
@@ -2670,6 +2711,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_Two_Level_Collection_Query2()
 		{
+			if (this.ProviderName == "MySql")
+			{
+				return;
+			}
+			
 			using (var scope = this.NewTransactionScope())
 			{
 				var malls = this.model

@@ -180,11 +180,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return retval;
 			}
 
-			if (methodCallExpression.Method.DeclaringType == typeof(JoinHelperExtensions))
-			{
-			//	return methodCallExpression;
-			}
-
 			return base.VisitMethodCall(methodCallExpression);
 		}
 
@@ -303,6 +298,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					root = this.GetExpression(root).StripForIncludeScanning();
 					currentExpression = root as MemberExpression;
 				}
+			}
+
+			if (root.Type != this.sourceParameterExpression.Type)
+			{
+				return memberExpression;
 			}
 
 			var includedPathSkip = 0;

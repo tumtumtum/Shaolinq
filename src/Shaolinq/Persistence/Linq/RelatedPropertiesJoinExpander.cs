@@ -560,15 +560,13 @@ namespace Shaolinq.Persistence.Linq
 				index++;
 			}
 
-			Func<Expression, bool, Expression> replace = null;
-
-			replace = (e, b) => SqlExpressionReplacer.Replace(e, c =>
+			Expression Replace(Expression e, bool b) => SqlExpressionReplacer.Replace(e, c =>
 			{
 				if (forProjection && b)
 				{
 					if (result.IncludedPropertyInfoByExpression.ContainsKey(c))
 					{
-						var x = replace(c, false);
+						var x = Replace(c, false);
 						var y = result.IncludedPropertyInfoByExpression[c];
 
 						var newList = y.Select(includedPropertyInfo => new IncludedPropertyInfo
@@ -589,7 +587,7 @@ namespace Shaolinq.Persistence.Linq
 			});
 
 			var newPredicatorOrSelectorBodies = predicateOrSelectorLambdas
-				.Select(c => replace(c.Body, true))
+				.Select(c => Replace(c.Body, true))
 				.ToList();
 
 			var newPredicateOrSelectors = newPredicatorOrSelectorBodies
