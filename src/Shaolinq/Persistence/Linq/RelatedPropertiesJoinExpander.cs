@@ -80,7 +80,6 @@ namespace Shaolinq.Persistence.Linq
 			case "Single":
 			case "SingleOrDefault":
 			case "SelectMany":
-			case nameof(QueryableExtensions.Include):
 			case nameof(QueryableExtensions.OrderByThenBysHelper):
 				return this.RewriteBasicProjection(methodCallExpression, false);
 			case "Select":

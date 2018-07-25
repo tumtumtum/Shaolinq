@@ -2829,6 +2829,21 @@ namespace Shaolinq.Tests
 		}
 		
 		[Test]
+		public void Test_Include0()
+		{
+			var malls = this.model
+				.Malls
+				.Select(c => c.IncludeDirect(d => d.Address.Region.Center))
+				.ToList();
+
+			foreach (var mall in malls.Where(c => c.Address != null))
+			{
+				Assert.IsFalse(mall.Address.IsDeflatedReference());
+				Assert.IsFalse(mall.Address.Region.Center.IsDeflatedReference());
+			}
+		}
+
+		[Test]
 		public void Test_Include1()
 		{
 			var malls = this.model
