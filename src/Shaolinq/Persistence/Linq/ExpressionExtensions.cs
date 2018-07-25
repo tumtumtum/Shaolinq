@@ -123,7 +123,7 @@ namespace Shaolinq.Persistence.Linq
 			});
 		}
 
-		internal static Expression StripForIncludeScanning(this Expression expression)
+		internal static Expression StripItemsCalls(this Expression expression)
 		{
 			return expression?.Strip(c =>
 			{
@@ -133,7 +133,52 @@ namespace Shaolinq.Persistence.Linq
 
 					if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsItemsMethod)
 					{
-						return methodCallExpression.Arguments[0].StripForIncludeScanning();
+						return methodCallExpression.Arguments[0].StripItemsCalls();
+					}
+				}
+
+				return null;
+			});
+		}
+
+
+		internal static Expression StripPropertiesAndIncludeExtensions(this Expression expression)
+		{
+			return expression?.Strip(c =>
+			{
+				if (c.NodeType == ExpressionType.Call)
+				{
+					var methodCallExpression = (MethodCallExpression)c;
+
+					if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.QueryableExtensionsItemsMethod)
+					{
+						return methodCallExpression.Arguments[0].StripItemsCalls();
+					}
+					else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod)
+					{
+						return methodCallExpression.Arguments[0].StripItemsCalls();
+					}
+				}
+				else if (c is MemberExpression memberExpression)
+				{
+					return memberExpression.Expression;
+				}
+
+				return null;
+			});
+		}
+
+		internal static Expression StripAddToCollectionCalls(this Expression expression)
+		{
+			return expression?.Strip(c =>
+			{
+				if (c.NodeType == ExpressionType.Call)
+				{
+					var methodCallExpression = (MethodCallExpression)c;
+
+					if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
+					{
+						return methodCallExpression.Arguments[0].StripAddToCollectionCalls();
 					}
 				}
 

@@ -39,7 +39,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		internal static IEnumerable<Expression> GetPrimaryKeyElementalExpressions(Expression expression)
 		{
-
 			if (expression is MemberInitExpression initExpression)
 			{
 				var memberInitExpression = initExpression;
@@ -98,13 +97,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			if (functionCallExpression.Arguments.Count == 1
 				&& (functionCallExpression.Function == SqlFunction.IsNotNull || functionCallExpression.Function == SqlFunction.IsNull))
 			{
-				if ((functionCallExpression.Arguments[0].NodeType == ExpressionType.MemberInit || functionCallExpression.Arguments[0].NodeType == (ExpressionType)SqlExpressionType.ObjectReference))
+				var arg0 = functionCallExpression.Arguments[0].StripAddToCollectionCalls();
+
+				if ((arg0.NodeType == ExpressionType.MemberInit || arg0.NodeType == (ExpressionType)SqlExpressionType.ObjectReference))
 				{
 					// Convert ObjectReference1 == ObjectReference2 -> ObjectReference1.PrimaryKey == ObjectReference2.PrimaryKey
 
 					Expression retval = null;
 
-					foreach (var value in GetPrimaryKeyElementalExpressions(functionCallExpression.Arguments[0]))
+					foreach (var value in GetPrimaryKeyElementalExpressions(arg0))
 					{
 						var current = new SqlFunctionCallExpression(functionCallExpression.Type, functionCallExpression.Function, value);
 
@@ -120,11 +121,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					return retval;
 				}
-				else if ((SqlExpressionType)functionCallExpression.Arguments[0].NodeType == SqlExpressionType.Projection)
+				else if ((SqlExpressionType)arg0.NodeType == SqlExpressionType.Projection)
 				{
 					// Convert (SELECT a, b, c FROM T) == NULL -> NOT EXISTS (SELECT a, b, c FROM T)
 
-					Expression retval = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(functionCallExpression.Arguments[0]));
+					Expression retval = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(arg0));
 
 					if (functionCallExpression.Function == SqlFunction.IsNull)
 					{

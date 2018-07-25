@@ -14,6 +14,14 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 	}
 
 	[DataAccessObject]
+	public class Building
+		: DataAccessObject<Guid>
+	{
+		[RelatedDataAccessObjects(BackReferenceName = nameof(Shop.Building))]
+		public virtual RelatedDataAccessObjects<Shop> ShopsInBuilding { get; }
+	}
+
+	[DataAccessObject]
 	public class Mall
 		: DataAccessObject<Guid>, IAddressed, INamed
 	{
@@ -54,6 +62,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		[PersistedMember]
 		public virtual Shop TopShop { get; set; }
+
+		[PersistedMember]
+		public virtual Building Building { get; set; }
 
 		[RelatedDataAccessObjects]
 		public virtual RelatedDataAccessObjects<Shop> Shops { get; }

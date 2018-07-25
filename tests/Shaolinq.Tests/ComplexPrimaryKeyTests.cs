@@ -147,6 +147,8 @@ namespace Shaolinq.Tests
 
 				this.model.Flush();
 
+				var building = this.model.Buildings.Create();
+
 				var mall = this.model.Malls.Create();
 
 				this.model.Flush();
@@ -154,6 +156,7 @@ namespace Shaolinq.Tests
 				var shop = mall.Shops.Create();
 
 				mall.Name = "Seattle City";
+				mall.Building = building;
 
 				var address = this.model.Addresses.Create();
 				shop.Address = address;
@@ -161,6 +164,7 @@ namespace Shaolinq.Tests
 				
 				shop.Address.Region = region;
 				shop.Name = "Microsoft Store";
+				shop.Building = building;
 
 				var center = this.model.Coordinates.Create();
 				center.Label = "Center of Washington";
@@ -199,6 +203,8 @@ namespace Shaolinq.Tests
 				address = this.model.Addresses.Create();
 				shop.Address = address;
 				shop.Address.Region = region;
+
+				shop.Building = building;
 
 				shop = sisterMall.Shops.Create();
 				shop.Name = "Sister Mall Store 2";
@@ -2661,6 +2667,32 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Project_Anonymous_Then_Implicit_Include_From_Anonymous_Property_Inside_Where()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Select(c => new { mallProperty = c })
+					.Where(c => c.mallProperty.Address.Street == "street name")
+					.ToList();
+			}
+		}
+		[Test]
+		public void Test_Select_Select()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var malls = this.model
+					.Malls
+					.Select(c => new { mallProperty = c.Address })
+					.Select(c => new { mallProperty2 = c.mallProperty })
+					.Where(c => c.mallProperty2.Street == "street name")
+					.ToList();
+			}
+		}
+
+		[Test]
 		public void Test_Include_Collection2c()
 		{
 			if (this.ProviderName == "MySql")
@@ -3194,6 +3226,8 @@ namespace Shaolinq.Tests
 						Assert.AreEqual(1, mall.Shops.Items().Count);
 						Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
 
+						Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
 						var s1 = mall.SisterMall.Shops.Items();
 
 						Assert.AreEqual(2, s1.Count);
@@ -3221,6 +3255,12 @@ namespace Shaolinq.Tests
 
 			foreach (var mall in malls.Where(c => c.SisterMall != null))
 			{
+				Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
+				Assert.IsFalse(mall.Shops2.HasItems);
+				Assert.IsTrue(mall.SisterMall.Shops.HasItems);
+				Assert.IsTrue(mall.SisterMall.Shops2.HasItems);
+
 				Assert.AreEqual(1, mall.Shops.Items().Count);
 				Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
 
@@ -3234,6 +3274,224 @@ namespace Shaolinq.Tests
 
 				Assert.AreEqual(0, s2.Count);
 			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6b()
+		{
+			var query = this.model.Malls
+				.Where(c => c.Name == "Seattle City")
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2)
+				.Include(c => c.SisterMall);
+
+			var malls = query.ToList();
+
+			foreach (var mall in malls.Where(c => c.SisterMall != null))
+			{
+				Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops2.HasItems);
+
+				Assert.IsFalse(mall.SisterMall.Shops.HasItems);
+				Assert.IsFalse(mall.SisterMall.Shops2.HasItems);
+				
+				Assert.AreEqual(1, mall.Shops.Items().Count);
+				Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
+
+				var s1 = mall.SisterMall.Shops.ToList();
+
+				Assert.AreEqual(2, s1.Count);
+				Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+				Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6c()
+		{
+			var query = this.model.Malls
+				.Where(c => c.Name == "Mall of Oregan")
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2)
+				.Include(c => c.SisterMall);
+
+			var malls = query.ToList();
+
+			foreach (var mall in malls.Where(c => c.SisterMall != null))
+			{
+				Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops2.HasItems);
+
+				Assert.IsFalse(mall.SisterMall.Shops.HasItems);
+				Assert.IsFalse(mall.SisterMall.Shops2.HasItems);
+				
+				Assert.AreEqual(2, mall.Shops.Items().Count);
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6d()
+		{
+			var query = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2)
+				.Include(c => c.SisterMall)
+				.Include(c => c.SisterMall.Shops)
+				.OrderByDescending(c => c.Name);
+
+			var malls = query;
+
+			foreach (var mall in malls.Where(c => c.SisterMall != null))
+			{
+				Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops2.HasItems);
+
+				// These actually get included as well because all the malls are loaded at the top level
+				
+				Assert.IsTrue(mall.SisterMall.Shops.HasItems);
+				Assert.IsFalse(mall.SisterMall.Shops2.HasItems);
+				
+				Assert.AreEqual(2, mall.SisterMall.Shops.Items().Count);
+			}
+		}
+
+		/// <summary>
+		/// TODO: The behaviour tested by this query is "correct" but not ideal. HasItems probably should return false until the entire collection has been loaded.
+		/// </summary>
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6d2()
+		{
+			var query = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2)
+				/* Explicitly adding the following line gives expected behaviour because SisterMall.Shops loaded as part of loading the first mall (seattle city) */
+				/* .Include(c => c.SisterMall.Shops) */
+				.OrderByDescending(c => c.Name); /* this causes seattle city to load before mall or oregan */
+
+			var malls = query;
+
+			Mall theMall = null;
+
+			foreach (var mall in malls)
+			{
+				// Where(c => c.SisterMall != null) is done on client side which means
+				// the other malls still get loaded into memory causing the behaviour below
+
+				if (mall.SisterMall == null)
+				{
+					continue;
+				}
+
+				// The first "row" of the sistermall (mall of oregan) is processed as the last step of building the first mall (seattle city)
+				// which causes sistermall to not be deflated
+
+				Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops2.HasItems);
+
+				// But that also means that sistermall is pre-loaded with partial related collection data
+				
+				Assert.IsTrue(mall.SisterMall.Shops.HasItems);
+				Assert.IsTrue(mall.SisterMall.Shops2.HasItems);
+				
+				// Partially loaded sistermall.shops
+
+				theMall = mall;
+				Assert.AreEqual(1, mall.SisterMall.Shops.Items().Count);
+			}
+
+			// Outside of the loop once all malls have been enumerated the number is now 2
+
+			Assert.AreEqual(2, theMall.SisterMall.Shops.ToList().Count);
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6e()
+		{
+			var query = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2)
+				.OrderBy(c => c.Name);
+
+			var malls = query;
+
+			foreach (var mall in malls)
+			{
+				if (mall.SisterMall == null)
+				{
+					continue;
+				}
+
+				Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops2.HasItems);
+
+				// These actually get included as well because all the malls are loaded at the top level
+
+				Assert.IsTrue(mall.SisterMall.Shops.HasItems);
+				Assert.IsTrue(mall.SisterMall.Shops2.HasItems);
+				
+				Assert.AreEqual(1, mall.Shops.Items().Count);
+				Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
+
+				var s1 = mall.SisterMall.Shops.Items();
+
+				Assert.AreEqual(2, s1.Count);
+				Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+				Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
+			}
+		}
+
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6f()
+		{
+			var query = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.Shops2)
+				.Include(c => c.SisterMall.Shops);
+
+			var malls = query;
+
+			foreach (var mall in malls.Where(c => c.SisterMall != null))
+			{
+				Assert.IsFalse(mall.SisterMall.IsDeflatedReference());
+
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops2.HasItems);
+
+				// These actually get included as well because all the malls are loaded at the top level
+
+				Assert.IsTrue(mall.SisterMall.Shops.HasItems);
+				Assert.IsFalse(mall.SisterMall.Shops2.HasItems);
+				
+				Assert.AreEqual(1, mall.Shops.Items().Count);
+				Assert.AreEqual(mall.Shops.Items()[0].Name, "Microsoft Store");
+
+				var s1 = mall.SisterMall.Shops.Items();
+
+				Assert.AreEqual(2, s1.Count);
+				Assert.IsTrue(s1.All(c => !c.IsDeflatedReference()));
+				Assert.IsTrue(s1.All(c => c.Name.StartsWith("Sister Mall Store")));
+			}
+		}
+
+		[Test]
+		public void Test_OrderBy_DaoProperty_With_Collection_Include6____TEST()
+		{
+			var query = this.model.Malls
+				.Include(c => c.Shops)
+				.Include(c => c.Building.IncludeDirect(d => d.ShopsInBuilding).IncludeDirect(d => d.ShopsInBuilding));
+
+			var malls = query.ToList();
 		}
 
 		[Test]

@@ -22,6 +22,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[BackReference]
 		public abstract Mall Mall3 { get; set; }
 
+		[BackReference]
+		public abstract Building Building { get; set; }
+
 		[PersistedMember, DefaultValue("0001-01-01 00:00:00")]
 		public abstract DateTime OpeningDate { get; set; }
 
