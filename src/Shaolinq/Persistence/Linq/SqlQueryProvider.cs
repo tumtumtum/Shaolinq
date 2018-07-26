@@ -140,9 +140,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlCrossJoinRewriter.Rewrite(expression);
 			expression = SqlConditionalEliminator.Eliminate(expression);
 			expression = SqlExpressionCollectionOperationsExpander.Expand(expression);
-			expression = SqlSubCollectionOrderByAmender.Amend(dataAccessModel.TypeDescriptorProvider, expression);
-			expression = SqlOrderByRewriter.Rewrite(expression);
-
+			
 			var rewritten = SqlCrossApplyRewriter.Rewrite(expression);
 
 			if (rewritten != expression)
@@ -151,7 +149,6 @@ namespace Shaolinq.Persistence.Linq
 				expression = SqlUnusedColumnRemover.Remove(expression);
 				expression = SqlRedundantColumnRemover.Remove(expression);
 				expression = SqlRedundantSubqueryRemover.Remove(expression);
-				expression = SqlOrderByRewriter.Rewrite(expression);
 			}
 
 			expression = SqlDeleteNormalizer.Normalize(expression);
@@ -400,10 +397,14 @@ namespace Shaolinq.Persistence.Linq
 
 				this.SqlDatabaseContext.projectorCache = oldCache.Clone(key, cacheInfo, "projectorCache", this.ProjectorCacheMaxLimit);
 
-				ProjectionCacheLogger.Info(() => $"Cached projector:\n{projectionLambda}");
+				ProjectionCacheLogger.Info(() => $"Cached new projector:\n{projectionLambda}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 			}
-			
+			else
+			{
+				ProjectionCacheLogger.Info(() => $"Reused cached projector:\n{projectionLambda}");
+			}
+
 			projector = cacheInfo.projector;
 			asyncProjector = cacheInfo.asyncProjector;
 		}

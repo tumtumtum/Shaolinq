@@ -1798,11 +1798,14 @@ namespace Shaolinq.Persistence.Linq
 
 			this.AddExpressionByParameter(selector.Parameters[0], projection.Projector);
 
+			this.currentOrderBys.Clear();
+
 			var expression = this.Visit(selector.Body);
 			var alias = this.GetNextAlias();
 			var pc = ProjectColumns(expression, alias, null, projection.Select.Alias);
-
-			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, null, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
+			var orderBys = this.currentOrderBys.Count == 0 ? null : this.currentOrderBys.Select(c => new SqlOrderByExpression(OrderType.Ascending, c));
+			
+			return new SqlProjectionExpression(new SqlSelectExpression(resultType, alias, pc.Columns, projection.Select, null, orderBys, forUpdate || projection.Select.ForUpdate), pc.Projector, null);
 		}
 
 		private Expression BindDelete(Expression source)
@@ -2085,9 +2088,16 @@ namespace Shaolinq.Persistence.Linq
 
 				var memberInit = projection.Projector as MemberInitExpression;
 
+				var assign = memberInit.Bindings.OfType<MemberAssignment>().First(c => MembersMatch(c.Member, memberExpression.Member));
+
+				if (assign == null)
+				{
+					throw new NotSupportedException(assign.Member.ToString());
+				}
+
 				var columns = new List<SqlColumnDeclaration>()
 				{
-					new SqlColumnDeclaration(memberExpression.Member.Name, memberInit.Bindings.OfType<MemberAssignment>().First(c => MembersMatch(c.Member, memberExpression.Member)).Expression)
+					new SqlColumnDeclaration(memberExpression.Member.Name, assign.Expression)
 				};
 
 				return new SqlSelectExpression(memberExpression.Type, alias, columns, from, null, null);
@@ -2358,10 +2368,46 @@ namespace Shaolinq.Persistence.Linq
 			throw new InvalidOperationException();
 		}
 
+		private readonly List<Expression> currentOrderBys = new List<Expression>();
+
+		private void AddCurrentOrderBy(Expression orderByOperand)
+		{
+			switch (orderByOperand)
+			{
+			case MemberInitExpression memberInitExpression:
+				var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptor(memberInitExpression.Type);
+
+				foreach (var property in typeDescriptor.PrimaryKeyProperties)
+				{
+					var expression = memberInitExpression.Bindings.OfType<MemberAssignment>().First(c => c.Member.Name == property.PropertyName).Expression;
+
+					AddCurrentOrderBy(expression);
+				}
+
+				break;
+			case SqlObjectReferenceExpression objectReferenceExpression:
+				foreach (var expression in objectReferenceExpression.Bindings.OfType<MemberAssignment>().Select(c => c.Expression))
+				{
+					AddCurrentOrderBy(expression);
+				}
+
+				break;
+			case null:
+				break;
+			default:
+				this.currentOrderBys.Add(orderByOperand);
+				break;
+			}
+		}
+
 		private Expression ProcessJoins(Expression expression, List<IncludedPropertyInfo> includedPropertyInfos, int index, bool useFullPath)
 		{
 			expression = this.PrivateVisit(expression);
 			var visited = new HashSet<string>();
+			
+			var addedRoot = false;
+
+			// Process joins for DAO properties or RelatedDAOs
 
 			foreach (var includedPropertyInfo in includedPropertyInfos
 				.GroupBy(c => useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length)
@@ -2396,6 +2442,21 @@ namespace Shaolinq.Persistence.Linq
 						.Where(c => (useFullPath ? c.FullAccessPropertyPath.Length : c.IncludedPropertyPath.Length) > index + 1)
 						.Where(c => (useFullPath ? c.FullAccessPropertyPath : c.IncludedPropertyPath).Take(index).SequenceEqual(propertyPath.Take(index)))
 						.ToList();
+
+					// Add OrderBy for sub-collections
+
+					if (nextProperties.Count == 0)
+					{
+						if (!addedRoot)
+						{
+							addedRoot = true;
+							AddCurrentOrderBy(expression.StripAddToCollectionCalls() as MemberInitExpression);
+						}
+
+						AddCurrentOrderBy(value);
+					}
+
+					// AddToCollection call
 
 					expression = Expression.Call
 					(

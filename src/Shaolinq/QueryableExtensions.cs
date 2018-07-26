@@ -15,11 +15,11 @@ namespace Shaolinq
 {
 	public static partial class QueryableExtensions
 	{
-		private static readonly MethodInfo ForUpdateMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).ForUpdate()).GetGenericMethodDefinition();
-		private static readonly MethodInfo InsertHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).InsertHelper(default(Expression<Action<string>>), default(bool))).GetGenericMethodDefinition();
-		private static readonly MethodInfo UpdateHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).UpdateHelper(default(Expression<Action<string>>), default(bool))).GetGenericMethodDefinition();
-		private static readonly MethodInfo IncludedItemsMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).IncludedItems()).GetGenericMethodDefinition();
-		private static readonly MethodInfo IncludeMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Include(default(Expression<Func<string, string>>))).GetGenericMethodDefinition();
+		internal static readonly MethodInfo ForUpdateMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).ForUpdate()).GetGenericMethodDefinition();
+		internal static readonly MethodInfo InsertHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).InsertHelper(default(Expression<Action<string>>), default(bool))).GetGenericMethodDefinition();
+		internal static readonly MethodInfo UpdateHelperMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).UpdateHelper(default(Expression<Action<string>>), default(bool))).GetGenericMethodDefinition();
+		internal static readonly MethodInfo IncludedItemsMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).IncludedItems()).GetGenericMethodDefinition();
+		internal static readonly MethodInfo IncludeMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).Include(default(Expression<Func<string, string>>))).GetGenericMethodDefinition();
 		
 		internal static IQueryable<T> InsertHelper<T>(this IQueryable<T> source, Expression<Action<T>> updated, bool requiresIdentityInsert)
 		{

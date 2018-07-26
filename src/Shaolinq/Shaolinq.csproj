@@ -258,7 +258,6 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPlatformDifferencesNormalizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedAliasGatherer.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\SqlSubCollectionOrderByAmender.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlUpdateNormalizer.cs" />
     <Compile Include="Persistence\Linq\ProjectionBuilderScope.cs" />
     <Compile Include="Persistence\Linq\ProjectorCacheEqualityComparer.cs" />

@@ -226,6 +226,12 @@ namespace Shaolinq.Tests
 				shop.Name = "Microsoft Store";
 				shop.Building = building;
 
+				var child = this.model.Children.Create();
+				var toy = this.model.Toys.Create();
+
+				toy.Owner = child;
+				toy.Shop = shop;
+
 				var center = this.model.Coordinates.Create();
 				center.Label = "Center of Washington";
 
@@ -1572,7 +1578,8 @@ namespace Shaolinq.Tests
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
 					.Include(c => c.SecondAddress)
-					.Where(c => c.Address != null);
+					.Where(c => c.Address != null)
+					.Where(c => c.Name.Contains("Microsoft"));
 
 				var first = query.First();
 
@@ -1813,6 +1820,22 @@ namespace Shaolinq.Tests
 
 				Assert.IsFalse(first.shop.IsDeflatedReference());
 				Assert.IsFalse(first.shop.Address.IsDeflatedReference());
+			}
+		}
+
+		[Test]
+		public void Test_Select_Include_Collection_Off_Join()
+		{
+			using (var scope = this.NewTransactionScope())
+			{
+				var query = (from  mall  in this.model.Malls
+							join shop in this.model.Shops on mall equals shop.Mall
+							select new {  mall, shop }).Include(c => c.mall.Shops);
+
+				var first = query.First();
+
+				Assert.IsFalse(first.shop.IsDeflatedReference());
+				Assert.IsTrue(first.mall.Shops.HasItems);
 			}
 		}
 
@@ -2886,6 +2909,50 @@ namespace Shaolinq.Tests
 			where T: DataAccessObject, INamed
 		{
 			return queryable.Where(c => c.Name == "Seattle City");
+		}
+
+		
+		[Test]
+		public void Test_OrderBy()
+		{
+			var malls = this.model
+				.Malls
+				.OrderBy(c => c.Name)
+				.Select(c => c)
+				.OrderBy(c => c.Name)
+				.ToList();
+		}
+
+		[Test]
+		public void Test_Include_Two_Level_Of_Collections1()
+		{
+			var malls = this.model
+				.Malls
+				.Include(c => c.Shops.IncludedItems().Toys.IncludedItems().Shop.Mall.Shops2)
+				.OrderBy(c => c.Name)
+				.ToList();
+
+			foreach (var mall in malls)
+			{
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops.Items().All(c => c.Toys.HasItems));
+			}
+		}
+
+		[Test]
+		public void Test_Include_Two_Level_Of_Collections2()
+		{
+			var malls = this.model
+				.Malls
+				.Include(c => c.Shops.Include(d => d.Toys.Include(e => e.Shop.Mall.Shops2)))
+				.OrderBy(c => c.Name)
+				.ToList();
+
+			foreach (var mall in malls)
+			{
+				Assert.IsTrue(mall.Shops.HasItems);
+				Assert.IsTrue(mall.Shops.Items().All(c => c.Toys.HasItems));
+			}
 		}
 		
 		[Test]

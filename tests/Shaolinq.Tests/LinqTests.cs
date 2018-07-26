@@ -825,7 +825,15 @@ namespace Shaolinq.Tests
 					.Take(2)
 					.ToList();
 
-				Assert.IsTrue(students.OrderByDescending(c => c.School.Name).ThenByDescending(c => c.BestFriend?.Lastname ?? null).ThenByDescending(c => c.Id).Skip(1).Take(2).SequenceEqual(results));
+				var dbResults = students
+					.OrderByDescending(c => c.School.Name)
+					.ThenByDescending(c => c.BestFriend?.Lastname ?? null)
+					.ThenByDescending(c => c.Id)
+					.Skip(1)
+					.Take(2)
+					.ToList();
+
+				Assert.IsTrue(dbResults.SequenceEqual(results));
 			}
 		}
 

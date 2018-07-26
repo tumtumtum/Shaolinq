@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -12,84 +13,154 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class SqlOrderByRewriter
 		: SqlExpressionVisitor
 	{
-		private bool outerCanReceiveOrderings;
-		private IEnumerable<SqlOrderByExpression> gatheredOrderings;
+		private bool isOuterMostSelect;
+		private List<SqlOrderByExpression> gatheredOrderings;
 
 		private SqlOrderByRewriter()
 		{
-			this.outerCanReceiveOrderings = true;
+			this.isOuterMostSelect = true;
 		}
 
 		public static Expression Rewrite(Expression expression)
 		{
-			var orderByRewriter = new SqlOrderByRewriter();
-
-			return orderByRewriter.Visit(expression);
+			return new SqlOrderByRewriter().Visit(expression);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression select)
 		{
-			var canHaveOrderBy = select.Take != null || select.Skip != null;
-			var hasGroupBy = select.GroupBy?.Count > 0;
-			var canReceiveOrderings = canHaveOrderBy && !hasGroupBy && !select.Distinct && !SqlAggregateChecker.HasAggregates(select);
+			var saveIsOuterMostSelect = this.isOuterMostSelect;
 
-			this.outerCanReceiveOrderings &= canReceiveOrderings;
-
-			select = (SqlSelectExpression)base.VisitSelect(select);
-
-			var hasOrderBy = select.OrderBy?.Count > 0;
-				
-			if (hasOrderBy)
+			try
 			{
-				this.PrependOrderings(select.OrderBy);
-			}
-				
-			var columns = select.Columns;
-			var orderings = canReceiveOrderings ? this.gatheredOrderings : select.OrderBy;
-			var canPassOnOrderings = this.outerCanReceiveOrderings && !hasGroupBy && !select.Distinct;
+				this.isOuterMostSelect = false;
 
-			if (this.gatheredOrderings != null)
-			{
-				if (canPassOnOrderings)
+				select = (SqlSelectExpression)base.VisitSelect(select);
+
+				var canHaveOrderBy = saveIsOuterMostSelect || select.Take != null || select.Skip != null;
+				var hasGroupBy = select.GroupBy?.Count > 0;
+				var canReceiveOrderings = canHaveOrderBy && !hasGroupBy && !select.Distinct && !SqlAggregateChecker.HasAggregates(select);
+
+				var hasOrderBy = select.OrderBy?.Count > 0;
+
+				if (hasOrderBy)
 				{
-					var producedAliases = SqlAliasesProduced.Gather(select.From);
-					var project = this.RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
-
-					this.gatheredOrderings = null;
-					this.PrependOrderings(project.Orderings);
-
-					columns = project.Columns;
+					this.PrependOrderings(select.OrderBy);
 				}
-				else
+
+				var columns = select.Columns;
+				var orderings = canReceiveOrderings ? this.gatheredOrderings : (canHaveOrderBy ? select.OrderBy : null);
+				var canPassOnOrderings = !saveIsOuterMostSelect && !hasGroupBy && !select.Distinct && (select.Take == null && select.Skip == null);
+
+				if (this.gatheredOrderings != null)
 				{
-					this.gatheredOrderings = null;
+					if (canPassOnOrderings)
+					{
+						var producedAliases = SqlAliasesProduced.Gather(select.From);
+						var project = this.RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
+
+						this.gatheredOrderings = null;
+						this.PrependOrderings(project.Orderings);
+
+						columns = project.Columns;
+					}
+					else
+					{
+						this.gatheredOrderings = null;
+					}
 				}
-			}
 
-			if (orderings != select.OrderBy || columns != select.Columns)
+				if (orderings != select.OrderBy || columns != select.Columns)
+				{
+					select = new SqlSelectExpression(select.Type, select.Alias, columns, select.From, select.Where, orderings, select.GroupBy, select.Distinct, select.Skip, select.Take, select.ForUpdate);
+				}
+
+				return select;
+			}
+			finally
 			{
-				select = new SqlSelectExpression(select.Type, select.Alias, columns, select.From, select.Where, orderings, select.GroupBy, select.Distinct, select.Skip, select.Take, select.ForUpdate);
+				this.isOuterMostSelect = saveIsOuterMostSelect;
 			}
-
-			return select;
 		}
 		
-		private void PrependOrderings(IEnumerable<SqlOrderByExpression> newOrderings)
+		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			if (newOrderings != null)
+			var left = this.VisitSource(join.Left);
+			var leftOrders = this.gatheredOrderings;
+			
+			this.gatheredOrderings = null;
+
+			var right = this.VisitSource(join.Right);
+			
+			this.PrependOrderings(leftOrders);
+			
+			var condition = this.Visit(join.JoinCondition);
+
+			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
 			{
-				if (this.gatheredOrderings == null)
+				return new SqlJoinExpression(join.Type, join.JoinType, left, right, condition);
+			}
+
+			return join;
+		}
+		
+		protected override Expression VisitSubquery(SqlSubqueryExpression subquery)
+		{
+			var saveOrderings = this.gatheredOrderings;
+			
+			this.gatheredOrderings = null;
+			var result = base.VisitSubquery(subquery);
+
+			this.gatheredOrderings = saveOrderings;
+
+			return result;
+		}
+
+		private void PrependOrderings(IReadOnlyList<SqlOrderByExpression> newOrderings)
+		{
+			if (newOrderings == null)
+			{
+				return;
+			}
+
+			if (this.gatheredOrderings == null)
+			{
+				this.gatheredOrderings = new List<SqlOrderByExpression>();
+			}
+
+			this.gatheredOrderings.InsertRange(0, newOrderings);
+
+			// Insert removing duplicates
+
+			var  unique = new HashSet<string>();
+			List<SqlOrderByExpression> newList = null;
+
+			for (var i = 0; i < this.gatheredOrderings.Count; i++) 
+			{
+				if (this.gatheredOrderings[i].Expression is SqlColumnExpression column)
 				{
-					this.gatheredOrderings = newOrderings;
-				}
-				else
-				{
-					if (!(this.gatheredOrderings is List<SqlOrderByExpression> orderExpressions))
+					var hash = column.AliasedName;
+
+					if (unique.Contains(hash))
 					{
-						this.gatheredOrderings = orderExpressions = new List<SqlOrderByExpression>(this.gatheredOrderings);
+						if (newList == null)
+						{
+							newList = new List<SqlOrderByExpression>(this.gatheredOrderings.Take(i));
+						}
+
+						continue;
 					}
-					orderExpressions.InsertRange(0, newOrderings);
+					else
+					{
+						unique.Add(hash);
+					}
 				}
+
+				newList?.Add(this.gatheredOrderings[i]);
+			}
+
+			if (newList != null)
+			{
+				this.gatheredOrderings = newList;
 			}
 		}
 
@@ -145,6 +216,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						}
 
 						var colName = column != null ? column.Name : "COL" + ordinal;
+						colName = GetAvailableColumnName(newColumns, colName);
 
 						newColumns.Add(new SqlColumnDeclaration(colName, ordering.Expression));
 						expr = new SqlColumnExpression(expr.Type, alias, colName);
@@ -155,6 +227,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			return new BindResult(existingColumns, newOrderings);
+		}
+
+		public static string GetAvailableColumnName(IList<SqlColumnDeclaration> columns, string baseName)
+		{
+			var n = 0;
+			var name = baseName;
+
+			while (columns.Any(col => col.Name == name))
+			{
+				name = baseName + (n++);
+			}
+
+			return name;
 		}
 
 		private class SqlAliasesProduced

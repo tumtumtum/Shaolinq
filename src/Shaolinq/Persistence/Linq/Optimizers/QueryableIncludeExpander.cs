@@ -8,6 +8,15 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
+	/// <summary>
+	/// Converts <c>queryable.Include(c => c.A.B) -> queryable.Select(c => c.IncludeDirect(d => d.A.B))</c>.
+	/// </summary>
+	/// <remarks>
+	/// Also converts nested includes calls into a single include call.
+	/// <code>
+	/// Include(c => c.Shops.Include(d => d.Toys.Include(e => e.Shop.Mall.Shops2))) -> Include(c => c.Shops.IncludedItems().Toys.IncludedItems().Shop.Mall.Shops2)
+	/// </code>
+	/// </remarks>
 	public class QueryableIncludeExpander
 		: SqlExpressionVisitor
 	{
@@ -19,7 +28,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if (constantExpression.Value is IQueryable queryable && queryable.Expression != constantExpression)
 			{
-				return this.Visit(queryable.Expression);
+				return Visit(queryable.Expression);
 			}
 
 			return base.VisitConstant(constantExpression);
@@ -32,7 +41,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		protected override Expression VisitLambda(LambdaExpression expression)
 		{
-			var body = this.Visit(expression.Body);
+			var body = Visit(expression.Body);
 
 			if (body == expression.Body)
 			{
@@ -50,6 +59,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return Expression.Lambda(expression.Type, body, expression.Parameters);
 		}
 
+		private bool alreadyInsideInclude = false;
+
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
 		{
 			if (methodCallExpression.Method.GetGenericMethodOrRegular() != MethodInfoFastRef.QueryableExtensionsIncludeMethod)
@@ -57,24 +68,53 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return base.VisitMethodCall(methodCallExpression);
 			}
 
-			var parameter = Expression.Parameter(methodCallExpression.Method.GetGenericArguments()[0]);
-			var currentIncludeSelector = this.Visit(methodCallExpression.Arguments[1]).StripQuotes();
+			var saveAlreadyInsideInclude = this.alreadyInsideInclude;
 
-			if (methodCallExpression.Arguments[0].Type.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+			this.alreadyInsideInclude = true;
+
+			try
 			{
-				var source = this.Visit(methodCallExpression.Arguments[0]);
-				var result = Expression.Call(MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), Expression.Call(TypeUtils.GetMethod(() => QueryableExtensions.IncludedItems<DataAccessObject>(null)).GetGenericMethodDefinition().MakeGenericMethod(source.Type.GetSequenceElementType()), source), currentIncludeSelector);
+				var parameter = Expression.Parameter(methodCallExpression.Method.GetGenericArguments()[0]);
+				var currentIncludeSelector = Visit(methodCallExpression.Arguments[1]).StripQuotes();
 
-				return result;
+				if (methodCallExpression.Arguments[0].Type.GetGenericTypeDefinitionOrNull() == typeof(RelatedDataAccessObjects<>))
+				{
+					var source = Visit(methodCallExpression.Arguments[0]);
+					var includedItems = Expression.Call(QueryableExtensions.IncludedItemsMethod.MakeGenericMethod(source.Type.GetSequenceElementType()), source);
+
+					if (saveAlreadyInsideInclude)
+					{
+						// Instead of (1) we unwrap and get (2) which ReferencedRelatedObjectPropertyGatherer can process
+						// (See: Test_Include_Two_Level_Of_Collections2)
+						//
+						// Include(c => c.Shops.Include(d => d.Toys.Include(e => e.Shop.Mall.Shops2)))
+						//
+						// 1) c.Shops.IncludedItems().IncludeDirect(d => d.Toys.IncludedItems().IncludeDirect(e => e.Shop.Mall.Shops2))
+						// 2) c.Shops.IncludedItems().Toys.IncludedItems().Shop.Mall.Shops2
+						var result = SqlExpressionReplacer.Replace(currentIncludeSelector.Body, currentIncludeSelector.Parameters[0], includedItems);
+						
+						return result;
+					}
+					else
+					{
+						var result = Expression.Call(MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), includedItems, currentIncludeSelector);
+
+						return result;
+					}
+				}
+				else
+				{
+					var body = Expression.Call(MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
+					var selector = Expression.Lambda(body, parameter);
+					var source = Visit(methodCallExpression.Arguments[0]);
+					var selectCall = Expression.Call(MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(parameter.Type, parameter.Type), source, selector);
+
+					return selectCall;
+				}
 			}
-			else
+			finally
 			{
-				var body = Expression.Call(MethodInfoFastRef.DataAccessObjectExtensionsIncludeMethod.MakeGenericMethod(parameter.Type, currentIncludeSelector.ReturnType), parameter, currentIncludeSelector);
-				var selector = Expression.Lambda(body, parameter);
-				var source = this.Visit(methodCallExpression.Arguments[0]);
-				var selectCall = Expression.Call(MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(parameter.Type, parameter.Type), source, selector);
-
-				return selectCall;
+				this.alreadyInsideInclude = saveAlreadyInsideInclude;
 			}
 		}
 	}
