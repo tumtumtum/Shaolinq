@@ -32,7 +32,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo QueryableExtensionsIncludeMethod = TypeUtils.GetMethod(() => default(IQueryable<DataAccessObject>).Include(c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessObjectExtensionsIncludeMethod = TypeUtils.GetMethod(() => (default(DataAccessObject)).IncludeDirect(c => c)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumParseMethod = TypeUtils.GetMethod(() => Enum.Parse(typeof(Enum), default(string)));
-		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(new object[0])).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyPropertiesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReferenceByPrimaryKeyProperties<DataAccessObject>(new object[0])).GetGenericMethodDefinition();
 		public static readonly MethodInfo GuidEqualsMethod = TypeUtils.GetMethod<Guid>(c => c.Equals(Guid.Empty));
 		public static readonly MethodInfo StringExtensionsIsLikeMethod = TypeUtils.GetMethod(() => string.Empty.IsLike(default(string)));
 		public static readonly MethodInfo ObjectToStringMethod = TypeUtils.GetMethod<object>(c => c.ToString());
@@ -57,7 +57,7 @@ namespace Shaolinq.TypeBuilding
 		public static readonly MethodInfo ObjectPropertyValueListAddMethod = TypeUtils.GetMethod<List<ObjectPropertyValue>>(c => c.Add(default(ObjectPropertyValue)));
 		public static readonly MethodInfo DataAccessModelGetReferenceMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject, int>(0, PrimaryKeyType.Composite)).GetGenericMethodDefinition();
 		public static readonly MethodInfo DataAccessModelGetDataAccessObjectsMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetDataAccessObjects<DataAccessObject>()).GetGenericMethodDefinition();
-		public static readonly MethodInfo DataAccessModelGetReferenceByValuesMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReference<DataAccessObject>(default(object[]))).GetGenericMethodDefinition();
+		public static readonly MethodInfo DataAccessModelGetReferenceByPrimaryKeyColumnsMethod = TypeUtils.GetMethod<DataAccessModel>(c => c.GetReferenceByPrimaryKeyColumns<DataAccessObject>(default(object[]))).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string>(null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo QueryableGroupByWithElementSelectorMethod = TypeUtils.GetMethod(() => default(IQueryable<object>).GroupBy<object, string, int>(default(Expression<Func<object, string>>), (Expression<Func<object, int>>)null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo TransactionContextGetCurrentContextVersion = TypeUtils.GetMethod(() => TransactionContext.GetCurrentTransactionContextVersion(default(DataAccessModel)));

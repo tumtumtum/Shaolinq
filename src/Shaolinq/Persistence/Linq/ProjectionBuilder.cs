@@ -398,7 +398,7 @@ namespace Shaolinq.Persistence.Linq
 				.OfType<MemberAssignment>()
 				.Select(c => (Expression)Expression.Convert(c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? this.ConvertColumnToDataReaderRead((SqlColumnExpression)c.Expression, c.Expression.Type.MakeNullable()) : this.Visit(c.Expression), typeof(object))).ToArray());
 
-			var method = MethodInfoFastRef.DataAccessModelGetReferenceByPrimaryKeyWithPrimaryKeyValuesMethod.MakeGenericMethod(sqlObjectReferenceExpression.Type);
+			var method = MethodInfoFastRef.DataAccessModelGetReferenceByPrimaryKeyPropertiesMethod.MakeGenericMethod(sqlObjectReferenceExpression.Type);
 
 			return Expression.Call(Expression.Property(this.objectProjector, nameof(ObjectProjector.DataAccessModel)), method, arrayOfValues);
 		}
@@ -422,7 +422,7 @@ namespace Shaolinq.Persistence.Linq
 				var columnExpression = (SqlColumnExpression)SqlExpressionFinder.FindFirst(where, c => c.NodeType == (ExpressionType)SqlExpressionType.Column);
 				var match = columns.Single(d => d.ColumnName == columnExpression.Name);
 
-				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByValuesMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
+				var reference = Expression.Call(Expression.Constant(this.dataAccessModel), MethodInfoFastRef.DataAccessModelGetReferenceByPrimaryKeyColumnsMethod.MakeGenericMethod(match.ForeignType.Type), Expression.NewArrayInit(typeof(object), values));
 				var property = typeDescriptor.GetRelationshipInfos().Single(c => c.ReferencingProperty == match.RootProperty).TargetProperty;
 
 				return Expression.Convert(Expression.Property(reference, property), this.dataAccessModel.GetConcreteTypeFromDefinitionType(property.PropertyType));

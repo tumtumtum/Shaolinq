@@ -2747,11 +2747,13 @@ namespace Shaolinq
 	using Shaolinq.Analytics;
 	using Shaolinq.Persistence;
 	using Shaolinq.TypeBuilding;
+	using Shaolinq.Persistence.Linq;
 	using Shaolinq.Persistence.Linq.Optimizers;
 	using global::Shaolinq;
 	using global::Shaolinq.Analytics;
 	using global::Shaolinq.Persistence;
 	using global::Shaolinq.TypeBuilding;
+	using global::Shaolinq.Persistence.Linq;
 	using global::Shaolinq.Persistence.Linq.Optimizers;
 
 	public partial class DataAccessModel

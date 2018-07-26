@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Platform;
 using Shaolinq.Analytics;
 using Shaolinq.Persistence;
+using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Optimizers;
 using Shaolinq.TypeBuilding;
 
@@ -42,10 +43,6 @@ namespace Shaolinq
 		#endregion
 
 		#region Nested Types
-		private class RawPrimaryKeysPlaceholderType<T>
-		{
-		}
-
 		private struct SqlDatabaseContextsInfo
 		{
 			public uint Count { get; set; }
@@ -77,7 +74,11 @@ namespace Shaolinq
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>> inflateAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>();
-		private Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>> propertyInfoAndValueGetterFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>();
+		private Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>> objectPropertyValuesByAnonymousKeyFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>();
+		private Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>> objectPropertyValuesByColumnValuesFuncByType = new Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>>();
+		private Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>> objectPropertyValuesByPrimaryKeyValuesFuncByType = new Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>>();
+		
+
 		internal readonly object hooksLock = new object();
 		
 		internal Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>> relatedDataAccessObjectsInitializeActionsCache = new Dictionary<TypeRelationshipInfo, Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced>>(TypeRelationshipInfoEqualityComparer.Default);
@@ -393,15 +394,23 @@ namespace Shaolinq
 			}
 		}
 
-		protected internal virtual T GetReference<T>(object[] primaryKeyValues)
+		protected internal virtual T GetReferenceByPrimaryKeyColumns<T>(object[] columnValues)
 			where T : DataAccessObject
 		{
-			var propertyValues = this.GetObjectPropertyValues<T>(primaryKeyValues);
+			var propertyValues = this.GetObjectPropertyValuesForPrimaryKeyColumns<T>(columnValues);
 
 			return this.GetReference<T>(propertyValues);
 		}
 
-		protected internal ObjectPropertyValue[] GetObjectPropertyValues<T>(object[] primaryKeyValues)
+		protected internal virtual T GetReferenceByPrimaryKeyProperties<T>(object[] primaryKeyValues)
+			where T : DataAccessObject
+		{
+			var propertyValues = this.GetObjectPropertyValuesForPrimaryKeyProperties<T>(primaryKeyValues);
+
+			return this.GetReference<T>(propertyValues);
+		}
+
+		protected internal ObjectPropertyValue[] GetObjectPropertyValuesForPrimaryKeyColumns<T>(object[] primaryKeyValues)
 		{
 			if (primaryKeyValues == null)
 			{
@@ -413,9 +422,77 @@ namespace Shaolinq
 				return null;
 			}
 
-			var objectTypeHandle = typeof(RawPrimaryKeysPlaceholderType<T>).TypeHandle;
+			var objectTypeHandle = typeof(T).TypeHandle;
 
-			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(objectTypeHandle, out var func))
+			if (!this.objectPropertyValuesByColumnValuesFuncByType.TryGetValue(objectTypeHandle, out var func))
+			{
+				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
+
+				var parameter = Expression.Parameter(typeof(object[]));
+				var constructor = ConstructorInfoFastRef.ObjectPropertyValueConstructor;
+
+				var index = 0;
+				var initializers = new List<Expression>();
+
+				foreach (var property in typeDescriptor.PrimaryKeyProperties)
+				{
+					Expression convertedValue;
+					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
+
+					if (property.PropertyType.IsDataAccessObjectType())
+					{
+						var columnInfos = QueryBinder.GetPrimaryKeyColumnInfos(this.TypeDescriptorProvider, property.PropertyTypeTypeDescriptor);
+						var args = new Expression[columnInfos.Length];
+
+						for (var i = 0; i < columnInfos.Length; i++)
+						{
+							args[i] = Expression.Convert(Expression.Constant(primaryKeyValues[index + i]), typeof(object));
+						}
+
+						index += columnInfos.Length;
+
+						convertedValue = Expression.Call(Expression.Constant(this), MethodInfoFastRef.DataAccessModelGetReferenceByPrimaryKeyColumnsMethod.MakeGenericMethod(property.PropertyType), Expression.NewArrayInit(typeof(object), args));
+					}
+					else
+					{
+						var valueExpression = Expression.Convert(Expression.ArrayIndex(parameter, Expression.Constant(index)), typeof(object));
+						
+						convertedValue = Expression.Call(MethodInfoFastRef.ConvertChangeTypeMethod, valueExpression, Expression.Constant(propertyInfo.PropertyType));
+					}
+
+					var newExpression = Expression.New(constructor, Expression.Constant(propertyInfo.PropertyType), Expression.Constant(property.PropertyName), Expression.Constant(property.PersistedName), Expression.Constant(property.PropertyName.GetHashCode()), convertedValue);
+
+					initializers.Add(newExpression);
+					index++;
+				}
+
+				var body = Expression.NewArrayInit(typeof(ObjectPropertyValue), initializers);
+
+				var lambdaExpression = Expression.Lambda(typeof(Func<object[], ObjectPropertyValue[]>), body, parameter);
+
+				func = (Func<object[], ObjectPropertyValue[]>)lambdaExpression.Compile();
+				
+				this.objectPropertyValuesByColumnValuesFuncByType = this.objectPropertyValuesByColumnValuesFuncByType.Clone(objectTypeHandle, func);
+			}
+
+			return func(primaryKeyValues);
+		}
+
+		protected internal ObjectPropertyValue[] GetObjectPropertyValuesForPrimaryKeyProperties<T>(object[] primaryKeyValues)
+		{
+			if (primaryKeyValues == null)
+			{
+				throw new ArgumentNullException(nameof(primaryKeyValues));
+			}
+
+			if (primaryKeyValues.All(c => c == null))
+			{
+				return null;
+			}
+
+			var objectTypeHandle = typeof(T).TypeHandle;
+
+			if (!this.objectPropertyValuesByPrimaryKeyValuesFuncByType.TryGetValue(objectTypeHandle, out var func))
 			{
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(typeof(T));
 
@@ -453,9 +530,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				var newPropertyInfoAndValueGetterFuncByType = this.propertyInfoAndValueGetterFuncByType.Clone(objectTypeHandle, func);
-
-				this.propertyInfoAndValueGetterFuncByType = newPropertyInfoAndValueGetterFuncByType;
+				this.objectPropertyValuesByPrimaryKeyValuesFuncByType = this.objectPropertyValuesByPrimaryKeyValuesFuncByType.Clone(objectTypeHandle, func);
 			}
 
 			return func(primaryKeyValues);
@@ -469,9 +544,9 @@ namespace Shaolinq
 			}
 
 			var idType = primaryKey.GetType();
-			var primaryKeyTypeHandle = Type.GetTypeHandle(primaryKey);
+			var primaryKeyTypeHandle = typeof(K).TypeHandle;
 
-			if (!this.propertyInfoAndValueGetterFuncByType.TryGetValue(primaryKeyTypeHandle, out var func))
+			if (!this.objectPropertyValuesByAnonymousKeyFuncByType.TryGetValue(primaryKeyTypeHandle, out var func))
 			{
 				var isSimpleKey = false;
 				var typeOfPrimaryKey = Type.GetTypeFromHandle(primaryKeyTypeHandle);
@@ -573,7 +648,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				this.propertyInfoAndValueGetterFuncByType = this.propertyInfoAndValueGetterFuncByType.Clone(primaryKeyTypeHandle, func);
+				this.objectPropertyValuesByAnonymousKeyFuncByType = this.objectPropertyValuesByAnonymousKeyFuncByType.Clone(primaryKeyTypeHandle, func);
 			}
 
 			return func(primaryKey);

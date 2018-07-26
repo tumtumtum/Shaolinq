@@ -1133,10 +1133,6 @@ namespace Shaolinq.Persistence.Linq
 			{
 				return this.BindStringMethod(methodCallExpression);
 			}
-			else if (methodCallExpression.Method.ReturnType.IsDataAccessObjectType())
-			{
-				return this.CreateObjectReference(methodCallExpression);
-			}
 			else if (methodCallExpression.Method == MethodInfoFastRef.ObjectEqualsMethod
 					 || methodCallExpression.Method.Name == "Equals" && methodCallExpression.Method.ReturnType == typeof(bool) && methodCallExpression.Arguments.Count == 1)
 			{

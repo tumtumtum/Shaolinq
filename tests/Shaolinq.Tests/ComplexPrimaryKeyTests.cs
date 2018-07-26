@@ -79,6 +79,58 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_GetReference_By_Complex_PrimaryKey_Columns()
+		{
+			var shop = this.model.GetReferenceByPrimaryKeyColumns<Shop>(new object[] { 1L, 1L, 1L, "Washington" });
+		}
+
+		[Test]
+		public void Test_Project_Included_Subcollection_Only1()
+		{
+			var results = this.model.Shops.Include(c => c.Toys).Select(c => new { c, c.Toys }).ToList();
+
+			Assert.IsTrue(results[0].Toys.HasItems);
+		}
+
+		[Test]
+		public void Test_Project_Included_Subcollection_Only2()
+		{
+			var results = this.model.Malls.Include(c => c.Shops).Select(c => new { c, c.Shops }).ToList();
+
+			Assert.IsTrue(results[0].Shops.HasItems);
+		}
+
+		[Test]
+		[Explicit("Not the most efficient yet")]
+		public void Test_Project_Included_Subcollection_Only3()
+		{
+			// Ideally we want to return a loaded shops collection rather than have it lazy loaded
+
+			var results = this.model.Shops.Include(c => c.Toys).Select(c => new { c.Toys }).ToList();
+
+			Assert.IsTrue(results[0].Toys.HasItems);
+
+			results = this.model.Shops.Select(c => new { c.Toys }).ToList();
+
+			Assert.IsTrue(results[0].Toys.HasItems);
+		}
+
+		[Test]
+		[Explicit("Not the most efficient yet")]
+		public void Test_Project_Included_Subcollection_Only4()
+		{
+			// Ideally we want to return a loaded shops collection rather than have it lazy loaded
+
+			var results = this.model.Malls.Include(c => c.Shops).Select(c => new { c.Shops }).ToList();
+
+			Assert.IsTrue(results[0].Shops.HasItems);
+
+			results = this.model.Malls.Select(c => new { c.Shops }).ToList();
+
+			Assert.IsTrue(results[0].Shops.HasItems);
+		}
+
+		[Test]
 		public void Test_Expression_Tree_Selector_With_And_Interface_Parameter_And_Generics1()
 		{
 			var tester = new SelectorTesterClass<Mall>(() => this.model.Malls);
@@ -89,6 +141,14 @@ namespace Shaolinq.Tests
 
 			Assert.IsTrue(s.Contains("JOIN"));
 			Assert.IsFalse(s.Contains("ObjectReference"));
+		}
+
+		[Test]
+		[Ignore("Not working")]
+		public void Test_Aggregate_Call_Should_Ignore_Include_Directives()
+		{
+			Assert.IsFalse(this.model.Malls.Select(c => c.Shops.Count()).ToString().Contains("LEFT JOIN"));
+			Assert.IsFalse(this.model.Malls.Include(c => c.Shops).Select(c => c.Shops.Count()).ToString().Contains("LEFT JOIN"));
 		}
 
 		[Test]
