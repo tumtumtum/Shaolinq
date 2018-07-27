@@ -131,6 +131,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			expression = SqlGroupByCollator.Collate(expression);
 			expression = SqlAggregateSubqueryRewriter.Rewrite(expression);
+			expression = SqlOrderByRewriter.Rewrite(expression);
 			expression = SqlUnusedColumnRemover.Remove(expression);
 			expression = SqlRedundantColumnRemover.Remove(expression);
 			expression = SqlRedundantSubqueryRemover.Remove(expression);
@@ -380,7 +381,7 @@ namespace Shaolinq.Persistence.Linq
 				var newBody = SqlConstantPlaceholderReplacer.Replace(aggr.Body, placeholderValuesParam);
 				executor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
 
-				newBody = ProjectionAsyncRewriter.Rewrite(newBody, cancellationToken);
+				newBody = SqlProjectionAsyncRewriter.Rewrite(newBody, cancellationToken);
 				asyncExecutor = SqlExpressionReplacer.Replace(newBody, aggr.Parameters[0], originalExecutor);
 			}
 

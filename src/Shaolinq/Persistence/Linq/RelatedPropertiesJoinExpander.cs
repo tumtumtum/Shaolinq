@@ -457,7 +457,7 @@ namespace Shaolinq.Persistence.Linq
 			var source = this.Visit(originalSource);
 			var sourceType = source.Type.GetGenericArguments()[0];
 
-			var result = ReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.Item2, c.Item1)).ToList(), forProjection);
+			var result = SqlReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.Item2, c.Item1)).ToList(), forProjection);
 
 			var memberAccessExpressionsNeedingJoins = result.ReferencedRelatedObjects;
 			var currentRootExpressionsByPath = result.RootExpressionsByPath;

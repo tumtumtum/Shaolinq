@@ -6,13 +6,13 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class AliasReferenceReplacer
+	public class SqlAliasReferenceReplacer
 		: SqlExpressionVisitor
 	{
 		private readonly string replacement;
 		private readonly Func<string, bool> oldAliasMatch;
 
-		private AliasReferenceReplacer(Func<string, bool> oldAliasMatch, string replacement)
+		private SqlAliasReferenceReplacer(Func<string, bool> oldAliasMatch, string replacement)
 		{
 			this.oldAliasMatch = oldAliasMatch;
 			this.replacement = replacement;
@@ -20,12 +20,12 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static Expression Replace(Expression expression, string oldAliasMatch, string replacement)
 		{
-			return new AliasReferenceReplacer(c => c == oldAliasMatch, replacement).Visit(expression);
+			return new SqlAliasReferenceReplacer(c => c == oldAliasMatch, replacement).Visit(expression);
 		}
 
 		public static Expression Replace(Expression expression, Func<string, bool> oldAliasMatch, string replacement)
 		{
-			return new AliasReferenceReplacer(oldAliasMatch, replacement).Visit(expression);
+			return new SqlAliasReferenceReplacer(oldAliasMatch, replacement).Visit(expression);
 		}
 
 		protected override Expression VisitColumn(SqlColumnExpression columnExpression)

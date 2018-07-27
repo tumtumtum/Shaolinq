@@ -6,19 +6,19 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class AggregateFinder
+	public class SqlAggregateFinder
 		: SqlExpressionVisitor
 	{
 		private readonly List<SqlAggregateExpression> aggregatesFound;
 		
-		private AggregateFinder()
+		private SqlAggregateFinder()
 		{
 			this.aggregatesFound = new List<SqlAggregateExpression>();
 		}
 
 		public static List<SqlAggregateExpression> Find(Expression expression)
 		{
-			var gatherer = new AggregateFinder();
+			var gatherer = new SqlAggregateFinder();
 
 			gatherer.Visit(expression);
 

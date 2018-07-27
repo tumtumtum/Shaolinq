@@ -17,10 +17,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// Include(c => c.Shops.Include(d => d.Toys.Include(e => e.Shop.Mall.Shops2))) -> Include(c => c.Shops.IncludedItems().Toys.IncludedItems().Shop.Mall.Shops2)
 	/// </code>
 	/// </remarks>
-	public class QueryableIncludeExpander
+	public class SqlIncludeExpander
 		: SqlExpressionVisitor
 	{
-		private QueryableIncludeExpander()
+		private SqlIncludeExpander()
 		{
 		}
 
@@ -36,7 +36,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static Expression Expand(Expression expression)
 		{
-			return new QueryableIncludeExpander().Visit(expression);
+			return new SqlIncludeExpander().Visit(expression);
 		}
 		
 		protected override Expression VisitLambda(LambdaExpression expression)

@@ -7,10 +7,10 @@ using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.Prop
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class IncludedPropertyInfoEqualityComparer
+	public class SqlIncludedPropertyInfoEqualityComparer
 		: IEqualityComparer<IncludedPropertyInfo>
 	{
-		public static readonly IncludedPropertyInfoEqualityComparer Default = new IncludedPropertyInfoEqualityComparer();
+		public static readonly SqlIncludedPropertyInfoEqualityComparer Default = new SqlIncludedPropertyInfoEqualityComparer();
 
 		public bool Equals(IncludedPropertyInfo x, IncludedPropertyInfo y)
 		{
@@ -29,7 +29,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		}
 	}
 
-	public struct ReferencedRelatedObjectPropertyGathererResults
+	public struct SqlReferencedRelatedObjectPropertyGathererResults
 	{
 		public Expression[] ReducedExpressions { get; set; }
 		public Dictionary<PropertyPath, Expression> RootExpressionsByPath { get; set; }

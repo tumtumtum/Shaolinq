@@ -12,7 +12,7 @@ using PropertyPath = Shaolinq.Persistence.Linq.ObjectPath<System.Reflection.Prop
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public  class ReferencedRelatedObjectPropertyGatherer
+	public  class SqlReferencedRelatedObjectPropertyGatherer
 		: SqlExpressionVisitor
 	{
 		private int nesting;
@@ -22,7 +22,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private readonly DataAccessModel model;
 		private ParameterExpression sourceParameterExpression;
 		private List<ReferencedRelatedObject> referencedRelatedObjects = new List<ReferencedRelatedObject>();
-		private readonly HashSet<IncludedPropertyInfo> includedPropertyInfos = new HashSet<IncludedPropertyInfo>(IncludedPropertyInfoEqualityComparer.Default);
+		private readonly HashSet<IncludedPropertyInfo> includedPropertyInfos = new HashSet<IncludedPropertyInfo>(SqlIncludedPropertyInfoEqualityComparer.Default);
 		private readonly Dictionary<PropertyPath, Expression> rootExpressionsByPath = new Dictionary<PropertyPath, Expression>(PropertyPathEqualityComparer.Default);
 		private readonly Dictionary<PropertyPath, ReferencedRelatedObject> results = new Dictionary<PropertyPath, ReferencedRelatedObject>(PropertyPathEqualityComparer.Default);
 		
@@ -30,9 +30,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			: IDisposable
 		{
 			private readonly bool savedDisableCompare;
-			private readonly ReferencedRelatedObjectPropertyGatherer gatherer;
+			private readonly SqlReferencedRelatedObjectPropertyGatherer gatherer;
 
-			public DisableCompareContext(ReferencedRelatedObjectPropertyGatherer gatherer)
+			public DisableCompareContext(SqlReferencedRelatedObjectPropertyGatherer gatherer)
 			{
 				this.gatherer = gatherer;
 				this.savedDisableCompare = gatherer.disableCompare;
@@ -50,16 +50,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return new DisableCompareContext(this);
 		}
 		
-		public ReferencedRelatedObjectPropertyGatherer(DataAccessModel model, ParameterExpression sourceParameterExpression, bool forProjection)
+		public SqlReferencedRelatedObjectPropertyGatherer(DataAccessModel model, ParameterExpression sourceParameterExpression, bool forProjection)
 		{
 			this.model = model;
 			this.sourceParameterExpression = sourceParameterExpression;
 			this.forProjection = forProjection;
 		}
 
-		public static ReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, IList<Tuple<ParameterExpression, Expression>> expressions, bool forProjection)
+		public static SqlReferencedRelatedObjectPropertyGathererResults Gather(DataAccessModel model, IList<Tuple<ParameterExpression, Expression>> expressions, bool forProjection)
 		{
-			var gatherer = new ReferencedRelatedObjectPropertyGatherer(model, null, forProjection);
+			var gatherer = new SqlReferencedRelatedObjectPropertyGatherer(model, null, forProjection);
 
 			var reducedExpressions = expressions.Select(c =>
 			{
@@ -67,7 +67,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return SqlExpressionReplacer.Replace(gatherer.Visit(c.Item2), d => d.StripItemsCalls());
 			}).ToArray();
 
-			return new ReferencedRelatedObjectPropertyGathererResults
+			return new SqlReferencedRelatedObjectPropertyGathererResults
 			{
 				ReducedExpressions = reducedExpressions,
 				ReferencedRelatedObjects = gatherer.results.Values.ToList(),

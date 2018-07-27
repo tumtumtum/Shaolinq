@@ -13,19 +13,19 @@ using ExpressionVisitor = Platform.Linq.ExpressionVisitor;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class ProjectionAsyncRewriter
+	public class SqlProjectionAsyncRewriter
 		: ExpressionVisitor
 	{
 		private readonly ParameterExpression cancellationToken;
 
-		private ProjectionAsyncRewriter(ParameterExpression cancellationToken)
+		private SqlProjectionAsyncRewriter(ParameterExpression cancellationToken)
 		{
 			this.cancellationToken = cancellationToken;
 		}
 
 		public static Expression Rewrite(Expression expression, ParameterExpression cancellationToken)
 		{
-			return new ProjectionAsyncRewriter(cancellationToken).Visit(expression);
+			return new SqlProjectionAsyncRewriter(cancellationToken).Visit(expression);
 		}
 		
 		private bool IsTaskType(Type type)

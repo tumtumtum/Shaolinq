@@ -8,13 +8,13 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class SubqueryRemover
+	public class SqlSubqueryRemover
 		: SqlExpressionVisitor
 	{
 		private readonly HashSet<SqlSelectExpression> selectsToRemove;
 		private readonly Dictionary<string, Dictionary<string, Expression>> columnsBySelectAliasByColumnName;
 
-		private SubqueryRemover(IEnumerable<SqlSelectExpression> selectsToRemove)
+		private SqlSubqueryRemover(IEnumerable<SqlSelectExpression> selectsToRemove)
 		{
 			this.selectsToRemove = new HashSet<SqlSelectExpression>(selectsToRemove);
 			
@@ -28,7 +28,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static SqlSelectExpression Remove(SqlSelectExpression outerSelect, IEnumerable<SqlSelectExpression> selectsToRemove)
 		{
-			return (SqlSelectExpression)new SubqueryRemover(selectsToRemove).Visit(outerSelect);
+			return (SqlSelectExpression)new SqlSubqueryRemover(selectsToRemove).Visit(outerSelect);
 		}
 
 		public static SqlProjectionExpression Remove(SqlProjectionExpression projection, params SqlSelectExpression[] selectsToRemove)
@@ -38,7 +38,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static SqlProjectionExpression Remove(SqlProjectionExpression projection, IEnumerable<SqlSelectExpression> selectsToRemove)
 		{
-			return (SqlProjectionExpression)new SubqueryRemover(selectsToRemove).Visit(projection);
+			return (SqlProjectionExpression)new SqlSubqueryRemover(selectsToRemove).Visit(projection);
 		}
 
 		protected override Expression VisitSelect(SqlSelectExpression select)

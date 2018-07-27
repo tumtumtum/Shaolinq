@@ -17,6 +17,9 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 	public class Building
 		: DataAccessObject<Guid>
 	{
+		[PersistedMember]
+		public virtual string Name { get; set; }
+
 		[RelatedDataAccessObjects(BackReferenceName = nameof(Shop.Building))]
 		public virtual RelatedDataAccessObjects<Shop> ShopsInBuilding { get; }
 	}

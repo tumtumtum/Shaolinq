@@ -46,8 +46,8 @@ namespace Shaolinq.Persistence.Linq
 			expression = SqlPredicateToWhereConverter.Convert(expression);
 			expression = SqlPropertyAccessToSelectAmender.Amend(expression);
 			expression = InterfaceAccessNormalizer.Normalize(dataAccessModel.TypeDescriptorProvider, expression);
-			expression = OrderByThenByCombiner.Combine(expression);
-			expression = QueryableIncludeExpander.Expand(expression);
+			expression = SqlOrderByThenByCombiner.Combine(expression);
+			expression = SqlIncludeExpander.Expand(expression);
 			var joinExpanderResults = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
 			expression = joinExpanderResults.ProcessedExpression;

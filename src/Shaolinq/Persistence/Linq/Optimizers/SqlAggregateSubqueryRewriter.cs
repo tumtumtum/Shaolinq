@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		private SqlAggregateSubqueryRewriter(Expression expr)
 		{
 			this.aggregateSubqueryInstances = new Dictionary<SqlAggregateSubqueryExpression, Expression>();
-			this.aggregateSubqueriesBySelectAlias = AggregateSubqueryFinder.Find(expr).OfType<SqlAggregateSubqueryExpression>().ToLookup(a => a.GroupByAlias);
+			this.aggregateSubqueriesBySelectAlias = SqlAggregateSubqueryFinder.Find(expr).OfType<SqlAggregateSubqueryExpression>().ToLookup(a => a.GroupByAlias);
 		}
 
 		public static Expression Rewrite(Expression expr)

@@ -28,7 +28,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			var table = (SqlTableExpression)projection.Select.From;
 			var alias = table.Alias;
-			var where = AliasReferenceReplacer.Replace(projection.Select.Where, alias, table.Name);
+			var where = SqlAliasReferenceReplacer.Replace(projection.Select.Where, alias, table.Name);
 			
 			return new SqlDeleteExpression(table, where);
 		}

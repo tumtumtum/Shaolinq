@@ -114,6 +114,9 @@
     <Reference Include="Platform.Xml.Serialization, Version=1.2.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\src\packages\Platform.Xml.Serialization.1.2.5\lib\net452\Platform.Xml.Serialization.dll</HintPath>
     </Reference>
+    <Reference Include="Shouldly, Version=3.0.0.0, Culture=neutral, PublicKeyToken=6042cbcb05cbc941, processorArchitecture=MSIL">
+      <HintPath>..\..\src\packages\Shouldly.3.0.0\lib\net451\Shouldly.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\src\packages\System.AppContext.4.3.0\lib\net46\System.AppContext.dll</HintPath>
@@ -208,6 +211,7 @@
     <Compile Include="ComplexPrimaryKeyModel\Mall.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Region.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Shop.cs" />
+    <Compile Include="ComplexIncludeTests.cs" />
     <Compile Include="ComplexPrimaryKeyTests.cs" />
     <Compile Include="ComplexUpdateTests.cs" />
     <Compile Include="ComputedExpressionParserTests.cs" />

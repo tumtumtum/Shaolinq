@@ -580,7 +580,7 @@ namespace Shaolinq
 					replacementPrimaryKeyValues = properties.ToDictionary
 					(
 						c => c.ComputedMemberAssignTarget.Name,
-						c => MemberAccessReplacer.Replace
+						c => SqlMemberAccessReplacer.Replace
 						(
 							c.ComputedMemberAssignmentValue,
 							c.PropertyInfo,

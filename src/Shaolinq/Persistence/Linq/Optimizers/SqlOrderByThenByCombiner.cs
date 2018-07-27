@@ -5,14 +5,14 @@ using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class OrderByThenByCombiner
+	public class SqlOrderByThenByCombiner
 		: SqlExpressionVisitor
 	{
 		private List<MethodCallExpression> currentThenBys;
 
 		public static Expression Combine(Expression expression)
 		{
-			return new OrderByThenByCombiner().Visit(expression);
+			return new SqlOrderByThenByCombiner().Visit(expression);
 		}
 
 		protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)

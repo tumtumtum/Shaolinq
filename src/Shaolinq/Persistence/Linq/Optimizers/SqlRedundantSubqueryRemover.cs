@@ -34,7 +34,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (redundantQueries != null)
 			{
-				select = SubqueryRemover.Remove(select, redundantQueries);
+				select = SqlSubqueryRemover.Remove(select, redundantQueries);
 			}
 
 			return select;
@@ -50,7 +50,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (redundantQueries != null)
 				{
-					projection = SubqueryRemover.Remove(projection, redundantQueries);
+					projection = SqlSubqueryRemover.Remove(projection, redundantQueries);
 				}
 			}
 
@@ -89,7 +89,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					this.CanMergeWithFrom(select);
 
 					// remove the redundant subquery
-					select = SubqueryRemover.Remove(select, fromSelect);
+					select = SqlSubqueryRemover.Remove(select, fromSelect);
 
 					// merge where expressions 
 					var where = select.Where;

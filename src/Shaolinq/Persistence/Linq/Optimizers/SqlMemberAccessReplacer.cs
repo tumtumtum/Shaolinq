@@ -5,13 +5,13 @@ using System.Reflection;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class MemberAccessReplacer
+	public class SqlMemberAccessReplacer
 		: SqlExpressionVisitor
 	{
 		private readonly MemberInfo member;
 		private readonly Expression replacement;
 
-		public MemberAccessReplacer(MemberInfo member, Expression replacement)
+		public SqlMemberAccessReplacer(MemberInfo member, Expression replacement)
 		{
 			this.member = member;
 			this.replacement = replacement;
@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		public static Expression Replace(Expression expression, MemberInfo member, Expression replacement)
 		{
-			return new MemberAccessReplacer(member, replacement).Visit(expression);
+			return new SqlMemberAccessReplacer(member, replacement).Visit(expression);
 		}
 
 		protected override Expression VisitMemberAccess(MemberExpression memberAccess)

@@ -5,20 +5,20 @@ using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
-	public class ExpressionCounter
+	public class SqlExpressionCounter
 		: SqlExpressionVisitor
 	{
 		private int count;
 		private readonly Predicate<Expression> isMatch;
 		
-		private ExpressionCounter(Predicate<Expression> isMatch)
+		private SqlExpressionCounter(Predicate<Expression> isMatch)
 		{
 			this.isMatch = isMatch;
 		}
 
 		public static int Count(Expression expression, Predicate<Expression> isMatch)
 		{
-			var finder = new ExpressionCounter(isMatch);
+			var finder = new SqlExpressionCounter(isMatch);
 
 			finder.Visit(expression);
 

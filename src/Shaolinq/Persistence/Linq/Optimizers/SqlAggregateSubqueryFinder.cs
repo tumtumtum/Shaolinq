@@ -9,19 +9,19 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// <summary>
 	/// Finds and returns all aggregates within an expression.
 	/// </summary>
-	public class AggregateSubqueryFinder
+	public class SqlAggregateSubqueryFinder
 		: SqlExpressionVisitor
 	{
 		private readonly List<Expression> aggregatesFound;
 		
-		private AggregateSubqueryFinder()
+		private SqlAggregateSubqueryFinder()
 		{
 			this.aggregatesFound = new List<Expression>();
 		}
 
 		public static List<Expression> Find(Expression expression)
 		{
-			var finder = new AggregateSubqueryFinder();
+			var finder = new SqlAggregateSubqueryFinder();
 
 			finder.Visit(expression);
 
