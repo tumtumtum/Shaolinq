@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Transactions;
 using log4net.Config;
 using NUnit.Framework;
@@ -44,6 +45,7 @@ namespace Shaolinq.Tests
 		protected DataAccessModelConfiguration CreateSqlServerConfiguration(string databaseName)
 		{
 			DataAccessModelConfiguration retval;
+			var databaseRegex = new Regex(@"(?:(?:Initial Catalog)|(?:Database))\s*=\s*([^;$]+)[;$]", RegexOptions.IgnoreCase);
 			var connectionString = Environment.GetEnvironmentVariable("SHAOLINQ_TESTS_SQLSERVER_CONNECTIONSTRING");
 
 			if (connectionString == null)
@@ -58,6 +60,15 @@ namespace Shaolinq.Tests
 			else
 			{
 				retval = SqlServerConfiguration.Create(connectionString);
+
+				if (!databaseRegex.IsMatch(connectionString))
+				{
+					connectionString = $"Database={databaseName};{connectionString}";
+				}
+				else
+				{
+					connectionString = databaseRegex.Replace(connectionString, $"Database={databaseName};");
+				}
 			}
 
 			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
