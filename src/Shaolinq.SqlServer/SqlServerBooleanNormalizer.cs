@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitAssign(SqlAssignExpression expression)
 		{
-			var newValue = this.Visit(expression.Value);
+			var newValue = Visit(expression.Value);
 
 			if (newValue != expression.Value)
 			{
@@ -71,7 +71,7 @@ namespace Shaolinq.SqlServer
 		{
 			if (unaryExpression.NodeType == ExpressionType.Not && unaryExpression.Type.GetUnwrappedNullableType() == typeof(bool))
 			{
-				var operand = this.Visit(unaryExpression.Operand);
+				var operand = Visit(unaryExpression.Operand);
 
 				if (operand is BitBooleanExpression)
 				{
@@ -82,7 +82,7 @@ namespace Shaolinq.SqlServer
 				&& unaryExpression.Type.GetUnwrappedNullableType() == typeof(bool)
 				&& unaryExpression.Operand.Type.GetUnwrappedNullableType() != typeof(bool))
 			{
-				var operand = this.Visit(unaryExpression.Operand);
+				var operand = Visit(unaryExpression.Operand);
 
 				if (operand is BitBooleanExpression)
 				{
@@ -101,8 +101,8 @@ namespace Shaolinq.SqlServer
 				 || binaryExpression.NodeType == ExpressionType.AndAlso)
 				&& binaryExpression.Type.GetUnwrappedNullableType() == typeof(bool))
 			{
-				var left = this.Visit(binaryExpression.Left);
-				var right = this.Visit(binaryExpression.Right);
+				var left = Visit(binaryExpression.Left);
+				var right = Visit(binaryExpression.Right);
 
 				if (left.Type.GetUnwrappedNullableType() == typeof(bool) && (left is BitBooleanExpression))
 				{
@@ -119,7 +119,7 @@ namespace Shaolinq.SqlServer
 					return Expression.MakeBinary(binaryExpression.NodeType, left, right);
 				}
 
-				var expression = this.Visit(binaryExpression.Conversion);
+				var expression = Visit(binaryExpression.Conversion);
 
 				if (left == binaryExpression.Left && right == binaryExpression.Right && expression == binaryExpression.Conversion)
 				{
@@ -141,9 +141,9 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
 		{
-			var test = this.Visit(expression.Test);
-			var ifFalse = this.Visit(expression.IfFalse);
-			var ifTrue = this.Visit(expression.IfTrue);
+			var test = Visit(expression.Test);
+			var ifFalse = Visit(expression.IfFalse);
+			var ifTrue = Visit(expression.IfTrue);
 
 			if (test is BitBooleanExpression)
 			{
@@ -172,9 +172,9 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			var left = this.Visit(join.Left);
-			var right = this.Visit(join.Right);
-			var condition = this.Visit(join.JoinCondition);
+			var left = Visit(join.Left);
+			var right = Visit(join.Right);
+			var condition = Visit(join.JoinCondition);
 
 			if (condition?.Type.GetUnwrappedNullableType() == typeof(bool) && condition is BitBooleanExpression)
 			{
@@ -197,7 +197,7 @@ namespace Shaolinq.SqlServer
 		    for (var i = 0; i < count; i++)
 		    {
 		        var column = selectExpression.Columns[i];
-		        var visitedColumnExpression = this.Visit(column.Expression);
+		        var visitedColumnExpression = Visit(column.Expression);
 
 		        if (visitedColumnExpression.Type.GetUnwrappedNullableType() == typeof(bool) && !(visitedColumnExpression is BitBooleanExpression))
 		        {
@@ -226,12 +226,12 @@ namespace Shaolinq.SqlServer
 		        }
 		    }
 
-		    var from = this.VisitSource(selectExpression.From);
-			var where = this.Visit(selectExpression.Where);
-			var orderBy = this.VisitExpressionList(selectExpression.OrderBy);
-			var groupBy = this.VisitExpressionList(selectExpression.GroupBy);
-			var skip = this.Visit(selectExpression.Skip);
-			var take = this.Visit(selectExpression.Take);
+		    var from = VisitSource(selectExpression.From);
+			var where = Visit(selectExpression.Where);
+			var orderBy = VisitExpressionList(selectExpression.OrderBy);
+			var groupBy = VisitExpressionList(selectExpression.GroupBy);
+			var skip = Visit(selectExpression.Skip);
+			var take = Visit(selectExpression.Take);
 			
 			if (where is BitBooleanExpression)
 			{

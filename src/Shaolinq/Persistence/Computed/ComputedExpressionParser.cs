@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -55,9 +55,9 @@ namespace Shaolinq.Persistence.Computed
 
 		protected virtual LambdaExpression Parse()
 		{
-			this.Consume();
+			Consume();
 
-			var body = this.ParseExpression();
+			var body = ParseExpression();
 
 			if (body == null)
 			{
@@ -76,19 +76,19 @@ namespace Shaolinq.Persistence.Computed
 
 		protected virtual Expression ParseExpression()
 		{
-			return this.ParseAssignment();
+			return ParseAssignment();
 		}
 
 		protected Expression ParseAssignment()
 		{
-			var leftOperand = this.ParseAndOr();
+			var leftOperand = ParseAndOr();
 			var retval = leftOperand;
 
 			while (this.token == ComputedExpressionToken.Assign)
 			{
-				this.Consume();
+				Consume();
 
-				var rightOperand = this.ParseAndOr();
+				var rightOperand = ParseAndOr();
 
 				if (rightOperand.Type != retval.Type)
 				{
@@ -103,18 +103,18 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseAndOr()
 		{
-			var leftOperand = this.ParseNullCoalescing();
+			var leftOperand = ParseNullCoalescing();
 			var retval = leftOperand;
 
 			while (this.token == ComputedExpressionToken.LogicalAnd || this.token == ComputedExpressionToken.LogicalOr)
 			{
 				var operationToken = this.token;
 
-				this.Consume();
+				Consume();
 
-				var rightOperand = this.ParseNullCoalescing();
+				var rightOperand = ParseNullCoalescing();
 
-				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
+				NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				if (operationToken == ComputedExpressionToken.LogicalAnd)
 				{
@@ -133,28 +133,28 @@ namespace Shaolinq.Persistence.Computed
 		{
 			if (this.token == ComputedExpressionToken.Subtract)
 			{
-				this.Consume();
+				Consume();
 
-				return Expression.Multiply(Expression.Constant(-1), this.ParseOperand());
+				return Expression.Multiply(Expression.Constant(-1), ParseOperand());
 			}
 
-			return this.ParseOperand();
+			return ParseOperand();
 		}
 
 		protected Expression ParseComparison()
 		{
-			var leftOperand = this.ParseAddOrSubtract();
+			var leftOperand = ParseAddOrSubtract();
 			var retval = leftOperand;
 
 			while (this.token >= ComputedExpressionToken.CompareStart && this.token <= ComputedExpressionToken.CompareEnd)
 			{
 				var operationToken = this.token;
 
-				this.Consume();
+				Consume();
 
-				var rightOperand = this.ParseAddOrSubtract();
+				var rightOperand = ParseAddOrSubtract();
 
-				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
+				NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				switch (operationToken)
 				{
@@ -184,14 +184,14 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseNullCoalescing()
 		{
-			var leftOperand = this.ParseComparison();
+			var leftOperand = ParseComparison();
 			var retval = leftOperand;
 
 			if (this.token == ComputedExpressionToken.DoubleQuestionMark)
 			{
-				this.Consume();
+				Consume();
 
-				var rightOperand = this.ParseComparison();
+				var rightOperand = ParseComparison();
 
 				return Expression.Coalesce(leftOperand, rightOperand);
 			}
@@ -270,18 +270,18 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseAddOrSubtract()
 		{
-			var leftOperand = this.ParseMultiplyOrDivide();
+			var leftOperand = ParseMultiplyOrDivide();
 			var retval = leftOperand;
 
 			while (this.token == ComputedExpressionToken.Add || this.token == ComputedExpressionToken.Subtract)
 			{
 				var operationToken = this.token;
 
-				this.Consume();
+				Consume();
 
-				var rightOperand = this.ParseMultiplyOrDivide();
+				var rightOperand = ParseMultiplyOrDivide();
 
-				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
+				NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				if (operationToken == ComputedExpressionToken.Add)
 				{
@@ -292,7 +292,7 @@ namespace Shaolinq.Persistence.Computed
 					retval = Expression.Subtract(leftOperand, rightOperand);
 				}
 
-				this.Consume();
+				Consume();
 			}
 			
 			return retval;
@@ -300,18 +300,18 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseMultiplyOrDivide()
 		{
-			var leftOperand = this.ParseUnary();
+			var leftOperand = ParseUnary();
 			var retval = leftOperand;
 
 			while (this.token == ComputedExpressionToken.Multiply || this.token == ComputedExpressionToken.Divide || this.token == ComputedExpressionToken.Modulo)
 			{
 				var operationToken = this.token;
 
-				this.Consume();
+				Consume();
 
-				var rightOperand = this.ParseUnary();
+				var rightOperand = ParseUnary();
 
-				this.NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
+				NormalizeOperandsForArithmatic(ref leftOperand, ref rightOperand);
 
 				switch (operationToken)
 				{
@@ -340,7 +340,7 @@ namespace Shaolinq.Persistence.Computed
 
 		protected Expression ParseMethodCall(Expression target, string methodName)
 		{
-			this.Consume();
+			Consume();
 			var arguments = new List<Expression>();
 
 			while (true)
@@ -350,13 +350,13 @@ namespace Shaolinq.Persistence.Computed
 					break;
 				}
 
-				var argument = this.ParseExpression();
+				var argument = ParseExpression();
 
 				arguments.Add(argument);
 
 				if (this.token == ComputedExpressionToken.Comma)
 				{
-					this.Consume();
+					Consume();
 
 					continue;
 				}
@@ -368,13 +368,13 @@ namespace Shaolinq.Persistence.Computed
 				break;
 			}
 
-			this.Consume();
+			Consume();
 
 			if (target.NodeType == ExpressionType.Constant && target.Type == typeof(TypeHolder))
 			{
 				var type = ((target as ConstantExpression).Value as TypeHolder).Type;
 
-				var method = this.FindMatchingMethod(type, methodName, arguments.Select(c => c.Type).ToArray(), true);
+				var method = FindMatchingMethod(type, methodName, arguments.Select(c => c.Type).ToArray(), true);
 
 				if (method == null)
 				{
@@ -385,7 +385,7 @@ namespace Shaolinq.Persistence.Computed
 			}
 			else
 			{
-				var method = this.FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), false);
+				var method = FindMatchingMethod(target.Type, methodName, arguments.Select(c => c.Type).ToArray(), false);
 
 				if (method == null)
 				{
@@ -486,11 +486,11 @@ namespace Shaolinq.Persistence.Computed
 		{
 			if (this.token == ComputedExpressionToken.LeftParen)
 			{
-				this.Consume();
+				Consume();
 
-				var retval = this.ParseExpression();
+				var retval = ParseExpression();
 
-				this.Expect(ComputedExpressionToken.RightParen);
+				Expect(ComputedExpressionToken.RightParen);
 
 				return retval;
 			}
@@ -501,29 +501,29 @@ namespace Shaolinq.Persistence.Computed
 			if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@this)
 			{
 				current = this.targetObject;
-				this.Consume();
+				Consume();
 
 				if (this.token == ComputedExpressionToken.Period)
 				{
-					this.Consume();
+					Consume();
 				}
 			}
 			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@true)
 			{
-				this.Consume();
+				Consume();
 
 				return Expression.Constant(true);
 			}
 			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@false)
 			{
-				this.Consume();
+				Consume();
 
 				return Expression.Constant(false);
 			}
 
 			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@null)
 			{
-				this.Consume();
+				Consume();
 
 				return Expression.Constant(null);
 			}
@@ -534,13 +534,13 @@ namespace Shaolinq.Persistence.Computed
 				{
 					var identifier = this.tokenizer.CurrentIdentifier;
 
-					this.Consume();
+					Consume();
 
 					if (this.token == ComputedExpressionToken.LeftParen)
 					{
 						current = current ?? this.targetObject;
 
-						current = this.ParseMethodCall(current, identifier);
+						current = ParseMethodCall(current, identifier);
 					}
 					else
 					{
@@ -591,7 +591,7 @@ namespace Shaolinq.Persistence.Computed
 								fullIdentifierName += (fullIdentifierName == "" ? "" : ".") + identifierStack.First();
 							}
 
-							if (this.TryGetType(fullIdentifierName, out var type))
+							if (TryGetType(fullIdentifierName, out var type))
 							{
 								current = Expression.Constant(new TypeHolder(type));
 							}
@@ -607,7 +607,7 @@ namespace Shaolinq.Persistence.Computed
 
 					if (this.token == ComputedExpressionToken.Period)
 					{
-						this.Consume();
+						Consume();
 
 						if (this.token != ComputedExpressionToken.Identifier)
 						{
@@ -631,15 +631,15 @@ namespace Shaolinq.Persistence.Computed
 			switch (this.token)
 			{
 			case ComputedExpressionToken.IntegerLiteral:
-				this.Consume();
+				Consume();
 
 				return Expression.Constant(multiplier * (int)this.tokenizer.CurrentInteger);
 			case ComputedExpressionToken.LongLiteral:
-				this.Consume();
+				Consume();
 
 				return Expression.Constant(multiplier * this.tokenizer.CurrentInteger);
 			case ComputedExpressionToken.StringLiteral:
-				this.Consume();
+				Consume();
 
 				return Expression.Constant(this.tokenizer.CurrentString);
 			default:

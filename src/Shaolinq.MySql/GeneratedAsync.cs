@@ -43,7 +43,7 @@ namespace Shaolinq.MySql
 {
 #pragma warning disable
 	using System;
-	// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+	// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Threading.Tasks;
@@ -72,7 +72,7 @@ namespace Shaolinq.MySql
 					{
 						var formatResult = formatter.Format(current);
 						command.CommandText = formatResult.CommandText;
-						this.FillParameters(command, formatResult);
+						FillParameters(command, formatResult);
 						await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken, true).ConfigureAwait(false);
 					}
 				}

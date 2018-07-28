@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ namespace Shaolinq
 		public bool HasItems => this.values != null;
 		public LambdaExpression Condition { get; protected set; }
 		public IDataAccessObjectAdvanced RelatedDataAccessObject { get; }
-		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => this.Create();
+		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create() => Create();
 		public Action<IDataAccessObjectAdvanced, IDataAccessObjectAdvanced> InitializeDataAccessObject { get; }
 		
 		public RelatedDataAccessObjects(DataAccessModel dataAccessModel, IDataAccessObjectAdvanced parentDataAccessObject, string parentPropertyName)
@@ -32,8 +32,8 @@ namespace Shaolinq
 			var parentType = this.DataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentDataAccessObject.GetType()));
 			this.relationshipInfo = parentType.GetRelationshipInfos().Single(c => c.ReferencingProperty.PropertyName == parentPropertyName);
 
-			this.Condition = this.CreateJoinCondition(this.relationshipInfo.TargetProperty);
-			this.InitializeDataAccessObject = this.GetInitializeRelatedMethod(parentType, this.relationshipInfo.TargetProperty);
+			this.Condition = CreateJoinCondition(this.relationshipInfo.TargetProperty);
+			this.InitializeDataAccessObject = GetInitializeRelatedMethod(parentType, this.relationshipInfo.TargetProperty);
 		}
 
 		private IReadOnlyList<T> AssertValues(ref string error)
@@ -151,19 +151,19 @@ namespace Shaolinq
 
 				if (value != null)
 				{
-					this.AddIfNotExist(value);
+					AddIfNotExist(value);
 				}
 			}
 			else if (this.values.Count > 0)
 			{
 				if (value != null)
 				{
-					this.AddIfNotExist(value);
+					AddIfNotExist(value);
 				}
 			}
 			else if (value != null)
 			{
-				this.AddIfNotExist(value);
+				AddIfNotExist(value);
 			}
 		}
 

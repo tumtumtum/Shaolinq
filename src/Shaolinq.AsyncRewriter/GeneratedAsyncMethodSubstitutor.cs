@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -41,9 +41,9 @@ namespace Shaolinq.AsyncRewriter
 			if (result.Symbol == null)
 			{
 				var newNode = node.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(node.ArgumentList.Arguments
-						.Where(c => this.GetArgumentType(c) != this.cancellationTokenSymbol))));
+						.Where(c => GetArgumentType(c) != this.cancellationTokenSymbol))));
 
-				var visited = this.Visit(node.Expression);
+				var visited = Visit(node.Expression);
 
 				if (visited is MemberAccessExpressionSyntax)
 				{
@@ -95,8 +95,8 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			return node
-					.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
-					.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
+					.WithExpression((ExpressionSyntax)Visit(node.Expression))
+					.WithArgumentList((ArgumentListSyntax)VisitArgumentList(node.ArgumentList));
 		}
 
 		protected override ExpressionSyntax InspectExpression(InvocationExpressionSyntax node, int cancellationTokenPos, IMethodSymbol candidate, bool explicitExtensionMethodCall, int candidateCount)

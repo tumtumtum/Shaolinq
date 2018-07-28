@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -45,7 +45,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if (this.selectsToRemove.Contains(select))
 			{
-				return this.Visit(select.From);
+				return Visit(select.From);
 			}
 			else
 			{
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				if (columnsByName.TryGetValue(column.Name, out var expr))
 				{
-					return this.Visit(expr);
+					return Visit(expr);
 				}
 
 				throw new InvalidOperationException("Reference to undefined column: " + column.AliasedName);

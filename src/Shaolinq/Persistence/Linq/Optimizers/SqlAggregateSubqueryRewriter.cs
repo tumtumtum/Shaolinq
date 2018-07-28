@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return mapped;
 			}
 
-			return this.Visit(aggregate.AggregateAsSubquery);
+			return Visit(aggregate.AggregateAsSubquery);
 		}
 	}
 }

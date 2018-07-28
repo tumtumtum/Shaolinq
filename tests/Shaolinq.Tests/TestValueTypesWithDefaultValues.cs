@@ -1,9 +1,9 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
-using System.Linq;
 
 namespace Shaolinq.Tests
 {

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -87,13 +87,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			this.ignoreSet.Add(join.Left);
 			this.ignoreSet.Add(join.Right);
 
-			var left = this.Visit(join.Left);
-			var right = this.Visit(join.Right);
+			var left = Visit(join.Left);
+			var right = Visit(join.Right);
 
 			this.ignoreSet.Remove(join.Left);
 			this.ignoreSet.Remove(join.Right);
 
-			var condition = this.Visit(join.JoinCondition);
+			var condition = Visit(join.JoinCondition);
 
 			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
 			{

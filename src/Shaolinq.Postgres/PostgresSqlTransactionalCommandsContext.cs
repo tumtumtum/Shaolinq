@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data;
@@ -28,7 +28,7 @@ namespace Shaolinq.Postgres
 
 			this.preparedTransactionName = Guid.NewGuid().ToString("N");
 
-			using (var command = this.CreateCommand())
+			using (var command = CreateCommand())
 			{
 				command.CommandText = $"PREPARE TRANSACTION '{this.preparedTransactionName}';";
 				command.ExecuteNonQuery();
@@ -42,7 +42,7 @@ namespace Shaolinq.Postgres
 		{
 			if (this.preparedTransactionName != null)
 			{
-				using (var command = this.CreateCommand())
+				using (var command = CreateCommand())
 				{
 					command.CommandText = $"COMMIT PREPARED '{this.preparedTransactionName}';";
 					command.ExecuteNonQueryEx(this.DataAccessModel);
@@ -57,7 +57,7 @@ namespace Shaolinq.Postgres
 		{
 			if (this.preparedTransactionName != null)
 			{
-				using (var command = this.CreateCommand())
+				using (var command = CreateCommand())
 				{
 					command.CommandText = $"ROLLBACK PREPARED '{this.preparedTransactionName}';";
 					command.ExecuteNonQueryEx(this.DataAccessModel);

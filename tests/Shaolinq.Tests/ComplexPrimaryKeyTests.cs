@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -199,7 +199,7 @@ namespace Shaolinq.Tests
 		[OneTimeSetUp]
 		public void SetUpFixture()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var region = this.model.Regions.Create();
 				region.Name = "Washington";
@@ -306,7 +306,7 @@ namespace Shaolinq.Tests
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
 			var query = from mall in malls
-				join r in this.GetAllRegions(false) on mall.Address.Region2 equals r
+				join r in GetAllRegions(false) on mall.Address.Region2 equals r
 				select new { mall, r };
 
 			var result = query.ToList();
@@ -318,7 +318,7 @@ namespace Shaolinq.Tests
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
 			var query = from mall in malls
-						join r in this.GetAllRegions(false) on mall.Address.Region.Id equals r.Id
+						join r in GetAllRegions(false) on mall.Address.Region.Id equals r.Id
 						select new { mall, r };
 
 			var result = query.ToList();
@@ -330,7 +330,7 @@ namespace Shaolinq.Tests
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
 			var query = from mall in malls
-						join r in this.GetAllRegions(false) on mall.Address.Region equals r
+						join r in GetAllRegions(false) on mall.Address.Region equals r
 						select new { mall, r };
 
 			var result = query.ToList();
@@ -342,7 +342,7 @@ namespace Shaolinq.Tests
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
 			var query = from mall in malls
-						join r in this.GetAllRegions(false) on mall.Address.Region2 equals r
+						join r in GetAllRegions(false) on mall.Address.Region2 equals r
 						select new { mall, r };
 
 			var result = query.ToList();
@@ -354,7 +354,7 @@ namespace Shaolinq.Tests
 			var malls = this.model.Malls.Where(c => c.Name != null);
 
 			var query = from mall in malls
-						join r in this.GetAllRegions(false) on mall.Address.Region2.Id equals r.Id
+						join r in GetAllRegions(false) on mall.Address.Region2.Id equals r.Id
 						select new { mall, r };
 
 			var result = query.ToList();
@@ -379,7 +379,7 @@ namespace Shaolinq.Tests
 			var malls = this.model.Malls;
 
 			var query = from mall in malls
-						from address in this.GetAllAddresses(false)
+						from address in GetAllAddresses(false)
 						where mall.Address.Region == address.Region
 						select new { mall, address };
 
@@ -419,7 +419,7 @@ namespace Shaolinq.Tests
 			long region0, region1, region2;
 			long address0, address1, address2;
 			
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mall = this.model.Malls.Create();
 				var superMall = this.model.SuperMalls.Create();
@@ -452,7 +452,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var address = this.model.Addresses.GetReference(new { Id = address0, Region = new { Id = region0, Name = "!RegionName0" } });
 
@@ -480,7 +480,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Set_NullableDate()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
 
@@ -489,7 +489,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
 
@@ -500,7 +500,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.FirstOrDefault(c => c.Name == "Microsoft Store");
 
@@ -632,7 +632,7 @@ namespace Shaolinq.Tests
 					address2
 				};
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var first = query.First();
 
@@ -692,7 +692,7 @@ namespace Shaolinq.Tests
 					address5
 				};
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var first = query.First();
 
@@ -1113,7 +1113,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Explicit_Complex1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var objs = from toy in this.model.Toys.Where(c => c.Missing != null).OrderBy(c => c.Name)
 						   join child in this.model.Children.Where(c => c.Nickname != null) on toy.Owner equals child
@@ -1133,7 +1133,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Explicit_Complex2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var objs = from toy in this.model.GetDataAccessObjects<Toy>().Where(c => c.Missing != null).OrderBy(c => c.Name)
 						   join child in this.model.GetDataAccessObjects<Child>().Where(c => c.Nickname != null) on toy.Owner equals child
@@ -1153,7 +1153,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Explicit_Join_Select_Then_GroupBy()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -1174,7 +1174,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Explicit_Join_On_GroupBy()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -1196,7 +1196,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_On_GroupBy1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -1213,7 +1213,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_On_GroupBy2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops.GroupBy(c => c.Address.Street, c => new { Number = 1, Key = c.Address });
 
@@ -1224,7 +1224,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_On_OrderBy()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -1240,7 +1240,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_On_OrderBy_Project_Related_Property()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -1257,7 +1257,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_On_OrderBy_Project_Simple()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -1273,7 +1273,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Where_Join_Not_Primary_Key1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -1292,7 +1292,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_And_Has_Property_With_Null_Value()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street");
@@ -1306,7 +1306,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Property_With_Null_Value()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
@@ -1321,7 +1321,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_In_Where_Then_Select_Single_Property()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
@@ -1334,7 +1334,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_In_Where_Then_Project()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
@@ -1383,7 +1383,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Twin_Implicit_Join_In_Where_Then_Project()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Name != "" && c.OpeningDate > new DateTime())
@@ -1400,7 +1400,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_From_Projection()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Select(c => new { shop = c, region = c.Address.Region, region2 = c.SecondAddress.Region })
@@ -1413,7 +1413,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_In_Where_Then_Project_Anonymous()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
@@ -1426,7 +1426,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_One_Select1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model
 					.Shops
@@ -1443,7 +1443,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_One_Select2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model
 					.Shops
@@ -1462,7 +1462,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_With_Same_Property_Sub_Property_Before()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 #pragma warning disable CS0472 // The result of the expression is always the same since a value of this type is never equal to 'null'
 				var query = this.model.Shops
@@ -1480,7 +1480,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_With_Same_Property_Before()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.SecondAddress != null)
@@ -1496,7 +1496,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_With_Same_Property_Afterwards()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Include(c => c.SecondAddress)
@@ -1512,7 +1512,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_With_Parent_Value_Afterwards()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Include(c => c.SecondAddress)
@@ -1528,7 +1528,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_With_Different_Object_Property_Afterwards()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address != null && c.Id == this.shopId)
@@ -1544,7 +1544,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_Complex_Key_Is_Not_Null()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address != null);
@@ -1559,7 +1559,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_Complex_Key_Is_Null()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address == null);
@@ -1573,7 +1573,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Where_With_Different_Property_Afterwards()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1591,7 +1591,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Two_Different_Selects()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1609,7 +1609,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Two_Different_QuerableIncludes()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Region.Name == "Washington")
@@ -1627,7 +1627,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_With_Two_Different_QuerableIncludes_Same_Property()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Select(c => c.IncludeDirect(d => d.Address))
@@ -1643,7 +1643,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Sample_Property_Twice()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops.Where(c => c.Address.Region.Name == "Washington")
 					.Include(c => c.Address)
@@ -1658,7 +1658,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Where_Join_Multiple_Depths_Not_Primary_Key()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -1677,7 +1677,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Related_Object()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -1692,7 +1692,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject_Two_Levels()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = from
 					shop in this.model.Shops
@@ -1711,7 +1711,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Two_Implicit_Joins_At_Nested_Levels()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Select(c => new { c.Address, c.Address.Region });
@@ -1723,7 +1723,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Two_Implicit_Joins_At_Same_Level()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Select(c => new
@@ -1739,7 +1739,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Implicit_Join_On_RelatedObject_And_Other_Related_Object_Of_Same_Type1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street" && c.SecondAddress.Street == "Jefferson Avenue")
@@ -1756,7 +1756,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Implicit_Join_On_RelatedObject_And_Other_Related_Object_Of_Same_Type2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street" )
@@ -1774,7 +1774,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Implicit_Join_On_RelatedObject_And_Other_Related_Object_Of_Same_Type3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Address.Street == "Madison Street")
@@ -1793,7 +1793,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1810,7 +1810,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_Off_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = (from  mall  in this.model.Malls
 							join shop in this.model.Shops on mall equals shop.Mall
@@ -1826,7 +1826,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_Collection_Off_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = (from  mall  in this.model.Malls
 							join shop in this.model.Shops on mall equals shop.Mall
@@ -1842,7 +1842,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Select_Anon()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Malls.Include(c => c.Address).Select(c => new { c.Address.Number }).ToList();
 			}
@@ -1851,7 +1851,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_NP1_Query()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mall = this.model.Malls.First();
 
@@ -1862,7 +1862,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1879,7 +1879,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1896,7 +1896,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects_Via_Pair1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1914,7 +1914,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_And_Include_RelatedObjects_Via_Pair2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1932,7 +1932,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1948,7 +1948,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject2a1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -1977,7 +1977,7 @@ namespace Shaolinq.Tests
 				})
 			};
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2002,7 +2002,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject2a2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2025,7 +2025,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject2b()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2044,7 +2044,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject2c()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2063,7 +2063,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject2d()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2081,7 +2081,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject2e()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2097,7 +2097,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject3a()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2113,7 +2113,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject3b()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2132,7 +2132,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject3c()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Shops
 					.Where(c => c.Id == this.shopId)
@@ -2154,7 +2154,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Project_Related_Object_And_Include1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -2181,7 +2181,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Project_Related_Object_And_Include2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -2208,7 +2208,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Project_Related_Object_And_Include3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -2235,7 +2235,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Project_Related_Object_And_Include4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -2262,7 +2262,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Project_Related_Object_And_Include5()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -2288,7 +2288,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_Self()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -2310,7 +2310,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Include_RelatedObject_Nested_Anonymous()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					(from
@@ -2332,7 +2332,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Where_Join_Multiple_Depths_Primary_Key()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -2351,7 +2351,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_With_Complex_Primary_Key()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mall = this.model.Malls.Create();
 				var shop = mall.Shops.Create();
@@ -2366,7 +2366,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				Assert.IsNotNull(this.model.Malls.First(c => c.Name == "Westfield"));
 				Assert.IsNotNull(this.model.Shops.FirstOrDefault(c => c.Name == "Apple Store"));
@@ -2391,7 +2391,7 @@ namespace Shaolinq.Tests
 			long addressId;
 			long regionId;
 			
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.Create();
 				shop.Address = this.model.Addresses.Create();
@@ -2409,7 +2409,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.FirstOrDefault(c => c.Id == shopId);
 
@@ -2422,7 +2422,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.FirstOrDefault(c => c.Address.Region.Id == regionId);
 
@@ -2439,7 +2439,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Any_On_RelatedObjects()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2451,7 +2451,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_PropertyAccess_After_First1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2463,7 +2463,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_PropertyAccess_After_First2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2475,7 +2475,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Basic()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2489,7 +2489,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Where_With_Condition_Using_Inner_Related_Count_Expression()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2506,7 +2506,7 @@ namespace Shaolinq.Tests
 				return;
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2518,7 +2518,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Implicit_Include_To_Null()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2530,7 +2530,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Implicit_Include_SubCollection_First_To_Null1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2543,7 +2543,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Implicit_Include_SubCollection_First_To_Null2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2555,7 +2555,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Implicit_Include_SubCollection_First_Then_Property1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2567,7 +2567,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Implicit_Include_SubCollection_First_Then_Property2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2579,7 +2579,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2591,7 +2591,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Using_Inner_Related_First_Property_Expression()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2603,7 +2603,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2615,7 +2615,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression5a()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2632,7 +2632,7 @@ namespace Shaolinq.Tests
 				return;
 			}
 			
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2644,7 +2644,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Where_With_Condition_Using_Inner_Related_First_Property_Expression5c()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2656,7 +2656,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Using_Inner_SubCollection_And_Property1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2668,7 +2668,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Using_Inner_SubCollection_And_Property2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2680,7 +2680,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Using_Inner_SubCollection_Count()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2692,7 +2692,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Where_With_RelatedObjects3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2704,7 +2704,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Collection1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2717,7 +2717,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Collection2a()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2734,7 +2734,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Collection2b()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2752,7 +2752,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Project_Anonymous_Then_Implicit_Include_From_Anonymous_Property_Inside_Where()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2764,7 +2764,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Select()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2783,7 +2783,7 @@ namespace Shaolinq.Tests
 				return;
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2807,7 +2807,7 @@ namespace Shaolinq.Tests
 				return;
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2831,7 +2831,7 @@ namespace Shaolinq.Tests
 				return;
 			}
 			
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -2850,7 +2850,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Collection3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mall1 = this.model
 					.Malls
@@ -2885,7 +2885,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include_Collection4a()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -3001,7 +3001,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model
 					.Malls
@@ -3016,7 +3016,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mall = this.model
 					.Malls
@@ -3034,7 +3034,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Include4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mall = this.model
 					.Malls
@@ -3048,7 +3048,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_Complex_Object()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model.Shops.OrderBy(c => c).ToList();
 			}
@@ -3057,7 +3057,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model.Malls
 					.Include(c => c.Shops.IncludedItems().Address.Region)
@@ -3146,7 +3146,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_CustomProject1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = this.model.Malls
 					.Where(c => c.Name == "Seattle City")
@@ -3175,7 +3175,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_CustomProject2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = this.model.Malls
 					.Where(c => c.Name == "Seattle City")
@@ -3202,7 +3202,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model.Malls
 					.Include(c => c.Shops)
@@ -3217,7 +3217,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var malls = this.model.Malls
 					.OrderBy(c => c.Name)
@@ -3232,7 +3232,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Malls
 					.Include(c => c.SisterMall.Shops)
@@ -3256,7 +3256,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_DaoProperty_With_Collection_Include5()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Malls
 					.OrderByDescending(c => c.Name)

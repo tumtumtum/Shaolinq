@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -59,20 +59,20 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			var left = this.Visit(binaryExpression.Left);
-			var right = this.Visit(binaryExpression.Right);
+			var left = Visit(binaryExpression.Left);
+			var right = Visit(binaryExpression.Right);
 
 			if (left.Type == binaryExpression.Left.Type && right.Type == binaryExpression.Right.Type)
 			{
 				return binaryExpression.ChangeLeftRight(left, right);
 			}
 
-			if (!this.IsTaskType(left.Type) && !this.IsTaskType(right.Type))
+			if (!IsTaskType(left.Type) && !IsTaskType(right.Type))
 			{
 				return binaryExpression.ChangeLeftRight(left, right);
 			}
 
-			if (this.IsTaskType(left.Type) && this.IsTaskType(right.Type))
+			if (IsTaskType(left.Type) && IsTaskType(right.Type))
 			{
 				var leftVar = Expression.Parameter(left.Type);
 				var rightVar = Expression.Parameter(right.Type);
@@ -84,7 +84,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return Expression.Block(variables, Expression.Assign(leftVar, left), Expression.Assign(rightVar, right), Expression.Call(expression, "ContinueWith", new[] { lambda.ReturnType }, lambda));
 			}
 
-			if (this.IsTaskType(left.Type))
+			if (IsTaskType(left.Type))
 			{
 				var leftVar = Expression.Parameter(left.Type);
 				var variables = new[] { leftVar };
@@ -95,7 +95,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return Expression.Block(variables, Expression.Assign(leftVar, left), Expression.Call(expression, "ContinueWith", new[] { lambda.ReturnType }, lambda));
 			}
 
-			if (this.IsTaskType(right.Type))
+			if (IsTaskType(right.Type))
 			{
 				var rightVar = Expression.Parameter(right.Type);
 				var variables = new[] { rightVar };
@@ -113,9 +113,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			if (unaryExpression.NodeType == ExpressionType.Convert)
 			{
-				var operand = this.Visit(unaryExpression.Operand);
+				var operand = Visit(unaryExpression.Operand);
 
-				if (operand.Type != unaryExpression.Operand.Type && this.IsTaskType(operand.Type))
+				if (operand.Type != unaryExpression.Operand.Type && IsTaskType(operand.Type))
 				{
 					var param = Expression.Parameter(operand.Type);
 					var result = Expression.Property(Expression.Convert(param, operand.Type), "Result");
@@ -156,7 +156,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					if (asyncMethod != null)
 					{
-						parameters = this.VisitExpressionList(methodCallExpression.Arguments).Concat(this.cancellationToken).ToList();
+						parameters = VisitExpressionList(methodCallExpression.Arguments).Concat(this.cancellationToken).ToList();
 					}
 					else
 					{
@@ -167,7 +167,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 						if (asyncMethod != null)
 						{
-							parameters = this.VisitExpressionList(methodCallExpression.Arguments).ToList();
+							parameters = VisitExpressionList(methodCallExpression.Arguments).ToList();
 						}
 					}
 
@@ -180,7 +180,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						{
 							if (parameters[i].Type != methodParameters[i].ParameterType)
 							{
-								if (this.IsTaskType(parameters[i].Type))
+								if (IsTaskType(parameters[i].Type))
 								{
 									if (taskParams == null)
 									{

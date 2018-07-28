@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -50,7 +50,7 @@ namespace Shaolinq.Tests
 			long regionId;
 			long addressId;
 			
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var address = this.model.Addresses.Create();
 
@@ -71,7 +71,7 @@ namespace Shaolinq.Tests
 
 			var addresses1 = this.model.Addresses.ToList();
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var addresses = this.model.Addresses.ToList();
 
@@ -88,9 +88,9 @@ namespace Shaolinq.Tests
 
 			addresses1 = this.model.Addresses.ToList();
 
-			var oldCount = hook.UpdateCount;
+			var oldCount = this.hook.UpdateCount;
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var addresses = this.model.Addresses.ToList();
 
@@ -108,9 +108,9 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			Assert.AreEqual(oldCount + 1, hook.UpdateCount);
+			Assert.AreEqual(oldCount + 1, this.hook.UpdateCount);
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var address = this.model.Addresses.GetByPrimaryKey(this.model.Addresses.GetReference(new { Id = addressId, Region = this.model.Regions.GetReference(new { Id = regionId, Name = "RegionName" }) }));
 
@@ -125,7 +125,7 @@ namespace Shaolinq.Tests
 			{
 				try
 				{
-					using (var scope = this.NewTransactionScope())
+					using (var scope = NewTransactionScope())
 					{
 						var address = this.model.Addresses.Create();
 
@@ -152,7 +152,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Create_Incomplete_Objects_Then_Delete()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var shop = this.model.Shops.Create();
 				var address = this.model.Addresses.Create();
@@ -171,11 +171,11 @@ namespace Shaolinq.Tests
 		{
 			var e = new ManualResetEvent(false);
 
-			var task = this.Test_Nested_Scope_Update_Async(e).ContinueOnAnyContext();
+			var task = Test_Nested_Scope_Update_Async(e).ContinueOnAnyContext();
 
 			if (task.GetAwaiter().IsCompleted)
 			{
-				this.Test_Set_Object_Property_To_Null();
+				Test_Set_Object_Property_To_Null();
 
 				return;
 			}
@@ -189,7 +189,7 @@ namespace Shaolinq.Tests
 
 			task.GetAwaiter().GetResult();
 
-			this.Test_Set_Object_Property_To_Null();
+			Test_Set_Object_Property_To_Null();
 		}
 
 		private async Task Test_Nested_Scope_Update_Async(ManualResetEvent e)
@@ -234,11 +234,11 @@ namespace Shaolinq.Tests
 
 			var e = new ManualResetEvent(false);
 
-			var task = this.Test_Nested_Scope_Update_Async2(e).ContinueOnAnyContext();
+			var task = Test_Nested_Scope_Update_Async2(e).ContinueOnAnyContext();
 
 			if (task.GetAwaiter().IsCompleted)
 			{
-				this.Test_Set_Object_Property_To_Null();
+				Test_Set_Object_Property_To_Null();
 
 				return;
 			}
@@ -250,7 +250,7 @@ namespace Shaolinq.Tests
 
 			Assert.IsTrue(task.GetAwaiter().IsCompleted);
 
-			this.Test_Set_Object_Property_To_Null();
+			Test_Set_Object_Property_To_Null();
 		}
 
 		private async Task Test_Nested_Scope_Update_Async2(ManualResetEvent e)
@@ -292,13 +292,13 @@ namespace Shaolinq.Tests
 			{
 				var methodName = MethodBase.GetCurrentMethod().Name;
 
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var child = this.model.Children.Create();
 
 					scope.Flush();
 
-					using (var inner = this.NewTransactionScope())
+					using (var inner = NewTransactionScope())
 					{
 						child.Nickname = methodName;
 					}

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -37,26 +37,26 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			switch (expression.NodeType)
 			{
 			case ExpressionType.New:
-				return this.Visit((NewExpression)expression);
+				return Visit((NewExpression)expression);
 			case ExpressionType.MemberInit:
-				return this.Visit((MemberInitExpression)expression);
+				return Visit((MemberInitExpression)expression);
 			case ExpressionType.Convert:
-				return this.Visit((UnaryExpression)expression);
+				return Visit((UnaryExpression)expression);
 			case ExpressionType.MemberAccess:
-				return this.Visit((MemberExpression)expression);
+				return Visit((MemberExpression)expression);
 			case ExpressionType.Add:
 			case ExpressionType.AndAlso:
 			case ExpressionType.Or:
 			case ExpressionType.OrElse:
 			case ExpressionType.Multiply:
 			case ExpressionType.Equal:
-				return this.Visit((BinaryExpression)expression);
+				return Visit((BinaryExpression)expression);
 			case ExpressionType.Call:
-				return this.Visit((MethodCallExpression)expression);
+				return Visit((MethodCallExpression)expression);
 			case ExpressionType.Constant:
-				return this.Visit((ConstantExpression)expression);
+				return Visit((ConstantExpression)expression);
 			case ExpressionType.Conditional:
-				return this.Visit((ConditionalExpression)expression);
+				return Visit((ConditionalExpression)expression);
 			}
 
 			return InterpretFailed;
@@ -69,7 +69,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected object Visit(MemberInitExpression expression)
 		{
-			var obj = this.Visit(expression.NewExpression);
+			var obj = Visit(expression.NewExpression);
 
 			if (obj == InterpretFailed)
 			{
@@ -78,7 +78,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			foreach (var binding in expression.Bindings)
 			{
-				var value = this.Visit(obj, binding);
+				var value = Visit(obj, binding);
 
 				if (value == InterpretFailed)
 				{
@@ -96,7 +96,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			case MemberBindingType.Assignment:
 				var assignment = ((MemberAssignment)binding);
 
-				var value = this.Visit(assignment.Expression);
+				var value = Visit(assignment.Expression);
 
 				if (value == InterpretFailed)
 				{
@@ -142,7 +142,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			foreach (var arg in expression.Arguments)
 			{
-				var reflected = this.Visit(arg);
+				var reflected = Visit(arg);
 
 				if (reflected == InterpretFailed)
 				{
@@ -158,7 +158,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		protected object Visit(MethodCallExpression expression)
 		{
 			var args = new object[expression.Arguments.Count];
-			var parentValue = expression.Object != null ? this.Visit(expression.Object) : null;
+			var parentValue = expression.Object != null ? Visit(expression.Object) : null;
 
 			if (parentValue == InterpretFailed)
 			{
@@ -169,7 +169,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			foreach (var arg in expression.Arguments)
 			{
-				var reflected = this.Visit(arg);
+				var reflected = Visit(arg);
 
 				if (reflected == InterpretFailed)
 				{
@@ -184,7 +184,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected object Visit(ConditionalExpression expression)
 		{
-			var result = this.Visit(expression.Test);
+			var result = Visit(expression.Test);
 
 			if (result == InterpretFailed)
 			{
@@ -193,11 +193,11 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 			if ((bool)result)
 			{
-				return this.Visit(expression.IfTrue);
+				return Visit(expression.IfTrue);
 			}
 			else
 			{
-				return this.Visit(expression.IfFalse);
+				return Visit(expression.IfFalse);
 			}
 		}
 
@@ -207,44 +207,44 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 			case ExpressionType.OrElse:
 			{
-				var left = this.Visit(expression.Left);
+				var left = Visit(expression.Left);
 
 				if ((bool)left)
 				{
 					return true;
 				}
 
-				return (bool)this.Visit(expression.Right);
+				return (bool)Visit(expression.Right);
 			}
 			case ExpressionType.AndAlso:
 			{
-				var left = this.Visit(expression.Left);
+				var left = Visit(expression.Left);
 
 				if (!(bool)left)
 				{
 					return false;
 				}
 
-				return (bool)this.Visit(expression.Right);
+				return (bool)Visit(expression.Right);
 			}
 			case ExpressionType.Or:
 			{
-				var left = (long)Convert.ChangeType(this.Visit(expression.Left), typeof(long));
-				var right = (long)Convert.ChangeType(this.Visit(expression.Right), typeof(long));
+				var left = (long)Convert.ChangeType(Visit(expression.Left), typeof(long));
+				var right = (long)Convert.ChangeType(Visit(expression.Right), typeof(long));
 
 				return Convert.ChangeType(left | right, expression.Type);
 			}
 			case ExpressionType.And:
 			{
-				var left = (long)Convert.ChangeType(this.Visit(expression.Left), typeof(long));
-				var right = (long)Convert.ChangeType(this.Visit(expression.Right), typeof(long));
+				var left = (long)Convert.ChangeType(Visit(expression.Left), typeof(long));
+				var right = (long)Convert.ChangeType(Visit(expression.Right), typeof(long));
 
 				return Convert.ChangeType(left & right, expression.Type);
 			}
 			case ExpressionType.ExclusiveOr:
 			{
-				var left = (long)Convert.ChangeType(this.Visit(expression.Left), typeof(long));
-				var right = (long)Convert.ChangeType(this.Visit(expression.Right), typeof(long));
+				var left = (long)Convert.ChangeType(Visit(expression.Left), typeof(long));
+				var right = (long)Convert.ChangeType(Visit(expression.Right), typeof(long));
 
 				return Convert.ChangeType(left ^ right, expression.Type);
 			}
@@ -253,14 +253,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			{
 				if (expression.Type == typeof(bool))
 				{
-					var left = this.Visit(expression.Left);
+					var left = Visit(expression.Left);
 
 					if (left == InterpretFailed)
 					{
 						return InterpretFailed;
 					}
 
-					var right = this.Visit(expression.Right);
+					var right = Visit(expression.Right);
 
 					if (right == InterpretFailed)
 					{
@@ -302,14 +302,14 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			case ExpressionType.Multiply:
 			case ExpressionType.Divide:
 			{
-				var left = this.Visit(expression.Left);
+				var left = Visit(expression.Left);
 
 				if (left == InterpretFailed)
 				{
 					return InterpretFailed;
 				}
 
-				var right = this.Visit(expression.Right);
+				var right = Visit(expression.Right);
 
 				if (right == InterpretFailed)
 				{
@@ -460,7 +460,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected object Visit(MemberExpression expression)
 		{
-			var parentValue = expression.Expression != null ? this.Visit(expression.Expression) : null;
+			var parentValue = expression.Expression != null ? Visit(expression.Expression) : null;
 
 			if (parentValue == InterpretFailed)
 			{
@@ -496,7 +496,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				return InterpretFailed;
 			}
 
-			var result = this.Visit(expression.Operand);
+			var result = Visit(expression.Operand);
 
 			if (result == InterpretFailed)
 			{

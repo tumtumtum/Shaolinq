@@ -1,9 +1,6 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using Microsoft.Build.Framework;
 
 namespace Shaolinq.ExpressionWriter
@@ -20,7 +17,7 @@ namespace Shaolinq.ExpressionWriter
 		{
 			var startInfo = new ProcessStartInfo
 			{
-				FileName = this.GetType().Assembly.Location,
+				FileName = GetType().Assembly.Location,
 				UseShellExecute = false,
 				CreateNoWindow = false,
 				RedirectStandardOutput = false,

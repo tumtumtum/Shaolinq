@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
-using Shaolinq.Tests.TestModel;
 using Shaolinq.Persistence.Linq;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
@@ -34,12 +34,12 @@ namespace Shaolinq.Tests
 		[OneTimeSetUp]
 		public void SetupFixture()
 		{
-			this.CreateObjects();	
+			CreateObjects();	
 		}
 
 		private void CreateObjects()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var schoolWithNoStudents = this.model.Schools.Create();
 
@@ -130,7 +130,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var apple = this.model.Apples.Create();
 
@@ -141,7 +141,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void TestGenericDao()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var dao = this.model.ConcreteGenericDaos.Create();
 
@@ -154,7 +154,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Get_CustomPrimaryKeyObject()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mars = this.model.Cats.Single(c => c.Name == "Mars");
 
@@ -163,7 +163,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mars = this.model.Cats.Single(c => c.Name == "Mars");
 
@@ -172,7 +172,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var mars = this.model.Cats.Single(c => c.Name == "Mars");
 
@@ -185,7 +185,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Get_Timespan()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
@@ -197,7 +197,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
@@ -205,7 +205,7 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(TimeSpan.FromMilliseconds(2), student.TimeSinceLastSlept);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
@@ -214,7 +214,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
@@ -222,7 +222,7 @@ namespace Shaolinq.Tests
 				Assert.AreEqual(TimeSpan.FromMilliseconds(2015), student.TimeSinceLastSlept);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
@@ -231,7 +231,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First(c => c.Firstname == "Tum");
 
@@ -243,7 +243,7 @@ namespace Shaolinq.Tests
 		[Test, Ignore("NotSupported yet")]
 		public void Test_Select_Many_With_Non_Table()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.OrderBy(c => c.Id).SelectMany(c => this.model.Schools.OrderBy(d => d.Id), (x, y) => new
 				{
@@ -264,7 +264,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Many()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.SelectMany(c => this.model.Schools, (x, y) => new
 				{
@@ -304,7 +304,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Select_DefaultIfEmpty_Sum()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Select(c => c.Weight).DefaultIfEmpty(777).Sum();
 
@@ -317,7 +317,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Nested_Select_Scalar_Comparison_In_Predicate1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 							   where student.School.Id == ((from s in this.model.Schools where s.Name == "Bruce's Kung Fu School" select s.Id).First())
@@ -332,7 +332,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Nested_Select_Scalar_Comparison_In_Predicate()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 							   where student.School.Id == ((from s in this.model.Schools where s.Name == "Bruce's Kung Fu School" select s.Id).FirstOrDefault())
@@ -347,7 +347,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Nested_Select_Scalar_Inequality_Comparison_In_Predicate()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 							   where student.Address.Number >= ((from address in this.model.Address select address.Number).Max())
@@ -360,7 +360,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Nested_Select_In_Projection()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 							   select new { Student = student, MaxAddress = (from s in this.model.Address select s.Number).Max()}).ToList();
@@ -400,7 +400,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Nested_Select_Object_Comparison()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 							   where student.School == (from s in this.model.Schools where s.Name == "Bruce's Kung Fu School" select s).First()
@@ -413,7 +413,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_GroupBy_With_Count()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  group student by student.Firstname into g
@@ -436,7 +436,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_GroupBy_And_OrderBy_Key()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 					group student by student.Firstname
@@ -461,7 +461,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_GroupBy_Complex_And_OrderBy_Key()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results1 = from student in this.model.Students
 							  group student by new { student.Firstname, student.SpecialDate}
@@ -486,7 +486,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_GroupBy_Tuple_And_OrderBy_Key()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results1 = from student in this.model.Students
 							  group student by new Tuple<string, DateTime?>(student.Firstname, student.SpecialDate)
@@ -510,7 +510,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_GroupBy_Complex_And_OrderBy_Key2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results1 = from student in this.model.Students
 							  group student by new { student.Firstname, student.SpecialDate }
@@ -549,7 +549,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_Local_Object_And_Method_Call()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  where student.Address == new TempObject(this.model).GetAddress()
@@ -570,7 +570,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_Multiple_From_Manual_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 							  from school in this.model.Schools
@@ -596,7 +596,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Left_Outer_Join1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -616,7 +616,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Left_Outer_Join2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -637,7 +637,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Left_Outer_Join3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -656,7 +656,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Left_Outer_Join4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -673,7 +673,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_With_Linq_Syntax()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -688,7 +688,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_With_Linq_Syntax_And_DefaultIfEmpty()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -704,7 +704,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_SelectMany_With_DefaultIfEmpty()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -722,7 +722,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Group_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -741,7 +741,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_Skip()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -756,7 +756,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_Skip_No_Select()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -769,7 +769,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_Take_No_Select()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -782,7 +782,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_Skip_Take_No_Select()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -795,7 +795,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_OrderBy_And_Take()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -810,7 +810,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_OrderBy_With_Implicit_Join_And_ThenBy_And_Take1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students
 					.Include(c => c.School)
@@ -840,7 +840,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_OrderBy_With_Implicit_Join_And_ThenBy_And_Take2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students
 					.Include(c => c.School)
@@ -862,7 +862,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_OrderBy_And_Skip_Take1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -879,7 +879,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_OrderBy_And_Skip_Take2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.Include(c => c.School).ToList();
 
@@ -896,7 +896,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_OrderBy_And_Skip_Take3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.Include(c => c.School).ToList();
 
@@ -919,7 +919,7 @@ namespace Shaolinq.Tests
 				Sex.Female
 			};
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => list.Contains(c.Sex));
 
@@ -936,7 +936,7 @@ namespace Shaolinq.Tests
 				Sex.Female
 			};
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => list.Contains(c.Sex));
 
@@ -953,7 +953,7 @@ namespace Shaolinq.Tests
 				Sex.Female
 			};
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => list.Contains(c.Sex));
 
@@ -965,7 +965,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Negate()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var negativeHeights = this.model
 					.Students
@@ -984,22 +984,22 @@ namespace Shaolinq.Tests
 				return;
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => c.SpecialDate <= ServerDateTime.Now);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => c.SpecialDate <= ServerDateTime.UtcNow.AddMinutes(c.Height));
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => c.SpecialDate <= ServerDateTime.UtcNow.AddMilliseconds(c.Height));
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				this.model
 					.Students
@@ -1016,14 +1016,14 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Nullable_Enum_Check()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => c.SexOptional == Sex.Male);
 
 				Assert.AreEqual(0, count);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var count = this.model.Students.Count(c => c.Sex == Sex.Male);
 
@@ -1046,7 +1046,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Update_Enum()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First(c => c.Sex == Sex.Male);
 
@@ -1082,7 +1082,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Check_Enum()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.Where(c => c.Sex == this.TestSex).ToList();
 			}
@@ -1091,7 +1091,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Get_Advanced_Computed_Property_With_AutoIncrement_Guid()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var tum = this.model.Students.FirstOrDefault(c => c.Firstname == "Tum");
 				
@@ -1104,7 +1104,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Get_Advanced_Computed_Property_With_AutoIncrement_Long()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school1 = this.model.Schools.First();
 				var school2 = this.model.Schools.First(c => c.Urn == "urn:school:" + school1.Id);
@@ -1116,7 +1116,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_With_Ternary_Operator()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var x = 1;
 				var y = 2;
@@ -1137,7 +1137,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_FirstOrDefault()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.FirstOrDefault();
 
@@ -1148,7 +1148,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_FirstOrDefaultAsync()
 		{
-			var waiter = this.__Test_Select_FirstOrDefaultAsync().ContinueOnAnyContext().GetAwaiter();
+			var waiter = __Test_Select_FirstOrDefaultAsync().ContinueOnAnyContext().GetAwaiter();
 
 			waiter.GetResult();
 		}
@@ -1166,7 +1166,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_FirstOrDefaultAsync2()
 		{
-			Task.Run(async () => await this.__Test_Select_FirstOrDefaultAsync2().ContinueOnAnyContext()).Wait();
+			Task.Run(async () => await __Test_Select_FirstOrDefaultAsync2().ContinueOnAnyContext()).Wait();
 		}
 
 		public virtual async Task __Test_Select_FirstOrDefaultAsync2()
@@ -1222,7 +1222,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_ToList()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -1233,7 +1233,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_ToListAsync()
 		{
-			var awaiter = this.__Test_ToListAsync().ContinueOnAnyContext().GetAwaiter();
+			var awaiter = __Test_ToListAsync().ContinueOnAnyContext().GetAwaiter();
 
 			awaiter.GetResult();
 		}
@@ -1251,7 +1251,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_Students_From_Schools1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1264,7 +1264,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_Students_From_Schools2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")	
@@ -1277,7 +1277,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_Students_From_Schools3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Invalid School")
@@ -1294,7 +1294,7 @@ namespace Shaolinq.Tests
 
 			if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(Persistence.SqlCapability.CrossApply))
 			{
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var query = this.model.Schools
 						.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1313,7 +1313,7 @@ namespace Shaolinq.Tests
 				}
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Empty school")
@@ -1328,7 +1328,7 @@ namespace Shaolinq.Tests
 				Assert.IsNull(list[0].c);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1352,7 +1352,7 @@ namespace Shaolinq.Tests
 		{
 			if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(Persistence.SqlCapability.CrossApply))
 			{
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var query = this.model.Schools
 						.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1377,7 +1377,7 @@ namespace Shaolinq.Tests
 		{
 			if (this.model.GetCurrentSqlDatabaseContext().SqlDialect.SupportsCapability(Persistence.SqlCapability.CrossApply))
 			{
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var query = this.model.Schools
 						.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1400,7 +1400,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_Students_From_Schools4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var ids = new List<long> { 0, 1, 2, 3, 4, 5 };
 
@@ -1413,7 +1413,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_Students_Implicit_Join_Inside_Select_Inside_SelectMany()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1426,7 +1426,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_With_Implicit_GroupJoin1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1440,7 +1440,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_With_Implicit_GroupJoin2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1454,7 +1454,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_With_Implicit_GroupJoin2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1467,7 +1467,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_Many_Students_From_Schools_Manual()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query = this.model.Schools
 					.Where(c => c.Name == "Bruce's Kung Fu School")
@@ -1485,7 +1485,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_From_Multiple_Times()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from student in this.model.Students
@@ -1507,7 +1507,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Select_With_Scope()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student1 = this.model.Students.Single(c => c.Firstname == "Tum");
 				var student2 = this.model.Students.Single(c => c.Firstname == "Tum");
@@ -1528,7 +1528,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Related_Objects1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var brucesSchool = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 				var brandonsSchool = this.model.Schools.First(c => c.Name.Contains("Brandon"));
@@ -1541,7 +1541,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Related_Objects2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var studentCountBySchoolId = this.model.Schools.ToList().ToDictionary(c => c.Id, c => c.Students.Count());
 
@@ -1562,7 +1562,7 @@ namespace Shaolinq.Tests
 		{
 			Func<Task> func = async () =>
 			{
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var studentCountBySchoolId = this.model.Schools.ToList().ToDictionary(c => c.Id, c => c.Students.Count());
 
@@ -1606,7 +1606,7 @@ namespace Shaolinq.Tests
 		{
 			var studentId = Guid.Empty;
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Schools.SingleOrDefault(c => c.Name == "Bruce's Kung Fu School").Students.Create();
 
@@ -1617,7 +1617,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				foreach (var student in this.model.Students.OrderBy(c => c.Firstname))
 				{
@@ -1643,7 +1643,7 @@ namespace Shaolinq.Tests
 				}
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				this.model.Students.Delete(c => c.Id == studentId);
 
@@ -1654,7 +1654,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_First2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student1 = this.model.Students.Where(c => c.Firstname == "Tum").First();
 				var student2 = this.model.Students.First(c => c.Firstname == "Tum");
@@ -1670,7 +1670,7 @@ namespace Shaolinq.Tests
 		{
 			Assert.Catch<InvalidOperationException>(() =>
 			{
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var student1 = this.model.Students.First(c => c.Firstname == "iewiorueo");
 
@@ -1682,7 +1682,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_FirstOrDefault1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student1 = this.model.Students.FirstOrDefault(c => c.Firstname == "iewiorueo");
 
@@ -1695,7 +1695,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_FirstOrDefault2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student1 = this.model.Students.FirstOrDefault(c => c.Firstname == "Tum");
 
@@ -1708,7 +1708,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Select_Scalar_With_First()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var studentName = this.model.Students.Select(c => c.Firstname).First(c => c != null);
 
@@ -1721,7 +1721,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Where1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							  where student.Firstname == "Tum" && student.Lastname == "Nguyen"
@@ -1735,7 +1735,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Where2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							   where (student.Firstname == "A" && student.Lastname == "B")
@@ -1751,7 +1751,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Where3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							   where student.Firstname == "A" && (student.Lastname == "B" || student.Fullname == "Tum Nguyen")
@@ -1764,7 +1764,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Greater_Than1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 						  where student.Firstname == "Tum" && student.Height > 170
@@ -1778,7 +1778,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Greater_Than2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							   where student.Firstname == "Tum" && student.Height > 177
@@ -1791,7 +1791,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Less_Than1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							   where student.Firstname == "Tum" && student.Height < 178
@@ -1805,7 +1805,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Less_Than2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							   where student.Firstname == "Tum" && student.Height < 177
@@ -1818,7 +1818,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Less_Than3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							   where student.Firstname == "Tum" && student.Height < 177.001
@@ -1832,7 +1832,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_With_Less_Than4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = from student in this.model.Students
 							   where student.Firstname == "Tum" && student.Height < 174.999
@@ -1845,7 +1845,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_GroupBy_Max_And_Average_And_Sum()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var product1 = this.model.Products.Create();
 
@@ -1899,7 +1899,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Sum1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var totalHeight = this.model.Students.Sum(c => c.Height);
 
@@ -1910,7 +1910,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Sum2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var totalHeight = this.model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height);
 
@@ -1921,7 +1921,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Sum3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var serverSideResult = this.model.Students.Sum(c => c.Height);
 				var allStudents = this.model.Students.ToList();
@@ -1935,7 +1935,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Sum4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var serverSideResult = this.model.Students.Sum(c => c.BankBalance);
 				var allStudents = this.model.Students.ToList();
@@ -1948,7 +1948,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Average()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var serverSideResult = this.model.Students.Average(c => c.Height);
 				var allStudents = this.model.Students.ToList();
@@ -1980,7 +1980,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Average_Complex1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var serverSideResult = this.model.Students.Average(c => c.Height * 2);
 				var allStudents = this.model.Students.ToList();
@@ -1994,7 +1994,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Average_Complex2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var serverSideResult = this.model.Students.Average(c => c.Height + c.FavouriteNumber);
 				var allStudents = this.model.Students.ToList();
@@ -2007,7 +2007,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Max()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var serverSideResult = this.model.Students.Max(c => c.Height);
 				var allStudents = this.model.Students.ToList();
@@ -2039,7 +2039,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Min()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var serverSideResult = this.model.Students.Min(c => c.Height);
 				var allStudents = this.model.Students.ToList();
@@ -2071,7 +2071,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Query_Aggregate_Sum_With_Complex_Aggregate_Computation()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var totalHeight = this.model.Students.Where(c => c.Fullname == "Tum Nguyen").Sum(c => c.Height * 2);
 
@@ -2193,7 +2193,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Coalesce_Function()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var tum = (from student in this.model.Students
 						   where student.Nickname == ""
@@ -2206,7 +2206,7 @@ namespace Shaolinq.Tests
 				Assert.IsNull(tum);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var tum = (from student in this.model.Students
 						   where (student.Nickname ?? "") == ""
@@ -2223,7 +2223,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Custom_Type_Projection()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 				var student1 = school.Students.Where(c => c.Firstname == "Tum").ToList();
@@ -2237,7 +2237,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Date_Functions_When_Using_Custom_Date_Data_Type()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students
 					.Where(c => c.FavouriteDate.Year == 2016)
@@ -2252,7 +2252,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Custom_Type_Comparison1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 				var student1 = school.Students.First(c => c.Firstname == "Tum" && c.Birthdate < DateTime.Now);
@@ -2262,7 +2262,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Custom_Type_Comparison2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
@@ -2277,7 +2277,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Custom_Type_Operations1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
@@ -2294,7 +2294,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Custom_Type_Operations2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
@@ -2311,7 +2311,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Custom_Type_Operations3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.First(c => c.Name.Contains("Bruce"));
 
@@ -2328,7 +2328,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_GroupBy_Date()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var tum2 = this.model.Schools.First(c => c.Name.Contains("Bruce")).Students.Create();
 
@@ -2368,7 +2368,7 @@ namespace Shaolinq.Tests
 			}
 
 			// Make sure temp student wasn't saved
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				Assert.AreEqual(1, this.model.Students.Count(c => c.Firstname == "Tum"));
 			}
@@ -2377,7 +2377,7 @@ namespace Shaolinq.Tests
 		[Test, Ignore("LogicalNot working on postgres yet")]
 		public virtual void Test_GroupBy_Date_With_Date_Only()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var tum2 = this.model.Schools.First(c => c.Name.Contains("Bruce")).Students.Create();
 
@@ -2416,7 +2416,7 @@ namespace Shaolinq.Tests
 			}
 
 			// Make sure temp student wasn't saved
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				Assert.AreEqual(1, this.model.Students.Count(c => c.Firstname == "Tum"));
 			}
@@ -2425,7 +2425,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Contains()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				Assert.IsFalse(this.model.Students
 								   .Select(c => c.Lastname)
@@ -2444,7 +2444,7 @@ namespace Shaolinq.Tests
 		{
 			var ids = this.model.Students.Select(c => c.Id).ToList();
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => ids.Contains(c.Id)).ToList();
 
@@ -2459,7 +2459,7 @@ namespace Shaolinq.Tests
 		{
 			var ids = new List<Guid>();
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => ids.Contains(c.Id)).ToList();
 
@@ -2474,7 +2474,7 @@ namespace Shaolinq.Tests
 		{
 			var ids = new List<Guid>();
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => !ids.Contains(c.Id)).ToList();
 
@@ -2490,7 +2490,7 @@ namespace Shaolinq.Tests
 			var ids1 = this.model.Students.Select(c => c.Id).Take(1).ToList();
 			var ids2 = new List<Guid>();
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids1.Contains(c.Id))
 					.Select(c => c.Id)
@@ -2505,7 +2505,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids2.Contains(c.Id))
 					.Select(c => c.Id)
@@ -2527,7 +2527,7 @@ namespace Shaolinq.Tests
 			var ids1 = new List<Guid>();
 			var ids2 = this.model.Students.Select(c => c.Id).Take(1).ToList();
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => c.SerialNumber1 != 9999991123 && !ids1.Contains(c.Id))
 					.Select(c => c.Id)
@@ -2538,7 +2538,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => c.SerialNumber1 != 9999991123 && !ids2.Contains(c.Id))
 					.Select(c => c.Id)
@@ -2559,7 +2559,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_DateTimeDate_Into_StronglyTypedType()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  group student by student.SpecialDate.Value.Date
@@ -2579,7 +2579,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Month()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 					where student.SpecialDate.Value.Date.Year == 12
@@ -2596,7 +2596,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_DateTimeDate()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  group student by student.SpecialDate.Value.Date
@@ -2616,7 +2616,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_AggregateCount1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 					where student.School.Id == 1
@@ -2639,7 +2639,7 @@ namespace Shaolinq.Tests
 		{
 			var x = 0;
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  where student.School.Id == x
@@ -2660,7 +2660,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_AggregateCount_With_OrderBy()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  group student by student.Firstname
@@ -2680,7 +2680,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -2715,7 +2715,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -2753,7 +2753,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from
@@ -2788,7 +2788,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Any_1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.FirstOrDefault();
 				var result = this.model.Students.Where(c => school.Students.Where(d => d.Id == c.Id).Any()).ToList();
@@ -2800,7 +2800,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Any_2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var a = this.model.Schools.FirstOrDefault();
 				var school = this.model.Schools.GetReference(a.Id);
@@ -2817,7 +2817,7 @@ namespace Shaolinq.Tests
 		/* Currently fails with Mono */
 		public void Test_GroupBy_Project_Group0()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  group student by student.Sex
@@ -2846,7 +2846,7 @@ namespace Shaolinq.Tests
 		/* Currently fails with Mono */
 		public void Test_GroupBy_Project_Group1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 					group student by student.Sex
@@ -2873,7 +2873,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_Project_Group2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = (from student in this.model.Students
 					group student by student.Nickname
@@ -2892,7 +2892,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_Project_Group2a()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = this.model.Students.GroupBy(c => (long?)c.Address.Id, c => c.Id).OrderBy(c => c.Key);
 
@@ -2913,7 +2913,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_Project_Group3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  group student by student.Firstname
@@ -2933,7 +2933,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_Project_Group4()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 					group student by new {student.Firstname, student.Lastname}
@@ -2955,7 +2955,7 @@ namespace Shaolinq.Tests
 		/* Currently fails with Mono */
 		public void Test_GroupBy_Project_Group5()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 					group student by new {student.Firstname, student.Lastname}
@@ -2980,7 +2980,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_Project_Group6()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  join school in this.model.Schools on student.School equals school
@@ -3000,7 +3000,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_Project_Group7()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 					join school in this.model.Schools on student.School equals school
@@ -3021,7 +3021,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_GroupBy_Project_Group8()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = from student in this.model.Students
 							  join school in this.model.Schools on student.School equals school
@@ -3041,7 +3041,7 @@ namespace Shaolinq.Tests
 
 		private void Test_Check_Null<T>(Expression<Func<Student, T>> grouping)
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = this.model.Students.GroupBy(grouping)
 					.Where(c => c.Key != null);
@@ -3058,13 +3058,13 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Check_Grouping_Expression_From_Generic_Method()
 		{
-			this.Test_Check_Null(c => c.SexOptional);
+			Test_Check_Null(c => c.SexOptional);
 		}
 
 		[Test]
 		public void Test_OrderBy_Then_Count()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.OrderBy(c => (string)(object)c.Nickname).Count();
 			}
@@ -3073,7 +3073,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_Then_Skip_Then_Count()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.OrderBy(c => c.Nickname).Skip(1).Count();
 			}
@@ -3082,7 +3082,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_With_Implicit_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.OrderBy(c => c.BestFriend.BestFriend.BestFriend.Address.Country).ToList();
 			}
@@ -3091,7 +3091,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_With_String_Length()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Count(c => c.BestFriend.Address.Country.Length == 0);
 			}
@@ -3100,7 +3100,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Implicit_Join_With_Aggregate_On_String_Length()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Max(c => c.BestFriend.Height);
 			}
@@ -3109,27 +3109,27 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Aggregate_With_Implicit_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Max(c => c.BestFriend.Address.Street).ToList();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Min(c => c.BestFriend.Address.Street).ToList();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Sum(c => c.BestFriend.BestFriend.BestFriend.Address.Number);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Average(c => c.BestFriend.Address.Number);
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Count(c => c.BestFriend.Address.Number == 0);
 			}
@@ -3138,7 +3138,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Count_With_Implicit_Join()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Count(c => c.BestFriend.Address.Country == "");
 			}
@@ -3147,7 +3147,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_OrderBy_Then_Skip_Then_Take_Then_Count()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.OrderBy(c => c.Nickname).Skip(1).Take(10).Count();
 			}
@@ -3156,7 +3156,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Skip_Only()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Skip(1).ToList();
 			}
@@ -3165,7 +3165,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Skip_Take1()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model
 					.Students
@@ -3180,7 +3180,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Skip_Take2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model
 					.Students
@@ -3195,7 +3195,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Skip_Take3()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model
 					.Students
@@ -3209,7 +3209,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Skip_With_Distinct()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Select(c => new { c.Lastname }).Distinct().Skip(1).ToList();
 				var result2 = this.model.Students.ToList().Select(c => new { c.Lastname }).Distinct().Skip(1).ToList();
@@ -3219,7 +3219,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Take_With_Distinct()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Select(c => new { c.Lastname }).Distinct().Take(1).ToList();
 				var result2 = this.model.Students.ToList().Select(c => new { c.Lastname }).Distinct().Take(1).ToList();
@@ -3229,7 +3229,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Skip_With_OrderBy()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.OrderBy(c => c.Nickname).ThenBy(c => c.Id).Skip(1).ToList();
 				var result2 = this.model.Students.ToList().OrderBy(c => c.Nickname).ThenBy(c => c.Id).Skip(1).ToList();
@@ -3241,7 +3241,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Skip_With_Distinct_OrderBy()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Select(c => c.Nickname).Distinct().OrderBy(c => c).Skip(1).ToList();
 				var result2 = this.model.Students.ToList().Select(c => c.Nickname).Distinct().OrderBy(c => c).Skip(1).ToList();
@@ -3253,7 +3253,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_Multiple_Nested_OrderBySkipDistinct()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var s1 = this.model.Students
 					.Select(c => c.Nickname)
@@ -3280,7 +3280,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_SelectMany()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students;
 
@@ -3298,7 +3298,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Contains_On_DAOs()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var student = this.model.Students.First();
 
@@ -3309,7 +3309,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_List_Contains_Inside_Query()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
 
@@ -3321,7 +3321,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Any_On_DAOs()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model.Students.Any();
 			}
@@ -3364,7 +3364,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_All_On_DAOs_With_Predicate2()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result1 = this.model.Students.All(c => c.Firstname != null && c.Firstname != "George");
 				var result2 = this.model.Students.ToList().All(c => c.Firstname != null && c.Firstname != "George");
@@ -3376,7 +3376,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_StringIsNullOrEmpty()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var result = this.model
 					.Students
@@ -3388,7 +3388,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_JoinWithAnonymousTypeCondition()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var query =
 					from school in this.model.Schools
@@ -3406,7 +3406,7 @@ namespace Shaolinq.Tests
 
 			try
 			{
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var student = this.model.Students.Create();
 
@@ -3421,7 +3421,7 @@ namespace Shaolinq.Tests
 					scope.Complete();
 				}
 
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
 
@@ -3432,7 +3432,7 @@ namespace Shaolinq.Tests
 			}
 			finally
 			{
-				using (var scope = this.NewTransactionScope())
+				using (var scope = NewTransactionScope())
 				{
 					var student = this.model.Students.SingleOrDefault(c => c.Id == id && c.Overseas);
 
@@ -3461,7 +3461,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_SelectForUpdate()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model
 					.Students
@@ -3475,7 +3475,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_ForUpdate_First()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model
 					.Students
@@ -3489,7 +3489,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Concat()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = this.model.Students.Concat(this.model.Students).ToList();
 			}
@@ -3498,7 +3498,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Union()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var results = this.model.Students.Union(this.model.Students).ToList();
 			}
@@ -3507,7 +3507,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_NullCheck_In_Projector()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var x = from cat in this.model.Cats
 					let name = cat != null ? cat.Name : ""
@@ -3522,7 +3522,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Strings()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var x = from student1 in this.model.Students
 					from student2 in this.model.Students
@@ -3536,7 +3536,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Compare_Guids()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var x = from student1 in this.model.Students
 						from student2 in this.model.Students
@@ -3550,7 +3550,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Binary_Expression_With_Bools()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var x = from student in this.model.Students
 					where student.Lastname.ToLower() == "TEST".ToLower() && student.Firstname != "" && student.Overseas
@@ -3563,7 +3563,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_QuerySimilarStructure_Different_Variables_And_Consts()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var s = "Mars";
 				
@@ -3600,7 +3600,7 @@ namespace Shaolinq.Tests
 			long school1Id;
 			long school2Id;
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school1 = this.model.Schools.Create();
 				var school2 = this.model.Schools.Create();
@@ -3622,7 +3622,7 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var obj1 = this.model.Schools.GetByPrimaryKey(school1Id);
 				var obj2 = this.model.Schools.GetByPrimaryKey(school2Id);
@@ -3643,7 +3643,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public virtual void Test_Query_With_Skip_Take_OrderBy()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var students = this.model.Students.ToList();
 
@@ -3685,8 +3685,8 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_FastCompiler2()
 		{
-			this.Foo(new[] { "a", "b" });
-			this.Foo(new[] { "c", "d" });
+			Foo(new[] { "a", "b" });
+			Foo(new[] { "c", "d" });
 		}
 
 		public struct TestStruct
@@ -3762,14 +3762,14 @@ namespace Shaolinq.Tests
 		{
 			for (var i = 0; i < 10; i++)
 			{
-				this.QuerySchoolAndStudentsLookup(new [] { "Bruce's Kung Fu School" });
+				QuerySchoolAndStudentsLookup(new [] { "Bruce's Kung Fu School" });
 			}
 		}
 
 		[Test]
 		public void Test_AutoIncrementValidation()
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 

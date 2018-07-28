@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ namespace Shaolinq.Persistence.Linq
 {
 	internal static class JoinHelperExtensions
 	{
-		private static MethodInfo LeftJoinMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).LeftJoin(default(IEnumerable<string>), default(Expression<Func<string, string>>),  default(Expression<Func<string, string>>), default(Expression<Func<string, string, string>>))).GetGenericMethodDefinition();
+		private static readonly MethodInfo LeftJoinMethod = TypeUtils.GetMethod(() => default(IQueryable<string>).LeftJoin(default(IEnumerable<string>), default(Expression<Func<string, string>>),  default(Expression<Func<string, string>>), default(Expression<Func<string, string, string>>))).GetGenericMethodDefinition();
 
 		private static Expression GetSourceExpression<TSource>(IEnumerable<TSource> source)
 		{

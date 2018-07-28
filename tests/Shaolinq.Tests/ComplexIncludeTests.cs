@@ -1,14 +1,11 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using NUnit.Framework;
-using Platform;
-using Shouldly;
-using Shaolinq.Persistence.Linq;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
+using Shouldly;
 
 namespace Shaolinq.Tests
 {
@@ -39,7 +36,7 @@ namespace Shaolinq.Tests
 
 			for(var i = list.Count - 1; i > 1; i--)
 			{
-				var rnd = random.Next(i + 1);  
+				var rnd = this.random.Next(i + 1);  
 
 				var value = list[rnd];  
 
@@ -91,7 +88,7 @@ namespace Shaolinq.Tests
 					mall.Building = building;
 					mall.Name =  GetMallName(i);
 					
-					var numberOfShops = random.Next(1, 10);
+					var numberOfShops = this.random.Next(1, 10);
 
 					this.numberOfShopsPerMall[mall.Name] = numberOfShops;
 				}
@@ -104,7 +101,7 @@ namespace Shaolinq.Tests
 
 				for (var i = 1; i <= numberOfMalls; i++)
 				{
-					for (var j = 1; j <= numberOfShopsPerMall[GetMallName(i)]; j++)
+					for (var j = 1; j <= this.numberOfShopsPerMall[GetMallName(i)]; j++)
 					{
 						shopsToCreate.Add(new Tuple<int, int>(i, j));
 					}
@@ -158,11 +155,11 @@ namespace Shaolinq.Tests
 
 			foreach (var mall in malls.OrderBy(c => c.Name))
 			{
-				Console.WriteLine($"{mall.Name} [expected shop count: {numberOfShopsPerMall[mall.Name]}]");
+				Console.WriteLine($"{mall.Name} [expected shop count: {this.numberOfShopsPerMall[mall.Name]}]");
 
 				var shops = useInclude ? mall.Shops.Items() : mall.Shops.ToList();
 
-				shops.Count.ShouldBe(numberOfShopsPerMall[mall.Name]);
+				shops.Count.ShouldBe(this.numberOfShopsPerMall[mall.Name]);
 				shops.Count.ShouldBe(mall.Shops.Count());
 
 				shops.OrderBy(c => c.Name).Select((c,i) => new { name = c.Name, i = i + 1 }).ShouldAllBe(c => c.name.StartsWith($"Shop {c.i:00}"));
@@ -198,11 +195,11 @@ namespace Shaolinq.Tests
 
 			foreach (var mall in malls.OrderBy(c => c.Name))
 			{
-				Console.WriteLine($"{mall.Name} [expected shop count: {numberOfShopsPerMall[mall.Name]}]");
+				Console.WriteLine($"{mall.Name} [expected shop count: {this.numberOfShopsPerMall[mall.Name]}]");
 
 				var shops = useInclude ? mall.Shops.Items() : mall.Shops.ToList();
 
-				shops.Count.ShouldBe(numberOfShopsPerMall[mall.Name]);
+				shops.Count.ShouldBe(this.numberOfShopsPerMall[mall.Name]);
 				shops.Count.ShouldBe(mall.Shops.Count());
 
 				shops.OrderBy(c => c.Name).Select((c,i) => new { name = c.Name, i = i + 1 }).ShouldAllBe(c => c.name.StartsWith($"Shop {c.i:00}"));
@@ -239,11 +236,11 @@ namespace Shaolinq.Tests
 
 			foreach (var mall in malls.OrderBy(c => c.Name))
 			{
-				Console.WriteLine($"{mall.Name} [expected shop count: {numberOfShopsPerMall[mall.Name]}]");
+				Console.WriteLine($"{mall.Name} [expected shop count: {this.numberOfShopsPerMall[mall.Name]}]");
 
 				var shops = useInclude ? mall.Shops.Items() : mall.Shops.ToList();
 
-				shops.Count.ShouldBe(numberOfShopsPerMall[mall.Name]);
+				shops.Count.ShouldBe(this.numberOfShopsPerMall[mall.Name]);
 				shops.Count.ShouldBe(mall.Shops.Count());
 
 				shops.OrderBy(c => c.Name).Select((c,i) => new { name = c.Name, i = i + 1 }).ShouldAllBe(c => c.name.StartsWith($"Shop {c.i:00}"));

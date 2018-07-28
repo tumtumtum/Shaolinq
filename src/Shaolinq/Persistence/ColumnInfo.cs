@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace Shaolinq.Persistence
 		private string fullParentName;
 		private string fullPropertyName;
 
-		public string ColumnName => this.GetColumnName();
+		public string ColumnName => GetColumnName();
 
 		public string GetTailColumnName()
 		{

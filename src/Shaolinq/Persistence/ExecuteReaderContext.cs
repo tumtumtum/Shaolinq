@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
 using System;
 using System.Data;
 

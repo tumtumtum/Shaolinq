@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -27,9 +27,9 @@ namespace Shaolinq
 		public Expression Expression { get; }
 		public IQueryProvider Provider => this.SqlQueryProvider;
 		public ISqlQueryProvider SqlQueryProvider { get; }
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 		public override string ToString() => ((SqlQueryProvider)this.Provider).GetQueryText(this.Expression);
-		public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
+		public virtual IEnumerator<T> GetEnumerator() => GetAsyncEnumerator();
 		public IAsyncEnumerator<T> GetAsyncEnumerator() => this.SqlQueryProvider.GetAsyncEnumerable<T>(this.Expression).GetAsyncEnumeratorOrThrow();
 	}
 }

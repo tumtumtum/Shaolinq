@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			this.compilation = compilation;
 			
-			this.Visit(compilation);
+			Visit(compilation);
 		}
 
 		private bool MethodIsPublicOrAccessibleFromCompilation(IMethodSymbol method)
@@ -66,19 +66,19 @@ namespace Shaolinq.AsyncRewriter
 		
 		private void Visit(Compilation compilationNode)
 		{
-			this.Visit(compilationNode.GlobalNamespace);
+			Visit(compilationNode.GlobalNamespace);
 		}
 
 		private void Visit(INamespaceSymbol nameSpace)
 		{
 			foreach (var type in nameSpace.GetTypeMembers())
 			{
-				this.Visit(type);
+				Visit(type);
 			}
 
 			foreach (var innerNameSpace in nameSpace.GetNamespaceMembers())
 			{
-				this.Visit(innerNameSpace);
+				Visit(innerNameSpace);
 			}
 		}
 
@@ -86,7 +86,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			foreach (var method in type.GetMembers().OfType<IMethodSymbol>())
 			{
-				this.Visit(method);
+				Visit(method);
 			}
 		}
 
@@ -95,7 +95,7 @@ namespace Shaolinq.AsyncRewriter
 			if (method.Name.EndsWith("Async") 
 				&& method.ReturnType.Name == "Task"
 				&& method.IsExtensionMethod
-				&& this.MethodIsPublicOrAccessibleFromCompilation(method))
+				&& MethodIsPublicOrAccessibleFromCompilation(method))
 			{
 				if (this.extensionMethodsByName.TryGetValue(method.Name, out var methods))
 				{

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -45,7 +45,7 @@ namespace Shaolinq
 
 		public virtual T Create<K>(K primaryKey)
 		{
-			return this.Create(primaryKey, PrimaryKeyType.Auto);
+			return Create(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T Create<K>(K primaryKey, PrimaryKeyType primaryKeyType)
@@ -55,32 +55,32 @@ namespace Shaolinq
 
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create()
 		{
-			return this.Create();
+			return Create();
 		}
 
 		IDataAccessObjectAdvanced IDataAccessObjectActivator.Create<K>(K primaryKey)
 		{
-			return this.Create(primaryKey);
+			return Create(primaryKey);
 		}
 
 		public virtual T GetByPrimaryKey<K>(K primaryKey)
 		{
-			return this.GetByPrimaryKey(primaryKey, PrimaryKeyType.Auto);
+			return GetByPrimaryKey(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T GetByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			return this.GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
+			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).Single();
 		}
 
 		public virtual T GetByPrimaryKeyOrDefault<K>(K primaryKey)
 		{
-			return this.GetByPrimaryKeyOrDefault(primaryKey, PrimaryKeyType.Auto);
+			return GetByPrimaryKeyOrDefault(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T GetByPrimaryKeyOrDefault<K>(K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			return this.GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
+			return GetQueryableByPrimaryKey(primaryKey, primaryKeyType).SingleOrDefault();
 		}
 
 		public virtual IQueryable<T> GetQueryableByPrimaryKey<K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
@@ -129,17 +129,17 @@ namespace Shaolinq
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(params K[] primaryKeys)
 		{
-			return this.GetManyByPrimaryKey(primaryKeys, PrimaryKeyType.Auto);
+			return GetManyByPrimaryKey(primaryKeys, PrimaryKeyType.Auto);
 		}
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(K[] primaryKeys, PrimaryKeyType primaryKeyType)
 		{
-			return this.GetManyByPrimaryKey((IEnumerable<K>)primaryKeys, primaryKeyType);
+			return GetManyByPrimaryKey((IEnumerable<K>)primaryKeys, primaryKeyType);
 		}
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys)
 		{
-			return this.GetManyByPrimaryKey<K>(primaryKeys, PrimaryKeyType.Auto);
+			return GetManyByPrimaryKey<K>(primaryKeys, PrimaryKeyType.Auto);
 		}
 
 		public virtual IQueryable<T> GetManyByPrimaryKey<K>(IEnumerable<K> primaryKeys, PrimaryKeyType primaryKeyType)

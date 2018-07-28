@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data;
@@ -20,7 +20,7 @@ namespace Shaolinq.Sqlite
 		[RewriteAsync]
 		public override IDbConnection OpenConnection()
 		{
-			var retval = this.PrivateOpenConnection();
+			var retval = PrivateOpenConnection();
 
 			if (retval == null)
 			{
@@ -54,7 +54,7 @@ namespace Shaolinq.Sqlite
 
 		public override IDbConnection OpenServerConnection()
 		{
-			return this.OpenConnection();
+			return OpenConnection();
 		}
 
 		private static readonly Regex IsSharedConnectionRegex = new Regex(@".*[^a-zA-Z]cache\s*\=\s*shared(([^a-zA-Z])|$).*", RegexOptions.Compiled | RegexOptions.IgnoreCase);

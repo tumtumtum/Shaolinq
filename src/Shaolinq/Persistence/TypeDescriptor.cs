@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace Shaolinq.Persistence
 		private List<TypeRelationshipInfo> relationshipInfos;
 		internal IDictionary<string, PropertyDescriptor> propertyDescriptorByColumnName;
 		private IDictionary<string, PropertyDescriptor> propertyDescriptorByPropertyName;
-		private Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
+		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
 
 		public override string ToString() => "TypeDescriptor: " + this.Type.Name;
 
@@ -181,7 +181,7 @@ namespace Shaolinq.Persistence
 			this.propertyDescriptorByPropertyName = new Dictionary<string, PropertyDescriptor>();
 
 			var alreadyEnteredProperties = new HashSet<string>();
-			foreach (var propertyInfo in this.GetPropertiesInOrder())
+			foreach (var propertyInfo in GetPropertiesInOrder())
 			{
 				if (alreadyEnteredProperties.Contains(propertyInfo.Name))
 				{
@@ -312,7 +312,7 @@ namespace Shaolinq.Persistence
 			{
 				if (attributes.Count() > 1)
 				{
-					throw new InvalidDataAccessModelDefinitionException($"Cannot define more than one {nameof(OrganizationIndexAttribute)} on type {this.TypeName}");
+					throw new InvalidDataAccessModelDefinitionException($"Cannot define more than one {nameof(this.OrganizationIndexAttribute)} on type {this.TypeName}");
 				}
 
 				this.OrganizationIndexAttribute = attributes.Single();
@@ -345,14 +345,14 @@ namespace Shaolinq.Persistence
 			{
 				if (properties.Count > 0)
 				{
-					throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} should not have properties that define an {nameof(OrganizationIndexAttribute)} because an {nameof(OrganizationIndexAttribute)} is already defined at the class level");
+					throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} should not have properties that define an {nameof(this.OrganizationIndexAttribute)} because an {nameof(this.OrganizationIndexAttribute)} is already defined at the class level");
 				}
 
 				if (this.OrganizationIndexAttribute.Disable)
 				{
 					if ((this.OrganizationIndexAttribute.Properties?.Length ?? 0) == 0)
 					{
-						throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} defines a disabled {nameof(OrganizationIndexAttribute)} with a non null or empty Properties.");
+						throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} defines a disabled {nameof(this.OrganizationIndexAttribute)} with a non null or empty Properties.");
 					}
 				}
 
@@ -363,14 +363,14 @@ namespace Shaolinq.Persistence
 			{
 				if (properties[0].OrganizationIndexAttribute.Disable && !properties[0].IsPrimaryKey)
 				{
-					throw new InvalidDataAccessObjectModelDefinition($"Disabling an organization/clustered requires {nameof(OrganizationIndexAttribute)} to be applied to a primary key property but is instead applied to the property '{properties[0].PropertyName}'");
+					throw new InvalidDataAccessObjectModelDefinition($"Disabling an organization/clustered requires {nameof(this.OrganizationIndexAttribute)} to be applied to a primary key property but is instead applied to the property '{properties[0].PropertyName}'");
 				}
 			}
 			else if (properties.Count > 1)
 			{
 				if (properties.Any(c => c.OrganizationIndexAttribute.Disable))
 				{
-					throw new InvalidDataAccessObjectModelDefinition($"You have defined and/or disabled the organization/clustered index on {this.TypeName} multiple times. Remove one or more of the [{nameof(OrganizationIndexAttribute)}] attributes.");
+					throw new InvalidDataAccessObjectModelDefinition($"You have defined and/or disabled the organization/clustered index on {this.TypeName} multiple times. Remove one or more of the [{nameof(this.OrganizationIndexAttribute)}] attributes.");
 				}
 			}
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -69,21 +69,21 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return select;
 			}
 
-			this.Visit(select.Where);
+			Visit(select.Where);
 
 			if (this.hasAggregate)
 			{
 				return select;
 			}
 			
-			this.VisitExpressionList(select.OrderBy);
+			VisitExpressionList(select.OrderBy);
 
 			if (this.hasAggregate)
 			{
 				return select;
 			}
 
-			this.VisitColumnDeclarations(select.Columns);
+			VisitColumnDeclarations(select.Columns);
 
 			return select;
 		}
@@ -97,7 +97,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				return subquery;
 			}
 
-			return this.Visit(subquery);
+			return Visit(subquery);
 		}
 	}
 }

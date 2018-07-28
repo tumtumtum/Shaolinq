@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -44,11 +44,11 @@ namespace Shaolinq.Persistence
 				switch ((constraintDefaults?.StringSizeFlexibility ?? sizeConstraintAttribute.SizeFlexibility))
 				{
 				case SizeFlexibility.Fixed:
-					return this.CreateFixedTypeName(sizeConstraintAttribute.MaximumLength);
+					return CreateFixedTypeName(sizeConstraintAttribute.MaximumLength);
 				case SizeFlexibility.Variable:
-					return this.CreateVariableName(sizeConstraintAttribute.MaximumLength);
+					return CreateVariableName(sizeConstraintAttribute.MaximumLength);
 				case SizeFlexibility.LargeVariable:
-					return this.CreateTextName();
+					return CreateTextName();
 				default:
 					throw new NotSupportedException("SizeFlexibility: " + sizeConstraintAttribute.SizeFlexibility);
 				}
@@ -57,11 +57,11 @@ namespace Shaolinq.Persistence
 			{
 				if (propertyDescriptor != null && (propertyDescriptor.IsPrimaryKey || propertyDescriptor.HasUniqueAttribute || propertyDescriptor.IndexAttributes.Count > 0))
 				{
-					return this.CreateVariableName(this.constraintDefaultsConfiguration.IndexedStringMaximumLength);
+					return CreateVariableName(this.constraintDefaultsConfiguration.IndexedStringMaximumLength);
 				}
 				else
 				{
-					return this.CreateVariableName((constraintDefaults ?? this.constraintDefaultsConfiguration).StringMaximumLength);
+					return CreateVariableName((constraintDefaults ?? this.constraintDefaultsConfiguration).StringMaximumLength);
 				}
 			}
 		}

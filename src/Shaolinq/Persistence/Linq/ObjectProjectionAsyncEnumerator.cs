@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -29,7 +29,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			catch
 			{
-				this.Dispose();
+				Dispose();
 
 				throw;
 			}
@@ -37,7 +37,7 @@ namespace Shaolinq.Persistence.Linq
 
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 		}
 
 		protected virtual void Dispose(bool disposing)
@@ -49,7 +49,7 @@ namespace Shaolinq.Persistence.Linq
 
 			this.disposed = true;
 
-			this.Close();
+			Close();
 		}
 
 		private void Close()
@@ -113,7 +113,7 @@ state1:
 			{
 				this.Current = result;
 
-				this.Close();
+				Close();
 
 				return true;
 			}

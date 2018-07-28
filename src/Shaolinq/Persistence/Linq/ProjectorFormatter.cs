@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var arg in functionCallExpression.Arguments)
 			{
-				this.Visit(arg);
+				Visit(arg);
 
 				this.output.Append(", ");
 			}
@@ -46,9 +46,9 @@ namespace Shaolinq.Persistence.Linq
 
 			this.output.Append("(");
 
-			this.Visit(binaryExpression.Left);
+			Visit(binaryExpression.Left);
 			this.output.Append(", ");
-			this.Visit(binaryExpression.Right);
+			Visit(binaryExpression.Right);
 
 			this.output.Append(")");
 
@@ -75,7 +75,7 @@ namespace Shaolinq.Persistence.Linq
 		protected override MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
 		{
 			this.output.Append(assignment.Member.Name).Append(" = ");
-			this.Visit(assignment.Expression);
+			Visit(assignment.Expression);
 
 			return assignment;
 		}
@@ -83,14 +83,14 @@ namespace Shaolinq.Persistence.Linq
 		protected override MemberListBinding VisitMemberListBinding(MemberListBinding binding)
 		{
 			this.output.Append(binding.Member.Name).Append(" = ");
-			this.VisitElementInitializerList(binding.Initializers);
+			VisitElementInitializerList(binding.Initializers);
 
 			return binding;
 		}
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
-			this.Visit(memberExpression.Expression);
+			Visit(memberExpression.Expression);
 			this.output.Append(".");
 			this.output.Append(memberExpression.Member.Name);
 
@@ -114,13 +114,13 @@ namespace Shaolinq.Persistence.Linq
 		protected override Expression VisitConditional(ConditionalExpression expression)
 		{
 			this.output.Append("(");
-			this.Visit(expression.Test);
+			Visit(expression.Test);
 			this.output.Append(")");
 
 			this.output.Append(" ? (");
-			this.Visit(expression.IfTrue);
+			Visit(expression.IfTrue);
 			this.output.Append(") : (");
-			this.Visit(expression.IfFalse);
+			Visit(expression.IfFalse);
 			this.output.Append(")");
 
 			return expression;
@@ -146,7 +146,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var element in initializer.Arguments)
 			{
-				this.Visit(element);
+				Visit(element);
 				this.output.Append(", ");
 			}
 
@@ -166,7 +166,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var element in original)
 			{
-				this.VisitElementInitializer(element);
+				VisitElementInitializer(element);
 				this.output.Append(", ");
 			}
 
@@ -196,7 +196,7 @@ namespace Shaolinq.Persistence.Linq
 			this.output.Append("(");
 			foreach (var arg in methodCallExpression.Arguments)
 			{
-				this.Visit(arg);
+				Visit(arg);
 				this.output.Append(", ");
 			}
 
@@ -217,7 +217,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var binding in original)
 			{
-				this.VisitBinding(binding);
+				VisitBinding(binding);
 				this.output.Append(", ");
 			}
 
@@ -233,8 +233,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitMemberInit(MemberInitExpression expression)
 		{
-			this.VisitNew(expression.NewExpression);
-			this.VisitBindingList(expression.Bindings);
+			VisitNew(expression.NewExpression);
+			VisitBindingList(expression.Bindings);
 
 			return expression;
 		}
@@ -246,7 +246,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var arg in expression.Arguments)
 			{
-				this.Visit(arg);
+				Visit(arg);
 				this.output.Append(", ");
 			}
 

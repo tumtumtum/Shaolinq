@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace Shaolinq.Tests
 
 			for (var i = 0; i < threadCount; i++)
 			{
-				var thread = new Thread(() => this.GetCatsNoDataAccessScopeAsync(i).Wait());
+				var thread = new Thread(() => GetCatsNoDataAccessScopeAsync(i).Wait());
 
 				thread.Start();
 				threads.Add(thread);
@@ -47,7 +47,7 @@ namespace Shaolinq.Tests
 		{
 			using (var scope = DataAccessScope.CreateReadCommitted())
 			{
-				var result = await this.GetCatsNoDataAccessScopeAsync(iteration);
+				var result = await GetCatsNoDataAccessScopeAsync(iteration);
 
 				await scope.CompleteAsync();
 

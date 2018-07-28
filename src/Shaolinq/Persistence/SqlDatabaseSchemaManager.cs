@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -24,10 +24,10 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public virtual void CreateDatabaseAndSchema(DatabaseCreationOptions options)
 		{
-			var dataDefinitionExpressions = this.BuildDataDefinitonExpressions(options);
+			var dataDefinitionExpressions = BuildDataDefinitonExpressions(options);
 
-			this.CreateDatabaseOnly(dataDefinitionExpressions, options);
-			this.CreateDatabaseSchema(dataDefinitionExpressions, options);
+			CreateDatabaseOnly(dataDefinitionExpressions, options);
+			CreateDatabaseSchema(dataDefinitionExpressions, options);
 		}
 
 		public virtual Expression LoadDataDefinitionExpressions()
@@ -47,7 +47,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Expression BuildDataDefinitonExpressions(DatabaseCreationOptions options)
 		{
-			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.DataAccessModel, this.SqlDatabaseContext.SqlQueryFormatterManager, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, options, this.SqlDatabaseContext.TableNamePrefix, this.GetBuilderFlags());
+			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.DataAccessModel, this.SqlDatabaseContext.SqlQueryFormatterManager, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, options, this.SqlDatabaseContext.TableNamePrefix, GetBuilderFlags());
 		}
 		
 		[RewriteAsync]

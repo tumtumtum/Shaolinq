@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -53,7 +53,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		
 		public SqlSelectExpression ChangeColumns(IEnumerable<SqlColumnDeclaration> columns)
 		{
-			return this.ChangeColumns(columns, false);
+			return ChangeColumns(columns, false);
 		}
 
 		public SqlSelectExpression ChangeColumns(IEnumerable<SqlColumnDeclaration> columns, bool columnsAlreadyOrdered)

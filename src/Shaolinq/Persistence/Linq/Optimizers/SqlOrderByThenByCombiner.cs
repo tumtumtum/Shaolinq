@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Shaolinq.TypeBuilding;
@@ -23,14 +25,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (method == MethodInfoFastRef.QueryableThenByMethod || method == MethodInfoFastRef.QueryableThenByDescendingMethod)
 				{
-					if (currentThenBys == null)
+					if (this.currentThenBys == null)
 					{
-						currentThenBys = new List<MethodCallExpression>();
+						this.currentThenBys = new List<MethodCallExpression>();
 					}
 
-					currentThenBys.Add(methodCallExpression);
+					this.currentThenBys.Add(methodCallExpression);
 
-					return this.Visit(methodCallExpression.Arguments[0]);
+					return Visit(methodCallExpression.Arguments[0]);
 				}
 
 				if ((method == MethodInfoFastRef.QueryableOrderByMethod || method == MethodInfoFastRef.QueryableOrderByDescendingMethod)
@@ -47,7 +49,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 						this.currentThenBys.Clear();
 					}
 
-					return Expression.Call(null, MethodInfoFastRef.QueryableExtensionsOrderByThenBysHelperMethod.MakeGenericMethod(methodCallExpression.Method.ReturnType.GetGenericArguments()[0]), this.Visit(methodCallExpression.Arguments[0]), Expression.Constant(orderByThenBys.ToArray()), Expression.Constant(sortBys.ToArray()));
+					return Expression.Call(null, MethodInfoFastRef.QueryableExtensionsOrderByThenBysHelperMethod.MakeGenericMethod(methodCallExpression.Method.ReturnType.GetGenericArguments()[0]), Visit(methodCallExpression.Arguments[0]), Expression.Constant(orderByThenBys.ToArray()), Expression.Constant(sortBys.ToArray()));
 				}
 			}
 

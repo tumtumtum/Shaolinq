@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -96,7 +96,7 @@ namespace Shaolinq.TypeBuilding
 
 				if (propertyInfo.GetGetMethod() != null)
 				{
-					propertyBuilder.SetGetMethod(this.BuildPropertyMethod("get", propertyInfo, fieldBuilder));
+					propertyBuilder.SetGetMethod(BuildPropertyMethod("get", propertyInfo, fieldBuilder));
 				}
 
 				// Implement set method
@@ -122,7 +122,7 @@ namespace Shaolinq.TypeBuilding
 
 			generator.Emit(OpCodes.Ret);
 
-			this.BuildGetDataAccessObjectsMethod();
+			BuildGetDataAccessObjectsMethod();
 			
 			return typeBuilder.CreateType();
 		}

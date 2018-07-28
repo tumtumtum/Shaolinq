@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq;
@@ -21,14 +21,14 @@ namespace Shaolinq.MySql
 		{
 			try
 			{
-				var newSource = this.Visit(expression.Source);
+				var newSource = Visit(expression.Source);
 
 				this.inUpdate = true;
 
 				this.updateTableName = (expression.Source as SqlTableExpression).Name;
 
-				var newWhere = this.Visit(expression.Where);
-				var newAssignments = this.VisitExpressionList(expression.Assignments);
+				var newWhere = Visit(expression.Where);
+				var newAssignments = VisitExpressionList(expression.Assignments);
 
 				if (newSource != expression.Source || newWhere != expression.Where || newAssignments != expression.Assignments)
 				{

@@ -1,6 +1,6 @@
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Shaolinq.Persistence;
 
 namespace Shaolinq

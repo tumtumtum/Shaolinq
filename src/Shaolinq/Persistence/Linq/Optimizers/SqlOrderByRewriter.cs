@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -44,7 +44,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (hasOrderBy)
 				{
-					this.PrependOrderings(select.OrderBy);
+					PrependOrderings(select.OrderBy);
 				}
 
 				var columns = select.Columns;
@@ -56,10 +56,10 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					if (canPassOnOrderings)
 					{
 						var producedAliases = SqlAliasesProduced.Gather(select.From);
-						var project = this.RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
+						var project = RebindOrderings(this.gatheredOrderings, select.Alias, producedAliases, select.Columns);
 
 						this.gatheredOrderings = null;
-						this.PrependOrderings(project.Orderings);
+						PrependOrderings(project.Orderings);
 
 						columns = project.Columns;
 					}
@@ -84,16 +84,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			var left = this.VisitSource(join.Left);
+			var left = VisitSource(join.Left);
 			var leftOrders = this.gatheredOrderings;
 			
 			this.gatheredOrderings = null;
 
-			var right = this.VisitSource(join.Right);
+			var right = VisitSource(join.Right);
 			
-			this.PrependOrderings(leftOrders);
+			PrependOrderings(leftOrders);
 			
-			var condition = this.Visit(join.JoinCondition);
+			var condition = Visit(join.JoinCondition);
 
 			if (left != join.Left || right != join.Right || condition != join.JoinCondition)
 			{

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -120,7 +120,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (this.candidates.Contains(expression))
 				{
-					return this.Evaluate(expression);
+					return Evaluate(expression);
 				}
 
 				return base.Visit(expression);
@@ -164,7 +164,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.first = expression;
 
-				this.Visit(expression);
+				Visit(expression);
 
 				return this.candidates;
 			}

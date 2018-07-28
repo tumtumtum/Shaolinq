@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -141,7 +141,7 @@ namespace Shaolinq.Tests
 						{
 							Thread.Sleep(random.Next(0, 5));
 
-							await this.ReadAllSchoolsAsync();
+							await ReadAllSchoolsAsync();
 						}
 					}
 					catch (Exception e)

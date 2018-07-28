@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -25,9 +25,9 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var source = (SqlSelectExpression)this.Visit(projection.Select);
-			var projector = this.Visit(projection.Projector);
-			var aggregator = (LambdaExpression) this.Visit(projection.Aggregator);
+			var source = (SqlSelectExpression)Visit(projection.Select);
+			var projector = Visit(projection.Projector);
+			var aggregator = (LambdaExpression) Visit(projection.Aggregator);
 
 			if (source != projection.Select || projector != projection.Projector || aggregator != projection.Aggregator)
 			{
@@ -125,7 +125,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					// Convert (SELECT a, b, c FROM T) == NULL -> NOT EXISTS (SELECT a, b, c FROM T)
 
-					Expression retval = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, this.Visit(arg0));
+					Expression retval = new SqlFunctionCallExpression(typeof(bool), SqlFunction.Exists, Visit(arg0));
 
 					if (functionCallExpression.Function == SqlFunction.IsNull)
 					{
@@ -149,8 +149,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				var leftOperand = binaryExpression.Left;
 				var rightOperand = binaryExpression.Right;
 
-				foreach (var value in GetPrimaryKeyElementalExpressions(this.Visit(leftOperand))
-					.Zip(GetPrimaryKeyElementalExpressions(this.Visit(rightOperand)), (left, right) => new { Left = left, Right = right }))
+				foreach (var value in GetPrimaryKeyElementalExpressions(Visit(leftOperand))
+					.Zip(GetPrimaryKeyElementalExpressions(Visit(rightOperand)), (left, right) => new { Left = left, Right = right }))
 				{
 					Expression current;
 					var left = value.Left;

@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -52,7 +54,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				&& unaryExpression.Operand.Type.IsDataAccessObjectType()
 				&& unaryExpression.Type.IsAssignableFrom(unaryExpression.Operand.Type))
 			{
-				return this.Visit(unaryExpression.Operand);
+				return Visit(unaryExpression.Operand);
 			}
 
 			return base.VisitUnary(unaryExpression);

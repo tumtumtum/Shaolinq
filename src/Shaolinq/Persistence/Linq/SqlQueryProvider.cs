@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ namespace Shaolinq.Persistence.Linq
 			var projectionExpression = Optimize(this.DataAccessModel, expression);
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(projectionExpression);
 
-			return this.GetQueryText(formatResult);
+			return GetQueryText(formatResult);
 		}
 
 		internal string GetParamName(int index) => SqlQueryFormatter.ParamNamePrefix + index;
@@ -104,27 +104,27 @@ namespace Shaolinq.Persistence.Linq
 
 		public override object Execute(Expression expression)
 		{
-			return this.Execute<object>(expression);
+			return Execute<object>(expression);
 		}
 
 		public override T Execute<T>(Expression expression)
 		{
-			return this.BuildExecution(expression).Evaluate<T>();
+			return BuildExecution(expression).Evaluate<T>();
 		}
 
 		public override Task<T> ExecuteAsync<T>(Expression expression, CancellationToken cancellationToken)
 		{
-			return this.BuildExecution(expression).EvaluateAsync<T>(cancellationToken);
+			return BuildExecution(expression).EvaluateAsync<T>(cancellationToken);
 		}
 
 		public override IEnumerable<T> GetEnumerable<T>(Expression expression)
 		{
-			return this.BuildExecution(expression).Evaluate<IEnumerable<T>>();
+			return BuildExecution(expression).Evaluate<IEnumerable<T>>();
 		}
 
 		public override IAsyncEnumerable<T> GetAsyncEnumerable<T>(Expression expression)
 		{
-			return this.BuildExecution(expression).EvaluateAsyncEnumerable<T>(CancellationToken.None);
+			return BuildExecution(expression).EvaluateAsyncEnumerable<T>(CancellationToken.None);
 		}
 
 		public static Expression Optimize(DataAccessModel dataAccessModel, Expression expression)
@@ -232,11 +232,11 @@ namespace Shaolinq.Persistence.Linq
 					projection = ProjectionBuilder.Build(this.DataAccessModel, this.SqlDatabaseContext, this, projectionExpression.Projector, new ProjectionBuilderScope(columns), out rootKeys);
 				}
 
-				this.BuildProjector(projection, projectionExpression.Aggregator, rootKeys, out cacheInfo.projector, out cacheInfo.asyncProjector);
+				BuildProjector(projection, projectionExpression.Aggregator, rootKeys, out cacheInfo.projector, out cacheInfo.asyncProjector);
 				
 				this.SqlDatabaseContext.projectionExpressionCache = this.SqlDatabaseContext.projectionExpressionCache.Clone(key, cacheInfo, "ProjectionExpression", this.ProjectionExpressionCacheMaxLimit, ProjectionCacheLogger, c => c.projectionExpression.ToString());
 
-				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{this.GetQueryText(formatResult, this.GetParamName)}\n\nProjector:\n{cacheInfo.projector}");
+				ProjectionCacheLogger.Debug(() => $"Cached projection for query:\n{GetQueryText(formatResult, GetParamName)}\n\nProjector:\n{cacheInfo.projector}");
 				ProjectionCacheLogger.Debug(() => $"Projector Cache Size: {this.SqlDatabaseContext.projectionExpressionCache.Count}");
 
 				cacheInfo.formatResult = formatResult;
@@ -275,7 +275,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (foundCachedProjection)
 			{
-				ProjectionCacheLogger.Debug(() => $"Cache hit for query:\n{this.GetQueryText(cacheInfo.formatResult, this.GetParamName)}");
+				ProjectionCacheLogger.Debug(() => $"Cache hit for query:\n{GetQueryText(cacheInfo.formatResult, GetParamName)}");
 			}
 
 			return new ExecutionBuildResult(this, cacheInfo.formatResult, cacheInfo.projector, cacheInfo.asyncProjector, placeholderValues);

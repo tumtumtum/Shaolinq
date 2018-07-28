@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.IO;
@@ -32,7 +32,7 @@ namespace Shaolinq.Persistence.Computed
 			this.reader = reader;
 			this.stringBuilder = new StringBuilder();
 
-			this.ConsumeChar();
+			ConsumeChar();
 		}
 
 		private void ConsumeChar()
@@ -44,7 +44,7 @@ namespace Shaolinq.Persistence.Computed
 		{
 			while (Char.IsWhiteSpace((char)this.currentChar) || this.currentChar == '\0')
 			{
-				this.ConsumeChar();
+				ConsumeChar();
 			}
 
 			if (this.currentChar == -1)
@@ -57,11 +57,11 @@ namespace Shaolinq.Persistence.Computed
 			switch (this.currentChar)
 			{
 			case '=':
-				this.ConsumeChar();
+				ConsumeChar();
 
 				if (this.currentChar == '=')
 				{
-					this.ConsumeChar();
+					ConsumeChar();
 
 					this.CurrentToken = ComputedExpressionToken.Equals;
 				}
@@ -72,11 +72,11 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			case '?':
-				this.ConsumeChar();
+				ConsumeChar();
 
 				if (this.currentChar == '?')
 				{
-					this.ConsumeChar();
+					ConsumeChar();
 					this.CurrentToken = ComputedExpressionToken.DoubleQuestionMark;
 				}
 				else
@@ -86,11 +86,11 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			case '!':
-				this.ConsumeChar();
+				ConsumeChar();
 
 				if (this.currentChar == '=')
 				{
-					this.ConsumeChar();
+					ConsumeChar();
 
 					this.CurrentToken = ComputedExpressionToken.NotEquals;
 				}
@@ -101,11 +101,11 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			case '&':
-				this.ConsumeChar();
+				ConsumeChar();
 
 				if (this.currentChar == '&')
 				{
-					this.ConsumeChar();
+					ConsumeChar();
 
 					this.CurrentToken = ComputedExpressionToken.LogicalAnd;
 				}
@@ -116,11 +116,11 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			case '|':
-				this.ConsumeChar();
+				ConsumeChar();
 
 				if (this.currentChar == '|')
 				{
-					this.ConsumeChar();
+					ConsumeChar();
 
 					this.CurrentToken = ComputedExpressionToken.LogicalOr;
 				}
@@ -131,11 +131,11 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			case '<':
-				this.ConsumeChar();
+				ConsumeChar();
 
 				if (this.currentChar == '=')
 				{
-					this.ConsumeChar();
+					ConsumeChar();
 
 					this.CurrentToken = ComputedExpressionToken.LessThanOrEqual;
 				}
@@ -146,11 +146,11 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			case '>':
-				this.ConsumeChar();
+				ConsumeChar();
 
 				if (this.currentChar == '=')
 				{
-					this.ConsumeChar();
+					ConsumeChar();
 
 					this.CurrentToken = ComputedExpressionToken.GreaterThanOrEqual;
 				}
@@ -161,53 +161,53 @@ namespace Shaolinq.Persistence.Computed
 
 				return this.CurrentToken;
 			case '.':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.Period;
 
 				return this.CurrentToken;
 			case ';':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.Semicolon;
 
 				return this.CurrentToken;
 			case ',':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.Comma;
 
 				return this.CurrentToken;
 			case '(':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.LeftParen;
 
 				return this.CurrentToken;
 			case ')':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.RightParen;
 
 				return this.CurrentToken;
 			case '+':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.Add;
 
 				return this.CurrentToken;
 			case '-':
-				this.ConsumeChar();
+				ConsumeChar();
 			
 				this.CurrentToken = ComputedExpressionToken.Subtract;
 
 				return this.CurrentToken;
 			case '*':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.Multiply;
 
 				return this.CurrentToken;
 			case '/':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.Divide;
 
 				return this.CurrentToken;
 			case '%':
-				this.ConsumeChar();
+				ConsumeChar();
 				this.CurrentToken = ComputedExpressionToken.Modulo;
 
 				return this.CurrentToken;
@@ -226,7 +226,7 @@ namespace Shaolinq.Persistence.Computed
 
 						this.stringBuilder.Append((char)this.currentChar);
 
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 
 					var s = this.stringBuilder.ToString();
@@ -235,19 +235,19 @@ namespace Shaolinq.Persistence.Computed
 					{
 						this.CurrentFloat = Convert.ToSingle(s);
 						this.CurrentToken = ComputedExpressionToken.FloatLiteral;
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 					else if (floatingPoint && this.currentChar == 'd')
 					{
 						this.CurrentDouble = Convert.ToDouble(s);
 						this.CurrentToken = ComputedExpressionToken.DoubleLiteral;
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 					else if (floatingPoint && this.currentChar == 'm')
 					{
 						this.CurrentDecimal = Convert.ToDecimal(s);
 						this.CurrentToken = ComputedExpressionToken.DecimalLiteral;
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 					else if (floatingPoint)
 					{
@@ -258,7 +258,7 @@ namespace Shaolinq.Persistence.Computed
 					{
 						this.CurrentToken = ComputedExpressionToken.LongLiteral;
 						this.CurrentInteger = Convert.ToInt64(s);
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 					else
 					{
@@ -276,7 +276,7 @@ namespace Shaolinq.Persistence.Computed
 					{
 						this.stringBuilder.Append((char)this.currentChar);
 
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 
 ;
@@ -302,7 +302,7 @@ namespace Shaolinq.Persistence.Computed
 
 					this.stringBuilder.Length = 0;
 
-					this.ConsumeChar();
+					ConsumeChar();
 
 					while (this.currentChar != -1 && (this.currentChar != startChar || (this.currentChar == startChar && previousChar == '\\')))
 					{
@@ -312,7 +312,7 @@ namespace Shaolinq.Persistence.Computed
 							{
 								this.stringBuilder.Remove(this.stringBuilder.Length - 1, 1);
 								this.stringBuilder.Append(startChar);
-								this.ConsumeChar();
+								ConsumeChar();
 
 								continue;
 							}
@@ -325,12 +325,12 @@ namespace Shaolinq.Persistence.Computed
 						this.stringBuilder.Append((char)this.currentChar);
 						previousChar = this.currentChar;
 
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 
 					if (this.currentChar == startChar)
 					{
-						this.ConsumeChar();
+						ConsumeChar();
 					}
 
 					var s = this.stringBuilder.ToString();

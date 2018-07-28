@@ -1,11 +1,9 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using Platform;
 using Shaolinq.Persistence.Computed;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -83,7 +81,7 @@ namespace Shaolinq.Persistence.Linq
 						&& propertyDescriptor.DefaultValue == null;
 
 					var outputDefaultValue = propertyDescriptor.HasExplicitDefaultValue
-						|| (propertyDescriptor.HasImplicitDefaultValue && model.Configuration.IncludeImplicitDefaultsInSchema
+						|| (propertyDescriptor.HasImplicitDefaultValue && this.model.Configuration.IncludeImplicitDefaultsInSchema
 						&& !isPrimaryKeyWithNullDefault);
 					
 					if (outputDefaultValue)
@@ -149,7 +147,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var foreignKeyColumn in columnInfos)
 			{
-				var retval = this.BuildColumnDefinition(foreignKeyColumn);
+				var retval = BuildColumnDefinition(foreignKeyColumn);
 
 				if (columnInfos.Length == 1 && supportsInlineForeignKeys && !(referencingProperty.ForeignObjectConstraintAttribute?.Disabled ?? false))
 				{
@@ -160,7 +158,7 @@ namespace Shaolinq.Persistence.Linq
 					(
 						new SqlTableExpression(referencedTableName),
 						SqlColumnReferenceDeferrability.InitiallyDeferred,
-						names, this.FixAction(foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
+						names, FixAction(foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 					);
 
 					newConstraints.Add(new SqlConstraintExpression(referencesColumnExpression, this.formatterManager.GetForeignKeyConstraintName(referencingProperty)));
@@ -180,7 +178,7 @@ namespace Shaolinq.Persistence.Linq
 				(
 					new SqlTableExpression(referencedTableName),
 					SqlColumnReferenceDeferrability.InitiallyDeferred,
-					referencedTableColumnNames, this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), this.FixAction((foreignObjectConstraintAttribute != null && this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? this.ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
+					referencedTableColumnNames, FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction).Value : (valueRequired ? SqlColumnReferenceAction.Restrict : SqlColumnReferenceAction.SetNull)), FixAction((foreignObjectConstraintAttribute != null && ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnDeleteAction) != null) ? ToSqlColumnReferenceAction(foreignObjectConstraintAttribute.OnUpdateAction).Value : SqlColumnReferenceAction.NoAction)
 				);
 				
 				var foreignKeyConstraint = new SqlConstraintExpression(referencesExpression, this.formatterManager.GetForeignKeyConstraintName(referencingProperty), currentTableColumnNames);
@@ -193,7 +191,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			var sqlDataType = this.sqlDataTypeProvider.GetSqlDataType(columnInfo.DefinitionProperty.PropertyType);
 			var columnDataTypeName = sqlDataType.GetSqlName(columnInfo.DefinitionProperty);
-			var constraints = this.BuildColumnConstraints(columnInfo.DefinitionProperty, columnInfo.VisitedProperties.FirstOrDefault());
+			var constraints = BuildColumnConstraints(columnInfo.DefinitionProperty, columnInfo.VisitedProperties.FirstOrDefault());
 
 			return new SqlColumnDefinitionExpression(columnInfo.ColumnName, new SqlTypeExpression(columnDataTypeName, sqlDataType.IsUserDefinedType), constraints);
 		}
@@ -204,7 +202,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				var foreignKeyColumns = QueryBinder.GetColumnInfos(this.model.TypeDescriptorProvider, typeRelationshipInfo.ReferencingProperty);
 
-				foreach (var result in this.BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
+				foreach (var result in BuildForeignKeyColumnDefinitions(typeRelationshipInfo.ReferencingProperty, foreignKeyColumns))
 				{
 					yield return result;
 				}
@@ -227,7 +225,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var columnInfo in columnInfos)
 			{
-				columnExpressions.Add(this.BuildColumnDefinition(columnInfo));
+				columnExpressions.Add(BuildColumnDefinition(columnInfo));
 			}
 
 			columnInfos = QueryBinder.GetColumnInfos
@@ -240,7 +238,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var columnInfo in columnInfos)
 			{
-				columnExpressions.Add(this.BuildColumnDefinition(columnInfo));
+				columnExpressions.Add(BuildColumnDefinition(columnInfo));
 			}
 
 			foreach (var property in typeDescriptor.PersistedPropertiesWithoutBackreferences
@@ -254,10 +252,10 @@ namespace Shaolinq.Persistence.Linq
 					(c, d) => c.IsPrimaryKey
 				);
 
-				columnExpressions.AddRange(this.BuildForeignKeyColumnDefinitions(property, columnInfos));
+				columnExpressions.AddRange(BuildForeignKeyColumnDefinitions(property, columnInfos));
 			}
 
-			columnExpressions.AddRange(this.BuildRelatedColumnDefinitions(typeDescriptor));
+			columnExpressions.AddRange(BuildRelatedColumnDefinitions(typeDescriptor));
 
 			var tableName = typeDescriptor.PersistedName;
 
@@ -277,7 +275,7 @@ namespace Shaolinq.Persistence.Linq
 			
 			if (organizationIndexInfo != null)
 			{
-				organizationIndex = this.BuildOrganizationIndexExpression(typeDescriptor, organizationIndexInfo);
+				organizationIndex = BuildOrganizationIndexExpression(typeDescriptor, organizationIndexInfo);
 			}
 
 			return new SqlCreateTableExpression(new SqlTableExpression(tableName), false, columnExpressions, this.currentTableConstraints, organizationIndex);
@@ -456,7 +454,7 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var indexInfo in indexInfos)
 			{
-				var index = this.BuildIndexExpression(typeDescriptor, table, indexInfo);
+				var index = BuildIndexExpression(typeDescriptor, table, indexInfo);
 
 				if (index != null)
 				{
@@ -473,7 +471,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				foreach (var enumTypeDescriptor in this.model.TypeDescriptorProvider.GetPersistedEnumTypeDescriptors())
 				{
-					expressions.Add(this.BuildCreateEnumTypeExpression(enumTypeDescriptor));
+					expressions.Add(BuildCreateEnumTypeExpression(enumTypeDescriptor));
 				}
 			}
 
@@ -481,8 +479,8 @@ namespace Shaolinq.Persistence.Linq
 			{
 				foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 				{
-					expressions.Add(this.BuildCreateTableExpression(typeDescriptor));
-					expressions.AddRange(this.BuildCreateIndexExpressions(typeDescriptor));
+					expressions.Add(BuildCreateTableExpression(typeDescriptor));
+					expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
 				}
 			}
 			else
@@ -491,7 +489,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 					{
-						expressions.AddRange(this.BuildCreateIndexExpressions(typeDescriptor));
+						expressions.AddRange(BuildCreateIndexExpressions(typeDescriptor));
 					}
 				}
 
@@ -499,7 +497,7 @@ namespace Shaolinq.Persistence.Linq
 				{
 					foreach (var typeDescriptor in this.model.TypeDescriptorProvider.GetPersistedObjectTypeDescriptors())
 					{
-						expressions.Add(this.BuildCreateTableExpression(typeDescriptor));
+						expressions.Add(BuildCreateTableExpression(typeDescriptor));
 					}
 				}
 			}

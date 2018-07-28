@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -58,7 +58,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var parameter in formatResult.ParameterValues)
 			{
-				this.AddParameter(command, parameter.Type, parameter.Name, parameter.Value);
+				AddParameter(command, parameter.Type, parameter.Name, parameter.Value);
 			}
 		}
 
@@ -69,7 +69,7 @@ namespace Shaolinq.Persistence
 
 		public IDbDataParameter AddParameter(IDbCommand command, Type type, string name, object value)
 		{
-			var parameter = this.CreateParameter(command,  name ?? this.parameterIndicatorPrefix + SqlQueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
+			var parameter = CreateParameter(command,  name ?? this.parameterIndicatorPrefix + SqlQueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
 
 			command.Parameters.Add(parameter);
 
@@ -134,12 +134,12 @@ namespace Shaolinq.Persistence
 
 			if (value == null)
 			{
-				parameter.DbType = this.GetDbType(type);
+				parameter.DbType = GetDbType(type);
 			}
 
 			var result = this.SqlDatabaseContext.SqlDataTypeProvider.GetSqlDataType(type).ConvertForSql(value);
 
-			parameter.DbType = this.GetDbType(result.Type);
+			parameter.DbType = GetDbType(result.Type);
 			parameter.Value = result.Value ?? DBNull.Value;
 
 			return parameter;
@@ -186,7 +186,7 @@ namespace Shaolinq.Persistence
 		    }
 		    catch
 		    {
-		        this.Dispose(true);
+		        Dispose(true);
 
 		        throw;
 		    }
@@ -194,10 +194,10 @@ namespace Shaolinq.Persistence
 
 		~SqlTransactionalCommandsContext()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
-		public virtual IDbCommand CreateCommand() => this.CreateCommand(SqlCreateCommandOptions.Default);
+		public virtual IDbCommand CreateCommand() => CreateCommand(SqlCreateCommandOptions.Default);
 
 		public virtual IDbCommand CreateCommand(SqlCreateCommandOptions options)
 		{
@@ -249,7 +249,7 @@ namespace Shaolinq.Persistence
 			}
 			finally
 			{
-				this.CloseConnection();
+				CloseConnection();
 			}
 		}
 
@@ -267,7 +267,7 @@ namespace Shaolinq.Persistence
 			}
 			finally
 			{
-				this.CloseConnection();
+				CloseConnection();
 			}
 		}
 
@@ -287,7 +287,7 @@ namespace Shaolinq.Persistence
 
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 
 			GC.SuppressFinalize(this);
 		}
@@ -299,7 +299,7 @@ namespace Shaolinq.Persistence
 				return;
 			}
 
-			try { this.CloseConnection(); } catch { }
+			try { CloseConnection(); } catch { }
 
 			this.disposed = true;
 		}

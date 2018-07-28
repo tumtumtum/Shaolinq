@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		public void Test()
 		{
 			var rewriter = new Rewriter();
-			var root = Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath);
+			var root = Path.GetDirectoryName(new Uri(GetType().Assembly.CodeBase).LocalPath);
 			var paths = new List<string> { "LambdaTests.cs" };
 
 			var result = rewriter.RewriteAndMerge(paths.Select(c => Path.Combine(root, c)).ToArray());

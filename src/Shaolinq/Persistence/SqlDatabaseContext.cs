@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -86,9 +86,9 @@ namespace Shaolinq.Persistence
 					return this.typeDescriptorProvider;
 				}
 
-				if (parameterNameToValue != null)
+				if (this.parameterNameToValue != null)
 				{
-					var result = parameterNameToValue(parameterInfo.Name);
+					var result = this.parameterNameToValue(parameterInfo.Name);
 
 					if (result.Item1)
 					{
@@ -201,11 +201,11 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public SqlTransactionalCommandsContext CreateSqlTransactionalCommandsContext(TransactionContext transactionContext)
 		{
-			var connection = this.OpenConnection();
+			var connection = OpenConnection();
 
 			try
 			{
-				return this.CreateSqlTransactionalCommandsContext(connection, transactionContext);
+				return CreateSqlTransactionalCommandsContext(connection, transactionContext);
 			}
 			catch
 			{
@@ -225,7 +225,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.dbProviderFactory == null)
 			{
-				this.dbProviderFactory = this.CreateDbProviderFactory();
+				this.dbProviderFactory = CreateDbProviderFactory();
 			}
 
 			var retval = this.dbProviderFactory.CreateConnection();
@@ -241,7 +241,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.dbProviderFactory == null)
 			{
-				this.dbProviderFactory = this.CreateDbProviderFactory();
+				this.dbProviderFactory = CreateDbProviderFactory();
 			}
 
 			var retval = this.dbProviderFactory.CreateConnection();
@@ -287,12 +287,12 @@ namespace Shaolinq.Persistence
 
 		~SqlDatabaseContext()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 		}
 
 		public virtual void Dispose(bool disposing)

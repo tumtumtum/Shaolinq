@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				{
 					var condition = good.Join(ExpressionType.And);
 
-					join = this.UpdateJoin(join, SqlJoinType.Inner, join.Left, join.Right, condition);
+					join = UpdateJoin(join, SqlJoinType.Inner, join.Left, join.Right, condition);
 
 					var newWhere = exprs.Where(e => !good.Contains(e)).Join(ExpressionType.And);
 					this.currentWhere = newWhere;

@@ -1,3 +1,5 @@
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -36,7 +38,7 @@ namespace Shaolinq.TypeBuilding
 
 		public string GetSha1Hex()
 		{
-			return TextConversion.ToHexString(this.GetSha1Bytes());
+			return TextConversion.ToHexString(GetSha1Bytes());
 		}
 
 		public DataAccessModelConfigurationUniqueKey(DataAccessModelConfiguration config)

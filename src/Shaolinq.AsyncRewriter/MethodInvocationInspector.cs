@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -114,9 +114,9 @@ namespace Shaolinq.AsyncRewriter
 			if (result.Symbol == null)
 			{
 				var newNode = node.WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(node.ArgumentList.Arguments
-						.Where(c => this.GetArgumentType(c) != this.cancellationTokenSymbol))));
+						.Where(c => GetArgumentType(c) != this.cancellationTokenSymbol))));
 
-				var visited = this.Visit(node.Expression);
+				var visited = Visit(node.Expression);
 
 				if (visited is MemberAccessExpressionSyntax)
 				{
@@ -162,7 +162,7 @@ namespace Shaolinq.AsyncRewriter
 					{
 						var retval = node
 							.WithExpression((ExpressionSyntax)visited)
-							.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
+							.WithArgumentList((ArgumentListSyntax)VisitArgumentList(node.ArgumentList));
 
 						var defaultExpression = SyntaxFactory.DefaultExpression(SyntaxFactory.ParseTypeName($"Task<" + syncMethod.ReturnType + ">"));
 						var actualNode = this.semanticModel.SyntaxTree.GetRoot().FindNode(new TextSpan(originalNodeStart, node.Span.Length));
@@ -176,8 +176,8 @@ namespace Shaolinq.AsyncRewriter
 				}
 
 				return node
-					.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
-					.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
+					.WithExpression((ExpressionSyntax)Visit(node.Expression))
+					.WithArgumentList((ArgumentListSyntax)VisitArgumentList(node.ArgumentList));
 			}
 
 			var methodSymbol = (IMethodSymbol)result.Symbol;
@@ -203,8 +203,8 @@ namespace Shaolinq.AsyncRewriter
 				if (this.excludeTypes.Contains(methodSymbol.ContainingType))
 				{
 					return node
-						.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
-						.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
+						.WithExpression((ExpressionSyntax)Visit(node.Expression))
+						.WithArgumentList((ArgumentListSyntax)VisitArgumentList(node.ArgumentList));
 				}
 
 				var expectedParameterTypes = new List<ITypeSymbol>();
@@ -213,7 +213,7 @@ namespace Shaolinq.AsyncRewriter
 				expectedParameterTypes.Add(this.cancellationTokenSymbol);
 				expectedParameterTypes.AddRange(methodParameters.SkipWhile(c => !(c.HasExplicitDefaultValue || c.IsParams)).Select(c => c.Type));
 
-				var asyncMethodCandidates = semanticModel
+				var asyncMethodCandidates = this.semanticModel
 					.LookupSymbols(node.GetLocation().SourceSpan.Start, methodSymbol.ContainingType, methodSymbol.Name + "Async", true)
 					.OfType<IMethodSymbol>()
 					.ToList();
@@ -243,7 +243,7 @@ namespace Shaolinq.AsyncRewriter
 				{
 					// TODO: When multiple candidates are found prefer the ones that are accessible with the current namespace usings
 
-					var explicitExtensionMethodCallCandidates = this.extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", this.GetInvocationTargetType(originalNodeStart, node, methodSymbol)).ToList();
+					var explicitExtensionMethodCallCandidates = this.extensionMethodLookup.GetExtensionMethods(methodSymbol.Name + "Async", GetInvocationTargetType(originalNodeStart, node, methodSymbol)).ToList();
 
 					candidate = explicitExtensionMethodCallCandidates.FirstOrDefault(c => c.ExtensionMethodNormalizingParameters().Select(d => d.Type).SequenceEqual(expectedParameterTypes, TypeSymbolExtensions.EqualsToIgnoreGenericParametersEqualityComparer.Default));
 
@@ -265,8 +265,8 @@ namespace Shaolinq.AsyncRewriter
 					else
 					{
 						return node
-							.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
-							.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
+							.WithExpression((ExpressionSyntax)Visit(node.Expression))
+							.WithArgumentList((ArgumentListSyntax)VisitArgumentList(node.ArgumentList));
 					}
 				}
 
@@ -281,10 +281,10 @@ namespace Shaolinq.AsyncRewriter
 			}
 
 			node = node
-				.WithExpression((ExpressionSyntax)this.Visit(node.Expression))
-				.WithArgumentList((ArgumentListSyntax)this.VisitArgumentList(node.ArgumentList));
+				.WithExpression((ExpressionSyntax)Visit(node.Expression))
+				.WithArgumentList((ArgumentListSyntax)VisitArgumentList(node.ArgumentList));
 
-			return this.InspectExpression(node, cancellationTokenPos, candidate, explicitExtensionMethodCall, candidateCount);
+			return InspectExpression(node, cancellationTokenPos, candidate, explicitExtensionMethodCall, candidateCount);
 		}
 
 		private ITypeSymbol GetInvocationTargetType(int pos, InvocationExpressionSyntax node, IMethodSymbol methodSymbol)

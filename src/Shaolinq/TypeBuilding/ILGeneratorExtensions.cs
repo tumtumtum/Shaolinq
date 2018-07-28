@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Reflection.Emit;
@@ -10,7 +10,7 @@ namespace Shaolinq.TypeBuilding
 	{
 		public static void EmitValue(this ILGenerator generator, Type type, object value)
 		{
-			if (value == null || (type.IsValueType && object.Equals(value, type.GetDefaultValue())))
+			if (value == null || (type.IsValueType && Equals(value, type.GetDefaultValue())))
 			{
 				generator.EmitDefaultValue(type);
 

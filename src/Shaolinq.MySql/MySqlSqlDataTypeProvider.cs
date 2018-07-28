@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using Shaolinq.Persistence;
@@ -16,12 +16,12 @@ namespace Shaolinq.MySql
 		public MySqlSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
 			: base(constraintDefaultsConfiguration)
 		{
-			this.DefinePrimitiveSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
-			this.DefinePrimitiveSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
-			this.DefinePrimitiveSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
+			DefinePrimitiveSqlDataType(typeof(byte), "TINYINT UNSIGNED", "GetByte");
+			DefinePrimitiveSqlDataType(typeof(sbyte), "TINYINT", "GetByte");
+			DefinePrimitiveSqlDataType(typeof(decimal), "DECIMAL(60, 30)", "GetDecimal");
 
-			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", false, DateTimeKind.Utc));
-			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", true, DateTimeKind.Utc));
+			DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", false, DateTimeKind.Utc));
+			DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "DATETIME", true, DateTimeKind.Utc));
 		}
 	}
 }

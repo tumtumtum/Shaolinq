@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +21,7 @@ namespace Shaolinq.ExpressionWriter
 		
 		private IEnumerable<IPropertySymbol> GetProperties(INamedTypeSymbol type,bool inherited = true)
 		{
-			return this.GetProperties(type, new HashSet<string>(), inherited);
+			return GetProperties(type, new HashSet<string>(), inherited);
 		}
 
 		private IEnumerable<IPropertySymbol> GetProperties(INamedTypeSymbol type, HashSet<string> alreadyAdded, bool inherited = true)
@@ -40,7 +40,7 @@ namespace Shaolinq.ExpressionWriter
 
 			if (type.BaseType != null && inherited)
 			{
-				foreach (var member in this.GetProperties(type.BaseType, alreadyAdded))
+				foreach (var member in GetProperties(type.BaseType, alreadyAdded))
 				{
 					yield return member;
 				}
@@ -63,7 +63,7 @@ namespace Shaolinq.ExpressionWriter
 
 			if (type.BaseType != null && inherited)
 			{
-				foreach (var member in this.GetVisitMethods(type.BaseType))
+				foreach (var member in GetVisitMethods(type.BaseType))
 				{
 					yield return member;
 				}
@@ -87,7 +87,7 @@ namespace Shaolinq.ExpressionWriter
 
 			if (type.BaseType != null)
 			{
-				return this.IsOfType(type.BaseType, typeName);
+				return IsOfType(type.BaseType, typeName);
 			}
 
 			return false;
@@ -95,12 +95,12 @@ namespace Shaolinq.ExpressionWriter
 
 		private BlockSyntax CreateMethodBody(SemanticModel model, INamedTypeSymbol typeSymbol, IMethodSymbol methodSymbol)
 		{
-			var allVisitMethods = this.GetVisitMethods(typeSymbol).ToList();
+			var allVisitMethods = GetVisitMethods(typeSymbol).ToList();
 			var expressionParam = SyntaxFactory.IdentifierName("expression");
-			var properties = this.GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).Where(c => c.Name != "CanReduce" && c.Name != "Type" && c.Name != "NodeType").ToList();
+			var properties = GetProperties((INamedTypeSymbol)methodSymbol.Parameters.First().Type).Where(c => c.Name != "CanReduce" && c.Name != "Type" && c.Name != "NodeType").ToList();
 
 			var simpleProperties = properties
-				.Where(c => !this.IsOfType(c.Type, "Expression") && !this.IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.All(d => d.Parameters[0].Type.Name != c.Type.Name))
+				.Where(c => !IsOfType(c.Type, "Expression") && !IsOfType(c.Type, "IReadOnlyList") && allVisitMethods.All(d => d.Parameters[0].Type.Name != c.Type.Name))
 				.ToList();
 
 			if (simpleProperties.Count == 0)
@@ -155,8 +155,8 @@ namespace Shaolinq.ExpressionWriter
 
 			var symbol = model.GetDeclaredSymbol(expressionComparerType);
 
-			var visitMethods = this.GetVisitMethods(symbol).Where(c => c.Parameters.Single().Type.AllInterfaces.Concat(new[] { c.Parameters.Single().Type }).All(d => d.Name != "IReadOnlyList") && c.Parameters.Single().Type.Name != typeof(Expression).Name).ToList();
-			var visitMethodsToIgnore = this.GetVisitMethods(symbol, false).ToList();
+			var visitMethods = GetVisitMethods(symbol).Where(c => c.Parameters.Single().Type.AllInterfaces.Concat(new[] { c.Parameters.Single().Type }).All(d => d.Name != "IReadOnlyList") && c.Parameters.Single().Type.Name != typeof(Expression).Name).ToList();
+			var visitMethodsToIgnore = GetVisitMethods(symbol, false).ToList();
 
 			visitMethods.RemoveAll(c => visitMethodsToIgnore.Any(d => d.Name == c.Name && d.Parameters.SequenceEqual(c.Parameters, (x, y) => x.Type.Name == y.Type.Name)));
 			
@@ -168,7 +168,7 @@ namespace Shaolinq.ExpressionWriter
 
 			var methods = visitMethods.Select(c =>
 			{
-				var body = this.CreateMethodBody(model, symbol, c);
+				var body = CreateMethodBody(model, symbol, c);
 
 				if (body == null)
 				{

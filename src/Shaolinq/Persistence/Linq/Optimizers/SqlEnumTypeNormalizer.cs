@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -45,8 +45,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			var left = this.Visit(binaryExpression.Left);
-			var right = this.Visit(binaryExpression.Right);
+			var left = Visit(binaryExpression.Left);
+			var right = Visit(binaryExpression.Right);
 
 			if (left.Type.GetUnwrappedNullableType().IsEnum)
 			{

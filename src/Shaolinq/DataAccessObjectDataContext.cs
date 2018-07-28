@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -80,12 +80,12 @@ namespace Shaolinq
 				return;
 			}
 
-			this.ImportObject(new HashSet<DataAccessObject>(), value);
+			ImportObject(new HashSet<DataAccessObject>(), value);
 		}
 
 		protected void ImportObject(HashSet<DataAccessObject> alreadyVisited, DataAccessObject value)
 		{
-			this.CacheObject(value, true);
+			CacheObject(value, true);
 
 			alreadyVisited.Add(value);
 
@@ -95,7 +95,7 @@ namespace Shaolinq
 				{
 					alreadyVisited.Add(propertyValue);
 
-					this.ImportObject(alreadyVisited, propertyValue);
+					ImportObject(alreadyVisited, propertyValue);
 				}
 			}
 		}
@@ -211,9 +211,9 @@ namespace Shaolinq
 
 				this.isCommiting = true;
 
-				this.CommitNew(commandsContext);
-				this.CommitUpdated(commandsContext);
-				this.CommitDeleted(commandsContext);
+				CommitNew(commandsContext);
+				CommitUpdated(commandsContext);
+				CommitDeleted(commandsContext);
 			}
 			catch (Exception e)
 			{

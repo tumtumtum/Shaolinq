@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -66,7 +66,7 @@ namespace Shaolinq.Persistence
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -374,7 +374,7 @@ namespace Shaolinq.Persistence
 
 		protected override DbDataReader GetDbDataReader(int ordinal)
 		{
-			throw new NotSupportedException($"{nameof(MarsDataReader)}.{nameof(this.GetData)}");
+			throw new NotSupportedException($"{nameof(MarsDataReader)}.{nameof(GetData)}");
 		}
 
 		[RewriteAsync]

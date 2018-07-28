@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq;
 using System.Linq.Expressions;
@@ -21,7 +21,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				ConstantExpression constantExpression;
 
-				if ((constantExpression = this.Visit(functionCallExpression.Arguments[0]).StripAndGetConstant()) != null)
+				if ((constantExpression = Visit(functionCallExpression.Arguments[0]).StripAndGetConstant()) != null)
 				{
 					return Expression.Constant(constantExpression.Value == null);
 				}
@@ -32,7 +32,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				ConstantExpression constantExpression;
 
-				if ((constantExpression = this.Visit(functionCallExpression.Arguments[0]).StripAndGetConstant()) != null)
+				if ((constantExpression = Visit(functionCallExpression.Arguments[0]).StripAndGetConstant()) != null)
 				{
 					return Expression.Constant(constantExpression.Value != null);
 				}
@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 			else if (functionCallExpression.Function == SqlFunction.In)
 			{
-				var value = this.Visit(functionCallExpression.Arguments[1]).StripAndGetConstant();
+				var value = Visit(functionCallExpression.Arguments[1]).StripAndGetConstant();
 				
 				var sqlValuesEnumerable = value?.Value as SqlValuesEnumerable;
 
@@ -54,7 +54,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 			else if (functionCallExpression.Function == SqlFunction.Concat)
 			{
-				var visitedArguments = this.VisitExpressionList(functionCallExpression.Arguments);
+				var visitedArguments = VisitExpressionList(functionCallExpression.Arguments);
 				
 				if (visitedArguments.All(c => c.StripAndGetConstant() != null))
 				{

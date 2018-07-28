@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -219,11 +219,11 @@ namespace Shaolinq.Sqlite
 				throw new ArgumentException($"Needs to be a {nameof(SqliteOfficialSqlDatabaseContext)}", nameof(sqlDatabaseContext));
 			}
 
-			using (var connection = this.OpenConnection())
+			using (var connection = OpenConnection())
 			{
 				using (var otherConnection = sqlDatabaseContext.OpenConnection())
 				{
-					this.GetSqliteConnection(connection).BackupDatabase(this.GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
+					GetSqliteConnection(connection).BackupDatabase(GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
 				}
 			}
 		}

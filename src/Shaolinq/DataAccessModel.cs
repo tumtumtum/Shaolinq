@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -86,7 +86,7 @@ namespace Shaolinq
 		public virtual DataAccessObjects<T> GetDataAccessObjects<T>()
 			where T : DataAccessObject
 		{
-			return (DataAccessObjects<T>) this.GetDataAccessObjects(typeof(T));
+			return (DataAccessObjects<T>) GetDataAccessObjects(typeof(T));
 		}
 
 		IQueryable IDataAccessModelInternal.CreateDataAccessObjects(RuntimeTypeHandle typeHandle)
@@ -128,7 +128,7 @@ namespace Shaolinq
 
 		~DataAccessModel()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
 		private void DisposeAllSqlDatabaseContexts()
@@ -141,7 +141,7 @@ namespace Shaolinq
 
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 		}
 
 		protected virtual void Dispose(bool disposing)
@@ -158,8 +158,8 @@ namespace Shaolinq
 			ActionUtils.IgnoreExceptions(() => this.asyncLocalTransactionalAmbientTransactionContext.Dispose());
 
 			this.IsDisposed = true;
-			this.DisposeAllSqlDatabaseContexts();
-			this.OnDisposed(EventArgs.Empty);
+			DisposeAllSqlDatabaseContexts();
+			OnDisposed(EventArgs.Empty);
 		}
 
 		internal Type GetConcreteTypeFromDefinitionType(Type definitionType)
@@ -174,7 +174,7 @@ namespace Shaolinq
 
 		public virtual TypeDescriptor GetTypeDescriptor(Type type)
 		{
-			return this.TypeDescriptorProvider.GetTypeDescriptor(this.GetDefinitionTypeFromConcreteType(type));
+			return this.TypeDescriptorProvider.GetTypeDescriptor(GetDefinitionTypeFromConcreteType(type));
 		}
 
 		public DataAccessObjectDataContext GetCurrentDataContext(bool forWrite)
@@ -315,14 +315,14 @@ namespace Shaolinq
 		protected internal virtual T GetReference<T>(ObjectPropertyValue[] primaryKey)
 			where T : DataAccessObject
 		{
-			return (T) this.GetReference(typeof(T), primaryKey);
+			return (T) GetReference(typeof(T), primaryKey);
 		}
 
 		protected internal virtual DataAccessObject GetReference<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
 		{
-			var primaryKeyValues = this.GetObjectPropertyValues(type, primaryKey, primaryKeyType);
+			var primaryKeyValues = GetObjectPropertyValues(type, primaryKey, primaryKeyType);
 
-			return this.GetReference(type, primaryKeyValues);
+			return GetReference(type, primaryKeyValues);
 		}
 
 		protected internal virtual DataAccessObject GetReference(Type type, ObjectPropertyValue[] primaryKey)
@@ -339,7 +339,7 @@ namespace Shaolinq
 
 			var objectPropertyAndValues = primaryKey;
 
-			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
+			var existing = GetCurrentDataContext(false)?.GetObject(GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
 
 			if (existing != null)
 			{
@@ -365,12 +365,12 @@ namespace Shaolinq
 		public virtual T GetReference<T>(LambdaExpression predicate)
 			where T : DataAccessObject
 		{
-			return (T)this.GetReference(typeof(T), predicate);
+			return (T)GetReference(typeof(T), predicate);
 		}
 
 		protected internal virtual DataAccessObject GetReference(Type type, LambdaExpression predicate)
 		{
-			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(type), predicate);
+			var existing = GetCurrentDataContext(false)?.GetObject(GetConcreteTypeFromDefinitionType(type), predicate);
 
 			if (existing != null)
 			{
@@ -397,17 +397,17 @@ namespace Shaolinq
 		protected internal virtual T GetReferenceByPrimaryKeyColumns<T>(object[] columnValues)
 			where T : DataAccessObject
 		{
-			var propertyValues = this.GetObjectPropertyValuesForPrimaryKeyColumns<T>(columnValues);
+			var propertyValues = GetObjectPropertyValuesForPrimaryKeyColumns<T>(columnValues);
 
-			return this.GetReference<T>(propertyValues);
+			return GetReference<T>(propertyValues);
 		}
 
 		protected internal virtual T GetReferenceByPrimaryKeyProperties<T>(object[] primaryKeyValues)
 			where T : DataAccessObject
 		{
-			var propertyValues = this.GetObjectPropertyValuesForPrimaryKeyProperties<T>(primaryKeyValues);
+			var propertyValues = GetObjectPropertyValuesForPrimaryKeyProperties<T>(primaryKeyValues);
 
-			return this.GetReference<T>(propertyValues);
+			return GetReference<T>(propertyValues);
 		}
 
 		protected internal ObjectPropertyValue[] GetObjectPropertyValuesForPrimaryKeyColumns<T>(object[] primaryKeyValues)
@@ -437,7 +437,7 @@ namespace Shaolinq
 				foreach (var property in typeDescriptor.PrimaryKeyProperties)
 				{
 					Expression convertedValue;
-					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
+					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
 
 					if (property.PropertyType.IsDataAccessObjectType())
 					{
@@ -507,7 +507,7 @@ namespace Shaolinq
 					Expression convertedValue;
 
 					var valueExpression = Expression.Convert(Expression.ArrayIndex(Expression.Convert(parameter, typeof(object[])), Expression.Constant(index)), typeof(object));
-					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
+					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
 
 					if (property.PropertyType.IsDataAccessObjectType())
 					{
@@ -609,7 +609,7 @@ namespace Shaolinq
 
 					Expression primaryKeyValue;
 
-					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(this.GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
+					var propertyInfo = DataAccessObjectTypeBuilder.GetPropertyInfo(GetConcreteTypeFromDefinitionType(typeDescriptor.Type), property.PropertyName);
 
 					if (isObjectType)
 					{
@@ -657,9 +657,9 @@ namespace Shaolinq
 		public virtual T GetReference<T, K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 			where T : DataAccessObject
 		{
-			var propertyValues = this.GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
+			var propertyValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
-			return this.GetReference<T>(propertyValues);
+			return GetReference<T>(propertyValues);
 		}
 
 		public virtual DataAccessObject CreateDataAccessObject(Type type)
@@ -678,7 +678,7 @@ namespace Shaolinq
 
 		public virtual DataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey)
 		{
-			return this.CreateDataAccessObject(type, primaryKey, PrimaryKeyType.Auto);
+			return CreateDataAccessObject(type, primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual DataAccessObject CreateDataAccessObject<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType)
@@ -689,20 +689,20 @@ namespace Shaolinq
 				throw new ArgumentException("Type must be a DataAccessObjectType", nameof(type));
 			}
 
-			var objectPropertyAndValues = this.GetObjectPropertyValues(type, primaryKey, primaryKeyType);
+			var objectPropertyAndValues = GetObjectPropertyValues(type, primaryKey, primaryKeyType);
 
 			if (objectPropertyAndValues.Any(keyValue => keyValue.Value == null))
 			{
 				throw new MissingOrInvalidPrimaryKeyException();
 			}
 
-			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
+			var existing = GetCurrentDataContext(false)?.GetObject(GetConcreteTypeFromDefinitionType(type), objectPropertyAndValues);
 
 			if (existing != null)
 			{
 				IDataAccessObjectAdvanced obj = null;
 
-				ActionUtils.IgnoreExceptions(() => obj = this.GetReference(type, primaryKey, primaryKeyType));
+				ActionUtils.IgnoreExceptions(() => obj = GetReference(type, primaryKey, primaryKeyType));
 
 				throw new ObjectAlreadyExistsException(obj, null, "CreateDataAccessObject");
 			}
@@ -736,26 +736,26 @@ namespace Shaolinq
 		public virtual T CreateDataAccessObject<T, K>(K primaryKey)
 			where T : DataAccessObject
 		{
-			return this.CreateDataAccessObject<T, K>(primaryKey, PrimaryKeyType.Auto);
+			return CreateDataAccessObject<T, K>(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T CreateDataAccessObject<T, K>(K primaryKey, PrimaryKeyType primaryKeyType)
 			where T : DataAccessObject
 		{
-			var objectPropertyAndValues = this.GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
+			var objectPropertyAndValues = GetObjectPropertyValues<K>(typeof(T), primaryKey, primaryKeyType);
 
 			if (objectPropertyAndValues.Any(keyValue => keyValue.Value == null))
 			{
 				throw new MissingOrInvalidPrimaryKeyException();
 			}
 
-			var existing = this.GetCurrentDataContext(false)?.GetObject(this.GetConcreteTypeFromDefinitionType(typeof(T)), objectPropertyAndValues);
+			var existing = GetCurrentDataContext(false)?.GetObject(GetConcreteTypeFromDefinitionType(typeof(T)), objectPropertyAndValues);
 
 			if (existing != null)
 			{
 				T obj = null;
 
-				ActionUtils.IgnoreExceptions(() => obj = this.GetReference<T, K>(primaryKey, primaryKeyType));
+				ActionUtils.IgnoreExceptions(() => obj = GetReference<T, K>(primaryKey, primaryKeyType));
 
 				throw new ObjectAlreadyExistsException(obj, null, "CreateDataAccessObject");
 			}
@@ -776,7 +776,7 @@ namespace Shaolinq
 		{
 			var forWrite = DataAccessTransaction.Current != null;
 
-			var transactionContext = this.GetCurrentContext(forWrite);
+			var transactionContext = GetCurrentContext(forWrite);
 
 			if (transactionContext?.sqlDatabaseContext != null)
 			{
@@ -815,7 +815,7 @@ namespace Shaolinq
 
 		public virtual void SetCurrentTransactionDatabaseCategories(params string[] categories)
 		{
-			var transactionContext = this.GetCurrentContext(false);
+			var transactionContext = GetCurrentContext(false);
 
 			if (transactionContext == null)
 			{
@@ -839,12 +839,12 @@ namespace Shaolinq
 
 		public virtual void SetCurentTransactionReadOnly()
 		{
-			this.SetCurrentTransactionDatabaseCategories("ReadOnly");
+			SetCurrentTransactionDatabaseCategories("ReadOnly");
 		}
 
 		public virtual void CreateIfNotExist()
 		{
-			this.Create(DatabaseCreationOptions.IfDatabaseNotExist);
+			Create(DatabaseCreationOptions.IfDatabaseNotExist);
 		}
 		
 		[RewriteAsync]
@@ -852,7 +852,7 @@ namespace Shaolinq
 		{
 			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.Zero))
 			{
-				this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema(options);
+				GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchema(options);
 
 				scope.Complete();
 			}
@@ -861,14 +861,14 @@ namespace Shaolinq
 		[RewriteAsync]
 		public virtual void Flush()
 		{
-			var transactionContext = this.GetCurrentContext(true);
+			var transactionContext = GetCurrentContext(true);
 			
 			transactionContext?.GetCurrentDataContext().Commit(transactionContext.GetSqlTransactionalCommandsContext(), true);
 		}
 
 		protected internal ISqlQueryProvider NewQueryProvider()
 		{
-			return this.GetCurrentSqlDatabaseContext().CreateQueryProvider();
+			return GetCurrentSqlDatabaseContext().CreateQueryProvider();
 		}
 
 		protected internal DataAccessObject Inflate(DataAccessObject dataAccessObject)
@@ -936,7 +936,7 @@ namespace Shaolinq
 
 			if (predicate != null)
 			{
-				var retval = this.GetDataAccessObjects<T>().SingleOrDefault((Expression<Func<T, bool>>)predicate);
+				var retval = GetDataAccessObjects<T>().SingleOrDefault((Expression<Func<T, bool>>)predicate);
 
 				if (retval == null)
 				{
@@ -947,7 +947,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = this.GetDataAccessObjects<T>().FirstOrDefault(c => c == obj);
+				var retval = GetDataAccessObjects<T>().FirstOrDefault(c => c == obj);
 
 				if (retval == null)
 				{
@@ -970,7 +970,7 @@ namespace Shaolinq
 
 			if (predicate != null)
 			{
-				var retval = await this.GetDataAccessObjects<T>().SingleOrDefaultAsync((Expression<Func<T, bool>>)predicate, cancellationToken);
+				var retval = await GetDataAccessObjects<T>().SingleOrDefaultAsync((Expression<Func<T, bool>>)predicate, cancellationToken);
 
 				if (retval == null)
 				{
@@ -981,7 +981,7 @@ namespace Shaolinq
 			}
 			else
 			{
-				var retval = await this.GetDataAccessObjects<T>().FirstOrDefaultAsync(c => c == obj, cancellationToken);
+				var retval = await GetDataAccessObjects<T>().FirstOrDefaultAsync(c => c == obj, cancellationToken);
 
 				if (retval == null)
 				{
@@ -1006,7 +1006,7 @@ namespace Shaolinq
 				throw new InvalidOperationException("Cannot backup to self");
 			}
 
-			this.GetCurrentSqlDatabaseContext().Backup(dataAccessModel.GetCurrentSqlDatabaseContext());
+			GetCurrentSqlDatabaseContext().Backup(dataAccessModel.GetCurrentSqlDatabaseContext());
 		}
 
 		protected virtual void Initialise()

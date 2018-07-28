@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -46,7 +46,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		public void TestRewrite(params string[] inputFiles)
 		{
 			var rewriter = new Rewriter();
-			var root = Path.Combine(Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
+			var root = Path.Combine(Path.GetDirectoryName(new Uri(GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
 
 			var result = rewriter.RewriteAndMerge(inputFiles.Select(c => Path.Combine(root, c)).ToArray());
 			
@@ -59,7 +59,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 		public void TestRewriteCompile(params string[] inputFiles)
 		{
 			var rewriter = new Rewriter();
-			var root = Path.Combine(Path.GetDirectoryName(new Uri(this.GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
+			var root = Path.Combine(Path.GetDirectoryName(new Uri(GetType().Assembly.CodeBase).LocalPath), "RewriteTests");
 			var files = new List<string>(inputFiles) {"RewriteAsyncAttribute.cs"};
 			var references = new MetadataReference[]
 			{

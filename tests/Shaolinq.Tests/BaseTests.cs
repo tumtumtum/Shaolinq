@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -195,7 +195,7 @@ namespace Shaolinq.Tests
 
 		protected DataAccessModelConfiguration Create(string providerName, string databaseName)
 		{
-			var methodInfo = this.GetType().GetMethod("Create" + providerName.Replace(".", "") + "Configuration", BindingFlags.Instance | BindingFlags.NonPublic);
+			var methodInfo = GetType().GetMethod("Create" + providerName.Replace(".", "") + "Configuration", BindingFlags.Instance | BindingFlags.NonPublic);
 
 			return (DataAccessModelConfiguration)methodInfo.Invoke(this, new object[] { databaseName });
 		}
@@ -230,7 +230,7 @@ namespace Shaolinq.Tests
 				}
 				else
 				{
-					var configuration = this.Create(this.ProviderName, this.GetType().Name);
+					var configuration = Create(this.ProviderName, GetType().Name);
 					configuration.AlwaysSubmitDefaultValues = alwaysSubmitDefaultValues;
 					configuration.ValueTypesAutoImplicitDefault = valueTypesAutoImplicitDefault;
 					configuration.IncludeImplicitDefaultsInSchema = includeImplicitDefaultsInSchema;

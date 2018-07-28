@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq;
 using System.Linq.Expressions;
@@ -19,7 +19,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				if (((IQueryable)constantExpression.Value).Expression != constantExpression)
 				{
-					return this.Visit(((IQueryable)constantExpression.Value).Expression);
+					return Visit(((IQueryable)constantExpression.Value).Expression);
 				}
 			}
 		

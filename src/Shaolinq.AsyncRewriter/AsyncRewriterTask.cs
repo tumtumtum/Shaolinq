@@ -1,7 +1,6 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Diagnostics;
-using System.IO;
 using Microsoft.Build.Framework;
 
 namespace Shaolinq.AsyncRewriter
@@ -29,7 +28,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			var startInfo = new ProcessStartInfo
 			{
-				FileName = this.GetType().Assembly.Location,
+				FileName = GetType().Assembly.Location,
 				UseShellExecute = false,
 				CreateNoWindow = false,
 				RedirectStandardOutput = false,
@@ -44,7 +43,7 @@ namespace Shaolinq.AsyncRewriter
 
 			using (var writer = process.StandardInput)
 			{
-				writer.Write($"-output \"{string.Join(";", this.OutputFile)}\" -assemblies \"{string.Join(";", this.Assemblies)}\" {(DontWriteIfNoChanges == false ? "-alwayswrite" : "")} ");
+				writer.Write($"-output \"{string.Join(";", this.OutputFile)}\" -assemblies \"{string.Join(";", this.Assemblies)}\" {(this.DontWriteIfNoChanges == false ? "-alwayswrite" : "")} ");
 
 				for (var i = 0; i < this.InputFiles.Length; i++)
 				{

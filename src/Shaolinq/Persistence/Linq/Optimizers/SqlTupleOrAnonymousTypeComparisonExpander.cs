@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +60,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				for (var i = 0; i < count; i++)
 				{
-					var current = Expression.Equal(this.Visit(left[i]), this.Visit(right[i]));
+					var current = Expression.Equal(Visit(left[i]), Visit(right[i]));
 
 					retval = retval == null ? current : Expression.And(retval, current);
 				}
@@ -69,7 +69,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				for (var i = 0; i < count; i++)
 				{
-					var current = Expression.NotEqual(this.Visit(left[i]), this.Visit(right[i]));
+					var current = Expression.NotEqual(Visit(left[i]), Visit(right[i]));
 
 					retval = retval == null ? current : Expression.Or(retval, current);
 				}

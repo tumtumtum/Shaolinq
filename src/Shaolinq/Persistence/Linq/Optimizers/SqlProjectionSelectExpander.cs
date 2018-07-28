@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq;
 using System.Linq.Expressions;
@@ -27,13 +27,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			switch (methodCallExpression.Method.Name)
 			{
 			case "Join":
-				return this.RewriteExplicitJoinProjection(methodCallExpression);
+				return RewriteExplicitJoinProjection(methodCallExpression);
 			case "SelectMany":
 				if (methodCallExpression.Arguments.Count < 3)
 				{
 					goto default;
 				}
-				return this.RewriteSelectManyProjection(methodCallExpression);
+				return RewriteSelectManyProjection(methodCallExpression);
 			default:
 				return base.VisitMethodCall(methodCallExpression);
 			}
@@ -46,8 +46,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		/// </summary>
 		protected Expression RewriteExplicitJoinProjection(MethodCallExpression methodCallExpression)
 		{
-			var outer = this.Visit(methodCallExpression.Arguments[0]);
-			var inner = this.Visit(methodCallExpression.Arguments[1]);
+			var outer = Visit(methodCallExpression.Arguments[0]);
+			var inner = Visit(methodCallExpression.Arguments[1]);
 			var outerKeySelector = methodCallExpression.Arguments[2].StripQuotes();
 			var innerKeySelector = methodCallExpression.Arguments[3].StripQuotes();
 			var resultSelector = methodCallExpression.Arguments[4].StripQuotes();
@@ -77,8 +77,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		
 		protected Expression RewriteSelectManyProjection(MethodCallExpression methodCallExpression)
 		{
-			var outer = this.Visit(methodCallExpression.Arguments[0]);
-			var collection = this.Visit(methodCallExpression.Arguments[1]);
+			var outer = Visit(methodCallExpression.Arguments[0]);
+			var collection = Visit(methodCallExpression.Arguments[1]);
 			var resultSelector = methodCallExpression.Arguments.Count == 3 ? methodCallExpression.Arguments[2].StripQuotes() : null;
 
 			var originalSelectorA = resultSelector.StripQuotes().Parameters[0];

@@ -1,13 +1,10 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Data;
 using System.Data.Common;
-using System.Data.SQLite;
 using System.Linq;
 using Mono.Data.Sqlite;
 using Shaolinq.Persistence;
-using SQLiteErrorCode = Mono.Data.Sqlite.SQLiteErrorCode;
 
 namespace Shaolinq.Sqlite
 {

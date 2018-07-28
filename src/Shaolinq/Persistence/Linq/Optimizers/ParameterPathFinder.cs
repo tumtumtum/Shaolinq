@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -75,7 +75,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				source = newExpression.Arguments[param.Position];
 
-				this.Visit(source);
+				Visit(source);
 			}
 
 			return memberExpression;
@@ -90,7 +90,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				foreach (var arg in expression.Arguments)
 				{
 					this.pathStack.Push(expression.Type.GetProperty(expression.Constructor.GetParameters()[i].Name));
-					this.Visit(arg);
+					Visit(arg);
 					this.pathStack.Pop();
 
 					i++;

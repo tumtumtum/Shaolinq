@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -34,13 +34,13 @@ namespace Shaolinq.Sqlite
 			switch (deferrability)
 			{
 				case SqlColumnReferenceDeferrability.Deferrable:
-					this.Write(" DEFERRABLE");
+					Write(" DEFERRABLE");
 					break;
 				case SqlColumnReferenceDeferrability.InitiallyDeferred:
-					this.Write(" DEFERRABLE INITIALLY DEFERRED");
+					Write(" DEFERRABLE INITIALLY DEFERRED");
 					break;
 				case SqlColumnReferenceDeferrability.InitiallyImmediate:
-					this.Write(" DEFERRABLE INITIALLY IMMEDIATE");
+					Write(" DEFERRABLE INITIALLY IMMEDIATE");
 					break;
 			}
 		}
@@ -116,9 +116,9 @@ namespace Shaolinq.Sqlite
 			if (functionCallExpression.Function >= SqlFunction.NumberBasedDatePartStart
 				&& functionCallExpression.Function <= SqlFunction.NumberBasedDatePartEnd)
 			{
-				this.Write("(CAST (");
+				Write("(CAST (");
 				base.VisitFunctionCall(functionCallExpression);
-				this.Write(" AS INTEGER))");
+				Write(" AS INTEGER))");
 
 				return functionCallExpression;
 			}
@@ -133,22 +133,22 @@ namespace Shaolinq.Sqlite
 			{
 				if (selectExpression.Take != null)
 				{
-					this.Write(" LIMIT ");
+					Write(" LIMIT ");
 
-					this.Visit(selectExpression.Take);
+					Visit(selectExpression.Take);
 
-					this.Write(" ");
+					Write(" ");
 				}
 				else
 				{
-					this.Write(" LIMIT -1 ");
+					Write(" LIMIT -1 ");
 				}
 
 				if (selectExpression.Skip != null)
 				{
-					this.Write("OFFSET ");
+					Write("OFFSET ");
 
-					this.Visit(selectExpression.Skip);
+					Visit(selectExpression.Skip);
 				}
 			}
 		}
@@ -161,12 +161,12 @@ namespace Shaolinq.Sqlite
 				return;
 			}
 
-			this.Write("; SELECT last_insert_rowid()");
+			Write("; SELECT last_insert_rowid()");
 		}
 
 		protected override void WriteInsertDefaultValuesSuffix()
 		{
-			this.Write(" DEFAULT VALUES");
+			Write(" DEFAULT VALUES");
 		}
 
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
@@ -183,13 +183,13 @@ namespace Shaolinq.Sqlite
 			case TypeCode.Boolean:
 				if ((this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
 				{
-					this.Write(this.FormatConstant(Convert.ToInt32(constantExpression.Value)));
+					Write(FormatConstant(Convert.ToInt32(constantExpression.Value)));
 				}
 				else
 				{
-					this.Write(this.ParameterIndicatorPrefix);
-					this.Write(ParamNamePrefix);
-					this.Write(this.parameterValues.Count);
+					Write(this.ParameterIndicatorPrefix);
+					Write(ParamNamePrefix);
+					Write(this.parameterValues.Count);
 					this.parameterValues.Add(new TypedValue(typeof(int), constantExpression.Value, c => Convert.ToInt32(c)));
 				}
 

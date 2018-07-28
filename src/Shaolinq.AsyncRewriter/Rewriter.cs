@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -82,7 +82,7 @@ namespace Shaolinq.AsyncRewriter
 		{
 			var syntaxTrees = paths
 				.Select(p => SyntaxFactory.ParseSyntaxTree(File.ReadAllText(p)).WithFilePath(p))
-				.Select(c => c.WithRootAndOptions(this.UpdateUsings(c.GetCompilationUnitRoot()), c.Options))
+				.Select(c => c.WithRootAndOptions(UpdateUsings(c.GetCompilationUnitRoot()), c.Options))
 				.ToArray();
 
 			var references = new List<MetadataReference>()
@@ -148,7 +148,7 @@ namespace Shaolinq.AsyncRewriter
 
 			this.lookup = new CompilationLookup(this.compilation);
 
-			var resultTree = this.RewriteAndMerge(syntaxTrees, this.compilation, excludeTypes);
+			var resultTree = RewriteAndMerge(syntaxTrees, this.compilation, excludeTypes);
 			var retval = resultTree.ToString();
 
 #if OUTPUT_COMPILER_ERRORS
@@ -253,7 +253,7 @@ namespace Shaolinq.AsyncRewriter
 
 		private SyntaxTree RewriteAndMerge(SyntaxTree[] syntaxTrees, CSharpCompilation compilationNode, string[] excludeTypes = null)
 		{
-			var rewrittenTrees = this.Rewrite(syntaxTrees, compilationNode, excludeTypes).ToArray();
+			var rewrittenTrees = Rewrite(syntaxTrees, compilationNode, excludeTypes).ToArray();
 			
 			return SyntaxFactory.SyntaxTree
 			(
@@ -351,7 +351,7 @@ namespace Shaolinq.AsyncRewriter
 
 				foreach (var asyncMethod in asyncMethods)
 				{
-					this.ValidateAsyncMethod(asyncMethod, semanticModel);
+					ValidateAsyncMethod(asyncMethod, semanticModel);
 				}
 
 				if (syntaxTree.GetRoot().DescendantNodes().All(m => ((m as MethodDeclarationSyntax)?.AttributeLists ?? (m as TypeDeclarationSyntax)?.AttributeLists)?.SelectMany(al => al.Attributes).Any(a => a.Name.ToString().StartsWith("RewriteAsync")) == null))
@@ -383,13 +383,13 @@ namespace Shaolinq.AsyncRewriter
 												(SyntaxFactory.ClassDeclaration(typeGrouping.Key.Identifier)
 														.WithModifiers(typeGrouping.Key.Modifiers)
 														.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
-														.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+														.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => RewriteMethods(m, semanticModel))))
 													as TypeDeclarationSyntax)
 												.WithLeadingTrivia(new SyntaxTriviaList())
 												:
 												(SyntaxFactory.InterfaceDeclaration(typeGrouping.Key.Identifier).WithModifiers(typeGrouping.Key.Modifiers)
 														.WithTypeParameterList(typeGrouping.Key.TypeParameterList)
-														.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => this.RewriteMethods(m, semanticModel))))
+														.WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(typeGrouping.SelectMany(m => RewriteMethods(m, semanticModel))))
 													as TypeDeclarationSyntax)
 												.WithLeadingTrivia(new SyntaxTriviaList())
 									)
@@ -408,25 +408,24 @@ namespace Shaolinq.AsyncRewriter
 
 		IEnumerable<MethodDeclarationSyntax> RewriteMethods(MethodDeclarationSyntax inMethodSyntax, SemanticModel semanticModel)
 		{
-			var result = this.RewriteMethodAsync(inMethodSyntax, semanticModel, false);
+			var result = RewriteMethodAsync(inMethodSyntax, semanticModel, false);
 
 			if (result != null)
 			{
 				yield return result;
 			}
 
-			yield return this.RewriteMethodAsync(inMethodSyntax, semanticModel, true);
+			yield return RewriteMethodAsync(inMethodSyntax, semanticModel, true);
 		}
 		
 		private IEnumerable<IMethodSymbol> GetMethods(SemanticModel semanticModel, ITypeSymbol symbol, string name, MethodDeclarationSyntax method, MethodDeclarationSyntax originalMethod)
 		{
 			var parameters = method.ParameterList.Parameters;
 
-			var retval = this
-				.GetAllMembers(symbol)
+			var retval = GetAllMembers(symbol)
 				.Where(c => c.Name == name)
 				.OfType<IMethodSymbol>()
-				.Where(c => c.Parameters.Select(d => this.GetParameterTypeComparisonKey(d.Type)).SequenceEqual(parameters.Select(d => this.GetParameterTypeComparisonKey(semanticModel.GetSpeculativeTypeInfo(originalMethod.ParameterList.SpanStart, d.Type, SpeculativeBindingOption.BindAsExpression).Type, method, d.Type))));
+				.Where(c => c.Parameters.Select(d => GetParameterTypeComparisonKey(d.Type)).SequenceEqual(parameters.Select(d => GetParameterTypeComparisonKey(semanticModel.GetSpeculativeTypeInfo(originalMethod.ParameterList.SpanStart, d.Type, SpeculativeBindingOption.BindAsExpression).Type, method, d.Type))));
 
 			return retval;
 		}
@@ -587,12 +586,10 @@ namespace Shaolinq.AsyncRewriter
 
 			if (!(isInterfaceMethod || methodSymbol.IsAbstract))
 			{
-				var baseAsyncMethod = this
-					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name + "Async", newAsyncMethod, methodSyntax)
+				var baseAsyncMethod = GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name + "Async", newAsyncMethod, methodSyntax)
 					.FirstOrDefault();
 
-				var baseMethod = this
-					.GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name, methodSyntax, methodSyntax)
+				var baseMethod = GetMethods(semanticModel, methodSymbol.ReceiverType.BaseType, methodSymbol.Name, methodSyntax, methodSyntax)
 					.FirstOrDefault();
 
 				var parentContainsAsyncMethod = baseAsyncMethod != null;

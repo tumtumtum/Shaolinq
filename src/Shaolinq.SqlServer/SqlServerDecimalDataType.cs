@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data;
@@ -21,7 +21,7 @@ namespace Shaolinq.SqlServer
 			: base(constraintDefaultsConfiguration, type)
 		{
 			this.SqlName = sqlName;
-			this.method = this.GetType().GetMethod("Read", BindingFlags.Public | BindingFlags.Static);
+			this.method = GetType().GetMethod("Read", BindingFlags.Public | BindingFlags.Static);
 		}
 
 		public override string GetSqlName(PropertyDescriptor propertyDescriptor, ConstraintDefaultsConfiguration constraintDefaults)

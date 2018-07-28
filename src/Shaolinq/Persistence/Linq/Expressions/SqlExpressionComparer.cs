@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -83,7 +83,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		
 		protected override Expression VisitConstant(ConstantExpression constantExpression)
 		{
-			if (!this.TryGetCurrent(constantExpression, out var current))
+			if (!TryGetCurrent(constantExpression, out var current))
 			{
 				return constantExpression;
 			}
@@ -116,12 +116,12 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		
 		protected override IReadOnlyList<Expression> VisitExpressionList(IReadOnlyList<Expression> original)
 		{
-			return this.VisitExpressionList<Expression>(original);
+			return VisitExpressionList<Expression>(original);
 		}
 
 		protected override IReadOnlyList<T> VisitExpressionList<T>(IReadOnlyList<T> original)
 		{
-			if (!this.TryGetCurrent(original, out var current))
+			if (!TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -136,7 +136,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			for (var i = 0; i < count && this.result; i++)
 			{
 				this.currentObject = current[i];
-				this.Visit(original[i]);
+				Visit(original[i]);
 
 				if (!this.result)
 				{
@@ -151,7 +151,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 		
 		protected override IReadOnlyList<MemberBinding> VisitBindingList(IReadOnlyList<MemberBinding> original)
 		{
-			if (!this.TryGetCurrent(original, out var current))
+			if (!TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -166,7 +166,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			for (var i = 0; i < count && this.result; i++)
 			{
 				this.currentObject = current[i];
-				this.VisitBinding(original[i]);
+				VisitBinding(original[i]);
 			}
 
 			this.currentObject = current;
@@ -176,7 +176,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override IReadOnlyList<ElementInit> VisitElementInitializerList(IReadOnlyList<ElementInit> original)
 		{
-			if (!this.TryGetCurrent(original, out var current))
+			if (!TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -191,7 +191,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			for (var i = 0; i < count && this.result; i++)
 			{
 				this.currentObject = current[i];
-				this.VisitElementInitializer(original[i]);
+				VisitElementInitializer(original[i]);
 			}
 			
 			this.currentObject = current;
@@ -201,7 +201,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected virtual LabelTarget VisitLabelTarget(LabelTarget original)
 		{
-			if (!this.TryGetCurrent(original, out var current))
+			if (!TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -223,7 +223,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected virtual IReadOnlyList<T> VisitObjectList<T>(IReadOnlyList<T> original)
 		{
-			if (!this.TryGetCurrent(original, out var current))
+			if (!TryGetCurrent(original, out var current))
 			{
 				return original;
 			}
@@ -242,7 +242,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override Expression VisitConstantPlaceholder(SqlConstantPlaceholderExpression constantPlaceholder)
 		{
-			if (!this.TryGetCurrent(constantPlaceholder, out var current))
+			if (!TryGetCurrent(constantPlaceholder, out var current))
 			{
 				return constantPlaceholder;
 			}
@@ -260,7 +260,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 
 			this.currentObject = current.ConstantExpression;
-			this.Visit(constantPlaceholder.ConstantExpression);
+			Visit(constantPlaceholder.ConstantExpression);
 			this.currentObject = current;
 
 			return constantPlaceholder;
@@ -268,7 +268,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		protected override IReadOnlyList<SqlColumnDeclaration> VisitColumnDeclarations(IReadOnlyList<SqlColumnDeclaration> columns)
 		{
-			if (!this.TryGetCurrent(columns, out var current))
+			if (!TryGetCurrent(columns, out var current))
 			{
 				return columns;
 			}
@@ -293,7 +293,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 				}
 
 				this.currentObject = item1.Expression;
-				this.Visit(item2.Expression);
+				Visit(item2.Expression);
 			}
 
 			this.currentObject = current;

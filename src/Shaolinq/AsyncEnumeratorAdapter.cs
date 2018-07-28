@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -44,7 +44,7 @@ namespace Shaolinq
 
 		public Task<bool> MoveNextAsync()
 		{
-			return this.MoveNextAsync(CancellationToken.None);
+			return MoveNextAsync(CancellationToken.None);
 		}
 
 		public Task<bool> MoveNextAsync(CancellationToken cancellationToken)

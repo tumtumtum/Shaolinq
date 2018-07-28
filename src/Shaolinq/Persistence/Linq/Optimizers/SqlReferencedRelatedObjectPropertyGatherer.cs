@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -81,7 +81,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
-			using (this.AcquireDisableCompareContext())
+			using (AcquireDisableCompareContext())
 			{
 				return base.VisitBinary(binaryExpression);
 			}
@@ -128,11 +128,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				this.nesting++;
 
-				this.Visit(newSelector);
+				Visit(newSelector);
 
 				if (this.referencedRelatedObjects.Count == 0)
 				{
-					return this.Visit(methodCallExpression.Arguments[0]);
+					return Visit(methodCallExpression.Arguments[0]);
 				}
 
 				var referencedRelatedObject = this.referencedRelatedObjects[0];
@@ -140,7 +140,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				this.referencedRelatedObjects = originalReferencedRelatedObjects;
 				this.currentParent = originalParent;
 
-				var retval = this.Visit(methodCallExpression.Arguments[0].StripItemsCalls());
+				var retval = Visit(methodCallExpression.Arguments[0].StripItemsCalls());
 
 				if (this.nesting > 1 && (retval != this.sourceParameterExpression) && retval is MemberExpression)
 				{
@@ -169,11 +169,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 					prefixProperties.Reverse();
 
-					this.AddIncludedProperty(this.sourceParameterExpression, referencedRelatedObject, new PropertyPath(c => c.Name, prefixProperties));
+					AddIncludedProperty(this.sourceParameterExpression, referencedRelatedObject, new PropertyPath(c => c.Name, prefixProperties));
 				}
 				else
 				{
-					this.AddIncludedProperty(retval, referencedRelatedObject, PropertyPath.Empty);
+					AddIncludedProperty(retval, referencedRelatedObject, PropertyPath.Empty);
 				}
 
 				this.nesting--;
@@ -209,13 +209,13 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		{
 			Expression test;
 
-			using (this.AcquireDisableCompareContext())
+			using (AcquireDisableCompareContext())
 			{
-				test = this.Visit(expression.Test);
+				test = Visit(expression.Test);
 			}
 
-			var ifTrue = this.Visit(expression.IfTrue);
-			var ifFalse = this.Visit(expression.IfFalse);
+			var ifTrue = Visit(expression.IfTrue);
+			var ifFalse = Visit(expression.IfFalse);
 
 			if (test != expression.Test || ifTrue != expression.IfTrue || ifFalse != expression.IfFalse)
 			{
@@ -270,7 +270,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 				if (typeDescriptor == null)
 				{
-					return Expression.MakeMemberAccess(this.Visit(memberExpression.Expression.StripItemsCalls()), memberExpression.Member);
+					return Expression.MakeMemberAccess(Visit(memberExpression.Expression.StripItemsCalls()), memberExpression.Member);
 				}
 
 				var property = typeDescriptor.GetPropertyDescriptorByPropertyName(memberExpression.Member.Name);
@@ -291,7 +291,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				visited.Add(currentMemberExpression);
 
-				root = this.GetExpression(currentMemberExpression.Expression).StripItemsCalls();
+				root = GetExpression(currentMemberExpression.Expression).StripItemsCalls();
 
 				currentMemberExpression = root as MemberExpression;
 			}

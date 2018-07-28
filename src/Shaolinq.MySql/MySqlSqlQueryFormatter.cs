@@ -1,6 +1,5 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Linq.Expressions;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
@@ -88,36 +87,36 @@ namespace Shaolinq.MySql
 			switch (functionCallExpression.Function)
 			{
 				case SqlFunction.DayOfWeek:
-					this.Write("((");
+					Write("((");
 					base.VisitFunctionCall(functionCallExpression);
-					this.Write(") - 1)");
+					Write(") - 1)");
 
 					return functionCallExpression;
 			case SqlFunction.DateTimeAddDays:
-				this.Write("(");
-				this.Write("DATE_ADD(");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(", INTERVAL ");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" DAY))");
+				Write("(");
+				Write("DATE_ADD(");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(", INTERVAL ");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" DAY))");
 
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddMonths:
-				this.Write("(");
-				this.Write("DATE_ADD(");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(", INTERVAL ");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" MONTH))");
+				Write("(");
+				Write("DATE_ADD(");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(", INTERVAL ");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" MONTH))");
 
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddYears:
-				this.Write("(");
-				this.Write("DATE_ADD(");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(", INTERVAL ");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" YEAR))");
+				Write("(");
+				Write("DATE_ADD(");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(", INTERVAL ");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" YEAR))");
 
 				return functionCallExpression;
 			}
@@ -133,12 +132,12 @@ namespace Shaolinq.MySql
 				return;
 			}
 			
-			this.Write("; SELECT LAST_INSERT_ID()");
+			Write("; SELECT LAST_INSERT_ID()");
 		}
 
 		protected override void WriteInsertDefaultValuesSuffix()
 		{
-			this.Write(" VALUES ()");
+			Write(" VALUES ()");
 		}
 
 		protected override void WriteDeferrability(SqlColumnReferenceDeferrability deferrability)

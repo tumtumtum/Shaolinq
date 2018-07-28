@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -90,7 +90,7 @@ namespace Shaolinq
 					this.systemTransactionCompleted = true;
 					this.systemTransactionStatus = eventArgs.Transaction.TransactionInformation.Status;
 
-					this.Dispose();
+					Dispose();
 				};
 			}
 		}

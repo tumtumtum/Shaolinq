@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -81,9 +81,9 @@ namespace Shaolinq.Persistence.Linq
 			case "SingleOrDefault":
 			case "SelectMany":
 			case nameof(QueryableExtensions.OrderByThenBysHelper):
-				return this.RewriteBasicProjection(methodCallExpression, false);
+				return RewriteBasicProjection(methodCallExpression, false);
 			case "Select":
-				return this.RewriteBasicProjection(methodCallExpression, true);
+				return RewriteBasicProjection(methodCallExpression, true);
 			case "Join":
 			{
 				var outer = methodCallExpression.Arguments[0];
@@ -92,7 +92,7 @@ namespace Shaolinq.Persistence.Linq
 				var innerKeySelector = methodCallExpression.Arguments[3].StripQuotes();
 				var resultSelector = methodCallExpression.Arguments[4].StripQuotes();
 
-				var outerResult = this.RewriteBasicProjection
+				var outerResult = RewriteBasicProjection
 				(
 					outer,
 					new[]
@@ -110,7 +110,7 @@ namespace Shaolinq.Persistence.Linq
 					resultSelector = Expression.Lambda(outerResult.NewSelectors[1].Body, outerResult.NewSelectors[1].Parameters[0], resultSelector.Parameters[1]);
 				}
 
-				var innerResult = this.RewriteBasicProjection
+				var innerResult = RewriteBasicProjection
 				(
 					inner,
 					new[]
@@ -148,7 +148,7 @@ namespace Shaolinq.Persistence.Linq
 					&& (methodCallExpression.Arguments.Count == 1
 					|| (methodCallExpression.Arguments.Count == 2 && methodCallExpression.Arguments[1].Type.IsExpressionTree())))
 				{
-					return this.RewriteBasicProjection(methodCallExpression, false);
+					return RewriteBasicProjection(methodCallExpression, false);
 				}
 
 				return base.VisitMethodCall(methodCallExpression);
@@ -283,10 +283,10 @@ namespace Shaolinq.Persistence.Linq
 			var selectors = methodCallExpression
 				.Arguments
 				.Where(c => c.Type.GetGenericTypeDefinitionOrNull() == typeof(Expression<>) || c.Type == typeof(LambdaExpression[]))
-				.SelectMany(c => c.Type != typeof(LambdaExpression[]) ? new []{ this.Visit(c).StripQuotes() } : ((LambdaExpression[])c.StripAndGetConstant().Value).Select(this.Visit).Cast<LambdaExpression>())
+				.SelectMany(c => c.Type != typeof(LambdaExpression[]) ? new []{ Visit(c).StripQuotes() } : ((LambdaExpression[])c.StripAndGetConstant().Value).Select(Visit).Cast<LambdaExpression>())
 				.ToArray();
 
-			var result = this.RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);
+			var result = RewriteBasicProjection(methodCallExpression.Arguments[0], selectors.Select(c => new Tuple<LambdaExpression, ParameterExpression>(c, c.Parameters[0])).ToArray(), forSelector);
 
 			if (!result.Changed)
 			{
@@ -449,12 +449,12 @@ namespace Shaolinq.Persistence.Linq
 
 			this.replacementExpressionForPropertyPathsByJoin.Add(new Pair<Expression, Dictionary<PropertyPath, Expression>>(newCall, result.ReplacementExpressionsByPropertyPath));
 
-			return this.Reselect(newCall, result.ReferencedObjectPaths, result.IndexByPath);
+			return Reselect(newCall, result.ReferencedObjectPaths, result.IndexByPath);
 		}
 
 		protected RewriteBasicProjectionResults RewriteBasicProjection(Expression originalSource, Tuple<LambdaExpression, ParameterExpression>[] originalSelectors, bool forProjection)
 		{
-			var source = this.Visit(originalSource);
+			var source = Visit(originalSource);
 			var sourceType = source.Type.GetGenericArguments()[0];
 
 			var result = SqlReferencedRelatedObjectPropertyGatherer.Gather(this.model, originalSelectors.Select(c => new Tuple<ParameterExpression, Expression>(c.Item2, c.Item1)).ToList(), forProjection);
@@ -553,7 +553,7 @@ namespace Shaolinq.Persistence.Linq
 				var property = referencedObjectPath.FullAccessPropertyPath[referencedObjectPath.FullAccessPropertyPath.Length - 1];
 				var right = Expression.Constant(this.model.GetDataAccessObjects(property.PropertyType.JoinedObjectType()), typeof(DataAccessObjects<>).MakeGenericType(property.PropertyType.JoinedObjectType()));
 
-				var join = this.MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
+				var join = MakeJoinCallExpression(index, currentLeft, right, referencedObjectPath.FullAccessPropertyPath, indexByPath, currentRootExpressionsByPath, referencedObjectPath.SourceParameterExpression);
 
 				currentLeft = join;
 				index++;

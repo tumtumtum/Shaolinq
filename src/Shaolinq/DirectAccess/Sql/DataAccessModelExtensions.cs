@@ -1,13 +1,15 @@
-﻿using System;
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
+using Platform.Reflection;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
-using Platform.Reflection;
 
 namespace Shaolinq.DirectAccess.Sql
 {

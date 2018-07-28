@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -40,10 +40,10 @@ namespace Shaolinq.Postgres
 			switch (joinType)
 			{
 			case SqlJoinType.CrossApply:
-				this.Write(" CROSS JOIN LATERAL ");
+				Write(" CROSS JOIN LATERAL ");
 				break;
 			case SqlJoinType.OuterApply:
-				this.Write(" OUTER JOIN LATERAL ");
+				Write(" OUTER JOIN LATERAL ");
 				break;
 			default:
 				base.Write(joinType);
@@ -65,10 +65,10 @@ namespace Shaolinq.Postgres
 			switch (orderByExpression.OrderType)
 			{
 			case OrderType.Ascending:
-				this.Write(" NULLS FIRST");
+				Write(" NULLS FIRST");
 				break;
 			default:
-				this.Write(" NULLS LAST");
+				Write(" NULLS LAST");
 				break;
 			}
 
@@ -147,37 +147,37 @@ namespace Shaolinq.Postgres
 			switch (functionCallExpression.Function)
 			{
 			case SqlFunction.DateTimeAddDays:
-				this.Write("(");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(" + (");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" || ");
-				this.Visit(Expression.Constant(" day"));
-				this.Write(")");
-				this.Write("::interval");
-				this.Write(")");
+				Write("(");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(" + (");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" || ");
+				Visit(Expression.Constant(" day"));
+				Write(")");
+				Write("::interval");
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddMonths:
-				this.Write("(");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(" + (");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" || ");
-				this.Visit(Expression.Constant(" month"));
-				this.Write(")");
-				this.Write("::interval");
-				this.Write(")");
+				Write("(");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(" + (");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" || ");
+				Visit(Expression.Constant(" month"));
+				Write(")");
+				Write("::interval");
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddYears:
-				this.Write("(");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(" + (");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" || ");
-				this.Visit(Expression.Constant(" year"));
-				this.Write(")");
-				this.Write("::interval");
-				this.Write(")");
+				Write("(");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(" + (");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" || ");
+				Visit(Expression.Constant(" year"));
+				Write(")");
+				Write("::interval");
+				Write(")");
 				return functionCallExpression;
 			}
 
@@ -187,17 +187,17 @@ namespace Shaolinq.Postgres
 		{
 			if (column.Expression.Type == typeof(Decimal))
 			{
-				this.Write("ROUND(CAST(");
-				var c = this.Visit(column.Expression) as SqlColumnExpression;
-				this.Write(" as NUMERIC)");
-				this.Write(", 20)");
+				Write("ROUND(CAST(");
+				var c = Visit(column.Expression) as SqlColumnExpression;
+				Write(" as NUMERIC)");
+				Write(", 20)");
 
 				if (!String.IsNullOrEmpty(column.Name))
 				{
-					this.Write(" AS ");
-					this.Write(this.identifierQuoteString);
-					this.Write(column.Name);
-					this.Write(this.identifierQuoteString);
+					Write(" AS ");
+					Write(this.identifierQuoteString);
+					Write(column.Name);
+					Write(this.identifierQuoteString);
 				}
 			}
 			else
@@ -211,7 +211,7 @@ namespace Shaolinq.Postgres
 			if (this.selectNesting == 1 && (this.ConvertEnumsToText && columnExpression.Type.GetUnwrappedNullableType().IsEnum))
 			{
 				base.VisitColumn(columnExpression);
-				this.Write("::TEXT");
+				Write("::TEXT");
 
 				return columnExpression;
 			}
@@ -224,7 +224,7 @@ namespace Shaolinq.Postgres
 			if (this.ConvertEnumsToText && constantExpression.Type.GetUnwrappedNullableType().IsEnum)
 			{
 				base.VisitConstant(constantExpression);
-				this.Write("::TEXT");
+				Write("::TEXT");
 
 				return constantExpression;
 			}
@@ -238,16 +238,16 @@ namespace Shaolinq.Postgres
 			{
 				if (selectExpression.Take != null)
 				{
-					this.Write(" LIMIT ");
+					Write(" LIMIT ");
 
-					this.Visit(selectExpression.Take);
+					Visit(selectExpression.Take);
 				}
 
 				if (selectExpression.Skip != null)
 				{
-					this.Write(" OFFSET ");
+					Write(" OFFSET ");
 
-					this.Visit(selectExpression.Skip);
+					Visit(selectExpression.Skip);
 				}
 			}
 		}
@@ -260,8 +260,8 @@ namespace Shaolinq.Postgres
 				return;
 			}
 
-			this.Write(" RETURNING ");
-			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames,this.WriteQuotedIdentifier, ",");
+			Write(" RETURNING ");
+			WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames,WriteQuotedIdentifier, ",");
 		}
 
 		public override void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)
@@ -284,23 +284,23 @@ namespace Shaolinq.Postgres
 		{
 			if (indexedColumnExpression.LowercaseIndex)
 			{
-				this.Write("(lower(");
+				Write("(lower(");
 			}
 
-			this.Visit(indexedColumnExpression.Column);
+			Visit(indexedColumnExpression.Column);
 
 			if (indexedColumnExpression.LowercaseIndex)
 			{
-				this.Write("))");
+				Write("))");
 			}
 
 			switch (indexedColumnExpression.SortOrder)
 			{
 			case SortOrder.Descending:
-			this.Write(" DESC");
+			Write(" DESC");
 			break;
 			case SortOrder.Ascending:
-			this.Write(" ASC");
+			Write(" ASC");
 			break;
 			case SortOrder.Unspecified:
 			break;

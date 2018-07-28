@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq.Expressions;
@@ -13,9 +15,9 @@ namespace Shaolinq.Tests
 	{
 		private readonly DateTime value;
 
-		public int Day => value.Day;
-		public int Month => value.Month;
-		public int Year => value.Year;
+		public int Day => this.value.Day;
+		public int Month => this.value.Month;
+		public int Year => this.value.Year;
 
 		public FixedDate(DateTime value)
 		{

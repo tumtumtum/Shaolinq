@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -94,7 +94,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void WriteInsertDefaultValuesSuffix()
 		{
-			this.Write(" DEFAULT VALUES");
+			Write(" DEFAULT VALUES");
 		}
 
 		protected virtual void WriteInsertIntoReturning(SqlInsertIntoExpression expression)
@@ -105,9 +105,9 @@ namespace Shaolinq.Persistence.Linq
 				return;
 			}
 
-			this.Write(" RETURNING (");
-			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, this.WriteQuotedIdentifier, ",");
-			this.Write(")");
+			Write(" RETURNING (");
+			WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, WriteQuotedIdentifier, ",");
+			Write(")");
 		}
 
 		public virtual void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)
@@ -119,7 +119,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitProjection(SqlProjectionExpression projection)
 		{
-			var retval = this.Visit(projection.Select);
+			var retval = Visit(projection.Select);
 
 			return retval;
 		}
@@ -128,30 +128,30 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (methodCallExpression.Method == MethodInfoFastRef.EnumToObjectMethod)
 			{
-				this.Visit(methodCallExpression.Arguments[1]);
+				Visit(methodCallExpression.Arguments[1]);
 
 				return methodCallExpression;
 			}
 			else if (methodCallExpression.Method == MethodInfoFastRef.ObjectToStringMethod)
 			{
-				this.Visit(methodCallExpression.Object);
+				Visit(methodCallExpression.Object);
 
 				return methodCallExpression;
 			}
 			else if (methodCallExpression.Method.DeclaringType?.GetGenericTypeDefinitionOrNull() == typeof(Nullable<>)
 					 && methodCallExpression.Method.Name == "GetValueOrDefault")
 			{
-				this.Visit(methodCallExpression.Object);
+				Visit(methodCallExpression.Object);
 
 				return methodCallExpression;
 			}
 			else if (methodCallExpression.Method.GetGenericMethodOrRegular() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
 			{
-				return this.Visit(methodCallExpression.Arguments[0]);
+				return Visit(methodCallExpression.Arguments[0]);
 			}
 			else if (methodCallExpression.Type.IsIntegralType() && methodCallExpression.Method.MemberIsConversionMember())
 			{
-				return this.Visit(methodCallExpression.Object ?? methodCallExpression.Arguments[0]);
+				return Visit(methodCallExpression.Object ?? methodCallExpression.Arguments[0]);
 			}
 
 			throw new NotSupportedException($"The method '{methodCallExpression.Method.Name}' is not supported");
@@ -192,12 +192,12 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (expression.Name.StartsWith("!"))
 			{
-				this.Write(expression.Name.Substring(1));
+				Write(expression.Name.Substring(1));
 			}
 			else
 			{
-				this.Write(this.ParameterIndicatorPrefix);
-				this.Write(expression.Name);
+				Write(this.ParameterIndicatorPrefix);
+				Write(expression.Name);
 			}
 
 			return expression;
@@ -216,11 +216,11 @@ namespace Shaolinq.Persistence.Linq
 					|| (IsNumeric(unaryType) && IsNumeric(operandType))
 					|| unaryExpression.Operand.Type.IsDataAccessObjectType())
 				{
-					this.Visit(unaryExpression.Operand);
+					Visit(unaryExpression.Operand);
 				}
 				else if (unaryType.IsIntegralType())
 				{
-					this.Visit(unaryExpression.Operand);
+					Visit(unaryExpression.Operand);
 				}
 				else
 				{
@@ -229,14 +229,14 @@ namespace Shaolinq.Persistence.Linq
 			break;
 			case ExpressionType.Negate:
 			case ExpressionType.NegateChecked:
-				this.Write("(-(");
-				this.Visit(unaryExpression.Operand);
-				this.Write("))");
+				Write("(-(");
+				Visit(unaryExpression.Operand);
+				Write("))");
 				break;
 			case ExpressionType.Not:
-				this.Write("NOT (");
-				this.Visit(unaryExpression.Operand);
-				this.Write(")");
+				Write("NOT (");
+				Visit(unaryExpression.Operand);
+				Write(")");
 				break;
 			default:
 				throw new NotSupportedException($"The unary operator '{unaryExpression.NodeType}' is not supported");
@@ -376,73 +376,73 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitFunctionCall(SqlFunctionCallExpression functionCallExpression)
 		{
-			var result = this.ResolveSqlFunction(functionCallExpression);
+			var result = ResolveSqlFunction(functionCallExpression);
 
 			if (result.treatAsOperator)
 			{
-				this.Write("(");
+				Write("(");
 
 				if (result.functionPrefix != null)
 				{
-					this.Write(result.functionPrefix);
+					Write(result.functionPrefix);
 				}
 
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
 				{
-					this.Visit(result.arguments[i]);
+					Visit(result.arguments[i]);
 
 					if (i != n)
 					{
-						this.Write(' ');
-						this.Write(result.functionName);
-						this.Write(' ');
+						Write(' ');
+						Write(result.functionName);
+						Write(' ');
 					}
 				}
 
 				if (result.functionSuffix != null)
 				{
-					this.Write(result.functionSuffix);
+					Write(result.functionSuffix);
 				}
 
-				this.Write(")");
+				Write(")");
 			}
 			else
 			{
-				this.Write(result.functionName);
+				Write(result.functionName);
 
 				if (!result.excludeParenthesis)
 				{
-					this.Write("(");
+					Write("(");
 				}
 
 				if (result.functionPrefix != null)
 				{
-					this.Write(result.functionPrefix);
+					Write(result.functionPrefix);
 				}
 
 				if (result.argsBefore != null && result.argsBefore.Length > 0)
 				{
 					for (int i = 0, n = result.argsBefore.Length - 1; i <= n; i++)
 					{
-						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
+						Write(this.ParameterIndicatorPrefix);
+						Write(ParamNamePrefix);
+						Write(this.parameterValues.Count);
 						this.parameterValues.Add(new TypedValue(result.argsBefore[i].Type, result.argsBefore[i].Value));
 
 						if (i != n || (functionCallExpression.Arguments.Count > 0))
 						{
-							this.Write(", ");
+							Write(", ");
 						}
 					}
 				}
 
 				for (int i = 0, n = result.arguments.Count - 1; i <= n; i++)
 				{
-					this.Visit(result.arguments[i]);
+					Visit(result.arguments[i]);
 
 					if (i != n || (result.argsAfter != null && result.argsAfter.Length > 0))
 					{
-						this.Write(", ");
+						Write(", ");
 					}
 				}
 
@@ -450,26 +450,26 @@ namespace Shaolinq.Persistence.Linq
 				{
 					for (int i = 0, n = result.argsAfter.Length - 1; i <= n; i++)
 					{
-						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
+						Write(this.ParameterIndicatorPrefix);
+						Write(ParamNamePrefix);
+						Write(this.parameterValues.Count);
 						this.parameterValues.Add(new TypedValue(result.argsAfter[i].Type, result.argsAfter[i].Value));
 
 						if (i != n)
 						{
-							this.Write(", ");
+							Write(", ");
 						}
 					}
 				}
 
 				if (result.functionSuffix != null)
 				{
-					this.Write(result.functionSuffix);
+					Write(result.functionSuffix);
 				}
 
 				if (!result.excludeParenthesis)
 				{
-					this.Write(")");
+					Write(")");
 				}
 			}
 
@@ -480,59 +480,59 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (binaryExpression.NodeType != ExpressionType.Assign)
 			{
-				this.Write("(");
-				this.Write("(");
+				Write("(");
+				Write("(");
 			}
 
-			this.Visit(binaryExpression.Left);
+			Visit(binaryExpression.Left);
 
 			if (binaryExpression.NodeType != ExpressionType.Assign)
 			{
-				this.Write(")");
+				Write(")");
 			}
 
 			switch (binaryExpression.NodeType)
 			{
 			case ExpressionType.And:
 			case ExpressionType.AndAlso:
-				this.Write(" AND ");
+				Write(" AND ");
 				break;
 			case ExpressionType.Or:
 			case ExpressionType.OrElse:
-				this.Write(" OR ");
+				Write(" OR ");
 				break;
 			case ExpressionType.Equal:
-				this.Write(" = ");
+				Write(" = ");
 				break;
 			case ExpressionType.NotEqual:
-				this.Write(" <> ");
+				Write(" <> ");
 				break;
 			case ExpressionType.LessThan:
-				this.Write(" < ");
+				Write(" < ");
 				break;
 			case ExpressionType.LessThanOrEqual:
-				this.Write(" <= ");
+				Write(" <= ");
 				break;
 			case ExpressionType.GreaterThan:
-				this.Write(" > ");
+				Write(" > ");
 				break;
 			case ExpressionType.GreaterThanOrEqual:
-				this.Write(" >= ");
+				Write(" >= ");
 				break;
 			case ExpressionType.Add:
-				this.Write(" + ");
+				Write(" + ");
 				break;
 			case ExpressionType.Subtract:
-				this.Write(" - ");
+				Write(" - ");
 				break;
 			case ExpressionType.Multiply:
-				this.Write(" * ");
+				Write(" * ");
 				break;
 			case ExpressionType.Divide:
-				this.Write(" / ");
+				Write(" / ");
 				break;
 			case ExpressionType.Assign:
-				this.Write(" = ");
+				Write(" = ");
 				break;
 			default:
 				throw new NotSupportedException($"The binary operator '{binaryExpression.NodeType}' is not supported");
@@ -540,15 +540,15 @@ namespace Shaolinq.Persistence.Linq
 
 			if (binaryExpression.NodeType != ExpressionType.Assign)
 			{
-				this.Write("(");
+				Write("(");
 			}
 
-			this.Visit(binaryExpression.Right);
+			Visit(binaryExpression.Right);
 
 			if (binaryExpression.NodeType != ExpressionType.Assign)
 			{
-				this.Write(")");
-				this.Write(")");
+				Write(")");
+				Write(")");
 			}
 
 			return binaryExpression;
@@ -583,7 +583,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				this.WriteFormat("$${0}", constantPlaceholderExpression.Index);
+				WriteFormat("$${0}", constantPlaceholderExpression.Index);
 
 				return constantPlaceholderExpression;
 			}
@@ -595,13 +595,13 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if ((this.options & SqlQueryFormatterOptions.OptimiseOutConstantNulls) != 0 || (this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
 				{
-					this.Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null));
+					Write(this.sqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.Null));
 				}
 				else
 				{
-					this.Write(this.ParameterIndicatorPrefix);
-					this.Write(ParamNamePrefix);
-					this.Write(this.parameterValues.Count);
+					Write(this.ParameterIndicatorPrefix);
+					Write(ParamNamePrefix);
+					Write(this.parameterValues.Count);
 					this.parameterValues.Add(new TypedValue(constantExpression.Type, null));
 				}
 			}
@@ -612,21 +612,21 @@ namespace Shaolinq.Persistence.Linq
 					this.canReuse = false;
 					this.parameterIndexToPlaceholderIndexes = null;
 
-					this.Write("(");
-					this.WriteDeliminatedListOfItems((IEnumerable)constantExpression.Value, c => this.VisitConstant(Expression.Constant(c)));
-					this.Write(")");
+					Write("(");
+					WriteDeliminatedListOfItems((IEnumerable)constantExpression.Value, c => VisitConstant(Expression.Constant(c)));
+					Write(")");
 				}
 				else
 				{
 					if ((this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
 					{
-						this.Write(this.FormatConstant(constantExpression.Value));
+						Write(FormatConstant(constantExpression.Value));
 					}
 					else
 					{
-						this.Write(this.ParameterIndicatorPrefix);
-						this.Write(ParamNamePrefix);
-						this.Write(this.parameterValues.Count);
+						Write(this.ParameterIndicatorPrefix);
+						Write(ParamNamePrefix);
+						Write(this.parameterValues.Count);
 						this.parameterValues.Add(new TypedValue(constantExpression.Type, constantExpression.Value));
 					}
 				}
@@ -663,40 +663,40 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitAggregate(SqlAggregateExpression sqlAggregate)
 		{
-			this.Write(GetAggregateName(sqlAggregate.AggregateType));
+			Write(GetAggregateName(sqlAggregate.AggregateType));
 
-			this.Write("(");
+			Write("(");
 
 			if (sqlAggregate.IsDistinct)
 			{
-				this.Write("DISTINCT ");
+				Write("DISTINCT ");
 			}
 
 			if (sqlAggregate.Argument != null)
 			{
-				this.Visit(sqlAggregate.Argument);
+				Visit(sqlAggregate.Argument);
 			}
-			else if (this.RequiresAsteriskWhenNoArgument(sqlAggregate.AggregateType))
+			else if (RequiresAsteriskWhenNoArgument(sqlAggregate.AggregateType))
 			{
-				this.Write("*");
+				Write("*");
 			}
 
-			this.Write(")");
+			Write(")");
 
 			return sqlAggregate;
 		}
 
 		protected override Expression VisitSubquery(SqlSubqueryExpression subquery)
 		{
-			this.Write("(");
+			Write("(");
 
-			using (this.AcquireIndentationContext())
+			using (AcquireIndentationContext())
 			{
-				this.Visit(subquery.Select);
-				this.WriteLine();
+				Visit(subquery.Select);
+				WriteLine();
 			}
 
-			this.Write(")");
+			Write(")");
 
 			return subquery;
 		}
@@ -707,50 +707,50 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (this.ignoreAlias == columnExpression.SelectAlias)
 				{
-					this.WriteQuotedIdentifier(this.replaceAlias);
+					WriteQuotedIdentifier(this.replaceAlias);
 				}
 				else
 				{
-					this.WriteQuotedIdentifier(columnExpression.SelectAlias);
+					WriteQuotedIdentifier(columnExpression.SelectAlias);
 				}
 
-				this.Write(".");
+				Write(".");
 			}
 
-			this.WriteQuotedIdentifier(columnExpression.Name);
+			WriteQuotedIdentifier(columnExpression.Name);
 			
 			return columnExpression;
 		}
 
 		protected override Expression VisitVariableDeclaration(SqlVariableDeclarationExpression expression)
 		{
-			this.Write(this.ParameterIndicatorPrefix);
-			this.Write(expression.Name);
-			this.Write(" ");
-			this.WriteTypeName(this.sqlDataTypeProvider.GetSqlDataType(expression.Type).GetSqlName(null));
+			Write(this.ParameterIndicatorPrefix);
+			Write(expression.Name);
+			Write(" ");
+			WriteTypeName(this.sqlDataTypeProvider.GetSqlDataType(expression.Type).GetSqlName(null));
 			
 			return base.VisitVariableDeclaration(expression);
 		}
 
 		protected virtual void VisitColumn(SqlSelectExpression selectExpression, SqlColumnDeclaration column)
 		{
-			if ((!(this.Visit(column.Expression) is SqlColumnExpression c) || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
+			if ((!(Visit(column.Expression) is SqlColumnExpression c) || c.Name != column.Name) && !String.IsNullOrEmpty(column.Name))
 			{
-				this.Write(" AS ");
-				this.WriteQuotedIdentifier(column.Name);
+				Write(" AS ");
+				WriteQuotedIdentifier(column.Name);
 			}
 		}
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
 		{
-			this.Write("CASE WHEN (");
-			this.Visit(expression.Test);
-			this.Write(")");
-			this.Write(" THEN (");
-			this.Visit(expression.IfTrue);
-			this.Write(") ELSE (");
-			this.Visit(expression.IfFalse);
-			this.Write(") END");
+			Write("CASE WHEN (");
+			Visit(expression.Test);
+			Write(")");
+			Write(" THEN (");
+			Visit(expression.IfTrue);
+			Write(") ELSE (");
+			Visit(expression.IfFalse);
+			Write(") END");
 
 			return expression;
 		}
@@ -763,7 +763,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (selectNested)
 			{
-				this.Write("(");
+				Write("(");
 			}
 
 			try
@@ -772,23 +772,23 @@ namespace Shaolinq.Persistence.Linq
 
 				if (selectExpression.From?.NodeType == (ExpressionType)SqlExpressionType.Delete)
 				{
-					this.Visit(selectExpression.From);
+					Visit(selectExpression.From);
 
 					return selectExpression;
 				}
 
-				this.Write("SELECT ");
+				Write("SELECT ");
 
 				if (selectExpression.Distinct)
 				{
-					this.Write("DISTINCT ");
+					Write("DISTINCT ");
 				}
 
-				this.AppendTop(selectExpression);
+				AppendTop(selectExpression);
 
 				if ((selectExpression.Columns?.Count ?? 0) == 0)
 				{
-					this.Write("* ");
+					Write("* ");
 				}
 				else
 				{
@@ -798,64 +798,64 @@ namespace Shaolinq.Persistence.Linq
 
 						if (i > 0)
 						{
-							this.Write(", ");
+							Write(", ");
 						}
 
-						this.VisitColumn(selectExpression, column);
+						VisitColumn(selectExpression, column);
 					}
 				}
 
 				if (selectExpression.Into != null)
 				{
-					this.WriteLine();
-					this.Write("INTO ");
-					this.VisitSource(selectExpression.Into);
+					WriteLine();
+					Write("INTO ");
+					VisitSource(selectExpression.Into);
 				}
 
 				if (selectExpression.From != null)
 				{
-					this.WriteLine();
-					this.Write("FROM ");
-					this.VisitSource(selectExpression.From);
+					WriteLine();
+					Write("FROM ");
+					VisitSource(selectExpression.From);
 				}
 
 				if (selectExpression.Where != null)
 				{
-					this.WriteLine();
-					this.Write("WHERE ");
-					this.Visit(selectExpression.Where);
+					WriteLine();
+					Write("WHERE ");
+					Visit(selectExpression.Where);
 				}
 
 
 				if (selectExpression.GroupBy != null && selectExpression.GroupBy.Count > 0)
 				{
-					this.WriteLine();
-					this.Write("GROUP BY ");
+					WriteLine();
+					Write("GROUP BY ");
 
-					this.WriteDeliminatedListOfItems(selectExpression.GroupBy, c => this.Visit(c));
+					WriteDeliminatedListOfItems(selectExpression.GroupBy, c => Visit(c));
 				}
 
 				if (selectExpression.OrderBy != null && selectExpression.OrderBy.Count > 0)
 				{
-					this.WriteLine();
-					this.Write("ORDER BY ");
+					WriteLine();
+					Write("ORDER BY ");
 
-					this.WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
+					WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
 					{
-						this.Visit(c);
+						Visit(c);
 					});
 				}
 
-				this.AppendLimit(selectExpression);
+				AppendLimit(selectExpression);
 
 				if (selectExpression.ForUpdate && this.sqlDialect.SupportsCapability(SqlCapability.SelectForUpdate))
 				{
-					this.Write(" FOR UPDATE");
+					Write(" FOR UPDATE");
 				}
 
 				if (selectNested)
 				{
-					this.Write(")");
+					Write(")");
 				}
 			}
 			finally
@@ -872,7 +872,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (orderByExpression.OrderType == OrderType.Descending)
 			{
-				this.Write(" DESC");
+				Write(" DESC");
 			}
 
 			return orderByExpression;
@@ -886,27 +886,27 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (selectExpression.Skip != null || selectExpression.Take != null)
 			{
-				this.Write(" LIMIT ");
+				Write(" LIMIT ");
 
 				if (selectExpression.Skip == null)
 				{
-					this.Write("0");
+					Write("0");
 				}
 				else
 				{
-					this.Visit(selectExpression.Skip);
+					Visit(selectExpression.Skip);
 				}
 
 				if (selectExpression.Take != null)
 				{
-					this.Write(", ");
+					Write(", ");
 
-					this.Visit(selectExpression.Take);
+					Visit(selectExpression.Take);
 				}
 				else if (selectExpression.Skip != null)
 				{
-					this.Write(", ");
-					this.Write(Int64.MaxValue);
+					Write(", ");
+					Write(Int64.MaxValue);
 				}
 			}
 		}
@@ -916,25 +916,25 @@ namespace Shaolinq.Persistence.Linq
 			switch (joinType)
 			{
 			case SqlJoinType.Cross:
-				this.Write(" CROSS JOIN ");
+				Write(" CROSS JOIN ");
 				break;
 			case SqlJoinType.Inner:
-				this.Write(" INNER JOIN ");
+				Write(" INNER JOIN ");
 				break;
 			case SqlJoinType.Left:
-				this.Write(" LEFT JOIN ");
+				Write(" LEFT JOIN ");
 				break;
 			case SqlJoinType.Right:
-				this.Write(" RIGHT JOIN ");
+				Write(" RIGHT JOIN ");
 				break;
 			case SqlJoinType.Outer:
-				this.Write(" FULL OUTER JOIN ");
+				Write(" FULL OUTER JOIN ");
 				break;
 			case SqlJoinType.CrossApply:
-				this.Write(" CROSS APPLY ");
+				Write(" CROSS APPLY ");
 				break;
 			case SqlJoinType.OuterApply:
-				this.Write(" OUTER APPLY ");
+				Write(" OUTER APPLY ");
 				break;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(joinType), joinType, $"JoinType {joinType} not supported");
@@ -943,21 +943,21 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			this.VisitSource(join.Left);
+			VisitSource(join.Left);
 
-			this.WriteLine();
+			WriteLine();
 
-			this.Write(join.JoinType);
+			Write(join.JoinType);
 
-			this.VisitSource(join.Right);
+			VisitSource(join.Right);
 
 			if (join.JoinCondition != null)
 			{
-				using (this.AcquireIndentationContext())
+				using (AcquireIndentationContext())
 				{
-					this.Write("ON ");
+					Write("ON ");
 
-					this.Visit(join.JoinCondition);
+					Visit(join.JoinCondition);
 				}
 			}
 
@@ -966,7 +966,7 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitTable(SqlTableExpression expression)
 		{
-			this.WriteTableName(expression.Name);
+			WriteTableName(expression.Name);
 
 			return expression;
 		}
@@ -978,42 +978,42 @@ namespace Shaolinq.Persistence.Linq
 			case SqlExpressionType.Table:
 				var table = (SqlTableExpression)source;
 
-				this.Visit(table);
+				Visit(table);
 
 				if (table.Alias != null)
 				{
-					this.Write(" AS ");
-					this.WriteQuotedIdentifier(table.Alias);
+					Write(" AS ");
+					WriteQuotedIdentifier(table.Alias);
 				}
 
 				break;
 			case SqlExpressionType.Select:
 				var select = (SqlSelectExpression)source;
-				this.WriteLine();
-				this.Write("(");
+				WriteLine();
+				Write("(");
 
-				using (this.AcquireIndentationContext())
+				using (AcquireIndentationContext())
 				{
-					this.Visit(select);
-					this.WriteLine();
+					Visit(select);
+					WriteLine();
 				}
 
-				this.Write(")");
-				this.Write(" AS ");
-				this.WriteQuotedIdentifier(select.Alias);
+				Write(")");
+				Write(" AS ");
+				WriteQuotedIdentifier(select.Alias);
 
 				break;
 			case SqlExpressionType.Join:
-				this.VisitJoin((SqlJoinExpression)source);
+				VisitJoin((SqlJoinExpression)source);
 				break;
 			case SqlExpressionType.Delete:
-				this.VisitDelete((SqlDeleteExpression)source);
+				VisitDelete((SqlDeleteExpression)source);
 				break;
 			case SqlExpressionType.Update:
-				this.VisitUpdate((SqlUpdateExpression)source);
+				VisitUpdate((SqlUpdateExpression)source);
 				break;
 			case SqlExpressionType.Union:
-				this.VisitUnion((SqlUnionExpression)source);
+				VisitUnion((SqlUnionExpression)source);
 				break;
 			default:
 				throw new InvalidOperationException($"Select source ({source.NodeType}) is not valid type");
@@ -1029,29 +1029,29 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void WriteTableName(string tableName)
 		{
-			this.AppendFullyQualifiedQuotedTableOrTypeName(tableName, this.Write);
+			AppendFullyQualifiedQuotedTableOrTypeName(tableName, Write);
 		}
 
 		protected virtual void WriteTypeName(string typeName)
 		{
-			this.AppendFullyQualifiedQuotedTableOrTypeName(typeName, this.Write);
+			AppendFullyQualifiedQuotedTableOrTypeName(typeName, Write);
 		}
 
 		protected override Expression VisitDelete(SqlDeleteExpression deleteExpression)
 		{
-			this.Write("DELETE ");
-			this.Write("FROM ");
-			this.Visit(deleteExpression.Source);
+			Write("DELETE ");
+			Write("FROM ");
+			Visit(deleteExpression.Source);
 
 			if (deleteExpression.Where != null)
 			{
-				this.WriteLine();
-				this.Write(" WHERE ");
-				this.WriteLine();
-				this.Visit(deleteExpression.Where);
+				WriteLine();
+				Write(" WHERE ");
+				WriteLine();
+				Visit(deleteExpression.Where);
 			}
 
-			this.WriteLine(";");
+			WriteLine(";");
 
 			return deleteExpression;
 		}
@@ -1062,119 +1062,119 @@ namespace Shaolinq.Persistence.Linq
 
 			if (declaringType != null && Nullable.GetUnderlyingType(declaringType) != null)
 			{
-				return this.Visit(memberExpression.Expression);
+				return Visit(memberExpression.Expression);
 			}
 			else if (memberExpression.Type.IsIntegralType() && memberExpression.Member.MemberIsConversionMember())
 			{
-				return this.Visit(memberExpression.Expression);
+				return Visit(memberExpression.Expression);
 			}
 
-			this.Visit(memberExpression.Expression);
-			this.Write(".");
-			this.Write("Prop(");
-			this.Write(memberExpression.Member.Name);
-			this.Write(")");
+			Visit(memberExpression.Expression);
+			Write(".");
+			Write("Prop(");
+			Write(memberExpression.Member.Name);
+			Write(")");
 
 			return memberExpression;
 		}
 
 		protected override Expression VisitObjectReference(SqlObjectReferenceExpression objectReferenceExpression)
 		{
-			this.Write("ObjectReference(");
-			this.Write(objectReferenceExpression.Type.Name);
-			this.Write(")");
+			Write("ObjectReference(");
+			Write(objectReferenceExpression.Type.Name);
+			Write(")");
 
 			return objectReferenceExpression;
 		}
 
 		protected override Expression VisitTuple(SqlTupleExpression tupleExpression)
 		{
-			this.Write('(');
-			this.WriteDeliminatedListOfItems(tupleExpression.SubExpressions, c => this.Visit(c));
-			this.Write(')');
+			Write('(');
+			WriteDeliminatedListOfItems(tupleExpression.SubExpressions, c => Visit(c));
+			Write(')');
 
 			return tupleExpression;
 		}
 
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
 		{
-			this.Write("CREATE ");
+			Write("CREATE ");
 
 			if (createIndexExpression.Unique)
 			{
-				this.Write("UNIQUE ");
+				Write("UNIQUE ");
 			}
 
 			if (createIndexExpression.Clustered != null)
 			{
 				if (createIndexExpression.Clustered.Value)
 				{
-					this.Write("CLUSTERED ");
+					Write("CLUSTERED ");
 				}
 				else
 				{
-					this.Write("NONCLUSTERED ");
+					Write("NONCLUSTERED ");
 				}
 			}
 
 			if (createIndexExpression.IfNotExist)
 			{
-				this.Write("IF NOT EXIST ");
+				Write("IF NOT EXIST ");
 			}
 
-			this.Write("INDEX ");
-			this.WriteQuotedIdentifier(createIndexExpression.IndexName);
-			this.Write(" ON ");
-			this.Visit(createIndexExpression.Table);
-			this.Write("(");
-			this.WriteDeliminatedListOfItems(createIndexExpression.Columns, c => this.Visit(c));
-			this.Write(")");
+			Write("INDEX ");
+			WriteQuotedIdentifier(createIndexExpression.IndexName);
+			Write(" ON ");
+			Visit(createIndexExpression.Table);
+			Write("(");
+			WriteDeliminatedListOfItems(createIndexExpression.Columns, c => Visit(c));
+			Write(")");
 
 			if (this.sqlDialect.SupportsCapability(SqlCapability.IndexInclude))
 			{
 				if (createIndexExpression.IncludedColumns?.Count > 0)
 				{
-					this.Write(" INCLUDE ");
+					Write(" INCLUDE ");
 
-					this.Write("(");
-					this.WriteDeliminatedListOfItems(createIndexExpression.IncludedColumns, c => this.Visit(c));
-					this.WriteLine(")");
+					Write("(");
+					WriteDeliminatedListOfItems(createIndexExpression.IncludedColumns, c => Visit(c));
+					WriteLine(")");
 				}
 			}
 
 			if (createIndexExpression.Where != null)
 			{
-				this.Write(" WHERE ");
-				this.Visit(createIndexExpression.Where);
+				Write(" WHERE ");
+				Visit(createIndexExpression.Where);
 			}
 
-			this.WriteLine(";");
+			WriteLine(";");
 
 			return createIndexExpression;
 		}
 
 		protected override Expression VisitCreateTable(SqlCreateTableExpression createTableExpression)
 		{
-			this.Write("CREATE TABLE ");
-			this.Visit(createTableExpression.Table);
-			this.WriteLine();
-			this.Write("(");
+			Write("CREATE TABLE ");
+			Visit(createTableExpression.Table);
+			WriteLine();
+			Write("(");
 
-			using (this.AcquireIndentationContext())
+			using (AcquireIndentationContext())
 			{
-				this.WriteDeliminatedListOfItems(createTableExpression.ColumnDefinitionExpressions, c => this.Visit(c), () => this.WriteLine(","));
+				WriteDeliminatedListOfItems(createTableExpression.ColumnDefinitionExpressions, c => Visit(c), () => WriteLine(","));
 
 				if (createTableExpression.ColumnDefinitionExpressions.Count > 0 && createTableExpression.TableConstraints.Count > 0)
 				{
-					this.Write(",");
+					Write(",");
 				}
 
-				this.WriteLine();
-				this.WriteDeliminatedListOfItems(createTableExpression.TableConstraints, c => this.Visit(c), () => this.WriteLine(","));
+				WriteLine();
+				WriteDeliminatedListOfItems(createTableExpression.TableConstraints, c => Visit(c), () => WriteLine(","));
 			}
 
-			this.WriteLine();
-			this.WriteLine(");");
+			WriteLine();
+			WriteLine(");");
 
 			return createTableExpression;
 		}
@@ -1184,16 +1184,16 @@ namespace Shaolinq.Persistence.Linq
 			switch (action)
 			{
 			case SqlColumnReferenceAction.Cascade:
-				this.Write("CASCADE");
+				Write("CASCADE");
 				break;
 			case SqlColumnReferenceAction.Restrict:
-				this.Write("RESTRICT");
+				Write("RESTRICT");
 				break;
 			case SqlColumnReferenceAction.SetDefault:
-				this.Write("SET DEFAULT");
+				Write("SET DEFAULT");
 				break;
 			case SqlColumnReferenceAction.SetNull:
-				this.Write("SET NULL");
+				Write("SET NULL");
 				break;
 			}
 		}
@@ -1202,51 +1202,51 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (!expression.ConstraintName.IsNullOrEmpty())
 			{
-				this.Write("CONSTRAINT ");
-				this.WriteQuotedIdentifier(expression.ConstraintName);
-				this.Write(" ");
+				Write("CONSTRAINT ");
+				WriteQuotedIdentifier(expression.ConstraintName);
+				Write(" ");
 			}
 
 			if (expression.PrimaryKey)
 			{
-				this.Write("PRIMARY KEY");
+				Write("PRIMARY KEY");
 
 				if (expression.KeyOptions != null)
 				{
-					this.Write(" ");
-					this.WriteDeliminatedListOfItems(expression.KeyOptions, this.Write, " ");
-					this.Write(" ");
+					Write(" ");
+					WriteDeliminatedListOfItems(expression.KeyOptions, Write, " ");
+					Write(" ");
 				}
 
 				if (expression.ColumnNames != null)
 				{
-					this.Write("(");
-					this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
-					this.Write(")");
+					Write("(");
+					WriteDeliminatedListOfItems(expression.ColumnNames, WriteQuotedIdentifier);
+					Write(")");
 				}
 			}
 			else if (expression.Unique)
 			{
-				this.Write("UNIQUE");
+				Write("UNIQUE");
 
 				if (expression.KeyOptions != null)
 				{
-					this.Write(" ");
-					this.WriteDeliminatedListOfItems(expression.KeyOptions, this.Write, " ");
-					this.Write(" ");
+					Write(" ");
+					WriteDeliminatedListOfItems(expression.KeyOptions, Write, " ");
+					Write(" ");
 				}
 
 				if (expression.ColumnNames != null)
 				{
-					this.Write("(");
-					this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
-					this.Write(")");
+					Write("(");
+					WriteDeliminatedListOfItems(expression.ColumnNames, WriteQuotedIdentifier);
+					Write(")");
 				}
 			}
 			
 			if (expression.NotNull)
 			{
-				this.Write("NOT NULL");
+				Write("NOT NULL");
 			}
 
 			if (expression.AutoIncrement)
@@ -1255,7 +1255,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (!string.IsNullOrEmpty(s))
 				{
-					this.Write(s);
+					Write(s);
 				}
 			}
 
@@ -1263,21 +1263,21 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (expression.ColumnNames != null)
 				{
-					this.Write("FOREIGN KEY ");
+					Write("FOREIGN KEY ");
 
-					this.Write("(");
-					this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
-					this.Write(") ");
+					Write("(");
+					WriteDeliminatedListOfItems(expression.ColumnNames, WriteQuotedIdentifier);
+					Write(") ");
 				}
 
-				this.Visit(expression.ReferencesExpression);
+				Visit(expression.ReferencesExpression);
 			}
 
 			if (expression.DefaultValue != null)
 			{
-				this.Write("DEFAULT");
-				this.Write(" ");
-				this.Visit(expression.DefaultValue);
+				Write("DEFAULT");
+				Write(" ");
+				Visit(expression.DefaultValue);
 			}
 
 			return expression;
@@ -1285,16 +1285,16 @@ namespace Shaolinq.Persistence.Linq
 
 		protected virtual void WriteQuotedIdentifier(string identifierName)
 		{
-			this.Write(this.identifierQuoteString);
-			this.Write(identifierName);
-			this.Write(this.identifierQuoteString);
+			Write(this.identifierQuoteString);
+			Write(identifierName);
+			Write(this.identifierQuoteString);
 		}
 
 		protected virtual void WriteQuotedString(string value)
 		{
-			this.Write(this.stringQuote);
-			this.Write(value);
-			this.Write(this.stringQuote);
+			Write(this.stringQuote);
+			Write(value);
+			Write(this.stringQuote);
 		}
 		
 		public virtual void WriteQuotedStringOrObject(object value)
@@ -1302,7 +1302,7 @@ namespace Shaolinq.Persistence.Linq
 
 			if (value is string s)
 			{
-				this.WriteQuotedString(s);
+				WriteQuotedString(s);
 			}
 			else
 			{
@@ -1312,30 +1312,30 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitReferences(SqlReferencesExpression referencesExpression)
 		{
-			this.Write("REFERENCES ");
-			this.Visit(referencesExpression.ReferencedTable);
-			this.Write("(");
+			Write("REFERENCES ");
+			Visit(referencesExpression.ReferencedTable);
+			Write("(");
 
-			this.WriteDeliminatedListOfItems(referencesExpression.ReferencedColumnNames, this.WriteQuotedIdentifier);
+			WriteDeliminatedListOfItems(referencesExpression.ReferencedColumnNames, WriteQuotedIdentifier);
 
-			this.Write(")");
+			Write(")");
 
 			if (referencesExpression.OnDeleteAction != SqlColumnReferenceAction.NoAction)
 			{
-				this.Write(" ON DELETE ");
-				this.Write(referencesExpression.OnDeleteAction);
+				Write(" ON DELETE ");
+				Write(referencesExpression.OnDeleteAction);
 			}
 
 			if (referencesExpression.OnUpdateAction != SqlColumnReferenceAction.NoAction)
 			{
-				this.Write(" ON UPDATE ");
+				Write(" ON UPDATE ");
 
-				this.Write(referencesExpression.OnUpdateAction);
+				Write(referencesExpression.OnUpdateAction);
 			}
 
 			if (this.sqlDialect.SupportsCapability(SqlCapability.Deferrability))
 			{
-				this.WriteDeferrability(referencesExpression.Deferrability);
+				WriteDeferrability(referencesExpression.Deferrability);
 			}
 
 			return referencesExpression;
@@ -1346,61 +1346,61 @@ namespace Shaolinq.Persistence.Linq
 			switch (deferrability)
 			{
 			case SqlColumnReferenceDeferrability.Deferrable:
-				this.Write(" DEFERRABLE");
+				Write(" DEFERRABLE");
 				break;
 			case SqlColumnReferenceDeferrability.InitiallyDeferred:
-				this.Write(" DEFERRABLE INITIALLY DEFERRED");
+				Write(" DEFERRABLE INITIALLY DEFERRED");
 				break;
 			case SqlColumnReferenceDeferrability.InitiallyImmediate:
-				this.Write(" DEFERRABLE INITIALLY IMMEDIATE");
+				Write(" DEFERRABLE INITIALLY IMMEDIATE");
 				break;
 			}
 		}
 
 		protected override Expression VisitColumnDefinition(SqlColumnDefinitionExpression columnDefinitionExpression)
 		{
-			this.WriteQuotedIdentifier(columnDefinitionExpression.ColumnName);
-			this.Write(' ');
-			this.Visit(columnDefinitionExpression.ColumnType);
+			WriteQuotedIdentifier(columnDefinitionExpression.ColumnName);
+			Write(' ');
+			Visit(columnDefinitionExpression.ColumnType);
 
 			if (columnDefinitionExpression.ConstraintExpressions.Count > 0)
 			{
-				this.Write(' ');
+				Write(' ');
 			}
 
-			this.WriteDeliminatedListOfItems(columnDefinitionExpression.ConstraintExpressions, c => this.Visit(c), " ");
+			WriteDeliminatedListOfItems(columnDefinitionExpression.ConstraintExpressions, c => Visit(c), " ");
 
 			return columnDefinitionExpression;
 		}
 
 		protected override Expression VisitConstraintAction(SqlConstraintActionExpression actionExpression)
 		{
-			this.Write(actionExpression.ActionType.ToString().ToUpper());
-			this.Write(" ");
-			this.Visit(actionExpression.ConstraintExpression);
+			Write(actionExpression.ActionType.ToString().ToUpper());
+			Write(" ");
+			Visit(actionExpression.ConstraintExpression);
 
 			return actionExpression;
 		}
 
 		protected override Expression VisitAlterTable(SqlAlterTableExpression alterTableExpression)
 		{
-			this.Write("ALTER TABLE ");
-			this.Visit(alterTableExpression.Table);
-			this.Write(" ");
+			Write("ALTER TABLE ");
+			Visit(alterTableExpression.Table);
+			Write(" ");
 
 			if (alterTableExpression.ConstraintActions != null)
 			{
-				this.VisitExpressionList(alterTableExpression.ConstraintActions);
+				VisitExpressionList(alterTableExpression.ConstraintActions);
 			}
 			else if (alterTableExpression.Actions != null)
 			{
 				foreach (var action in alterTableExpression.Actions)
 				{
-					this.Visit(action);
+					Visit(action);
 				}
 			}
 
-			this.WriteLine(";");
+			WriteLine(";");
 
 			return alterTableExpression;
 		}
@@ -1412,110 +1412,110 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitInsertInto(SqlInsertIntoExpression expression)
 		{
-			this.Write("INSERT INTO ");
-			this.Visit(expression.Source);
+			Write("INSERT INTO ");
+			Visit(expression.Source);
 
 			if ((expression.ValueExpressions == null || expression.ValueExpressions.Count == 0) && expression.ValuesExpression == null)
 			{
 				if (this.sqlDialect.SupportsCapability(SqlCapability.InsertOutput))
 				{
-					this.WriteInsertIntoReturning(expression);
-					this.Write(" ");
+					WriteInsertIntoReturning(expression);
+					Write(" ");
 				}
 
-				this.WriteInsertDefaultValuesSuffix();
+				WriteInsertDefaultValuesSuffix();
 			}
 			else
 			{
-				this.WriteInsertIntoAfterSource(expression);
+				WriteInsertIntoAfterSource(expression);
 
-				this.Write("(");
-				this.WriteDeliminatedListOfItems(expression.ColumnNames, this.WriteQuotedIdentifier);
+				Write("(");
+				WriteDeliminatedListOfItems(expression.ColumnNames, WriteQuotedIdentifier);
 
-				this.Write(") ");
+				Write(") ");
 
 				if (this.sqlDialect.SupportsCapability(SqlCapability.InsertOutput))
 				{
-					this.WriteInsertIntoReturning(expression);
-					this.Write(" ");
+					WriteInsertIntoReturning(expression);
+					Write(" ");
 				}
 				
 				if (expression.ValuesExpression != null)
 				{
-					this.Visit(expression.ValuesExpression);
+					Visit(expression.ValuesExpression);
 				}
 				else
 				{
-					this.Write("VALUES (");
-					this.WriteDeliminatedListOfItems (expression.ValueExpressions, c =>
+					Write("VALUES (");
+					WriteDeliminatedListOfItems (expression.ValueExpressions, c =>
 					{
-						this.Write("(");
-						this.Visit(c);
-						this.Write(")");
+						Write("(");
+						Visit(c);
+						Write(")");
 					});
-					this.Write(")");
+					Write(")");
 				}
 			}
 
 			if (!this.sqlDialect.SupportsCapability(SqlCapability.InsertOutput))
 			{
-				this.WriteInsertIntoReturning(expression);
+				WriteInsertIntoReturning(expression);
 			}
 
-			this.Write(";");
+			Write(";");
 
 			return expression;
 		}
 
 		protected override Expression VisitAssign(SqlAssignExpression expression)
 		{
-			this.Visit(expression.Target);
-			this.Write(" = ");
-			this.Write("(");
-			this.Visit(expression.Value);
-			this.Write(")");
+			Visit(expression.Target);
+			Write(" = ");
+			Write("(");
+			Visit(expression.Value);
+			Write(")");
 
 			return expression;
 		}
 
 		protected override Expression VisitUpdate(SqlUpdateExpression expression)
 		{
-			this.Write("UPDATE ");
-			this.Visit(expression.Source);
-			this.Write(" SET ");
+			Write("UPDATE ");
+			Visit(expression.Source);
+			Write(" SET ");
 
-			this.WriteDeliminatedListOfItems(expression.Assignments, c => this.Visit(c));
+			WriteDeliminatedListOfItems(expression.Assignments, c => Visit(c));
 
 			if (expression.Where == null)
 			{
-				this.Write(";");
+				Write(";");
 			}
 
-			this.Write(" WHERE ");
-			this.Visit(expression.Where);
-			this.Write(";");
+			Write(" WHERE ");
+			Visit(expression.Where);
+			Write(";");
 
 			return expression;
 		}
 
 		protected override Expression VisitCreateType(SqlCreateTypeExpression expression)
 		{
-			this.Write("CREATE TYPE ");
-			this.Visit(expression.SqlType);
-			this.Write(" AS ");
+			Write("CREATE TYPE ");
+			Visit(expression.SqlType);
+			Write(" AS ");
 
-			this.Visit(expression.AsExpression);
+			Visit(expression.AsExpression);
 
-			this.WriteLine(";");
+			WriteLine(";");
 
 			return expression;
 		}
 
 		protected override Expression VisitEnumDefinition(SqlEnumDefinitionExpression expression)
 		{
-			this.Write("ENUM (");
-			this.WriteDeliminatedListOfItems(expression.Labels, this.WriteQuotedString);
-			this.Write(")");
+			Write("ENUM (");
+			WriteDeliminatedListOfItems(expression.Labels, WriteQuotedString);
+			Write(")");
 
 			return expression;
 		}
@@ -1524,11 +1524,11 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (expression.UserDefinedType)
 			{
-				this.WriteQuotedIdentifier(expression.TypeName);
+				WriteQuotedIdentifier(expression.TypeName);
 			}
 			else
 			{
-				this.Write(expression.TypeName);
+				Write(expression.TypeName);
 			}
 
 			return expression;
@@ -1540,17 +1540,17 @@ namespace Shaolinq.Persistence.Linq
 
 			foreach (var statement in statementListExpression.Statements)
 			{
-				this.Visit(statement);
+				Visit(statement);
 
 				if (i != statementListExpression.Statements.Count - 1)
 				{
 					if (statement is SqlSelectExpression)
 					{
-						this.WriteLine(";");
+						WriteLine(";");
 					}
 					else
 					{
-						this.WriteLine();
+						WriteLine();
 					}
 				}
 			}
@@ -1560,15 +1560,15 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitIndexedColumn(SqlIndexedColumnExpression indexedColumnExpression)
 		{
-			this.Visit(indexedColumnExpression.Column);
+			Visit(indexedColumnExpression.Column);
 
 			switch (indexedColumnExpression.SortOrder)
 			{
 			case SortOrder.Descending:
-				this.Write(" DESC");
+				Write(" DESC");
 				break;
 			case SortOrder.Ascending:
-				this.Write(" ASC");
+				Write(" ASC");
 				break;
 			case SortOrder.Unspecified:
 				break;
@@ -1579,41 +1579,41 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitPragma(SqlPragmaExpression expression)
 		{
-			this.Write("PRAGMA ");
-			this.Write(expression.Directive);
-			this.WriteLine(";");
+			Write("PRAGMA ");
+			Write(expression.Directive);
+			WriteLine(";");
 
 			return expression;
 		}
 
 		protected override Expression VisitKeyword(SqlKeywordExpression expression)
 		{
-			this.Write(' ');
-			this.Write(expression.Name);
-			this.Write(' ');
+			Write(' ');
+			Write(expression.Name);
+			Write(' ');
 
 			return expression;
 		}
 
 		protected override Expression VisitSetCommand(SqlSetCommandExpression expression)
 		{
-			this.Write("SET ");
+			Write("SET ");
 
 			if (expression.ConfigurationParameter != null)
 			{
-				this.Write(expression.ConfigurationParameter);
+				Write(expression.ConfigurationParameter);
 			}
 
 			if (expression.Target != null)
 			{
-				this.Write(" ");
-				this.Visit(expression.Target);
-				this.Write(" ");
+				Write(" ");
+				Visit(expression.Target);
+				Write(" ");
 			}
 
-			this.Write(" ");
-			this.WriteDeliminatedListOfItems(expression.Arguments, c => this.Visit(c));
-			this.WriteLine(";");
+			Write(" ");
+			WriteDeliminatedListOfItems(expression.Arguments, c => Visit(c));
+			WriteLine(";");
 			
 			return expression;
 		}
@@ -1623,20 +1623,20 @@ namespace Shaolinq.Persistence.Linq
 			var savedSelectNext = this.selectNest;
 			this.selectNest = 0;
 
-			this.Write("(");
-			this.Visit(expression.Left);
+			Write("(");
+			Visit(expression.Left);
 			if (expression.UnionAll)
 			{
-				this.Write(" UNION ALL ");
+				Write(" UNION ALL ");
 			}
 			else
 			{
-				this.Write(" UNION ");
+				Write(" UNION ");
 			}
-			this.Visit(expression.Right);
-			this.Write(")");
-			this.Write(" AS ");
-			this.WriteQuotedIdentifier(expression.Alias);
+			Visit(expression.Right);
+			Write(")");
+			Write(" AS ");
+			WriteQuotedIdentifier(expression.Alias);
 
 			this.selectNest = savedSelectNext;
 

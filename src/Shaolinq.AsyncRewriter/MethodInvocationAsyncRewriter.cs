@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -115,7 +115,7 @@ namespace Shaolinq.AsyncRewriter
 
 		public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
 		{
-			var expression = this.Visit(node.Expression);
+			var expression = Visit(node.Expression);
 
 			if (expression is IfStatementSyntax)
 			{
@@ -123,7 +123,7 @@ namespace Shaolinq.AsyncRewriter
 			}
 			else
 			{
-				var semicolonToken = this.VisitToken(node.SemicolonToken);
+				var semicolonToken = VisitToken(node.SemicolonToken);
 
 				return node.Update((ExpressionSyntax)expression, semicolonToken);
 			}

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
@@ -24,7 +22,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
-			var expression = this.Visit(memberExpression.Expression);
+			var expression = Visit(memberExpression.Expression);
 
 			if (expression is MethodCallExpression methodCall 
 				&& methodCall.Method.IsGenericMethod
@@ -38,7 +36,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					var body = Expression.MakeMemberAccess(param, memberExpression.Member);
 					var lambda = Expression.Lambda(body, param);
 
-					var select = Expression.Call(MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(type, lambda.ReturnType), this.Visit(methodCall.Arguments[0]), Expression.Quote(lambda));
+					var select = Expression.Call(MethodInfoFastRef.QueryableSelectMethod.MakeGenericMethod(type, lambda.ReturnType), Visit(methodCall.Arguments[0]), Expression.Quote(lambda));
 
 					var retval = Expression.Call(methodCall.Method.GetGenericMethodDefinition().MakeGenericMethod(lambda.ReturnType), select);
 

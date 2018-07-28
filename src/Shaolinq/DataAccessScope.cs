@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -206,7 +206,7 @@ namespace Shaolinq
 		{
 			var retval = result();
 
-			this.Complete(ScopeCompleteOptions.Default);
+			Complete(ScopeCompleteOptions.Default);
 
 			return retval;
 		}
@@ -225,7 +225,7 @@ namespace Shaolinq
 		{
 			var retval = result();
 
-			this.Complete(options);
+			Complete(options);
 
 			return retval;
 		}
@@ -242,7 +242,7 @@ namespace Shaolinq
 		[RewriteAsync]
 		public void Complete()
 		{
-			this.Complete(ScopeCompleteOptions.Default);
+			Complete(ScopeCompleteOptions.Default);
 		}
 
 		/// <summary>
@@ -271,7 +271,7 @@ namespace Shaolinq
 
 			if ((options & ScopeCompleteOptions.SuppressAutoFlush) != 0)
 			{
-				this.Flush();
+				Flush();
 			}
 
 			if (this.transaction == null)
@@ -295,7 +295,7 @@ namespace Shaolinq
 
 			if (this.transaction != DataAccessTransaction.Current)
 			{
-				throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
+				throw new InvalidOperationException($"Cannot commit {GetType().Name} within another Async/Call context");
 			}
 			
 			this.transaction.Commit();

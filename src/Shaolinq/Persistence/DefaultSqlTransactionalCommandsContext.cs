@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -106,7 +106,7 @@ namespace Shaolinq.Persistence
 		    }
 		    catch
 		    {
-		        this.Dispose(true);
+		        Dispose(true);
 
 		        throw;
 		    }
@@ -135,7 +135,7 @@ namespace Shaolinq.Persistence
 
 			if (relatedSql == null)
 			{
-				ActionUtils.IgnoreExceptions(() => relatedSql = this.FormatCommand(command));
+				ActionUtils.IgnoreExceptions(() => relatedSql = FormatCommand(command));
 			}
 
 			var decoratedException = this.SqlDatabaseContext.DecorateException(e, null, relatedSql);
@@ -200,7 +200,7 @@ namespace Shaolinq.Persistence
 			{
 				foreach (var parameter in cachedValue.formatResult.ParameterValues)
 				{
-					this.AddParameter(command, parameter.Type, parameter.Value);
+					AddParameter(command, parameter.Type, parameter.Value);
 				}
 
 				return;
@@ -210,14 +210,14 @@ namespace Shaolinq.Persistence
 			{
 				foreach (var value in changedProperties)
 				{
-					this.AddParameter(command, value.PropertyType, value.Value);
+					AddParameter(command, value.PropertyType, value.Value);
 				}
 
 				if (primaryKeys != null)
 				{
 					foreach (var value in primaryKeys)
 					{
-						this.AddParameter(command, value.PropertyType, value.Value);
+						AddParameter(command, value.PropertyType, value.Value);
 					}
 				}
 
@@ -266,7 +266,7 @@ namespace Shaolinq.Persistence
 
 			foreach (var parameter in newParameters)
 			{
-				this.AddParameter(command, parameter.Type, parameter.Value);
+				AddParameter(command, parameter.Type, parameter.Value);
 			}
 		}
 
@@ -347,13 +347,13 @@ namespace Shaolinq.Persistence
 
 			try
 			{
-				command = this.CreateCommand();
+				command = CreateCommand();
 
 				command.CommandText = result.CommandText;
 
 				var cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result };
 
-				this.FillParameters(command, cachedValue, null, null);
+				FillParameters(command, cachedValue, null, null);
 
 				success = true;
 
@@ -384,19 +384,19 @@ namespace Shaolinq.Persistence
 
 			if (valuesPredicated || primaryKeysPredicated)
 			{
-				return this.BuildUpdateCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, valuesPredicated, primaryKeysPredicated, updatedProperties, primaryKeys);
+				return BuildUpdateCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, valuesPredicated, primaryKeysPredicated, updatedProperties, primaryKeys);
 			}
 
 			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);
 		
-			if (this.TryGetUpdateCommand(commandKey, out var cachedValue))
+			if (TryGetUpdateCommand(commandKey, out var cachedValue))
 			{
 				try
 				{
-					command = this.CreateCommand();
+					command = CreateCommand();
 					command.CommandText = cachedValue.formatResult.CommandText;
 
-					this.FillParameters(command, cachedValue, updatedProperties, primaryKeys);
+					FillParameters(command, cachedValue, updatedProperties, primaryKeys);
 
 					success = true;
 
@@ -466,17 +466,17 @@ namespace Shaolinq.Persistence
 
 			try
 			{
-				command = this.CreateCommand();
+				command = CreateCommand();
 				command.CommandText = result.CommandText;
 
 				cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result, valueIndexesToParameterPlaceholderIndexes = valueIndexesToParameterPlaceholderIndexes, primaryKeyIndexesToParameterPlaceholderIndexes = primaryKeyIndexesToParameterPlaceholderIndexes };
 
 				if (result.Cacheable)
 				{
-					this.CacheUpdateCommand(commandKey, cachedValue);
+					CacheUpdateCommand(commandKey, cachedValue);
 				}
 
-				this.FillParameters(command, cachedValue, null, null);
+				FillParameters(command, cachedValue, null, null);
 				
 				success = true;
 
@@ -537,12 +537,12 @@ namespace Shaolinq.Persistence
 
 			try
 			{
-				command = this.CreateCommand();
+				command = CreateCommand();
 				command.CommandText = result.CommandText;
 
 				var cachedValue = new SqlCachedUpdateInsertFormatValue { formatResult = result };
 
-				this.FillParameters(command, cachedValue, null, null);
+				FillParameters(command, cachedValue, null, null);
 
 				success = true;
 
@@ -567,18 +567,18 @@ namespace Shaolinq.Persistence
 
 			if (predicated)
 			{
-				return this.BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, updatedProperties);
+				return BuildInsertCommandForDeflatedPredicated(typeDescriptor, dataAccessObject, updatedProperties);
 			}
 
 			var commandKey = new SqlCachedUpdateInsertFormatKey(dataAccessObject.GetType(), updatedProperties, requiresIdentityInsert);
 
-			if (this.TryGetInsertCommand(commandKey, out var cachedValue))
+			if (TryGetInsertCommand(commandKey, out var cachedValue))
 			{
 				try
 				{
-					command = this.CreateCommand();
+					command = CreateCommand();
 					command.CommandText = cachedValue.formatResult.CommandText;
-					this.FillParameters(command, cachedValue, updatedProperties, null);
+					FillParameters(command, cachedValue, updatedProperties, null);
 
 					success = true;
 
@@ -632,7 +632,7 @@ namespace Shaolinq.Persistence
 
 			try
 			{
-				command = this.CreateCommand();
+				command = CreateCommand();
 
 				var commandText = result.CommandText;
 
@@ -641,10 +641,10 @@ namespace Shaolinq.Persistence
 
 				if (result.Cacheable)
 				{
-					this.CacheInsertCommand(commandKey, cachedValue);
+					CacheInsertCommand(commandKey, cachedValue);
 				}
 
-				this.FillParameters(command, cachedValue, updatedProperties, null);
+				FillParameters(command, cachedValue, updatedProperties, null);
 
 				success = true;
 

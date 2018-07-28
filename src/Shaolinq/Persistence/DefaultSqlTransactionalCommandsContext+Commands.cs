@@ -1,8 +1,7 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq.Expressions;
 using Shaolinq.Logging;
 using Shaolinq.Persistence.Linq;
@@ -17,18 +16,18 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public override int ExecuteNonQuery(string sql, IReadOnlyList<TypedValue> parameters)
 		{
-			var command = this.CreateCommand();
+			var command = CreateCommand();
 
 			try
 			{
 				foreach (var value in parameters)
 				{
-					this.AddParameter(command, value.Type, value.Name, value.Value);
+					AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				command.CommandText = sql;
 
-				Logger.Info(() => this.FormatCommand(command));
+				Logger.Info(() => FormatCommand(command));
 
 				try
 				{
@@ -39,7 +38,7 @@ namespace Shaolinq.Persistence
 					command?.Dispose();
 					command = null;
 
-					var decoratedException = this.LogAndDecorateException(e, command);
+					var decoratedException = LogAndDecorateException(e, command);
 
 					if (decoratedException != null)
 					{
@@ -62,18 +61,18 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public override ExecuteReaderContext ExecuteReader(string sql, IReadOnlyList<TypedValue> parameters)
 		{
-			var command = this.CreateCommand();
+			var command = CreateCommand();
 
 			try
 			{
 				foreach (var value in parameters)
 				{
-					this.AddParameter(command, value.Type, value.Name, value.Value);
+					AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				command.CommandText = sql;
 
-				Logger.Info(() => this.FormatCommand(command));
+				Logger.Info(() => FormatCommand(command));
 
 				try
 				{
@@ -84,7 +83,7 @@ namespace Shaolinq.Persistence
 					command?.Dispose();
 					command = null;
 
-					var decoratedException = this.LogAndDecorateException(e, command);
+					var decoratedException = LogAndDecorateException(e, command);
 
 					if (decoratedException != null)
 					{
@@ -119,7 +118,7 @@ namespace Shaolinq.Persistence
 					continue;
 				}
 
-				using (var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject))
+				using (var command = BuildUpdateCommand(typeDescriptor, dataAccessObject))
 				{
 					if (command == null)
 					{
@@ -128,7 +127,7 @@ namespace Shaolinq.Persistence
 						continue;
 					}
 
-					Logger.Info(() => this.FormatCommand(command));
+					Logger.Info(() => FormatCommand(command));
 
 					int result;
 
@@ -138,7 +137,7 @@ namespace Shaolinq.Persistence
 					}
 					catch (Exception e)
 					{
-						var decoratedException = this.LogAndDecorateException(e, command);
+						var decoratedException = LogAndDecorateException(e, command);
 
 						if (decoratedException != null)
 						{
@@ -191,10 +190,10 @@ namespace Shaolinq.Persistence
 				{
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 
-					using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
+					using (var command = BuildInsertCommand(typeDescriptor, dataAccessObject))
 					{
 retryInsert:
-						Logger.Info(() => this.FormatCommand(command));
+						Logger.Info(() => FormatCommand(command));
 
 						try
 						{
@@ -210,14 +209,14 @@ retryInsert:
 
 									if (result)
 									{
-										this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
+										ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
 									}
 
 									reader.Close();
 
 									if (!dataAccessObjectInternal.ValidateServerSideGeneratedIds())
 									{
-										this.Delete(dataAccessObject.GetType(), new[] { dataAccessObject });
+										Delete(dataAccessObject.GetType(), new[] { dataAccessObject });
 
 										goto retryInsert;
 									}
@@ -228,14 +227,14 @@ retryInsert:
 
 									if (updateRequired)
 									{
-										this.Update(dataAccessObject.GetType(), new[] { dataAccessObject });
+										Update(dataAccessObject.GetType(), new[] { dataAccessObject });
 									}
 								}
 							}
 						}
 						catch (Exception e)
 						{
-							var decoratedException = this.LogAndDecorateException(e, command);
+							var decoratedException = LogAndDecorateException(e, command);
 
 							if (decoratedException != null)
 							{
@@ -272,16 +271,16 @@ retryInsert:
 		{
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
 
-			using (var command = this.CreateCommand())
+			using (var command = CreateCommand())
 			{
 				command.CommandText = formatResult.CommandText;
 
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Type, value.Name, value.Value);
+					AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
-				Logger.Info(() => this.FormatCommand(command));
+				Logger.Info(() => FormatCommand(command));
 
 				try
 				{
@@ -289,7 +288,7 @@ retryInsert:
 				}
 				catch (Exception e)
 				{
-					var decoratedException = this.LogAndDecorateException(e, command);
+					var decoratedException = LogAndDecorateException(e, command);
 
 					if (decoratedException != null)
 					{
@@ -309,7 +308,7 @@ retryInsert:
 		public override void Delete(Type type, IEnumerable<DataAccessObject> dataAccessObjects)
 		{
 			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
-			var expression = this.BuildDeleteExpression(type, dataAccessObjects);
+			var expression = BuildDeleteExpression(type, dataAccessObjects);
 
 			if (expression == null)
 			{

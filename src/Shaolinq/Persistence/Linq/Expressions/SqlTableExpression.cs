@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -30,7 +30,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 
 		public override string ToString()
 		{
-			return this.GetType().Name + ":" + new Sql92QueryFormatter().Format(this).CommandText;
+			return GetType().Name + ":" + new Sql92QueryFormatter().Format(this).CommandText;
 		}
 	}
 }

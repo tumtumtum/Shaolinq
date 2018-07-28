@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -48,7 +48,7 @@ namespace Shaolinq.Persistence.Linq
 				this.rootExpression = expression;
 			}
 
-			this.Visit(expression);
+			Visit(expression);
 
 			return this.candidates;
 		}
@@ -85,8 +85,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitJoin(SqlJoinExpression join)
 		{
-			this.Visit(join.Left);
-			this.Visit(join.Right);
+			Visit(join.Left);
+			Visit(join.Right);
 			
 			if (this.inProjection)
 			{
@@ -94,7 +94,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.canBeColumn = c => c is SqlColumnExpression;
 
-				this.Visit(join.JoinCondition);
+				Visit(join.JoinCondition);
 
 				this.canBeColumn = saveCanBeColumn;
 			}
@@ -104,8 +104,8 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
-			this.VisitSource(selectExpression.From);
-			this.VisitColumnDeclarations(selectExpression.Columns);
+			VisitSource(selectExpression.From);
+			VisitColumnDeclarations(selectExpression.Columns);
 
 			if (this.inProjection)
 			{
@@ -113,11 +113,11 @@ namespace Shaolinq.Persistence.Linq
 
 				this.canBeColumn = c => c is SqlColumnExpression;
 
-				this.VisitExpressionList(selectExpression.OrderBy);
-				this.VisitExpressionList(selectExpression.GroupBy);
-				this.Visit(selectExpression.Skip);
-				this.Visit(selectExpression.Take);
-				this.Visit(selectExpression.Where);
+				VisitExpressionList(selectExpression.OrderBy);
+				VisitExpressionList(selectExpression.GroupBy);
+				Visit(selectExpression.Skip);
+				Visit(selectExpression.Take);
+				Visit(selectExpression.Where);
 
 				this.canBeColumn = saveCanBeColumn;
 			}

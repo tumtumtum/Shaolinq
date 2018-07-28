@@ -1,6 +1,5 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -67,8 +66,8 @@ namespace Shaolinq.Persistence.Linq
 			return default(C);
 		}
 
-		IEnumerator IEnumerable.GetEnumerator() => this.GetAsyncEnumerator();
-		public virtual IEnumerator<T> GetEnumerator() => this.GetAsyncEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => GetAsyncEnumerator();
+		public virtual IEnumerator<T> GetEnumerator() => GetAsyncEnumerator();
 		public virtual IAsyncEnumerator<T> GetAsyncEnumerator() => new ObjectProjectionAsyncEnumerator<T, C>(this);
 	}
 }

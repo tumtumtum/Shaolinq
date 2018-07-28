@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -68,7 +68,7 @@ namespace Shaolinq.Tests
 				minDecimal = long.MinValue;
 			}
 
-			this.ExecuteTest(
+			ExecuteTest(
 				"test",
 				Guid.NewGuid(),
 				short.MinValue,
@@ -99,7 +99,7 @@ namespace Shaolinq.Tests
 				maxDecimal = long.MaxValue;
 			}
 
-			this.ExecuteTest(
+			ExecuteTest(
 				"test",
 				Guid.NewGuid(),
 				short.MaxValue,
@@ -122,7 +122,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Non_Integer_Values()
 		{
-			this.ExecuteTest(
+			ExecuteTest(
 				"test",
 				Guid.Empty,
 				987,
@@ -152,7 +152,7 @@ namespace Shaolinq.Tests
 				decimalValue = 0.000000001m;
 			}
 
-			this.ExecuteTest(
+			ExecuteTest(
 				"test",
 				Guid.Empty,
 				1,
@@ -268,10 +268,10 @@ namespace Shaolinq.Tests
 				Assert.That(dbObj.Float, Is.EqualTo(@float));
 				Assert.That(dbObj.Double, Is.EqualTo(@double));
 				Assert.That(dbObj.Bool, Is.EqualTo(@bool));
-				this.AssertDateTime(dbObj.DateTime, dateTime);
+				AssertDateTime(dbObj.DateTime, dateTime);
 				Assert.That(Abs(dbObj.TimeSpan - timeSpan), Is.LessThan(this.timespanEpsilon));
 				Assert.That(dbObj.Enum, Is.EqualTo(@enum));
-				AssertNullable(dbObj.NullableDateTime, nullableDateTime, this.AssertDateTime);
+				AssertNullable(dbObj.NullableDateTime, nullableDateTime, AssertDateTime);
 				Assert.That(dbObj.ByteArray, Is.EqualTo(byteArray));
 			}
 		}

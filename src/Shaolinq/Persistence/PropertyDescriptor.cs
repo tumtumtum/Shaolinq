@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,6 @@ using Platform;
 using Platform.Reflection;
 using Platform.Validation;
 using Shaolinq.Persistence.Linq;
-using DefaultValueAttribute = Platform.Validation.DefaultValueAttribute;
 
 namespace Shaolinq.Persistence
 {
@@ -17,9 +16,9 @@ namespace Shaolinq.Persistence
 	{
 		public Type OwnerType { get; }
 		public bool IsPrimaryKey { get; }
-		public string PersistedName { get; private set; }
-		public string SuffixName { get; private set; }
-		public string PrefixName { get; private set; }
+		public string PersistedName { get; }
+		public string SuffixName { get; }
+		public string PrefixName { get; }
 		public PropertyInfo PropertyInfo { get; }
 		public UniqueAttribute UniqueAttribute { get; }
 		public TypeDescriptor DeclaringTypeDescriptor { get; }
@@ -42,7 +41,7 @@ namespace Shaolinq.Persistence
 		public bool HasDefaultValue { get; }
 		public bool HasImplicitDefaultValue { get; }
 		public bool ValueRequired => this.ValueRequiredAttribute?.Required ?? false;
-		public bool HasExplicitDefaultValue => !HasImplicitDefaultValue;
+		public bool HasExplicitDefaultValue => !this.HasImplicitDefaultValue;
 		public string PropertyName => this.PropertyInfo.Name;
 		public Type PropertyType => this.PropertyInfo?.PropertyType;
 		public bool HasUniqueAttribute => this.UniqueAttribute != null;

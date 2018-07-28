@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

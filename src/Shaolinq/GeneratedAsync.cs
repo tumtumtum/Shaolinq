@@ -322,7 +322,7 @@ namespace Shaolinq
 		public async Task<T> CompleteAsync<T>(Func<T> result, CancellationToken cancellationToken)
 		{
 			var retval = result();
-			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
+			await CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
 			return retval;
 		}
 
@@ -352,7 +352,7 @@ namespace Shaolinq
 		public async Task<T> CompleteAsync<T>(Func<T> result, ScopeCompleteOptions options, CancellationToken cancellationToken)
 		{
 			var retval = result();
-			await this.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
+			await CompleteAsync(options, cancellationToken).ConfigureAwait(false);
 			return retval;
 		}
 
@@ -381,7 +381,7 @@ namespace Shaolinq
 		/// </remarks>
 		public async Task CompleteAsync(CancellationToken cancellationToken)
 		{
-			await this.CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
+			await CompleteAsync(ScopeCompleteOptions.Default, cancellationToken).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -429,7 +429,7 @@ namespace Shaolinq
 			this.transaction?.CheckAborted();
 			if ((options & ScopeCompleteOptions.SuppressAutoFlush) != 0)
 			{
-				await this.FlushAsync(cancellationToken).ConfigureAwait(false);
+				await FlushAsync(cancellationToken).ConfigureAwait(false);
 			}
 
 			if (this.transaction == null)
@@ -451,7 +451,7 @@ namespace Shaolinq
 
 			if (this.transaction != DataAccessTransaction.Current)
 			{
-				throw new InvalidOperationException($"Cannot commit {this.GetType().Name} within another Async/Call context");
+				throw new InvalidOperationException($"Cannot commit {GetType().Name} within another Async/Call context");
 			}
 
 			await this.transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -983,7 +983,7 @@ namespace Shaolinq.Persistence
 {
 #pragma warning disable
 	using System;
-	// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+	// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Data.Common;
@@ -1122,7 +1122,6 @@ namespace Shaolinq.Persistence
 {
 #pragma warning disable
 	using System;
-	using System.Data;
 	using System.Threading;
 	using System.Threading.Tasks;
 	using System.Linq.Expressions;
@@ -1143,16 +1142,16 @@ namespace Shaolinq.Persistence
 
 		public override async Task<int> ExecuteNonQueryAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
 		{
-			var command = this.CreateCommand();
+			var command = CreateCommand();
 			try
 			{
 				foreach (var value in parameters)
 				{
-					this.AddParameter(command, value.Type, value.Name, value.Value);
+					AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				command.CommandText = sql;
-				Logger.Info(() => this.FormatCommand(command));
+				Logger.Info(() => FormatCommand(command));
 				try
 				{
 					return (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
@@ -1161,7 +1160,7 @@ namespace Shaolinq.Persistence
 				{
 					command?.Dispose();
 					command = null;
-					var decoratedException = this.LogAndDecorateException(e, command);
+					var decoratedException = LogAndDecorateException(e, command);
 					if (decoratedException != null)
 					{
 						throw decoratedException;
@@ -1184,16 +1183,16 @@ namespace Shaolinq.Persistence
 
 		public override async Task<ExecuteReaderContext> ExecuteReaderAsync(string sql, IReadOnlyList<TypedValue> parameters, CancellationToken cancellationToken)
 		{
-			var command = this.CreateCommand();
+			var command = CreateCommand();
 			try
 			{
 				foreach (var value in parameters)
 				{
-					this.AddParameter(command, value.Type, value.Name, value.Value);
+					AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
 				command.CommandText = sql;
-				Logger.Info(() => this.FormatCommand(command));
+				Logger.Info(() => FormatCommand(command));
 				try
 				{
 					return new ExecuteReaderContext((await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false)), command);
@@ -1202,7 +1201,7 @@ namespace Shaolinq.Persistence
 				{
 					command?.Dispose();
 					command = null;
-					var decoratedException = this.LogAndDecorateException(e, command);
+					var decoratedException = LogAndDecorateException(e, command);
 					if (decoratedException != null)
 					{
 						throw decoratedException;
@@ -1234,7 +1233,7 @@ namespace Shaolinq.Persistence
 					continue;
 				}
 
-				using (var command = this.BuildUpdateCommand(typeDescriptor, dataAccessObject))
+				using (var command = BuildUpdateCommand(typeDescriptor, dataAccessObject))
 				{
 					if (command == null)
 					{
@@ -1242,7 +1241,7 @@ namespace Shaolinq.Persistence
 						continue;
 					}
 
-					Logger.Info(() => this.FormatCommand(command));
+					Logger.Info(() => FormatCommand(command));
 					int result;
 					try
 					{
@@ -1250,7 +1249,7 @@ namespace Shaolinq.Persistence
 					}
 					catch (Exception e)
 					{
-						var decoratedException = this.LogAndDecorateException(e, command);
+						var decoratedException = LogAndDecorateException(e, command);
 						if (decoratedException != null)
 						{
 							throw decoratedException;
@@ -1297,10 +1296,10 @@ namespace Shaolinq.Persistence
 				if (objectReadyToBeCommited)
 				{
 					var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
-					using (var command = this.BuildInsertCommand(typeDescriptor, dataAccessObject))
+					using (var command = BuildInsertCommand(typeDescriptor, dataAccessObject))
 					{
 						retryInsert:
-							Logger.Info(() => this.FormatCommand(command));
+							Logger.Info(() => FormatCommand(command));
 						try
 						{
 							var reader = (await command.ExecuteReaderExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
@@ -1312,13 +1311,13 @@ namespace Shaolinq.Persistence
 									var result = (await reader.ReadExAsync(cancellationToken).ConfigureAwait(false));
 									if (result)
 									{
-										this.ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
+										ApplyPropertiesGeneratedOnServerSide(dataAccessObject, reader);
 									}
 
 									reader.Close();
 									if (!dataAccessObjectInternal.ValidateServerSideGeneratedIds())
 									{
-										await this.DeleteAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
+										await DeleteAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
 										goto retryInsert;
 									}
 
@@ -1326,14 +1325,14 @@ namespace Shaolinq.Persistence
 									var updateRequired = dataAccessObjectInternal.ComputeServerGeneratedIdDependentComputedTextProperties();
 									if (updateRequired)
 									{
-										await this.UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
+										await UpdateAsync(dataAccessObject.GetType(), new[]{dataAccessObject}, cancellationToken).ConfigureAwait(false);
 									}
 								}
 							}
 						}
 						catch (Exception e)
 						{
-							var decoratedException = this.LogAndDecorateException(e, command);
+							var decoratedException = LogAndDecorateException(e, command);
 							if (decoratedException != null)
 							{
 								throw decoratedException;
@@ -1369,22 +1368,22 @@ namespace Shaolinq.Persistence
 		public override async Task DeleteAsync(SqlDeleteExpression deleteExpression, CancellationToken cancellationToken)
 		{
 			var formatResult = this.SqlDatabaseContext.SqlQueryFormatterManager.Format(deleteExpression, SqlQueryFormatterOptions.Default);
-			using (var command = this.CreateCommand())
+			using (var command = CreateCommand())
 			{
 				command.CommandText = formatResult.CommandText;
 				foreach (var value in formatResult.ParameterValues)
 				{
-					this.AddParameter(command, value.Type, value.Name, value.Value);
+					AddParameter(command, value.Type, value.Name, value.Value);
 				}
 
-				Logger.Info(() => this.FormatCommand(command));
+				Logger.Info(() => FormatCommand(command));
 				try
 				{
 					var count = (await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false));
 				}
 				catch (Exception e)
 				{
-					var decoratedException = this.LogAndDecorateException(e, command);
+					var decoratedException = LogAndDecorateException(e, command);
 					if (decoratedException != null)
 					{
 						throw decoratedException;
@@ -1403,7 +1402,7 @@ namespace Shaolinq.Persistence
 		public override async Task DeleteAsync(Type type, IEnumerable<DataAccessObject> dataAccessObjects, CancellationToken cancellationToken)
 		{
 			var provider = new SqlQueryProvider(this.DataAccessModel, this.SqlDatabaseContext);
-			var expression = this.BuildDeleteExpression(type, dataAccessObjects);
+			var expression = BuildDeleteExpression(type, dataAccessObjects);
 			if (expression == null)
 			{
 				return;
@@ -1469,7 +1468,7 @@ namespace Shaolinq.Persistence.Linq
 			if (this.objectProjector.ProcessLastMoveNext(this.dataReader, ref this.context, out result))
 			{
 				this.Current = result;
-				this.Close();
+				Close();
 				return true;
 			}
 
@@ -1531,7 +1530,7 @@ namespace Shaolinq.Persistence
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -1588,7 +1587,7 @@ namespace Shaolinq.Persistence
 {
 #pragma warning disable
 	using System;
-	// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+	// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Data.Common;
@@ -1733,7 +1732,7 @@ namespace Shaolinq.Persistence
 			}
 			finally
 			{
-				this.CloseConnection();
+				CloseConnection();
 			}
 		}
 
@@ -1755,7 +1754,7 @@ namespace Shaolinq.Persistence
 			}
 			finally
 			{
-				this.CloseConnection();
+				CloseConnection();
 			}
 		}
 	}
@@ -1782,9 +1781,9 @@ namespace Shaolinq.Persistence
 
 		public virtual async Task CreateDatabaseAndSchemaAsync(DatabaseCreationOptions options, CancellationToken cancellationToken)
 		{
-			var dataDefinitionExpressions = this.BuildDataDefinitonExpressions(options);
-			await this.CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
-			await this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
+			var dataDefinitionExpressions = BuildDataDefinitonExpressions(options);
+			await CreateDatabaseOnlyAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
+			await CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
 		}
 
 		protected abstract Task<bool> CreateDatabaseOnlyAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options);
@@ -2504,9 +2503,9 @@ namespace Shaolinq
 			{
 				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmitAsync(context, cancellationToken).ConfigureAwait(false);
 				this.isCommiting = true;
-				await this.CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
-				await this.CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
-				await this.CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
+				await CommitNewAsync(commandsContext, cancellationToken).ConfigureAwait(false);
+				await CommitUpdatedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
+				await CommitDeletedAsync(commandsContext, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception e)
 			{
@@ -2671,10 +2670,10 @@ namespace Shaolinq.Persistence
 
 		public async Task<SqlTransactionalCommandsContext> CreateSqlTransactionalCommandsContextAsync(TransactionContext transactionContext, CancellationToken cancellationToken)
 		{
-			var connection = (await this.OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
+			var connection = (await OpenConnectionAsync(cancellationToken).ConfigureAwait(false));
 			try
 			{
-				return this.CreateSqlTransactionalCommandsContext(connection, transactionContext);
+				return CreateSqlTransactionalCommandsContext(connection, transactionContext);
 			}
 			catch
 			{
@@ -2692,7 +2691,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.dbProviderFactory == null)
 			{
-				this.dbProviderFactory = this.CreateDbProviderFactory();
+				this.dbProviderFactory = CreateDbProviderFactory();
 			}
 
 			var retval = this.dbProviderFactory.CreateConnection();
@@ -2710,7 +2709,7 @@ namespace Shaolinq.Persistence
 		{
 			if (this.dbProviderFactory == null)
 			{
-				this.dbProviderFactory = this.CreateDbProviderFactory();
+				this.dbProviderFactory = CreateDbProviderFactory();
 			}
 
 			var retval = this.dbProviderFactory.CreateConnection();
@@ -2767,7 +2766,7 @@ namespace Shaolinq
 		{
 			using (var scope = new DataAccessScope(DataAccessIsolationLevel.Unspecified, DataAccessScopeOptions.RequiresNew, TimeSpan.Zero))
 			{
-				await this.GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchemaAsync(options, cancellationToken).ConfigureAwait(false);
+				await GetCurrentSqlDatabaseContext().SchemaManager.CreateDatabaseAndSchemaAsync(options, cancellationToken).ConfigureAwait(false);
 				await scope.CompleteAsync(cancellationToken).ConfigureAwait(false);
 			}
 		}
@@ -2779,7 +2778,7 @@ namespace Shaolinq
 
 		public virtual async Task FlushAsync(CancellationToken cancellationToken)
 		{
-			var transactionContext = this.GetCurrentContext(true);
+			var transactionContext = GetCurrentContext(true);
 			if (transactionContext != null)
 			{
 				await transactionContext.GetCurrentDataContext().CommitAsync((await transactionContext.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false)), true, cancellationToken).ConfigureAwait(false);
@@ -2798,7 +2797,7 @@ namespace Shaolinq
 				throw new InvalidOperationException("Cannot backup to self");
 			}
 
-			await this.GetCurrentSqlDatabaseContext().BackupAsync(dataAccessModel.GetCurrentSqlDatabaseContext(), cancellationToken).ConfigureAwait(false);
+			await GetCurrentSqlDatabaseContext().BackupAsync(dataAccessModel.GetCurrentSqlDatabaseContext(), cancellationToken).ConfigureAwait(false);
 		}
 	}
 }
@@ -2830,7 +2829,7 @@ namespace Shaolinq
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			return this.commandsContext ?? (this.commandsContext = (await this.GetSqlDatabaseContext().CreateSqlTransactionalCommandsContextAsync(this, cancellationToken).ConfigureAwait(false)));
+			return this.commandsContext ?? (this.commandsContext = (await GetSqlDatabaseContext().CreateSqlTransactionalCommandsContextAsync(this, cancellationToken).ConfigureAwait(false)));
 		}
 
 		public Task CommitAsync()
@@ -2849,7 +2848,7 @@ namespace Shaolinq
 			{
 				if (this.dataAccessObjectDataContext != null)
 				{
-					this.commandsContext = (await this.GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false));
+					this.commandsContext = (await GetSqlTransactionalCommandsContextAsync(cancellationToken).ConfigureAwait(false));
 					await this.dataAccessObjectDataContext.CommitAsync(this.commandsContext, false, cancellationToken).ConfigureAwait(false);
 					await this.commandsContext.CommitAsync(cancellationToken).ConfigureAwait(false);
 				}
@@ -2861,7 +2860,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -2883,7 +2882,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 	}

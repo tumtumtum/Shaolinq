@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq;
 using System.Linq.Expressions;
@@ -82,11 +82,11 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 				// Attempt to merge subqueries that would have been removed by the above
 				// logic except for the existence of a where clause
 
-				while (this.CanMergeWithFrom(select))
+				while (CanMergeWithFrom(select))
 				{
 					var fromSelect = select.From.GetLeftMostSelect();
 
-					this.CanMergeWithFrom(select);
+					CanMergeWithFrom(select);
 
 					// remove the redundant subquery
 					select = SqlSubqueryRemover.Remove(select, fromSelect);

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections;
@@ -72,7 +72,7 @@ namespace Shaolinq.Persistence.Linq
 			this.parameterValues = new List<TypedValue>();
 			this.parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
 
-			this.Visit(this.PreProcess(expression));
+			Visit(PreProcess(expression));
 
 			return new SqlQueryFormatResult(this, this.writer.ToString(), this.parameterValues, this.canReuse ? this.parameterIndexToPlaceholderIndexes : null);
 		}
@@ -85,7 +85,7 @@ namespace Shaolinq.Persistence.Linq
 			this.parameterValues = new List<TypedValue>();
 			this.parameterIndexToPlaceholderIndexes = new List<Pair<int, int>>();
 
-			this.Visit(this.PreProcess(expression));
+			Visit(PreProcess(expression));
 
 			return new SqlQueryFormatResult(this,null, this.parameterValues, this.canReuse ? this.parameterIndexToPlaceholderIndexes : null);
 		}
@@ -211,7 +211,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (i++ > 0)
 				{
-					this.Write(deliminator);
+					Write(deliminator);
 				}
 
 				action(item);
@@ -226,7 +226,7 @@ namespace Shaolinq.Persistence.Linq
 			{
 				if (i++ > 0)
 				{
-					this.Write(deliminator);
+					Write(deliminator);
 				}
 
 				action(item);

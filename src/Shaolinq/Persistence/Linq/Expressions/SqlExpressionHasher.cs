@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq.Expressions;
 
@@ -63,7 +63,7 @@ namespace Shaolinq.Persistence.Linq.Expressions
 			}
 			else if (typeof(Expression).IsAssignableFrom(constantExpression.Type))
 			{
-				this.Visit((Expression)constantExpression.Value);
+				Visit((Expression)constantExpression.Value);
 			}
 			else if (type == typeof(string))
 			{

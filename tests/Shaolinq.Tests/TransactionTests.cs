@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
@@ -196,7 +196,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_AsyncSelect()
 		{
-			this.Test_AsyncSelect_Private().Wait();
+			Test_AsyncSelect_Private().Wait();
 		}
 
 		private async Task Test_AsyncSelect_Private()
@@ -216,8 +216,8 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			await this.AsyncMethod();
-			await this.AsyncMethod();
+			await AsyncMethod();
+			await AsyncMethod();
 		} 
 
 		private Task<Student> AsyncMethod()
@@ -233,7 +233,7 @@ namespace Shaolinq.Tests
 		[Category("IgnoreOnMono")]
 		public void Test_Async_TransactionScope()
 		{
-			this.Test_Async_TransactionScope_Private().Wait();
+			Test_Async_TransactionScope_Private().Wait();
 		}
 
 		private async Task Test_Async_TransactionScope_Private()

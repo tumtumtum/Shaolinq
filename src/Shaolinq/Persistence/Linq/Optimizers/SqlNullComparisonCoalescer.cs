@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -36,8 +36,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 			if (nodeType == ExpressionType.Equal || nodeType == ExpressionType.NotEqual)
 			{
-				var left = this.Visit(binaryExpression.Left).StripAndGetConstant();
-				var right = this.Visit(binaryExpression.Right).StripAndGetConstant();
+				var left = Visit(binaryExpression.Left).StripAndGetConstant();
+				var right = Visit(binaryExpression.Right).StripAndGetConstant();
 
 				if (left != null && right != null)
 				{

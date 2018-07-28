@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -26,7 +26,7 @@ namespace Shaolinq
 		// ReSharper disable once UnassignedReadonlyField
 		protected internal DataAccessModel dataAccessModel;
 		public DataAccessModel GetDataAccessModel() => this.dataAccessModel;
-		private TypeDescriptor TypeDescriptor => this.dataAccessModel?.GetTypeDescriptor(this.GetType());
+		private TypeDescriptor TypeDescriptor => this.dataAccessModel?.GetTypeDescriptor(GetType());
 
 		public virtual ObjectPropertyValue[] GetAllProperties() => this.TypeDescriptor.PersistedProperties.Select(c => ObjectPropertyValue.Create(c, this)).ToArray();
 		public virtual bool HasPropertyChanged(string propertyName) => true;
@@ -61,14 +61,14 @@ namespace Shaolinq
 		bool IDataAccessObjectAdvanced.IsDeleted => (((IDataAccessObjectAdvanced)this).ObjectState & DataAccessObjectState.Deleted) != 0;
 		bool IDataAccessObjectAdvanced.HasCompositeKey => ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys > 1;
 		bool IDataAccessObjectAdvanced.HasObjectChanged => (((IDataAccessObjectAdvanced)this).ObjectState & DataAccessObjectState.Changed) != 0;
-		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor => this.dataAccessModel?.GetTypeDescriptor(this.GetType());
-		Type IDataAccessObjectAdvanced.DefinitionType => this.dataAccessModel?.GetDefinitionTypeFromConcreteType(this.GetType());
+		TypeDescriptor IDataAccessObjectAdvanced.TypeDescriptor => this.dataAccessModel?.GetTypeDescriptor(GetType());
+		Type IDataAccessObjectAdvanced.DefinitionType => this.dataAccessModel?.GetDefinitionTypeFromConcreteType(GetType());
 		bool IDataAccessObjectAdvanced.IsMissingAnyPrimaryKeys => false;
 		bool IDataAccessObjectAdvanced.ReferencesNewUncommitedRelatedObject => false;
 		Type IDataAccessObjectAdvanced.KeyType => ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys != 1 ? null : this.TypeDescriptor.PrimaryKeyProperties[0].PropertyType;
 		bool IDataAccessObjectAdvanced.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys => false;
 		Type[] IDataAccessObjectAdvanced.CompositeKeyTypes => ((IDataAccessObjectAdvanced)this).NumberOfPrimaryKeys < 2 ? new [] { ((IDataAccessObjectAdvanced)this).KeyType } : this.TypeDescriptor.PrimaryKeyProperties.Select(c => c.PropertyType).ToArray();
-		int IDataAccessObjectAdvanced.NumberOfPrimaryKeys => this.dataAccessModel?.GetTypeDescriptor(this.GetType()).PrimaryKeyCount ?? 0;
+		int IDataAccessObjectAdvanced.NumberOfPrimaryKeys => this.dataAccessModel?.GetTypeDescriptor(GetType()).PrimaryKeyCount ?? 0;
 		int IDataAccessObjectAdvanced.NumberOfPrimaryKeysGeneratedOnServerSide => this.TypeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 		bool IDataAccessObjectAdvanced.IsDeflatedReference => false;
 		bool IDataAccessObjectAdvanced.IsDeflatedPredicatedReference => false;

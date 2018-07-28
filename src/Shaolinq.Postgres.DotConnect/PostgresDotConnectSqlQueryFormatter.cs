@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq.Expressions;
 using Platform;
@@ -28,8 +28,8 @@ namespace Shaolinq.Postgres.DotConnect
 
 			if (dataType != null)
 			{
-				this.Write("::");
-				this.Write(dataType.GetSqlName(null));
+				Write("::");
+				Write(dataType.GetSqlName(null));
 			}
 
 			return retval;

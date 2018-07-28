@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -67,9 +67,9 @@ namespace Shaolinq.SqlServer
 					constraintOptions[1] = 1L;
 				}
 
-				this.Write("(");
-				this.WriteDeliminatedListOfItems(constraintOptions, this.Write);
-				this.Write(")");
+				Write("(");
+				WriteDeliminatedListOfItems(constraintOptions, Write);
+				Write(")");
 			}
 
 			return expression;
@@ -80,74 +80,74 @@ namespace Shaolinq.SqlServer
 			switch (functionCallExpression.Function)
 			{
 			case SqlFunction.Hour:
-				this.Write("DATEPART(hour, ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEPART(hour, ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.Minute:
-				this.Write("DATEPART(minute, ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEPART(minute, ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.Second:
-				this.Write("DATEPART(second, ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEPART(second, ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DayOfWeek:
-				this.Write("DATEPART(weekday, ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEPART(weekday, ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DayOfMonth:
-				this.Write("DATEPART(day, ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEPART(day, ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DayOfYear:
-				this.Write("DATEPART(dayofyear, ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEPART(dayofyear, ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.Date:
-				this.Write("CONVERT(date, ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("CONVERT(date, ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddDays:
-				this.Write("DATEADD(DAY, ");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(", ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEADD(DAY, ");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(", ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddMonths:
-				this.Write("DATEADD(MONTH, ");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(", ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEADD(MONTH, ");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(", ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddYears:
-				this.Write("DATEADD(YEAR, ");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(", ");
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write(")");
+				Write("DATEADD(YEAR, ");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(", ");
+				Visit(functionCallExpression.Arguments[0]);
+				Write(")");
 				return functionCallExpression;
 			case SqlFunction.DateTimeAddTimeSpan:
-				this.Write("DATEADD(DAY, ");
-				this.Write("CAST(");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" AS BIGINT)");
-				this.Write(" / CAST(864000000000 AS BIGINT)");
-				this.Write(", DATEADD(MS, ");
-				this.Write("CAST(");
-				this.Visit(functionCallExpression.Arguments[1]);
-				this.Write(" AS BIGINT)");
-				this.Write(" / CAST(10000 AS BIGINT) % 86400000, " );
-				this.Visit(functionCallExpression.Arguments[0]);
-				this.Write("))");
+				Write("DATEADD(DAY, ");
+				Write("CAST(");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" AS BIGINT)");
+				Write(" / CAST(864000000000 AS BIGINT)");
+				Write(", DATEADD(MS, ");
+				Write("CAST(");
+				Visit(functionCallExpression.Arguments[1]);
+				Write(" AS BIGINT)");
+				Write(" / CAST(10000 AS BIGINT) % 86400000, " );
+				Visit(functionCallExpression.Arguments[0]);
+				Write("))");
 				return functionCallExpression;
 			}
 
@@ -156,9 +156,9 @@ namespace Shaolinq.SqlServer
 
 		protected string AddParameter(TypedValue value)
 		{
-			this.Write(this.ParameterIndicatorPrefix);
-			this.Write(ParamNamePrefix);
-			this.Write(this.parameterValues.Count);
+			Write(this.ParameterIndicatorPrefix);
+			Write(ParamNamePrefix);
+			Write(this.parameterValues.Count);
 			this.parameterValues.Add(value);
 
 			return $"{this.ParameterIndicatorPrefix}{this.parameterValues.Count}";
@@ -171,9 +171,9 @@ namespace Shaolinq.SqlServer
 			case ExpressionType.Convert:
 				if (unaryExpression.Type == typeof(double))
 				{
-					this.Write("CAST(");
-					this.Visit(unaryExpression.Operand);
-					this.Write(" AS FLOAT)");
+					Write("CAST(");
+					Visit(unaryExpression.Operand);
+					Write(" AS FLOAT)");
 
 					return unaryExpression;
 				}
@@ -197,13 +197,13 @@ namespace Shaolinq.SqlServer
 			case TypeCode.Boolean:
 				if ((this.options & SqlQueryFormatterOptions.EvaluateConstants) != 0)
 				{
-					this.Write(this.FormatConstant(Convert.ToInt32(constantExpression.Value)));
+					Write(FormatConstant(Convert.ToInt32(constantExpression.Value)));
 				}
 				else
 				{
-					this.Write(this.ParameterIndicatorPrefix);
-					this.Write(ParamNamePrefix);
-					this.Write(this.parameterValues.Count);
+					Write(this.ParameterIndicatorPrefix);
+					Write(ParamNamePrefix);
+					Write(this.parameterValues.Count);
 					this.parameterValues.Add(new TypedValue(typeof(int), constantExpression.Value, c => Convert.ToInt32(c)));
 				}
 
@@ -231,9 +231,9 @@ namespace Shaolinq.SqlServer
 		{
 			if (selectExpression.Take != null && selectExpression.Skip == null)
 			{
-				this.Write("TOP(");
-				this.Visit(selectExpression.Take);
-				this.Write(") ");
+				Write("TOP(");
+				Visit(selectExpression.Take);
+				Write(") ");
 			}
 		}
 
@@ -249,7 +249,7 @@ namespace Shaolinq.SqlServer
 		{
 			if (action == SqlColumnReferenceAction.Restrict)
 			{
-				this.Write("NO ACTION");
+				Write("NO ACTION");
 
 				return;
 			}
@@ -259,16 +259,16 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitOver(SqlOverExpression selectExpression)
 		{
-			this.Visit(selectExpression.Source);
+			Visit(selectExpression.Source);
 
-			this.Write(" OVER (ORDER BY ");
+			Write(" OVER (ORDER BY ");
 
-			this.WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
+			WriteDeliminatedListOfItems<Expression>(selectExpression.OrderBy, c =>
 			{
-				this.Visit(c);
+				Visit(c);
 			});
 
-			this.Write(")");
+			Write(")");
 
 			return selectExpression;
 		}
@@ -279,7 +279,7 @@ namespace Shaolinq.SqlServer
 
 			if (tableHintExpression?.TableLock == true)
 			{
-				this.Write(" WITH (TABLOCK) ");
+				Write(" WITH (TABLOCK) ");
 			}
 
 			return true;
@@ -292,14 +292,14 @@ namespace Shaolinq.SqlServer
 				return;
 			}
 
-			this.Write(" OUTPUT ");
-			this.WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, c =>
+			Write(" OUTPUT ");
+			WriteDeliminatedListOfItems<string>(expression.ReturningAutoIncrementColumnNames, c =>
 			{
-				this.WriteQuotedIdentifier("INSERTED");
-				this.Write(".");
-				this.WriteQuotedIdentifier(c);
+				WriteQuotedIdentifier("INSERTED");
+				Write(".");
+				WriteQuotedIdentifier(c);
 			}, ",");
-			this.Write("");
+			Write("");
 		}
 
 		protected override Expression VisitExtension(Expression expression)
@@ -308,7 +308,7 @@ namespace Shaolinq.SqlServer
 
 			if (booleanExpression != null)
 			{
-				this.Visit(booleanExpression.Expression);
+				Visit(booleanExpression.Expression);
 
 				return expression;
 			}
@@ -317,7 +317,7 @@ namespace Shaolinq.SqlServer
 
 			if (sqlTakeAllValueExpression != null)
 			{
-				this.Write(Expression.Constant(Int64.MaxValue));
+				Write(Expression.Constant(Int64.MaxValue));
 
 				return expression;
 			}

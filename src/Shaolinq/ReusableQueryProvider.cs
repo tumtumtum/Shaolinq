@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -14,14 +14,14 @@ namespace Shaolinq
 	{
 		public virtual IQueryable<T> CreateQuery<T>(Expression expression)
 		{
-			return (IQueryable<T>)this.CreateQuery(expression);
+			return (IQueryable<T>)CreateQuery(expression);
 		}
 		
 		public virtual IQueryable CreateQuery(Expression expression)
 		{
 			var elementType = TypeHelper.GetElementType(expression.Type);
 
-			return this.CreateQuery(elementType, expression);
+			return CreateQuery(elementType, expression);
 		}
 
 		public abstract T Execute<T>(Expression expression);

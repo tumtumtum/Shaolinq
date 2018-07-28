@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using Shaolinq.Persistence;
@@ -39,28 +39,28 @@ namespace Shaolinq.Postgres
 			
 			this.blobSqlDataType = new DefaultBlobSqlDataType(constraintDefaultsConfiguration, "BYTEA");
 
-			this.DefinePrimitiveSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
-			this.DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
-			this.DefinePrimitiveSqlDataType(typeof(int), "INTEGER", "GetInt32");
-			this.DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT", "GetInt32");
-			this.DefinePrimitiveSqlDataType(typeof(uint), "INTEGER", "GetInt64");
-			this.DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT", "GetValue");
-			this.DefinePrimitiveSqlDataType(typeof(float), "FLOAT(8)", "GetFloat");
-			this.DefinePrimitiveSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
-			this.DefinePrimitiveSqlDataType(typeof(byte), "SMALLINT", "GetByte");
-			this.DefinePrimitiveSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
-			this.DefinePrimitiveSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
+			DefinePrimitiveSqlDataType(typeof(bool), "BOOLEAN", "GetBoolean");
+			DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
+			DefinePrimitiveSqlDataType(typeof(int), "INTEGER", "GetInt32");
+			DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT", "GetInt32");
+			DefinePrimitiveSqlDataType(typeof(uint), "INTEGER", "GetInt64");
+			DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT", "GetValue");
+			DefinePrimitiveSqlDataType(typeof(float), "FLOAT(8)", "GetFloat");
+			DefinePrimitiveSqlDataType(typeof(double), "DOUBLE PRECISION", "GetDouble");
+			DefinePrimitiveSqlDataType(typeof(byte), "SMALLINT", "GetByte");
+			DefinePrimitiveSqlDataType(typeof(sbyte), "SMALLINT", "GetByte");
+			DefinePrimitiveSqlDataType(typeof(decimal), "NUMERIC(57, 28)", "GetDecimal");
 
-			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", false, DateTimeKind.Utc));
-			this.DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", true, DateTimeKind.Utc));
+			DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", false, DateTimeKind.Utc));
+			DefineSqlDataType(new DateTimeKindNormalisingDateTimeSqlDateType(this.ConstraintDefaultsConfiguration, "TIMESTAMP", true, DateTimeKind.Utc));
 
-			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan)));
-			this.DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan?)));
+			DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan)));
+			DefineSqlDataType(new PostgresTimespanSqlDataType(this.ConstraintDefaultsConfiguration, typeof(TimeSpan?)));
 
 			if (nativeUuids)
 			{
-				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid)));
-				this.DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid?)));
+				DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid)));
+				DefineSqlDataType(new PostgresUuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid?)));
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -64,7 +64,7 @@ namespace Shaolinq.TypeBuilding
 
 		public DataAccessObject CreateDataAccessObject(Type dataAccessObjectType, DataAccessModel dataAccessModel, bool isNew)
 		{
-			return this.GetDataAccessObjectConstructor(dataAccessObjectType)(dataAccessModel, isNew);
+			return GetDataAccessObjectConstructor(dataAccessObjectType)(dataAccessModel, isNew);
 		}
 
 		private Func<DataAccessModel, bool, DataAccessObject> GetDataAccessObjectConstructor(Type dataAccessObjectType)
@@ -97,7 +97,7 @@ namespace Shaolinq.TypeBuilding
 		public T CreateDataAccessObject<T>(DataAccessModel dataAccessModel, bool isNew)
 			where T : DataAccessObject
 		{
-			return (T)this.GetDataAccessObjectConstructor(typeof(T))(dataAccessModel, isNew);
+			return (T)GetDataAccessObjectConstructor(typeof(T))(dataAccessModel, isNew);
 		}
 
 		public Type GetConcreteType(Type definitionType)

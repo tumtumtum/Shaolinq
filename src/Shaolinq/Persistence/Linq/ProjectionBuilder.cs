@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -76,11 +76,11 @@ namespace Shaolinq.Persistence.Linq
 				{
 					if (expression.NodeType == ExpressionType.NewArrayInit)
 					{
-						return Expression.NewArrayInit(typeof(DataAccessObject), this.VisitExpressionList(expression.Expressions));
+						return Expression.NewArrayInit(typeof(DataAccessObject), VisitExpressionList(expression.Expressions));
 					}
 					else
 					{
-						return Expression.NewArrayBounds(typeof(DataAccessObject), this.VisitExpressionList(expression.Expressions));
+						return Expression.NewArrayBounds(typeof(DataAccessObject), VisitExpressionList(expression.Expressions));
 					}
 				}
 			}
@@ -104,7 +104,7 @@ namespace Shaolinq.Persistence.Linq
 						foreach (var value in SqlObjectOperandComparisonExpander.GetPrimaryKeyElementalExpressions(expression))
 						{
 							this.treatColumnsAsNullable = true;
-							var visited = this.Visit(value);
+							var visited = Visit(value);
 							this.treatColumnsAsNullable = false;
 
 							this.scope.rootPrimaryKeys.Add(visited.Type.IsValueType ? Expression.Convert(visited, typeof(object)) : visited);
@@ -124,11 +124,11 @@ namespace Shaolinq.Persistence.Linq
 
 						if (value.NodeType == (ExpressionType)SqlExpressionType.Column)
 						{
-							current = this.ConvertColumnToIsNull((SqlColumnExpression)value);
+							current = ConvertColumnToIsNull((SqlColumnExpression)value);
 						}
 						else
 						{
-							var visited = this.Visit(value);
+							var visited = Visit(value);
 
 							if (visited.Type.IsClass || visited.Type.IsNullableType())
 							{
@@ -157,7 +157,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (typeof(DataAccessObject).IsAssignableFrom(retval.Type))
 				{
-					var methodCalls = Expression.Call(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), finishedInitializingMethod), resetModifiedMethod), submitToCacheMethod), this.notifyReadMethod);
+					var methodCalls = Expression.Call(Expression.Call(Expression.Call(Expression.Call(Expression.Convert(retval, typeof(IDataAccessObjectInternal)), this.finishedInitializingMethod), this.resetModifiedMethod), this.submitToCacheMethod), this.notifyReadMethod);
 
 					retval = Expression.Convert(methodCalls, retval.Type);
 				}
@@ -202,7 +202,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						var concreteType = this.dataAccessModel.GetConcreteTypeFromDefinitionType(this.currentNewExpressionTypeDescriptor.Type);
 						var propertyInfo = concreteType.GetProperty(DataAccessObjectTypeBuilder.ForceSetPrefix + assignment.Member.Name);
-						var assignmentExpression = this.Visit(assignment.Expression);
+						var assignmentExpression = Visit(assignment.Expression);
 
 						return Expression.Bind(propertyInfo, assignmentExpression);
 					}
@@ -216,7 +216,7 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (functionCallExpression.Function == SqlFunction.Date)
 			{
-				return Expression.Call(this.Visit(functionCallExpression.Arguments[0]), typeof(DateTime).GetProperty("Date").GetGetMethod(), null);
+				return Expression.Call(Visit(functionCallExpression.Arguments[0]), typeof(DateTime).GetProperty("Date").GetGetMethod(), null);
 			}
 
 			if (functionCallExpression.Function == SqlFunction.RecordsAffected)
@@ -255,9 +255,9 @@ namespace Shaolinq.Persistence.Linq
 
 		protected override Expression VisitConditional(ConditionalExpression expression)
 		{
-			var test = this.Visit(expression.Test);
-			var ifTrue = this.Visit(expression.IfTrue);
-			var ifFalse = this.Visit(expression.IfFalse);
+			var test = Visit(expression.Test);
+			var ifTrue = Visit(expression.IfTrue);
+			var ifFalse = Visit(expression.IfFalse);
 
 			if (ifTrue.Type != ifFalse.Type)
 			{
@@ -284,11 +284,11 @@ namespace Shaolinq.Persistence.Linq
 		{
 			if (this.treatColumnsAsNullable && column.Type.IsValueType && !column.Type.IsNullableType())
 			{
-				return this.ConvertColumnToDataReaderRead(column, column.Type.MakeNullable());
+				return ConvertColumnToDataReaderRead(column, column.Type.MakeNullable());
 			}
 			else
 			{
-				return this.ConvertColumnToDataReaderRead(column, column.Type);
+				return ConvertColumnToDataReaderRead(column, column.Type);
 			}
 		}
 
@@ -304,12 +304,12 @@ namespace Shaolinq.Persistence.Linq
 			if (methodCallExpression.Method.IsGenericMethod
 				&& methodCallExpression.Method.GetGenericMethodDefinition() == MethodInfoFastRef.DataAccessObjectExtensionsAddToCollectionMethod)
 			{
-				var instance = this.Visit(methodCallExpression.Object);
-				var firstArg = this.Visit(methodCallExpression.Arguments[0]);
+				var instance = Visit(methodCallExpression.Object);
+				var firstArg = Visit(methodCallExpression.Arguments[0]);
 
 				var savedAtRootLevel = this.atRootLevel;
 				this.atRootLevel = false;
-				var arguments = (IEnumerable<Expression>)this.VisitExpressionList(methodCallExpression.Arguments.Skip(1).ToArray());
+				var arguments = (IEnumerable<Expression>)VisitExpressionList(methodCallExpression.Arguments.Skip(1).ToArray());
 				this.atRootLevel = savedAtRootLevel;
 				
 				retval = Expression.Call(instance, methodCallExpression.Method, arguments.Prepend(firstArg));
@@ -343,7 +343,7 @@ namespace Shaolinq.Persistence.Linq
 				if (unaryExpression.Operand.NodeType == ((ExpressionType)SqlExpressionType.Column)
 					&& unaryExpression.Type == unaryExpression.Operand.Type.MakeNullable())
 				{
-					return this.ConvertColumnToDataReaderRead((SqlColumnExpression)unaryExpression.Operand, unaryExpression.Operand.Type.MakeNullable());
+					return ConvertColumnToDataReaderRead((SqlColumnExpression)unaryExpression.Operand, unaryExpression.Operand.Type.MakeNullable());
 				}
 
 				if (unaryExpression.Type.IsDataAccessObjectType())
@@ -352,7 +352,7 @@ namespace Shaolinq.Persistence.Linq
 
 					if (concrete != unaryExpression.Type)
 					{
-						return Expression.Convert(this.Visit(unaryExpression.Operand), concrete);
+						return Expression.Convert(Visit(unaryExpression.Operand), concrete);
 					}
 				}
 			}
@@ -396,7 +396,7 @@ namespace Shaolinq.Persistence.Linq
 			var arrayOfValues = Expression.NewArrayInit(typeof(object), sqlObjectReferenceExpression
 				.Bindings
 				.OfType<MemberAssignment>()
-				.Select(c => (Expression)Expression.Convert(c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? this.ConvertColumnToDataReaderRead((SqlColumnExpression)c.Expression, c.Expression.Type.MakeNullable()) : this.Visit(c.Expression), typeof(object))).ToArray());
+				.Select(c => (Expression)Expression.Convert(c.Expression.NodeType == (ExpressionType)SqlExpressionType.Column ? ConvertColumnToDataReaderRead((SqlColumnExpression)c.Expression, c.Expression.Type.MakeNullable()) : Visit(c.Expression), typeof(object))).ToArray());
 
 			var method = MethodInfoFastRef.DataAccessModelGetReferenceByPrimaryKeyPropertiesMethod.MakeGenericMethod(sqlObjectReferenceExpression.Type);
 
@@ -413,7 +413,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var replacedExpressions = new List<Expression>();
 				projectionExpression = (SqlProjectionExpression)SqlOuterQueryReferencePlaceholderSubstitutor.Substitute(projectionExpression, ref currentPlaceholderCount, replacedExpressions);
-				var values = replacedExpressions.Select(c => Expression.Convert(this.Visit(c), typeof(object))).ToList();
+				var values = replacedExpressions.Select(c => Expression.Convert(Visit(c), typeof(object))).ToList();
 				var where = projectionExpression.Select.Where;
 
 				var typeDescriptor = this.dataAccessModel.TypeDescriptorProvider.GetTypeDescriptor(elementType);
@@ -437,7 +437,7 @@ namespace Shaolinq.Persistence.Linq
 
 				var savedScope = this.scope;
 				this.scope = new ProjectionBuilderScope(newColumnIndexes);
-				var projector = this.Visit(projectionExpression.Projector);
+				var projector = Visit(projectionExpression.Projector);
 				var projectionProjector = Expression.Lambda(typeof(ObjectReaderFunc<>).MakeGenericType(projector.Type), projector, this.objectProjector, this.dataReader, this.versionParameter, this.dynamicParameters);
 
 				Expression rootKeys;
@@ -453,7 +453,7 @@ namespace Shaolinq.Persistence.Linq
 
 				this.scope = savedScope;
 
-				var values = replacedExpressions.Select(c => (Expression)Expression.Convert(this.Visit(c), typeof(object))).ToList();
+				var values = replacedExpressions.Select(c => (Expression)Expression.Convert(Visit(c), typeof(object))).ToList();
 
 				var method = TypeUtils.GetMethod<SqlQueryProvider>(c => c.BuildExecution(default(SqlProjectionExpression), default(LambdaExpression), default(object[]), default(Expression<Func<IDataReader, object[]>>)));
 

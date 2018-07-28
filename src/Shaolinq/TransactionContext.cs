@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -45,7 +45,7 @@ namespace Shaolinq
 
 				if (this.TransactionContext.executionVersionNesting == 0)
 				{
-					this.OnFinished();
+					OnFinished();
 				}
 			}
 		}
@@ -205,7 +205,7 @@ namespace Shaolinq
 				this.dataAccessObjectDataContext = null;
 				this.commandsContext?.Dispose();
 				this.dataAccessModel.AsyncLocalAmbientTransactionContext = null;
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -246,17 +246,17 @@ namespace Shaolinq
 				throw new ObjectDisposedException(nameof(TransactionContext));
 			}
 
-			return this.commandsContext ?? (this.commandsContext = this.GetSqlDatabaseContext().CreateSqlTransactionalCommandsContext(this));
+			return this.commandsContext ?? (this.commandsContext = GetSqlDatabaseContext().CreateSqlTransactionalCommandsContext(this));
 		}
 
 		~TransactionContext()
 		{
-			this.Dispose(false);
+			Dispose(false);
 		}
 
 		public void Dispose()
 		{
-			this.Dispose(true);
+			Dispose(true);
 		}
 
 		protected void Dispose(bool disposing)
@@ -305,7 +305,7 @@ namespace Shaolinq
 				}
 				finally
 				{
-					this.Dispose();
+					Dispose();
 				}
 			}
 		}
@@ -323,7 +323,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -338,7 +338,7 @@ namespace Shaolinq
 			{
 				if (this.dataAccessObjectDataContext != null)
 				{
-					this.commandsContext = this.GetSqlTransactionalCommandsContext();
+					this.commandsContext = GetSqlTransactionalCommandsContext();
 
 					this.dataAccessObjectDataContext.Commit(this.commandsContext, false);
 					this.commandsContext.Commit();
@@ -354,7 +354,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -370,7 +370,7 @@ namespace Shaolinq
 			{
 				if (this.dataAccessObjectDataContext != null)
 				{
-					this.commandsContext = this.GetSqlTransactionalCommandsContext();
+					this.commandsContext = GetSqlTransactionalCommandsContext();
 					this.dataAccessObjectDataContext.Commit(this.commandsContext, false);
 					this.commandsContext.Commit();
 				}
@@ -383,7 +383,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -400,7 +400,7 @@ namespace Shaolinq
 			{
 				if (this.dataAccessObjectDataContext != null)
 				{
-					this.commandsContext = this.GetSqlTransactionalCommandsContext();
+					this.commandsContext = GetSqlTransactionalCommandsContext();
 					this.dataAccessObjectDataContext.Commit(this.commandsContext, false);
 
 					if (this.commandsContext.SqlDatabaseContext.SupportsPreparedTransactions)
@@ -427,7 +427,7 @@ namespace Shaolinq
 			{
 				if (dispose)
 				{
-					this.Dispose();
+					Dispose();
 				}
 			}
 		}
@@ -446,7 +446,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 		}
 
@@ -463,7 +463,7 @@ namespace Shaolinq
 			}
 			finally
 			{
-				this.Dispose();
+				Dispose();
 			}
 
 			enlistment.Done();

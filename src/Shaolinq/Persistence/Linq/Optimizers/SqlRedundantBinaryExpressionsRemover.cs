@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Linq.Expressions;
 using Shaolinq.Persistence.Linq.Expressions;
@@ -16,7 +16,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 		protected override Expression VisitSelect(SqlSelectExpression selectExpression)
 		{
 			var from = selectExpression.From;
-			var where = this.Visit(selectExpression.Where);
+			var where = Visit(selectExpression.Where);
 
 			var orderBy = selectExpression.OrderBy;
 			var groupBy = selectExpression.GroupBy;

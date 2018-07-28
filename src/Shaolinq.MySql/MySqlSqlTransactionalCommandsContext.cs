@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Data;
 using System.Linq.Expressions;
@@ -32,7 +32,7 @@ namespace Shaolinq.MySql
 
 						command.CommandText = formatResult.CommandText;
 
-						this.FillParameters(command, formatResult);
+						FillParameters(command, formatResult);
 
 						command.ExecuteNonQueryEx(this.DataAccessModel, true);
 					}

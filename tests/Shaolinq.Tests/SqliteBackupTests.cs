@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Linq;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
 
@@ -16,7 +18,7 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Backup()	
 		{
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 
@@ -35,7 +37,7 @@ namespace Shaolinq.Tests
 
 			Assert.AreEqual("School1", this.model.Schools.Select(c => c.Name).Single());
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = this.model.Schools.Create();
 
@@ -46,7 +48,7 @@ namespace Shaolinq.Tests
 
 			Assert.AreEqual("School2", this.model.Schools.Select(c => c.Name).Single(c => c== "School2"));
 
-			using (var scope = this.NewTransactionScope())
+			using (var scope = NewTransactionScope())
 			{
 				var school = backupModel.Schools.Create();
 

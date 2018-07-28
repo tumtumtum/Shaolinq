@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Data;
@@ -64,7 +64,7 @@ namespace Shaolinq.Persistence
 		{
 			var expression = base.GetReadExpression(dataReader, ordinal);
 
-			return Expression.Call(this.specifyKindMethod, expression, Expression.Constant(dateTimeKind));
+			return Expression.Call(this.specifyKindMethod, expression, Expression.Constant(this.dateTimeKind));
 		}
 	}
 }

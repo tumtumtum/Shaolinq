@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq.Expressions;
@@ -16,7 +16,7 @@ namespace Shaolinq
 
 		public virtual T GetReference<K>(K primaryKey)
 		{
-			return this.GetReference(primaryKey, PrimaryKeyType.Auto);
+			return GetReference(primaryKey, PrimaryKeyType.Auto);
 		}
 
 		public virtual T GetReference<K>(K primaryKey, PrimaryKeyType primaryKeyType)

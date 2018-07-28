@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -61,7 +61,7 @@ namespace Shaolinq.Persistence.Linq
 
 				if (this.existingAliases.Contains(column.SelectAlias))
 				{
-					var columnName = this.GetUniqueColumnName(column.Name);
+					var columnName = GetUniqueColumnName(column.Name);
 
 					this.columns.Add(new SqlColumnDeclaration(columnName, column));
 					mappedColumnExpression = new SqlColumnExpression(column.Type, this.newAlias, columnName);
@@ -78,7 +78,7 @@ namespace Shaolinq.Persistence.Linq
 			}
 			else
 			{
-				var columnName = this.GetNextColumnName();
+				var columnName = GetNextColumnName();
 
 				this.columnNames.Add(columnName);
 				this.columns.Add(new SqlColumnDeclaration(columnName, expression));
@@ -97,7 +97,7 @@ namespace Shaolinq.Persistence.Linq
 				}
 				else
 				{
-					return this.ProcessExpression(expression);
+					return ProcessExpression(expression);
 				}
 			}
 			else
@@ -116,7 +116,7 @@ namespace Shaolinq.Persistence.Linq
 			var suffix = 1; 
 			var baseName = name;
 
-			while (this.IsColumnNameInUse(name))
+			while (IsColumnNameInUse(name))
 			{
 				name = baseName + "_" + (suffix++);
 			}
@@ -130,9 +130,9 @@ namespace Shaolinq.Persistence.Linq
 
 			do
 			{
-				name = this.GetUniqueColumnName("COL" + (this.columnIndex++));
+				name = GetUniqueColumnName("COL" + (this.columnIndex++));
 			}
-			while (this.IsColumnNameInUse(name));
+			while (IsColumnNameInUse(name));
 
 			return name;
 		}

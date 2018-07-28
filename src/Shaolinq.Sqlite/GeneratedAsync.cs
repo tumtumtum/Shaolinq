@@ -67,7 +67,7 @@ namespace Shaolinq.Sqlite
 				{
 					try
 					{
-						this.CreateFile(path);
+						CreateFile(path);
 						break;
 					}
 					catch (FileNotFoundException)
@@ -100,7 +100,7 @@ namespace Shaolinq.Sqlite
 					{
 						try
 						{
-							this.CreateFile(path);
+							CreateFile(path);
 							break;
 						}
 						catch (FileNotFoundException)
@@ -158,7 +158,7 @@ namespace Shaolinq.Sqlite
 
 		public override async Task<IDbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
 		{
-			var retval = (await this.PrivateOpenConnectionAsync(cancellationToken).ConfigureAwait(false));
+			var retval = (await PrivateOpenConnectionAsync(cancellationToken).ConfigureAwait(false));
 			if (retval == null)
 			{
 				return null;
@@ -226,11 +226,11 @@ namespace Shaolinq.Sqlite
 				throw new ArgumentException($"Needs to be a {nameof(SqliteOfficialSqlDatabaseContext)}", nameof(sqlDatabaseContext));
 			}
 
-			using (var connection = (await this.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
+			using (var connection = (await OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
 			{
 				using (var otherConnection = (await sqlDatabaseContext.OpenConnectionAsync(cancellationToken).ConfigureAwait(false)))
 				{
-					this.GetSqliteConnection(connection).BackupDatabase(this.GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
+					GetSqliteConnection(connection).BackupDatabase(GetSqliteConnection(otherConnection), "main", "main", -1, null, 1000);
 				}
 			}
 		}

@@ -2,7 +2,7 @@ namespace Shaolinq.Postgres
 {
 #pragma warning disable
 	using System;
-	// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+	// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 	using System.Data;
 	using System.Threading;
 	using System.Threading.Tasks;
@@ -117,7 +117,7 @@ namespace Shaolinq.Postgres
 		{
 			if (this.preparedTransactionName != null)
 			{
-				using (var command = this.CreateCommand())
+				using (var command = CreateCommand())
 				{
 					command.CommandText = $"COMMIT PREPARED '{this.preparedTransactionName}';";
 					await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false);
@@ -136,7 +136,7 @@ namespace Shaolinq.Postgres
 		{
 			if (this.preparedTransactionName != null)
 			{
-				using (var command = this.CreateCommand())
+				using (var command = CreateCommand())
 				{
 					command.CommandText = $"ROLLBACK PREPARED '{this.preparedTransactionName}';";
 					await command.ExecuteNonQueryExAsync(this.DataAccessModel, cancellationToken).ConfigureAwait(false);

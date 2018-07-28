@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System.Collections.Generic;
 using System.Linq;
@@ -82,7 +82,7 @@ namespace Shaolinq.SqlServer
 				cols.Add(rowColumn);
 
 				var selectWithRowColumns = cols.ToReadOnlyCollection();
-				var selectWithRow = new SqlSelectExpression(selectExpression.Type, selectWithRowAlias, selectWithRowColumns, this.Visit(innerSelect.ChangeOrderBy(null).ChangeSkipTake(null, null)), null, null, null, false, null, null, false);
+				var selectWithRow = new SqlSelectExpression(selectExpression.Type, selectWithRowAlias, selectWithRowColumns, Visit(innerSelect.ChangeOrderBy(null).ChangeSkipTake(null, null)), null, null, null, false, null, null, false);
 				var outerColumns = selectExpression.Columns.Select(c => new SqlColumnDeclaration(c.Name, new SqlColumnExpression(c.Expression.Type, selectWithRowAlias, c.Name)));
 
 				Expression rowPredicate = Expression.GreaterThan(new SqlColumnExpression(typeof(int), selectWithRowAlias, rowColumn.Name), selectExpression.Skip);

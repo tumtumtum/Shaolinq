@@ -1,12 +1,12 @@
-﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Transactions;
 using NUnit.Framework;
-using Shaolinq.Tests.TestModel;
 using Shaolinq.DirectAccess.Sql;
+using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {

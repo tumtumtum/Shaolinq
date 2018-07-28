@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
 using System.Collections.Generic;
@@ -19,14 +19,14 @@ namespace Shaolinq.Persistence
 		
 		protected internal void DefinePrimitiveSqlDataType(Type type, string name, string getValueMethod)
 		{
-			this.DefinePrimitiveSqlDataType(type, name, DataRecordMethods.GetMethod(getValueMethod));
+			DefinePrimitiveSqlDataType(type, name, DataRecordMethods.GetMethod(getValueMethod));
 		}
 
 		protected internal void DefinePrimitiveSqlDataType(Type type, string name, MethodInfo getValueMethod)
 		{
-			this.DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaultsConfiguration, type, name, getValueMethod));
+			DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaultsConfiguration, type, name, getValueMethod));
 			type = typeof(Nullable<>).MakeGenericType(type);
-			this.DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaultsConfiguration, type, name, getValueMethod));
+			DefineSqlDataType(new PrimitiveSqlDataType(this.ConstraintDefaultsConfiguration, type, name, getValueMethod));
 		}
 
 		public DefaultSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
@@ -34,25 +34,25 @@ namespace Shaolinq.Persistence
 		{
 			this.sqlDataTypesByType = new Dictionary<Type, SqlDataType>();
 
-			this.DefinePrimitiveSqlDataType(typeof(bool), "TINYINT", "GetBoolean");
-			this.DefinePrimitiveSqlDataType(typeof(byte), "BYTE UNSIGNED ", "GetInt32");
-			this.DefinePrimitiveSqlDataType(typeof(sbyte), "BYTE", "GetByte");
-			this.DefinePrimitiveSqlDataType(typeof(char), "CHAR", "GetChar");
-			this.DefinePrimitiveSqlDataType(typeof(int), "INT", "GetInt32");
-			this.DefinePrimitiveSqlDataType(typeof(uint), "INT UNSIGNED ", "GetInt64");
-			this.DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
-			this.DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT UNSIGNED ", "GetInt32");
-			this.DefinePrimitiveSqlDataType(typeof(long), "BIGINT", "GetInt64");
-			this.DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT UNSIGNED", "GetValue");
-			this.DefinePrimitiveSqlDataType(typeof(DateTime), "DATETIME", "GetDateTime");
-			this.DefinePrimitiveSqlDataType(typeof(float), "FLOAT", "GetFloat");
-			this.DefinePrimitiveSqlDataType(typeof(double), "DOUBLE", "GetDouble");
-			this.DefinePrimitiveSqlDataType(typeof(decimal), "NUMERIC", "GetDecimal");
-			this.DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid)));
-			this.DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid?)));
-			this.DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaultsConfiguration, typeof(TimeSpan)));
-			this.DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaultsConfiguration, typeof(TimeSpan?)));
-			this.DefineSqlDataType(new DefaultStringSqlDataType(this.ConstraintDefaultsConfiguration));
+			DefinePrimitiveSqlDataType(typeof(bool), "TINYINT", "GetBoolean");
+			DefinePrimitiveSqlDataType(typeof(byte), "BYTE UNSIGNED ", "GetInt32");
+			DefinePrimitiveSqlDataType(typeof(sbyte), "BYTE", "GetByte");
+			DefinePrimitiveSqlDataType(typeof(char), "CHAR", "GetChar");
+			DefinePrimitiveSqlDataType(typeof(int), "INT", "GetInt32");
+			DefinePrimitiveSqlDataType(typeof(uint), "INT UNSIGNED ", "GetInt64");
+			DefinePrimitiveSqlDataType(typeof(short), "SMALLINT", "GetInt16");
+			DefinePrimitiveSqlDataType(typeof(ushort), "SMALLINT UNSIGNED ", "GetInt32");
+			DefinePrimitiveSqlDataType(typeof(long), "BIGINT", "GetInt64");
+			DefinePrimitiveSqlDataType(typeof(ulong), "BIGINT UNSIGNED", "GetValue");
+			DefinePrimitiveSqlDataType(typeof(DateTime), "DATETIME", "GetDateTime");
+			DefinePrimitiveSqlDataType(typeof(float), "FLOAT", "GetFloat");
+			DefinePrimitiveSqlDataType(typeof(double), "DOUBLE", "GetDouble");
+			DefinePrimitiveSqlDataType(typeof(decimal), "NUMERIC", "GetDecimal");
+			DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid)));
+			DefineSqlDataType(new DefaultGuidSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid?)));
+			DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaultsConfiguration, typeof(TimeSpan)));
+			DefineSqlDataType(new DefaultTimeSpanSqlDataType(this, this.ConstraintDefaultsConfiguration, typeof(TimeSpan?)));
+			DefineSqlDataType(new DefaultStringSqlDataType(this.ConstraintDefaultsConfiguration));
 		}
 
 		protected virtual SqlDataType GetBlobDataType()
@@ -78,7 +78,7 @@ namespace Shaolinq.Persistence
 			
 			if (underlyingType.IsEnum)
 			{
-				var sqlDataType = this.GetEnumDataType(type);
+				var sqlDataType = GetEnumDataType(type);
 
 				this.sqlDataTypesByType[type] = sqlDataType;
 
@@ -86,7 +86,7 @@ namespace Shaolinq.Persistence
 			}
 			else if (underlyingType.IsArray && underlyingType == typeof(byte[]))
 			{
-				var sqlDataType = this.GetBlobDataType();
+				var sqlDataType = GetBlobDataType();
 
 				this.sqlDataTypesByType[type] = sqlDataType;
 

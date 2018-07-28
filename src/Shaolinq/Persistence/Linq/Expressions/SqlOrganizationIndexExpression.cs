@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
+
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Shaolinq.Persistence.Linq.Expressions
