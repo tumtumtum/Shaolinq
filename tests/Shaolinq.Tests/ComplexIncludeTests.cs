@@ -315,7 +315,7 @@ namespace Shaolinq.Tests
 				.Take(10)
 				.ToList();
 
-			malls3.Count().ShouldBe(1);
+			malls3.Count().ShouldBe(10);
 			malls3[0].ShouldBe(malls2[1]);
 			malls3[1].ShouldBe(malls2[2]);
 
