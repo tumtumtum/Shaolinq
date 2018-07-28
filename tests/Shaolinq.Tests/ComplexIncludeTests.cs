@@ -362,5 +362,102 @@ namespace Shaolinq.Tests
 				malls2.ForEach(c => c.Shops.valuesVersion.ShouldNotBe(versionsByShops[c.Shops]));
 			}
 		}
+
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Test_Items_With_Options(bool useInclude)
+		{
+			using (var scope = NewTransactionScope())
+			{
+				IQueryable<Mall> queryable = this
+					.model
+					.Malls;
+
+				if (useInclude)
+				{
+					queryable = queryable.Include(c => c.Shops);
+				}
+
+				var malls = queryable
+					.OrderBy(c => c.Building.Name)
+					.ThenBy(c => c.Id)
+					.Skip(0)
+					.Take(15)
+					.ToList();
+
+				malls.Count.ShouldBe(15);
+				
+				if (useInclude)
+				{
+					malls.ForEach(c => c.Shops.HasItems.ShouldBeTrue());
+				
+					var queryCount = this.model.QueryAnalytics.QueryCount;
+
+					malls.ForEach(c => c.Shops.Items());
+
+					// Should not have made additional calls
+
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount);
+				}
+				else
+				{
+					malls.ForEach(c => c.Shops.HasItems.ShouldBeFalse());
+				
+					malls.ForEach(c => Should.Throw<InvalidOperationException>(() => c.Shops.Items()));
+
+					malls.ForEach(c => Should.Throw<InvalidOperationException>(() => c.Shops.Items(LoadOptions.EagerOnly)));
+
+					// Should make 15 additional calls
+					var queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items(true));
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount + 15);
+
+					// Should not make additional calls
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items());
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount);
+
+					// Should not make additional calls
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items(LoadOptions.EagerOrLazy));
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount);
+
+					// Should make 15 additional calls
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items(LoadOptions.LazyOnly));
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount + 15);
+
+					// Should make 15 additional calls
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items(LoadOptions.LazyOnly));
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount + 15);
+					
+					// Should fail
+					malls.ForEach(c => c.Shops.Invalidate());
+					malls.ForEach(c => Should.Throw<InvalidOperationException>(() => c.Shops.Items(LoadOptions.EagerOnly)));
+
+					// Should make 15 additional calls
+					malls.ForEach(c => c.Shops.Invalidate());
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items(LoadOptions.EagerOrLazy));
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount + 15);
+
+					// Should not make additional calls
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items());
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount);
+
+					// Should not make additional calls
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items(true));
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount);
+
+					// Should not make additional calls
+					queryCount = this.model.QueryAnalytics.QueryCount;
+					malls.ForEach(c => c.Shops.Items(false));
+					this.model.QueryAnalytics.QueryCount.ShouldBe(queryCount);
+				}
+			}
+		}
 	}
 }

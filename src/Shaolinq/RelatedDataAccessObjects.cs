@@ -88,24 +88,36 @@ namespace Shaolinq
 		/// Gets the eagerly loaded items in this collection or throws an <see cref="InvalidOperationException"/>
 		/// if the collection hasn't been eaglerly loaded or lazily loads the items and returns them if <paramref name="lazyLoadIfNecessary"/> is true.
 		/// </summary>
-		/// <param name="lazyLoadIfNecessary">If true then lazily loads the items if they haven't already been loaded otherwise throws an exception if the items haven't already been loaded.</param>
+		/// <param name="lazyLoadIfNecessary">If true then lazily loads the items if they haven't already been loaded (equivalent to using <see cref="LoadOptions.EagerOrLazy"/>) otherwise throws an exception if the items haven't already been loaded (equivalent to using <see cref="LoadOptions.EagerOnly"/>).</param>
 		/// <returns>
 		/// A read-only list of the items in this collection.
 		/// </returns>
 		public virtual IReadOnlyList<T> Items(bool lazyLoadIfNecessary)
 		{
+			return Items(lazyLoadIfNecessary ? LoadOptions.EagerOrLazy : LoadOptions.EagerOnly);
+		}
+
+
+		/// <summary>
+		/// Gets the items in this collection using specified <see cref="LoadOptions"/>.
+		/// </summary>
+		/// <param name="options">Options that specify how to return values</param>
+		/// <returns>The items</returns>
+		public virtual IReadOnlyList<T> Items(LoadOptions options)
+		{
+			var isExplicitlyLazy = (options & (LoadOptions.LazyOnly | LoadOptions.EagerOnly)) == LoadOptions.LazyOnly;
+			var notCachedAndLazy = (this.values == null && ((options & LoadOptions.LazyOnly) != 0));
+
+			if (isExplicitlyLazy || notCachedAndLazy)
+			{
+				this.values = this.ToList();
+			}
+
 			var retval = this.values;
 
 			if (retval == null)
 			{
-				if (lazyLoadIfNecessary)
-				{
-					this.values = this.ToList();
-				}
-				else
-				{
-					throw new InvalidOperationException("No cached values available");
-				}
+				throw new InvalidOperationException("No cached values available");
 			}
 
 			return retval;
