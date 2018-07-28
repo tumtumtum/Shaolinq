@@ -15,7 +15,7 @@ namespace Shaolinq
 	{
 		private List<T> values;
 		private HashSet<T> valuesSet;
-		private int valuesVersion;
+		internal int valuesVersion;
 		private IReadOnlyList<T> readOnlyValues;
 		private readonly TypeRelationshipInfo relationshipInfo;
 		public bool HasItems => this.values != null;

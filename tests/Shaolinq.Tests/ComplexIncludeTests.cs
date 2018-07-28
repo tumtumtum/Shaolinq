@@ -273,10 +273,94 @@ namespace Shaolinq.Tests
 				.Select(c => new { a1 = new { a2 = c } })
 				.Select(c => new { a3 = c})
 				.Select(c => c.a3.a1.a2.Name)
-				.Skip(0)
+				.Skip(1)
 				.Take(take);
 
 			var malls = queryable2.ToList();
+
+			malls.Count().ShouldBe(take);
+		}
+
+		[Test]
+		public void Test_Skip_Take_Consistent()
+		{
+			var queryable = this
+				.model
+				.Malls
+				.Include(c => c.Shops);
+
+			var malls = queryable
+				.OrderBy(c => c.Building.Name)
+				.ThenBy(c => c.Id)
+				.Skip(0)
+				.Take(1)
+				.ToList();
+
+			malls.Count().ShouldBe(1);
+
+			var malls2 = queryable
+				.OrderBy(c => c.Building.Name)
+				.ThenBy(c => c.Id)
+				.Skip(0)
+				.Take(3)
+				.ToList();
+
+			malls2.Count().ShouldBe(3);
+			malls2[0].ShouldBe(malls[0]);
+
+			var malls3 = queryable
+				.OrderBy(c => c.Building.Name)
+				.ThenBy(c => c.Id)
+				.Skip(1)
+				.Take(10)
+				.ToList();
+
+			malls3.Count().ShouldBe(1);
+			malls3[0].ShouldBe(malls2[1]);
+			malls3[1].ShouldBe(malls2[2]);
+
+			malls3.ForEach(c => c.Shops.Items().Count.ShouldBe(this.numberOfShopsPerMall[c.Name]));
+		}
+
+		[Test]
+		public void Test_Include_Same_RelatedDataAccessObjects_Twice_Same_Context()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var queryable = this
+					.model
+					.Malls
+					.Include(c => c.Shops);
+
+				var malls = queryable
+					.OrderBy(c => c.Building.Name)
+					.ThenBy(c => c.Id)
+					.Skip(0)
+					.Take(15)
+					.ToList();
+
+				malls.Count.ShouldBe(15);
+
+				malls.ForEach(c => c.Shops.Items().Count.ShouldBe(this.numberOfShopsPerMall[c.Name]));
+				var versionsByShops = malls.Select(c => c.Shops).ToDictionary(c => c, c => c.valuesVersion);
+
+				var queryable2 = this
+					.model
+					.Malls
+					.Include(c => c.Shops);
+
+				var malls2 = queryable2
+					.OrderBy(c => c.Building.Name)
+					.ThenBy(c => c.Id)
+					.Skip(0)
+					.Take(15)
+					.ToList();
+
+				malls2.Count.ShouldBe(15);
+
+				malls2.ForEach(c => c.Shops.Items().Count.ShouldBe(this.numberOfShopsPerMall[c.Name]));
+				malls2.ForEach(c => c.Shops.valuesVersion.ShouldNotBe(versionsByShops[c.Shops]));
+			}
 		}
 	}
 }
