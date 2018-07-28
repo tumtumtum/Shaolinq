@@ -141,23 +141,20 @@ namespace Shaolinq.Tests
 		[TestCase(false, 7)]
 		public void Test(bool useInclude, int take)
 		{
-			//IQueryable<Mall> queryable = this.model.Malls;
-
-
-			var queryable = this.model.Malls
-				.OrderBy(c => c.Building.Name)
-				.Where(c => c.Building.Name != "")
-				.Select(c => new { c, d = c } )
-				.Select(c => new { e = c.c } )
-				.Skip(0)
-				.Take(take); // Take is essential for causing a failure
+			IQueryable<Mall> queryable = this.model.Malls;
 
 			if (useInclude)
 			{
-				queryable = queryable.Include(c => c.e.Shops);
+				queryable = queryable.Include(c => c.Shops);
 			}
 
-			var malls = queryable.ToList().Select(c => c.e);
+			queryable  = queryable
+				.OrderBy(c => c.Building.Name)
+				.Where(c => c.Building.Name != "")
+				.Skip(0)
+				.Take(take); // Take is essential for causing a failure
+
+			var malls = queryable.ToList();
 
 			foreach (var mall in malls.OrderBy(c => c.Name))
 			{
@@ -175,6 +172,112 @@ namespace Shaolinq.Tests
 					Console.WriteLine($"{shop.Name}");
 				}
 			}
+		}
+
+		[TestCase(true, 10)]
+		[TestCase(false, 10)]
+		[TestCase(true, 7)]
+		[TestCase(false, 7)]
+		public void Test2(bool useInclude, int take)
+		{
+			IQueryable<Mall> queryable = this.model.Malls;
+
+			if (useInclude)
+			{
+				queryable = queryable.Include(c => c.Shops);
+			}
+
+			var queryable2  = queryable
+				.OrderBy(c => c.Building.Name)
+				.Select(c => c)
+				.Where(c => c.Building.Name != "")
+				.Skip(0)
+				.Take(take); // Take is essential for causing a failure
+
+			var malls = queryable2.ToList();
+
+			foreach (var mall in malls.OrderBy(c => c.Name))
+			{
+				Console.WriteLine($"{mall.Name} [expected shop count: {numberOfShopsPerMall[mall.Name]}]");
+
+				var shops = useInclude ? mall.Shops.Items() : mall.Shops.ToList();
+
+				shops.Count.ShouldBe(numberOfShopsPerMall[mall.Name]);
+				shops.Count.ShouldBe(mall.Shops.Count());
+
+				shops.OrderBy(c => c.Name).Select((c,i) => new { name = c.Name, i = i + 1 }).ShouldAllBe(c => c.name.StartsWith($"Shop {c.i:00}"));
+
+				foreach (var shop in shops)
+				{
+					Console.WriteLine($"{shop.Name}");
+				}
+			}
+		}
+
+		[TestCase(true, 10)]
+		[TestCase(false, 10)]
+		[TestCase(true, 7)]
+		[TestCase(false, 7)]
+		[Ignore("Not working yet")]
+		public void Test3(bool useInclude, int take)
+		{
+			IQueryable<Mall> queryable = this.model.Malls;
+
+			if (useInclude)
+			{
+				queryable = queryable.Include(c => c.Shops);
+			}
+
+			var queryable2  = queryable
+				.OrderBy(c => c.Building.Name)
+				.Select(c => new { a1 = new { a2 = c } })
+				.Select(c => new { a3 = c.a1})
+				.Where(c => c.a3.a2.Building.Name != "")
+				.Skip(0)
+				.Take(take); // Take is essential for causing a failure
+
+			var malls = queryable2.ToList().Select(c => c.a3.a2);
+
+			foreach (var mall in malls.OrderBy(c => c.Name))
+			{
+				Console.WriteLine($"{mall.Name} [expected shop count: {numberOfShopsPerMall[mall.Name]}]");
+
+				var shops = useInclude ? mall.Shops.Items() : mall.Shops.ToList();
+
+				shops.Count.ShouldBe(numberOfShopsPerMall[mall.Name]);
+				shops.Count.ShouldBe(mall.Shops.Count());
+
+				shops.OrderBy(c => c.Name).Select((c,i) => new { name = c.Name, i = i + 1 }).ShouldAllBe(c => c.name.StartsWith($"Shop {c.i:00}"));
+
+				foreach (var shop in shops)
+				{
+					Console.WriteLine($"{shop.Name}");
+				}
+			}
+		}
+
+		[TestCase(true, 10)]
+		[TestCase(false, 10)]
+		[TestCase(true, 7)]
+		[TestCase(false, 7)]
+		public void Test4(bool useInclude, int take)
+		{
+			IQueryable<Mall> queryable = this.model.Malls;
+
+			if (useInclude)
+			{
+				queryable = queryable.Include(c => c.Shops);
+			}
+
+			var queryable2  = queryable
+				.OrderBy(c => c.Building.Name)
+				.Select(c => new { a1 = new { a2 = c } })
+				.Select(c => new { a3 = c})
+				.Select(c => c.a3.a1.a2.Name)
+				.Skip(0)
+				.Take(take);
+
+			var malls = queryable2.ToList();
 		}
 	}
 }

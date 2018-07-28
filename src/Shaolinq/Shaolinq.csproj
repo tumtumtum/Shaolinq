@@ -222,6 +222,7 @@
     <Compile Include="Persistence\Linq\Expressions\SqlVariableDeclarationExpression.cs" />
     <Compile Include="Persistence\Linq\ObjectProjectionAsyncEnumerator.cs" />
     <Compile Include="Persistence\Linq\Expressions\SqlConstantPlaceholderComparer.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\ParameterPathFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlAliasReferenceReplacer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlOrderByThenByCombiner.cs" />
     <Compile Include="Persistence\Linq\Optimizers\InterfaceAccessNormalizer.cs" />
@@ -253,6 +254,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlProjectionSelectExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlPropertyAccessToSelectAmender.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlRedundantSubqueryFinder.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\ShiftSubCollectionIncludesOutsideSkipTakeAmender.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlTupleOrAnonymousTypeComparisonExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlNullComparisonCoalescer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlOuterQueryReferencePlaceholderSubstitutor.cs" />
@@ -293,7 +295,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlExistsSubqueryOptimizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlExpressionFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\IncludedPropertyInfo.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\SqlIncludeExpander.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\IncludeExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObject.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedRelatedObjectPropertyGathererResults.cs" />
     <Compile Include="Persistence\Linq\PropertyPath.cs" />
