@@ -1,17 +1,16 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Platform.Reflection;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
 	/// <summary>
-	/// Moves Include statements that include sub collections outside of Skip/Take if possible otherwise eliminate them altogether.
+	/// Moves Include statements that include sub collections outside of Skip/Take if possible otherwise eliminate the include altogether.
 	/// </summary>
 	/// <remarks>
 	/// <code>
@@ -19,15 +18,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	/// ->
 	/// query.Skip(1).Take(10).Include(c => c.Shops)
 	/// </code>
+	/// Test: ComplexIncludeTests.Test3
 	/// </remarks>
 	public class ShiftSubCollectionIncludesOutsideSkipTakeAmender
 		: SqlExpressionVisitor
 	{
+		public LambdaExpression selector;
 		private bool insideSkipTake = false;
-		private List<MemberInfo> memberPath = new List<MemberInfo>();
 		public readonly List<LambdaExpression> includeSelectors = new List<LambdaExpression>();
-
-		public static Expression Amend(Expression expression)
+		
+		public static Expression Amend(Expression expression)					 
 		{
 			return new ShiftSubCollectionIncludesOutsideSkipTakeAmender().Visit(expression);
 		}
@@ -68,67 +68,79 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 			else if (methodCallExpression.Method.Name == "Select" && this.insideSkipTake)
 			{
-				var path = ParameterPathFinder.Find(methodCallExpression.Arguments[1].StripQuotes());
+				var lambda = methodCallExpression.Arguments[1].StripQuotes();
 
-				if (path == null)
+				var saveSelector = this.selector;
+
+				if (this.selector != null)
 				{
-					var saveMemberPath = this.memberPath;
+					var body = SqlExpressionReplacer.Replace(this.selector.Body, this.selector.Parameters[0], lambda.Body);
 
-					// Just remove any high up includes
-
-					this.memberPath = null;
-					
-					try
-					{
-						return base.VisitMethodCall(methodCallExpression);
-					}
-					finally
-					{
-						this.memberPath = saveMemberPath;
-					}
+					this.selector = Expression.Lambda(body, lambda.Parameters[0]);
 				}
 				else
 				{
-					var saveMemberPath = this.memberPath;
+					this.selector = lambda;
+				}
 
-					try
-					{
-						this.memberPath?.AddRange(path);
-
-						return base.VisitMethodCall(methodCallExpression);
-					}
-					finally
-					{
-						this.memberPath = saveMemberPath;
-					}
+				try
+				{
+					return base.VisitMethodCall(methodCallExpression);
+				}
+				finally
+				{
+					this.selector = saveSelector;
 				}
 			}
 			else if (methodCallExpression.Method.Name == "Include" && this.insideSkipTake)
 			{
-				// Remove the include if it's not possible to include after the select
+				var source = Visit(methodCallExpression.Arguments[0]);
 
-				if (this.memberPath == null)
+				List<MemberInfo> path;
+
+				if (this.selector == null)
 				{
-					return Visit(methodCallExpression.Arguments[0]);
+					path = new List<MemberInfo>();
+				}
+				else
+				{
+					path = ParameterPathFinder.Find(this.selector);
 				}
 
-				// Create a new include selector adjusting for any additional member accesses necessary because
-				// of intervening Select statements from the move
+				if (path == null)
+				{
+					ParameterPathFinder.Find(this.selector);
+
+					return source;
+				}
+
+				bool IsRelatedObjectsMemberExpression(Expression expression)
+				{
+					return expression is MemberExpression memberExpression
+							&& memberExpression.Member.GetMemberReturnType().IsGenericType
+							&& memberExpression.Member.GetMemberReturnType().GetGenericTypeDefinition() == typeof(RelatedDataAccessObjects<>);
+				}
 
 				var includeSelector = methodCallExpression.Arguments[1].StripQuotes();
-				
-				var oldParam = includeSelector.Parameters[0];
-				var oldBody = includeSelector.Body;
-				
-				var newParam = this.memberPath.Count > 0 ? Expression.Parameter(this.memberPath.First().DeclaringType) : oldParam;
+				var includesRelatedDataAccessObjects = SqlExpressionFinder.FindExists(includeSelector.Body, IsRelatedObjectsMemberExpression);
 
-				var replacement = this.memberPath.Aggregate((Expression)newParam, Expression.MakeMemberAccess, c => c);
+				if (includesRelatedDataAccessObjects)
+				{
+					// Create a new include selector adjusting for any additional member accesses necessary because of select projections
 
-				var newBody = SqlExpressionReplacer.Replace(oldBody, oldParam, replacement);
+					var oldParam = includeSelector.Parameters[0];
+					var oldBody = includeSelector.Body;
 
-				this.includeSelectors.Add(Expression.Lambda(newBody, newParam));
+					var newParam = path.Count > 0 ? Expression.Parameter(path.First().DeclaringType) : oldParam;
 
-				return this.Visit(methodCallExpression.Arguments[0]);
+					var replacement = path.Aggregate((Expression)newParam, Expression.MakeMemberAccess, c => c);
+
+					var newBody = SqlExpressionReplacer.Replace(oldBody, oldParam, replacement);
+
+					this.includeSelectors.Add(Expression.Lambda(newBody, newParam));
+				}
+
+				return source;
 			}
 
 			return base.VisitMethodCall(methodCallExpression);

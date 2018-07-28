@@ -295,7 +295,7 @@
     <Compile Include="Persistence\Linq\Optimizers\SqlExistsSubqueryOptimizer.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlExpressionFinder.cs" />
     <Compile Include="Persistence\Linq\Optimizers\IncludedPropertyInfo.cs" />
-    <Compile Include="Persistence\Linq\Optimizers\IncludeExpander.cs" />
+    <Compile Include="Persistence\Linq\Optimizers\SqlIncludeExpander.cs" />
     <Compile Include="Persistence\Linq\Optimizers\ReferencedRelatedObject.cs" />
     <Compile Include="Persistence\Linq\Optimizers\SqlReferencedRelatedObjectPropertyGathererResults.cs" />
     <Compile Include="Persistence\Linq\PropertyPath.cs" />

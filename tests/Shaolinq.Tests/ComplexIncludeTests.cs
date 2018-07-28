@@ -184,7 +184,7 @@ namespace Shaolinq.Tests
 
 			if (useInclude)
 			{
-				queryable = queryable.Include(c => c.Shops);
+				queryable = queryable.Include(c => c.Shops).Include(c => c.Building);
 			}
 
 			var queryable2  = queryable
@@ -218,7 +218,6 @@ namespace Shaolinq.Tests
 		[TestCase(false, 10)]
 		[TestCase(true, 7)]
 		[TestCase(false, 7)]
-		[Ignore("Not working yet")]
 		public void Test3(bool useInclude, int take)
 		{
 			IQueryable<Mall> queryable = this.model.Malls;
@@ -231,7 +230,7 @@ namespace Shaolinq.Tests
 			var queryable2  = queryable
 				.OrderBy(c => c.Building.Name)
 				.Select(c => new { a1 = new { a2 = c } })
-				.Select(c => new { a3 = c.a1})
+				.Select(c => new { a3 = c.a1 })
 				.Where(c => c.a3.a2.Building.Name != "")
 				.Skip(0)
 				.Take(take); // Take is essential for causing a failure

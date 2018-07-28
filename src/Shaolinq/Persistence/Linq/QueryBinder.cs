@@ -48,7 +48,7 @@ namespace Shaolinq.Persistence.Linq
 			expression = InterfaceAccessNormalizer.Normalize(dataAccessModel.TypeDescriptorProvider, expression);
 			expression = SqlOrderByThenByCombiner.Combine(expression);
 			expression = ShiftSubCollectionIncludesOutsideSkipTakeAmender.Amend(expression);
-			expression = IncludeExpander.Expand(expression);
+			expression = SqlIncludeExpander.Expand(expression);
 			var joinExpanderResults = RelatedPropertiesJoinExpander.Expand(dataAccessModel, expression);
 
 			expression = joinExpanderResults.ProcessedExpression;

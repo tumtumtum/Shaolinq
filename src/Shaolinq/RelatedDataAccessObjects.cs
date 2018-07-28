@@ -59,6 +59,10 @@ namespace Shaolinq
 			return this.values;
 		}
 
+		/// <summary>
+		/// Invalidates any eagerly loaded items.
+		/// </summary>
+		/// <returns></returns>
 		public virtual RelatedDataAccessObjects<T> Invalidate()
 		{
 			this.values = null;
@@ -69,15 +73,39 @@ namespace Shaolinq
 			return this;
 		}
 
+		/// <summary>
+		/// Gets the eagerly loaded items in this collection or throws an <see cref="InvalidOperationException"/> if the collection hasn't been eaglerly loaded.
+		/// </summary>
+		/// <returns>
+		/// A read-only list of the items in this collection.
+		/// </returns>
 		public virtual IReadOnlyList<T> Items()
 		{
-			var error = "No cached values available";
+			return Items(false);
+		}
 
+		/// <summary>
+		/// Gets the eagerly loaded items in this collection or throws an <see cref="InvalidOperationException"/>
+		/// if the collection hasn't been eaglerly loaded or lazily loads the items and returns them if <paramref name="lazyLoadIfNecessary"/> is true.
+		/// </summary>
+		/// <param name="lazyLoadIfNecessary">If true then lazily loads the items if they haven't already been loaded otherwise throws an exception if the items haven't already been loaded.</param>
+		/// <returns>
+		/// A read-only list of the items in this collection.
+		/// </returns>
+		public virtual IReadOnlyList<T> Items(bool lazyLoadIfNecessary)
+		{
 			var retval = this.values;
 
 			if (retval == null)
 			{
-				throw new InvalidOperationException(error);
+				if (lazyLoadIfNecessary)
+				{
+					this.values = this.ToList();
+				}
+				else
+				{
+					throw new InvalidOperationException("No cached values available");
+				}
 			}
 
 			return retval;

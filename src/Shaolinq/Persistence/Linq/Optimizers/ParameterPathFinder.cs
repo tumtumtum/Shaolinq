@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 Thong Nguyen (tumtumtum@gmail.com)
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,8 +9,14 @@ using System.Runtime.CompilerServices;
 
 namespace Shaolinq.Persistence.Linq.Optimizers
 {
+	/// <summary>
+	/// Finds the property/field path required to get to the parameter of a selector.
+	/// </summary>
+	/// <remarks>
+	/// <code>c => new { a = new { b = c } } -> [member(a), member(b)] </code>
+	/// </remarks>
 	public class ParameterPathFinder
-		: Platform.Linq.ExpressionVisitor
+		: SqlExpressionVisitor
 	{
 		private List<MemberInfo> result;
 		private readonly ParameterExpression parameter;
@@ -59,6 +67,17 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 
 		protected override Expression VisitMemberAccess(MemberExpression memberExpression)
 		{
+			var source = memberExpression.Expression.StripConvert();
+
+			if (source is NewExpression newExpression && IsAnonymousType(newExpression.Type))
+			{
+				var param = newExpression.Constructor.GetParameters().First(c => c.Name == memberExpression.Member.Name);
+
+				source = newExpression.Arguments[param.Position];
+
+				this.Visit(source);
+			}
+
 			return memberExpression;
 		}
 
@@ -81,20 +100,6 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			}
 
 			return base.VisitNew(expression);
-		}
-
-		protected override MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
-		{
-			this.pathStack.Push(assignment.Member);
-
-			try
-			{
-				return base.VisitMemberAssignment(assignment);
-			}
-			finally
-			{
-				this.pathStack.Pop();
-			}
 		}
 	}
 }
