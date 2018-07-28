@@ -59,8 +59,6 @@ namespace Shaolinq.Tests
 			}
 			else
 			{
-				retval = SqlServerConfiguration.Create(connectionString);
-
 				if (!databaseRegex.IsMatch(connectionString))
 				{
 					connectionString = $"Database={databaseName};{connectionString}";
@@ -69,6 +67,8 @@ namespace Shaolinq.Tests
 				{
 					connectionString = databaseRegex.Replace(connectionString, $"Database={databaseName};");
 				}
+
+				retval = SqlServerConfiguration.Create(connectionString);
 			}
 
 			retval.AlwaysSubmitDefaultValues = this.alwaysSubmitDefaultValues;
