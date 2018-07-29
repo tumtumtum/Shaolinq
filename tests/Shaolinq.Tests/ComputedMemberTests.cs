@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
 
@@ -53,6 +54,13 @@ namespace Shaolinq.Tests
 			Assert.AreNotSame(cat, cat3);
 			Assert.AreEqual(id, cat3.Id);
 			Assert.AreEqual(id, cat3.Id);
+		}
+
+		[Test]
+		public void Test_GetReference_With_Implicit_Conversion_To_PrimaryKey()
+		{
+			this.model.Cats.GetReference(1.ToString());
+			this.model.Papers.GetReference("Hello");
 		}
 	}
 }

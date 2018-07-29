@@ -74,7 +74,7 @@ namespace Shaolinq
 		private readonly Dictionary<string, SqlDatabaseContextsInfo> sqlDatabaseContextsByCategory = new Dictionary<string, SqlDatabaseContextsInfo>(StringComparer.InvariantCultureIgnoreCase);
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>> inflateFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, DataAccessObject>>();
 		private Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>> inflateAsyncFuncsByType = new Dictionary<RuntimeTypeHandle, Func<DataAccessObject, CancellationToken, Task<DataAccessObject>>>();
-		private Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>> objectPropertyValuesByAnonymousKeyFuncByType = new Dictionary<RuntimeTypeHandle, Func<object, ObjectPropertyValue[]>>();
+		private Dictionary<Pair<RuntimeTypeHandle, RuntimeTypeHandle>, Func<object, ObjectPropertyValue[]>> objectPropertyValuesByAnonymousKeyFuncByType = new Dictionary<Pair<RuntimeTypeHandle, RuntimeTypeHandle>, Func<object, ObjectPropertyValue[]>>();
 		private Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>> objectPropertyValuesByColumnValuesFuncByType = new Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>>();
 		private Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>> objectPropertyValuesByPrimaryKeyValuesFuncByType = new Dictionary<RuntimeTypeHandle, Func<object[], ObjectPropertyValue[]>>();
 		
@@ -538,29 +538,28 @@ namespace Shaolinq
 
 		protected internal ObjectPropertyValue[] GetObjectPropertyValues<K>(Type type, K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 		{
-			if (Equals(primaryKey, default(K)) && typeof(K).IsClass)
+			if (primaryKey == null)
 			{
 				throw new ArgumentNullException(nameof(primaryKey));
 			}
 
-			var idType = primaryKey.GetType();
-			var primaryKeyTypeHandle = typeof(K).TypeHandle;
+			var key = new Pair<RuntimeTypeHandle, RuntimeTypeHandle>(type.TypeHandle, Type.GetTypeHandle(primaryKey));
 
-			if (!this.objectPropertyValuesByAnonymousKeyFuncByType.TryGetValue(primaryKeyTypeHandle, out var func))
+			if (!this.objectPropertyValuesByAnonymousKeyFuncByType.TryGetValue(key, out var func))
 			{
 				var isSimpleKey = false;
-				var typeOfPrimaryKey = Type.GetTypeFromHandle(primaryKeyTypeHandle);
+				var typeOfPrimaryKey = primaryKey.GetType();
 				var typeDescriptor = this.TypeDescriptorProvider.GetTypeDescriptor(type);
 				var idPropertyType = typeDescriptor.PrimaryKeyProperties[0].PropertyType;
 
-				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(idType) || (idPropertyType.IsAssignableFrom(idType) && primaryKeyType == PrimaryKeyType.Auto))
+				if (primaryKeyType == PrimaryKeyType.Single || TypeDescriptor.IsSimpleType(typeOfPrimaryKey) || (typeDescriptor.PrimaryKeyCount == 1 && idPropertyType.IsAssignableFrom(typeOfPrimaryKey) && primaryKeyType == PrimaryKeyType.Auto))
 				{
 					isSimpleKey = true;
 				}
 
 				if (isSimpleKey && typeDescriptor.PrimaryKeyCount != 1)
 				{
-					throw new InvalidOperationException("Composite primary key expected");
+					throw new InvalidOperationException($"Composite primary key expected for type {type} instead of key of type {typeOfPrimaryKey}");
 				}
 
 				var parameter = Expression.Parameter(typeof(object));
@@ -574,7 +573,7 @@ namespace Shaolinq
 				{
 					var properties = typeDescriptor
 						.PrimaryKeyDerivableProperties
-						.Where(c => idType.GetMostDerivedProperty(c.PropertyName) != null)
+						.Where(c => typeOfPrimaryKey.GetMostDerivedProperty(c.PropertyName) != null)
 						.ToList();
 
 					replacementPrimaryKeyValues = properties.ToDictionary
@@ -648,7 +647,7 @@ namespace Shaolinq
 
 				func = (Func<object, ObjectPropertyValue[]>)lambdaExpression.Compile();
 
-				this.objectPropertyValuesByAnonymousKeyFuncByType = this.objectPropertyValuesByAnonymousKeyFuncByType.Clone(primaryKeyTypeHandle, func);
+				this.objectPropertyValuesByAnonymousKeyFuncByType = this.objectPropertyValuesByAnonymousKeyFuncByType.Clone(key, func);
 			}
 
 			return func(primaryKey);
