@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Shaolinq.Persistence;
+using Platform;
 
 namespace Shaolinq
 {
@@ -17,23 +18,13 @@ namespace Shaolinq
 		{
 			lock (this.hooksLock)
 			{
-				if (this.hooks?.Contains(value) == true)
-				{
-					return;
-				}
-
 				if (this.hooks == null)
 				{
 					this.hooks = new [] { value };
 				}
 				else
 				{
-					var array = new IDataAccessModelHook[this.hooks.Length + 1];
-
-					Array.Copy(this.hooks, array, this.hooks.Length);
-					this.hooks[this.hooks.Length] = value;
-
-					this.hooks = array;
+					this.hooks = this.hooks.Where(c => c != value).Concat(value).ToArray();
 				}
 			}
 		}

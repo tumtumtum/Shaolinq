@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Platform;
 using Platform.Reflection;
+using Shaolinq.Persistence.Computed;
 
 namespace Shaolinq.Persistence
 {
@@ -324,7 +325,7 @@ namespace Shaolinq.Persistence
 			}
 
 			ValidateIndexes();
-			ValidateOrgnizationIndex();
+			ValidateOrganizationIndex();
 		}
 
 		private void ValidateIndexes()
@@ -333,9 +334,28 @@ namespace Shaolinq.Persistence
 			{
 				throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} contains class-defined indexes with no defined properties.");
 			}
+
+			var unknownProperties = this.IndexAttributes.SelectMany(c => c.Properties.Where(d => this.Type.GetProperty(d.Split(':')[0], BindingFlags.Public | BindingFlags.Instance)== null));
+			
+			if (unknownProperties.Any())
+			{
+				throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} contains a class-defined index that references unknown properties '{string.Join(",", unknownProperties)}'");
+			}
+
+			foreach (var attribute in this.IndexAttributes.Where(c => c.Condition != null && c.Condition.Trim().Length > 0))
+			{
+				try
+				{
+					ComputedExpressionParser.Parse(attribute.Condition, null, null, null);
+				}
+				catch (Exception e)
+				{
+					throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} contains a class-defined index with a condition that failed to parse: '{attribute.Condition}'");
+				}
+			}
 		}
 
-		private void ValidateOrgnizationIndex()
+		private void ValidateOrganizationIndex()
 		{
 			var properties = this.PersistedProperties
 				.Where(c => c.OrganizationIndexAttribute != null)

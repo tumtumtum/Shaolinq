@@ -10,6 +10,14 @@ namespace Shaolinq.Tests
 	[TestFixture]
 	public class ComputedExpressionParserTests
 	{
+		public static class StaticUtils
+		{
+			public static int Add(int x, int y)
+			{
+				return x + y;
+			}
+		}
+
 		public static int Bar()
 		{
 			return 3;
@@ -17,6 +25,14 @@ namespace Shaolinq.Tests
 
 		public class TestObject
 		{
+			public class TestStaticUtils
+			{
+				public static int Subtract(int x, int y)
+				{
+					return x - y;
+				}
+			}
+
 			public int A { get; set; }
 			public int B { get; set; }
 
@@ -69,12 +85,70 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
-		public void TestParse4()
+		public void TestParse4a()
 		{
 			var property = typeof(TestObject).GetProperty("A");
-			var func = ComputedExpressionParser.Parse(new StringReader("A = TestObject.Make(this, 1).GetHashCode()"), property, null, property.PropertyType).Compile();
+			var func = ComputedExpressionParser.Parse(new StringReader("A = Shaolinq.Tests.ComputedExpressionParserTests.TestObject.Make(this, 1).GetHashCode()"), property, null, property.PropertyType).Compile();
 
 			Assert.AreEqual("1".GetHashCode(), func.DynamicInvoke(new TestObject()));
+		}
+
+		[Test]
+		public void TestParse4b()
+		{
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("A = Make(this, 1).GetHashCode()"), property, null, property.PropertyType).Compile();
+
+			Assert.AreEqual("1".GetHashCode(), func.DynamicInvoke(new TestObject()));
+		}
+
+		[Test]
+		public void TestParse5()
+		{
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("Shaolinq.Tests.ComputedExpressionParserTests.StaticUtils.Add(B, 7)"), property, null, property.PropertyType).Compile();
+
+			Assert.AreEqual(17, func.DynamicInvoke(new TestObject { B = 10 }));
+		}
+
+		[Test]
+		public void TestParse6()
+		{
+			Assert.Throws<InvalidOperationException>
+			(() =>
+			{
+				var property = typeof(TestObject).GetProperty("A");
+				var func = ComputedExpressionParser.Parse(new StringReader("StaticUtils.Add(B, 7)"), property, null, property.PropertyType).Compile();
+
+				Assert.AreEqual(17, func.DynamicInvoke(new TestObject { B = 10 }));
+			});
+		}
+
+		[Test]
+		public void TestParse7()
+		{
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("Shaolinq.Tests.ComputedExpressionParserTests.StaticUtils.Add(B, 7)"), property, new [] { typeof(StaticUtils) }, property.PropertyType).Compile();
+
+			Assert.AreEqual(17, func.DynamicInvoke(new TestObject { B = 10 }));
+		}
+
+		[Test]
+		public void TestParse8()
+		{
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("Add(B, 7)"), property, new [] { typeof(StaticUtils) }, property.PropertyType).Compile();
+
+			Assert.AreEqual(17, func.DynamicInvoke(new TestObject { B = 10 }));
+		}
+
+		[Test]
+		public void TestParse9()
+		{
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("TestStaticUtils.Subtract(B, 7)"), property, null, property.PropertyType).Compile();
+
+			Assert.AreEqual(3, func.DynamicInvoke(new TestObject { B = 10 }));
 		}
 	}
 }

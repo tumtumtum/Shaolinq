@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
+using Shouldly;
 
 namespace Shaolinq.Tests
 {
@@ -42,6 +43,16 @@ namespace Shaolinq.Tests
 			this.hook = new DataModelHook();
 
 			this.model.AddHook(this.hook);
+			this.model.hooks.Length.ShouldBe(1);
+
+			this.model.AddHook(this.hook);
+			this.model.hooks.Length.ShouldBe(1);
+
+			this.model.RemoveHook(this.hook);
+			this.model.hooks.ShouldBeNull();
+
+			this.model.AddHook(this.hook);
+			this.model.hooks.Length.ShouldBe(1);
 		}
 
 		[Test]

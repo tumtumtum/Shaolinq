@@ -370,15 +370,15 @@ namespace Shaolinq.Persistence.Computed
 
 			Consume();
 
-			if (target.NodeType == ExpressionType.Constant && target.Type == typeof(TypeHolder))
+			if (target is ContainerExpression container)
 			{
-				var type = ((target as ConstantExpression).Value as TypeHolder).Type;
+				var type = container.Type;
 
 				var method = FindMatchingMethod(type, methodName, arguments.Select(c => c.Type).ToArray(), true);
 
 				if (method == null)
 				{
-					throw new InvalidOperationException($"Unable to find static method named '{methodName}' in type {type}");
+					throw new InvalidOperationException($"Unable to find static method named '{methodName}' on type {type}");
 				}
 
 				return Expression.Call(method, arguments.ToArray());
@@ -389,7 +389,7 @@ namespace Shaolinq.Persistence.Computed
 
 				if (method == null)
 				{
-					throw new InvalidOperationException($"Unable to find instance method named '{methodName}' in type {target.Type.FullName}");
+					throw new InvalidOperationException($"Unable to find method named '{methodName}'");
 				}
 
 				return Expression.Call(target, method, arguments.ToArray());
@@ -446,17 +446,17 @@ namespace Shaolinq.Persistence.Computed
 
 		private bool TryGetType(string name, out Type value)
 		{
+			if (this.referencedTypesByName.TryGetValue(name, out value))
+			{
+				return true;
+			}
+
 			var type = Type.GetType(name);
 
 			if (type != null)
 			{
 				value = type;
 
-				return true;
-			}
-
-			if (!name.Contains(".") && this.referencedTypesByName.TryGetValue(name, out value))
-			{
 				return true;
 			}
 
@@ -467,18 +467,114 @@ namespace Shaolinq.Persistence.Computed
 				return true;
 			}
 
-			value = null;
+			Assembly assembly2;
 
-			return false;
+			try
+			{
+				//value = AppDomain.CurrentDomain.GetAssemblies().SelectMany(c => c.DefinedTypes).FirstOrDefault(c => c.FullName == name);
+
+				foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+				{
+					assembly2 = assembly;
+
+					value = assembly.DefinedTypes.FirstOrDefault(c => c.FullName == name);
+
+					if (value != null)
+					{
+						break;
+					}
+				}
+
+				if (value != null)
+				{
+					return true;
+				}
+
+				value = null;
+
+				return false;
+			}
+			catch (Exception e)
+			{
+				throw;
+			}
 		}
 
-		private class TypeHolder
-		{
-			public Type Type { get; }
+		private HashSet<string> namespaces;
 
-			public TypeHolder(Type type)
+		private bool DoesNamespaceResolve(string fullNamespace)
+		{
+			if (this.namespaces == null)
+			{
+				this.namespaces = new HashSet<string>();
+
+				this.referencedTypesByName.Select(c => c.Value.Namespace).ForEach(c => this.namespaces.Add(c));
+				try
+				{
+					AppDomain.CurrentDomain.GetAssemblies().SelectMany(c => c.DefinedTypes).ForEach(c => this.namespaces.Add(c.Namespace));
+				}
+				catch (Exception e)
+				{
+					throw;
+				}
+			}
+
+			return this.namespaces.Contains(fullNamespace);
+		}
+
+		private bool DoesStaticMethodResolve(string identifier, out Type containingType)
+		{
+			var method = this.targetObject.Type.GetMethod(identifier, BindingFlags.Public | BindingFlags.Static);
+
+			if (method != null)
+			{
+				containingType = this.targetObject.Type;
+
+				return true;
+			}
+
+			var staticClasses = this.referencedTypesByName.Select(c => c.Value).Where(c => c.IsAbstract && c.IsSealed);
+
+			var matchingMethods = staticClasses.SelectMany(c => c.GetMethods(BindingFlags.Static | BindingFlags.Public).Where(d => d.Name == identifier)).ToList();
+
+			if (matchingMethods.Count == 0)
+			{
+				containingType = null;
+
+				return false;
+			}
+
+			if (matchingMethods.Count > 1)
+			{
+				containingType = null;
+
+				throw new InvalidOperationException($"Ambiguous match for method named '{identifier}'");
+			}
+
+			containingType = matchingMethods[0].DeclaringType;
+
+			return true;
+		}
+		
+		private class ContainerExpression
+			: Expression
+		{
+			public string Namespace { get; }
+			public override Type Type { get; }
+
+			public ContainerExpression(string @namespace)
+			{
+				this.Namespace = @namespace;
+			}
+
+			public ContainerExpression(Type type)
 			{
 				this.Type = type;
+			}
+
+			public ContainerExpression Append(string identifier)
+			{
+				return new ContainerExpression(this.Namespace + "." + identifier);
 			}
 		}
 
@@ -495,7 +591,6 @@ namespace Shaolinq.Persistence.Computed
 				return retval;
 			}
 
-			var identifierStack = new Stack<string>();
 			Expression current = null;
 
 			if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@this)
@@ -520,7 +615,6 @@ namespace Shaolinq.Persistence.Computed
 
 				return Expression.Constant(false);
 			}
-
 			else if (this.token == ComputedExpressionToken.Keyword && this.tokenizer.CurrentKeyword == ComputedExpressionKeyword.@null)
 			{
 				Consume();
@@ -538,70 +632,110 @@ namespace Shaolinq.Persistence.Computed
 
 					if (this.token == ComputedExpressionToken.LeftParen)
 					{
-						current = current ?? this.targetObject;
+						if (current is ContainerExpression containerExpression && containerExpression.Namespace != null)
+						{
+							throw new InvalidOperationException($"Namespace '{containerExpression.Namespace}' not expected");
+						}
+
+						// Calling a static method on a referenced type is supported as if the type was imported 'using static'
+
+						if (current == null)
+						{
+							if (DoesStaticMethodResolve(identifier, out var type))
+							{
+								current = new ContainerExpression(type);
+							}
+							else
+							{
+								current = this.targetObject;
+							}
+						}
 
 						current = ParseMethodCall(current, identifier);
 					}
+					else if (identifier == "value" && current == null)
+					{
+						current = Expression.Property(this.targetObject, this.propertyInfo);
+					}
+					else if (current is ContainerExpression container)
+					{
+						if (container.Type != null)
+						{
+							var member = current.Type.GetMember(identifier, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault();
+
+							if (member is PropertyInfo || member is FieldInfo)
+							{
+								current = Expression.MakeMemberAccess(null, member);
+							}
+							else if (member is Type nestedType)
+							{
+								current = new ContainerExpression(nestedType);
+							}
+							else
+							{
+								throw new InvalidOperationException($"Unable to resolve '{identifier}' on type '{container.Type}'");
+							}
+						}
+						else
+						{
+							var s = container.Namespace + "." + identifier;
+
+							if (TryGetType(s, out var type))
+							{
+								current = new ContainerExpression(type);
+							}
+							else if (DoesNamespaceResolve(s))
+							{
+								current = container.Append(identifier);
+							}
+							else
+							{
+								TryGetType(s, out var type2);
+
+								throw new InvalidOperationException($"Unable to resolve identifier '{s}'");
+							}
+						}
+					}
+					else if (current != null)
+					{
+						var member = current.Type.GetMember(identifier, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SingleOrDefault();
+
+						if (member is PropertyInfo || member is FieldInfo)
+						{
+							current = Expression.MakeMemberAccess(current, member);
+						}
+						else if (member is Type nestedType)
+						{
+							current = new ContainerExpression(nestedType);
+						}
+						else
+						{
+							throw new InvalidOperationException($"Unable to resolve property '{identifier}' on type '{current.Type}'");
+						}
+					}
 					else
 					{
-						var bindingFlags = BindingFlags.Public;
-						var currentWasNull = current == null;
+						var member = this.targetObject.Type.GetMember(identifier, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SingleOrDefault();
 
-						current = current ?? this.targetObject;
-						
-						if (current.NodeType == ExpressionType.Constant && current.Type == typeof(TypeHolder))
+						if (member is PropertyInfo || member is FieldInfo)
 						{
-							bindingFlags |= BindingFlags.Static;
+							current = Expression.MakeMemberAccess(this.targetObject, member);
+						}
+						else if (member is Type nestedType)
+						{
+							current = new ContainerExpression(nestedType);
+						}
+						else if (TryGetType(identifier, out var type))
+						{
+							current = new ContainerExpression(type);
+						}
+						else if (DoesNamespaceResolve(identifier))
+						{
+							current = new ContainerExpression(identifier);
 						}
 						else
 						{
-							bindingFlags |= BindingFlags.Instance;
-						}
-
-						MemberInfo member;
-
-						if (identifier == "value" && current == this.targetObject)
-						{
-							current = Expression.Property(current, this.propertyInfo);
-							identifierStack.Clear();
-							identifierStack.Push(identifier);
-						}
-						else if ((member = current.Type.GetProperty(identifier, bindingFlags)) != null
-								 || (member = current.Type.GetField(identifier, bindingFlags)) != null)
-						{
-							var expression = (bindingFlags & BindingFlags.Static) != 0 ? null : current;
-
-							current = Expression.MakeMemberAccess(expression, member);
-
-							identifierStack.Clear();
-							identifierStack.Push(identifier);
-						}
-						else
-						{
-							var fullIdentifierName = string.Join(".", identifierStack.Reverse());
-
-							identifierStack.Push(identifier);
-
-							if (current.NodeType == ExpressionType.Constant && ((current as ConstantExpression).Value as TypeHolder)?.Type.FullName == fullIdentifierName)
-							{
-								fullIdentifierName += (fullIdentifierName == "" ? "" : "+") + identifierStack.First();
-							}
-							else
-							{
-								fullIdentifierName += (fullIdentifierName == "" ? "" : ".") + identifierStack.First();
-							}
-
-							if (TryGetType(fullIdentifierName, out var type))
-							{
-								current = Expression.Constant(new TypeHolder(type));
-							}
-							else
-							{
-								if (currentWasNull)
-								{
-									current = Expression.Constant(new TypeHolder(this.targetObject.Type));
-								}
-							}
+							throw new InvalidOperationException($"Unable to resolve identifier '{identifier}'");
 						}
 					}
 

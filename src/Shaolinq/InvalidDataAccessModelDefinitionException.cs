@@ -15,5 +15,10 @@ namespace Shaolinq
 			: base(message)
 		{
 		}
+
+		public InvalidDataAccessModelDefinitionException(string message, Exception innerException)
+			: base(message, innerException)
+		{
+		}
 	}
 }
