@@ -22,11 +22,6 @@ namespace Shaolinq.Persistence.Computed
 
 		public ComputedExpressionParser(TextReader reader, PropertyInfo propertyInfo, ParameterExpression target, Type[] referencedTypes = null, Type coersionType = null)
 		{
-			if (propertyInfo.DeclaringType == null)
-			{
-				throw new ArgumentException(nameof(propertyInfo));
-			}
-
 			this.propertyInfo = propertyInfo;
 			this.coersionType = coersionType;
 			this.referencedTypesByName = (referencedTypes ?? new Type[0]).ToDictionary(c => c.Name, c => c);
@@ -40,6 +35,12 @@ namespace Shaolinq.Persistence.Computed
 
 		public static LambdaExpression Parse(string expressionText, PropertyInfo propertyInfo, ParameterExpression target, Type[] referencedTypes, Type coersionType)
 			=> new ComputedExpressionParser(new StringReader(expressionText), propertyInfo, target, referencedTypes, coersionType).Parse();
+
+		public static LambdaExpression Parse(TextReader reader, ParameterExpression target, Type[] referencedTypes, Type coersionType)
+			=> Parse(reader, null, target, referencedTypes, coersionType);
+
+		public static LambdaExpression Parse(string expressionText, ParameterExpression target, Type[] referencedTypes, Type coersionType)
+			=> Parse(new StringReader(expressionText), null, target, referencedTypes, coersionType);
 
 		public static LambdaExpression Parse(TextReader reader, PropertyInfo propertyInfo, Type[] referencedTypes, Type coersionType)
 			=> Parse(reader, propertyInfo, Expression.Parameter(propertyInfo.DeclaringType, "targetObject"), referencedTypes, coersionType);

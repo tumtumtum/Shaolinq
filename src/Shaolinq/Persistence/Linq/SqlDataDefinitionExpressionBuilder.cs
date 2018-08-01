@@ -341,6 +341,10 @@ namespace Shaolinq.Persistence.Linq
 					where = where == null ? expression.Body : Expression.And(where, expression.Body);
 				}
 			}
+			else
+			{
+				where = ComputedExpressionParser.Parse(indexInfo.Condition, parameterExpression, null, typeof(bool)).Body;
+			}
 
 			if (where != null)
 			{

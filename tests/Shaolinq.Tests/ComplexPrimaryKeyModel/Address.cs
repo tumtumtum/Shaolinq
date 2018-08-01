@@ -5,6 +5,7 @@ using Platform.Validation;
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
+	[Index("Street", Condition = "Number != 100 && Street != null && Verified")]
 	public class Address
 		: DataAccessObject<long>
 	{
@@ -21,7 +22,6 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 		[PersistedMember, DefaultValue(0)]
 		public virtual int Number { get; set; }
 
-		[Index(Condition = "Number != 100 && Street != null && Verified")]
 		[Index("Street2_idx", Condition = "Verified == true")]
 		[PersistedMember]
 		public virtual string Street { get; set; }

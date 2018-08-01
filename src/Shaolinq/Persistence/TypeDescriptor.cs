@@ -346,7 +346,7 @@ namespace Shaolinq.Persistence
 			{
 				try
 				{
-					ComputedExpressionParser.Parse(attribute.Condition, null, null, null);
+					ComputedExpressionParser.Parse(attribute.Condition, Expression.Parameter(this.Type), null, null);
 				}
 				catch (Exception e)
 				{

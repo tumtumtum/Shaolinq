@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using System.Linq.Expressions;
 using NUnit.Framework;
 using Shaolinq.Persistence.Computed;
 
@@ -149,6 +150,16 @@ namespace Shaolinq.Tests
 			var func = ComputedExpressionParser.Parse(new StringReader("TestStaticUtils.Subtract(B, 7)"), property, null, property.PropertyType).Compile();
 
 			Assert.AreEqual(3, func.DynamicInvoke(new TestObject { B = 10 }));
+		}
+
+		[Test]
+		public void TestParse10()
+		{
+			var property = typeof(TestObject).GetProperty("A");
+			var func = ComputedExpressionParser.Parse(new StringReader("A == 1"), Expression.Parameter(typeof(TestObject)), null, null).Compile();
+
+			Assert.AreEqual(false, func.DynamicInvoke(new TestObject { A = 10 }));
+			Assert.AreEqual(true, func.DynamicInvoke(new TestObject { A = 1 }));
 		}
 	}
 }
