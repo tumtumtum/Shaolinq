@@ -837,32 +837,22 @@ namespace Shaolinq.TypeBuilding
 					}
 				);
 
-				foreach (var propertyDescriptor in propertiesToLoad
-					.SelectMany(c =>
-					{
-						var attributes = this.typeDescriptor.Type.GetProperty(c.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetCustomAttributes(typeof(DependsOnPropertyAttribute), true);
-
-						if (attributes.Length > 0)
-						{
-							return attributes.OfType<DependsOnPropertyAttribute>().Select(d => this.typeDescriptor.GetPropertyDescriptorByPropertyName(d.PropertyName));
-						}
-
-						return new[] { this.typeDescriptor.GetPropertyDescriptorByPropertyName(c.Name) };
-					})
-					.Where(c => c.IsPropertyThatIsCreatedOnTheServerSide))
+				foreach (var property in propertiesToLoad
+						.Where(c => GetPropertyNamesAndDependentPropertyNames(new [] { c.Name })
+							.Any(d => this.typeDescriptor.GetPropertyDescriptorByPropertyName(d).IsPropertyThatIsCreatedOnTheServerSide)))
 				{
 					var next = generator.DefineLabel();
 
 					generator.Emit(OpCodes.Ldarg_0);
 					generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-					generator.Emit(OpCodes.Ldfld, this.valueIsSetFields[propertyDescriptor.PropertyName]);
+					generator.Emit(OpCodes.Ldfld, this.valueIsSetFields[property.Name]);
 					generator.Emit(OpCodes.Brtrue, next);
 					generator.Emit(OpCodes.Ret);
 
 					generator.MarkLabel(next);
 				}
 
-				var arrayLocal = generator.DeclareLocal(typeof(Object[]));
+				var arrayLocal = generator.DeclareLocal(typeof(object[]));
 
 				generator.Emit(OpCodes.Ldc_I4, propertiesToLoad.Count);
 				generator.Emit(OpCodes.Newarr, typeof(object));

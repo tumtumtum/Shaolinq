@@ -421,7 +421,7 @@ namespace Shaolinq.Persistence.Linq
 			foreach (var indexAttribute in typeDescriptor.IndexAttributes)
 			{
 				var properties = indexAttribute.Properties.Select(c => new IndexPropertyInfo(c)).ToList();
-				var propertyDescriptors = properties.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName)).ToArray();
+				var propertyDescriptors = properties.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName) ?? throw new InvalidDataAccessModelDefinitionException($"IndexAttribute defined on type '{typeDescriptor.TypeName}' references unknown property '{c.PropertyName}'.")).ToArray();
 
 				yield return new IndexInfo(indexAttribute.IndexName ?? CreateIndexName(typeDescriptor, indexAttribute.IndexName, propertyDescriptors), properties, indexAttribute.Unique, indexAttribute.IndexType, indexAttribute.Condition);
 			}
