@@ -9,6 +9,7 @@ namespace Shaolinq
 	{
 		public const string DefaultForeignKeyConstraintName = "s/^\\s*$/fk_$(PERSISTED_TYPENAME:L)_$(PERSISTED_PROPERTYSUFFIXNAMES:L)/";
 		public const string DefaultIndexConstraintName = "s/^\\s*$/idx_$(PERSISTED_TYPENAME:L)_$(PERSISTED_PROPERTYSUFFIXNAMES:L)/";
+		public const string DefaultUniqueIndexConstraintName = "s/^\\s*$/idx_$(PERSISTED_TYPENAME:L)_$(PERSISTED_PROPERTYSUFFIXNAMES:L)/";
 		public const string DefaultPrimaryKeyConstraintName = "s/^\\s*$/pk_$(PERSISTED_TYPENAME:L)_$(PERSISTED_PROPERTYSUFFIXNAMES:L)/";
 		public const string DefaultDefaultValueConstraintName = "s/^\\s*$/def_$(PERSISTED_TYPENAME:L)_$(PERSISTED_PROPERTYSUFFIXNAMES:L)/";
 
@@ -29,6 +30,9 @@ namespace Shaolinq
 
 		[XmlAttribute]
 		public string IndexConstraintName { get; set; }
+
+		[XmlAttribute]
+		public string UniqueIndexConstraintName { get; set; }
 
 		[XmlAttribute]
 		public string PrimaryKeyConstraintName { get; set; }

@@ -6,6 +6,7 @@ using Platform.Validation;
 namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 {
 	[DataAccessObject]
+	[Index("Good", "Nickname", Unique = true)]
 	public abstract class Child
 		: DataAccessObject<Guid>
 	{

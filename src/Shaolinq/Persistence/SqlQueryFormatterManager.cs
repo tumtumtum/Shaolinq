@@ -48,9 +48,20 @@ namespace Shaolinq.Persistence
 			return VariableSubstituter.SedTransform("", this.namingTransformsConfiguration?.DefaultValueConstraintName ?? NamingTransformsConfiguration.DefaultDefaultValueConstraintName, propertyDescriptor);
 		}
 
-		public virtual string GetIndexConstraintName(TypeDescriptor typeDescriptor, string indexName, PropertyDescriptor[] properties)
+		public virtual string GetIndexConstraintName(TypeDescriptor typeDescriptor, string indexName, bool unique, PropertyDescriptor[] properties)
 		{
-			return VariableSubstituter.SedTransform(indexName, this.namingTransformsConfiguration?.IndexConstraintName ?? NamingTransformsConfiguration.DefaultIndexConstraintName, properties);
+			string transform;
+
+			if (unique)
+			{
+				transform = this.namingTransformsConfiguration?.UniqueIndexConstraintName ?? NamingTransformsConfiguration.DefaultUniqueIndexConstraintName;
+			}
+			else
+			{
+				transform = this.namingTransformsConfiguration?.IndexConstraintName ?? NamingTransformsConfiguration.DefaultIndexConstraintName;
+			}
+
+			return VariableSubstituter.SedTransform(indexName, transform, properties);
 		}
 
 		public virtual string GetForeignKeyConstraintName(PropertyDescriptor propertyDescriptor)
