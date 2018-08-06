@@ -468,37 +468,9 @@ namespace Shaolinq.Persistence.Computed
 				return true;
 			}
 
-			Assembly assembly2;
+			value = AppDomain.CurrentDomain.GetAssemblies().SelectMany(c => c.DefinedTypes).FirstOrDefault(c => c.FullName == name);
 
-			try
-			{
-				//value = AppDomain.CurrentDomain.GetAssemblies().SelectMany(c => c.DefinedTypes).FirstOrDefault(c => c.FullName == name);
-
-				foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-				{
-					assembly2 = assembly;
-
-					value = assembly.DefinedTypes.FirstOrDefault(c => c.FullName == name);
-
-					if (value != null)
-					{
-						break;
-					}
-				}
-
-				if (value != null)
-				{
-					return true;
-				}
-
-				value = null;
-
-				return false;
-			}
-			catch (Exception e)
-			{
-				throw;
-			}
+			return value != null;
 		}
 
 		private HashSet<string> namespaces;
@@ -536,23 +508,26 @@ namespace Shaolinq.Persistence.Computed
 
 			var staticClasses = this.referencedTypesByName.Select(c => c.Value).Where(c => c.IsAbstract && c.IsSealed);
 
-			var matchingMethods = staticClasses.SelectMany(c => c.GetMethods(BindingFlags.Static | BindingFlags.Public).Where(d => d.Name == identifier)).ToList();
+			var methodsByDeclaringType = staticClasses
+				.SelectMany(c => c.GetMethods(BindingFlags.Static | BindingFlags.Public).Where(d => d.Name == identifier))
+				.GroupBy(c => c.DeclaringType)
+				.ToList();
 
-			if (matchingMethods.Count == 0)
+			if (methodsByDeclaringType.Count == 0)
 			{
 				containingType = null;
 
 				return false;
 			}
 
-			if (matchingMethods.Count > 1)
+			if (methodsByDeclaringType.Count > 1)
 			{
 				containingType = null;
 
 				throw new InvalidOperationException($"Ambiguous match for method named '{identifier}'");
 			}
 
-			containingType = matchingMethods[0].DeclaringType;
+			containingType = methodsByDeclaringType.First().Key;
 
 			return true;
 		}

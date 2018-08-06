@@ -17,6 +17,11 @@ namespace Shaolinq.Tests
 			{
 				return x + y;
 			}
+
+			public static int Add(int x, int y, int z)
+			{
+				return x + y + z;
+			}
 		}
 
 		public static int Bar()
