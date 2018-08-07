@@ -35,6 +35,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 			yield return GetTestCaseData("Static Generic Method Call", "StaticGenericMethodCall.cs");
 			yield return GetTestCaseData("Nested async methods", "NestedAsync.cs");
 			yield return GetTestCaseData("Method resolution test", "MethodResolutionTest.cs");
+			yield return GetTestCaseData("Generic method call test", "GenericMethods.cs");
 		}
 
 		private static TestCaseData GetTestCaseData(string name, params string[] inputFiles)
@@ -125,15 +126,22 @@ namespace Shaolinq.AsyncRewriter.Tests
 				{
 					var method = assembly.DefinedTypes
 						.SelectMany(c => c.GetMethods())
-						.FirstOrDefault(c => c.Name == "Main" && c.IsStatic && c.GetParameters().Length == 0 && c.ReturnType == typeof(int));
+						.FirstOrDefault(c => c.Name == "Main" && c.IsStatic && c.GetParameters().Length == 0);
 
 					if (method != null)
 					{
-						var result = (int)method.Invoke(null, null);
-
-						if (result != 0)
+						if (method.ReturnType == typeof(int))
 						{
-							Assert.Fail();
+							var result = (int)method.Invoke(null, null);
+
+							if (result != 0)
+							{
+								Assert.Fail();
+							}
+						}
+						else
+						{
+							method.Invoke(null, null);
 						}
 					}
 				}

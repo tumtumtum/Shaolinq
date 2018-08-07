@@ -65,7 +65,7 @@ namespace Shaolinq.AsyncRewriter
 					return false;
 				}
 
-				return typeParameter.ConstraintTypes.IsEmpty || typeParameter.ConstraintTypes.Any(c => EqualsToIgnoreGenericParameters(c, other));
+				return typeParameter.ConstraintTypes.IsEmpty || typeParameter.ConstraintTypes.Any(c => EqualsToIgnoreGenericParameters(c, other) || c.IsAssignableFrom(other, 1) > 0);
 			}
 
 			if (self.MetadataName != other.MetadataName)
