@@ -54,7 +54,9 @@ namespace Shaolinq.Persistence
 
 			if (unique)
 			{
-				transform = this.namingTransformsConfiguration?.UniqueIndexConstraintName ?? NamingTransformsConfiguration.DefaultUniqueIndexConstraintName;
+				transform = this.namingTransformsConfiguration?.UniqueIndexConstraintName 
+							?? this.namingTransformsConfiguration?.IndexConstraintName
+							?? NamingTransformsConfiguration.DefaultUniqueIndexConstraintName;
 			}
 			else
 			{
