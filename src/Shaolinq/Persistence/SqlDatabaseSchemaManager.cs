@@ -47,7 +47,7 @@ namespace Shaolinq.Persistence
 
 		public virtual Expression BuildDataDefinitonExpressions(DatabaseCreationOptions options)
 		{
-			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.DataAccessModel, this.SqlDatabaseContext.SqlQueryFormatterManager, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, options, this.SqlDatabaseContext.TableNamePrefix, GetBuilderFlags());
+			return SqlDataDefinitionExpressionBuilder.Build(this.SqlDatabaseContext.DataAccessModel, this.SqlDatabaseContext.SqlQueryFormatterManager, this.SqlDatabaseContext.SqlDataTypeProvider, this.SqlDatabaseContext.SqlDialect, this.SqlDatabaseContext.DataAccessModel, options, this.SqlDatabaseContext.TableNamePrefix, this.SqlDatabaseContext.IndexNamesShouldIncludeIncludedProperties, GetBuilderFlags());
 		}
 		
 		[RewriteAsync]

@@ -40,7 +40,7 @@ namespace Shaolinq.Tests
 		public void Test_DataDefinitionBuilder()
 		{
 			var databaseContext = this.model.GetCurrentSqlDatabaseContext();
-			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(databaseContext.DataAccessModel, databaseContext.SqlQueryFormatterManager, databaseContext.SqlDataTypeProvider, databaseContext.SqlDialect, this.model, DatabaseCreationOptions.DeleteExistingDatabase, string.Empty, SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes);
+			var dataDefinitionExpressions = SqlDataDefinitionExpressionBuilder.Build(databaseContext.DataAccessModel, databaseContext.SqlQueryFormatterManager, databaseContext.SqlDataTypeProvider, databaseContext.SqlDialect, this.model, DatabaseCreationOptions.DeleteExistingDatabase, string.Empty, false, SqlDataDefinitionBuilderFlags.BuildTables | SqlDataDefinitionBuilderFlags.BuildIndexes);
 
 			var formatter = databaseContext.SqlQueryFormatterManager.CreateQueryFormatter();
 

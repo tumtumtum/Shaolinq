@@ -6,6 +6,7 @@ namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
 	[Index("Name", "Student")]
+	[Index("Name", "Student:IncludeOnly")]
 	public class Cat
 		: DataAccessObject<long>
 	{

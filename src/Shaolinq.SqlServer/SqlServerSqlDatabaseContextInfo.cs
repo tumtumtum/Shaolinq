@@ -9,24 +9,47 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlDatabaseContextInfo
 		: SqlDatabaseContextInfo
 	{
+		/// <summary>
+		/// The name of the Database. Equivalent to <c>Database</c> or <c>Initial Catalog</c> in the connection string.
+		/// </summary>
 		[XmlAttribute]
 		public string DatabaseName { get; set; }
 
+		/// <summary>
+		/// The name of the server or host. Equivalent to <c>Data Source</c> in the connection string.
+		/// </summary>
 		[XmlAttribute]
 		public string ServerName { get; set; }
 
+		/// <summary>
+		/// The name of the instance on the server. Equivalent to the portion of the <see cref="ServerName"/> after a backslash.
+		/// </summary>
+		/// <remarks>
+		/// Setting <see cref="ServerName"/> to <c>LOCALHOST</c> and this property to <c>SQLEXPRESS</c> would be equivalent to using a connection string with <c>"SERVER=LOCALHOST\SQLEXPRESS"</c>.
+		/// </remarks>
 		[XmlAttribute]
 		public string Instance { get; set; }
 
-		[XmlAttribute]
+		/// <summary>
+		/// The username for the connection.
+		/// </summary>[XmlAttribute]
 		public string UserName { get; set; }
 
+		/// <summary>
+		/// The password for the connection.
+		/// </summary>
 		[XmlAttribute]
 		public string Password { get; set; }
 
+		/// <summary>
+		/// Set to true to encrypt the connection.
+		/// </summary>
 		[XmlAttribute]
 		public bool Encrypt { get; set; }
 
+		/// <summary>
+		/// Set to true to use Windows Authentication. Equivalent to <c>Trusted Connection</c> in the connection string.
+		/// </summary>
 		[XmlAttribute]
 		public bool TrustedConnection { get; set; } = false;
 

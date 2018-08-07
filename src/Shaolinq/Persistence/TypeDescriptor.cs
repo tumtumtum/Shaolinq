@@ -353,6 +353,11 @@ namespace Shaolinq.Persistence
 					throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} contains a class-defined index with a condition that failed to parse: '{attribute.Condition}'");
 				}
 			}
+
+			if (this.IndexAttributes.Any(c => c.Properties == null || c.Properties.Length == 0 || c.Properties.All(d => d.EndsWith(":IncludeOnly"))))
+			{
+				throw new InvalidDataAccessModelDefinitionException($"Property {this.TypeName} defines an index with no (non-includeonly) properties.");
+			}
 		}
 
 		private void ValidateOrganizationIndex()

@@ -5,7 +5,8 @@ using Platform.Validation;
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
-	[Index("Name", "Id:IncludeOnly", IndexName = "name_id_idx")]
+	[Index("Name", "Id")]
+	[Index("Name", "Id:IncludeOnly")]
 	public abstract class ObjectWithCompositePrimaryKey
 		: DataAccessObject<long>
 	{

@@ -19,14 +19,16 @@ namespace Shaolinq.Persistence.Linq
 		private readonly DataAccessModel dataAccessModel;
 		private readonly SqlQueryFormatterManager formatterManager;
 		private readonly DataAccessModel model;
+		private readonly bool indexNamesShouldIncludeIncludedProperties;
 		private List<SqlConstraintExpression> currentTableConstraints;
 		private readonly SqlDataDefinitionBuilderFlags flags;
 		
-		private SqlDataDefinitionExpressionBuilder(DataAccessModel dataAccessModel, SqlQueryFormatterManager formatterManager, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		private SqlDataDefinitionExpressionBuilder(DataAccessModel dataAccessModel, SqlQueryFormatterManager formatterManager, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, bool indexNamesShouldIncludeIncludedProperties, SqlDataDefinitionBuilderFlags  flags)
 		{
 			this.dataAccessModel = dataAccessModel;
 			this.formatterManager = formatterManager;
 			this.model = model;
+			this.indexNamesShouldIncludeIncludedProperties = indexNamesShouldIncludeIncludedProperties;
 			this.sqlDialect = sqlDialect;
 			this.flags = flags;
 			this.sqlDataTypeProvider = sqlDataTypeProvider;
@@ -380,9 +382,9 @@ namespace Shaolinq.Persistence.Linq
 				else
 				{
 					var properties = indexAttribute.Properties?.Select(c => new IndexPropertyInfo(c))?.ToList();
-					var propertyDescriptors = properties?.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName)).ToArray();
+					var propertyDescriptorsForName = properties?.Where(c => this.indexNamesShouldIncludeIncludedProperties || !c.IncludeOnly).Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName)).ToArray();
 
-					return new IndexInfo(CreateIndexName(typeDescriptor, indexAttribute.IndexName ?? "", indexAttribute.Unique,  propertyDescriptors), properties, indexAttribute.Unique, IndexType.Default, null);
+					return new IndexInfo(CreateIndexName(typeDescriptor, indexAttribute.IndexName ?? "", indexAttribute.Unique, propertyDescriptorsForName), properties, indexAttribute.Unique, IndexType.Default, null);
 				}
 			}
 
@@ -409,11 +411,12 @@ namespace Shaolinq.Persistence.Linq
 						.Select(c => new IndexPropertyInfo(c.Item2.PropertyName, c.Item1.Lowercase, c.Item1.SortOrder, false, null))
 						.ToReadOnlyCollection();
 
-					var propertyDescriptors = properties
+					var propertyDescriptorsForName = properties
+						.Where(c => this.indexNamesShouldIncludeIncludedProperties || !c.IncludeOnly)
 						.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName))
 						.ToArray();
 
-					return new IndexInfo(indexName ?? CreateIndexName(typeDescriptor, indexName, false, propertyDescriptors), properties, unique, IndexType.Default, null);
+					return new IndexInfo(indexName ?? CreateIndexName(typeDescriptor, indexName, false, propertyDescriptorsForName), properties, unique, IndexType.Default, null);
 				}
 			}
 
@@ -425,9 +428,11 @@ namespace Shaolinq.Persistence.Linq
 			foreach (var indexAttribute in typeDescriptor.IndexAttributes)
 			{
 				var properties = indexAttribute.Properties.Select(c => new IndexPropertyInfo(c)).ToList();
-				var propertyDescriptors = properties.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName) ?? throw new InvalidDataAccessModelDefinitionException($"IndexAttribute defined on type '{typeDescriptor.TypeName}' references unknown property '{c.PropertyName}'.")).ToArray();
+				var propertyDescriptorsForName = properties
+					.Where(c => this.indexNamesShouldIncludeIncludedProperties || !c.IncludeOnly)
+					.Select(c => typeDescriptor.GetPropertyDescriptorByPropertyName(c.PropertyName) ?? throw new InvalidDataAccessModelDefinitionException($"IndexAttribute defined on type '{typeDescriptor.TypeName}' references unknown property '{c.PropertyName}'.")).ToArray();
 
-				yield return new IndexInfo(CreateIndexName(typeDescriptor, indexAttribute.IndexName ?? "", indexAttribute.Unique, propertyDescriptors), properties, indexAttribute.Unique, indexAttribute.IndexType, indexAttribute.Condition);
+				yield return new IndexInfo(CreateIndexName(typeDescriptor, indexAttribute.IndexName ?? "", indexAttribute.Unique, propertyDescriptorsForName), properties, indexAttribute.Unique, indexAttribute.IndexType, indexAttribute.Condition);
 			}
 
 			var allIndexAttributes = typeDescriptor
@@ -517,9 +522,9 @@ namespace Shaolinq.Persistence.Linq
 			return new SqlCreateTypeExpression(sqlTypeExpression, asExpression, true);
 		}
 
-		public static Expression Build(DataAccessModel dataAccessModel, SqlQueryFormatterManager formatterManager, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, SqlDataDefinitionBuilderFlags flags)
+		public static Expression Build(DataAccessModel dataAccessModel, SqlQueryFormatterManager formatterManager, SqlDataTypeProvider sqlDataTypeProvider, SqlDialect sqlDialect, DataAccessModel model, DatabaseCreationOptions options, string tableNamePrefix, bool indexNamesShouldIncludeIncludedProperties, SqlDataDefinitionBuilderFlags flags)
 		{
-			var builder = new SqlDataDefinitionExpressionBuilder(dataAccessModel, formatterManager, sqlDialect, sqlDataTypeProvider, model, options, tableNamePrefix, flags);
+			var builder = new SqlDataDefinitionExpressionBuilder(dataAccessModel, formatterManager, sqlDialect, sqlDataTypeProvider, model, options, tableNamePrefix, indexNamesShouldIncludeIncludedProperties, flags);
 
 			var retval = builder.Build();
 

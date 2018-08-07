@@ -107,6 +107,11 @@ namespace Shaolinq.Persistence
 				}
 			}
 
+			if (this.IndexAttributes.Any(c => c.IndexName == null && c.IncludeOnly))
+			{
+				throw new InvalidDataAccessModelDefinitionException($"Property {this.DeclaringTypeDescriptor.TypeName}.{this.PropertyInfo.Name} defines an index no (non-includeonly) properties.");
+			}
+
 			var expression = this.ComputedMemberAttribute?.GetSetLambdaExpression(this.DeclaringTypeDescriptor.TypeDescriptorProvider.Configuration, this)?.Body.StripConvert();
 
 			if (expression?.NodeType == ExpressionType.Assign)
