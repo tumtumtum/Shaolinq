@@ -38,8 +38,8 @@ namespace Shaolinq.Persistence
 		private static ConstraintDefaultsConfiguration CreateConstraintDefaults(ConstraintDefaultsConfiguration defaultsConfiguration, Type type)
 		{
 			var length = GetRecommendedLength(defaultsConfiguration, type);
-			var attribute = type.GetFirstCustomAttribute<SizeConstraintAttribute>(true);
-
+			var attribute = type.GetUnwrappedNullableType().GetFirstCustomAttribute<SizeConstraintAttribute>(true);
+			
 			return new ConstraintDefaultsConfiguration(defaultsConfiguration)
 			{
 				StringMaximumLength = attribute?.MaximumLength > 0 ? attribute.MaximumLength : length,

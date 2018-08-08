@@ -4,7 +4,7 @@ using Platform.Validation;
 
 namespace Shaolinq.Tests.TestModel
 {
-	[SizeConstraint(MaximumLength = 8)]
+	[SizeConstraint(MaximumLength = 18)]
 	public enum Sex : short
 	{
 		Male,
