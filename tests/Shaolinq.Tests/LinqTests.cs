@@ -11,6 +11,7 @@ using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Tests.TestModel;
+using Shouldly;
 
 namespace Shaolinq.Tests
 {
@@ -135,6 +136,25 @@ namespace Shaolinq.Tests
 				var apple = this.model.Apples.Create();
 
 				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Schema()
+		{
+			var expressions = this.model
+				.GetCurrentSqlDatabaseContext()
+				.SchemaManager
+				.BuildDataDefinitonExpressions(DatabaseCreationOptions.DeleteExistingDatabase);
+
+			var s = this.model
+				.GetCurrentSqlDatabaseContext()
+				.SqlQueryFormatterManager
+				.Format(expressions, SqlQueryFormatterOptions.EvaluateConstantPlaceholders | SqlQueryFormatterOptions.EvaluateConstants);
+
+			if (this.ProviderName.Contains("SqlServer"))
+			{
+				s.CommandText.ShouldContain("CREATE UNIQUE INDEX \"idx_student_id_sex\" ON \"Student\"(\"StudentId\", \"Sex\") WHERE ((((\"Sex\") = (\'Male\'))) AND ((\"StudentId\" IS NOT NULL)));");
 			}
 		}
 

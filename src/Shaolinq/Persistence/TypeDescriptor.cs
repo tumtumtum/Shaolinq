@@ -350,7 +350,7 @@ namespace Shaolinq.Persistence
 				}
 				catch (Exception e)
 				{
-					throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} contains a class-defined index with a condition that failed to parse: '{attribute.Condition}'");
+					throw new InvalidDataAccessModelDefinitionException($"The type {this.TypeName} contains a class-defined index with a condition that failed to parse: '{attribute.Condition}'", e);
 				}
 			}
 

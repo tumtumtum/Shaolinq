@@ -674,19 +674,28 @@ namespace Shaolinq.Persistence.Computed
 					}
 					else if (current != null)
 					{
-						var member = current.Type.GetMember(identifier, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SingleOrDefault();
+						if (current.Type.IsEnum)
+						{
+							var value = Enum.Parse(current.Type, identifier);
 
-						if (member is PropertyInfo || member is FieldInfo)
-						{
-							current = Expression.MakeMemberAccess(current, member);
-						}
-						else if (member is Type nestedType)
-						{
-							current = new ContainerExpression(nestedType);
+							current = Expression.Constant(value);
 						}
 						else
 						{
-							throw new InvalidOperationException($"Unable to resolve property '{identifier}' on type '{current.Type}'");
+							var member = current.Type.GetMember(identifier, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SingleOrDefault();
+
+							if (member is PropertyInfo || member is FieldInfo)
+							{
+								current = Expression.MakeMemberAccess(current, member);
+							}
+							else if (member is Type nestedType)
+							{
+								current = new ContainerExpression(nestedType);
+							}
+							else
+							{
+								throw new InvalidOperationException($"Unable to resolve property '{identifier}' on type '{current.Type}'");
+							}
 						}
 					}
 					else

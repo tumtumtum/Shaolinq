@@ -6,6 +6,7 @@ using Platform.Validation;
 namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
+	[Index("Id", "Sex", Unique = true, Condition = "Sex == Sex.Male")]
 	public abstract class Student
 		: Person, IComparable<Student>
 	{
