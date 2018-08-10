@@ -7,6 +7,7 @@ namespace Shaolinq.Tests.TestModel
 {
 	[DataAccessObject]
 	[Index("Id", "Sex", Unique = true, Condition = "Sex == Sex.Male")]
+	[Index("Id", "Overseas", Unique = true, Condition = "Overseas == true")]
 	public abstract class Student
 		: Person, IComparable<Student>
 	{

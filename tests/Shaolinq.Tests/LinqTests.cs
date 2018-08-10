@@ -155,6 +155,7 @@ namespace Shaolinq.Tests
 			if (this.ProviderName.Contains("SqlServer"))
 			{
 				s.CommandText.ShouldContain("CREATE UNIQUE INDEX \"idx_student_id_sex\" ON \"Student\"(\"StudentId\", \"Sex\") WHERE ((((\"Sex\") = (\'Male\'))) AND ((\"StudentId\" IS NOT NULL)));");
+				s.CommandText.ShouldContain("CREATE UNIQUE INDEX \"idx_student_id_overseas\" ON \"Student\"(\"StudentId\", \"Overseas\") WHERE ((((\"Overseas\") = (1))) AND ((\"StudentId\" IS NOT NULL)));");
 			}
 		}
 
@@ -2462,11 +2463,11 @@ namespace Shaolinq.Tests
 		[Test]
 		public void Test_Select_List_Contains1()
 		{
-			var ids = this.model.Students.Select(c => c.Id).ToList();
+			var ids = this.model.Students.Select(c => c.Id).OrderBy(c => c).ToList();
 
 			using (var scope = NewTransactionScope())
 			{
-				var list = this.model.Students.Where(c => ids.Contains(c.Id)).ToList();
+				var list = this.model.Students.Where(c => ids.Contains(c.Id)).OrderBy(c => c).ToList();
 
 				Assert.AreEqual(ids.Count, list.Count);
 
@@ -2514,10 +2515,12 @@ namespace Shaolinq.Tests
 			{
 				var list = this.model.Students.Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids1.Contains(c.Id))
 					.Select(c => c.Id)
+					.OrderBy(c => c)
 					.ToList();
 
 				var list2 = this.model.Students.ToList().Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids1.Contains(c.Id))
 					.Select(c => c.Id)
+					.OrderBy(c => c)
 					.ToList();
 
 				Assert.IsTrue(list.SequenceEqual(list2));
@@ -2529,10 +2532,12 @@ namespace Shaolinq.Tests
 			{
 				var list = this.model.Students.Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids2.Contains(c.Id))
 					.Select(c => c.Id)
+					.OrderBy(c => c)
 					.ToList();
 
 				var list2 = this.model.Students.Where(c => !c.Overseas && c.SerialNumber1 != 9999991123 && !ids2.Contains(c.Id))
 					.Select(c => c.Id)
+					.OrderBy(c => c)
 					.ToList();
 
 				Assert.IsTrue(list.SequenceEqual(list2));
@@ -2545,12 +2550,13 @@ namespace Shaolinq.Tests
 		public void Test_Select_List_Contains5()
 		{
 			var ids1 = new List<Guid>();
-			var ids2 = this.model.Students.Select(c => c.Id).Take(1).ToList();
+			var ids2 = this.model.Students.Select(c => c.Id).Take(1).OrderBy(c => c).ToList();
 
 			using (var scope = NewTransactionScope())
 			{
 				var list = this.model.Students.Where(c => c.SerialNumber1 != 9999991123 && !ids1.Contains(c.Id))
 					.Select(c => c.Id)
+					.OrderBy(c => c)
 					.ToList();
 
 				Assert.AreEqual(this.model.Students.Count(), list.Count);
