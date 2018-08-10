@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -29,11 +30,17 @@ namespace Shaolinq.SqlServer
 			{
 				if (binaryExpression.Left is SqlColumnExpression column1)
 				{
-					(this.columnNames ?? (this.columnNames = new HashSet<string>())).Add(column1.Name);
+					if (column1.Type.IsClass || Nullable.GetUnderlyingType(column1.Type) != null)
+					{
+						(this.columnNames ?? (this.columnNames = new HashSet<string>())).Add(column1.Name);
+					}
 				}
 				else if (binaryExpression.Right is SqlColumnExpression column2)
 				{
-					(this.columnNames ?? (this.columnNames = new HashSet<string>())).Add(column2.Name);
+					if (column2.Type.IsClass || Nullable.GetUnderlyingType(column2.Type) != null)
+					{
+						(this.columnNames ?? (this.columnNames = new HashSet<string>())).Add(column2.Name);
+					}
 				}
 
 				return base.VisitBinary(binaryExpression);
