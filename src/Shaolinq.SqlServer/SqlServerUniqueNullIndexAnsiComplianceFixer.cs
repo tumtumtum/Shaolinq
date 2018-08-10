@@ -1,5 +1,6 @@
 ﻿// Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,14 +12,14 @@ namespace Shaolinq.SqlServer
 	public class SqlServerUniqueNullIndexAnsiComplianceFixer
 		: SqlExpressionVisitor
 	{
-		private class SqlColumnComparisonFinder
+		private class ColumnsToExcludeFinder
 			: SqlExpressionVisitor
 		{
 			private HashSet<string> columnNames;
 
 			public static HashSet<string> Find(Expression expression)
 			{
-				var finder = new SqlColumnComparisonFinder();
+				var finder = new ColumnsToExcludeFinder();
 
 				finder.Visit(expression);
 
@@ -27,17 +28,22 @@ namespace Shaolinq.SqlServer
 
 			protected override Expression VisitBinary(BinaryExpression binaryExpression)
 			{
-				if (binaryExpression.Left is SqlColumnExpression column1)
+				if (binaryExpression.Left is SqlColumnExpression column1 && !IsNullableType(column1.Type))
 				{
 					(this.columnNames ?? (this.columnNames = new HashSet<string>())).Add(column1.Name);
 				}
-				else if (binaryExpression.Right is SqlColumnExpression column2)
+				else if (binaryExpression.Right is SqlColumnExpression column2 && !IsNullableType(column2.Type))
 				{
 					(this.columnNames ?? (this.columnNames = new HashSet<string>())).Add(column2.Name);
 				}
 
 				return base.VisitBinary(binaryExpression);
 			}
+		}
+		
+		private static bool IsNullableType(Type type)
+		{
+			return type.IsClass || Nullable.GetUnderlyingType(type) != null;
 		}
 
 		private readonly bool fixNonUniqueIndexesAsWell;
@@ -66,15 +72,25 @@ namespace Shaolinq.SqlServer
 		        return createIndexExpression;
 		    }
 
-			var referencedColumns = createIndexExpression.Where == null ? null : SqlColumnComparisonFinder.Find(createIndexExpression.Where);
+			var columnsToExclude = createIndexExpression.Where == null ? null : ColumnsToExcludeFinder.Find(createIndexExpression.Where);
 
-			var predicate = createIndexExpression
+			var columnsToNullCheck = createIndexExpression
 				.Columns
-				.Where(c => referencedColumns == null || !referencedColumns.Contains(c.Column.Name))
+				.Where(c => IsNullableType(c.Column.Type))
+				.Where(c => columnsToExclude == null || !columnsToExclude.Contains(c.Column.Name))
 				.Select(c => (Expression)new SqlFunctionCallExpression(typeof(bool), SqlFunction.IsNotNull, c.Column))
-				.Aggregate(Expression.And);
+				.ToList();
 
-			return createIndexExpression.ChangeWhere(createIndexExpression.Where == null ? predicate : Expression.And(createIndexExpression.Where, predicate));
+			var predicate = columnsToNullCheck.Count > 0 ? columnsToNullCheck.Aggregate(Expression.And) : null;
+
+			if (predicate == null)
+			{
+				return createIndexExpression;
+			}
+			else
+			{
+				return createIndexExpression.ChangeWhere(createIndexExpression.Where == null ? predicate : Expression.And(createIndexExpression.Where, predicate));
+			}
 		}
 	}
 }

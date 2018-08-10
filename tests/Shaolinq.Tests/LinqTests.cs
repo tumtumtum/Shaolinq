@@ -154,8 +154,8 @@ namespace Shaolinq.Tests
 
 			if (this.ProviderName.Contains("SqlServer"))
 			{
-				s.CommandText.ShouldContain("CREATE UNIQUE INDEX \"idx_student_id_sex\" ON \"Student\"(\"StudentId\", \"Sex\") WHERE ((((\"Sex\") = (\'Male\'))) AND ((\"StudentId\" IS NOT NULL)));");
-				s.CommandText.ShouldContain("CREATE UNIQUE INDEX \"idx_student_id_overseas\" ON \"Student\"(\"StudentId\", \"Overseas\") WHERE ((((\"Overseas\") = (1))) AND ((\"StudentId\" IS NOT NULL)));");
+				s.CommandText.ShouldContain("CREATE UNIQUE INDEX \"idx_student_id_sex_sexoptional\" ON \"Student\"(\"StudentId\", \"Sex\", \"SexOptional\") WHERE ((((\"Sex\") = (\'Male\'))) AND ((\"SexOptional\" IS NOT NULL)));");
+				s.CommandText.ShouldContain("CREATE UNIQUE INDEX \"idx_student_id_overseas_sexoptional\" ON \"Student\"(\"StudentId\", \"Overseas\", \"SexOptional\") WHERE ((((\"SexOptional\") = (\'Male\'))) AND ((\"SexOptional\" IS NOT NULL)));");
 			}
 		}
 
