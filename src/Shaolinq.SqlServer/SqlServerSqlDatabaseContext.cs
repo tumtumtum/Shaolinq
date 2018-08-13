@@ -53,7 +53,7 @@ namespace Shaolinq.SqlServer
 			var sqlDataTypeProvider = CreateSqlDataTypeProvider(model, contextInfo, () => new SqlServerSqlDataTypeProvider(constraintDefaults));
 			var sqlDialect = new SqlServerSqlDialect(contextInfo);
 			var typeDescriptorProvider = model.TypeDescriptorProvider;
-			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, (options, connection) => new SqlServerSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo, ((SqlConnection)connection)?.ServerVersion));
+			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, (options, connection) => new SqlServerSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo.UniqueNullIndexAnsiComplianceFixerClassicBehaviour, contextInfo.ExplicitIndexConditionOverridesNullAnsiCompliance, contextInfo.TypeSystemVersion, ((SqlConnection)connection)?.ServerVersion));
 
 			return new SqlServerSqlDatabaseContext(model, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo);
 		}

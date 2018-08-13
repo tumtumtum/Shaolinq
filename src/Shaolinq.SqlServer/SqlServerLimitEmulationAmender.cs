@@ -8,14 +8,14 @@ using Shaolinq.Persistence.Linq.Expressions;
 
 namespace Shaolinq.SqlServer
 {
-	public class SqlServerLimitAmender
+	public class SqlServerLimitEmulationAmender
 		: SqlExpressionVisitor
 	{
 		private const string RowColumnName = "__$$ROW_NUMBER";
 
 		public static Expression Amend(Expression expression)
 		{
-			return new SqlServerLimitAmender().Visit(expression);
+			return new SqlServerLimitEmulationAmender().Visit(expression);
 		}
 
 		private static bool IsColumnAndAlreadyProjected(Expression expression, HashSet<string> aliases)

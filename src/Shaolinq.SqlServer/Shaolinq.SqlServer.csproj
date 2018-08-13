@@ -64,7 +64,8 @@
     <Compile Include="SqlServerDateTimeFunctionsAmender.cs" />
     <Compile Include="SqlServerDecimalDataType.cs" />
     <Compile Include="SqlServerIdentityInsertAndUpdateAmender.cs" />
-    <Compile Include="SqlServerLimitAmender.cs" />
+    <Compile Include="SqlServerLimitEmulationAmender.cs" />
+    <Compile Include="SqlServerLimitOrderByAmender.cs" />
     <Compile Include="SqlServerSqlDatabaseSchemaManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlServerConfiguration.cs" />

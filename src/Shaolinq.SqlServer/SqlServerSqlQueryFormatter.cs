@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using Platform;
 using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
@@ -12,14 +13,30 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlQueryFormatter
 		: Sql92QueryFormatter
 	{
-		private int? majorVersion;
-		private readonly SqlServerSqlDatabaseContextInfo contextInfo;
-
-		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, SqlServerSqlDatabaseContextInfo contextInfo, string serverVersion)
+		private readonly Version version;
+		private readonly int? typeSystemVersionNumber;
+		private readonly string typeSystemVersion;
+		private readonly bool uniqueNullIndexAnsiComplianceFixerClassicBehaviour;
+		private readonly bool explicitIndexConditionOverridesNullAnsiCompliance;
+		
+		public SqlServerSqlQueryFormatter(SqlQueryFormatterOptions options, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, TypeDescriptorProvider typeDescriptorProvider, bool uniqueNullIndexAnsiComplianceFixerClassicBehaviour, bool explicitIndexConditionOverridesNullAnsiCompliance, string typeSystemVersion, string serverVersion)
 			: base(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider)
 		{
-			this.contextInfo = contextInfo;
-			this.majorVersion = serverVersion == null ? null : (int?)Convert.ToInt32(serverVersion.Split('.')[0]);
+			this.uniqueNullIndexAnsiComplianceFixerClassicBehaviour = uniqueNullIndexAnsiComplianceFixerClassicBehaviour;
+			this.explicitIndexConditionOverridesNullAnsiCompliance = explicitIndexConditionOverridesNullAnsiCompliance;
+			this.typeSystemVersion = typeSystemVersion;
+
+			Version.TryParse(serverVersion, out this.version);
+
+			if (typeSystemVersion != null)
+			{
+				var match = Regex.Match(typeSystemVersion, "SQL Server [0-9]+", RegexOptions.IgnoreCase);
+
+				if (match.Success)
+				{
+					this.typeSystemVersionNumber = Convert.ToInt32(match.Groups[1].Value);
+				}
+			}
 		}
 
 		protected override FunctionResolveResult ResolveSqlFunction(SqlFunctionCallExpression functionCallExpression)
@@ -153,17 +170,7 @@ namespace Shaolinq.SqlServer
 
 			return base.VisitFunctionCall(functionCallExpression);
 		}
-
-		protected string AddParameter(TypedValue value)
-		{
-			Write(this.ParameterIndicatorPrefix);
-			Write(ParamNamePrefix);
-			Write(this.parameterValues.Count);
-			this.parameterValues.Add(value);
-
-			return $"{this.ParameterIndicatorPrefix}{this.parameterValues.Count}";
-		}
-
+		
 		protected override Expression VisitUnary(UnaryExpression unaryExpression)
 		{
 			switch (unaryExpression.NodeType)
@@ -218,8 +225,17 @@ namespace Shaolinq.SqlServer
 			expression = SqlServerClusteredIndexNormalizer.Normalize(expression);
 			expression = SqlServerIdentityInsertAndUpdateAmender.Amend(this.typeDescriptorProvider, expression);
 			expression = SqlServerSubqueryOrderByFixer.Fix(expression);
-			expression = SqlServerLimitAmender.Amend(expression);
-			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression, this.contextInfo.UniqueNullIndexAnsiComplianceFixerClassicBehaviour, this.contextInfo.ExplicitIndexConditionOverridesNullAnsiCompliance);
+
+			if (this.version?.Major >= 12 || this.typeSystemVersionNumber >= 2012)
+			{
+				expression = SqlServerLimitEmulationAmender.Amend(expression);
+			}
+			else
+			{
+				expression = SqlServerLimitEmulationAmender.Amend(expression);
+			}
+
+			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression, this.uniqueNullIndexAnsiComplianceFixerClassicBehaviour, this.explicitIndexConditionOverridesNullAnsiCompliance);
 			expression = SqlServerDateTimeFunctionsAmender.Amend(expression);
 			expression = SqlServerAggregateTypeFixer.Fix(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);
@@ -241,7 +257,11 @@ namespace Shaolinq.SqlServer
 		{
 			if (selectExpression.Skip != null && selectExpression.Take != null)
 			{
-				throw new InvalidOperationException("Skip/Take not supported");
+				Write(" OFFSET ");
+				this.Visit(selectExpression.Skip);
+				Write(" ROWS FETCH NEXT ");
+				this.Visit(selectExpression.Take);
+				Write(" ROWS");
 			}
 		}
 
@@ -304,18 +324,14 @@ namespace Shaolinq.SqlServer
 
 		protected override Expression VisitExtension(Expression expression)
 		{
-			var booleanExpression = expression as BitBooleanExpression;
-
-			if (booleanExpression != null)
+			if (expression is BitBooleanExpression booleanExpression)
 			{
 				Visit(booleanExpression.Expression);
 
 				return expression;
 			}
 
-			var sqlTakeAllValueExpression = expression as SqlTakeAllValueExpression;
-
-			if (sqlTakeAllValueExpression != null)
+			if (expression is SqlTakeAllValueExpression sqlTakeAllValueExpression)
 			{
 				Write(Expression.Constant(Int64.MaxValue));
 
