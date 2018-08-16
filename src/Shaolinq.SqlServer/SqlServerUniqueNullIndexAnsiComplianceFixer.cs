@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Shaolinq.Persistence;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Persistence.Linq.Expressions;
 
@@ -53,17 +54,19 @@ namespace Shaolinq.SqlServer
 		}
 
 		private readonly bool fixNonUniqueIndexesAsWell;
+		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly bool explicitIndexConditionOverridesNullAnsiCompliance;
 
-		private SqlServerUniqueNullIndexAnsiComplianceFixer(bool fixNonUniqueIndexesAsWell, bool explicitIndexConditionOverridesNullAnsiCompliance)
+		private SqlServerUniqueNullIndexAnsiComplianceFixer(TypeDescriptorProvider typeDescriptorProvider, bool fixNonUniqueIndexesAsWell, bool explicitIndexConditionOverridesNullAnsiCompliance)
 		{
+			this.typeDescriptorProvider = typeDescriptorProvider;
 			this.fixNonUniqueIndexesAsWell = fixNonUniqueIndexesAsWell;
 			this.explicitIndexConditionOverridesNullAnsiCompliance = explicitIndexConditionOverridesNullAnsiCompliance;
 		}
 
-		public static Expression Fix(Expression expression, bool fixNonUniqueIndexesAsWell = false, bool explicitIndexConditionOverridesNullAnsiCompliance = false)
+		public static Expression Fix(TypeDescriptorProvider typeDescriptorProvider, Expression expression, bool fixNonUniqueIndexesAsWell = false, bool explicitIndexConditionOverridesNullAnsiCompliance = false)
 		{
-			return new SqlServerUniqueNullIndexAnsiComplianceFixer(fixNonUniqueIndexesAsWell, explicitIndexConditionOverridesNullAnsiCompliance).Visit(expression);
+			return new SqlServerUniqueNullIndexAnsiComplianceFixer(typeDescriptorProvider, fixNonUniqueIndexesAsWell, explicitIndexConditionOverridesNullAnsiCompliance).Visit(expression);
 		}
 
 		protected override Expression VisitCreateIndex(SqlCreateIndexExpression createIndexExpression)
@@ -78,11 +81,30 @@ namespace Shaolinq.SqlServer
 		        return createIndexExpression;
 		    }
 
+
+			var typeDescriptor = this.typeDescriptorProvider.GetTypeDescriptorByPersistedName(createIndexExpression.Table.Name);
 			var columnsToExclude = createIndexExpression.Where == null ? null : ColumnsToExcludeFinder.Find(createIndexExpression.Where);
+
+			bool IsNullable(SqlIndexedColumnExpression column)
+			{
+				var property = typeDescriptor.GetPropertyDescriptorByColumnName(column.Column.Name);
+
+				if (property == null)
+				{
+					return true;
+				}
+
+				if (property.ValueRequired)
+				{
+					return true;
+				}
+
+				return IsNullableType(property.PropertyType);
+			}
 
 			var columnsToNullCheck = createIndexExpression
 				.Columns
-				.Where(c => IsNullableType(c.Column.Type))
+				.Where(IsNullable)
 				.Where(c => columnsToExclude == null || !columnsToExclude.Contains(c.Column.Name))
 				.Select(c => (Expression)new SqlFunctionCallExpression(typeof(bool), SqlFunction.IsNotNull, c.Column))
 				.ToList();

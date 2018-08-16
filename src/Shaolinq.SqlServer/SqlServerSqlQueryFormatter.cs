@@ -219,7 +219,7 @@ namespace Shaolinq.SqlServer
 			expression = SqlServerIdentityInsertAndUpdateAmender.Amend(this.typeDescriptorProvider, expression);
 			expression = SqlServerSubqueryOrderByFixer.Fix(expression);
 			expression = SqlServerLimitAmender.Amend(expression);
-			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(expression, this.contextInfo.UniqueNullIndexAnsiComplianceFixerClassicBehaviour, this.contextInfo.ExplicitIndexConditionOverridesNullAnsiCompliance);
+			expression = SqlServerUniqueNullIndexAnsiComplianceFixer.Fix(this.typeDescriptorProvider, expression, this.contextInfo.UniqueNullIndexAnsiComplianceFixerClassicBehaviour, this.contextInfo.ExplicitIndexConditionOverridesNullAnsiCompliance);
 			expression = SqlServerDateTimeFunctionsAmender.Amend(expression);
 			expression = SqlServerAggregateTypeFixer.Fix(expression);
 			expression = SqlServerBooleanNormalizer.Normalize(expression);

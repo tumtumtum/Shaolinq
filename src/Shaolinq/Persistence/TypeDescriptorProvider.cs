@@ -18,7 +18,8 @@ namespace Shaolinq.Persistence
 
 		private readonly Dictionary<Type, EnumTypeDescriptor> enumTypeDescriptorsByType;
 		private readonly Dictionary<Type, TypeDescriptor> typeDescriptorsByType = new Dictionary<Type, TypeDescriptor>();
-		
+		private readonly Dictionary<string, TypeDescriptor> typeDescriptorsByPersistedName = new Dictionary<string, TypeDescriptor>();
+
 		public TypeDescriptorProvider(Type dataAccessModelType, DataAccessModelConfiguration configuration)
 		{
 			this.Configuration = configuration;
@@ -56,6 +57,7 @@ namespace Shaolinq.Persistence
 							var typeDescriptor = new TypeDescriptor(this, currentType);
 
 							this.typeDescriptorsByType[currentType] = typeDescriptor;
+							this.typeDescriptorsByPersistedName[typeDescriptor.PersistedName] = typeDescriptor;
 						}
 					}
 					else
@@ -164,6 +166,11 @@ namespace Shaolinq.Persistence
 		public ICollection<TypeDescriptor> GetTypeDescriptors()
 		{
 			return this.typeDescriptorsByType.Values;
+		}
+
+		public TypeDescriptor GetTypeDescriptorByPersistedName(string persistedName)
+		{
+			return this.typeDescriptorsByPersistedName.TryGetValue(persistedName, out var retval) ? retval : null;
 		}
 
 		public TypeDescriptor GetTypeDescriptor(Type type)
