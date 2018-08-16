@@ -94,9 +94,14 @@ namespace Shaolinq.SqlServer
 					return true;
 				}
 
+				if (property.IsPrimaryKey)
+				{
+					return false;
+				}
+
 				if (property.ValueRequired)
 				{
-					return true;
+					return false;
 				}
 
 				return IsNullableType(property.PropertyType);
