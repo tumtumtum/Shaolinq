@@ -3233,6 +3233,16 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Distinct_With_Count()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var result1 = this.model.Students.Distinct();
+				var result2 = this.model.Students.Distinct().Count();
+			}
+		}
+
+		[Test]
 		public void Test_Skip_With_Distinct()
 		{
 			using (var scope = NewTransactionScope())

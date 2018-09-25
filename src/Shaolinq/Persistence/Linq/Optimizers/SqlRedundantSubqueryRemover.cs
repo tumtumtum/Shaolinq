@@ -212,7 +212,7 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					return false;
 				}
 
-				// cannot move forward a distinct if outer has take, skip, groupby or a different projection
+				// Cannot move forward a distinct if outer has take, skip, groupby or a different projection
 				if (fromSelect.Distinct && (select.Take != null || select.Skip != null || !selHasNameMapProjection || selHasGroupBy || selHasAggregates || (selHasOrderBy && !this.isTopLevel) || selHasJoin))
 				{
 					return false;

@@ -1570,8 +1570,8 @@ namespace Shaolinq.Persistence.Linq
 			Type nullableReturnType = null;
 			var aggregateType = GetAggregateType(method.Name);
 			var hasPredicateArg = HasPredicateArg(aggregateType);
-
-			if (argument == null)
+			
+			if (argument == null && !hasPredicateArg)
 			{
 				isDistinct = source.TryStripDistinctCall(out source);
 			}
