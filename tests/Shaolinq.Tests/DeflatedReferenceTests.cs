@@ -825,6 +825,8 @@ namespace Shaolinq.Tests
 
 			Assert.IsTrue(s.IsDeflatedReference());
 
+			var students = s.Students.ToList();
+
 			var x = s.Id;
 
 			Assert.IsFalse(s.IsDeflatedReference());
