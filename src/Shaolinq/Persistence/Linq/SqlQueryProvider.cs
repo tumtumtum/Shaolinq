@@ -164,7 +164,7 @@ namespace Shaolinq.Persistence.Linq
 			var placeholderCount = -1;
 
 			expression = Evaluator.PartialEval(expression, ref placeholderCount);
-			expression = QueryBinder.Bind(dataAccessModel, expression);
+			expression = QueryBinder.Bind(dataAccessModel, expression, ref placeholderCount);
 			expression = SqlEnumTypeNormalizer.Normalize(expression, sqlDataTypeProvider.GetTypeForEnums());
 			expression = Evaluator.PartialEval(expression, ref placeholderCount);
 			expression = SqlNullComparisonCoalescer.Coalesce(expression);

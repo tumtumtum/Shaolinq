@@ -41,7 +41,9 @@ namespace Shaolinq.Persistence.Linq
 			this.typeDescriptorProvider = dataAccessModel.TypeDescriptorProvider;
 		}
 
-		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression)
+		private int placeholderCount;
+
+		public static Expression Bind(DataAccessModel dataAccessModel, Expression expression, ref int placeholderCount)
 		{
 			expression = SqlPredicateToWhereConverter.Convert(expression);
 			expression = SqlPropertyAccessToSelectAmender.Amend(expression);
@@ -53,9 +55,13 @@ namespace Shaolinq.Persistence.Linq
 
 			expression = joinExpanderResults.ProcessedExpression;
 
-			var queryBinder = new QueryBinder(dataAccessModel, expression, joinExpanderResults);
+			var queryBinder = new QueryBinder(dataAccessModel, expression, joinExpanderResults) { placeholderCount = placeholderCount };
+			
+			var retval = queryBinder.Visit(expression);
 
-			return queryBinder.Visit(expression);
+			placeholderCount = queryBinder.placeholderCount;
+
+			return retval;
 		}
 
 		public static bool IsIntegralType(Expression expression)
@@ -2052,7 +2058,9 @@ namespace Shaolinq.Persistence.Linq
 								.MakeGenericMethod(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentExpression.Type), value.DefinitionProperty.PropertyType)
 								.Invoke(null, new object[] { parentValue, value.DefinitionProperty.PropertyName });
 
-							bindings.Add(Expression.Bind(value.DefinitionProperty, Visit(subqueryExpression)));
+							var subqueryExpression2 = Evaluator.PartialEval(subqueryExpression, ref placeholderCount);
+
+							bindings.Add(Expression.Bind(value.DefinitionProperty, Visit(subqueryExpression2)));
 
 							continue;
 						}

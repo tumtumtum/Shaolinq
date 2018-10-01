@@ -28,5 +28,10 @@ namespace Shaolinq
 		{
 			return this.DataAccessModel.GetReference<T>(predicate);
 		}
+
+		public virtual T GetReference(LambdaExpression predicate)
+		{
+			return this.DataAccessModel.GetReference<T>(predicate);
+		}
 	}
 }

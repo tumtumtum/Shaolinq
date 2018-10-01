@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Transactions;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
 
@@ -821,7 +823,9 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
-			var s = this.model.Schools.GetReference(c => c.Name == schoolName);
+			var list = new List<long> { schoolId };
+
+			var s = this.model.Schools.GetReference(c => c.Name == schoolName && list.Contains(c.Id));
 
 			Assert.IsTrue(s.IsDeflatedReference());
 
