@@ -252,11 +252,6 @@ namespace Shaolinq
 
 			if (predicate != null)
 			{
-				if (forImport)
-				{
-					throw new InvalidOperationException("Cannot import predicated deflated object");
-				}
-
 				if (this.objectsByPredicateCache != null)
 				{
 					if (this.objectsByPredicateCache.TryGetValue(predicate, out var existing))
