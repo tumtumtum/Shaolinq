@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Remove="GeneratedAsync.cs" />
+    <Compile Include="GeneratedAsync.cs" />
+  </ItemGroup>
+  
   <PropertyGroup>
     <WithoutGeneratedIncludePattern>@(Compile)</WithoutGeneratedIncludePattern>
     <WithoutGeneratedExcludePattern>GeneratedAsync.cs</WithoutGeneratedExcludePattern>
@@ -10,6 +15,7 @@
       <InProject>False</InProject>
     </SourceWithoutGenerated>
   </ItemGroup>
+    
   <Target Name="GenerateAsyncSource" Inputs="@(SourceWithoutGenerated)" Outputs="$(GeneratedAsyncTemp)" DependsOnTargets="ResolveProjectReferences;ResolveAssemblyReferences" BeforeTargets="CoreResGen">
     <AsyncRewriterTask Assemblies="@(_ResolveAssemblyReferenceResolvedFiles)" InputFiles="@(SourceWithoutGenerated)" OutputFile="GeneratedAsync.cs;$(GeneratedAsyncTemp)" DontWriteIfNoChanges="True" />
     <ItemGroup>
