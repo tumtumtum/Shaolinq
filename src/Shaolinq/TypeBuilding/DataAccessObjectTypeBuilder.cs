@@ -570,7 +570,7 @@ namespace Shaolinq.TypeBuilding
 
 			var generator = method.GetILGenerator();
 
-			generator.Emit(OpCodes.Ldstr, $"You cannot explicit set the property {this.typeDescriptor.TypeName}.'{propertyInfo.Name}'");
+			generator.Emit(OpCodes.Ldsfld, $"You cannot explicit set the property {this.typeDescriptor.TypeName}.'{propertyInfo.Name}'");
 
 			generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new NotImplementedException(default(string))));
 
