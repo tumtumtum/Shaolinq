@@ -570,7 +570,7 @@ namespace Shaolinq.TypeBuilding
 
 			var generator = method.GetILGenerator();
 
-			generator.Emit(OpCodes.Ldsfld, $"You cannot explicit set the property {this.typeDescriptor.TypeName}.'{propertyInfo.Name}'");
+			generator.Emit(OpCodes.Ldstr, $"You cannot explicit set the property {this.typeDescriptor.TypeName}.'{propertyInfo.Name}'");
 
 			generator.Emit(OpCodes.Newobj, TypeUtils.GetConstructor(() => new NotImplementedException(default(string))));
 
@@ -1569,7 +1569,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Stloc, local);
 
 					generator.Emit(OpCodes.Ldloca, local);
-					generator.Emit(OpCodes.Call, MethodInfoFastRef.ObjectGetHashCodeMethod);
+					generator.Emit(OpCodes.Call, local.LocalType.GetMethod("GetHashCode", Type.EmptyTypes));
 				}
 				else
 				{
