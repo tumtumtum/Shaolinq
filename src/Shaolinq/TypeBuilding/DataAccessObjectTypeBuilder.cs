@@ -740,12 +740,12 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Call, MethodInfoFastRef.TypeGetTypeFromHandleMethod);
 				generator.Emit(OpCodes.Ldstr, propertyInfo.Name);
 				generator.Emit(OpCodes.Ldc_I4, (int)(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance));
-				generator.Emit(OpCodes.Callvirt, typeof(Type).GetMethod("GetProperty", BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(string), typeof(BindingFlags) }, null));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<Type>(c => c.GetProperty(default(string), default(BindingFlags))));
 				generator.Emit(OpCodes.Stloc, propertyInfoLocal);
 
 				generator.Emit(OpCodes.Ldloc, propertyInfoLocal);
 				generator.Emit(OpCodes.Ldc_I4_1);
-				generator.Emit(OpCodes.Call, typeof(MemberInfoUtils).GetMethod("GetFirstCustomAttribute", BindingFlags.Static | BindingFlags.Public).MakeGenericMethod(typeof(ComputedMemberAttribute)));
+				generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => default(MemberInfo).GetFirstCustomAttribute<Attribute>(default(bool))).GetGenericMethodDefinition().MakeGenericMethod(typeof(ComputedMemberAttribute)));
 
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, TypeUtils.GetField<DataAccessObject>(c => c.dataAccessModel));
@@ -756,7 +756,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Stloc, lambdaLocal);
 				
 				generator.Emit(OpCodes.Ldloc, lambdaLocal);
-				generator.Emit(OpCodes.Callvirt, typeof(LambdaExpression).GetMethod("Compile", BindingFlags.Instance | BindingFlags.Public, null, new Type[0], null));
+				generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<LambdaExpression>(c => c.Compile()));
 				generator.Emit(OpCodes.Castclass, fieldBuilder.FieldType);
 				generator.Emit(OpCodes.Stsfld, fieldBuilder);
 
@@ -880,7 +880,7 @@ namespace Shaolinq.TypeBuilding
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldstr, formatString);
 				generator.Emit(OpCodes.Ldloc, arrayLocal);
-				generator.Emit(OpCodes.Call, typeof(String).GetMethod("Format",  new[]{ typeof(string), typeof(object[]) }));
+				generator.Emit(OpCodes.Call, TypeUtils.GetMethod(() => string.Format(default(string), default(object[]))));
 				generator.Emit(OpCodes.Call, this.propertyBuilders[ForceSetPrefix + propertyInfo.Name].GetSetMethod());
 				generator.Emit(OpCodes.Ret);
 			}
@@ -1569,7 +1569,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Stloc, local);
 
 					generator.Emit(OpCodes.Ldloca, local);
-					generator.Emit(OpCodes.Call, valueField.FieldType.GetMethod("GetHashCode"));
+					generator.Emit(OpCodes.Call, MethodInfoFastRef.ObjectGetHashCodeMethod);
 				}
 				else
 				{
@@ -1587,7 +1587,7 @@ namespace Shaolinq.TypeBuilding
 					}
 					else
 					{
-						generator.Emit(OpCodes.Callvirt, valueField.FieldType.GetMethod("GetHashCode"));
+						generator.Emit(OpCodes.Callvirt, MethodInfoFastRef.ObjectGetHashCodeMethod);
 					}
 				}
 
@@ -1637,7 +1637,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Stloc, local);
 
 					generator.Emit(OpCodes.Ldloca, local);
-					generator.Emit(OpCodes.Call, valueField.FieldType.GetMethod("GetHashCode"));
+					generator.Emit(OpCodes.Call, valueField.FieldType.GetMethod("GetHashCode", Type.EmptyTypes));
 				}
 				else
 				{
@@ -1647,7 +1647,7 @@ namespace Shaolinq.TypeBuilding
 					generator.Emit(OpCodes.Ldloc, local);
 					generator.Emit(OpCodes.Brfalse, next);
 					generator.Emit(OpCodes.Ldloc, local);
-					generator.Emit(OpCodes.Callvirt, valueField.FieldType.GetMethod("GetHashCode"));
+					generator.Emit(OpCodes.Callvirt, MethodInfoFastRef.ObjectGetHashCodeMethod);
 				}
 
 				generator.Emit(OpCodes.Ldloc, retval);

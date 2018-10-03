@@ -13,6 +13,7 @@ namespace Shaolinq.TypeBuilding
 {
 	public static class MethodInfoFastRef
 	{
+		public static readonly MethodInfo ObjectGetHashCodeMethod = TypeUtils.GetMethod<object>(c => c.GetHashCode());
 		public static readonly MethodInfo DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject = TypeUtils.GetMethod(() => DataAccessObjectInternalHelpers.GetPropertyValueExpressionFromPredicatedDeflatedObject<DataAccessObject, int>(default(DataAccessObject), default(string))).GetGenericMethodDefinition();
 		public static readonly MethodInfo TaskExtensionsUnwrapMethod = TypeUtils.GetMethod(() => System.Threading.Tasks.TaskExtensions.Unwrap<int>(null)).GetGenericMethodDefinition();
 		public static readonly MethodInfo EnumerableCountMethod = TypeUtils.GetMethod(() => default(IEnumerable<string>).Count()).GetGenericMethodDefinition();
