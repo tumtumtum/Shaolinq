@@ -34,14 +34,15 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 					case "Any":
 					case "Delete":
 						methodName = methodCallExpression.Method.Name;
-						arg1 = methodCallExpression.Arguments[1];
+						arg1 = this.Visit(methodCallExpression.Arguments[1]);
 						break;
 					default:
 						if (methodCallExpression.Method.Name == "Contains" && methodCallExpression.Arguments[1].Type.IsDataAccessObjectType())
 						{
 							methodName = "Any";
-							var param = Expression.Parameter(methodCallExpression.Arguments[1].Type);
-							var body = Expression.Equal(param, methodCallExpression.Arguments[1]);
+							arg1 = this.Visit(methodCallExpression.Arguments[1]);
+							var param = Expression.Parameter(arg1.Type);
+							var body = Expression.Equal(param, arg1);
 
 							arg1 = Expression.Lambda(body, param);
 

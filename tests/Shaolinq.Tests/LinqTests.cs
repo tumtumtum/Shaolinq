@@ -930,6 +930,62 @@ namespace Shaolinq.Tests
 				Assert.IsTrue(results.SequenceEqual(students.OrderBy(c => c.Firstname).ThenBy(c => c.School.Name).ThenBy(c => c.Id).Skip(1).Take(2)));
 			}
 		}
+		
+		[Test]
+		public virtual void Test_RelatedDataAccessObjects_Contains0()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Students.Any());
+				var student = school.Students.First();
+
+				var school2 = this.model.Schools.First(c => c.Students.Select(d => d.Id).Contains(student.Id));
+
+				Assert.AreEqual(school, school2);
+			}
+		}
+
+		[Test]
+		public virtual void Test_RelatedDataAccessObjects_Contains1()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Students.Any());
+				var student = school.Students.First();
+
+				var school2 = this.model.Schools.First(c => c.Students.Contains(student));
+
+				Assert.AreEqual(school, school2);
+			}
+		}
+		
+		[Test]
+		public virtual void Test_RelatedDataAccessObjects_Contains2()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Students.Any());
+				var student = school.Students.First();
+
+				var school2 = this.model.Schools.First(c => c == school && c.Students.Any(d => d == student));
+
+				Assert.AreEqual(school, school2);
+			}
+		}
+		
+		[Test]
+		public virtual void Test_RelatedDataAccessObjects_Contains3()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var school = this.model.Schools.First(c => c.Students.Any());
+				var student = school.Students.First();
+
+				var school2 = this.model.Schools.FirstOrDefault(c => c.Students.Any(d => d == student && false));
+
+				Assert.AreEqual(null, school2);
+			}
+		}
 
 		[Test]
 		public virtual void Test_Enum_List_Contains()
