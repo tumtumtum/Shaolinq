@@ -1,7 +1,7 @@
 // Copyright (c) 2007-2018 Thong Nguyen (tumtumtum@gmail.com)
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Reflection;
 using Platform;
 
@@ -10,7 +10,7 @@ namespace Shaolinq.Persistence
 	public class DefaultSqlDataTypeProvider
 		: SqlDataTypeProvider
 	{
-		private readonly Dictionary<Type, SqlDataType> sqlDataTypesByType;
+		private readonly ConcurrentDictionary<Type, SqlDataType> sqlDataTypesByType = new ConcurrentDictionary<Type, SqlDataType>();
 
 		protected internal void DefineSqlDataType(SqlDataType sqlDataType)
 		{
@@ -32,8 +32,6 @@ namespace Shaolinq.Persistence
 		public DefaultSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
 			: base(constraintDefaultsConfiguration)
 		{
-			this.sqlDataTypesByType = new Dictionary<Type, SqlDataType>();
-
 			DefinePrimitiveSqlDataType(typeof(bool), "TINYINT", "GetBoolean");
 			DefinePrimitiveSqlDataType(typeof(byte), "BYTE UNSIGNED ", "GetInt32");
 			DefinePrimitiveSqlDataType(typeof(sbyte), "BYTE", "GetByte");
