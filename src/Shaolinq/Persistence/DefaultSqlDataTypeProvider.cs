@@ -78,17 +78,13 @@ namespace Shaolinq.Persistence
 			{
 				var sqlDataType = GetEnumDataType(type);
 
-				this.sqlDataTypesByType[type] = sqlDataType;
-
-				return sqlDataType;
+				return this.sqlDataTypesByType.AddOrUpdate(type, sqlDataType, (k, v) => v);
 			}
 			else if (underlyingType.IsArray && underlyingType == typeof(byte[]))
 			{
 				var sqlDataType = GetBlobDataType();
 
-				this.sqlDataTypesByType[type] = sqlDataType;
-
-				return sqlDataType;
+				return this.sqlDataTypesByType.AddOrUpdate(type, sqlDataType, (k, v) => v);
 			}
 
 			return null;
