@@ -79,6 +79,21 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public virtual void Test_RelatedDataAccessObjects_First_With_Inner_Count()
+		{
+			using (var scope = NewTransactionScope())
+			{
+				var x = this.model.Malls.First(c => c.SisterMall.Shops.Count(d => true) > 0);
+
+				Assert.Greater(x.SisterMall.Shops.Count(), 0);
+
+				x = this.model.Malls.FirstOrDefault(c => c.SisterMall.Shops.Count(d => false) > 0);
+
+				Assert.IsNull(x);
+			}
+		}
+
+		[Test]
 		public void Test_GetReference_By_Complex_PrimaryKey_Columns()
 		{
 			var shop = this.model.GetReferenceByPrimaryKeyColumns<Shop>(new object[] { 1L, 1L, 1L, "Washington" });

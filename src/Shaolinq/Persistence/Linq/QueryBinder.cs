@@ -1447,7 +1447,7 @@ namespace Shaolinq.Persistence.Linq
 
 		private Expression BindWhere(Type resultType, Expression source, LambdaExpression predicate, bool sourceAlreadyVisited = false)
 		{
-			var projection = (SqlProjectionExpression)(sourceAlreadyVisited ? source : Visit(source));
+			var projection = (SqlProjectionExpression)(sourceAlreadyVisited ? source : VisitSequence(source));
 
 			AddExpressionByParameter(predicate.Parameters[0], projection.Projector);
 
