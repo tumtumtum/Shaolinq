@@ -9,7 +9,7 @@ namespace Shaolinq.Persistence.Linq
 	public class SqlConstantPlaceholderMaxIndexFinder
 		: SqlExpressionVisitor
 	{
-		private int maxIndex = 0;
+		private int maxIndex = -1;
 		
 		private SqlConstantPlaceholderMaxIndexFinder()
 		{

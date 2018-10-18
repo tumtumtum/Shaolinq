@@ -16,13 +16,6 @@ namespace Shaolinq.Persistence.Linq
 			return SubtreeEvaluator.Eval(new EvaluatorNominator(fnCanBeEvaluated).Nominate(expression), expression, ref placeholderCount);
 		}
 
-		public static Expression PartialEval(Expression expression)
-		{
-			var placeholderCount = -1;
-
-			return PartialEval(expression, ref placeholderCount);
-		}
-
 		public static Expression PartialEval(Expression expression, ref int placeholderCount)
 		{
 			return PartialEval(expression, CanBeEvaluatedLocally, ref placeholderCount);
@@ -92,8 +85,9 @@ namespace Shaolinq.Persistence.Linq
 			private int index;
 			private readonly HashSet<Expression> candidates;
 
-			private SubtreeEvaluator(HashSet<Expression> candidates)
+			private SubtreeEvaluator(HashSet<Expression> candidates, int index)
 			{
+				this.index = index;
 				this.candidates = candidates;
 			}
 
@@ -104,11 +98,13 @@ namespace Shaolinq.Persistence.Linq
 					return expression;
 				}
 
-				var i = placeholderCount >= 0 ? placeholderCount : SqlConstantPlaceholderMaxIndexFinder.Find(expression) + 1;
+				var evaluator = new SubtreeEvaluator(candidates, placeholderCount);
 
-				var evaluator = new SubtreeEvaluator(candidates) { index = i };
+				var retval = evaluator.Visit(expression);
 
-				return evaluator.Visit(expression);
+				placeholderCount = evaluator.index;
+
+				return retval;
 			}
 
 			protected override Expression Visit(Expression expression)

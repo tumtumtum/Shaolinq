@@ -3666,5 +3666,17 @@ namespace Shaolinq.Tests
 
 			var y = x.ToList();
 		}
+
+		[Test]
+		public void Test_QueryCache_With_Deflated_References()
+		{
+			var list1 = new string[] { "Seattle City" };
+			var mall1 = this.model.Malls.GetReference(c => list1.Contains(c.Name));
+			var shop1 = mall1.Shops.Single(c => c.Name != "boo");
+
+			var list2 = new string[] { "Seattle City", "A" };
+			var mall2 = this.model.Malls.GetReference(c => list2.Contains(c.Name));
+			var shop2 = mall2.Shops.Single(c => c.Name != "boo");
+		}
 	}
 }

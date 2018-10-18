@@ -161,7 +161,7 @@ namespace Shaolinq.Persistence.Linq
 
 		internal static Expression Bind(DataAccessModel dataAccessModel, SqlDataTypeProvider sqlDataTypeProvider, Expression expression)
 		{
-			var placeholderCount = -1;
+			var placeholderCount = SqlConstantPlaceholderMaxIndexFinder.Find(expression) + 1;
 
 			expression = Evaluator.PartialEval(expression, ref placeholderCount);
 			expression = QueryBinder.Bind(dataAccessModel, expression, ref placeholderCount);
