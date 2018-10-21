@@ -31,5 +31,11 @@ namespace Shaolinq.Tests.ComplexPrimaryKeyModel
 
 		[DataAccessObjects]
 		public virtual DataAccessObjects<Building> Buildings { get; set; }
+
+		[DataAccessObjects]
+		public virtual DataAccessObjects<A> A { get; set; }
+
+		[DataAccessObjects]
+		public virtual DataAccessObjects<B> B { get; set; }
 	}
 }

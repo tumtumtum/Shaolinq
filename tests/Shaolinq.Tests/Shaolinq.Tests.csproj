@@ -201,7 +201,9 @@
   <ItemGroup>
     <Compile Include="AsyncLocalTests.cs" />
     <Compile Include="BaseTests.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\A.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Address.cs" />
+    <Compile Include="ComplexPrimaryKeyModel\B.cs" />
     <Compile Include="ComplexPrimaryKeyModel\ShopType.cs" />
     <Compile Include="ComplexPrimaryKeyModel\SuperMall.cs" />
     <Compile Include="ComplexPrimaryKeyModel\Toy.cs" />
