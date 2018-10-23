@@ -159,6 +159,11 @@ namespace Shaolinq
 		{
 			var typeHandle = Type.GetTypeHandle(value);
 
+			if (this.isCommiting)
+			{
+				return value;
+			}
+
 			if ((value.GetAdvanced().ObjectState & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
 				return value;
@@ -177,6 +182,11 @@ namespace Shaolinq
 		public virtual DataAccessObject EvictObject(DataAccessObject value)
 		{
 			var typeHandle = Type.GetTypeHandle(value);
+
+			if (this.isCommiting)
+			{
+				return value;
+			}
 
 			if ((value.GetAdvanced().ObjectState & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
