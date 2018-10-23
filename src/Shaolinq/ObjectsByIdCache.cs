@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
+using Shaolinq.Logging;
 using Shaolinq.TypeBuilding;
 
 namespace Shaolinq
@@ -28,6 +29,8 @@ namespace Shaolinq
 	internal class ObjectsByIdCache<K>
 		: IObjectsByIdCache
 	{
+		public static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+
 		public Type Type { get; }
 		private readonly Func<DataAccessObject, K> getIdFunc;
 		private readonly DataAccessObjectDataContext dataAccessObjectDataContext;
@@ -169,6 +172,8 @@ namespace Shaolinq
 		{
 			if (this.dataAccessObjectDataContext.isCommiting)
 			{
+				Logger.Debug("Skipping eviction of object {value.GetType()} because commit in process");
+
 				return;
 			}
 
@@ -209,11 +214,6 @@ namespace Shaolinq
 
 		public DataAccessObject Cache(DataAccessObject value, bool forImport)
 		{
-			if (this.dataAccessObjectDataContext.isCommiting)
-			{
-				return value;
-			}
-
 			if (value.GetAdvanced().IsNew)
 			{
 				if (value.GetAdvanced().PrimaryKeyIsCommitReady)
@@ -224,6 +224,13 @@ namespace Shaolinq
 						{
 							throw new ObjectAlreadyExistsException(value, null, null);
 						}
+					}
+
+					if (this.dataAccessObjectDataContext.isCommiting)
+					{
+						Logger.Debug("Skipping caching of new object {value.GetType()} because commit in process");
+
+						return value;
 					}
 
 					this.newObjects[value] = value;
@@ -239,6 +246,13 @@ namespace Shaolinq
 				{
 					if (!(this.objectsNotReadyForCommit?.Contains(value) ?? false))
 					{
+						if (this.dataAccessObjectDataContext.isCommiting)
+						{
+							Logger.Debug("Skipping caching of not ready for commit object {value.GetType()} because commit in process");
+
+							return value;
+						}
+
 						(this.objectsNotReadyForCommit = this.objectsNotReadyForCommit ?? new HashSet<DataAccessObject>(ObjectReferenceIdentityEqualityComparer<IDataAccessObjectAdvanced>.Default))
 							.Add(value);
 					}
@@ -260,6 +274,13 @@ namespace Shaolinq
 
 						return existing;
 					}
+				}
+
+				if (this.dataAccessObjectDataContext.isCommiting)
+				{
+					Logger.Debug("Skipping caching of predicated deflated object {value.GetType()} because commit in process");
+
+					return value;
 				}
 
 				(this.objectsByPredicateCache = this.objectsByPredicateCache ?? new Dictionary<LambdaExpression, DataAccessObject>())[predicate] = value;
@@ -317,6 +338,13 @@ namespace Shaolinq
 						return value;
 					}
 				}
+			}
+
+			if (this.dataAccessObjectDataContext.isCommiting)
+			{
+				Logger.Debug("Skipping caching of object {value.GetType()} because commit in process");
+
+				return value;
 			}
 
 			this.objectsByIdCache[id] = value;

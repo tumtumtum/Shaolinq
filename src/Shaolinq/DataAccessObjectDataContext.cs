@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Platform;
+using Shaolinq.Logging;
 using Shaolinq.Persistence;
 
 // ReSharper disable SuspiciousTypeConversion.Global
@@ -19,6 +20,8 @@ namespace Shaolinq
 	/// </summary>
 	public partial class DataAccessObjectDataContext
 	{
+		public static readonly ILog Logger = LogProvider.GetCurrentClassLogger();
+
 		public DataAccessModel DataAccessModel { get; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
 		
@@ -159,11 +162,6 @@ namespace Shaolinq
 		{
 			var typeHandle = Type.GetTypeHandle(value);
 
-			if (this.isCommiting)
-			{
-				return value;
-			}
-
 			if ((value.GetAdvanced().ObjectState & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
 				return value;
@@ -171,6 +169,13 @@ namespace Shaolinq
 
 			if (!this.cachesByType.TryGetValue(typeHandle, out var cache))
 			{
+				if (this.isCommiting)
+				{
+					Logger.Debug("Skipping caching of object {value.GetType()} because commit in process");
+
+					return value;
+				}
+
 				cache = CreateCacheForDataAccessObject(value, this);
 
 				this.cachesByType[typeHandle] = cache;
@@ -182,12 +187,7 @@ namespace Shaolinq
 		public virtual DataAccessObject EvictObject(DataAccessObject value)
 		{
 			var typeHandle = Type.GetTypeHandle(value);
-
-			if (this.isCommiting)
-			{
-				return value;
-			}
-
+			
 			if ((value.GetAdvanced().ObjectState & DataAccessObjectState.Untracked) == DataAccessObjectState.Untracked)
 			{
 				return value;
@@ -195,6 +195,13 @@ namespace Shaolinq
 
 			if (!this.cachesByType.TryGetValue(typeHandle, out var cache))
 			{
+				if (this.isCommiting)
+				{
+					Logger.Debug("Skipping eviction of object {value.GetType()} because commit in process");
+
+					return value;
+				}
+
 				cache = CreateCacheForDataAccessObject(value, this);
 
 				this.cachesByType[typeHandle] = cache;

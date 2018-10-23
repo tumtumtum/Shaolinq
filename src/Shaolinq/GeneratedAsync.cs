@@ -2480,8 +2480,10 @@ namespace Shaolinq
 	using System.Linq.Expressions;
 	using System.Collections.Generic;
 	using Platform;
+	using Shaolinq.Logging;
 	using Shaolinq.Persistence;
 	using global::Shaolinq;
+	using global::Shaolinq.Logging;
 	using global::Shaolinq.Persistence;
 
 	public partial class DataAccessObjectDataContext
