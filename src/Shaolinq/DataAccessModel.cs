@@ -653,6 +653,24 @@ namespace Shaolinq
 			return func(primaryKey);
 		}
 
+		public virtual T GetReference<T>(object primaryKey)
+			where T : DataAccessObject
+		{
+			return GetReference<T>(primaryKey, PrimaryKeyType.Auto);
+		}
+
+		public virtual T GetReference<T>(object primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
+			where T : DataAccessObject
+		{
+			return (T)GetReference(typeof(T), GetObjectPropertyValues(typeof(T), primaryKey, primaryKeyType));
+		}
+
+		public virtual T GetReference<T, K>(K primaryKey)
+			where T : DataAccessObject
+		{
+			return GetReference<T, K>(primaryKey, PrimaryKeyType.Auto);
+		}
+
 		public virtual T GetReference<T, K>(K primaryKey, PrimaryKeyType primaryKeyType = PrimaryKeyType.Auto)
 			where T : DataAccessObject
 		{

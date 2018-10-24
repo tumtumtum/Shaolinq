@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Platform;
 using Shaolinq.Persistence.Linq;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
+using Shouldly;
 
 namespace Shaolinq.Tests
 {
@@ -3677,6 +3678,40 @@ namespace Shaolinq.Tests
 			var list2 = new string[] { "Seattle City", "A" };
 			var mall2 = this.model.Malls.GetReference(c => list2.Contains(c.Name));
 			var shop2 = mall2.Shops.Single(c => c.Name != "boo");
+		}
+
+		[Test]
+		public void Test_Inheritance_Using_PrimaryKeys()
+		{
+			long aid = 0;
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var a = this.model.A.Create();
+				var b = this.model.B.Create();
+
+				b.Id = a;
+
+				scope.Flush();
+
+				aid = a.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var b = this.model.B.GetByPrimaryKey(this.model.A.GetReference(aid));
+
+				b.Id.IsDeflatedReference().ShouldBeTrue();
+			}
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var b = this.model.B.Include(c => c.Id).Single(c => c.Id == this.model.A.GetReference(aid));
+
+				b.Id.IsDeflatedReference().ShouldBeFalse();
+			}
 		}
 	}
 }
