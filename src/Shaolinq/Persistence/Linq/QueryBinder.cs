@@ -2052,7 +2052,7 @@ namespace Shaolinq.Persistence.Linq
 					{
 						var parentValue = ExpressionInterpreter.Interpret(parentExpression) as DataAccessObject;
 
-						if (parentValue.ToObjectInternal().DeflatedPredicate != null)
+						if (parentValue.GetAdvanced().DeflatedPredicate != null)
 						{
 							var subqueryExpression = (Expression)MethodInfoFastRef.DataAccessObjectHelpersInternalGetPropertyValueExpressionFromPredicatedDeflatedObject
 								.MakeGenericMethod(this.DataAccessModel.GetDefinitionTypeFromConcreteType(parentExpression.Type), value.DefinitionProperty.PropertyType)

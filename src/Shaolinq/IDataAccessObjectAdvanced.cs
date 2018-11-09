@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -30,6 +31,11 @@ namespace Shaolinq
 		/// Returns true if the current object has only been partially loaded and can't be read.
 		/// </summary>
 		bool IsDeflatedPredicatedReference { get; }
+
+		/// <summary>
+		/// Gets the predicate if this object is a deflated predicated reference.
+		/// </summary>
+		LambdaExpression DeflatedPredicate { get; }
 
 		/// <summary>
 		/// Returns true if the current object has not yet been persisted or flushed.

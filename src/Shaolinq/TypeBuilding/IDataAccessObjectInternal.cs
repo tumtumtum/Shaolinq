@@ -16,7 +16,6 @@ namespace Shaolinq.TypeBuilding
 		IDataAccessObjectInternal RemoveFromCache();
 		IDataAccessObjectInternal ResetModified();
 		int GetHashCodeAccountForServerGenerated();
-		LambdaExpression DeflatedPredicate { get; }
 		IDataAccessObjectInternal FinishedInitializing();
 		IDataAccessObjectInternal SetDeflatedPredicate(LambdaExpression value);
 		IDataAccessObjectInternal SetPrimaryKeys(ObjectPropertyValue[] primaryKeys);

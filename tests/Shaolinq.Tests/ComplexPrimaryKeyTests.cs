@@ -3712,6 +3712,20 @@ namespace Shaolinq.Tests
 
 				b.Id.IsDeflatedReference().ShouldBeFalse();
 			}
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var b = this.model.B.Single(c => c.Id.Id == aid);
+
+				b.Id.IsDeflatedReference().ShouldBeTrue();
+			}
+
+			using (var scope = this.NewTransactionScope())
+			{
+				var b = this.model.B.Include(c => c.Id).Single(c => c.Id.Id == aid);
+
+				b.Id.IsDeflatedReference().ShouldBeFalse();
+			}
 		}
 	}
 }

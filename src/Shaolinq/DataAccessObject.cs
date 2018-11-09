@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Shaolinq.Persistence;
 
 namespace Shaolinq
@@ -72,6 +73,7 @@ namespace Shaolinq
 		int IDataAccessObjectAdvanced.NumberOfPrimaryKeysGeneratedOnServerSide => this.TypeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 		bool IDataAccessObjectAdvanced.IsDeflatedReference => false;
 		bool IDataAccessObjectAdvanced.IsDeflatedPredicatedReference => false;
+		LambdaExpression IDataAccessObjectAdvanced.DeflatedPredicate => null;
 		bool IDataAccessObjectAdvanced.PrimaryKeyIsCommitReady => false;
 		int IDataAccessObjectAdvanced.NumberOfPropertiesGeneratedOnTheServerSide => this.TypeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysFlattened() => this.ToObjectInternal().GetPrimaryKeysFlattened(out placeholder);

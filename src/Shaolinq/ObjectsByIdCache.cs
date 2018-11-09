@@ -109,11 +109,11 @@ namespace Shaolinq
 				this.objectsByIdCache.Remove(id);
 				(this.objectsDeleted = this.objectsDeleted ?? new Dictionary<K, DataAccessObject>())[id] = value;
 
-				var internalDao = (IDataAccessObjectInternal)value;
+				var advanced = value.GetAdvanced();
 
-				if (internalDao?.DeflatedPredicate != null)
+				if (advanced?.DeflatedPredicate != null)
 				{
-					this.objectsByPredicateCache?.Remove(internalDao.DeflatedPredicate);
+					this.objectsByPredicateCache?.Remove(advanced.DeflatedPredicate);
 				}
 			}
 		}
@@ -191,8 +191,8 @@ namespace Shaolinq
 				return;
 			}
 
-			var internalDao = value.ToObjectInternal();
-			var predicate = internalDao?.DeflatedPredicate;
+			var advanced = value.GetAdvanced();
+			var predicate = advanced?.DeflatedPredicate;
 
 			if (predicate != null)
 			{
@@ -261,8 +261,8 @@ namespace Shaolinq
 				}
 			}
 
-			var internalDao = value.ToObjectInternal();
-			var predicate = internalDao?.DeflatedPredicate;
+			var advanced = value.GetAdvanced();
+			var predicate = advanced?.DeflatedPredicate;
 
 			if (predicate != null)
 			{

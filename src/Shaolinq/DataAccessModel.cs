@@ -949,7 +949,7 @@ namespace Shaolinq
 				return obj;
 			}
 
-			var predicate = obj.ToObjectInternal().DeflatedPredicate;
+			var predicate = obj.GetAdvanced().DeflatedPredicate;
 
 			if (predicate != null)
 			{
@@ -983,7 +983,7 @@ namespace Shaolinq
 				return obj;
 			}
 
-			var predicate = obj.ToObjectInternal().DeflatedPredicate;
+			var predicate = obj.GetAdvanced().DeflatedPredicate;
 
 			if (predicate != null)
 			{

@@ -41,7 +41,7 @@ namespace Shaolinq.Persistence.Linq
 			);
 
 			var expression = obj.dataAccessModel.GetDataAccessObjects<T>()
-				.Where((Expression<Func<T, bool>>)obj.ToObjectInternal().DeflatedPredicate)
+				.Where((Expression<Func<T, bool>>)obj.GetAdvanced().DeflatedPredicate)
 				.Select(Expression.Lambda<Func<T, U>>(propertyExpression, parameter)).Expression;
 
 			return Expression.Call(null, TypeUtils.GetMethod(() => default(IQueryable<U>).First()), expression);
