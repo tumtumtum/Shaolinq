@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using Platform;
 using Shaolinq.Persistence.Linq.Expressions;
 using Shaolinq.TypeBuilding;
@@ -11,6 +12,8 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 	public class SqlEnumTypeNormalizer
 		: SqlExpressionVisitor
 	{
+		private static readonly MethodInfo EnumToObjectMethod = TypeUtils.GetMethod(() => SqlEnumTypeNormalizer.EnumToObject(default, default));
+
 		public Type PersistedType { get; }
 
 		public SqlEnumTypeNormalizer(Type persistedType)
@@ -43,6 +46,16 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			return base.VisitUnary(unaryExpression);
 		}
 
+		internal static object EnumToObject(Type enumType, object value)
+		{
+			if (value == null)
+			{
+				return null;
+			}
+
+			return Enum.ToObject(enumType.GetUnwrappedNullableType(), value);
+		}
+
 		protected override Expression VisitBinary(BinaryExpression binaryExpression)
 		{
 			var left = Visit(binaryExpression.Left);
@@ -52,14 +65,14 @@ namespace Shaolinq.Persistence.Linq.Optimizers
 			{
 				if (!right.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					right = Expression.Convert(Expression.Call(MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(left.Type.GetUnwrappedNullableType()), Expression.Convert(right.StripConstantWrappers(), typeof(int))), left.Type);
+					right = Expression.Convert(Expression.Call(EnumToObjectMethod, Expression.Constant(left.Type), Expression.Convert(right.StripConstantWrappers(), typeof(object))), left.Type);
 				}
 			}
 			else if (right.Type.GetUnwrappedNullableType().IsEnum)
 			{
 				if (!left.Type.GetUnwrappedNullableType().IsEnum)
 				{
-					left = Expression.Convert(Expression.Call(MethodInfoFastRef.EnumToObjectMethod, Expression.Constant(right.Type.GetUnwrappedNullableType()), Expression.Convert(left.StripConstantWrappers(), typeof(int))), right.Type);
+					left = Expression.Convert(Expression.Call(EnumToObjectMethod, Expression.Constant(right.Type), Expression.Convert(left.StripConstantWrappers(), typeof(object))), right.Type);
 				}
 			}
 
