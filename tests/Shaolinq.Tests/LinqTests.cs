@@ -1117,7 +1117,7 @@ namespace Shaolinq.Tests
 				Sex? sex = null;
 				count = this.model.Students.Count(c => c.SexOptional == sex);
 
-				Assert.AreEqual(3, count);
+				Assert.AreEqual(this.model.Students.Count(c => c.SexOptional == null), count);
 
 				scope.Complete();
 			}
