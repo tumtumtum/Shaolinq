@@ -122,6 +122,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncRewriterTests.cs" />
+    <None Include="RewriteTests\AmbiguousNamespaceClasses.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="RewriteTests\AmbiguousNamespace.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="RewriteTests\GenericMethods.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
