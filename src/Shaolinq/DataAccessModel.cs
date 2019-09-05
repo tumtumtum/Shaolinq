@@ -747,6 +747,8 @@ namespace Shaolinq
 			retvalInternal.FinishedInitializing();
 			retvalInternal.SubmitToCache();
 
+			((IDataAccessModelInternal)this).OnHookCreate(retval);
+
 			return retval;
 		}
 
@@ -784,6 +786,8 @@ namespace Shaolinq
 					.SetPrimaryKeys(objectPropertyAndValues)
 					.FinishedInitializing()
 					.SubmitToCache();
+
+				((IDataAccessModelInternal)this).OnHookCreate(retval);
 
 				return retval;
 			}
