@@ -14,6 +14,20 @@ namespace Something.AsyncRewriter.Tests.RewriteTests
 			TestOtherFoo(otherFoo);
 			TestSomethingOtherFoo(somethingOtherFoo);
 
+			/*
+			 This *should* output:
+			 
+			 Other.Foo.Bar
+			 Something.Other.Foo.Bar
+			 
+			 But currently AsyncRewriter messes up the namespaces and it outputs:
+
+			 Something.Other.Foo.Bar
+			 Something.Other.Foo.Bar
+			 
+			 If you change the commented lines in the methods below, it instead won't compile due to the method 'OtherBar' not being found in 'TestOtherFoo()'
+			*/
+
 			return 0;
 		}
 
