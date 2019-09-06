@@ -356,8 +356,6 @@ namespace Shaolinq
 					.FinishedInitializing()
 					.SubmitToCache();
 
-				((IDataAccessModelInternal)this).OnHookCreate(retval);
-
 				return retval;
 			}
 		}
@@ -387,8 +385,6 @@ namespace Shaolinq
 					.ResetModified()
 					.FinishedInitializing()
 					.SubmitToCache();
-
-				((IDataAccessModelInternal)this).OnHookCreate(retval);
 
 				return retval;
 			}
