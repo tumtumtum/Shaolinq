@@ -9,6 +9,7 @@ namespace Shaolinq
 	public class DataAccessModelHookSubmitContext
 	{
 		public bool IsFlush { get; }
+		public bool IsCommit => !IsFlush;
 		public Exception Exception { get; internal set; }
 
 		public IEnumerable<DataAccessObject> New => this.dataContext.cachesByType.SelectMany(cache => cache.Value.GetNewObjects());
