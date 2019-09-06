@@ -105,7 +105,7 @@ namespace Shaolinq
 
 		Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject dataAccessObject)
 		{
-			return ((IDataAccessModelInternal)this).OnHookCreateAsync(dataAccessObject, CancellationToken.None);
+			return ((IDataAccessModelInternal)this).OnHookReadAsync(dataAccessObject, CancellationToken.None);
 		}
 
 		Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
@@ -135,7 +135,7 @@ namespace Shaolinq
 
 		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context)
 		{
-			return ((IDataAccessModelInternal)this).OnHookBeforeSubmitAsync(context, CancellationToken.None);
+			return ((IDataAccessModelInternal)this).OnHookAfterSubmitAsync(context, CancellationToken.None);
 		}
 
 		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
@@ -159,14 +159,11 @@ namespace Shaolinq
 		private async Task CallHooksAsync(Func<IDataAccessModelHook, Task> hookFunc)
 		{
 			var localHooks = this.hooks;
-			var tasks = new List<Task>();
 
 			if (localHooks != null)
 			{
-				tasks.AddRange(localHooks.Select(hookFunc));
+				await Task.WhenAll(localHooks.Select(hookFunc));
 			}
-
-			await Task.WhenAll(tasks);
 		}
 	}
 }
