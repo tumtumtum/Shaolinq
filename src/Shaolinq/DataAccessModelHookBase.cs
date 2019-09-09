@@ -36,5 +36,15 @@ namespace Shaolinq
 		public virtual void AfterSubmit(DataAccessModelHookSubmitContext context)
 		{
 		}
+
+		[RewriteAsync]
+		public virtual void BeforeRollback()
+		{
+		}
+
+		[RewriteAsync]
+		public virtual void AfterRollback()
+		{
+		}
 	}
 }

@@ -143,6 +143,36 @@ namespace Shaolinq
 			return CallHooksAsync(hook => hook.AfterSubmitAsync(context, cancellationToken));
 		}
 
+		void IDataAccessModelInternal.OnHookBeforeRollback()
+		{
+			CallHooks(hook => hook.BeforeRollback());
+		}
+
+		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync()
+		{
+			return ((IDataAccessModelInternal)this).OnHookBeforeRollbackAsync(CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync(CancellationToken cancellationToken)
+		{
+			return CallHooksAsync(hook => hook.BeforeRollbackAsync(cancellationToken));
+		}
+
+		void IDataAccessModelInternal.OnHookAfterRollback()
+		{
+			CallHooks(hook => hook.AfterRollback());
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterRollbackAsync()
+		{
+			return ((IDataAccessModelInternal)this).OnHookAfterRollbackAsync(CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterRollbackAsync(CancellationToken cancellationToken)
+		{
+			return CallHooksAsync(hook => hook.AfterRollbackAsync(cancellationToken));
+		}
+
 		private void CallHooks(Action<IDataAccessModelHook> hookAction)
 		{
 			var localHooks = this.hooks;

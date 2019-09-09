@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 using NUnit.Framework;
 using Shaolinq.Tests.ComplexPrimaryKeyModel;
@@ -19,7 +21,8 @@ namespace Shaolinq.Tests
 	{
 		public class TestDataModelHook : DataAccessModelHookBase
 		{
-			public int AfterSubmitCallCompleteCount { get; private set; }
+			public int CommitCount { get; private set; }
+			public int RollbackCount { get; private set; }
 
 			public override void Create(DataAccessObject dataAccessObject)
 			{
@@ -28,16 +31,53 @@ namespace Shaolinq.Tests
 				base.Create(dataAccessObject);
 			}
 
+			public override Task CreateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
+			{
+				Console.WriteLine("CreateAsync");
+
+				return base.CreateAsync(dataAccessObject, cancellationToken);
+			}
+
 			public override void AfterSubmit(DataAccessModelHookSubmitContext context)
 			{
 				Console.WriteLine($"AfterSubmit - IsCommit: {context.IsCommit}, new objects: {context.New.Count()} {context.Exception?.Message}");
 
 				if (context.IsCommit)
 				{
-					this.AfterSubmitCallCompleteCount++;
+					this.CommitCount++;
 				}
 
 				base.AfterSubmit(context);
+			}
+
+			public override Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+			{
+				Console.WriteLine($"AfterSubmitAsync - IsCommit: {context.IsCommit}, new objects: {context.New.Count()} {context.Exception?.Message}");
+
+				if (context.IsCommit)
+				{
+					this.CommitCount++;
+				}
+
+				return base.AfterSubmitAsync(context, cancellationToken);
+			}
+
+			public override void AfterRollback()
+			{
+				Console.WriteLine("AfterRollback");
+
+				this.RollbackCount++;
+
+				base.AfterRollback();
+			}
+
+			public override Task AfterRollbackAsync(CancellationToken cancellationToken)
+			{
+				Console.WriteLine("AfterRollbackAsync");
+
+				this.RollbackCount++;
+
+				return base.AfterRollbackAsync(cancellationToken);
 			}
 		}
 
@@ -76,7 +116,28 @@ namespace Shaolinq.Tests
 				if (complete) scope.Complete();
 			}
 
-			Assert.AreEqual(this.testDataModelHook.AfterSubmitCallCompleteCount, complete ? 1 : 0);
+			Assert.AreEqual(complete ? 1 : 0, this.testDataModelHook.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, this.testDataModelHook.RollbackCount);
+		}
+
+		[TestCase(false, false)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(true, true)]
+		public async Task Test_DataAccessScope_CreateFlushComplete_Calls_DataModelHook_Async(bool flush, bool complete)
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				var cat = this.model.Cats.Create();
+
+				Console.WriteLine("===");
+
+				if (flush) await scope.FlushAsync();
+				if (complete) await scope.CompleteAsync();
+			}
+
+			Assert.AreEqual(complete ? 1 : 0, this.testDataModelHook.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, this.testDataModelHook.RollbackCount);
 		}
 
 		[TestCase(false, false)]
@@ -95,7 +156,8 @@ namespace Shaolinq.Tests
 				if (complete) scope.Complete();
 			}
 
-			Assert.AreEqual(this.testDataModelHook.AfterSubmitCallCompleteCount, complete ? 1 : 0);
+			Assert.AreEqual(complete ? 1 : 0, this.testDataModelHook.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, this.testDataModelHook.RollbackCount);
 		}
 
 
@@ -122,8 +184,10 @@ namespace Shaolinq.Tests
 				if (complete) scope.Complete();
 			}
 
-			Assert.AreEqual(this.testDataModelHook.AfterSubmitCallCompleteCount, complete ? 1 : 0);
-			Assert.AreEqual(hook2.AfterSubmitCallCompleteCount, complete ? 1 : 0);
+			Assert.AreEqual(complete ? 1 : 0, this.testDataModelHook.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, this.testDataModelHook.RollbackCount);
+			Assert.AreEqual(complete ? 1 : 0, hook2.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, hook2.RollbackCount);
 		}
 
 		[TestCase(false, false)]
@@ -149,8 +213,10 @@ namespace Shaolinq.Tests
 				if (complete) scope.Complete();
 			}
 
-			Assert.AreEqual(this.testDataModelHook.AfterSubmitCallCompleteCount, complete ? 1 : 0);
-			Assert.AreEqual(hook2.AfterSubmitCallCompleteCount, complete ? 1 : 0);
+			Assert.AreEqual(complete ? 1 : 0, this.testDataModelHook.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, this.testDataModelHook.RollbackCount);
+			Assert.AreEqual(complete ? 1 : 0, hook2.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, hook2.RollbackCount);
 		}
 
 		[TestCase(false, false)]
@@ -176,7 +242,8 @@ namespace Shaolinq.Tests
 				if (complete) outerScope.Complete();
 			}
 
-			Assert.AreEqual(this.testDataModelHook.AfterSubmitCallCompleteCount, complete ? 1 : 0);
+			Assert.AreEqual(complete ? 1 : 0, this.testDataModelHook.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, this.testDataModelHook.RollbackCount);
 		}
 
 		[Test]
@@ -184,6 +251,8 @@ namespace Shaolinq.Tests
 		{
 			using (var outerScope = new DataAccessScope())
 			{
+				Console.WriteLine(DataAccessTransaction.Current.SystemTransaction?.TransactionInformation.LocalIdentifier);
+
 				var cat1 = this.model.Cats.Create();
 
 				using (var innerScope = new DataAccessScope())
@@ -221,7 +290,8 @@ namespace Shaolinq.Tests
 				if (complete) outerScope.Complete();
 			}
 
-			Assert.AreEqual(this.testDataModelHook.AfterSubmitCallCompleteCount, complete ? 1 : 0);
+			Assert.AreEqual(complete ? 1 : 0, this.testDataModelHook.CommitCount);
+			Assert.AreEqual(complete || !flush ? 0 : 1, this.testDataModelHook.RollbackCount);
 		}
 
 		[Test]
@@ -241,6 +311,54 @@ namespace Shaolinq.Tests
 					var cat3 = this.model.Cats.Create();
 				});
 			}
+		}
+
+
+		[TestCase(false, false)]
+		[TestCase(false, true)]
+		[TestCase(true, false, Ignore = "Hangs")]
+		[TestCase(true, true)]
+		public void Test_Nested_TransactionScope_DataAccessScope(bool completeOuter, bool completeInner)
+		{
+			using (var transactionScope = new TransactionScope())
+			{
+				var cat1 = this.model.Cats.Create();
+
+				using (var dataAccessScope = new DataAccessScope())
+				{
+					var cat2 = this.model.Cats.Create();
+
+					if (completeInner) dataAccessScope.Complete();
+				}
+
+				if (completeOuter) transactionScope.Complete();
+			}
+
+			Assert.AreEqual(completeOuter && completeInner ? 1 : 0, this.testDataModelHook.CommitCount);
+		}
+
+		[Ignore("TransactionScope doesn't nest inside DataAccessScope")]
+		[TestCase(false, false)]
+		[TestCase(false, true)]
+		[TestCase(true, false)]
+		[TestCase(true, true)]
+		public void Test_Nested_DataAccessScope_TransactionScope(bool completeOuter, bool completeInner)
+		{
+			using (var dataAccessScope = new DataAccessScope())
+			{
+				var cat1 = this.model.Cats.Create();
+
+				using (var transactionScope = new TransactionScope())
+				{
+					var cat2 = this.model.Cats.Create();
+
+					if (completeInner) transactionScope.Complete();
+				}
+
+				if (completeOuter) dataAccessScope.Complete();
+			}
+
+			Assert.AreEqual(completeOuter && completeInner ? 1 : 0, this.testDataModelHook.CommitCount);
 		}
 	}
 }

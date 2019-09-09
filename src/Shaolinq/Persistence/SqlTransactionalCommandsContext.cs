@@ -256,6 +256,8 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public virtual void Rollback()
 		{
+			ActionUtils.IgnoreExceptions(() => ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollback());
+
 			try
 			{
 				if (this.dbTransaction != null)
@@ -268,6 +270,8 @@ namespace Shaolinq.Persistence
 			finally
 			{
 				CloseConnection();
+
+				ActionUtils.IgnoreExceptions(() => ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollback());
 			}
 		}
 

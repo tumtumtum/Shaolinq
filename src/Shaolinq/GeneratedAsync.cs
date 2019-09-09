@@ -45,6 +45,24 @@ namespace Shaolinq
 		public virtual async Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
 		{
 		}
+
+		public virtual Task BeforeRollbackAsync()
+		{
+			return this.BeforeRollbackAsync(CancellationToken.None);
+		}
+
+		public virtual async Task BeforeRollbackAsync(CancellationToken cancellationToken)
+		{
+		}
+
+		public virtual Task AfterRollbackAsync()
+		{
+			return this.AfterRollbackAsync(CancellationToken.None);
+		}
+
+		public virtual async Task AfterRollbackAsync(CancellationToken cancellationToken)
+		{
+		}
 	}
 }
 
@@ -938,7 +956,7 @@ namespace Shaolinq
 		/// </summary>
 		Task BeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
 		/// <summary>
-		/// Called just after changes have been written to thea database
+		/// Called just after changes have been written to the database
 		/// </summary>
 		/// <remarks>
 		/// A transaction is usually committed after this call unless the call is due
@@ -946,13 +964,29 @@ namespace Shaolinq
 		/// </remarks>
 		Task AfterSubmitAsync(DataAccessModelHookSubmitContext context);
 		/// <summary>
-		/// Called just after changes have been written to thea database
+		/// Called just after changes have been written to the database
 		/// </summary>
 		/// <remarks>
 		/// A transaction is usually committed after this call unless the call is due
 		/// to a <see cref = "DataAccessModel.Flush()"/> call
 		/// </remarks>
 		Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
+		/// <summary>
+		/// Called just before a transaction is rolled back
+		/// </summary>
+		Task BeforeRollbackAsync();
+		/// <summary>
+		/// Called just before a transaction is rolled back
+		/// </summary>
+		Task BeforeRollbackAsync(CancellationToken cancellationToken);
+		/// <summary>
+		/// Called just after a transaction is rolled back
+		/// </summary>
+		Task AfterRollbackAsync();
+		/// <summary>
+		/// Called just after a transaction is rolled back
+		/// </summary>
+		Task AfterRollbackAsync(CancellationToken cancellationToken);
 	}
 }
 
@@ -976,6 +1010,10 @@ namespace Shaolinq.Persistence
 		Task OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
 		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context);
 		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
+		Task OnHookBeforeRollbackAsync();
+		Task OnHookBeforeRollbackAsync(CancellationToken cancellationToken);
+		Task OnHookAfterRollbackAsync();
+		Task OnHookAfterRollbackAsync(CancellationToken cancellationToken);
 	}
 }
 
@@ -1743,6 +1781,7 @@ namespace Shaolinq.Persistence
 
 		public virtual async Task RollbackAsync(CancellationToken cancellationToken)
 		{
+			ActionUtils.IgnoreExceptions(() => ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollback());
 			try
 			{
 				if (this.dbTransaction != null)
@@ -1755,6 +1794,7 @@ namespace Shaolinq.Persistence
 			finally
 			{
 				CloseConnection();
+				ActionUtils.IgnoreExceptions(() => ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollback());
 			}
 		}
 	}

@@ -154,7 +154,7 @@ namespace Shaolinq
 
 			this.isfinishing = true;
 
-			if (this.transactionContextsByDataAccessModel != null)
+			if (!this.systemTransactionCompleted && this.transactionContextsByDataAccessModel != null)
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{

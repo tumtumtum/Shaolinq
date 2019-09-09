@@ -39,7 +39,7 @@ namespace Shaolinq
 		void BeforeSubmit(DataAccessModelHookSubmitContext context);
 
 		/// <summary>
-		/// Called just after changes have been written to thea database
+		/// Called just after changes have been written to the database
 		/// </summary>
 		/// <remarks>
 		/// A transaction is usually committed after this call unless the call is due
@@ -47,5 +47,17 @@ namespace Shaolinq
 		/// </remarks>
 		[RewriteAsync]
 		void AfterSubmit(DataAccessModelHookSubmitContext context);
+
+		/// <summary>
+		/// Called just before a transaction is rolled back
+		/// </summary>
+		[RewriteAsync]
+		void BeforeRollback();
+
+		/// <summary>
+		/// Called just after a transaction is rolled back
+		/// </summary>
+		[RewriteAsync]
+		void AfterRollback();
 	}
 }
