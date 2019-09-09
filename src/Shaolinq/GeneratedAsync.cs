@@ -525,7 +525,14 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
-					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
+					try
+					{
+						await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
+					}
+					catch
+					{
+					// ignored
+					}
 				}
 			}
 		}
@@ -1781,7 +1788,15 @@ namespace Shaolinq.Persistence
 
 		public virtual async Task RollbackAsync(CancellationToken cancellationToken)
 		{
-			ActionUtils.IgnoreExceptions(() => ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollback());
+			try
+			{
+				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollbackAsync(cancellationToken).ConfigureAwait(false);
+			}
+			catch
+			{
+			// ignored
+			}
+
 			try
 			{
 				if (this.dbTransaction != null)
@@ -1794,7 +1809,14 @@ namespace Shaolinq.Persistence
 			finally
 			{
 				CloseConnection();
-				ActionUtils.IgnoreExceptions(() => ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollback());
+				try
+				{
+					await ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollbackAsync(cancellationToken).ConfigureAwait(false);
+				}
+				catch
+				{
+				// ignored
+				}
 			}
 		}
 	}

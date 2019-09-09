@@ -360,5 +360,47 @@ namespace Shaolinq.Tests
 
 			Assert.AreEqual(completeOuter && completeInner ? 1 : 0, this.testDataModelHook.CommitCount);
 		}
+
+		[Test]
+		public void Test_DataAccessScope_InvalidTransaction_ShouldCallRollbackHook()
+		{
+			var ex = Assert.Throws<DataAccessTransactionAbortedException>(
+				() =>
+				{
+					using (var scope = new DataAccessScope())
+					{
+						var obj = this.model.DefaultsTestObjects.Create();
+
+						// Value required fields not populated
+
+						scope.Complete();
+					}
+				});
+
+			Console.WriteLine(ex);
+
+			Assert.AreEqual(1, this.testDataModelHook.RollbackCount);
+		}
+
+		[Test]
+		public void Test_TransactionScope_InvalidTransaction_ShouldCallRollbackHook()
+		{
+			var ex = Assert.Throws<TransactionAbortedException>(
+				() =>
+				{
+					using (var scope = new TransactionScope())
+					{
+						var obj = this.model.DefaultsTestObjects.Create();
+
+						// Value required fields not populated
+
+						scope.Complete();
+					}
+				});
+
+			Console.WriteLine(ex);
+
+			Assert.AreEqual(1, this.testDataModelHook.RollbackCount);
+		}
 	}
 }

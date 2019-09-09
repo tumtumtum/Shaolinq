@@ -140,7 +140,14 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
-					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
+					try
+					{
+						transactionContext.Rollback();
+					}
+					catch
+					{
+						// ignored
+					}
 				}
 			}
 		}
