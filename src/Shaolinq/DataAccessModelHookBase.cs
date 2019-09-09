@@ -38,12 +38,12 @@ namespace Shaolinq
 		}
 
 		[RewriteAsync]
-		public virtual void BeforeRollback()
+		public virtual void BeforeRollback(DataAccessModelHookRollbackContext context)
 		{
 		}
 
 		[RewriteAsync]
-		public virtual void AfterRollback()
+		public virtual void AfterRollback(DataAccessModelHookRollbackContext context)
 		{
 		}
 	}

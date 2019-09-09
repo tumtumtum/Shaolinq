@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Shaolinq
 {
-	public class DataAccessModelHookSubmitContext
+	public class DataAccessModelHookSubmitContext : DataAccessModelHookContextBase
 	{
 		public bool IsFlush { get; }
 		public bool IsCommit => !IsFlush;
@@ -18,7 +18,8 @@ namespace Shaolinq
 
 		private readonly DataAccessObjectDataContext dataContext;
 
-		internal DataAccessModelHookSubmitContext(DataAccessObjectDataContext dataContext, bool isFlush)
+		internal DataAccessModelHookSubmitContext(TransactionContext transactionContext, DataAccessObjectDataContext dataContext, bool isFlush)
+			: base(transactionContext)
 		{
 			this.dataContext = dataContext;
 			this.IsFlush = isFlush;

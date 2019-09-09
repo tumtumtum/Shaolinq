@@ -61,6 +61,8 @@ namespace Shaolinq
 		internal DataAccessTransaction DataAccessTransaction { get; }
 		private readonly Dictionary<string, object> attributes;
 		public string DatabaseContextCategoriesKey { get; internal set; }
+
+		public string TransactionContextId { get; }
 		
 		internal int GetExecutionVersion()
 		{
@@ -213,6 +215,7 @@ namespace Shaolinq
 
 		internal TransactionContext(DataAccessTransaction dataAccessTransaction, DataAccessModel dataAccessModel)
 		{
+			this.TransactionContextId = Guid.NewGuid().ToString("N");
 			this.dataAccessModel = dataAccessModel;
 			this.DataAccessTransaction = dataAccessTransaction;
 			this.DatabaseContextCategoriesKey = "*";

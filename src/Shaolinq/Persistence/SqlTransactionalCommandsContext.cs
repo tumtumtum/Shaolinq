@@ -14,7 +14,7 @@ namespace Shaolinq.Persistence
 	public abstract partial class SqlTransactionalCommandsContext
 		: IDisposable
 	{
-		public TransactionContext TransactionContext { get; set; }
+		public TransactionContext TransactionContext { get; }
 		internal MarsDataReader currentReader;
 
 		private bool disposed;
@@ -256,9 +256,11 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public virtual void Rollback()
 		{
+			var context = new DataAccessModelHookRollbackContext(this.TransactionContext);
+
 			try
 			{
-				((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollback();
+				((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollback(context);
 			}
 			catch
 			{
@@ -280,7 +282,7 @@ namespace Shaolinq.Persistence
 
 				try
 				{
-					((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollback();
+					((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollback(context);
 				}
 				catch
 				{

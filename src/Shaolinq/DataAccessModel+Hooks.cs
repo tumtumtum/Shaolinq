@@ -143,34 +143,34 @@ namespace Shaolinq
 			return CallHooksAsync(hook => hook.AfterSubmitAsync(context, cancellationToken));
 		}
 
-		void IDataAccessModelInternal.OnHookBeforeRollback()
+		void IDataAccessModelInternal.OnHookBeforeRollback(DataAccessModelHookRollbackContext context)
 		{
-			CallHooks(hook => hook.BeforeRollback());
+			CallHooks(hook => hook.BeforeRollback(context));
 		}
 
-		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync()
+		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context)
 		{
-			return ((IDataAccessModelInternal)this).OnHookBeforeRollbackAsync(CancellationToken.None);
+			return ((IDataAccessModelInternal)this).OnHookBeforeRollbackAsync(context, CancellationToken.None);
 		}
 
-		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync(CancellationToken cancellationToken)
+		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
 		{
-			return CallHooksAsync(hook => hook.BeforeRollbackAsync(cancellationToken));
+			return CallHooksAsync(hook => hook.BeforeRollbackAsync(context, cancellationToken));
 		}
 
-		void IDataAccessModelInternal.OnHookAfterRollback()
+		void IDataAccessModelInternal.OnHookAfterRollback(DataAccessModelHookRollbackContext context)
 		{
-			CallHooks(hook => hook.AfterRollback());
+			CallHooks(hook => hook.AfterRollback(context));
 		}
 
-		Task IDataAccessModelInternal.OnHookAfterRollbackAsync()
+		Task IDataAccessModelInternal.OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context)
 		{
-			return ((IDataAccessModelInternal)this).OnHookAfterRollbackAsync(CancellationToken.None);
+			return ((IDataAccessModelInternal)this).OnHookAfterRollbackAsync(context, CancellationToken.None);
 		}
 
-		Task IDataAccessModelInternal.OnHookAfterRollbackAsync(CancellationToken cancellationToken)
+		Task IDataAccessModelInternal.OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
 		{
-			return CallHooksAsync(hook => hook.AfterRollbackAsync(cancellationToken));
+			return CallHooksAsync(hook => hook.AfterRollbackAsync(context, cancellationToken));
 		}
 
 		private void CallHooks(Action<IDataAccessModelHook> hookAction)

@@ -46,21 +46,21 @@ namespace Shaolinq
 		{
 		}
 
-		public virtual Task BeforeRollbackAsync()
+		public virtual Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context)
 		{
-			return this.BeforeRollbackAsync(CancellationToken.None);
+			return this.BeforeRollbackAsync(context, CancellationToken.None);
 		}
 
-		public virtual async Task BeforeRollbackAsync(CancellationToken cancellationToken)
+		public virtual async Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
 		{
 		}
 
-		public virtual Task AfterRollbackAsync()
+		public virtual Task AfterRollbackAsync(DataAccessModelHookRollbackContext context)
 		{
-			return this.AfterRollbackAsync(CancellationToken.None);
+			return this.AfterRollbackAsync(context, CancellationToken.None);
 		}
 
-		public virtual async Task AfterRollbackAsync(CancellationToken cancellationToken)
+		public virtual async Task AfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
 		{
 		}
 	}
@@ -981,19 +981,19 @@ namespace Shaolinq
 		/// <summary>
 		/// Called just before a transaction is rolled back
 		/// </summary>
-		Task BeforeRollbackAsync();
+		Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context);
 		/// <summary>
 		/// Called just before a transaction is rolled back
 		/// </summary>
-		Task BeforeRollbackAsync(CancellationToken cancellationToken);
+		Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
 		/// <summary>
 		/// Called just after a transaction is rolled back
 		/// </summary>
-		Task AfterRollbackAsync();
+		Task AfterRollbackAsync(DataAccessModelHookRollbackContext context);
 		/// <summary>
 		/// Called just after a transaction is rolled back
 		/// </summary>
-		Task AfterRollbackAsync(CancellationToken cancellationToken);
+		Task AfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
 	}
 }
 
@@ -1017,10 +1017,10 @@ namespace Shaolinq.Persistence
 		Task OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
 		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context);
 		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
-		Task OnHookBeforeRollbackAsync();
-		Task OnHookBeforeRollbackAsync(CancellationToken cancellationToken);
-		Task OnHookAfterRollbackAsync();
-		Task OnHookAfterRollbackAsync(CancellationToken cancellationToken);
+		Task OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context);
+		Task OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
+		Task OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context);
+		Task OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
 	}
 }
 
@@ -1788,9 +1788,10 @@ namespace Shaolinq.Persistence
 
 		public virtual async Task RollbackAsync(CancellationToken cancellationToken)
 		{
+			var context = new DataAccessModelHookRollbackContext(this.TransactionContext);
 			try
 			{
-				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollbackAsync(cancellationToken).ConfigureAwait(false);
+				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollbackAsync(context, cancellationToken).ConfigureAwait(false);
 			}
 			catch
 			{
@@ -1811,7 +1812,7 @@ namespace Shaolinq.Persistence
 				CloseConnection();
 				try
 				{
-					await ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollbackAsync(cancellationToken).ConfigureAwait(false);
+					await ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollbackAsync(context, cancellationToken).ConfigureAwait(false);
 				}
 				catch
 				{
@@ -2562,7 +2563,7 @@ namespace Shaolinq
 				cache.Value.AssertObjectsAreReadyForCommit();
 			}
 
-			var context = new DataAccessModelHookSubmitContext(this, forFlush);
+			var context = new DataAccessModelHookSubmitContext(commandsContext.TransactionContext, this, forFlush);
 			try
 			{
 				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmitAsync(context, cancellationToken).ConfigureAwait(false);

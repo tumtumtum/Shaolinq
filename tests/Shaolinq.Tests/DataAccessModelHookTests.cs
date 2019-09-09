@@ -40,7 +40,7 @@ namespace Shaolinq.Tests
 
 			public override void AfterSubmit(DataAccessModelHookSubmitContext context)
 			{
-				Console.WriteLine($"AfterSubmit - IsCommit: {context.IsCommit}, new objects: {context.New.Count()} {context.Exception?.Message}");
+				Console.WriteLine($"AfterSubmit {context.DataAccessTransactionId} {context.TransactionContextId} - IsCommit: {context.IsCommit}, new objects: {context.New.Count()} {context.Exception?.Message}");
 
 				if (context.IsCommit)
 				{
@@ -52,7 +52,7 @@ namespace Shaolinq.Tests
 
 			public override Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
 			{
-				Console.WriteLine($"AfterSubmitAsync - IsCommit: {context.IsCommit}, new objects: {context.New.Count()} {context.Exception?.Message}");
+				Console.WriteLine($"AfterSubmitAsync {context.DataAccessTransactionId} {context.TransactionContextId} - IsCommit: {context.IsCommit}, new objects: {context.New.Count()} {context.Exception?.Message}");
 
 				if (context.IsCommit)
 				{
@@ -62,22 +62,22 @@ namespace Shaolinq.Tests
 				return base.AfterSubmitAsync(context, cancellationToken);
 			}
 
-			public override void AfterRollback()
+			public override void AfterRollback(DataAccessModelHookRollbackContext context)
 			{
-				Console.WriteLine("AfterRollback");
+				Console.WriteLine($"AfterRollback {context.DataAccessTransactionId} {context.TransactionContextId}");
 
 				this.RollbackCount++;
 
-				base.AfterRollback();
+				base.AfterRollback(context);
 			}
 
-			public override Task AfterRollbackAsync(CancellationToken cancellationToken)
+			public override Task AfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
 			{
-				Console.WriteLine("AfterRollbackAsync");
+				Console.WriteLine($"AfterRollbackAsync {context.DataAccessTransactionId} {context.TransactionContextId}");
 
 				this.RollbackCount++;
 
-				return base.AfterRollbackAsync(cancellationToken);
+				return base.AfterRollbackAsync(context, cancellationToken);
 			}
 		}
 

@@ -52,12 +52,12 @@ namespace Shaolinq
 		/// Called just before a transaction is rolled back
 		/// </summary>
 		[RewriteAsync]
-		void BeforeRollback();
+		void BeforeRollback(DataAccessModelHookRollbackContext context);
 
 		/// <summary>
 		/// Called just after a transaction is rolled back
 		/// </summary>
 		[RewriteAsync]
-		void AfterRollback();
+		void AfterRollback(DataAccessModelHookRollbackContext context);
 	}
 }
