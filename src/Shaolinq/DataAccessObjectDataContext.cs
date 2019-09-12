@@ -171,7 +171,7 @@ namespace Shaolinq
 			{
 				if (this.isCommiting)
 				{
-					Logger.Debug("Skipping caching of object {value.GetType()} because commit in process");
+					Logger.Debug($"Skipping caching of object {value.GetType()} because commit in process");
 
 					return value;
 				}
@@ -197,7 +197,7 @@ namespace Shaolinq
 			{
 				if (this.isCommiting)
 				{
-					Logger.Debug("Skipping eviction of object {value.GetType()} because commit in process");
+					Logger.Debug($"Skipping eviction of object {value.GetType()} because commit in process");
 
 					return value;
 				}
