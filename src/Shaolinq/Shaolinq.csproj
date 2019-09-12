@@ -145,6 +145,8 @@
     <Compile Include="DataAccessIsolationLevel.cs" />
     <Compile Include="DataAccessModel+Hooks.cs" />
     <Compile Include="DataAccessModelHookBase.cs" />
+    <Compile Include="DataAccessModelHookContextBase.cs" />
+    <Compile Include="DataAccessModelHookRollbackContext.cs" />
     <Compile Include="DataAccessModelHookSubmitContext.cs" />
     <Compile Include="DataAccessObjectExtensions.cs" />
     <Compile Include="DirectAccess\Sql\DataAccessModelExtensions.cs" />

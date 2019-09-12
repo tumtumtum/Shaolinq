@@ -45,6 +45,24 @@ namespace Shaolinq
 		public virtual async Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
 		{
 		}
+
+		public virtual Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context)
+		{
+			return this.BeforeRollbackAsync(context, CancellationToken.None);
+		}
+
+		public virtual async Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
+		{
+		}
+
+		public virtual Task AfterRollbackAsync(DataAccessModelHookRollbackContext context)
+		{
+			return this.AfterRollbackAsync(context, CancellationToken.None);
+		}
+
+		public virtual async Task AfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
+		{
+		}
 	}
 }
 
@@ -507,7 +525,14 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
-					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
+					try
+					{
+						await transactionContext.RollbackAsync(cancellationToken).ConfigureAwait(false);
+					}
+					catch
+					{
+					// ignored
+					}
 				}
 			}
 		}
@@ -938,7 +963,7 @@ namespace Shaolinq
 		/// </summary>
 		Task BeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
 		/// <summary>
-		/// Called just after changes have been written to thea database
+		/// Called just after changes have been written to the database
 		/// </summary>
 		/// <remarks>
 		/// A transaction is usually committed after this call unless the call is due
@@ -946,13 +971,29 @@ namespace Shaolinq
 		/// </remarks>
 		Task AfterSubmitAsync(DataAccessModelHookSubmitContext context);
 		/// <summary>
-		/// Called just after changes have been written to thea database
+		/// Called just after changes have been written to the database
 		/// </summary>
 		/// <remarks>
 		/// A transaction is usually committed after this call unless the call is due
 		/// to a <see cref = "DataAccessModel.Flush()"/> call
 		/// </remarks>
 		Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
+		/// <summary>
+		/// Called just before a transaction is rolled back
+		/// </summary>
+		Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context);
+		/// <summary>
+		/// Called just before a transaction is rolled back
+		/// </summary>
+		Task BeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
+		/// <summary>
+		/// Called just after a transaction is rolled back
+		/// </summary>
+		Task AfterRollbackAsync(DataAccessModelHookRollbackContext context);
+		/// <summary>
+		/// Called just after a transaction is rolled back
+		/// </summary>
+		Task AfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
 	}
 }
 
@@ -976,6 +1017,10 @@ namespace Shaolinq.Persistence
 		Task OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
 		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context);
 		Task OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken);
+		Task OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context);
+		Task OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
+		Task OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context);
+		Task OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken);
 	}
 }
 
@@ -1743,6 +1788,16 @@ namespace Shaolinq.Persistence
 
 		public virtual async Task RollbackAsync(CancellationToken cancellationToken)
 		{
+			var context = new DataAccessModelHookRollbackContext(this.TransactionContext);
+			try
+			{
+				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollbackAsync(context, cancellationToken).ConfigureAwait(false);
+			}
+			catch
+			{
+			// ignored
+			}
+
 			try
 			{
 				if (this.dbTransaction != null)
@@ -1755,6 +1810,14 @@ namespace Shaolinq.Persistence
 			finally
 			{
 				CloseConnection();
+				try
+				{
+					await ((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollbackAsync(context, cancellationToken).ConfigureAwait(false);
+				}
+				catch
+				{
+				// ignored
+				}
 			}
 		}
 	}
@@ -2500,7 +2563,7 @@ namespace Shaolinq
 				cache.Value.AssertObjectsAreReadyForCommit();
 			}
 
-			var context = new DataAccessModelHookSubmitContext(this, forFlush);
+			var context = new DataAccessModelHookSubmitContext(commandsContext.TransactionContext, this, forFlush);
 			try
 			{
 				await ((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeSubmitAsync(context, cancellationToken).ConfigureAwait(false);

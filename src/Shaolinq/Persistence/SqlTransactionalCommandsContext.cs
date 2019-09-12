@@ -14,14 +14,14 @@ namespace Shaolinq.Persistence
 	public abstract partial class SqlTransactionalCommandsContext
 		: IDisposable
 	{
-		public TransactionContext TransactionContext { get; set; }
+		public TransactionContext TransactionContext { get; }
 		internal MarsDataReader currentReader;
 
 		private bool disposed;
 		public bool SupportsAsync { get; protected set; }
 		public IDbConnection DbConnection { get; private set; }
 		public SqlDatabaseContext SqlDatabaseContext { get; }
-		
+
 		protected IDbTransaction dbTransaction;
 		public DataAccessModel DataAccessModel { get; }
 		private readonly bool emulateMultipleActiveResultSets;
@@ -69,7 +69,7 @@ namespace Shaolinq.Persistence
 
 		public IDbDataParameter AddParameter(IDbCommand command, Type type, string name, object value)
 		{
-			var parameter = CreateParameter(command,  name ?? this.parameterIndicatorPrefix + SqlQueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
+			var parameter = CreateParameter(command, name ?? this.parameterIndicatorPrefix + SqlQueryFormatter.ParamNamePrefix + command.Parameters.Count, type, value);
 
 			command.Parameters.Add(parameter);
 
@@ -144,25 +144,25 @@ namespace Shaolinq.Persistence
 
 			return parameter;
 		}
-		
+
 		public static IsolationLevel ConvertIsolationLevel(DataAccessIsolationLevel isolationLevel)
 		{
 			switch (isolationLevel)
 			{
-			case DataAccessIsolationLevel.ReadUncommitted:
-				return IsolationLevel.ReadUncommitted;
-			case DataAccessIsolationLevel.Serializable:
-				return IsolationLevel.Serializable;
-			case DataAccessIsolationLevel.ReadCommitted:
-				return IsolationLevel.ReadCommitted;
-			case DataAccessIsolationLevel.Chaos:
-				return IsolationLevel.Chaos;
-			case DataAccessIsolationLevel.RepeatableRead:
-				return IsolationLevel.RepeatableRead;
-			case DataAccessIsolationLevel.Snapshot:
-				return IsolationLevel.Snapshot;
-			default:
-				return IsolationLevel.Unspecified;
+				case DataAccessIsolationLevel.ReadUncommitted:
+					return IsolationLevel.ReadUncommitted;
+				case DataAccessIsolationLevel.Serializable:
+					return IsolationLevel.Serializable;
+				case DataAccessIsolationLevel.ReadCommitted:
+					return IsolationLevel.ReadCommitted;
+				case DataAccessIsolationLevel.Chaos:
+					return IsolationLevel.Chaos;
+				case DataAccessIsolationLevel.RepeatableRead:
+					return IsolationLevel.RepeatableRead;
+				case DataAccessIsolationLevel.Snapshot:
+					return IsolationLevel.Snapshot;
+				default:
+					return IsolationLevel.Unspecified;
 			}
 		}
 
@@ -171,25 +171,25 @@ namespace Shaolinq.Persistence
 			this.TransactionContext = transactionContext;
 
 			try
-		    {
-		        this.DbConnection = dbConnection;
-		        this.SqlDatabaseContext = sqlDatabaseContext;
-		        this.DataAccessModel = sqlDatabaseContext.DataAccessModel;
-			    this.parameterIndicatorPrefix = this.SqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
+			{
+				this.DbConnection = dbConnection;
+				this.SqlDatabaseContext = sqlDatabaseContext;
+				this.DataAccessModel = sqlDatabaseContext.DataAccessModel;
+				this.parameterIndicatorPrefix = this.SqlDatabaseContext.SqlDialect.GetSyntaxSymbolString(SqlSyntaxSymbol.ParameterPrefix);
 
 				this.emulateMultipleActiveResultSets = !sqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.MultipleActiveResultSets);
 
-		        if (transactionContext?.DataAccessTransaction != null)
-		        {
-		            this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transactionContext.DataAccessTransaction.IsolationLevel));
-		        }
-		    }
-		    catch
-		    {
-		        Dispose(true);
+				if (transactionContext?.DataAccessTransaction != null)
+				{
+					this.dbTransaction = dbConnection.BeginTransaction(ConvertIsolationLevel(transactionContext.DataAccessTransaction.IsolationLevel));
+				}
+			}
+			catch
+			{
+				Dispose(true);
 
-		        throw;
-		    }
+				throw;
+			}
 		}
 
 		~SqlTransactionalCommandsContext()
@@ -203,7 +203,7 @@ namespace Shaolinq.Persistence
 		{
 			var retval = this.DbConnection.CreateCommand();
 
-			 retval.Transaction = this.dbTransaction;
+			retval.Transaction = this.dbTransaction;
 
 			if (this.SqlDatabaseContext.CommandTimeout != null)
 			{
@@ -256,6 +256,17 @@ namespace Shaolinq.Persistence
 		[RewriteAsync]
 		public virtual void Rollback()
 		{
+			var context = new DataAccessModelHookRollbackContext(this.TransactionContext);
+
+			try
+			{
+				((IDataAccessModelInternal)this.DataAccessModel).OnHookBeforeRollback(context);
+			}
+			catch
+			{
+				// ignored
+			}
+
 			try
 			{
 				if (this.dbTransaction != null)
@@ -268,6 +279,15 @@ namespace Shaolinq.Persistence
 			finally
 			{
 				CloseConnection();
+
+				try
+				{
+					((IDataAccessModelInternal)this.DataAccessModel).OnHookAfterRollback(context);
+				}
+				catch
+				{
+					// ignored
+				}
 			}
 		}
 

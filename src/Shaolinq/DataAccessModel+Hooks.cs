@@ -80,15 +80,7 @@ namespace Shaolinq
 		
 		void IDataAccessModelInternal.OnHookCreate(DataAccessObject obj)
 		{
-			var localHooks = this.hooks;
-
-			if (localHooks != null)
-			{
-				foreach (var hook in localHooks)
-				{
-					hook.Create(obj);
-				}
-			}
+			CallHooks(hook => hook.Create(obj));
 		}
 
 		Task IDataAccessModelInternal.OnHookCreateAsync(DataAccessObject dataAccessObject)
@@ -98,65 +90,32 @@ namespace Shaolinq
 
 		Task IDataAccessModelInternal.OnHookCreateAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
 		{
-			var localHooks = this.hooks;
-			var tasks = new List<Task>();
-	
-			if (localHooks != null)
+			return CallHooksAsync(hook =>
 			{
-				foreach (var hook in localHooks)
-				{
-					var task = hook.CreateAsync(dataAccessObject, cancellationToken);
-					
-					task.ConfigureAwait(false);
-					tasks.Add(task);
-				}
-			}
-
-			return Task.WhenAll(tasks);
+				var task = hook.CreateAsync(dataAccessObject, cancellationToken);
+				task.ConfigureAwait(false);
+				return task;
+			});
 		}
 		
 		void IDataAccessModelInternal.OnHookRead(DataAccessObject obj)
 		{
-			var localHooks = this.hooks;
-
-			if (localHooks != null)
-			{
-				foreach (var hook in localHooks)
-				{
-					hook.Read(obj);
-				}
-			}
+			CallHooks(hook => hook.Read(obj));
 		}
 
 		Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject dataAccessObject)
 		{
-			return ((IDataAccessModelInternal)this).OnHookCreateAsync(dataAccessObject, CancellationToken.None);
+			return ((IDataAccessModelInternal)this).OnHookReadAsync(dataAccessObject, CancellationToken.None);
 		}
 
 		Task IDataAccessModelInternal.OnHookReadAsync(DataAccessObject dataAccessObject, CancellationToken cancellationToken)
 		{
-			var localHooks = this.hooks;
-			var tasks = new List<Task>();
-	
-			if (localHooks != null)
-			{
-				tasks.AddRange(localHooks.Select(hook => hook.ReadAsync(dataAccessObject, cancellationToken)));
-			}
-
-			return Task.WhenAll(tasks);
+			return CallHooksAsync(hook => hook.ReadAsync(dataAccessObject, cancellationToken));
 		}
 		
 		void IDataAccessModelInternal.OnHookBeforeSubmit(DataAccessModelHookSubmitContext context)
 		{
-			var localHooks = this.hooks;
-
-			if (localHooks != null)
-			{
-				foreach (var hook in localHooks)
-				{
-					hook.BeforeSubmit(context);
-				}
-			}
+			CallHooks(hook => hook.BeforeSubmit(context));
 		}
 		
 		Task IDataAccessModelInternal.OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context)
@@ -166,18 +125,55 @@ namespace Shaolinq
 
 		Task IDataAccessModelInternal.OnHookBeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
 		{
-			var localHooks = this.hooks;
-			var tasks = new List<Task>();
-	
-			if (localHooks != null)
-			{
-				tasks.AddRange(localHooks.Select(hook => hook.BeforeSubmitAsync(context, cancellationToken)));
-			}
-
-			return Task.WhenAll(tasks);
+			return CallHooksAsync(hook => hook.BeforeSubmitAsync(context, cancellationToken));
 		}
 
 		void IDataAccessModelInternal.OnHookAfterSubmit(DataAccessModelHookSubmitContext context)
+		{
+			CallHooks(hook => hook.AfterSubmit(context));
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context)
+		{
+			return ((IDataAccessModelInternal)this).OnHookAfterSubmitAsync(context, CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		{
+			return CallHooksAsync(hook => hook.AfterSubmitAsync(context, cancellationToken));
+		}
+
+		void IDataAccessModelInternal.OnHookBeforeRollback(DataAccessModelHookRollbackContext context)
+		{
+			CallHooks(hook => hook.BeforeRollback(context));
+		}
+
+		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context)
+		{
+			return ((IDataAccessModelInternal)this).OnHookBeforeRollbackAsync(context, CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookBeforeRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
+		{
+			return CallHooksAsync(hook => hook.BeforeRollbackAsync(context, cancellationToken));
+		}
+
+		void IDataAccessModelInternal.OnHookAfterRollback(DataAccessModelHookRollbackContext context)
+		{
+			CallHooks(hook => hook.AfterRollback(context));
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context)
+		{
+			return ((IDataAccessModelInternal)this).OnHookAfterRollbackAsync(context, CancellationToken.None);
+		}
+
+		Task IDataAccessModelInternal.OnHookAfterRollbackAsync(DataAccessModelHookRollbackContext context, CancellationToken cancellationToken)
+		{
+			return CallHooksAsync(hook => hook.AfterRollbackAsync(context, cancellationToken));
+		}
+
+		private void CallHooks(Action<IDataAccessModelHook> hookAction)
 		{
 			var localHooks = this.hooks;
 
@@ -185,27 +181,19 @@ namespace Shaolinq
 			{
 				foreach (var hook in localHooks)
 				{
-					hook.AfterSubmit(context);
+					hookAction(hook);
 				}
 			}
 		}
 
-		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context)
-		{
-			return ((IDataAccessModelInternal)this).OnHookBeforeSubmitAsync(context, CancellationToken.None);
-		}
-
-		Task IDataAccessModelInternal.OnHookAfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+		private async Task CallHooksAsync(Func<IDataAccessModelHook, Task> hookFunc)
 		{
 			var localHooks = this.hooks;
-			var tasks = new List<Task>();
-	
+
 			if (localHooks != null)
 			{
-				tasks.AddRange(localHooks.Select(hook => hook.AfterSubmitAsync(context, cancellationToken)));
+				await Task.WhenAll(localHooks.Select(hookFunc));
 			}
-
-			return Task.WhenAll(tasks);
 		}
 	}
 }

@@ -21,5 +21,11 @@ namespace Shaolinq.Persistence
 
 		[RewriteAsync]
 		void OnHookAfterSubmit(DataAccessModelHookSubmitContext context);
+
+		[RewriteAsync]
+		void OnHookBeforeRollback(DataAccessModelHookRollbackContext context);
+
+		[RewriteAsync]
+		void OnHookAfterRollback(DataAccessModelHookRollbackContext context);
 	}
 }

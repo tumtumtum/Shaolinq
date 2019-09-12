@@ -54,7 +54,7 @@ namespace Shaolinq
 		private bool isfinishing;
 
 		internal TimeSpan timeout;
-		internal Transaction SystemTransaction { get; set; }
+		internal Transaction SystemTransaction { get; }
 		internal bool HasSystemTransaction => this.SystemTransaction != null;
 		internal Dictionary<DataAccessModel, TransactionContext> transactionContextsByDataAccessModel;
 		internal bool aborted;
@@ -62,6 +62,7 @@ namespace Shaolinq
 		internal bool systemTransactionCompleted;
 		internal TransactionStatus systemTransactionStatus;
 
+		public string DataAccessTransactionId { get; }
 		public DataAccessIsolationLevel IsolationLevel { get; }
 		public IEnumerable<DataAccessModel> ParticipatingDataAccessModels => this.transactionContextsByDataAccessModel?.Keys ?? Enumerable.Empty<DataAccessModel>();
 
@@ -93,6 +94,9 @@ namespace Shaolinq
 					Dispose();
 				};
 			}
+
+			this.DataAccessTransactionId = this.SystemTransaction?.TransactionInformation.LocalIdentifier ??
+			                               Guid.NewGuid().ToString("N");
 		}
 
 		public void AddTransactionContext(TransactionContext context)
@@ -140,7 +144,14 @@ namespace Shaolinq
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{
-					ActionUtils.IgnoreExceptions(() => transactionContext.Rollback());
+					try
+					{
+						transactionContext.Rollback();
+					}
+					catch
+					{
+						// ignored
+					}
 				}
 			}
 		}
@@ -154,7 +165,7 @@ namespace Shaolinq
 
 			this.isfinishing = true;
 
-			if (this.transactionContextsByDataAccessModel != null)
+			if (!this.systemTransactionCompleted && this.transactionContextsByDataAccessModel != null)
 			{
 				foreach (var transactionContext in this.transactionContextsByDataAccessModel.Values)
 				{

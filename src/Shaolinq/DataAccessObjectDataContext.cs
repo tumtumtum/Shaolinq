@@ -220,7 +220,7 @@ namespace Shaolinq
 				cache.Value.AssertObjectsAreReadyForCommit();
 			}
 			
-			var context = new DataAccessModelHookSubmitContext(this, forFlush);
+			var context = new DataAccessModelHookSubmitContext(commandsContext.TransactionContext, this, forFlush);
 
 			try
 			{
