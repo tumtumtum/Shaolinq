@@ -3904,5 +3904,78 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 		}
+
+		[Test]
+		public void Test_All_With_Some_Nulls()
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				// Chuck Yeager, Nickname == NULL
+				// Chuck Norris, Nickname == God
+				Assert.Multiple(() =>
+				{
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").All(x => x.Nickname == "God"), Is.False);
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").All(x => x.Nickname != "God"), Is.False);
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").All(x => x.Nickname == "Bob"), Is.False);
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").All(x => x.Nickname != "Bob"), Is.True);
+				});
+			}
+		}
+
+		[Test]
+		public void Test_All_With_Only_Nulls()
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				// All have SexOptional == NULL
+				Assert.Multiple(() =>
+				{
+					Assert.That(this.model.Students.All(x => x.SexOptional == Sex.Male), Is.False);
+					Assert.That(this.model.Students.All(x => x.SexOptional == Sex.Female), Is.False);
+					Assert.That(this.model.Students.All(x => x.SexOptional == null), Is.True);
+				});
+			}
+		}
+
+		[Test]
+		public void Test_Any_With_Some_Nulls_NotEqual_Predicate()
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				// Chuck Yeager, Nickname == NULL
+				// Chuck Norris, Nickname == God
+				Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").Any(x => x.Nickname != "God"), Is.True);
+			}
+		}
+
+		[Test]
+		public void Test_Count_With_Some_Nulls_NotEqual_Predicate()
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				// Chuck Yeager, Nickname == NULL
+				// Chuck Norris, Nickname == God
+				Assert.Multiple(() =>
+				{
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").Count(x => x.Nickname != "God"), Is.EqualTo(1));
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").Count(x => x.Nickname != "Bob"), Is.EqualTo(2));
+				});
+			}
+		}
+
+		[Test]
+		public void Test_Where_With_Some_Nulls_NotEqual_Predicate()
+		{
+			using (var scope = DataAccessScope.CreateReadCommitted())
+			{
+				// Chuck Yeager, Nickname == NULL
+				// Chuck Norris, Nickname == God
+				Assert.Multiple(() =>
+				{
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").Where(x => x.Nickname != "God").ToList().Count, Is.EqualTo(1));
+					Assert.That(this.model.Students.Where(x => x.Firstname == "Chuck").Where(x => x.Nickname != "Bob").ToList().Count, Is.EqualTo(2));
+				});
+			}
+		}
 	}
 }
