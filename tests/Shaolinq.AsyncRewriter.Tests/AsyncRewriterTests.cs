@@ -18,6 +18,7 @@ namespace Shaolinq.AsyncRewriter.Tests
 	{
 		private static IEnumerable<TestCaseData> GetTestCases()
 		{
+			yield return GetTestCaseData("AmbiguousNamespace", "AmbiguousNamespace.cs", "AmbiguousNamespaceClasses.cs");
 			yield return GetTestCaseData("AmbiguousReference", "AmbiguousReference.cs");
 			yield return GetTestCaseData("Rewrite", "Foo.cs", "Bar.cs");
 			yield return GetTestCaseData("Generic Constraints", "IQuery.cs");
