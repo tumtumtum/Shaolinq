@@ -54,8 +54,10 @@ namespace Shaolinq.Postgres.DotConnect
 					Enlist = false,
 					Charset = "UTF8",
 					Unicode = true,
+					MinPoolSize = contextInfo.MinPoolSize,
 					MaxPoolSize = contextInfo.MaxPoolSize,
-					UnpreparedExecute = contextInfo.UnpreparedExecute
+					UnpreparedExecute = contextInfo.UnpreparedExecute,
+					KeepAlive = contextInfo.KeepAlive
 				};
 
 				if (contextInfo.ConnectionTimeout != null)
