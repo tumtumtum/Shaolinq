@@ -51,6 +51,7 @@ namespace Shaolinq.Postgres
 				MaxPoolSize = contextInfo.MaxPoolSize,
 				KeepAlive = contextInfo.KeepAlive,
 				ConnectionIdleLifetime = contextInfo.ConnectionIdleLifetime,
+				ConnectionPruningInterval = contextInfo.ConnectionPruningInterval,
 				ConvertInfinityDateTime = contextInfo.ConvertInfinityDateTime
 			};
 
