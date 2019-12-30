@@ -1679,7 +1679,11 @@ namespace Shaolinq.TypeBuilding
 
 				generator.Emit(OpCodes.Ldarg_0);
 				generator.Emit(OpCodes.Ldfld, this.dataObjectField);
+				//generator.Emit(OpCodes.Ldarg_0); // new
+				//generator.Emit(OpCodes.Ldfld, this.dataObjectField); // new
+				//generator.Emit(OpCodes.Ldfld, this.partialObjectStateField); // new
 				generator.Emit(OpCodes.Ldc_I4, (int)(DataAccessObjectState.ServerSidePropertiesHydrated));
+				//generator.Emit(OpCodes.Or); // new
 				generator.Emit(OpCodes.Stfld, this.partialObjectStateField);
 				generator.Emit(OpCodes.Ret);
 			}
@@ -1930,6 +1934,9 @@ namespace Shaolinq.TypeBuilding
 			var generator = CreateGeneratorForReflectionEmittedMethod(MethodBase.GetCurrentMethod());
 
 			var returnLabel = generator.DefineLabel();
+
+			generator.EmitWriteLine("ResetModified");
+			generator.Emit(OpCodes.Break);
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsDeleted).GetGetMethod());

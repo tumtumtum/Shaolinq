@@ -6,14 +6,14 @@ using Shaolinq.Tests.TestModel;
 
 namespace Shaolinq.Tests
 {
-	[TestFixture("MySql")]
-	[TestFixture("Sqlite")]
+	//[TestFixture("MySql")]
+	//[TestFixture("Sqlite")]
 	[TestFixture("SqliteInMemory")]
-	[TestFixture("SqliteClassicInMemory")]
-	[TestFixture("Sqlite:DataAccessScope")]
-	[TestFixture("SqlServer:DataAccessScope")]
+	//[TestFixture("SqliteClassicInMemory")]
+	//[TestFixture("Sqlite:DataAccessScope")]
+	//[TestFixture("SqlServer:DataAccessScope")]
 	[TestFixture("Postgres")]
-	[TestFixture("Postgres.DotConnect")]
+	//[TestFixture("Postgres.DotConnect")]
 	public class DataAccessModelHookChangedPropertyTests : BaseTests<TestDataAccessModel>
 	{
 		public class WriteChangesDataModelHook : DataAccessModelHookBase
@@ -53,20 +53,26 @@ namespace Shaolinq.Tests
 						.ToList();
 			}
 
-			private void WriteChanges(string state, IEnumerable<DataAccessObject> objects)
+			private static void WriteChanges(string state, IEnumerable<DataAccessObject> objects)
 			{
+				Console.WriteLine($"{state} ({objects.Count()})");
 				foreach (var obj in objects)
 				{
-					Console.WriteLine($" - {obj} ({state}, HasObjectChanged: {obj.GetAdvanced().HasObjectChanged})");
-					foreach (var change in obj.GetChangedProperties())
-					{
-						Console.WriteLine($"    - {change.PropertyName} => {change.Value}");
-					}
+					WriteObjectState(obj);
 				}
 			}
 		}
 
 		private WriteChangesDataModelHook writeChangesDataModelHook;
+
+		private static void WriteObjectState(DataAccessObject obj)
+		{
+			Console.WriteLine($" - {obj} (HasObjectChanged: {obj.GetAdvanced().HasObjectChanged}, ObjectState: {obj.GetAdvanced().ObjectState})");
+			foreach (var change in obj.GetChangedProperties())
+			{
+				Console.WriteLine($"    - {change.PropertyName} => {change.Value}");
+			}
+		}
 
 		public DataAccessModelHookChangedPropertyTests(string providerName) : base(providerName)
 		{
@@ -160,16 +166,30 @@ namespace Shaolinq.Tests
 		{
 			Guid id;
 
+			Console.WriteLine("Starting scope");
+
 			using (var scope = new DataAccessScope())
 			{
+				Console.WriteLine("Creating object");
 				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
+				Console.WriteLine("Created object");
 
+				Console.WriteLine("Flushing");
 				scope.Flush();
+				Console.WriteLine("Flushed");
+
+				WriteObjectState(obj);
 
 				id = obj.Id;
 
+				Console.WriteLine("Completing");
 				scope.Complete();
+				Console.WriteLine("Leaving scope");
 			}
+
+			Console.WriteLine("Left scope");
+
+			Console.WriteLine("=================================================================");
 
 			using (var scope = new DataAccessScope())
 			{
@@ -190,6 +210,8 @@ namespace Shaolinq.Tests
 			{
 				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.Create(id);
 
+				//obj.Name = $"{Guid.NewGuid()}";
+
 				scope.Complete();
 			}
 
@@ -198,6 +220,7 @@ namespace Shaolinq.Tests
 				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.GetByPrimaryKey(id);
 
 				obj.Id = 200L;
+				obj.Name = $"{Guid.NewGuid()}";
 
 				scope.Complete();
 			}
@@ -211,6 +234,7 @@ namespace Shaolinq.Tests
 			using (var scope = new DataAccessScope())
 			{
 				var obj = this.model.ObjectWithLongAutoIncrementPrimaryKeys.Create();
+				//obj.Name = $"{Guid.NewGuid()}";
 
 				scope.Flush();
 
@@ -224,6 +248,7 @@ namespace Shaolinq.Tests
 				var obj = this.model.ObjectWithLongAutoIncrementPrimaryKeys.GetByPrimaryKey(id);
 
 				obj.Id = 200L;
+				obj.Name = $"{Guid.NewGuid()}";
 
 				scope.Complete();
 			}

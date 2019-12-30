@@ -49,19 +49,19 @@ namespace Shaolinq.TypeBuilding
 			var serializedConfiguration = XmlSerializer<DataAccessModelConfigurationUniqueKey>.New().SerializeToString(new DataAccessModelConfigurationUniqueKey(configuration));
 			var filename = GetFileName(typeDescriptorProvider, configuration.GeneratedAssembliesSaveDirectory, serializedConfiguration, out var fullhash);
 
-			if (configuration.SaveAndReuseGeneratedAssemblies ?? false)
-			{
-				if (filename != null && File.Exists(filename))
-				{
-					var candidate = Assembly.LoadFile(filename);
+			//if (configuration.SaveAndReuseGeneratedAssemblies ?? false)
+			//{
+			//	if (filename != null && File.Exists(filename))
+			//	{
+			//		var candidate = Assembly.LoadFile(filename);
 
-					if (ReadResource(candidate, "configuration.xml") == serializedConfiguration
-						&& ReadResource(candidate, "sha1.txt") == fullhash)
-					{
-						return candidate;
-					}
-				}
-			}
+			//		if (ReadResource(candidate, "configuration.xml") == serializedConfiguration
+			//			&& ReadResource(candidate, "sha1.txt") == fullhash)
+			//		{
+			//			return candidate;
+			//		}
+			//	}
+			//}
 
 			var filenameWithoutExtension = Path.GetFileNameWithoutExtension(filename);
 			var typeDescriptors = typeDescriptorProvider.GetTypeDescriptors();
@@ -112,7 +112,7 @@ namespace Shaolinq.TypeBuilding
 
 					assemblyBuilder.Save(Path.GetFileName(filename));
 				}
-				catch
+				catch (Exception ex)
 				{
 				}
 			}
