@@ -9,7 +9,7 @@ namespace Shaolinq.SqlServer
 	public class SqlServerSqlDataTypeProvider
 		: DefaultSqlDataTypeProvider
 	{
-		public SqlServerSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration)
+		public SqlServerSqlDataTypeProvider(ConstraintDefaultsConfiguration constraintDefaultsConfiguration, bool nativeGuids)
 			: base(constraintDefaultsConfiguration)
 		{
 			DefinePrimitiveSqlDataType(typeof(bool), "BIT", "GetValue");
@@ -24,6 +24,12 @@ namespace Shaolinq.SqlServer
 			DefinePrimitiveSqlDataType(typeof(ulong), "NUMERIC(20)", "GetValue");
 			DefinePrimitiveSqlDataType(typeof(float), "FLOAT(24)", "GetValue");
 			DefinePrimitiveSqlDataType(typeof(double), "FLOAT(53)", "GetValue");
+
+			if (nativeGuids)
+			{
+				DefineSqlDataType(new SqlServerUniqueIdentifierSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid)));
+				DefineSqlDataType(new SqlServerUniqueIdentifierSqlDataType(this.ConstraintDefaultsConfiguration, typeof(Guid?)));
+			}
 
 			// TODO: Always use GetDateTime when Mono switches to using reference source implementation
 

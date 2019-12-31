@@ -7,12 +7,12 @@ namespace Shaolinq.SqlServer
 {
 	public class SqlServerConfiguration
 	{
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password, bool deleteDatabaseDropsTablesOnly = false)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName, string password, bool deleteDatabaseDropsTablesOnly = false, bool nativeGuids = false)
 		{
-			return Create(databaseName, serverName, userName, password, null);
+			return Create(databaseName, serverName, userName, password, null, deleteDatabaseDropsTablesOnly, nativeGuids: nativeGuids);
 		}
 
-		public static DataAccessModelConfiguration Create(string connectionString, bool deleteDatabaseDropsTablesOnly = false, bool multipleActiveResultsets = false)
+		public static DataAccessModelConfiguration Create(string connectionString, bool deleteDatabaseDropsTablesOnly = false, bool multipleActiveResultsets = false, bool nativeGuids = false)
 		{
 			return new DataAccessModelConfiguration
 			{
@@ -23,13 +23,14 @@ namespace Shaolinq.SqlServer
 						ConnectionString = connectionString,
 						DeleteDatabaseDropsTablesOnly = deleteDatabaseDropsTablesOnly,
 						MultipleActiveResultSets = multipleActiveResultsets,
-                        TrustedConnection = true
+						TrustedConnection = true,
+						NativeGuids = nativeGuids
 					}
 				}
-			}; 
+			};
 		}
 
-		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName = null, string password = null, string categories = null, bool deleteDatabaseDropsTablesOnly = false, bool multipleActiveResultsets = false)
+		public static DataAccessModelConfiguration Create(string databaseName, string serverName, string userName = null, string password = null, string categories = null, bool deleteDatabaseDropsTablesOnly = false, bool multipleActiveResultsets = false, bool nativeGuids = false)
 		{
 			return new DataAccessModelConfiguration()
 			{
@@ -43,7 +44,8 @@ namespace Shaolinq.SqlServer
 						UserName = userName,
 						Password = password,
 						DeleteDatabaseDropsTablesOnly = deleteDatabaseDropsTablesOnly,
-						MultipleActiveResultSets = multipleActiveResultsets
+						MultipleActiveResultSets = multipleActiveResultsets,
+						NativeGuids = nativeGuids
 					},
 				}
 			};

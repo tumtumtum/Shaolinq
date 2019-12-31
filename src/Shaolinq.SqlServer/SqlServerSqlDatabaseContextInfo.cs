@@ -123,6 +123,13 @@ namespace Shaolinq.SqlServer
 		[XmlAttribute]
 		public string TypeSystemVersion { get; set; } = null;
 
+		/// <summary>
+		/// When <c>true</c> GUID types will be stored in the database with the UNIQUEIDENTIFIER sql type.
+		/// When <c>false</c> (default) they will be stored as CHAR(32).
+		/// </summary>
+		[XmlAttribute]
+		public bool NativeGuids { get; set; } = false;
+
 		public override SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model)
 		{
 			return SqlServerSqlDatabaseContext.Create(this, model);
