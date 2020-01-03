@@ -1709,12 +1709,10 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Brtrue, returnTrueLabel);
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
 
 			generator.Emit(OpCodes.Ldloc, local);
-			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
 
@@ -1970,7 +1968,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Brtrue, label);
 			
-			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ret);
 
 			generator.MarkLabel(label);
@@ -1979,6 +1977,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObjectDataContext>(c => c.CacheObject(default(DataAccessObject), default(bool))));
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -1997,7 +1996,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Brtrue, label);
 			
-			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ret);
 
 			generator.MarkLabel(label);
@@ -2005,6 +2004,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObjectDataContext>(c => c.EvictObject(default(DataAccessObject))));
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Ret);
 		}
 
