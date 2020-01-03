@@ -53,7 +53,9 @@ namespace Shaolinq.TypeBuilding
 			{
 				if (filename != null && File.Exists(filename))
 				{
-					var candidate = Assembly.LoadFile(filename);
+					// load assembly from byte array rather than file to avoid locking the file if we need to write an updated assembly later in this method
+					var assemblyBytes = File.ReadAllBytes(filename);
+					var candidate = Assembly.Load(assemblyBytes);
 
 					if (ReadResource(candidate, "configuration.xml") == serializedConfiguration
 						&& ReadResource(candidate, "sha1.txt") == fullhash)
