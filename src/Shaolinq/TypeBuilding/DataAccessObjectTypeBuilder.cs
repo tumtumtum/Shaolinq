@@ -2532,6 +2532,10 @@ namespace Shaolinq.TypeBuilding
 
 				path.Add(visited);
 
+				if (currentObject.LocalType.IsDataAccessObjectType() && !first)
+				{
+					generator.Emit(OpCodes.Castclass, currentObject.LocalType);
+				}
 				generator.Emit(OpCodes.Stloc, currentObject);
 
 				if (currentObject.LocalType.IsDataAccessObjectType() && !first)
