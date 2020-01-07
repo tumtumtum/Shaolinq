@@ -98,7 +98,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			if (typeBuildContext.IsFirstPass())
 			{
-				var typeName = this.baseType.Namespace + "." + this.baseType.Name;
+				var typeName = this.typeDescriptor.GetGeneratedTypeName();
 
 				this.typeBuilder = this.ModuleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, this.baseType);
 				this.dataObjectTypeTypeBuilder = this.ModuleBuilder.DefineType(typeName + "Data", TypeAttributes.Class | TypeAttributes.Public, typeof(object));
