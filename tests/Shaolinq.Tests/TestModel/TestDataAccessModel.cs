@@ -85,5 +85,8 @@ namespace Shaolinq.Tests.TestModel
 
 		[DataAccessObjects]
 		public abstract DataAccessObjects<ObjectWithBackReference> ObjectWithBackReferences { get; }
+
+		[DataAccessObjects]
+		public abstract DataAccessObjects<ObjectWithComputedTextMember> ObjectWithComputedTextMembers { get; }
 	}
 }

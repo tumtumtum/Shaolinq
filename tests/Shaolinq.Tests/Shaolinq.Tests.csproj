@@ -262,6 +262,7 @@
     <Compile Include="TestModel\IIdentified.cs" />
     <Compile Include="TestModel\ObjectWithBackReference.cs" />
     <Compile Include="TestModel\ObjectWithCompositePrimaryKey.cs" />
+    <Compile Include="TestModel\ObjectWithComputedTextMember.cs" />
     <Compile Include="TestModel\ObjectWithDaoPrimaryKey.cs" />
     <Compile Include="TestModel\ObjectWithManyTypes.cs" />
     <Compile Include="TestModel\ObjectWithRelatedObject.cs" />

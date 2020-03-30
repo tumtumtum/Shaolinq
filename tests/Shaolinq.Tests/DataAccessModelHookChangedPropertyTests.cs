@@ -255,6 +255,32 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Changed_Properties_Computed_Text_Member()
+		{
+			long id;
+
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithComputedTextMembers.Create();
+				obj.Name = "Foo";
+
+				scope.Flush();
+
+				id = obj.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithComputedTextMembers.GetByPrimaryKey(id);
+
+				Console.WriteLine($"ServerGeneratedUrn: {obj.ServerGeneratedUrn}");
+				Console.WriteLine($"NonServerGeneratedUrn: {obj.NonServerGeneratedUrn}");
+			}
+		}
+
+		[Test]
 		[Ignore("Bug")]
 		public void Test_Changed_Properties_Guid_NonAutoIncrement_Bug()
 		{

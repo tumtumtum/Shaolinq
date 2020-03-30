@@ -123,11 +123,6 @@ namespace Shaolinq.Persistence
 					continue;
 				}
 
-				if ((objectState & DataAccessObjectState.New) == DataAccessObjectState.New) // already been committed
-				{
-					continue;
-				}
-
 				using (var command = BuildUpdateCommand(typeDescriptor, dataAccessObject))
 				{
 					if (command == null)
