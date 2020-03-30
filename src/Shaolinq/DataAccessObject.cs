@@ -75,6 +75,7 @@ namespace Shaolinq
 		bool IDataAccessObjectAdvanced.IsDeflatedPredicatedReference => false;
 		LambdaExpression IDataAccessObjectAdvanced.DeflatedPredicate => null;
 		bool IDataAccessObjectAdvanced.PrimaryKeyIsCommitReady => false;
+		bool IDataAccessObjectAdvanced.IsCommitted => false;
 		int IDataAccessObjectAdvanced.NumberOfPropertiesGeneratedOnTheServerSide => this.TypeDescriptor.PrimaryKeyProperties.Count(c => c.IsPropertyThatIsCreatedOnTheServerSide);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysFlattened() => this.ToObjectInternal().GetPrimaryKeysFlattened(out placeholder);
 		ObjectPropertyValue[] IDataAccessObjectAdvanced.GetPrimaryKeysForUpdate() => this.ToObjectInternal().GetPrimaryKeysForUpdate();

@@ -1272,6 +1272,11 @@ namespace Shaolinq.Persistence
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
+				if (dataAccessObject.GetAdvanced().IsCommitted)
+				{
+					continue;
+				}
+
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 				if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
 				{
@@ -1313,6 +1318,8 @@ namespace Shaolinq.Persistence
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
 				}
+
+				dataAccessObject.ToObjectInternal().SetIsCommitted();
 			}
 		}
 
@@ -1328,6 +1335,11 @@ namespace Shaolinq.Persistence
 			var canDefer = !this.DataAccessModel.hasAnyAutoIncrementValidators;
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
+				if (dataAccessObject.GetAdvanced().IsCommitted)
+				{
+					continue;
+				}
+
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 				switch (objectState & DataAccessObjectState.NewChanged)
 				{
@@ -1395,10 +1407,10 @@ namespace Shaolinq.Persistence
 						{
 							listToFixup.Add(dataAccessObject);
 						}
-					//else
-					//{
-					//	dataAccessObject.ToObjectInternal().ResetModified();
-					//}
+						else
+						{
+							dataAccessObject.ToObjectInternal().SetIsCommitted();
+						}
 					}
 				}
 				else
@@ -1459,6 +1471,10 @@ namespace Shaolinq.Persistence
 			}
 
 			await ((ISqlQueryProvider)provider).ExecuteAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			foreach (var dataAccessObject in dataAccessObjects)
+			{
+				dataAccessObject.ToObjectInternal().SetIsCommitted();
+			}
 		}
 	}
 }

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using Shaolinq.Tests.TestModel;
 
@@ -16,63 +19,165 @@ namespace Shaolinq.Tests
 	//[TestFixture("Postgres.DotConnect")]
 	public class DataAccessModelHookChangedPropertyTests : BaseTests<TestDataAccessModel>
 	{
-		public class WriteChangesDataModelHook : DataAccessModelHookBase
+		public class VerifyChangesDataModelHook : DataAccessModelHookBase
 		{
-			public IEnumerable<string> BeforeSubmitChangedPropertyNames { get; private set; }
-			public IEnumerable<string> AfterSubmitChangedPropertyNames { get; private set; }
+			public class DataAccessObjectChangeInfo : IEquatable<DataAccessObjectChangeInfo>
+			{
+				public string ObjectType { get; set; }
+				public string ChangeType { get; set; }
+				public bool HasChanged { get; set; }
+				public bool IsCommitted { get; set; }
+				public DataAccessObjectState ObjectState { get; set; }
+				public IDictionary<string, string> ChangedPropertyValues { get; set; }
+
+				public bool Equals(DataAccessObjectChangeInfo other)
+				{
+					if (ReferenceEquals(null, other)) return false;
+					if (ReferenceEquals(this, other)) return true;
+					return
+						ObjectType == other.ObjectType &&
+						ChangeType == other.ChangeType &&
+						HasChanged == other.HasChanged &&
+						//ObjectState == other.ObjectState &&
+						ChangedPropertyValues.SequenceEqual(other.ChangedPropertyValues);
+				}
+
+				public override bool Equals(object obj)
+				{
+					if (ReferenceEquals(null, obj)) return false;
+					if (ReferenceEquals(this, obj)) return true;
+					if (obj.GetType() != this.GetType()) return false;
+					return Equals((DataAccessObjectChangeInfo) obj);
+				}
+
+				public override int GetHashCode()
+				{
+					unchecked
+					{
+						var hashCode = (ObjectType != null ? ObjectType.GetHashCode() : 0);
+						hashCode = (hashCode * 397) ^ (ChangeType != null ? ChangeType.GetHashCode() : 0);
+						hashCode = (hashCode * 397) ^ HasChanged.GetHashCode();
+						hashCode = (hashCode * 397) ^ ObjectState.GetHashCode();
+						hashCode = (hashCode * 397) ^ (ChangedPropertyValues != null ? ChangedPropertyValues.GetHashCode() : 0);
+						return hashCode;
+					}
+				}
+
+				public override string ToString()
+				{
+					return $"{nameof(ObjectType)}: {ObjectType}, {nameof(ChangeType)}: {ChangeType}, {nameof(HasChanged)}: {HasChanged}, {nameof(ObjectState)}: {ObjectState}, {nameof(ChangedPropertyValues)}: {ChangedPropertyValues.Count}";
+				}
+			}
+
+			public IDictionary<string, ICollection<DataAccessObjectChangeInfo>> BeforeSubmitChangeInfo { get; } = new Dictionary<string, ICollection<DataAccessObjectChangeInfo>>();
+			public IDictionary<string, ICollection<DataAccessObjectChangeInfo>> AfterSubmitChangeInfo { get; } = new Dictionary<string, ICollection<DataAccessObjectChangeInfo>>();
+
+			private void AssertThatBeforeAndAfterChangesMatch()
+			{
+				//Assert.That();
+				Assert.AreEqual(this.BeforeSubmitChangeInfo, this.AfterSubmitChangeInfo);
+			}
+
+			private void Reset()
+			{
+				this.BeforeSubmitChangeInfo.Clear();
+				this.AfterSubmitChangeInfo.Clear();
+
+				Console.WriteLine($"{nameof(VerifyChangesDataModelHook)} Reset");
+			}
 
 			public override void BeforeSubmit(DataAccessModelHookSubmitContext context)
 			{
-				Console.WriteLine();
-				Console.WriteLine($"BeforeSubmit changes - commit: {context.IsCommit}");
-				WriteChanges("New", context.New);
-				WriteChanges("Updated", context.Updated);
-				WriteChanges("Deleted", context.Deleted);
-				Console.WriteLine();
+				AddChangedObjects(context, this.BeforeSubmitChangeInfo);
+				WriteChangedObjects("BeforeSubmit", this.BeforeSubmitChangeInfo, context.IsCommit);
+			}
 
-				this.BeforeSubmitChangedPropertyNames =
-					context.New.SelectMany(x => x.GetChangedProperties().Select(p => $"{x} {p.PropertyName}"))
-						.Concat(context.Updated.SelectMany(x => x.GetChangedProperties().Select(p => $"{x} {p.PropertyName}")))
-						.Concat(context.Deleted.SelectMany(x => x.GetChangedProperties().Select(p => $"{x} {p.PropertyName}")))
-						.ToList();
+			public override Task BeforeSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
+			{
+				AddChangedObjects(context, this.BeforeSubmitChangeInfo);
+				WriteChangedObjects("BeforeSubmit", this.BeforeSubmitChangeInfo, context.IsCommit);
+
+				return Task.FromResult(0);
 			}
 
 			public override void AfterSubmit(DataAccessModelHookSubmitContext context)
 			{
-				Console.WriteLine();
-				Console.WriteLine($"AfterSubmit changes - commit: {context.IsCommit}");
-				WriteChanges("New", context.New);
-				WriteChanges("Updated", context.Updated);
-				WriteChanges("Deleted", context.Deleted);
-				Console.WriteLine();
+				AddChangedObjects(context, this.AfterSubmitChangeInfo);
+				WriteChangedObjects("AfterSubmit", this.AfterSubmitChangeInfo, context.IsCommit);
 
-				this.AfterSubmitChangedPropertyNames =
-					context.New.SelectMany(x => x.GetChangedProperties().Select(p => $"{x} {p.PropertyName}"))
-						.Concat(context.Updated.SelectMany(x => x.GetChangedProperties().Select(p => $"{x} {p.PropertyName}")))
-						.Concat(context.Deleted.SelectMany(x => x.GetChangedProperties().Select(p => $"{x} {p.PropertyName}")))
-						.ToList();
+				//AssertThatBeforeAndAfterChangesMatch();
+				Reset();
 			}
 
-			private static void WriteChanges(string state, IEnumerable<DataAccessObject> objects)
+			public override Task AfterSubmitAsync(DataAccessModelHookSubmitContext context, CancellationToken cancellationToken)
 			{
-				Console.WriteLine($"{state} ({objects.Count()})");
+				AddChangedObjects(context, this.AfterSubmitChangeInfo);
+				WriteChangedObjects("AfterSubmit", this.AfterSubmitChangeInfo, context.IsCommit);
+
+				//AssertThatBeforeAndAfterChangesMatch();
+				Reset();
+
+				return Task.FromResult(0);
+			}
+
+			private void AddChangedObjects(DataAccessModelHookSubmitContext context, IDictionary<string, ICollection<DataAccessObjectChangeInfo>> changeInfosByType)
+			{
+				AddChangedObjects(context.New, "New", changeInfosByType);
+				AddChangedObjects(context.Updated, "Updated", changeInfosByType);
+				AddChangedObjects(context.Deleted, "Deleted", changeInfosByType);
+			}
+
+			private void AddChangedObjects(
+				IEnumerable<DataAccessObject> objects,
+				string changeType,
+				IDictionary<string, ICollection<DataAccessObjectChangeInfo>> changeInfos)
+			{
+				ICollection<DataAccessObjectChangeInfo> changeInfo;
+				if (!changeInfos.TryGetValue(changeType, out changeInfo))
+				{
+					changeInfo = new List<DataAccessObjectChangeInfo>();
+					changeInfos.Add(changeType, changeInfo);
+				}
+
 				foreach (var obj in objects)
 				{
-					WriteObjectState(obj);
+					changeInfo.Add(new DataAccessObjectChangeInfo
+					{
+						ObjectType = obj.ToString(),
+						ChangeType = changeType,
+						HasChanged = obj.GetAdvanced().HasObjectChanged,
+						IsCommitted = obj.GetAdvanced().IsCommitted,
+						ObjectState = obj.GetAdvanced().ObjectState,
+						ChangedPropertyValues = obj
+							.GetAdvanced()
+							.GetChangedProperties()
+							.ToDictionary(x => x.PropertyName, x => x.Value.ToString())
+					});
+				}
+			}
+
+			private void WriteChangedObjects(string hook, IDictionary<string, ICollection<DataAccessObjectChangeInfo>> changeInfosByType, bool isCommit)
+			{
+				Console.WriteLine($"{hook} (Commit: {isCommit})");
+
+				foreach (var changeInfos in changeInfosByType)
+				{
+					Console.WriteLine($" - {changeInfos.Key}:");
+
+					foreach (var changeInfo in changeInfos.Value)
+					{
+						Console.WriteLine($"   - {changeInfo.ObjectType} (HasChanged: {changeInfo.HasChanged}, ObjectState: {changeInfo.ObjectState}, IsCommitted: {changeInfo.IsCommitted}):");
+
+						foreach (var changedProp in changeInfo.ChangedPropertyValues)
+						{
+							Console.WriteLine($"     - {changedProp.Key} => {changedProp.Value}");
+						}
+					}
 				}
 			}
 		}
 
-		private WriteChangesDataModelHook writeChangesDataModelHook;
-
-		private static void WriteObjectState(DataAccessObject obj)
-		{
-			Console.WriteLine($" - {obj} (HasObjectChanged: {obj.GetAdvanced().HasObjectChanged}, ObjectState: {obj.GetAdvanced().ObjectState})");
-			foreach (var change in obj.GetChangedProperties())
-			{
-				Console.WriteLine($"    - {change.PropertyName} => {change.Value}");
-			}
-		}
+		private VerifyChangesDataModelHook verifyChangesDataModelHook;
 
 		public DataAccessModelHookChangedPropertyTests(string providerName) : base(providerName)
 		{
@@ -81,36 +186,69 @@ namespace Shaolinq.Tests
 		[SetUp]
 		public void SetUp()
 		{
-			this.writeChangesDataModelHook = new WriteChangesDataModelHook();
-			this.model.AddHook(this.writeChangesDataModelHook);
+			this.verifyChangesDataModelHook = new VerifyChangesDataModelHook();
+			this.model.AddHook(this.verifyChangesDataModelHook);
 		}
 
 		[TearDown]
 		public void TearDown()
 		{
-			this.model.RemoveHook(writeChangesDataModelHook);
+			this.model.RemoveHook(this.verifyChangesDataModelHook);
 		}
 
 		[Test]
-		public void Test_Changed_Properties()
+		public void Test_Changed_Properties_Related_Object()
 		{
 			using (var scope = new DataAccessScope())
 			{
-				var obj = this.model.Cats.Create();
+				var obj = this.model.ObjectWithRelatedObjects.Create(1);
 
-				obj.Name = "Cat1";
-				obj.Parent = this.model.Cats.Create();
-				obj.Parent.Name = "ParentCat";
+				//obj.Id = 1;
+				obj.Name = "Parent";
+				obj.RelatedObject = this.model.ObjectWithRelatedObjects.Create(2);
+				//obj.RelatedObject.Id = 2;
+				obj.RelatedObject.Name = "Child";
 
 				scope.Complete();
 			}
 
+			Console.WriteLine("Updating object");
+
 			using (var scope = new DataAccessScope())
 			{
-				var obj = this.model.Cats.First(x => x.Name == "Cat1");
+				var obj = this.model.ObjectWithRelatedObjects.First(x => x.Id == 1);
 
-				obj.Name = "Cat1Modified";
-				obj.Parent.Name = "ParentCatModified";
+				obj.Name = "ParentModified";
+				obj.RelatedObject.Name = "ChildModified";
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Changed_Properties_BackReference()
+		{
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithBackReferences.Create(1);
+
+				//obj.Id = 1;
+				obj.Name = "Parent";
+				obj.RelatedObject = this.model.ObjectWithBackReferences.Create(2);
+				//obj.RelatedObject.Id = 2;
+				obj.RelatedObject.Name = "Child";
+
+				scope.Complete();
+			}
+
+			Console.WriteLine("Updating object");
+
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithBackReferences.First(x => x.Id == 1);
+
+				obj.Name = "ParentModified";
+				obj.RelatedObject.Name = "ChildModified";
 
 				scope.Complete();
 			}
@@ -128,6 +266,8 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			Console.WriteLine("Updating object");
 
 			using (var scope = new DataAccessScope())
 			{
@@ -148,8 +288,15 @@ namespace Shaolinq.Tests
 			{
 				var obj = this.model.ObjectWithGuidNonAutoIncrementPrimaryKeys.Create(id);
 
+				scope.Flush();
+
 				scope.Complete();
 			}
+
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
+			//this.verifyChangesDataModelHook.Reset();
+
+			Console.WriteLine("Updating object");
 
 			using (var scope = new DataAccessScope())
 			{
@@ -159,6 +306,8 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
 		}
 
 		[Test]
@@ -178,8 +327,6 @@ namespace Shaolinq.Tests
 				scope.Flush();
 				Console.WriteLine("Flushed");
 
-				WriteObjectState(obj);
-
 				id = obj.Id;
 
 				Console.WriteLine("Completing");
@@ -188,6 +335,9 @@ namespace Shaolinq.Tests
 			}
 
 			Console.WriteLine("Left scope");
+
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
+			//this.verifyChangesDataModelHook.Reset();
 
 			Console.WriteLine("=================================================================");
 
@@ -199,6 +349,8 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
 		}
 
 		[Test]
@@ -215,6 +367,11 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
+			//this.verifyChangesDataModelHook.Reset();
+
+			Console.WriteLine("Updating object");
+			
 			using (var scope = new DataAccessScope())
 			{
 				var obj = this.model.ObjectWithLongNonAutoIncrementPrimaryKeys.GetByPrimaryKey(id);
@@ -224,6 +381,8 @@ namespace Shaolinq.Tests
 
 				scope.Complete();
 			}
+
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
 		}
 
 		[Test]
@@ -243,12 +402,99 @@ namespace Shaolinq.Tests
 				scope.Complete();
 			}
 
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
+			//this.verifyChangesDataModelHook.Reset();
+
+			Console.WriteLine("Updating object");
+
 			using (var scope = new DataAccessScope())
 			{
 				var obj = this.model.ObjectWithLongAutoIncrementPrimaryKeys.GetByPrimaryKey(id);
 
 				obj.Id = 200L;
 				obj.Name = $"{Guid.NewGuid()}";
+
+				scope.Complete();
+			}
+
+			//this.verifyChangesDataModelHook.AssertThatBeforeAndAfterChangesMatch();
+		}
+
+		[Test]
+		public void Test_Changed_Properties_Delete()
+		{
+			Guid id;
+
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.Create();
+
+				scope.Complete();
+
+				id = obj.Id;
+			}
+
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithGuidAutoIncrementPrimaryKeys.GetReference(id);
+
+				obj.Delete();
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_Deflated_Object_Hook()
+		{
+			long id;
+
+			using (var scope = new DataAccessScope())
+			{
+				var cat = this.model.Cats.Create();
+
+				scope.Flush();
+
+				id = cat.Id;
+
+				scope.Complete();
+			}
+
+			Console.WriteLine("Updating deflated object");
+
+			using (var scope = new DataAccessScope())
+			{
+				var cat = this.model.Cats.GetReference(id);
+
+				cat.Name = "NewCat";
+
+				scope.Complete();
+			}
+		}
+
+		[Test]
+		public void Test_DeflatedPredicate_Object_Hook()
+		{
+			long id;
+
+			using (var scope = new DataAccessScope())
+			{
+				var cat = this.model.Cats.Create();
+
+				scope.Flush();
+
+				id = cat.Id;
+
+				scope.Complete();
+			}
+
+			Console.WriteLine("Updating deflated object");
+
+			using (var scope = new DataAccessScope())
+			{
+				var cat = this.model.Cats.GetReference(c => c.Id == id);
+
+				cat.Name = "NewCat";
 
 				scope.Complete();
 			}
