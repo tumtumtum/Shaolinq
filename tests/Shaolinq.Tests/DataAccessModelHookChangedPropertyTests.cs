@@ -281,6 +281,32 @@ namespace Shaolinq.Tests
 		}
 
 		[Test]
+		public void Test_Changed_Properties_Computed_Member()
+		{
+			long id;
+
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithComputedMembers.Create();
+				obj.Number = 5;
+
+				scope.Flush();
+
+				id = obj.Id;
+
+				scope.Complete();
+			}
+
+			using (var scope = new DataAccessScope())
+			{
+				var obj = this.model.ObjectWithComputedMembers.GetByPrimaryKey(id);
+
+				Console.WriteLine($"Id: {obj.Id}, MutatedId: {obj.MutatedId}");
+				Console.WriteLine($"Number: {obj.Number}, MutatedNumber: {obj.MutatedNumber}");
+			}
+		}
+
+		[Test]
 		[Ignore("Bug")]
 		public void Test_Changed_Properties_Guid_NonAutoIncrement_Bug()
 		{
