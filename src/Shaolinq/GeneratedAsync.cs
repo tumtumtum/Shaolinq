@@ -1314,7 +1314,7 @@ namespace Shaolinq.Persistence
 					}
 				}
 
-				dataAccessObject.ToObjectInternal().SetIsCommitted();
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 			}
 		}
 
@@ -1400,11 +1400,12 @@ namespace Shaolinq.Persistence
 
 						if ((objectState & DataAccessObjectState.ReferencesNewObjectWithServerSideProperties) == DataAccessObjectState.ReferencesNewObjectWithServerSideProperties)
 						{
+							dataAccessObject.ToObjectInternal().SetIsCommitted(false);
 							listToFixup.Add(dataAccessObject);
 						}
 						else
 						{
-							dataAccessObject.ToObjectInternal().SetIsCommitted();
+							dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 						}
 					}
 				}
@@ -1468,7 +1469,7 @@ namespace Shaolinq.Persistence
 			await ((ISqlQueryProvider)provider).ExecuteAsync<int>(expression, cancellationToken).ConfigureAwait(false);
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				dataAccessObject.ToObjectInternal().SetIsCommitted();
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 			}
 		}
 	}

@@ -158,7 +158,7 @@ namespace Shaolinq.Persistence
 					}
 				}
 
-				dataAccessObject.ToObjectInternal().SetIsCommitted();
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 			}
 		}
 
@@ -260,11 +260,12 @@ retryInsert:
 
 						if ((objectState & DataAccessObjectState.ReferencesNewObjectWithServerSideProperties) == DataAccessObjectState.ReferencesNewObjectWithServerSideProperties)
 						{
+							dataAccessObject.ToObjectInternal().SetIsCommitted(false);
 							listToFixup.Add(dataAccessObject);
 						}
 						else
 						{
-							dataAccessObject.ToObjectInternal().SetIsCommitted();
+							dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 						}
 					}
 				}
@@ -333,7 +334,7 @@ retryInsert:
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
-				dataAccessObject.ToObjectInternal().SetIsCommitted();
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 			}
 		}
 

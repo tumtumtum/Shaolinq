@@ -2037,7 +2037,7 @@ namespace Shaolinq.TypeBuilding
 
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldfld, this.dataObjectField);
-			generator.Emit(OpCodes.Ldc_I4_1);
+			generator.Emit(OpCodes.Ldarg_1);
 			generator.Emit(OpCodes.Stfld, this.isCommittedField);
 			generator.Emit(OpCodes.Ret);
 		}
