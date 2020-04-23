@@ -63,15 +63,17 @@ namespace Shaolinq.Sqlite
 		protected SqliteSqlDatabaseContext(DataAccessModel model, SqliteSqlDatabaseContextInfo contextInfo, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager)
 			: base(model, new SqliteSqlDialect(), sqlDataTypeProvider, sqlQueryFormatterManager, Path.GetFileNameWithoutExtension(contextInfo.FileName), contextInfo)
 		{
-			if (contextInfo.FileName == null && contextInfo.ConnectionString == null)
+			var connectionString = contextInfo.GetConnectionString();
+
+			if (contextInfo.FileName == null && connectionString == null)
 			{
-				throw new ArgumentException($"Must supply {nameof(contextInfo.FileName)} or {nameof(contextInfo.ConnectionString)}", nameof(contextInfo));
+				throw new ArgumentException($"Must supply {nameof(contextInfo.FileName)}, {nameof(contextInfo.ConnectionString)} or {nameof(contextInfo.ConnectionStringName)}", nameof(contextInfo));
 			}
 
 			this.FileName = contextInfo.FileName;
 
-			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName ?? contextInfo.ConnectionString);
-			this.IsInMemoryConnection = IsMemoryConnectionRegex.IsMatch(this.FileName ?? contextInfo.ConnectionString);
+			this.IsSharedCacheConnection = IsSharedConnectionRegex.IsMatch(this.FileName ?? connectionString);
+			this.IsInMemoryConnection = IsMemoryConnectionRegex.IsMatch(this.FileName ?? connectionString);
 		}
 		
 		public override IDisabledForeignKeyCheckContext AcquireDisabledForeignKeyCheckContext(SqlTransactionalCommandsContext sqlDatabaseCommandsContext)

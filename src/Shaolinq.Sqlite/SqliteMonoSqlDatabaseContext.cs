@@ -40,7 +40,7 @@ namespace Shaolinq.Sqlite
 			}
 			else
 			{
-				this.ConnectionString = contextInfo.ConnectionString;
+				this.ConnectionString = contextInfo.GetConnectionString();
 			}
 
 			this.ServerConnectionString = this.ConnectionString;

@@ -32,9 +32,11 @@ namespace Shaolinq.Postgres.DotConnect
 		protected PostgresDotConnectSqlDatabaseContext(DataAccessModel model, SqlDialect sqlDialect, SqlDataTypeProvider sqlDataTypeProvider, SqlQueryFormatterManager sqlQueryFormatterManager, PostgresDotConnectSqlDatabaseContextInfo contextInfo)
 			: base(model, sqlDialect, sqlDataTypeProvider, sqlQueryFormatterManager, contextInfo.DatabaseName, contextInfo)
 		{
-			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
+			var connectionString = contextInfo.GetConnectionString();
+
+			if (!string.IsNullOrEmpty(connectionString))
 			{
-				this.ConnectionString = contextInfo.ConnectionString;
+				this.ConnectionString = connectionString;
 				this.ServerConnectionString = Regex.Replace(this.ConnectionString, @"Database\s*\=[^;$]+[;$]", "");
 			}
 			else

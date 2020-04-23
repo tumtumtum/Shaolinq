@@ -32,12 +32,14 @@ namespace Shaolinq.SqlServer
 
 		private static string GetDatabaseName(SqlServerSqlDatabaseContextInfo contextInfo)
 		{
-			if (string.IsNullOrEmpty(contextInfo.ConnectionString))
+			var connectionString = contextInfo.GetConnectionString();
+
+			if (string.IsNullOrEmpty(connectionString))
 			{
 				return contextInfo.DatabaseName;
 			}
 
-			var match = DatabaseRegex.Match(contextInfo.ConnectionString);
+			var match = DatabaseRegex.Match(connectionString);
 
 			if (match.Success)
 			{
@@ -69,11 +71,13 @@ namespace Shaolinq.SqlServer
 			this.ReadCommittedSnapshot = contextInfo.ReadCommittedSnapshot;
 			this.DeleteDatabaseDropsTablesOnly = contextInfo.DeleteDatabaseDropsTablesOnly;
 
-			if (!string.IsNullOrEmpty(contextInfo.ConnectionString))
+			var connectionString = contextInfo.GetConnectionString();
+
+			if (!string.IsNullOrEmpty(connectionString))
 			{
 				var found = false;
 
-				this.ConnectionString = contextInfo.ConnectionString;
+				this.ConnectionString = connectionString;
 
 				this.ConnectionString = EnlistRegex.Replace(this.ConnectionString, c =>
 				{

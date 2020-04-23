@@ -14,7 +14,7 @@ namespace Shaolinq.SqlServer
 		{
 			if (contextInfo != null)
 			{
-				var connectionString = contextInfo.ConnectionString;
+				var connectionString = contextInfo.GetConnectionString();
 				var marsEnabledInConnectionString = connectionString != null && Regex.IsMatch(connectionString, @".*MultipleActiveResultSets\s*=\s*true.*", RegexOptions.IgnoreCase);
 
 				this.marsEnabled = contextInfo.MultipleActiveResultSets || marsEnabledInConnectionString;
