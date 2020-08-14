@@ -106,5 +106,30 @@ namespace Shaolinq.SqlServer
 				}
 			}
 		}
+
+		[RewriteAsync]
+		protected override void CreateDatabaseSchema(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		{
+			if (!string.IsNullOrEmpty(this.SqlDatabaseContext.SchemaName))
+			{
+				var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
+
+				using (var dbConnection = factory.CreateConnection())
+				{
+					dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
+					dbConnection.Open();
+					dbConnection.ChangeDatabase(this.SqlDatabaseContext.DatabaseName);
+
+					using (var command = dbConnection.CreateCommand())
+					{
+						command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE NAME = '{this.SqlDatabaseContext.SchemaName}') EXEC ('CREATE SCHEMA [{this.SqlDatabaseContext.SchemaName}]');";
+
+						command.ExecuteNonQuery();
+					}
+				}
+			}
+
+			base.CreateDatabaseSchema(dataDefinitionExpressions, options);
+		}
 	}
 }

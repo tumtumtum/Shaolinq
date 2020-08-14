@@ -324,5 +324,20 @@ namespace Shaolinq.SqlServer
 			
 			return base.VisitExtension(expression);
 		}
+
+		public override void AppendFullyQualifiedQuotedTableOrTypeName(string tableName, Action<string> append)
+		{
+			if (!string.IsNullOrEmpty(this.contextInfo.SchemaName))
+			{
+				append(this.identifierQuoteString);
+				append(this.contextInfo.SchemaName);
+				append(this.identifierQuoteString);
+				append(".");
+			}
+
+			append(this.identifierQuoteString);
+			append(tableName);
+			append(this.identifierQuoteString);
+		}
 	}
 }
