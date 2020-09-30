@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data.Common;
 using Platform.Xml.Serialization;
 
@@ -19,6 +20,13 @@ namespace Shaolinq.Persistence
 		/// </summary>
 		[XmlAttribute]
 		public string ConnectionString { get; set; }
+
+		/// <summary>
+		/// The name of a connection string to use from the &lt;connectionStrings&gt; configuration section.
+		/// This is overridden by the <see cref="ConnectionString"/> property, if it is set.
+		/// </summary>
+		[XmlAttribute]
+		public string ConnectionStringName { get; set; }
 
 		/// <summary>
 		/// A comma deliminated list of categories that this connection/context belongs to.
@@ -92,5 +100,29 @@ namespace Shaolinq.Persistence
 		public List<Type> SqlDataTypes { get; set; }
 
 		public abstract SqlDatabaseContext CreateSqlDatabaseContext(DataAccessModel model);
+
+		/// <summary>
+		/// Get the actual connection string (either from the <see cref="ConnectionString" /> property, or from
+		/// the connection string referenced by <see cref="ConnectionStringName"/>).
+		/// </summary>
+		public virtual string GetConnectionString()
+		{
+			if (!string.IsNullOrWhiteSpace(this.ConnectionString))
+			{
+				return this.ConnectionString;
+			}
+
+			if (!string.IsNullOrWhiteSpace(this.ConnectionStringName))
+			{
+				var connectionString = ConfigurationManager.ConnectionStrings[this.ConnectionStringName]?.ConnectionString;
+
+				if (!string.IsNullOrWhiteSpace(connectionString))
+				{
+					return connectionString;
+				}
+			}
+
+			return null;
+		}
 	}
 }
