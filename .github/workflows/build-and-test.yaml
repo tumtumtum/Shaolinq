@@ -1,0 +1,27 @@
+name: CI
+
+on: push
+
+jobs:
+    build:
+        runs-on: windows-latest
+        env:
+          SLN_FILE_PATH: "src/Shaolinq.sln"
+          SHAOLINQ_TESTS_SQLSERVER_HOST: localhost
+          SHAOLINQ_TESTS_SQLSERVER_USERNAME: root_user
+          SHAOLINQ_TESTS_SQLSERVER_PASSWORD: r00t_p@$$w0rd1
+        steps:
+            - name: Chekout code
+              uses: actions/checkout@v2
+
+            - name: Setup MSBuild Path
+              uses: warrenbuckley/Setup-MSBuild@v1
+
+            - name: Setup NuGet
+              uses: NuGet/setup-nuget@v1.0.2
+             
+            - name: Restore NuGet Packages
+              run: nuget restore src/Shaolinq.sln
+         
+            - name: Build and Publish Web App
+              run: msbuild src/Shaolinq.sln /p:Configuration=Release
