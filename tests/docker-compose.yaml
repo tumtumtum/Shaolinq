@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+    postgress:
+        image: stellirin/postgres-windows:12-1909
+        ports:
+            - "5432:5432"
+    mysql:
+        image: pomelofoundation/mysql-windows:8-ltsc2019
+        ports: 
+            - "3306:3306"
+        environment:
+            - MYSQL_ROOT_HOST=%
+            - MYSQL_ROOT_PASSWORD=root
+    mssql:
+        image: microsoft/mssql-server-windows-express:1709
+        ports:
+            - "1433:1433"
+        environment: 
+            - ACCEPT_EULA=Y
+            - sa_password=r00t_p@$$w0rd1

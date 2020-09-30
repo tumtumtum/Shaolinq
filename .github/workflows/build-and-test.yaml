@@ -8,8 +8,8 @@ jobs:
         env:
           SLN_FILE_PATH: "src/Shaolinq.sln"
           SHAOLINQ_TESTS_SQLSERVER_HOST: localhost
-          SHAOLINQ_TESTS_SQLSERVER_USERNAME: root_user
-          SHAOLINQ_TESTS_SQLSERVER_PASSWORD: r00t_p@$$w0rd1
+          SHAOLINQ_TESTS_SQLSERVER_USERNAME: sa
+          SHAOLINQ_TESTS_SQLSERVER_PASSWORD: r00t_p@$w0rd1
         steps:
             - name: Chekout code
               uses: actions/checkout@v2
@@ -23,5 +23,5 @@ jobs:
             - name: Restore NuGet Packages
               run: nuget restore src/Shaolinq.sln
          
-            - name: Build and Publish Web App
+            - name: Build Solution
               run: msbuild src/Shaolinq.sln /p:Configuration=Release
