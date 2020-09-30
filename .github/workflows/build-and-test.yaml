@@ -24,4 +24,10 @@ jobs:
               run: nuget restore src/Shaolinq.sln
          
             - name: Build Solution
-              run: msbuild src/Shaolinq.sln /p:Configuration=Release
+              run: msbuild src/Shaolinq.sln /p:Configuration=Release -m
+
+            - name: Bring the docker-compose stack up
+              run: docker-compose  -f ./tests/docker-compose.yaml up -d
+
+            - name: Check running containers
+              run: docker ps -a

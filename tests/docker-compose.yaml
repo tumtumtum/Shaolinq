@@ -1,10 +1,15 @@
 version: "3.8"
 
+networks:
+    test-stand:
+
 services:
     postgress:
-        image: stellirin/postgres-windows:12-1909
+        image: stellirin/postgres-windows:9.4
         ports:
             - "5432:5432"
+        networks:
+            - test-stand
     mysql:
         image: pomelofoundation/mysql-windows:8-ltsc2019
         ports: 
@@ -12,6 +17,8 @@ services:
         environment:
             - MYSQL_ROOT_HOST=%
             - MYSQL_ROOT_PASSWORD=root
+        networks:
+            - test-stand
     mssql:
         image: microsoft/mssql-server-windows-express:1709
         ports:
@@ -19,3 +26,5 @@ services:
         environment: 
             - ACCEPT_EULA=Y
             - sa_password=r00t_p@$$w0rd1
+        networks:
+            - test-stand
