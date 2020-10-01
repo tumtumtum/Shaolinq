@@ -20,7 +20,7 @@ services:
         networks:
             - test-stand
     mssql:
-        image: microsoft/mssql-server-windows-express:1709
+        image: kkbruce/mssql-server-windows-express:windowsservercore-1809
         ports:
             - "1433:1433"
         environment: 

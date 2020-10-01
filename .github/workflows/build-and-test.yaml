@@ -22,10 +22,10 @@ jobs:
               uses: NuGet/setup-nuget@v1.0.2
              
             - name: Restore NuGet Packages
-              run: nuget restore src/Shaolinq.sln
+              run: nuget restore $Env:SLN_FILE_PATH
          
             - name: Build Solution
-              run: msbuild -nologo -verbosity:m src/Shaolinq.sln /p:Configuration=Release -m 
+              run: msbuild -nologo -verbosity:q $Env:SLN_FILE_PATH /p:Configuration=Release -m 
 
             - name: Download NUnitConsole Runner To Workspace
               uses: carlosperate/download-file-action@v1.0.3
@@ -33,19 +33,16 @@ jobs:
                 file-url: https://github.com/nunit/nunit-console/releases/download/v3.11.1/nunit-console-runner.3.11.1.nupkg
                 file-name: nunit-console.zip
 
-            - name: Chekout
-              run: echo $Env:GITHUB_WORKSPACE
             - name: Decompress console
               uses: Amadevus/pwsh-script@v2
               with: 
                 script: "Expand-Archive -Path nunit-console.zip -DestinationPath $Env:GITHUB_WORKSPACE/nunit"
-            - name: ls 
-              run: dir
-            #- name: Bring the docker-compose stack up
-             # run: docker-compose  -f ./tests/docker-compose.yaml up -d
 
-            #- name: Check running containers
-            #  run: docker ps -a
+            - name: Bring the docker-compose stack up
+              run: docker-compose  -f ./tests/docker-compose.yaml up -d
+
+            - name: Check running containers
+              run: docker ps -a
 
             - name: Run Unit-Tests
               run: ./nunit/tools/nunit3-console.exe ./tests/Shaolinq.Tests/bin/Release/Shaolinq.Tests.dll ./tests/Shaolinq.AsyncRewriter.Tests/bin/Release/Shaolinq.AsyncRewriter.Tests.dll
