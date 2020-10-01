@@ -3,7 +3,8 @@ name: CI
 on: push
 
 jobs:
-    build:
+    ci_build:
+        name: Build and Test
         runs-on: windows-latest
         env:
           SLN_FILE_PATH: "src/Shaolinq.sln"
@@ -31,11 +32,13 @@ jobs:
               with:
                 file-url: https://github.com/nunit/nunit-console/releases/download/v3.11.1/nunit-console-runner.3.11.1.nupkg
                 file-name: nunit-console.zip
-            
+
+            - name: Chekout
+              run: echo $Env:GITHUB_WORKSPACE
             - name: Decompress console
               uses: Amadevus/pwsh-script@v2
               with: 
-                script: "Expand-Archive -Path nunit-console.zip -DestinationPath /nunit"
+                script: "Expand-Archive -Path nunit-console.zip -DestinationPath $Env:GITHUB_WORKSPACE/nunit"
             - name: ls 
               run: dir
             #- name: Bring the docker-compose stack up
@@ -45,4 +48,4 @@ jobs:
             #  run: docker ps -a
 
             - name: Run Unit-Tests
-              run: $GITHUB_WORKSPACE/nunit/tools/nunit3-console.exe ./tests/Shaolinq.Tests/bin/Release/Shaolinq.Tests.dll ./tests/Shaolinq.AsyncRewriter.Tests/bin/Release/Shaolinq.AsyncRewriter.Tests.dll
+              run: ./nunit/tools/nunit3-console.exe ./tests/Shaolinq.Tests/bin/Release/Shaolinq.Tests.dll ./tests/Shaolinq.AsyncRewriter.Tests/bin/Release/Shaolinq.AsyncRewriter.Tests.dll
