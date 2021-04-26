@@ -19,16 +19,17 @@ namespace Shaolinq.SqlServer
 
 			command.CommandText = 
 @"DECLARE @table_name SYSNAME;
+DECLARE @schema_name SYSNAME;
 DECLARE @cmd NVARCHAR(MAX);
-DECLARE table_cursor CURSOR FOR SELECT name FROM sys.tables;
+DECLARE table_cursor CURSOR FOR SELECT t.name, s.name FROM sys.tables t INNER JOIN sys.schemas s ON s.schema_id = t.schema_id;
 
 OPEN table_cursor;
-FETCH NEXT FROM table_cursor INTO @table_name;
+FETCH NEXT FROM table_cursor INTO @table_name, @schema_name;
 
 WHILE @@FETCH_STATUS = 0 BEGIN
-  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' NOCHECK CONSTRAINT ALL';
+  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@schema_name)+'.'+QUOTENAME(@table_name)+' NOCHECK CONSTRAINT ALL';
   EXEC (@cmd);
-  FETCH NEXT FROM table_cursor INTO @table_name;
+  FETCH NEXT FROM table_cursor INTO @table_name, @schema_name;
 END
 
 CLOSE table_cursor;
@@ -45,16 +46,17 @@ DEALLOCATE table_cursor;";
 
 			command.CommandText =
 @"DECLARE @table_name SYSNAME;
+DECLARE @schema_name SYSNAME;
 DECLARE @cmd NVARCHAR(MAX);
-DECLARE table_cursor CURSOR FOR SELECT name FROM sys.tables;
+DECLARE table_cursor CURSOR FOR SELECT t.name, s.name FROM sys.tables t INNER JOIN sys.schemas s ON s.schema_id = t.schema_id;
 
 OPEN table_cursor;
-FETCH NEXT FROM table_cursor INTO @table_name;
+FETCH NEXT FROM table_cursor INTO @table_name, @schema_name;
 
 WHILE @@FETCH_STATUS = 0 BEGIN
-  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@table_name)+' WITH CHECK CHECK CONSTRAINT ALL';
+  SELECT @cmd = 'ALTER TABLE '+QUOTENAME(@schema_name)+'.'+QUOTENAME(@table_name)+' WITH CHECK CHECK CONSTRAINT ALL';
   EXEC (@cmd);
-  FETCH NEXT FROM table_cursor INTO @table_name;
+  FETCH NEXT FROM table_cursor INTO @table_name, @schema_name;
 END
 
 CLOSE table_cursor;

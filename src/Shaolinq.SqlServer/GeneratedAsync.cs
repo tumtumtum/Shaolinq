@@ -93,5 +93,31 @@ namespace Shaolinq.SqlServer
 				}
 			}
 		}
+
+		protected override Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
+		{
+			return this.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, CancellationToken.None);
+		}
+
+		protected override async Task CreateDatabaseSchemaAsync(Expression dataDefinitionExpressions, DatabaseCreationOptions options, CancellationToken cancellationToken)
+		{
+			if (!string.IsNullOrEmpty(this.SqlDatabaseContext.SchemaName))
+			{
+				var factory = this.SqlDatabaseContext.CreateDbProviderFactory();
+				using (var dbConnection = factory.CreateConnection())
+				{
+					dbConnection.ConnectionString = this.SqlDatabaseContext.ServerConnectionString;
+					await dbConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
+					dbConnection.ChangeDatabase(this.SqlDatabaseContext.DatabaseName);
+					using (var command = dbConnection.CreateCommand())
+					{
+						command.CommandText = $"IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE NAME = '{this.SqlDatabaseContext.SchemaName}') EXEC ('CREATE SCHEMA [{this.SqlDatabaseContext.SchemaName}]');";
+						await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+					}
+				}
+			}
+
+			await base.CreateDatabaseSchemaAsync(dataDefinitionExpressions, options, cancellationToken).ConfigureAwait(false);
+		}
 	}
 }

@@ -107,6 +107,7 @@ namespace Shaolinq.Postgres
 			return retval;
 		}
 
+		[RewriteAsync]
 		protected override void CreateDatabaseSchema(Expression dataDefinitionExpressions, DatabaseCreationOptions options)
 		{
 			if (!string.IsNullOrEmpty(this.SqlDatabaseContext.SchemaName))
