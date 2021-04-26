@@ -38,7 +38,7 @@ namespace Shaolinq.TypeBuilding
 
 			foreach (var type in this.TypeDescriptorProvider.GetTypeDescriptors())
 			{
-				var concreteType = concreteAssembly.GetType(type.Type.Namespace + "." + type.Type.Name);
+				var concreteType = concreteAssembly.GetType(type.GetGeneratedTypeName());
 
 				this.concreteTypesByType[type.Type] = concreteType;
 				this.typesByConcreteType[concreteType] = type.Type;

@@ -98,7 +98,7 @@ namespace Shaolinq.TypeBuilding
 		{
 			if (typeBuildContext.IsFirstPass())
 			{
-				var typeName = this.baseType.Namespace + "." + this.baseType.Name;
+				var typeName = this.typeDescriptor.GetGeneratedTypeName();
 
 				this.typeBuilder = this.ModuleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, this.baseType);
 				this.dataObjectTypeTypeBuilder = this.ModuleBuilder.DefineType(typeName + "Data", TypeAttributes.Class | TypeAttributes.Public, typeof(object));
@@ -1709,12 +1709,10 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Brtrue, returnTrueLabel);
 
 			generator.Emit(OpCodes.Ldarg_0);
-			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
 
 			generator.Emit(OpCodes.Ldloc, local);
-			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetProperty<IDataAccessObjectAdvanced>(c => c.IsMissingAnyDirectOrIndirectServerSideGeneratedPrimaryKeys).GetGetMethod());
 			generator.Emit(OpCodes.Brtrue, returnFalseLabel);
 
@@ -1970,7 +1968,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Brtrue, label);
 			
-			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ret);
 
 			generator.MarkLabel(label);
@@ -1979,6 +1977,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ldc_I4_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObjectDataContext>(c => c.CacheObject(default(DataAccessObject), default(bool))));
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -1997,7 +1996,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Brtrue, label);
 			
-			generator.Emit(OpCodes.Ldloc, local);
+			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Ret);
 
 			generator.MarkLabel(label);
@@ -2005,6 +2004,7 @@ namespace Shaolinq.TypeBuilding
 			generator.Emit(OpCodes.Ldloc, local);
 			generator.Emit(OpCodes.Ldarg_0);
 			generator.Emit(OpCodes.Callvirt, TypeUtils.GetMethod<DataAccessObjectDataContext>(c => c.EvictObject(default(DataAccessObject))));
+			generator.Emit(OpCodes.Castclass, typeof(IDataAccessObjectInternal));
 			generator.Emit(OpCodes.Ret);
 		}
 
@@ -2532,6 +2532,10 @@ namespace Shaolinq.TypeBuilding
 
 				path.Add(visited);
 
+				if (currentObject.LocalType.IsDataAccessObjectType() && !first)
+				{
+					generator.Emit(OpCodes.Castclass, currentObject.LocalType);
+				}
 				generator.Emit(OpCodes.Stloc, currentObject);
 
 				if (currentObject.LocalType.IsDataAccessObjectType() && !first)
