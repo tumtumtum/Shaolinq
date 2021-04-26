@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using Platform;
 using Platform.Reflection;
 using Shaolinq.Persistence.Computed;
@@ -38,6 +39,50 @@ namespace Shaolinq.Persistence
 		private readonly Dictionary<Type, PropertyDescriptor> relatedPropertiesByType = new Dictionary<Type, PropertyDescriptor>();
 
 		public override string ToString() => "TypeDescriptor: " + this.Type.Name;
+
+		public string GetGeneratedTypeName()
+		{
+			var sb = new StringBuilder();
+
+			BuildGeneratedTypeName(this.Type, sb);
+
+			return sb.ToString();
+		}
+
+		private static void BuildGeneratedTypeName(Type t, StringBuilder sb, bool replaceDots = false)
+		{
+			if (t.IsGenericType)
+			{
+				var typeName = t.FullName.Substring(0, t.FullName.IndexOf('`'));
+
+				if (replaceDots)
+				{
+					typeName = typeName.Replace('.', '_');
+				}
+				
+				sb.Append(typeName);
+
+				sb.Append("$");
+
+				foreach (var genericTypeArg in t.GenericTypeArguments)
+				{
+					sb.Append("$");
+
+					BuildGeneratedTypeName(genericTypeArg, sb, true);
+				}
+			}
+			else
+			{
+				var typeName = t.FullName;
+
+				if (replaceDots)
+				{
+					typeName = typeName.Replace('.', '_');
+				}
+
+				sb.Append(typeName);
+			}
+		}
 
 		public static bool IsSimpleType(Type type)
 		{

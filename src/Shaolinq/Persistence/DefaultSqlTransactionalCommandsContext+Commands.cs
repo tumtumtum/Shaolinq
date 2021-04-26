@@ -111,6 +111,11 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
+				if (dataAccessObject.GetAdvanced().IsCommitted)
+				{
+					continue;
+				}
+
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 
 				if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
@@ -152,6 +157,8 @@ namespace Shaolinq.Persistence
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
 				}
+
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 			}
 		}
 
@@ -169,21 +176,28 @@ namespace Shaolinq.Persistence
 
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
+				if (dataAccessObject.GetAdvanced().IsCommitted)
+				{
+					continue;
+				}
+
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 
 				switch (objectState & DataAccessObjectState.NewChanged)
 				{
-				case DataAccessObjectState.Unchanged:
-					continue;
-				case DataAccessObjectState.New:
-				case DataAccessObjectState.NewChanged:
-					break;
-				case DataAccessObjectState.Changed:
-					throw new NotSupportedException($"Changed state not supported {objectState}");
+					case DataAccessObjectState.Unchanged:
+						continue;
+					case DataAccessObjectState.New:
+					case DataAccessObjectState.NewChanged:
+						break;
+					case DataAccessObjectState.Changed:
+						throw new NotSupportedException($"Changed state not supported {objectState}");
 				}
 
 				var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;
-				var constraintsDeferrableOrNotReferencingNewObject = (canDefer && this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability)) || (objectState & DataAccessObjectState.ReferencesNewObject) == 0;
+				var constraintsDeferrableOrNotReferencingNewObject =
+					(canDefer && this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability)) ||
+					((objectState & DataAccessObjectState.ReferencesNewObject) == 0);
 				var objectReadyToBeCommited = primaryKeyIsComplete && constraintsDeferrableOrNotReferencingNewObject;
 
 				if (objectReadyToBeCommited)
@@ -246,11 +260,12 @@ retryInsert:
 
 						if ((objectState & DataAccessObjectState.ReferencesNewObjectWithServerSideProperties) == DataAccessObjectState.ReferencesNewObjectWithServerSideProperties)
 						{
+							dataAccessObject.ToObjectInternal().SetIsCommitted(false);
 							listToFixup.Add(dataAccessObject);
 						}
 						else
 						{
-							dataAccessObject.ToObjectInternal().ResetModified();
+							dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 						}
 					}
 				}
@@ -316,6 +331,11 @@ retryInsert:
 			}
 
 			((ISqlQueryProvider)provider).Execute<int>(expression);
+
+			foreach (var dataAccessObject in dataAccessObjects)
+			{
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
+			}
 		}
 
 		public virtual Expression BuildDeleteExpression(Type type, IEnumerable<DataAccessObject> dataAccessObjects)

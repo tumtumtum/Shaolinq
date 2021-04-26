@@ -1272,6 +1272,11 @@ namespace Shaolinq.Persistence
 			var typeDescriptor = this.DataAccessModel.GetTypeDescriptor(type);
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
+				if (dataAccessObject.GetAdvanced().IsCommitted)
+				{
+					continue;
+				}
+
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 				if ((objectState & (DataAccessObjectState.Changed | DataAccessObjectState.ServerSidePropertiesHydrated)) == 0)
 				{
@@ -1308,6 +1313,8 @@ namespace Shaolinq.Persistence
 						throw new MissingDataAccessObjectException(dataAccessObject, null, command.CommandText);
 					}
 				}
+
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 			}
 		}
 
@@ -1323,6 +1330,11 @@ namespace Shaolinq.Persistence
 			var canDefer = !this.DataAccessModel.hasAnyAutoIncrementValidators;
 			foreach (var dataAccessObject in dataAccessObjects)
 			{
+				if (dataAccessObject.GetAdvanced().IsCommitted)
+				{
+					continue;
+				}
+
 				var objectState = dataAccessObject.GetAdvanced().ObjectState;
 				switch (objectState & DataAccessObjectState.NewChanged)
 				{
@@ -1336,7 +1348,7 @@ namespace Shaolinq.Persistence
 				}
 
 				var primaryKeyIsComplete = (objectState & DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties) != DataAccessObjectState.PrimaryKeyReferencesNewObjectWithServerSideProperties;
-				var constraintsDeferrableOrNotReferencingNewObject = (canDefer && this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability)) || (objectState & DataAccessObjectState.ReferencesNewObject) == 0;
+				var constraintsDeferrableOrNotReferencingNewObject = (canDefer && this.SqlDatabaseContext.SqlDialect.SupportsCapability(SqlCapability.Deferrability)) || ((objectState & DataAccessObjectState.ReferencesNewObject) == 0);
 				var objectReadyToBeCommited = primaryKeyIsComplete && constraintsDeferrableOrNotReferencingNewObject;
 				if (objectReadyToBeCommited)
 				{
@@ -1388,11 +1400,12 @@ namespace Shaolinq.Persistence
 
 						if ((objectState & DataAccessObjectState.ReferencesNewObjectWithServerSideProperties) == DataAccessObjectState.ReferencesNewObjectWithServerSideProperties)
 						{
+							dataAccessObject.ToObjectInternal().SetIsCommitted(false);
 							listToFixup.Add(dataAccessObject);
 						}
 						else
 						{
-							dataAccessObject.ToObjectInternal().ResetModified();
+							dataAccessObject.ToObjectInternal().SetIsCommitted(true);
 						}
 					}
 				}
@@ -1454,6 +1467,10 @@ namespace Shaolinq.Persistence
 			}
 
 			await ((ISqlQueryProvider)provider).ExecuteAsync<int>(expression, cancellationToken).ConfigureAwait(false);
+			foreach (var dataAccessObject in dataAccessObjects)
+			{
+				dataAccessObject.ToObjectInternal().SetIsCommitted(true);
+			}
 		}
 	}
 }
