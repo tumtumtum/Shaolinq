@@ -52,7 +52,7 @@ namespace Shaolinq.SqlServer
 		public static SqlServerSqlDatabaseContext Create(SqlServerSqlDatabaseContextInfo contextInfo, DataAccessModel model)
 		{
 			var constraintDefaults = model.Configuration.ConstraintDefaultsConfiguration;
-			var sqlDataTypeProvider = CreateSqlDataTypeProvider(model, contextInfo, () => new SqlServerSqlDataTypeProvider(constraintDefaults));
+			var sqlDataTypeProvider = CreateSqlDataTypeProvider(model, contextInfo, () => new SqlServerSqlDataTypeProvider(constraintDefaults, contextInfo.NativeGuids));
 			var sqlDialect = new SqlServerSqlDialect(contextInfo);
 			var typeDescriptorProvider = model.TypeDescriptorProvider;
 			var sqlQueryFormatterManager = new DefaultSqlQueryFormatterManager(sqlDialect, model.Configuration.NamingTransforms, (options, connection) => new SqlServerSqlQueryFormatter(options, sqlDialect, sqlDataTypeProvider, typeDescriptorProvider, contextInfo, ((SqlConnection)connection)?.ServerVersion));

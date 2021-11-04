@@ -78,6 +78,7 @@
     <Compile Include="SqlServerSubqueryOrderByFixer.cs" />
     <Compile Include="SqlServerUniqueNullIndexAnsiComplianceFixer.cs" />
     <Compile Include="SqlTakeAllValueExpression.cs" />
+    <Compile Include="SqlServerUniqueIdentifierSqlDataType.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shaolinq\Shaolinq.csproj">

@@ -11,8 +11,8 @@ namespace Shaolinq.Postgres
 		private readonly TypeDescriptorProvider typeDescriptorProvider;
 		private readonly SqlDataType blobSqlDataType;
 
-		public bool NativeUuids { get; set; }
-		public bool NativeEnums { get; set; }
+		public bool NativeUuids { get; }
+		public bool NativeEnums { get; }
 
 		protected override SqlDataType GetBlobDataType()
 		{
